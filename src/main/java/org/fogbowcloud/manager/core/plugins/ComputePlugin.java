@@ -11,17 +11,17 @@ public interface ComputePlugin {
 
 	public String requestInstance(ComputeOrder computeOrder, String imageId);
 
-	public ComputeInstance getInstance(Token localToken, String instanceId); 
-	
+	public ComputeInstance getInstance(Token localToken, String instanceId);
+
 	public List<ComputeInstance> getInstances(Token localToken);
-	
+
 	public void removeInstance(Token localToken, String instanceId);
-	
+
 	public void removeInstances(Token localToken);
-		
+
 	public String attachStorage(Token localToken, StorageLink storageLink);
 
 	public String detachStorage(Token localToken, StorageLink storageLink);
-	
+
 	public String getImageId(Token localToken, String imageName);
 }
