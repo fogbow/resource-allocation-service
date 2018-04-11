@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.core.models.orders;
 import org.fogbowcloud.manager.core.models.NetworkLink;
 import org.fogbowcloud.manager.core.models.StorageLink;
 
-public class ComputeOrder {
+public class ComputeOrder extends Order {
 
 	private int vCPU;
 	/** Memory attribute, must be set in MB. */

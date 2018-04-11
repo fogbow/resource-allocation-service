@@ -1,6 +1,6 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-public class NetworkOrder {
+public class NetworkOrder extends Order {
 
     private String gateway;
     private String address;
