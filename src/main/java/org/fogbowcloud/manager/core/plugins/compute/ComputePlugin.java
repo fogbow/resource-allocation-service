@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins;
+package org.fogbowcloud.manager.core.plugins.compute;
 
 import java.util.List;
 
