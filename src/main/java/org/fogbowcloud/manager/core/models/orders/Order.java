@@ -3,24 +3,54 @@ package org.fogbowcloud.manager.core.models.orders;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 
+import javax.persistence.*;
+
+@Entity
+@Table(name = "order")
 public class Order {
 
-	private String id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	@Column(name = "id", nullable = false, unique = true)
+	private Long id;
+
+	@Column(name = "orderState")
 	private OrderState orderState;
+
+	@Column(name = "localToken")
 	private Token localToken;
+
+	@Column(name = "federationToken")
 	private Token federationToken;
+
+	@Column(name = "requestingMember")
 	private String requestingMember;
+
+	@Column(name = "providingMember")
 	private String providingMember;
+
+	@Column(name = "orderInstace")
 	private OrderInstance orderInstace;
+
+	@Column(name = "fulfilledTime")
 	private long fulfilledTime;
 
-	public String getId() {
-		return id;
+	protected Order(){ }
+
+	public Order(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
+				 String providingMember, OrderInstance orderInstace, long fulfilledTime) {
+		this.orderState = orderState;
+		this.localToken = localToken;
+		this.federationToken = federationToken;
+		this.requestingMember = requestingMember;
+		this.providingMember = providingMember;
+		this.orderInstace = orderInstace;
+		this.fulfilledTime = fulfilledTime;
 	}
 
-	public void setId(String id) {
-		this.id = id;
-	}
+	public Long getId() { return id; }
+
+	public void setId(Long id) { this.id = id; }
 
 	public OrderState getOrderState() {
 		return orderState;

@@ -2,17 +2,44 @@ package org.fogbowcloud.manager.core.models.orders;
 
 import org.fogbowcloud.manager.core.models.NetworkLink;
 import org.fogbowcloud.manager.core.models.StorageLink;
+import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
+import org.fogbowcloud.manager.core.models.token.Token;
+
+import javax.persistence.Column;
 
 public class ComputeOrder extends Order {
 
+	@Column(name = "vCPU", nullable = false)
 	private int vCPU;
+
 	/** Memory attribute, must be set in MB. */
+	@Column(name = "memory", nullable = false)
 	private int memory;
+
 	/** Disk attribute, must be set in GB. */
+	@Column(name = "disk", nullable = false)
 	private int disk;
+
+	@Column(name = "userData")
 	private UserData userData;
+
+	@Column(name = "networkLink")
 	private NetworkLink networkLink;
+
+	@Column(name = "storageLink")
 	private StorageLink storageLink;
+
+	public ComputeOrder(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
+						String providingMember, OrderInstance orderInstace, long fulfilledTime, int vCPU, int memory,
+						int disk, UserData userData, NetworkLink networkLink, StorageLink storageLink) {
+		super(orderState, localToken, federationToken, requestingMember, providingMember, orderInstace, fulfilledTime);
+		this.vCPU = vCPU;
+		this.memory = memory;
+		this.disk = disk;
+		this.userData = userData;
+		this.networkLink = networkLink;
+		this.storageLink = storageLink;
+	}
 
 	public int getvCPU() {
 		return vCPU;
