@@ -4,8 +4,11 @@ public class ComputeOrderInstance extends OrderInstance {
 
     private String hostName;
     private int vCPU;
-    /** Memory attribute, must be set in MB. */
+    /**
+     *  Memory attribute, must be set in MB.
+     */
     private int memory;
+    private InstanceState state;
     private String localIpAddress;
     private String sshPublicAddress;
     private String sshUserName;
@@ -66,4 +69,8 @@ public class ComputeOrderInstance extends OrderInstance {
     public void setSshExtraPorts(String sshExtraPorts) {
         this.sshExtraPorts = sshExtraPorts;
     }
+
+    public InstanceState getState() { return state; }
+
+    public void setState(InstanceState state) { this.state = state; }
 }
