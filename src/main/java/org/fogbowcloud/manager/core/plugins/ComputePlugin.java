@@ -3,8 +3,8 @@ package org.fogbowcloud.manager.core.plugins;
 import java.util.List;
 
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
+import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.models.StorageLink;
-import org.fogbowcloud.manager.core.models.Token;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 
 public interface ComputePlugin {
