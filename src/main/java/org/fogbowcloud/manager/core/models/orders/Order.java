@@ -1,7 +1,7 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import org.fogbowcloud.manager.core.models.OrderState;
 import org.fogbowcloud.manager.core.models.Token;
+import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 
 public class Order {
 
@@ -11,7 +11,7 @@ public class Order {
 	private Token federationToken;
 	private String requestingMember;
 	private String providingMember;
-	private String instanceId;
+	private OrderInstance orderInstace;
 	private long fulfilledTime;
 
 	public String getId() {
@@ -62,12 +62,12 @@ public class Order {
 		this.providingMember = providingMember;
 	}
 
-	public String getInstanceId() {
-		return instanceId;
+	public OrderInstance getOrderInstace() {
+		return orderInstace;
 	}
 
-	public void setInstanceId(String instanceId) {
-		this.instanceId = instanceId;
+	public void setOrderInstace(OrderInstance orderInstace) {
+		this.orderInstace = orderInstace;
 	}
 
 	public long getFulfilledTime() {
@@ -85,7 +85,7 @@ public class Order {
 		result = prime * result + ((federationToken == null) ? 0 : federationToken.hashCode());
 		result = prime * result + (int) (fulfilledTime ^ (fulfilledTime >>> 32));
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((instanceId == null) ? 0 : instanceId.hashCode());
+		result = prime * result + ((orderInstace == null) ? 0 : orderInstace.hashCode());
 		result = prime * result + ((localToken == null) ? 0 : localToken.hashCode());
 		result = prime * result + ((orderState == null) ? 0 : orderState.hashCode());
 		result = prime * result + ((providingMember == null) ? 0 : providingMember.hashCode());
@@ -114,10 +114,10 @@ public class Order {
 				return false;
 		} else if (!id.equals(other.id))
 			return false;
-		if (instanceId == null) {
-			if (other.instanceId != null)
+		if (orderInstace == null) {
+			if (other.orderInstace != null)
 				return false;
-		} else if (!instanceId.equals(other.instanceId))
+		} else if (!orderInstace.equals(other.orderInstace))
 			return false;
 		if (localToken == null) {
 			if (other.localToken != null)
@@ -146,6 +146,6 @@ public class Order {
 	public String toString() {
 		return "Order [id=" + id + ", orderState=" + orderState + ", localToken=" + localToken + ", federationToken="
 				+ federationToken + ", requestingMember=" + requestingMember + ", providingMember=" + providingMember
-				+ ", instanceId=" + instanceId + ", fulfilledTime=" + fulfilledTime + "]";
+				+ ", orderInstace=" + orderInstace + ", fulfilledTime=" + fulfilledTime + "]";
 	}
 }

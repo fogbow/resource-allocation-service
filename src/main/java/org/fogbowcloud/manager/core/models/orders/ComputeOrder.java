@@ -6,9 +6,11 @@ import org.fogbowcloud.manager.core.models.StorageLink;
 public class ComputeOrder {
 
 	private int vCPU;
+	/** Memory attribute, must be set in MB. */
 	private int memory;
+	/** Disk attribute, must be set in GB. */
 	private int disk;
-	private String userData;
+	private UserData userData;
 	private NetworkLink networkLink;
 	private StorageLink storageLink;
 
@@ -36,11 +38,11 @@ public class ComputeOrder {
 		this.disk = disk;
 	}
 
-	public String getUserData() {
+	public UserData getUserData() {
 		return userData;
 	}
 
-	public void setUserData(String userData) {
+	public void setUserData(UserData userData) {
 		this.userData = userData;
 	}
 
