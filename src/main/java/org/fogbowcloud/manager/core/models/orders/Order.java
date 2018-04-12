@@ -1,24 +1,21 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 
 @Entity
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Table(name = "tb_order")
-public class Order {
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "type")
+@JsonSubTypes({ @JsonSubTypes.Type(value = ComputeOrder.class, name = "COMPUTE"),
+		@JsonSubTypes.Type(value = NetworkOrder.class, name = "NETWORK"),
+		@JsonSubTypes.Type(value = StorageOrder.class, name = "STORAGE")})
+public abstract class Order {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
@@ -46,7 +43,7 @@ public class Order {
 
 	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "order_instance")
-	private OrderInstance orderInstace;
+	private OrderInstance orderInstance;
 
 	@Column(name = "fulfilledTime")
 	private Long fulfilledTime;
@@ -62,7 +59,7 @@ public class Order {
 		this.federationToken = federationToken;
 		this.requestingMember = requestingMember;
 		this.providingMember = providingMember;
-		this.orderInstace = orderInstace;
+		this.orderInstance = orderInstace;
 		this.fulfilledTime = fulfilledTime;
 	}
 
@@ -114,12 +111,12 @@ public class Order {
 		this.providingMember = providingMember;
 	}
 
-	 public OrderInstance getOrderInstace() {
-	 return orderInstace;
+	 public OrderInstance getOrderInstance() {
+	 return orderInstance;
 	 }
 	
-	 public void setOrderInstace(OrderInstance orderInstace) {
-	 this.orderInstace = orderInstace;
+	 public void setOrderInstance(OrderInstance orderInstance) {
+	 this.orderInstance = orderInstance;
 	 }
 
 	public long getFulfilledTime() {
@@ -138,7 +135,7 @@ public class Order {
 		result = prime * result + ((fulfilledTime == null) ? 0 : fulfilledTime.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		result = prime * result + ((localToken == null) ? 0 : localToken.hashCode());
-		result = prime * result + ((orderInstace == null) ? 0 : orderInstace.hashCode());
+		result = prime * result + ((orderInstance == null) ? 0 : orderInstance.hashCode());
 		result = prime * result + ((orderState == null) ? 0 : orderState.hashCode());
 		result = prime * result + ((providingMember == null) ? 0 : providingMember.hashCode());
 		result = prime * result + ((requestingMember == null) ? 0 : requestingMember.hashCode());
@@ -174,10 +171,10 @@ public class Order {
 				return false;
 		} else if (!localToken.equals(other.localToken))
 			return false;
-		if (orderInstace == null) {
-			if (other.orderInstace != null)
+		if (orderInstance == null) {
+			if (other.orderInstance != null)
 				return false;
-		} else if (!orderInstace.equals(other.orderInstace))
+		} else if (!orderInstance.equals(other.orderInstance))
 			return false;
 		if (orderState != other.orderState)
 			return false;

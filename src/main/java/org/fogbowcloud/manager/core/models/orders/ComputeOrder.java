@@ -1,44 +1,39 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import org.fogbowcloud.manager.core.models.NetworkLink;
-import org.fogbowcloud.manager.core.models.StorageLink;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 
-import javax.persistence.Column;
+import javax.persistence.*;
 
+@Entity
+@DiscriminatorValue(value = "compute")
 public class ComputeOrder extends Order {
 
-	@Column(name = "vCPU", nullable = false)
+	@Column(name = "vCPU")
 	private int vCPU;
 
 	/** Memory attribute, must be set in MB. */
-	@Column(name = "memory", nullable = false)
+	@Column(name = "memory")
 	private int memory;
 
 	/** Disk attribute, must be set in GB. */
-	@Column(name = "disk", nullable = false)
+	@Column(name = "disk")
 	private int disk;
 
-	@Column(name = "userData")
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "user_data_id")
 	private UserData userData;
 
-	@Column(name = "networkLink")
-	private NetworkLink networkLink;
-
-	@Column(name = "storageLink")
-	private StorageLink storageLink;
+	public ComputeOrder(){ }
 
 	public ComputeOrder(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
-						String providingMember, OrderInstance orderInstace, long fulfilledTime, int vCPU, int memory,
-						int disk, UserData userData, NetworkLink networkLink, StorageLink storageLink) {
-		super(orderState, localToken, federationToken, requestingMember, providingMember, orderInstace, fulfilledTime);
+						String providingMember, OrderInstance orderInstance, long fulfilledTime, int vCPU, int memory,
+						int disk, UserData userData) {
+		super(orderState, localToken, federationToken, requestingMember, providingMember, orderInstance, fulfilledTime);
 		this.vCPU = vCPU;
 		this.memory = memory;
 		this.disk = disk;
 		this.userData = userData;
-		this.networkLink = networkLink;
-		this.storageLink = storageLink;
 	}
 
 	public int getvCPU() {
@@ -73,30 +68,12 @@ public class ComputeOrder extends Order {
 		this.userData = userData;
 	}
 
-	public NetworkLink getNetworkLink() {
-		return networkLink;
-	}
-
-	public void setNetworkLink(NetworkLink networkLink) {
-		this.networkLink = networkLink;
-	}
-
-	public StorageLink getStorageLink() {
-		return storageLink;
-	}
-
-	public void setStorageLink(StorageLink storageLink) {
-		this.storageLink = storageLink;
-	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + disk;
 		result = prime * result + memory;
-		result = prime * result + ((networkLink == null) ? 0 : networkLink.hashCode());
-		result = prime * result + ((storageLink == null) ? 0 : storageLink.hashCode());
 		result = prime * result + ((userData == null) ? 0 : userData.hashCode());
 		result = prime * result + vCPU;
 		return result;
@@ -115,16 +92,6 @@ public class ComputeOrder extends Order {
 			return false;
 		if (memory != other.memory)
 			return false;
-		if (networkLink == null) {
-			if (other.networkLink != null)
-				return false;
-		} else if (!networkLink.equals(other.networkLink))
-			return false;
-		if (storageLink == null) {
-			if (other.storageLink != null)
-				return false;
-		} else if (!storageLink.equals(other.storageLink))
-			return false;
 		if (userData == null) {
 			if (other.userData != null)
 				return false;
@@ -137,7 +104,6 @@ public class ComputeOrder extends Order {
 
 	@Override
 	public String toString() {
-		return "ComputeOrder [vCPU=" + vCPU + ", memory=" + memory + ", disk=" + disk + ", userData=" + userData
-				+ ", networkLink=" + networkLink + ", storageLink=" + storageLink + "]";
+		return "ComputeOrder [vCPU=" + vCPU + ", memory=" + memory + ", disk=" + disk + ", userData=" + userData + "]";
 	}
 }

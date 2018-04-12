@@ -10,3 +10,4 @@ public class FogbowManagerApplication {
 		SpringApplication.run(FogbowManagerApplication.class, args);
 	}
 }
+
