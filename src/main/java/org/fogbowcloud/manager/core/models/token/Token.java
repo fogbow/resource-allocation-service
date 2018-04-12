@@ -56,10 +56,6 @@ public class Token {
 		return expirationDateMillis < dateUtils.currentTimeMillis();
 	}
 
-	public void setDateUtils(DateUtils dateUtils) {
-		this.dateUtils = dateUtils;
-	}
-
 	@Override
 	public String toString() {
 		return "Token [attributes=" + attributes + ", " + ", user=" + user + "]";
