@@ -84,7 +84,6 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 		this.publicKeyPath = properties.getProperty(PUBLIC_KEY_PATH);
 	}
 
-	@Override
 	public Token createToken(Map<String, String> userCredentials) {
 
 		String userId = userCredentials.get(CRED_USERNAME);
@@ -145,12 +144,10 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 		}
 	}
 
-	@Override
 	public Token reIssueToken(Token token) {
 		return token;
 	}
 
-	@Override
 	public Token getToken(String accessId) {
 		try {
 			String decodedAccessId = new String(Base64.decodeBase64(accessId), Charsets.UTF_8);
@@ -271,7 +268,6 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 
 	}
 
-	@Override
 	public boolean isValid(String accessId) {
 		try {
 			getToken(accessId);
@@ -325,7 +321,6 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 		}
 	}
 
-	@Override
 	public Credential[] getCredentials() {
 		return new Credential[] { new Credential(CRED_USERNAME, true, null), 
 				new Credential(CRED_PASSWORD, true, null),
@@ -336,12 +331,10 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 				new Credential(CRED_PUBLIC_KEY, false, null) };
 	}
 
-	@Override
 	public String getAuthenticationURI() {
 		return null;
 	}
 
-	@Override
 	public Token getForwardableToken(Token originalToken) {
 		return originalToken;
 	}
