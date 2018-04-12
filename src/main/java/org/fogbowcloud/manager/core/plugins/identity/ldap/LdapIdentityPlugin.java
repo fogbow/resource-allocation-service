@@ -35,6 +35,11 @@ import org.fogbowcloud.manager.core.plugins.identity.util.RSAUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * FIXME: BY THE FACT THAT THIS CODE IS NATURALLY COMPLEX, IS NECESSARY TO WRITE A DOCUMENTATION FOR THIS CODE.
+ *
+ */
+
 public class LdapIdentityPlugin implements IdentityPlugin {
 
 	private static final String ATT_EXPIRATION_DATE = "expirationDate";
@@ -82,7 +87,7 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 	@Override
 	public Token createToken(Map<String, String> userCredentials) {
 
-		String uid = userCredentials.get(CRED_USERNAME);
+		String userId = userCredentials.get(CRED_USERNAME);
 		String password = userCredentials.get(CRED_PASSWORD);
 		String name = null;
 
@@ -91,7 +96,7 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 		parseCredentials(userCredentials);
 
 		try {
-			name = ldapAuthenticate(uid, password);
+			name = ldapAuthenticate(userId, password);
 		} catch (Exception e) {
 			LOGGER.error("Couldn't load account summary from LDAP Server.", e);
 			Integer statusResponse = HttpStatus.SC_UNAUTHORIZED;
@@ -103,7 +108,7 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 
 		try {
 			JSONObject json = new JSONObject();
-			json.put(ATT_LOGIN, uid);
+			json.put(ATT_LOGIN, userId);
 			json.put(ATT_NAME, name);
 			json.put(ATT_EXPIRATION_DATE, expirationDate.getTime());
 
@@ -113,7 +118,7 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 
 			accessId = new String(Base64.encodeBase64(accessId.getBytes(Charsets.UTF_8), false, false), Charsets.UTF_8);
 
-			return new Token(accessId, new Token.User(uid, name), expirationDate, attributes);
+			return new Token(accessId, new Token.User(userId, name), expirationDate, attributes);
 		} catch (Exception e) {
 			LOGGER.error("Erro while trying to sign the token.", e);
 			Integer statusResponse = HttpStatus.SC_UNAUTHORIZED;
@@ -290,8 +295,8 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 			publicKey = RSAUtils.getPublicKey(this.publicKeyPath);
 			return RSAUtils.verify(publicKey, tokenMessage, signature);
 		} catch (Exception e) {
-			LOGGER.error("Erro while trying to validate sing of the token.", e);
-			throw new RuntimeException("Erro while trying to validate sing of the token.");
+			LOGGER.error("Error while trying to validate sing of the token.", e);
+			throw new RuntimeException("Error while trying to validate sing of the token.");
 		}
 	}
 

@@ -27,6 +27,11 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.bouncycastle.util.encoders.Base64;
 
+/**
+ * FIXME: BY THE FACT THAT THIS CODE IS NATURALLY COMPLEX, IS NECESSARY TO WRITE A DOCUMENTATION FOR THIS CODE.
+ *
+ */
+
 public class RSAUtils {
 	
 	private static String getKey(String filename) throws IOException {
