@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "compute")
 public class ComputeOrdersController {
 	@RequestMapping(method = RequestMethod.POST)
-	public ResponseEntity<ComputeOrder> createCompute(@RequestBody ComputeOrder ComputeOrder) {
-		return new ResponseEntity<ComputeOrder>(HttpStatus.OK);
+	public ResponseEntity<String> createCompute(@RequestBody ComputeOrder ComputeOrder) {
+		return new ResponseEntity<String>(HttpStatus.OK);
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
