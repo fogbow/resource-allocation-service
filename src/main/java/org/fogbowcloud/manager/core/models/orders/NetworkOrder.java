@@ -29,4 +29,15 @@ public class NetworkOrder extends Order {
     public void setAllocation(String allocation) {
         this.allocation = allocation;
     }
+
+	@Override
+	public OrderType getType() {
+		return OrderType.NETWORK;
+	}
+
+	@Override
+	public void handleOpenOrder() {
+		// TODO Auto-generated method stub
+		
+	}
 }

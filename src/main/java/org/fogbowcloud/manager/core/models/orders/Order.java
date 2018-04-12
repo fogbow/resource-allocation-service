@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.core.models.orders;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 
-public class Order {
+public abstract class Order {
 
 	private String id;
 	private OrderState orderState;
@@ -11,7 +11,7 @@ public class Order {
 	private Token federationToken;
 	private String requestingMember;
 	private String providingMember;
-	private OrderInstance orderInstace;
+	private OrderInstance orderInstance;
 	private long fulfilledTime;
 
 	public String getId() {
@@ -62,12 +62,12 @@ public class Order {
 		this.providingMember = providingMember;
 	}
 
-	public OrderInstance getOrderInstace() {
-		return orderInstace;
+	public OrderInstance getOrderInstance() {
+		return orderInstance;
 	}
 
-	public void setOrderInstace(OrderInstance orderInstace) {
-		this.orderInstace = orderInstace;
+	public void setOrderInstance(OrderInstance orderInstace) {
+		this.orderInstance = orderInstace;
 	}
 
 	public long getFulfilledTime() {
@@ -77,19 +77,25 @@ public class Order {
 	public void setFulfilledTime(long fulfilledTime) {
 		this.fulfilledTime = fulfilledTime;
 	}
+	
+	public boolean isLocal() {
+		return this.providingMember.equals(this.requestingMember);
+	}
+	
+	public boolean isRemote() {
+		return !this.providingMember.equals(this.requestingMember);
+	}
+
+	public abstract void handleOpenOrder();
+	
+	public abstract OrderType getType();
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((federationToken == null) ? 0 : federationToken.hashCode());
-		result = prime * result + (int) (fulfilledTime ^ (fulfilledTime >>> 32));
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((orderInstace == null) ? 0 : orderInstace.hashCode());
-		result = prime * result + ((localToken == null) ? 0 : localToken.hashCode());
-		result = prime * result + ((orderState == null) ? 0 : orderState.hashCode());
-		result = prime * result + ((providingMember == null) ? 0 : providingMember.hashCode());
-		result = prime * result + ((requestingMember == null) ? 0 : requestingMember.hashCode());
 		return result;
 	}
 
@@ -107,37 +113,10 @@ public class Order {
 				return false;
 		} else if (!federationToken.equals(other.federationToken))
 			return false;
-		if (fulfilledTime != other.fulfilledTime)
-			return false;
 		if (id == null) {
 			if (other.id != null)
 				return false;
 		} else if (!id.equals(other.id))
-			return false;
-		if (orderInstace == null) {
-			if (other.orderInstace != null)
-				return false;
-		} else if (!orderInstace.equals(other.orderInstace))
-			return false;
-		if (localToken == null) {
-			if (other.localToken != null)
-				return false;
-		} else if (!localToken.equals(other.localToken))
-			return false;
-		if (orderState == null) {
-			if (other.orderState != null)
-				return false;
-		} else if (!orderState.equals(other.orderState))
-			return false;
-		if (providingMember == null) {
-			if (other.providingMember != null)
-				return false;
-		} else if (!providingMember.equals(other.providingMember))
-			return false;
-		if (requestingMember == null) {
-			if (other.requestingMember != null)
-				return false;
-		} else if (!requestingMember.equals(other.requestingMember))
 			return false;
 		return true;
 	}
@@ -146,6 +125,6 @@ public class Order {
 	public String toString() {
 		return "Order [id=" + id + ", orderState=" + orderState + ", localToken=" + localToken + ", federationToken="
 				+ federationToken + ", requestingMember=" + requestingMember + ", providingMember=" + providingMember
-				+ ", orderInstace=" + orderInstace + ", fulfilledTime=" + fulfilledTime + "]";
+				+ ", orderInstace=" + orderInstance + ", fulfilledTime=" + fulfilledTime + "]";
 	}
 }

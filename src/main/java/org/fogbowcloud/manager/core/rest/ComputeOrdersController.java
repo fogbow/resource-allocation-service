@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.controllers;
+package org.fogbowcloud.manager.core.rest;
 
 import java.util.List;
 

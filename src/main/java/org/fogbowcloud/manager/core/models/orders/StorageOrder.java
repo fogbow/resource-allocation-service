@@ -12,4 +12,15 @@ public class StorageOrder extends Order {
 		this.storageSize = storageSize;
 	}
 
+	@Override
+	public OrderType getType() {
+		return OrderType.NETWORK;
+	}
+
+	@Override
+	public void handleOpenOrder() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }

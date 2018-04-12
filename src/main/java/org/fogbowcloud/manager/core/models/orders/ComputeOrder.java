@@ -10,6 +10,7 @@ public class ComputeOrder extends Order {
 	private int memory;
 	/** Disk attribute, must be set in GB. */
 	private int disk;
+	private String imageName;
 	private UserData userData;
 	private NetworkLink networkLink;
 	private StorageLink storageLink;
@@ -37,6 +38,14 @@ public class ComputeOrder extends Order {
 	public void setDisk(int disk) {
 		this.disk = disk;
 	}
+	
+	public String getImageName() {
+		return imageName;
+	}
+
+	public void setImageName(String imageName) {
+		this.imageName = imageName;
+	}
 
 	public UserData getUserData() {
 		return userData;
@@ -60,6 +69,15 @@ public class ComputeOrder extends Order {
 
 	public void setStorageLink(StorageLink storageLink) {
 		this.storageLink = storageLink;
+	}
+	
+	@Override
+	public OrderType getType() {
+		return OrderType.COMPUTE;
+	}
+
+	@Override
+	public void handleOpenOrder() {
 	}
 
 	@Override
