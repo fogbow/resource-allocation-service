@@ -54,26 +54,24 @@ public class ManagerController {
 		List<Order> openOrders = this.managerDatastore.getOrderByState(OrderState.OPEN);
 
 		for (Order order : openOrders) {
-			if (order.getOrderState().equals(OrderState.OPEN)) {
-				try {
-					order.handleOpenOrder();
-					OrderInstance orderInstance = null;
-					if (order.isLocal()) {
-						orderInstance = this.localInstanceProvider.requestInstance(order);
-					} else if (order.isRemote()) {
-						orderInstance = this.remoteInstanceProvider.requestInstance(order);
-					}
-					if (!orderInstance.getId().trim().isEmpty()) {
-						order.setOrderState(OrderState.SPAWNING);
-					} else {
-						throw new RuntimeException("OrderInstance Id not generate");
-					}
-				} catch (Exception e) {
-					LOGGER.error("Error while trying to get an Instance for Order: " + System.lineSeparator() + order, e);
-					order.setOrderState(OrderState.FAILED);
+			try {
+				order.handleOpenOrder();
+				OrderInstance orderInstance = null;
+				if (order.isLocal()) {
+					orderInstance = this.localInstanceProvider.requestInstance(order);
+				} else if (order.isRemote()) {
+					orderInstance = this.remoteInstanceProvider.requestInstance(order);
 				}
-				this.managerDatastore.updateOrder(order);
+				if (!orderInstance.getId().trim().isEmpty()) {
+					order.setOrderState(OrderState.SPAWNING);
+				} else {
+					throw new RuntimeException("OrderInstance Id not generated");
+				}
+			} catch (Exception e) {
+				LOGGER.error("Error while trying to get an Instance for Order: " + System.lineSeparator() + order, e);
+				order.setOrderState(OrderState.FAILED);
 			}
+			this.managerDatastore.updateOrder(order);
 		}
 	}
 
