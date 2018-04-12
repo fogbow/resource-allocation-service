@@ -12,7 +12,7 @@ import org.json.JSONObject;
 
 public class Token {
 	
-	private static final String DATE_EXPIRATION = "dateExpiration";
+	private static final String EXPIRATION_DATE = "expirationDate";
 	 
 	private Map<String, String> attributes;
 	private String accessId;
@@ -41,7 +41,7 @@ public class Token {
 		if (attributes == null) {
 			attributes = new HashMap<String, String>();
 		}
-		attributes.put(DATE_EXPIRATION,
+		attributes.put(Token.EXPIRATION_DATE,
 				String.valueOf(expirationDate.getTime()));
 	}
 	
@@ -49,7 +49,7 @@ public class Token {
 		if (attributes == null) {
 			return null;
 		}
-		String dataExpiration = attributes.get(DATE_EXPIRATION);
+		String dataExpiration = attributes.get(Token.EXPIRATION_DATE);
 		if (dataExpiration  != null){
 			return new Date(Long.parseLong(dataExpiration));
 		}else {
