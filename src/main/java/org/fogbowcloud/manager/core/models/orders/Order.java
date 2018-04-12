@@ -1,12 +1,23 @@
 package org.fogbowcloud.manager.core.models.orders;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
+
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 
-import javax.persistence.*;
-
 @Entity
-@Table(name = "order")
+@Table(name = "tb_order")
 public class Order {
 
 	@Id
@@ -14,13 +25,17 @@ public class Order {
 	@Column(name = "id", nullable = false, unique = true)
 	private Long id;
 
-	@Column(name = "orderState")
+	@Column(name = "order_state")
+	@NotNull(message = "Order state can not be null.")
+	@Enumerated(EnumType.STRING)
 	private OrderState orderState;
 
-	@Column(name = "localToken")
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "local_token_id")
 	private Token localToken;
 
-	@Column(name = "federationToken")
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "fed_token_id")
 	private Token federationToken;
 
 	@Column(name = "requestingMember")
@@ -29,16 +44,19 @@ public class Order {
 	@Column(name = "providingMember")
 	private String providingMember;
 
-	@Column(name = "orderInstace")
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "order_instance")
 	private OrderInstance orderInstace;
 
 	@Column(name = "fulfilledTime")
-	private long fulfilledTime;
+	private Long fulfilledTime;
 
-	protected Order(){ }
+	public Order() {
+	
+	}
 
 	public Order(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
-				 String providingMember, OrderInstance orderInstace, long fulfilledTime) {
+			String providingMember, OrderInstance orderInstace, Long fulfilledTime) {
 		this.orderState = orderState;
 		this.localToken = localToken;
 		this.federationToken = federationToken;
@@ -48,9 +66,13 @@ public class Order {
 		this.fulfilledTime = fulfilledTime;
 	}
 
-	public Long getId() { return id; }
+	public Long getId() {
+		return id;
+	}
 
-	public void setId(Long id) { this.id = id; }
+	public void setId(Long id) {
+		this.id = id;
+	}
 
 	public OrderState getOrderState() {
 		return orderState;
@@ -92,19 +114,19 @@ public class Order {
 		this.providingMember = providingMember;
 	}
 
-	public OrderInstance getOrderInstace() {
-		return orderInstace;
-	}
-
-	public void setOrderInstace(OrderInstance orderInstace) {
-		this.orderInstace = orderInstace;
-	}
+	 public OrderInstance getOrderInstace() {
+	 return orderInstace;
+	 }
+	
+	 public void setOrderInstace(OrderInstance orderInstace) {
+	 this.orderInstace = orderInstace;
+	 }
 
 	public long getFulfilledTime() {
 		return fulfilledTime;
 	}
 
-	public void setFulfilledTime(long fulfilledTime) {
+	public void setFulfilledTime(Long fulfilledTime) {
 		this.fulfilledTime = fulfilledTime;
 	}
 
@@ -113,10 +135,10 @@ public class Order {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((federationToken == null) ? 0 : federationToken.hashCode());
-		result = prime * result + (int) (fulfilledTime ^ (fulfilledTime >>> 32));
+		result = prime * result + ((fulfilledTime == null) ? 0 : fulfilledTime.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((orderInstace == null) ? 0 : orderInstace.hashCode());
 		result = prime * result + ((localToken == null) ? 0 : localToken.hashCode());
+		result = prime * result + ((orderInstace == null) ? 0 : orderInstace.hashCode());
 		result = prime * result + ((orderState == null) ? 0 : orderState.hashCode());
 		result = prime * result + ((providingMember == null) ? 0 : providingMember.hashCode());
 		result = prime * result + ((requestingMember == null) ? 0 : requestingMember.hashCode());
@@ -137,27 +159,27 @@ public class Order {
 				return false;
 		} else if (!federationToken.equals(other.federationToken))
 			return false;
-		if (fulfilledTime != other.fulfilledTime)
+		if (fulfilledTime == null) {
+			if (other.fulfilledTime != null)
+				return false;
+		} else if (!fulfilledTime.equals(other.fulfilledTime))
 			return false;
 		if (id == null) {
 			if (other.id != null)
 				return false;
 		} else if (!id.equals(other.id))
 			return false;
-		if (orderInstace == null) {
-			if (other.orderInstace != null)
-				return false;
-		} else if (!orderInstace.equals(other.orderInstace))
-			return false;
 		if (localToken == null) {
 			if (other.localToken != null)
 				return false;
 		} else if (!localToken.equals(other.localToken))
 			return false;
-		if (orderState == null) {
-			if (other.orderState != null)
+		if (orderInstace == null) {
+			if (other.orderInstace != null)
 				return false;
-		} else if (!orderState.equals(other.orderState))
+		} else if (!orderInstace.equals(other.orderInstace))
+			return false;
+		if (orderState != other.orderState)
 			return false;
 		if (providingMember == null) {
 			if (other.providingMember != null)
@@ -170,12 +192,5 @@ public class Order {
 		} else if (!requestingMember.equals(other.requestingMember))
 			return false;
 		return true;
-	}
-
-	@Override
-	public String toString() {
-		return "Order [id=" + id + ", orderState=" + orderState + ", localToken=" + localToken + ", federationToken="
-				+ federationToken + ", requestingMember=" + requestingMember + ", providingMember=" + providingMember
-				+ ", orderInstace=" + orderInstace + ", fulfilledTime=" + fulfilledTime + "]";
 	}
 }
