@@ -56,7 +56,7 @@ public class ManagerController {
 		List<Order> openOrders = this.managerDatastore.getOrderByState(OrderState.OPEN);
 
 		/**
-		 * TODO: this method can generate a concurrency condition. For example:
+		 * TODO: this method can generate a race condition. For example:
 		 * a user can delete a Open Order while this method is trying to get an
 		 * Instance for this Order.
 		 */
