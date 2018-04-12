@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core;
+package org.fogbowcloud.manager.core.constants;
 
 public class ConfigurationConstants {
 
