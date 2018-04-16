@@ -22,24 +22,26 @@ import org.json.JSONObject;
 @Entity
 @Table(name = "tb_token")
 public class Token {
-	
+
 	private static final String EXPIRATION_DATE = "expirationDate";
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "id", nullable = false, unique = true)
 	private Long id;
 
 	@Transient
-	//@ElementCollection
+	/**
+	 * TODO: persist these attributes
+	 */
 	private Map<String, String> attributes;
-	
+
 	@Column
 	private String accessId;
-	
+
 	@OneToOne
 	private User user;
-	
+
 	@Transient
 	private DateUtils dateUtils = new DateUtils();
 
@@ -86,8 +88,6 @@ public class Token {
 	public Map<String, String> getAttributes() {
 		return attributes;
 	}
-	
-	
 
 	public DateUtils getDateUtils() {
 		return dateUtils;
@@ -144,7 +144,7 @@ public class Token {
 		@Id
 		@GeneratedValue(strategy = GenerationType.AUTO)
 		private String id;
-		
+
 		@Column(name = "name", nullable = false, unique = true)
 		private String name;
 

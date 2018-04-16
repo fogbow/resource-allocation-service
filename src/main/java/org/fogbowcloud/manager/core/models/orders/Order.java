@@ -12,9 +12,9 @@ import org.fogbowcloud.manager.core.models.token.Token;
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Table(name = "tb_order")
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "type")
-@JsonSubTypes({ @JsonSubTypes.Type(value = ComputeOrder.class, name = "COMPUTE"),
-		@JsonSubTypes.Type(value = NetworkOrder.class, name = "NETWORK"),
-		@JsonSubTypes.Type(value = StorageOrder.class, name = "STORAGE")})
+@JsonSubTypes({ @JsonSubTypes.Type(value = ComputeOrder.class, name = "compute"),
+		@JsonSubTypes.Type(value = NetworkOrder.class, name = "network"),
+		@JsonSubTypes.Type(value = StorageOrder.class, name = "storage")})
 public abstract class Order {
 
 	@Id
