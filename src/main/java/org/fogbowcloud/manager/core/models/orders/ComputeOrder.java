@@ -19,6 +19,8 @@ public class ComputeOrder extends Order {
 	/** Disk attribute, must be set in GB. */
 	@Column(name = "disk")
 	private int disk;
+	
+	@Column(name = "image_name")
 	private String imageName;
 
 	@OneToOne(cascade = CascadeType.ALL)
@@ -29,11 +31,12 @@ public class ComputeOrder extends Order {
 
 	public ComputeOrder(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
 						String providingMember, OrderInstance orderInstance, long fulfilledTime, int vCPU, int memory,
-						int disk, UserData userData) {
+						int disk, String imageName, UserData userData) {
 		super(orderState, localToken, federationToken, requestingMember, providingMember, orderInstance, fulfilledTime);
 		this.vCPU = vCPU;
 		this.memory = memory;
 		this.disk = disk;
+		this.imageName= imageName;
 		this.userData = userData;
 	}
 

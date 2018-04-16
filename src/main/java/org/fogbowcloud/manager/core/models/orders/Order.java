@@ -166,9 +166,9 @@ public abstract class Order {
 			if (other.id != null)
 				return false;
 		} else if (!id.equals(other.id))
+			return false;			
+		if (orderState != other.orderState) 
 			return false;
-			return false;
-		if (orderState != other.orderState)
 		return true;
 	}
 

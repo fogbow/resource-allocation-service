@@ -1,11 +1,14 @@
 package org.fogbowcloud.manager.core.models.token;
 
 import javax.persistence.Column;
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -19,19 +22,25 @@ import org.json.JSONObject;
 @Entity
 @Table(name = "tb_token")
 public class Token {
+	
+	private static final String EXPIRATION_DATE = "expirationDate";
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "id", nullable = false, unique = true)
 	private Long id;
 
-	/**
-	 * TODO: Persist this class either
-	 */
-	private static final String EXPIRATION_DATE = "expirationDate";
-
+	@Transient
+	//@ElementCollection
 	private Map<String, String> attributes;
+	
+	@Column
 	private String accessId;
+	
+	@OneToOne
 	private User user;
+	
+	@Transient
 	private DateUtils dateUtils = new DateUtils();
 
 	public Token() {
@@ -77,6 +86,28 @@ public class Token {
 	public Map<String, String> getAttributes() {
 		return attributes;
 	}
+	
+	
+
+	public DateUtils getDateUtils() {
+		return dateUtils;
+	}
+
+	public void setDateUtils(DateUtils dateUtils) {
+		this.dateUtils = dateUtils;
+	}
+
+	public void setAttributes(Map<String, String> attributes) {
+		this.attributes = attributes;
+	}
+
+	public void setAccessId(String accessId) {
+		this.accessId = accessId;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
 
 	public boolean isExpiredToken() {
 		long expirationDateMillis = getExpirationDate().getTime();
@@ -106,14 +137,15 @@ public class Token {
 				JSONHelper.toMap(jsonObject.optString("attributes")));
 	}
 
-	/**
-	 *
-	 * id : required and unique name : required
-	 *
-	 */
+	@Entity
+	@Table(name = "tb_user")
 	public static class User {
 
+		@Id
+		@GeneratedValue(strategy = GenerationType.AUTO)
 		private String id;
+		
+		@Column(name = "name", nullable = false, unique = true)
 		private String name;
 
 		public User(String id, String name) {
