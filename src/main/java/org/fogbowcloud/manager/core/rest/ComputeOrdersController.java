@@ -19,13 +19,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "compute")
 public class ComputeOrdersController {
-	@Autowired
-	DatastoreServiceImpl orderService;
 
 	@RequestMapping(method = RequestMethod.POST)
 	public ResponseEntity<Order> createCompute(@RequestBody ComputeOrder computeOrder) {
-		System.out.println(computeOrder);
-		return new ResponseEntity<Order>(orderService.addOrder(computeOrder), HttpStatus.OK);
+		return new ResponseEntity<Order>(HttpStatus.OK);
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
