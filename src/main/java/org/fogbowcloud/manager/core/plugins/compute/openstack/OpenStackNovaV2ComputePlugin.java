@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.commons.codec.Charsets;
 import org.apache.http.HttpResponse;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.models.Flavor;
@@ -22,7 +23,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.util.EntityUtils;
 
 public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 	
@@ -30,17 +35,28 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 	private static final String IMAGES_JSON_FIELD = "images";
 	protected static final String NAME_JSON_FIELD = "name";
 	private static final String TENANT_ID = "tenantId";
+	private static final String SERVERS = "/servers";
 	
 	private static final Logger LOGGER = Logger.getLogger(OpenStackNovaV2ComputePlugin.class);
 	
+	@SuppressWarnings("finally")
 	public String requestInstance(ComputeOrder computeOrder, String imageId) {
-		LOGGER.debug("Requesting instance with token=" + computeOrder.getFederationToken());
+//		LOGGER.debug("Requesting instance with token=" + computeOrder.getFederationToken());
+					
+//		String imageId = "8d4ab46c-3c57-4c11-998c-f2c839d1e574";
+		String flavorId = "f820a0a0-ccb2-4478-ab39-c4ae0cdd55c9";
+		String tenantId = "3324431f606d4a74a060cf78c16fcb21";
+//		String openstackEndpoint = "https://cloud.lsd.ufcg.edu.br:8774/v2/";
+		String networkId = "64ee4355-4d7f-4170-80b4-5e8348af6a61";
+//		String userId = "3e57892203271c195f5d473fc84f484b8062103275ce6ad6e7bcd1baedf70d5c";
 		
 		try {
-			JSONObject json = generateJsonRequest(computeOrder, imageId);
+			JSONObject json = generateJsonRequest(imageId, flavorId, null, null, networkId);
+						
+			String requestEndpoint = "https://cloud.lsd.ufcg.edu.br:8774/v2.1/" + tenantId + SERVERS;
+			String jsonResponse = doPostRequest(requestEndpoint, "gAAAAABa1K3fVhWcnLaohQc6EdKYhqWoejIP2MkiFv_0C2B2i10oMD3yuIudBe8IHXoKt3HSwXyRpeRiaFsMGmdOTH4qScca7W4J_aG6RAIklxNj0oJCTqUn9_3NEOTx_JwDU9KYThF2pMWxhRWryA1ADdtlaqbipG1IBtNueQFEq3tOvVBkUd6XwuLGqji1LzpEaJC_dt0fhRoGweZdPQhIID2UClXGfSVz8R0ZphJZH2XtUJ2UfQE", json);
 			
-			String requestEndpoint = generateRequestEndpoint(null);
-			String jsonResponse = doPostRequest(requestEndpoint, null, json);
+			System.out.println(jsonResponse);
 			return getAttFromJson(ID_JSON_FIELD, jsonResponse);
 		} catch (JSONException e) {
 			LOGGER.error(e);
@@ -55,43 +71,38 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 		return root.getJSONObject("server").getString(attName);
 	}	
 	
-	protected String doPostRequest(String endpoint, Token token, JSONObject request) {
-		return null;
+	protected String doPostRequest(String endpoint, String token, JSONObject jsonRequest) throws RequestException {
+		HttpResponse response = null;
+		String responseStr = null;
+		
+		try {
+			HttpClient client = HttpRequestUtil.createHttpClient(60000, null, null);
+			
+			HttpPost request = new HttpPost(endpoint);
+			request.addHeader("Content-Type", "application/json");
+			request.addHeader("Accept", "application/json");
+			request.addHeader("X-Auth-Token", token);
+
+			request.setEntity(new StringEntity(jsonRequest.toString(), Charsets.UTF_8));
+			response = client.execute(request);
+			responseStr = EntityUtils.toString(response.getEntity(), Charsets.UTF_8);
+		} catch (Exception e) {
+			LOGGER.error(e);
+			throw new RequestException(HttpStatus.SC_BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+		} finally {
+			try {
+				EntityUtils.consume(response.getEntity());
+			} catch (Throwable t) {
+				// Do nothing
+			}
+		}
+//		checkStatusResponse(response, responseStr);
+		return responseStr;
 	}
 	
 	protected String generateRequestEndpoint(Token token) {
 //		return computeV2APIEndpoint + tenantId + SERVERS;
 		return null;
-	}
-
-	protected JSONObject generateJsonRequest(ComputeOrder computeOrder, String imageId) throws RequestException {
-		if (imageId == null) {
-			throw new RequestException(HttpStatus.SC_BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
-		}
-		
-		Token token = computeOrder.getFederationToken();
-		String tenantId = token.getAttributes().get(TENANT_ID);
-		if (tenantId == null) {
-			throw new RequestException(HttpStatus.SC_BAD_REQUEST, ResponseConstants.INVALID_TOKEN);
-		}
-//		
-//		Flavor foundFlavor = getFlavor(token, xOCCIAtt.get(OrderAttribute.REQUIREMENTS.getValue()));
-//		String flavorId = null;
-//		if (foundFlavor != null) {
-//			flavorId = foundFlavor.getId();
-//		}		
-//
-//		String publicKey = xOCCIAtt.get(OrderAttribute.DATA_PUBLIC_KEY.getValue());
-//		String keyName = getKeyname(token, publicKey);
-//		
-		UserData userdata = computeOrder.getUserData();
-//		
-//		String orderNetworkId = xOCCIAtt.get(OrderAttribute.NETWORK_ID.getValue());
-//		if (orderNetworkId == null || orderNetworkId.isEmpty()) {
-//			orderNetworkId = this.networkId;
-//		}
-		
-		return generateJsonRequest(imageId, "flavorRef", userdata, "keyName", "networkId");
 	}
 	
 	private JSONObject generateJsonRequest(String imageRef, String flavorRef, UserData userdata,
@@ -119,6 +130,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
 		JSONObject root = new JSONObject();
 		root.put("server", server);
+		
+		System.out.println(root.toString());
+		
 		return root;
 	}
 	
@@ -330,9 +344,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 //				+ "/" +  instanceId + OS_VOLUME_ATTACHMENTS;
 		String requestEndpoint = generateRequestEndpoint(localToken);
 		
-		String responseStr = doPostRequest(requestEndpoint, localToken, jsonRequest);
+//		String responseStr = doPostRequest(requestEndpoint, localToken, jsonRequest);
 		
-		return getAttAttachmentIdJson(responseStr);
+		return getAttAttachmentIdJson("responseStr");
 	}
 	
 	private String getAttAttachmentIdJson(String responseStr) {
@@ -387,5 +401,11 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 		}
 
 		return null;
+	}
+	
+	public static void main(String[] args) {
+		OpenStackNovaV2ComputePlugin compute = new OpenStackNovaV2ComputePlugin();
+		
+		compute.requestInstance(null, "0bd03dd3-ba50-4eb8-a71f-3c46b4290471");
 	}
 }
