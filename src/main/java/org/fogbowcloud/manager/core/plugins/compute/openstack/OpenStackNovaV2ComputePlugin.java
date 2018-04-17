@@ -22,13 +22,14 @@ import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.compute.ComputePlugin;
+import org.fogbowcloud.manager.core.utils.HttpRequestUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 	
 	private static final String ID_JSON_FIELD = "id";
-	private static final String IMAGES_JSON_FIELD = "images";
+//	private static final String IMAGES_JSON_FIELD = "images";
 	protected static final String NAME_JSON_FIELD = "name";
 //	private static final String TENANT_ID = "tenantId";
 	private static final String SERVERS = "/servers";

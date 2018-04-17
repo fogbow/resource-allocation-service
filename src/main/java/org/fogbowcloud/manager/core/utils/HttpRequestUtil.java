@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.compute.openstack;
+package org.fogbowcloud.manager.core.utils;
 
 import java.util.Properties;
 
