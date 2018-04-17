@@ -1,45 +1,46 @@
 package org.fogbowcloud.manager.core.plugins.compute.openstack;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
-import org.apache.commons.codec.Charsets;
 import org.apache.http.HttpResponse;
-import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.models.Flavor;
-import org.fogbowcloud.manager.core.models.ResponseConstants;
-import org.fogbowcloud.manager.core.models.StorageLink;
-import org.fogbowcloud.manager.core.models.exceptions.RequestException;
-import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.UserData;
-import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
-import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
-import org.fogbowcloud.manager.core.plugins.compute.ComputePlugin;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
+import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.models.ResponseConstants;
+import org.fogbowcloud.manager.core.models.StorageLink;
+import org.fogbowcloud.manager.core.models.exceptions.RequestException;
+import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.orders.UserData;
+import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
+import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.plugins.compute.ComputePlugin;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 	
 	private static final String ID_JSON_FIELD = "id";
 	private static final String IMAGES_JSON_FIELD = "images";
 	protected static final String NAME_JSON_FIELD = "name";
-	private static final String TENANT_ID = "tenantId";
+//	private static final String TENANT_ID = "tenantId";
 	private static final String SERVERS = "/servers";
 	
 	private static final Logger LOGGER = Logger.getLogger(OpenStackNovaV2ComputePlugin.class);
 	
-	@SuppressWarnings("finally")
+	private HttpClient client;
+	
+	public OpenStackNovaV2ComputePlugin() {
+		this.client = HttpRequestUtil.createHttpClient(60000, null, null);
+	}
+	
 	public String requestInstance(ComputeOrder computeOrder, String imageId) {
 //		LOGGER.debug("Requesting instance with token=" + computeOrder.getFederationToken());
 					
@@ -54,9 +55,11 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 			JSONObject json = generateJsonRequest(imageId, flavorId, null, null, networkId);
 						
 			String requestEndpoint = "https://cloud.lsd.ufcg.edu.br:8774/v2.1/" + tenantId + SERVERS;
-			String jsonResponse = doPostRequest(requestEndpoint, "gAAAAABa1K3fVhWcnLaohQc6EdKYhqWoejIP2MkiFv_0C2B2i10oMD3yuIudBe8IHXoKt3HSwXyRpeRiaFsMGmdOTH4qScca7W4J_aG6RAIklxNj0oJCTqUn9_3NEOTx_JwDU9KYThF2pMWxhRWryA1ADdtlaqbipG1IBtNueQFEq3tOvVBkUd6XwuLGqji1LzpEaJC_dt0fhRoGweZdPQhIID2UClXGfSVz8R0ZphJZH2XtUJ2UfQE", json);
+			String jsonResponse = doPostRequest(requestEndpoint, "gAAAAABa1K3fVhWcnLaohQc6EdKYhqWoejIP2Mki"
+					+ "Fv_0C2B2i10oMD3yuIudBe8IHXoKt3HSwXyRpeRiaFsMGmdOTH4qScca7W4J_aG6RAIklxNj0oJCT"
+					+ "qUn9_3NEOTx_JwDU9KYThF2pMWxhRWryA1ADdtlaqbipG1IBtNueQFEq3tOvVBkUd6XwuLGqji"
+					+ "1LzpEaJC_dt0fhRoGweZdPQhIID2UClXGfSVz8R0ZphJZH2XtUJ2UfQE", json);
 			
-			System.out.println(jsonResponse);
 			return getAttFromJson(ID_JSON_FIELD, jsonResponse);
 		} catch (JSONException e) {
 			LOGGER.error(e);
@@ -71,21 +74,19 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 		return root.getJSONObject("server").getString(attName);
 	}	
 	
-	protected String doPostRequest(String endpoint, String token, JSONObject jsonRequest) throws RequestException {
+	protected String doPostRequest(String endpoint, String authToken, JSONObject jsonRequest) throws RequestException {
 		HttpResponse response = null;
 		String responseStr = null;
 		
-		try {
-			HttpClient client = HttpRequestUtil.createHttpClient(60000, null, null);
-			
+		try {	
 			HttpPost request = new HttpPost(endpoint);
 			request.addHeader("Content-Type", "application/json");
 			request.addHeader("Accept", "application/json");
-			request.addHeader("X-Auth-Token", token);
+			request.addHeader("X-Auth-Token", authToken);
 
-			request.setEntity(new StringEntity(jsonRequest.toString(), Charsets.UTF_8));
+			request.setEntity(new StringEntity(jsonRequest.toString(), StandardCharsets.UTF_8));
 			response = client.execute(request);
-			responseStr = EntityUtils.toString(response.getEntity(), Charsets.UTF_8);
+			responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
 		} catch (Exception e) {
 			LOGGER.error(e);
 			throw new RequestException(HttpStatus.SC_BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
@@ -96,9 +97,35 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 				// Do nothing
 			}
 		}
+		
 //		checkStatusResponse(response, responseStr);
+		
 		return responseStr;
 	}
+	
+//	private void checkStatusResponse(HttpResponse response, String message) {
+//		if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+//			throw new RequestException(HttpStatus.SC_UNAUTHORIZED, ResponseConstants.UNAUTHORIZED);
+//		} else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+//			throw new RequestException(HttpStatus.SC_NOT_FOUND, ResponseConstants.NOT_FOUND);
+//		} else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_REQUEST) {
+//			throw new RequestException(HttpStatus.SC_BAD_REQUEST, message);
+//		} else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_REQUEST_TOO_LONG 
+//				|| response.getStatusLine().getStatusCode() == HttpStatus.SC_FORBIDDEN) {
+//			if (message.contains(ResponseConstants.QUOTA_EXCEEDED_FOR_INSTANCES)) {
+//				throw new RequestException(HttpStatus.QUOTA_EXCEEDED,
+//						ResponseConstants.QUOTA_EXCEEDED_FOR_INSTANCES);
+//			}
+//			throw new RequestException(RequestException.SC_BAD_REQUEST, message);
+//		} else if ((response.getStatusLine().getStatusCode() == HttpStatus.SC_INTERNAL_SERVER_ERROR) &&
+//				(message.contains(NO_VALID_HOST_WAS_FOUND))){
+//			throw new OCCIException(ErrorType.NO_VALID_HOST_FOUND, ResponseConstants.NO_VALID_HOST_FOUND);
+//		}
+//		else if (response.getStatusLine().getStatusCode() > 204) {
+//			throw new OCCIException(ErrorType.BAD_REQUEST, 
+//					"Status code: " + response.getStatusLine().toString() + " | Message:" + message);
+//		}
+//	}
 	
 	protected String generateRequestEndpoint(Token token) {
 //		return computeV2APIEndpoint + tenantId + SERVERS;
@@ -112,6 +139,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 		server.put(NAME_JSON_FIELD, "fogbow-instance-" + UUID.randomUUID().toString());
 		server.put("imageRef", imageRef);
 		server.put("flavorRef", flavorRef);
+		
 		if (userdata != null) {
 			server.put("user_data", userdata);
 		}
@@ -130,9 +158,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
 		JSONObject root = new JSONObject();
 		root.put("server", server);
-		
-		System.out.println(root.toString());
-		
+				
 		return root;
 	}
 	
@@ -144,28 +170,31 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 //		}
 
 		String requestEndpoint = generateRequestEndpoint(localToken);
-		String jsonResponse = doGetRequest(requestEndpoint, localToken);
+//		String jsonResponse = doGetRequest(requestEndpoint, localToken);
 		
-		LOGGER.debug("Getting instance from json: " + jsonResponse);
-		return getInstanceFromJson(jsonResponse, localToken);
+//		LOGGER.debug("Getting instance from json: " + jsonResponse);
+//		return getInstanceFromJson(jsonResponse, localToken);
+		return null;
 	}
 	
-	protected String doGetRequest(String endpoint, Token authToken) {
+	protected String doGetRequest(String endpoint, String authToken) throws RequestException {
 		HttpResponse response = null;
 		String responseStr = null;
+		
 		try {
 			HttpGet request = new HttpGet(endpoint);			
-//			request.addHeader(OCCIHeaders.X_AUTH_TOKEN, authToken);
-//			request.addHeader(OCCIHeaders.CONTENT_TYPE, OCCIHeaders.JSON_CONTENT_TYPE);
-//			request.addHeader(OCCIHeaders.ACCEPT, OCCIHeaders.JSON_CONTENT_TYPE);
-//			response = client.execute(request);
-//			responseStr = EntityUtils.toString(response.getEntity(), Charsets.UTF_8);
+			request.addHeader("Content-Type", "application/json");
+			request.addHeader("Accept", "application/json");
+			request.addHeader("X-Auth-Token", authToken);
+			
+			response = client.execute(request);
+			responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
 		} catch (Exception e) {
 			LOGGER.error("Could not make GET request.", e);
-//			throw new RequestException(HttpStatus.SC_BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+			throw new RequestException(HttpStatus.SC_BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
 		} finally {
 			try {
-//				EntityUtils.consume(response.getEntity());
+				EntityUtils.consume(response.getEntity());
 			} catch (Throwable t) {
 //				 Do nothing
 			}
@@ -291,26 +320,27 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
 	public void removeInstance(Token localToken, String instanceId) {
 		String requestEndpoint = generateRequestEndpoint(localToken);
-		doDeleteRequest(requestEndpoint, localToken);
+//		doDeleteRequest(requestEndpoint, localToken);
 	}
 	
-	protected void doDeleteRequest(String endpoint, Token authToken) {
-//		HttpResponse response = null;
-//		try {
-//			HttpDelete request = new HttpDelete(endpoint);
-//			request.addHeader(OCCIHeaders.X_AUTH_TOKEN, authToken);
-//			response = client.execute(request);
-//		} catch (Exception e) {
-//			LOGGER.error(e);
-//			throw new OCCIException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
-//		} finally {
-//			try {
-//				EntityUtils.consume(response.getEntity());
-//			} catch (Throwable t) {
-//				// Do nothing
-//			}
-//		}
-//		// delete message does not have message
+	protected void doDeleteRequest(String endpoint, String authToken) throws RequestException {
+		HttpResponse response = null;
+		
+		try {
+			HttpDelete request = new HttpDelete(endpoint);
+			request.addHeader("X-Auth-Token", authToken);
+			response = client.execute(request);
+		} catch (Exception e) {
+			LOGGER.error(e);
+			throw new RequestException(HttpStatus.SC_BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+		} finally {
+			try {
+				EntityUtils.consume(response.getEntity());
+			} catch (Throwable t) {
+				// Do nothing
+			}
+		}
+//		 delete message does not have message
 //		checkStatusResponse(response, "");
 	}
 
@@ -379,26 +409,26 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 //		String attachmentId = xOCCIAtt.get(StorageAttribute.ATTACHMENT_ID.getValue());		
 		
 		String requestEndpoint = generateRequestEndpoint(localToken);
-		doDeleteRequest(requestEndpoint, localToken);	
+//		doDeleteRequest(requestEndpoint, localToken);	
 		return null;
 	}
 
 	public String getImageId(Token localToken, String imageName) {
-		String requestEndpoint = generateRequestEndpoint(localToken);
-		
-		String responseJsonImages = doGetRequest(requestEndpoint, localToken);
-
-		try {
-			JSONArray arrayImages = new JSONObject(responseJsonImages)
-					.getJSONArray(IMAGES_JSON_FIELD);
-			for (int i = 0; i < arrayImages.length(); i++) {
-				if (arrayImages.getJSONObject(i).getString(NAME_JSON_FIELD).equals(imageName)) {
-					return arrayImages.getJSONObject(i).getString(ID_JSON_FIELD);
-				}
-			}
-		} catch (JSONException e) {
-			LOGGER.error("Error while parsing JSONObject for image state.", e);
-		}
+//		String requestEndpoint = generateRequestEndpoint(localToken);
+//		
+//		String responseJsonImages = doGetRequest(requestEndpoint, localToken);
+//
+//		try {
+//			JSONArray arrayImages = new JSONObject(responseJsonImages)
+//					.getJSONArray(IMAGES_JSON_FIELD);
+//			for (int i = 0; i < arrayImages.length(); i++) {
+//				if (arrayImages.getJSONObject(i).getString(NAME_JSON_FIELD).equals(imageName)) {
+//					return arrayImages.getJSONObject(i).getString(ID_JSON_FIELD);
+//				}
+//			}
+//		} catch (JSONException e) {
+//			LOGGER.error("Error while parsing JSONObject for image state.", e);
+//		}
 
 		return null;
 	}
