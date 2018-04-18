@@ -1,19 +1,44 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import org.fogbowcloud.manager.core.models.NetworkLink;
-import org.fogbowcloud.manager.core.models.StorageLink;
+import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
+import org.fogbowcloud.manager.core.models.token.Token;
 
+import javax.persistence.*;
+
+@Entity
+@DiscriminatorValue(value = "compute")
 public class ComputeOrder extends Order {
 
+	@Column(name = "vCPU")
 	private int vCPU;
+
 	/** Memory attribute, must be set in MB. */
+	@Column(name = "memory")
 	private int memory;
+
 	/** Disk attribute, must be set in GB. */
+	@Column(name = "disk")
 	private int disk;
+	
+	@Column(name = "image_name")
 	private String imageName;
+
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "user_data_id")
 	private UserData userData;
-	private NetworkLink networkLink;
-	private StorageLink storageLink;
+
+	public ComputeOrder(){ }
+
+	public ComputeOrder(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
+						String providingMember, OrderInstance orderInstance, long fulfilledTime, int vCPU, int memory,
+						int disk, String imageName, UserData userData) {
+		super(orderState, localToken, federationToken, requestingMember, providingMember, orderInstance, fulfilledTime);
+		this.vCPU = vCPU;
+		this.memory = memory;
+		this.disk = disk;
+		this.imageName= imageName;
+		this.userData = userData;
+	}
 
 	public int getvCPU() {
 		return vCPU;
@@ -54,22 +79,6 @@ public class ComputeOrder extends Order {
 	public void setUserData(UserData userData) {
 		this.userData = userData;
 	}
-
-	public NetworkLink getNetworkLink() {
-		return networkLink;
-	}
-
-	public void setNetworkLink(NetworkLink networkLink) {
-		this.networkLink = networkLink;
-	}
-
-	public StorageLink getStorageLink() {
-		return storageLink;
-	}
-
-	public void setStorageLink(StorageLink storageLink) {
-		this.storageLink = storageLink;
-	}
 	
 	@Override
 	public OrderType getType() {
@@ -78,57 +87,6 @@ public class ComputeOrder extends Order {
 
 	@Override
 	public void handleOpenOrder() {
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + disk;
-		result = prime * result + memory;
-		result = prime * result + ((networkLink == null) ? 0 : networkLink.hashCode());
-		result = prime * result + ((storageLink == null) ? 0 : storageLink.hashCode());
-		result = prime * result + ((userData == null) ? 0 : userData.hashCode());
-		result = prime * result + vCPU;
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ComputeOrder other = (ComputeOrder) obj;
-		if (disk != other.disk)
-			return false;
-		if (memory != other.memory)
-			return false;
-		if (networkLink == null) {
-			if (other.networkLink != null)
-				return false;
-		} else if (!networkLink.equals(other.networkLink))
-			return false;
-		if (storageLink == null) {
-			if (other.storageLink != null)
-				return false;
-		} else if (!storageLink.equals(other.storageLink))
-			return false;
-		if (userData == null) {
-			if (other.userData != null)
-				return false;
-		} else if (!userData.equals(other.userData))
-			return false;
-		if (vCPU != other.vCPU)
-			return false;
-		return true;
-	}
-
-	@Override
-	public String toString() {
-		return "ComputeOrder [vCPU=" + vCPU + ", memory=" + memory + ", disk=" + disk + ", userData=" + userData
-				+ ", networkLink=" + networkLink + ", storageLink=" + storageLink + "]";
+		// TODO
 	}
 }
