@@ -20,10 +20,13 @@ public class ManagerController {
 
 	private InstanceProvider localInstanceProvider;
 	private InstanceProvider remoteInstanceProvider;
+	
+	private String localMemberId;
 
 	private static final Logger LOGGER = Logger.getLogger(ManagerController.class);
 
 	public ManagerController(Properties properties) {
+		this.localMemberId = properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
 		this.attendOpenOrdersExecutor = new ManagerScheduledExecutorService(Executors.newScheduledThreadPool(1));
 
 		this.scheduleExecutorsServices(properties);
@@ -59,11 +62,11 @@ public class ManagerController {
 
 			try {
 				InstanceProvider instanceProvider = null;
-				if (order.isLocal()) {
+				if (order.isLocal(this.localMemberId)) {
 					LOGGER.info("The open order [" + order.getId() + "] is local");
 					
 					instanceProvider = this.localInstanceProvider;
-				} else if (order.isRemote()) {
+				} else if (order.isRemote(this.localMemberId)) {
 					LOGGER.info("The open order [" + order.getId() + "] is remote for the member ["
 							+ order.getProvidingMember() + "]");
 					
@@ -72,7 +75,7 @@ public class ManagerController {
 				
 				order.processOpenOrder(instanceProvider);
 				
-				if (order.isLocal()) {
+				if (order.isLocal(this.localMemberId)) {
 					OrderInstance orderInstance = order.getOrderInstance();
 					String orderInstanceId = orderInstance.getId();
 					if (!orderInstanceId.isEmpty()) {
@@ -81,7 +84,7 @@ public class ManagerController {
 						
 						order.setOrderState(OrderState.SPAWNING);
 					}
-				} else if (order.isRemote()) {
+				} else if (order.isRemote(this.localMemberId)) {
 					LOGGER.info("The open order [" + order.getId()
 							+ "] was requested for remote member, setting your state to PENDING");
 					
@@ -93,6 +96,18 @@ public class ManagerController {
 			}
 			this.orderRegistry.updateOrder(order);
 		}
+	}
+	
+	protected void setOrderRegistry(OrderRegistry orderRegistry) {
+		this.orderRegistry = orderRegistry;
+	}
+
+	protected void setLocalInstanceProvider(InstanceProvider localInstanceProvider) {
+		this.localInstanceProvider = localInstanceProvider;
+	}
+
+	protected void setRemoteInstanceProvider(InstanceProvider remoteInstanceProvider) {
+		this.remoteInstanceProvider = remoteInstanceProvider;
 	}
 
 }
