@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.models.orders;
 
+import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 
@@ -19,7 +20,7 @@ public class ComputeOrder extends Order {
 	/** Disk attribute, must be set in GB. */
 	@Column(name = "disk")
 	private int disk;
-	
+
 	@Column(name = "image_name")
 	private String imageName;
 
@@ -27,16 +28,17 @@ public class ComputeOrder extends Order {
 	@JoinColumn(name = "user_data_id")
 	private UserData userData;
 
-	public ComputeOrder(){ }
+	public ComputeOrder() {
+	}
 
 	public ComputeOrder(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
-						String providingMember, OrderInstance orderInstance, long fulfilledTime, int vCPU, int memory,
-						int disk, String imageName, UserData userData) {
+			String providingMember, OrderInstance orderInstance, long fulfilledTime, int vCPU, int memory, int disk,
+			String imageName, UserData userData) {
 		super(orderState, localToken, federationToken, requestingMember, providingMember, orderInstance, fulfilledTime);
 		this.vCPU = vCPU;
 		this.memory = memory;
 		this.disk = disk;
-		this.imageName= imageName;
+		this.imageName = imageName;
 		this.userData = userData;
 	}
 
@@ -63,7 +65,7 @@ public class ComputeOrder extends Order {
 	public void setDisk(int disk) {
 		this.disk = disk;
 	}
-	
+
 	public String getImageName() {
 		return imageName;
 	}
@@ -79,14 +81,14 @@ public class ComputeOrder extends Order {
 	public void setUserData(UserData userData) {
 		this.userData = userData;
 	}
-	
+
 	@Override
 	public OrderType getType() {
 		return OrderType.COMPUTE;
 	}
 
 	@Override
-	public void handleOpenOrder() {
-		// TODO
+	public void processOpenOrder(InstanceProvider instanceProvider) {
+		super.processOpenOrder(instanceProvider);
 	}
 }

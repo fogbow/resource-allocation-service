@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.models.orders;
 
+import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 
@@ -48,8 +49,8 @@ public class NetworkOrder extends Order {
 	}
 
 	@Override
-	public void handleOpenOrder() {
-		// TODO Auto-generated method stub
-		
+	public void processOpenOrder(InstanceProvider instanceProvider) {
+		super.processOpenOrder(instanceProvider);
 	}
+
 }
