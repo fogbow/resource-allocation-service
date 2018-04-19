@@ -11,8 +11,21 @@ public class Order {
 	private Token federationToken;
 	private String requestingMember;
 	private String providingMember;
-	private OrderInstance orderInstace;
+	private OrderInstance orderInstance;
 	private long fulfilledTime;
+
+	public Order(String id, OrderState orderState, Token localToken,
+				 Token federationToken, String requestingMember, String providingMember,
+				 OrderInstance orderInstance, long fulfilledTime) {
+		this.id = id;
+		this.orderState = orderState;
+		this.localToken = localToken;
+		this.federationToken = federationToken;
+		this.requestingMember = requestingMember;
+		this.providingMember = providingMember;
+		this.orderInstance = orderInstance;
+		this.fulfilledTime = fulfilledTime;
+	}
 
 	public String getId() {
 		return id;
@@ -62,12 +75,12 @@ public class Order {
 		this.providingMember = providingMember;
 	}
 
-	public OrderInstance getOrderInstace() {
-		return orderInstace;
+	public OrderInstance getOrderInstance() {
+		return orderInstance;
 	}
 
-	public void setOrderInstace(OrderInstance orderInstace) {
-		this.orderInstace = orderInstace;
+	public void setOrderInstance(OrderInstance orderInstance) {
+		this.orderInstance = orderInstance;
 	}
 
 	public long getFulfilledTime() {
@@ -85,7 +98,7 @@ public class Order {
 		result = prime * result + ((federationToken == null) ? 0 : federationToken.hashCode());
 		result = prime * result + (int) (fulfilledTime ^ (fulfilledTime >>> 32));
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((orderInstace == null) ? 0 : orderInstace.hashCode());
+		result = prime * result + ((orderInstance == null) ? 0 : orderInstance.hashCode());
 		result = prime * result + ((localToken == null) ? 0 : localToken.hashCode());
 		result = prime * result + ((orderState == null) ? 0 : orderState.hashCode());
 		result = prime * result + ((providingMember == null) ? 0 : providingMember.hashCode());
@@ -114,10 +127,10 @@ public class Order {
 				return false;
 		} else if (!id.equals(other.id))
 			return false;
-		if (orderInstace == null) {
-			if (other.orderInstace != null)
+		if (orderInstance == null) {
+			if (other.orderInstance != null)
 				return false;
-		} else if (!orderInstace.equals(other.orderInstace))
+		} else if (!orderInstance.equals(other.orderInstance))
 			return false;
 		if (localToken == null) {
 			if (other.localToken != null)
@@ -146,6 +159,6 @@ public class Order {
 	public String toString() {
 		return "Order [id=" + id + ", orderState=" + orderState + ", localToken=" + localToken + ", federationToken="
 				+ federationToken + ", requestingMember=" + requestingMember + ", providingMember=" + providingMember
-				+ ", orderInstace=" + orderInstace + ", fulfilledTime=" + fulfilledTime + "]";
+				+ ", orderInstance=" + orderInstance + ", fulfilledTime=" + fulfilledTime + "]";
 	}
 }

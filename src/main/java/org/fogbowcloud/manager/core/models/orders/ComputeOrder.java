@@ -2,6 +2,8 @@ package org.fogbowcloud.manager.core.models.orders;
 
 import org.fogbowcloud.manager.core.models.NetworkLink;
 import org.fogbowcloud.manager.core.models.StorageLink;
+import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
+import org.fogbowcloud.manager.core.models.token.Token;
 
 public class ComputeOrder extends Order {
 
@@ -13,6 +15,20 @@ public class ComputeOrder extends Order {
 	private UserData userData;
 	private NetworkLink networkLink;
 	private StorageLink storageLink;
+
+	public ComputeOrder(String id, OrderState orderState, Token localToken, Token federationToken,
+						String requestingMember, String providingMember, OrderInstance orderInstance,
+						long fulfilledTime, int vCPU, int memory, int disk, UserData userData,
+						NetworkLink networkLink, StorageLink storageLink) {
+
+		super(id, orderState, localToken, federationToken, requestingMember, providingMember, orderInstance, fulfilledTime);
+		this.vCPU = vCPU;
+		this.memory = memory;
+		this.disk = disk;
+		this.userData = userData;
+		this.networkLink = networkLink;
+		this.storageLink = storageLink;
+	}
 
 	public int getvCPU() {
 		return vCPU;
