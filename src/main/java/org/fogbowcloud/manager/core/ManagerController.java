@@ -1,9 +1,11 @@
 package org.fogbowcloud.manager.core;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
@@ -23,11 +25,10 @@ public class ManagerController {
 	private InstanceProvider remoteInstanceProvider;
 
 	private static final Logger LOGGER = Logger.getLogger(ManagerController.class);
-
+	
 	public ManagerController(Properties properties) {
-		this.attendOpenOrdersExecutor = new ManagerScheduledExecutorService(Executors.newScheduledThreadPool(1));
-
-		this.scheduleExecutorsServices(properties);
+		this.attendOpenOrdersExecutor = new ManagerScheduledExecutorService(Executors.newScheduledThreadPool(1));		
+		this.scheduleExecutorsServices(properties);		
 	}
 
 	private void scheduleExecutorsServices(Properties properties) {
@@ -80,6 +81,21 @@ public class ManagerController {
 			}
 			this.managerDatastore.updateOrder(order);
 		}
+	}
+	
+	/**
+	 * TODO: this procedure method change all possibles states of an Order to CLOSED, when user try to delete an Order. 
+	 */
+	private synchronized void setOrderToClosed(Long id) {
+		Order order = queueOrder.pollOrderById(id);
+			if (order.getOrderInstance() != null) {
+				instanceProvider.deleteInstance(order);
+				if (order.getOrderState().equals(OrderState.FULFILLED)) {
+					order.setEndfulfilledTimeStamp(new Date().getTime());
+				}
+			}
+			order.setOrderState(OrderState.CLOSED);
+			queueOrder.offerOrder(order);
 	}
 
 }

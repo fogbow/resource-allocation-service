@@ -8,6 +8,7 @@ import org.fogbowcloud.manager.core.models.orders.StorageOrder;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
 
 public class ApplicationController {
+	
 	private AuthenticationService authenticationController;
 	private ManagerController managerController;
 	
@@ -26,11 +27,11 @@ public class ApplicationController {
 		return null;		
 	}
 	
-	public ComputeOrder findComputeOrderById(Integer id) {
+	public ComputeOrder findComputeOrder(Long id) {
 		return null;		
 	}
 	
-	public void removeComputeOrder(Integer id) {
+	public void removeComputeOrder(Long id) {
 		
 	}
 	
@@ -42,11 +43,11 @@ public class ApplicationController {
 		return null;		
 	}
 	
-	public NetworkOrder findNetworkOrderById(Integer id) {
+	public NetworkOrder findNetworkOrder(Long id) {
 		return null;		
 	}
 	
-	public void removeNetworkOrder(Integer id) {
+	public void removeNetworkOrder(Long id) {
 		
 	}
 	
@@ -58,11 +59,11 @@ public class ApplicationController {
 		return null;		
 	}
 	
-	public StorageOrder findStorageOrderById(Integer id) {
+	public StorageOrder findStorageOrder(Long id) {
 		return null;		
 	}
 	
-	public void removeStorageOrder(Integer id) {
+	public void removeStorageOrder(Long id) {
 		
 	}	
 }
