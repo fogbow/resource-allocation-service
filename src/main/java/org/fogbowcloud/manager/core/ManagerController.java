@@ -1,6 +1,5 @@
 package org.fogbowcloud.manager.core;
 
-import java.util.List;
 import java.util.Properties;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
@@ -8,15 +7,15 @@ import java.util.concurrent.Executors;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.manager.core.datastore.ManagerDatastore;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.OrderRegistry;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 
 public class ManagerController {
 
-	private ManagerDatastore managerDatastore;
+	private OrderRegistry orderRegistry;
 	private ManagerScheduledExecutorService attendOpenOrdersExecutor;
 
 	private InstanceProvider localInstanceProvider;
@@ -41,7 +40,7 @@ public class ManagerController {
 					try {
 						attendOpenOrders();
 					} catch (Throwable e) {
-						LOGGER.error("Error while checking and submitting open orders", e);
+						LOGGER.error("Error while trying to attend open orders", e);
 					}
 				}
 			}, 0, schedulerPeriod);
@@ -49,36 +48,50 @@ public class ManagerController {
 	}
 
 	/**
-	 * Method that try to get an Instance for an Open Order.
+	 * Method that try to get an Instance for an Open Order. This method can
+	 * generate a race condition. For example: a user can delete a Open Order
+	 * while this method is trying to get an Instance for this Order.
 	 */
-	private void attendOpenOrders() {
-		LOGGER.info("Trying to get Instances for Open Orders");
-		List<Order> openOrders = this.managerDatastore.getOrderByState(OrderState.OPEN);
+	private synchronized void attendOpenOrders() {
+		Order order = this.orderRegistry.getNextOpenOrder();
+		if (order != null) {
+			LOGGER.info("Trying to get an Instance for Order [" + order.getId() + "]");
 
-		/**
-		 * TODO: this method can generate a race condition. For example:
-		 * a user can delete a Open Order while this method is trying to get an
-		 * Instance for this Order.
-		 */
-		for (Order order : openOrders) {
 			try {
-				order.handleOpenOrder();
-				OrderInstance orderInstance = null;
+				InstanceProvider instanceProvider = null;
 				if (order.isLocal()) {
-					orderInstance = this.localInstanceProvider.requestInstance(order);
+					LOGGER.info("The open order [" + order.getId() + "] is local");
+					
+					instanceProvider = this.localInstanceProvider;
 				} else if (order.isRemote()) {
-					orderInstance = this.remoteInstanceProvider.requestInstance(order);
+					LOGGER.info("The open order [" + order.getId() + "] is remote for the member ["
+							+ order.getProvidingMember() + "]");
+					
+					instanceProvider = this.remoteInstanceProvider;
 				}
-				if (!orderInstance.getId().trim().isEmpty()) {
-					order.setOrderState(OrderState.SPAWNING);
-				} else {
-					throw new RuntimeException("OrderInstance Id not generated");
+				
+				order.processOpenOrder(instanceProvider);
+				
+				if (order.isLocal()) {
+					OrderInstance orderInstance = order.getOrderInstance();
+					String orderInstanceId = orderInstance.getId();
+					if (!orderInstanceId.isEmpty()) {
+						LOGGER.info("The open order [" + order.getId() + "] got an local instance with id ["
+								+ orderInstanceId + "], setting your state to SPAWNING");
+						
+						order.setOrderState(OrderState.SPAWNING);
+					}
+				} else if (order.isRemote()) {
+					LOGGER.info("The open order [" + order.getId()
+							+ "] was requested for remote member, setting your state to PENDING");
+					
+					order.setOrderState(OrderState.PENDING);
 				}
 			} catch (Exception e) {
 				LOGGER.error("Error while trying to get an Instance for Order: " + System.lineSeparator() + order, e);
 				order.setOrderState(OrderState.FAILED);
 			}
-			this.managerDatastore.updateOrder(order);
+			this.orderRegistry.updateOrder(order);
 		}
 	}
 
