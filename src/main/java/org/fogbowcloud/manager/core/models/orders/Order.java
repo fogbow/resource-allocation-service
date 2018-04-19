@@ -5,6 +5,8 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 
@@ -14,7 +16,7 @@ import org.fogbowcloud.manager.core.models.token.Token;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "type")
 @JsonSubTypes({ @JsonSubTypes.Type(value = ComputeOrder.class, name = "compute"),
 		@JsonSubTypes.Type(value = NetworkOrder.class, name = "network"),
-		@JsonSubTypes.Type(value = StorageOrder.class, name = "storage")})
+		@JsonSubTypes.Type(value = StorageOrder.class, name = "storage") })
 public abstract class Order {
 
 	@Id
@@ -49,7 +51,7 @@ public abstract class Order {
 	private Long fulfilledTime;
 
 	public Order() {
-	
+
 	}
 
 	public Order(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
@@ -115,8 +117,8 @@ public abstract class Order {
 		return orderInstance;
 	}
 
-	public void setOrderInstance(OrderInstance orderInstace) {
-		this.orderInstance = orderInstace;
+	public void setOrderInstance(OrderInstance orderInstance) {
+		this.orderInstance = orderInstance;
 	}
 
 	public long getFulfilledTime() {
@@ -126,24 +128,35 @@ public abstract class Order {
 	public void setFulfilledTime(Long fulfilledTime) {
 		this.fulfilledTime = fulfilledTime;
 	}
-	
+
 	public boolean isLocal() {
 		return this.providingMember.equals(this.requestingMember);
 	}
-	
+
 	public boolean isRemote() {
 		return !this.providingMember.equals(this.requestingMember);
 	}
 
-	public abstract void handleOpenOrder();
-	
+	/**
+	 * These method handle and request an open order, for this, processOpenOrder
+	 * handle the Order to be ready to change your state and request the
+	 * Instance from the InstanceProvider.
+	 */
+	public void processOpenOrder(InstanceProvider instanceProvider) {
+		if (this.getOrderState().equals(OrderState.OPEN)) {
+			OrderInstance orderInstance = instanceProvider.requestInstance(this);
+			this.setOrderInstance(orderInstance);
+		} else {
+			throw new RuntimeException("Order is not Open");
+		}
+	}
+
 	public abstract OrderType getType();
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((federationToken == null) ? 0 : federationToken.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		return result;
 	}
@@ -157,17 +170,10 @@ public abstract class Order {
 		if (getClass() != obj.getClass())
 			return false;
 		Order other = (Order) obj;
-		if (federationToken == null) {
-			if (other.federationToken != null)
-				return false;
-		} else if (!federationToken.equals(other.federationToken))
-			return false;
 		if (id == null) {
 			if (other.id != null)
 				return false;
 		} else if (!id.equals(other.id))
-			return false;			
-		if (orderState != other.orderState) 
 			return false;
 		return true;
 	}
