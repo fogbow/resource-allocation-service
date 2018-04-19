@@ -1,46 +1,44 @@
 package org.fogbowcloud.manager.core.models;
 
-import java.util.Comparator;
-
-public class Flavor implements Comparator<Flavor> {
+public class Flavor implements Comparable<Flavor> {
 
     private final int MEM_VALUE_RELEVANCE = 1;
     private final int VCPU_VALUE_RELEVANCE = 1;
 
-    private Integer capacity;
+    private int capacity;
     private String name;
     private String id;
 
     /**
      * Number of cores of the CPU.
      */
-    private String cpu;
+    private int cpu;
 
     /**
      * RAM memory in MB.
      */
-    private String memInMB;
+    private int memInMB;
 
     /**
      * Disk in GB.
      */
-    private String disk;
+    private int disk;
 
-    public Flavor(String name, String cpu, String memInMB, String disk) {
+    public Flavor(String name, int cpu, int memInMB, int disk, int capacity) {
         this.setName(name);
         this.setCpu(cpu);
         this.setMem(memInMB);
-        this.setDisk(disk);
+
+        if (disk != 0) {
+            this.setDisk(disk);
+        }
+
+        if (capacity != 0) {
+            this.setCapacity(capacity);
+        }
     }
 
-    public Flavor(String name, String cpu, String memInMB, Integer capacity) {
-        this.setName(name);
-        this.setCpu(cpu);
-        this.setMem(memInMB);
-        this.setCapacity(capacity);
-    }
-
-    public Flavor(String name, String id, String cpu, String memInMB, String disk) {
+    public Flavor(String name, String id, int cpu, int memInMB, int disk) {
         this.setName(name);
         this.setCpu(cpu);
         this.setMem(memInMB);
@@ -48,27 +46,11 @@ public class Flavor implements Comparator<Flavor> {
         this.setId(id);
     }
 
-    public Flavor(String name, String cpu, String memInMB, String disk, Integer capacity) {
-        this.setCapacity(capacity);
-        this.setName(name);
-        this.setCpu(cpu);
-        this.setMem(memInMB);
-        this.setDisk(disk);
-    }
-
-    public String getDisk() {
-        return disk;
-    }
-
-    public void setDisk(String disk) {
-        this.disk = disk;
-    }
-
-    public Integer getCapacity() {
+    public int getCapacity() {
         return capacity;
     }
 
-    public void setCapacity(Integer capacity) {
+    public void setCapacity(int capacity) {
         this.capacity = capacity;
     }
 
@@ -80,28 +62,36 @@ public class Flavor implements Comparator<Flavor> {
         this.name = name;
     }
 
-    public String getCpu() {
-        return cpu;
-    }
-
-    public void setCpu(String cpu) {
-        this.cpu = cpu;
-    }
-
-    public String getMem() {
-        return memInMB;
-    }
-
-    public void setMem(String mem) {
-        this.memInMB = mem;
-    }
-
     public String getId() {
         return id;
     }
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public int getCpu() {
+        return cpu;
+    }
+
+    public void setCpu(int cpu) {
+        this.cpu = cpu;
+    }
+
+    public int getMem() {
+        return memInMB;
+    }
+
+    public void setMem(int memInMB) {
+        this.memInMB = memInMB;
+    }
+
+    public int getDisk() {
+        return disk;
+    }
+
+    public void setDisk(int disk) {
+        this.disk = disk;
     }
 
     @Override
@@ -126,28 +116,26 @@ public class Flavor implements Comparator<Flavor> {
     }
 
     @Override
-    public int compare(Flavor flavorOne, Flavor flavorTwo) {
-        try {
-            Double oneRelevance = calculateRelevance(flavorOne, flavorTwo);
-            Double twoRelevance = calculateRelevance(flavorTwo, flavorOne);
-            if (oneRelevance.doubleValue() != twoRelevance.doubleValue()) {
-                return oneRelevance.compareTo(twoRelevance);
-            }
-            Double oneDisk = Double.parseDouble(flavorOne.getDisk());
-            Double twoDisk = Double.parseDouble(flavorTwo.getDisk());
-            return oneDisk.compareTo(twoDisk);
-        } catch (Exception e) {
-            return 0;
+    public int compareTo(Flavor flavor) {
+        double oneRelevance = calculateRelevance(this, flavor);
+        double twoRelevance = calculateRelevance(this, flavor);
+
+        if (oneRelevance != twoRelevance) {
+            return Double.compare(oneRelevance, twoRelevance);
         }
+
+        int oneDisk = this.getDisk();
+        int twoDisk = flavor.getDisk();
+        return Integer.compare(oneDisk, twoDisk);
     }
 
-    public double calculateRelevance(Flavor flavorOne, Flavor flavorTwo) {
-        double cpuOne = Double.parseDouble(flavorOne.getCpu());
-        double cpuTwo = Double.parseDouble(flavorTwo.getCpu());
-        double memOne = Double.parseDouble(flavorOne.getMem());
-        double memTwo = Double.parseDouble(flavorTwo.getMem());
+    private double calculateRelevance(Flavor flavorOne, Flavor flavorTwo) {
+        int cpuOne = flavorOne.getCpu();
+        int cpuTwo = flavorTwo.getCpu();
+        int memOne = flavorOne.getMem();
+        int memTwo = flavorTwo.getMem();
 
-        return ((cpuOne / cpuTwo) * 1 / VCPU_VALUE_RELEVANCE)
-                + ((memOne / memTwo) * 1 / MEM_VALUE_RELEVANCE);
+        return ((cpuOne / cpuTwo) / VCPU_VALUE_RELEVANCE)
+                + ((memOne / memTwo) / MEM_VALUE_RELEVANCE);
     }
 }
