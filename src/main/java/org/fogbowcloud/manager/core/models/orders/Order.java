@@ -1,5 +1,7 @@
 package org.fogbowcloud.manager.core.models.orders;
 
+import java.util.UUID;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
@@ -22,7 +24,7 @@ public abstract class Order {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "id", nullable = false, unique = true)
-	private Long id;
+	private String id;
 
 	@Column(name = "order_state")
 	@NotNull(message = "Order state can not be null.")
@@ -54,22 +56,20 @@ public abstract class Order {
 
 	}
 
-	public Order(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
-			String providingMember, OrderInstance orderInstace, Long fulfilledTime) {
-		this.orderState = orderState;
+	public Order(Token localToken, Token federationToken, String requestingMember, String providingMember) {
+		this.id = UUID.randomUUID().toString();
+		this.orderState = OrderState.OPEN;
 		this.localToken = localToken;
 		this.federationToken = federationToken;
 		this.requestingMember = requestingMember;
 		this.providingMember = providingMember;
-		this.orderInstance = orderInstace;
-		this.fulfilledTime = fulfilledTime;
 	}
 
-	public Long getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
@@ -128,13 +128,13 @@ public abstract class Order {
 	public void setFulfilledTime(Long fulfilledTime) {
 		this.fulfilledTime = fulfilledTime;
 	}
-
-	public boolean isLocal() {
-		return this.providingMember.equals(this.requestingMember);
+	
+	public boolean isLocal(String localMemberId) {
+		return this.providingMember.equals(localMemberId);
 	}
 
-	public boolean isRemote() {
-		return !this.providingMember.equals(this.requestingMember);
+	public boolean isRemote(String localMemberId) {
+		return !this.providingMember.equals(localMemberId);
 	}
 
 	/**

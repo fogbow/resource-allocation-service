@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.models.orders;
 
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
-import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 
 import javax.persistence.*;
@@ -31,10 +30,9 @@ public class ComputeOrder extends Order {
 	public ComputeOrder() {
 	}
 
-	public ComputeOrder(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
-			String providingMember, OrderInstance orderInstance, long fulfilledTime, int vCPU, int memory, int disk,
-			String imageName, UserData userData) {
-		super(orderState, localToken, federationToken, requestingMember, providingMember, orderInstance, fulfilledTime);
+	public ComputeOrder(Token localToken, Token federationToken, String requestingMember, String providingMember,
+			int vCPU, int memory, int disk, String imageName, UserData userData) {
+		super(localToken, federationToken, requestingMember, providingMember);
 		this.vCPU = vCPU;
 		this.memory = memory;
 		this.disk = disk;
@@ -87,6 +85,11 @@ public class ComputeOrder extends Order {
 		return OrderType.COMPUTE;
 	}
 
+	/**
+	 * These method handle and request an open order, for this, processOpenOrder
+	 * handle the Order to be ready to change your state and request the
+	 * Instance from the InstanceProvider.
+	 */
 	@Override
 	public void processOpenOrder(InstanceProvider instanceProvider) {
 		super.processOpenOrder(instanceProvider);
