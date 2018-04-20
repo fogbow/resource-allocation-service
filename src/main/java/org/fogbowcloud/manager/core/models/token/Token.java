@@ -27,7 +27,8 @@ public class Token {
 		} else {
 			this.attributes = attributes;
 		}
-		attributes.put(Token.EXPIRATION_DATE, String.valueOf(expirationTime.getTime()));
+
+		this.attributes.put(Token.EXPIRATION_DATE, String.valueOf(expirationTime.getTime()));
 	}
 
 	public String get(String attributeName) {
