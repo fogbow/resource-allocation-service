@@ -12,7 +12,7 @@ public interface ComputePlugin {
 
 	public String requestInstance(ComputeOrder computeOrder, String imageId) throws RequestException;
 
-	public ComputeOrderInstance getInstance(Token localToken, String instanceId);
+	public ComputeOrderInstance getInstance(Token localToken, String instanceId) throws RequestException;
 
 	public List<ComputeOrderInstance> getInstances(Token localToken);
 
