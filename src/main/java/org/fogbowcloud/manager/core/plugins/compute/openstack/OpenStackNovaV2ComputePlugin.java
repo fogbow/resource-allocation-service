@@ -33,13 +33,20 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private static final String IMAGE_JSON_FIELD = "imageRef";
     private static final String USER_DATA_JSON_FIELD = "user_data";
     private static final String NETWORK_JSON_FIELD = "networks";
+    private static final String DISK_JSON_FIELD = "disk";
+    private static final String VCPU_JSON_FIELD = "vcpus";
+    private static final String MEMORY_JSON_FIELD = "ram";
+    private static final String FLAVOR_JSON_OBJECT = "flavor";
     private static final String KEY_JSON_FIELD = "key_name";
+    private static final String PUBLIC_KEY_JSON_FIELD = "public_key";
+    private static final String KEYPAIR_JSON_FIELD = "keypair";
     private static final String UUID_JSON_FIELD = "uuid";
     private static final String FOGBOW_INSTANCE_NAME = "fogbow-instance-";
 
     protected static final String TENANT_ID = "tenantId";
 
     private static final String SERVERS = "/servers";
+    private static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
     private static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
     public static final String COMPUTE_NOVAV2_URL_KEY = "compute_novav2_url";
     private static final String NO_VALID_HOST_WAS_FOUND = "No valid host was found";
@@ -101,16 +108,16 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         String keyname = null;
 
         if (publicKey != null && !publicKey.isEmpty()) {
-            String osKeypairEndpoint = getComputeEndpoint(tenantId, "/os-keypairs");
+            String osKeypairEndpoint = getComputeEndpoint(tenantId, SUFFIX_ENDPOINT_KEYPAIRS);
 
             keyname = UUID.randomUUID().toString();
             JSONObject keypair = new JSONObject();
 
             try {
                 keypair.put(NAME_JSON_FIELD, keyname);
-                keypair.put("public_key", publicKey);
+                keypair.put(PUBLIC_KEY_JSON_FIELD, publicKey);
                 JSONObject root = new JSONObject();
-                root.put("keypair", keypair);
+                root.put(KEYPAIR_JSON_FIELD, keypair);
                 doPostRequest(osKeypairEndpoint, localToken, root);
             } catch (JSONException e) {
                 LOGGER.error(e);
@@ -131,7 +138,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     private void deleteKeyName(String tenantId, Token localToken, String keyName) throws RequestException {
-        String suffixEndpoint = "/os-keypairs/" + keyName;
+        String suffixEndpoint = SUFFIX_ENDPOINT_KEYPAIRS + "/" + keyName;
         String keynameEndpoint = getComputeEndpoint(tenantId, suffixEndpoint);
 
         doDeleteRequest(keynameEndpoint, localToken);
@@ -297,7 +304,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
             for (int i = 0; i < jsonArrayFlavors.length(); i++) {
                 JSONObject itemFlavor = jsonArrayFlavors.getJSONObject(i);
-                nameToFlavorId.put(itemFlavor.getString(NAME_JSON_FIELD), itemFlavor.getString("id"));
+                nameToFlavorId.put(itemFlavor.getString(NAME_JSON_FIELD), itemFlavor.getString(ID_JSON_FIELD));
             }
 
             List<Flavor> newFlavors = detailFlavors(endpoint, localToken, nameToFlavorId);
@@ -332,13 +339,13 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             String newEndpoint = endpoint + "/" + nameToIdFlavor.get(flavorName);
             String jsonResponseSpecificFlavor = doGetRequest(newEndpoint, localToken);
 
-            JSONObject specificFlavor = new JSONObject(jsonResponseSpecificFlavor).getJSONObject("flavor");
+            JSONObject specificFlavor = new JSONObject(jsonResponseSpecificFlavor).getJSONObject(FLAVOR_JSON_OBJECT);
 
-            String id = specificFlavor.getString("id");
+            String id = specificFlavor.getString(ID_JSON_FIELD);
             String name = specificFlavor.getString(NAME_JSON_FIELD);
-            int disk = specificFlavor.getInt("disk");
-            int ram = specificFlavor.getInt("ram");
-            int vcpus = specificFlavor.getInt("vcpus");
+            int disk = specificFlavor.getInt(DISK_JSON_FIELD);
+            int ram = specificFlavor.getInt(MEMORY_JSON_FIELD);
+            int vcpus = specificFlavor.getInt(VCPU_JSON_FIELD);
 
             newFlavors.add(new Flavor(name, id, vcpus, ram, disk));
         }
