@@ -56,6 +56,18 @@ public abstract class Order {
 
 	}
 
+	/**
+	 * Creating Order with predefined Id.
+	 */
+	public Order(String id, Token localToken, Token federationToken, String requestingMember, String providingMember) {
+		this.id = id;
+		this.orderState = OrderState.OPEN;
+		this.localToken = localToken;
+		this.federationToken = federationToken;
+		this.requestingMember = requestingMember;
+		this.providingMember = providingMember;
+	}
+
 	public Order(Token localToken, Token federationToken, String requestingMember, String providingMember) {
 		this.id = UUID.randomUUID().toString();
 		this.orderState = OrderState.OPEN;
@@ -77,8 +89,9 @@ public abstract class Order {
 		return orderState;
 	}
 
-	public void setOrderState(OrderState orderState) {
-		this.orderState = orderState;
+	public void setOrderState(OrderState state, OrderRegistry orderRegistry) {
+		this.orderState = state;
+		orderRegistry.updateOrder(this);
 	}
 
 	public Token getLocalToken() {
@@ -128,7 +141,7 @@ public abstract class Order {
 	public void setFulfilledTime(Long fulfilledTime) {
 		this.fulfilledTime = fulfilledTime;
 	}
-	
+
 	public boolean isLocal(String localMemberId) {
 		return this.providingMember.equals(localMemberId);
 	}
@@ -184,4 +197,5 @@ public abstract class Order {
 				+ federationToken + ", requestingMember=" + requestingMember + ", providingMember=" + providingMember
 				+ ", orderInstace=" + orderInstance + ", fulfilledTime=" + fulfilledTime + "]";
 	}
+
 }

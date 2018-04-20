@@ -9,6 +9,17 @@ public class NetworkOrder extends Order {
 	private String address;
 	private String allocation;
 
+	/**
+	 * Creating Order with predefined Id.
+	 */
+	public NetworkOrder(String id, Token localToken, Token federationToken, String requestingMember, String providingMember,
+			String gateway, String address, String allocation) {
+		super(id, localToken, federationToken, requestingMember, providingMember);
+		this.gateway = gateway;
+		this.address = address;
+		this.allocation = allocation;
+	}
+	
 	public NetworkOrder(Token localToken, Token federationToken, String requestingMember, String providingMember,
 			String gateway, String address, String allocation) {
 		super(localToken, federationToken, requestingMember, providingMember);

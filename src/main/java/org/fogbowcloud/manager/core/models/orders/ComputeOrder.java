@@ -30,6 +30,19 @@ public class ComputeOrder extends Order {
 	public ComputeOrder() {
 	}
 
+	/**
+	 * Creating Order with predefined Id.
+	 */
+	public ComputeOrder(String id, Token localToken, Token federationToken, String requestingMember, String providingMember,
+			int vCPU, int memory, int disk, String imageName, UserData userData) {
+		super(id, localToken, federationToken, requestingMember, providingMember);
+		this.vCPU = vCPU;
+		this.memory = memory;
+		this.disk = disk;
+		this.imageName = imageName;
+		this.userData = userData;
+	}
+	
 	public ComputeOrder(Token localToken, Token federationToken, String requestingMember, String providingMember,
 			int vCPU, int memory, int disk, String imageName, UserData userData) {
 		super(localToken, federationToken, requestingMember, providingMember);
