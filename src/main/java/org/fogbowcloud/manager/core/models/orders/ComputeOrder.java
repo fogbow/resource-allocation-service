@@ -15,11 +15,12 @@ public class ComputeOrder extends Order {
 	private UserData userData;
 	private NetworkLink networkLink;
 	private StorageLink storageLink;
+	private String publicKey;
 
 	public ComputeOrder(String id, OrderState orderState, Token localToken, Token federationToken,
 						String requestingMember, String providingMember, OrderInstance orderInstance,
 						long fulfilledTime, int vCPU, int memory, int disk, UserData userData,
-						NetworkLink networkLink, StorageLink storageLink) {
+						NetworkLink networkLink, StorageLink storageLink, String publicKey) {
 
 		super(id, orderState, localToken, federationToken, requestingMember, providingMember, orderInstance, fulfilledTime);
 		this.vCPU = vCPU;
@@ -28,6 +29,7 @@ public class ComputeOrder extends Order {
 		this.userData = userData;
 		this.networkLink = networkLink;
 		this.storageLink = storageLink;
+		this.publicKey = publicKey;
 	}
 
 	public int getvCPU() {
@@ -78,55 +80,56 @@ public class ComputeOrder extends Order {
 		this.storageLink = storageLink;
 	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + disk;
-		result = prime * result + memory;
-		result = prime * result + ((networkLink == null) ? 0 : networkLink.hashCode());
-		result = prime * result + ((storageLink == null) ? 0 : storageLink.hashCode());
-		result = prime * result + ((userData == null) ? 0 : userData.hashCode());
-		result = prime * result + vCPU;
-		return result;
-	}
+    public String getPublicKey() {
+        return publicKey;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ComputeOrder other = (ComputeOrder) obj;
-		if (disk != other.disk)
-			return false;
-		if (memory != other.memory)
-			return false;
-		if (networkLink == null) {
-			if (other.networkLink != null)
-				return false;
-		} else if (!networkLink.equals(other.networkLink))
-			return false;
-		if (storageLink == null) {
-			if (other.storageLink != null)
-				return false;
-		} else if (!storageLink.equals(other.storageLink))
-			return false;
-		if (userData == null) {
-			if (other.userData != null)
-				return false;
-		} else if (!userData.equals(other.userData))
-			return false;
-		if (vCPU != other.vCPU)
-			return false;
-		return true;
-	}
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
+    }
 
-	@Override
-	public String toString() {
-		return "ComputeOrder [vCPU=" + vCPU + ", memory=" + memory + ", disk=" + disk + ", userData=" + userData
-				+ ", networkLink=" + networkLink + ", storageLink=" + storageLink + "]";
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        ComputeOrder that = (ComputeOrder) o;
+
+        if (vCPU != that.vCPU) return false;
+        if (memory != that.memory) return false;
+        if (disk != that.disk) return false;
+        if (userData != null ? !userData.equals(that.userData) : that.userData != null) return false;
+        if (networkLink != null ? !networkLink.equals(that.networkLink) : that.networkLink != null) return false;
+        if (storageLink != null ? !storageLink.equals(that.storageLink) : that.storageLink != null) return false;
+        if (publicKey != null ? !publicKey.equals(that.publicKey) : that.publicKey != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + vCPU;
+        result = 31 * result + memory;
+        result = 31 * result + disk;
+        result = 31 * result + (userData != null ? userData.hashCode() : 0);
+        result = 31 * result + (networkLink != null ? networkLink.hashCode() : 0);
+        result = 31 * result + (storageLink != null ? storageLink.hashCode() : 0);
+        result = 31 * result + (publicKey != null ? publicKey.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "ComputeOrder{" +
+                "vCPU=" + vCPU +
+                ", memory=" + memory +
+                ", disk=" + disk +
+                ", userData=" + userData +
+                ", networkLink=" + networkLink +
+                ", storageLink=" + storageLink +
+                ", publicKey='" + publicKey + '\'' +
+                '}';
+    }
 }
