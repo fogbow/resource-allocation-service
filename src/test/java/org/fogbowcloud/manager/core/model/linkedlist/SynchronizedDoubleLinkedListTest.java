@@ -3,19 +3,19 @@ package org.fogbowcloud.manager.core.model.linkedlist;
 import static org.junit.Assert.*;
 
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
-import org.fogbowcloud.manager.core.models.linkedlist.DoubleLinkedList;
+import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoubleLinkedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.junit.Before;
 import org.junit.Test;
 
-public class DoubleLinkedListTest {
+public class SynchronizedDoubleLinkedListTest {
 
 	private ChainedList list;
 	
 	@Before
 	public void initialize() {
-		list = new DoubleLinkedList();		
+		list = new SynchronizedDoubleLinkedList();
 	}
 	
 	@Test(expected=Exception.class)

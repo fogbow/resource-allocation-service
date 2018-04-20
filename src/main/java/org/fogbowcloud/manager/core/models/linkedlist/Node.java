@@ -2,35 +2,33 @@ package org.fogbowcloud.manager.core.models.linkedlist;
 
 import org.fogbowcloud.manager.core.models.orders.Order;
 
-public class Cell {
+public class Node {
 
-	private Cell next;
-	private Cell previous;
+	private Node next;
+	private Node previous;
 	private Order order;
-	
-	public Cell(Order order) {
-		this.order = order;
-	}
-	
-	public Cell(Cell previous, Order order, Cell next) {
+
+	public Node(){ }
+
+	public Node(Node previous, Order order, Node next) {
 		this.previous = previous;
 		this.order = order;
 		this.next = next;
 	}
 
-	public Cell getNext() {
+	public Node getNext() {
 		return next;
 	}
 
-	public void setNext(Cell next) {
+	public void setNext(Node next) {
 		this.next = next;
 	}
 
-	public Cell getPrevious() {
+	public Node getPrevious() {
 		return previous;
 	}
 
-	public void setPrevious(Cell previous) {
+	public void setPrevious(Node previous) {
 		this.previous = previous;
 	}
 
@@ -41,5 +39,4 @@ public class Cell {
 	public void setOrder(Order order) {
 		this.order = order;
 	}
-	
 }
