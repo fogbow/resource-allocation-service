@@ -166,9 +166,11 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         checkStatusResponse(response, "");
     }
 
-    private String doPostRequest(String endpoint, Token localToken, JSONObject jsonRequest) throws RequestException {
+    protected String doPostRequest(String endpoint, Token localToken, JSONObject jsonRequest) throws RequestException {
         HttpResponse response = null;
         String responseStr;
+
+        System.out.println(jsonRequest.toString());
 
         try {
             HttpPost request = new HttpPost(endpoint);
@@ -195,7 +197,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         return responseStr;
     }
 
-    private JSONObject generateJsonRequest(String imageRef, String flavorRef, UserData userdata,
+    protected JSONObject generateJsonRequest(String imageRef, String flavorRef, UserData userdata,
                                            String keyName, String networkId) throws JSONException {
 
         JSONObject server = new JSONObject();
@@ -249,7 +251,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         }
     }
 
-    private Flavor getFlavor(ComputeOrder computeOrder) {
+    protected Flavor getFlavor(ComputeOrder computeOrder) {
         updateFlavors(computeOrder.getLocalToken());
 
         return findSmallestFlavor(computeOrder);
@@ -273,22 +275,16 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     private boolean matches(Flavor flavor, ComputeOrder computeOrder) {
-        if (flavor.getDisk() < computeOrder.getDisk()) {
-            return false;
-        }
-
-        if (flavor.getCpu() < computeOrder.getvCPU()) {
-            return false;
-        }
-
-        if (flavor.getMem() < computeOrder.getMemory()) {
+        if (flavor.getDisk() < computeOrder.getDisk()
+                || flavor.getCpu() < computeOrder.getvCPU()
+                || flavor.getMem() < computeOrder.getMemory()) {
             return false;
         }
 
         return true;
     }
 
-    private synchronized void updateFlavors(Token localToken) {
+    protected synchronized void updateFlavors(Token localToken) {
         try {
             String tenantId = getTenantId(localToken);
             if (tenantId == null) {
@@ -397,14 +393,50 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         return responseStr;
     }
 
+    public HttpClient getClient() {
+        return client;
+    }
+
+    public void setClient(HttpClient client) {
+        this.client = client;
+    }
+
+    public List<Flavor> getFlavors() {
+        return flavors;
+    }
+
+    public void setFlavors(List<Flavor> flavors) {
+        this.flavors = flavors;
+    }
+
     @Override
     public ComputeOrderInstance getInstance(Token localToken, String instanceId) throws RequestException {
         return null;
     }
 
     @Override
-    public List<ComputeOrderInstance> getInstances(Token localToken) {
-        return null;
+    public List<ComputeOrderInstance> getInstances(Token localToken) throws RequestException {
+        String requestEndpoint = getComputeEndpoint(getTenantId(localToken), SERVERS);
+        String jsonResponse = doGetRequest(requestEndpoint, localToken);
+        return getInstancesFromJson(jsonResponse);
+    }
+
+    private List<ComputeOrderInstance> getInstancesFromJson(String json) {
+        LOGGER.debug("Getting instances from json: " + json);
+        List<ComputeOrderInstance> instances = new ArrayList<>();
+        JSONObject root;
+
+        try {
+            root = new JSONObject(json);
+            JSONArray servers = root.getJSONArray("servers");
+            for (int i = 0; i < servers.length(); i++) {
+                JSONObject currentServer = servers.getJSONObject(i);
+                instances.add(new ComputeOrderInstance(currentServer.getString(ID_JSON_FIELD)));
+            }
+        } catch (JSONException e) {
+            LOGGER.warn("There was an exception while getting instances from json.", e);
+        }
+        return instances;
     }
 
     @Override
