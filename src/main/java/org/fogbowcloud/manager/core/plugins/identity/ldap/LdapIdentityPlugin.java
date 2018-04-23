@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.plugins.identity.ldap;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -24,7 +25,6 @@ import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
-import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
@@ -111,7 +111,7 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 
 			String accessId = json.toString() + ACCESSID_SEPARATOR + signature;
 
-			accessId = new String(Base64.encodeBase64(accessId.getBytes(Charsets.UTF_8), false, false), Charsets.UTF_8);
+			accessId = new String(Base64.encodeBase64(accessId.getBytes(StandardCharsets.UTF_8), false, false), StandardCharsets.UTF_8);
 
 			return new Token(accessId, new Token.User(uid, name), expirationDate, attributes);
 		} catch (Exception e) {
@@ -148,7 +148,7 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 	@Override
 	public Token getToken(String accessId) {
 		try {
-			String decodedAccessId = new String(Base64.decodeBase64(accessId), Charsets.UTF_8);
+			String decodedAccessId = new String(Base64.decodeBase64(accessId), StandardCharsets.UTF_8);
 
 			String split[] = decodedAccessId.split(ACCESSID_SEPARATOR);
 			if (split == null || split.length < 2) {
