@@ -1,30 +1,32 @@
 package org.fogbowcloud.manager.core;
 
-import java.util.List;
+import java.util.Date;
 import java.util.Properties;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
-
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.manager.core.datastore.ManagerDatastore;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.OrderRegistry;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 
 public class ManagerController {
 
-	private ManagerDatastore managerDatastore;
+	private OrderRegistry orderRegistry;
 	private ManagerScheduledExecutorService attendOpenOrdersExecutor;
 
 	private InstanceProvider localInstanceProvider;
 	private InstanceProvider remoteInstanceProvider;
+	
+	private String localMemberId;
 
 	private static final Logger LOGGER = Logger.getLogger(ManagerController.class);
-
+	
 	public ManagerController(Properties properties) {
+		this.localMemberId = properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
 		this.attendOpenOrdersExecutor = new ManagerScheduledExecutorService(Executors.newScheduledThreadPool(1));
 
 		this.scheduleExecutorsServices(properties);
@@ -41,7 +43,7 @@ public class ManagerController {
 					try {
 						attendOpenOrders();
 					} catch (Throwable e) {
-						LOGGER.error("Error while checking and submitting open orders", e);
+						LOGGER.error("Error while trying to attend open orders", e);
 					}
 				}
 			}, 0, schedulerPeriod);
@@ -49,37 +51,89 @@ public class ManagerController {
 	}
 
 	/**
-	 * Method that try to get an Instance for an Open Order.
+	 * Method that try to get an Instance for an Open Order. This method can
+	 * generate a race condition. For example: a user can delete a Open Order
+	 * while this method is trying to get an Instance for this Order.
 	 */
-	private void attendOpenOrders() {
-		LOGGER.info("Trying to get Instances for Open Orders");
-		List<Order> openOrders = this.managerDatastore.getOrderByState(OrderState.OPEN);
+	private synchronized void attendOpenOrders() {
+		Order order = this.orderRegistry.getNextOpenOrder();
+		if (order != null) {
+			LOGGER.info("Trying to get an Instance for Order [" + order.getId() + "]");
 
-		/**
-		 * TODO: this method can generate a race condition. For example:
-		 * a user can delete a Open Order while this method is trying to get an
-		 * Instance for this Order.
-		 */
-		for (Order order : openOrders) {
 			try {
-				order.handleOpenOrder();
-				OrderInstance orderInstance = null;
-				if (order.isLocal()) {
-					orderInstance = this.localInstanceProvider.requestInstance(order);
-				} else if (order.isRemote()) {
-					orderInstance = this.remoteInstanceProvider.requestInstance(order);
+				InstanceProvider instanceProvider = null;
+				if (order.isLocal(this.localMemberId)) {
+					LOGGER.info("The open order [" + order.getId() + "] is local");
+					
+					instanceProvider = this.localInstanceProvider;
+				} else if (order.isRemote(this.localMemberId)) {
+					LOGGER.info("The open order [" + order.getId() + "] is remote for the member ["
+							+ order.getProvidingMember() + "]");
+					
+					instanceProvider = this.remoteInstanceProvider;
 				}
-				if (!orderInstance.getId().trim().isEmpty()) {
-					order.setOrderState(OrderState.SPAWNING);
-				} else {
-					throw new RuntimeException("OrderInstance Id not generated");
+				
+				order.processOpenOrder(instanceProvider);
+				
+				if (order.isLocal(this.localMemberId)) {
+					OrderInstance orderInstance = order.getOrderInstance();
+					String orderInstanceId = orderInstance.getId();
+					if (!orderInstanceId.isEmpty()) {
+						LOGGER.info("The open order [" + order.getId() + "] got an local instance with id ["
+								+ orderInstanceId + "], setting your state to SPAWNING");
+						
+						order.setOrderState(OrderState.SPAWNING);
+					}
+				} else if (order.isRemote(this.localMemberId)) {
+					LOGGER.info("The open order [" + order.getId()
+							+ "] was requested for remote member, setting your state to PENDING");
+					
+					order.setOrderState(OrderState.PENDING);
 				}
 			} catch (Exception e) {
 				LOGGER.error("Error while trying to get an Instance for Order: " + System.lineSeparator() + order, e);
 				order.setOrderState(OrderState.FAILED);
 			}
-			this.managerDatastore.updateOrder(order);
+			this.orderRegistry.updateOrder(order);
 		}
+	}
+	
+	/**
+	 * TODO: this procedure method change all possibles states of an Order to CLOSED, when user try to delete an Order. 
+	 */
+	private synchronized void setOrderToClosed(String id) {
+		Order order = this.orderRegistry.getNextToBeDeletedOrder();
+		if (order.getOrderInstance() != null) {				
+			try {
+				InstanceProvider instanceProvider = null;
+				if (order.isLocal(this.localMemberId)) {
+					instanceProvider = this.localInstanceProvider;
+				} else if (order.isRemote(this.localMemberId)) {
+					instanceProvider = this.remoteInstanceProvider;
+				}
+				instanceProvider.deleteInstance(order);
+				if (order.getOrderState().equals(OrderState.FULFILLED)) {
+					// TODO: remove attribute fulfilledTime and create initialFulfilledTimestamp and endFulfilledTimestamp in the Order.class...
+					order.setFulfilledTime(new Date().getTime()); 
+				}				
+			} catch (Exception e) {
+				// TODO: handle exception
+			}			
+			order.setOrderState(OrderState.CLOSED);
+			this.orderRegistry.updateOrder(order);
+		}
+	}
+
+	protected void setOrderRegistry(OrderRegistry orderRegistry) {
+		this.orderRegistry = orderRegistry;
+	}
+
+	protected void setLocalInstanceProvider(InstanceProvider localInstanceProvider) {
+		this.localInstanceProvider = localInstanceProvider;
+	}
+
+	protected void setRemoteInstanceProvider(InstanceProvider remoteInstanceProvider) {
+		this.remoteInstanceProvider = remoteInstanceProvider;
 	}
 
 }

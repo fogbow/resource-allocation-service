@@ -1,10 +1,14 @@
 package org.fogbowcloud.manager.core.models.orders;
 
+import java.util.UUID;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 
@@ -14,13 +18,13 @@ import org.fogbowcloud.manager.core.models.token.Token;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "type")
 @JsonSubTypes({ @JsonSubTypes.Type(value = ComputeOrder.class, name = "compute"),
 		@JsonSubTypes.Type(value = NetworkOrder.class, name = "network"),
-		@JsonSubTypes.Type(value = StorageOrder.class, name = "storage")})
+		@JsonSubTypes.Type(value = StorageOrder.class, name = "storage") })
 public abstract class Order {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "id", nullable = false, unique = true)
-	private Long id;
+	private String id;
 
 	@Column(name = "order_state")
 	@NotNull(message = "Order state can not be null.")
@@ -49,25 +53,23 @@ public abstract class Order {
 	private Long fulfilledTime;
 
 	public Order() {
-	
+
 	}
 
-	public Order(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
-			String providingMember, OrderInstance orderInstace, Long fulfilledTime) {
-		this.orderState = orderState;
+	public Order(Token localToken, Token federationToken, String requestingMember, String providingMember) {
+		this.id = UUID.randomUUID().toString();
+		this.orderState = OrderState.OPEN;
 		this.localToken = localToken;
 		this.federationToken = federationToken;
 		this.requestingMember = requestingMember;
 		this.providingMember = providingMember;
-		this.orderInstance = orderInstace;
-		this.fulfilledTime = fulfilledTime;
 	}
 
-	public Long getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
@@ -115,8 +117,8 @@ public abstract class Order {
 		return orderInstance;
 	}
 
-	public void setOrderInstance(OrderInstance orderInstace) {
-		this.orderInstance = orderInstace;
+	public void setOrderInstance(OrderInstance orderInstance) {
+		this.orderInstance = orderInstance;
 	}
 
 	public long getFulfilledTime() {
@@ -127,23 +129,34 @@ public abstract class Order {
 		this.fulfilledTime = fulfilledTime;
 	}
 	
-	public boolean isLocal() {
-		return this.providingMember.equals(this.requestingMember);
-	}
-	
-	public boolean isRemote() {
-		return !this.providingMember.equals(this.requestingMember);
+	public boolean isLocal(String localMemberId) {
+		return this.providingMember.equals(localMemberId);
 	}
 
-	public abstract void handleOpenOrder();
-	
+	public boolean isRemote(String localMemberId) {
+		return !this.providingMember.equals(localMemberId);
+	}
+
+	/**
+	 * These method handle and request an open order, for this, processOpenOrder
+	 * handle the Order to be ready to change your state and request the
+	 * Instance from the InstanceProvider.
+	 */
+	public void processOpenOrder(InstanceProvider instanceProvider) {
+		if (this.getOrderState().equals(OrderState.OPEN)) {
+			OrderInstance orderInstance = instanceProvider.requestInstance(this);
+			this.setOrderInstance(orderInstance);
+		} else {
+			throw new RuntimeException("Order is not Open");
+		}
+	}
+
 	public abstract OrderType getType();
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((federationToken == null) ? 0 : federationToken.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		return result;
 	}
@@ -157,17 +170,10 @@ public abstract class Order {
 		if (getClass() != obj.getClass())
 			return false;
 		Order other = (Order) obj;
-		if (federationToken == null) {
-			if (other.federationToken != null)
-				return false;
-		} else if (!federationToken.equals(other.federationToken))
-			return false;
 		if (id == null) {
 			if (other.id != null)
 				return false;
 		} else if (!id.equals(other.id))
-			return false;			
-		if (orderState != other.orderState) 
 			return false;
 		return true;
 	}

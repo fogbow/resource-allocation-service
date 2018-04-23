@@ -1,15 +1,15 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
+import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.models.token.Token;
 
 public class StorageOrder extends Order {
 
-    private int storageSize;
+	private int storageSize;
 
-	public StorageOrder(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
-						String providingMember, OrderInstance orderInstace, long fulfilledTime, int storageSize) {
-		super(orderState, localToken, federationToken, requestingMember, providingMember, orderInstace, fulfilledTime);
+	public StorageOrder(Token localToken, Token federationToken, String requestingMember, String providingMember,
+			int storageSize) {
+		super(localToken, federationToken, requestingMember, providingMember);
 		this.storageSize = storageSize;
 	}
 
@@ -26,10 +26,14 @@ public class StorageOrder extends Order {
 		return OrderType.NETWORK;
 	}
 
+	/**
+	 * These method handle and request an open order, for this, processOpenOrder
+	 * handle the Order to be ready to change your state and request the
+	 * Instance from the InstanceProvider.
+	 */
 	@Override
-	public void handleOpenOrder() {
-		// TODO Auto-generated method stub
-		
+	public void processOpenOrder(InstanceProvider instanceProvider) {
+		super.processOpenOrder(instanceProvider);
 	}
 
 }
