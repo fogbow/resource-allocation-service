@@ -75,7 +75,7 @@ public class AttendOpenOrdersThread extends Thread {
 					LOGGER.info("Processing Order [" + order.getId() + "]");
 					order.processOpenOrder(instanceProvider);
 
-					LOGGER.info("Updating Order status after processing [" + order.getId() + "]");
+					LOGGER.info("Updating Order State after processing [" + order.getId() + "]");
 					this.updateOrderStateAfterProcessing(order);
 				} catch (Exception e) {
 					LOGGER.error("Error while trying to get an Instance for Order: "

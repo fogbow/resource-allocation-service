@@ -241,7 +241,7 @@ public class TestAttendOpenOrdersThread {
 	}
 
 	/**
-	 * This method test a race condition when this class thread has the Order
+	 * This method tests a race condition when this class thread has the Order
 	 * operation priority.
 	 */
 	@Test
@@ -266,9 +266,36 @@ public class TestAttendOpenOrdersThread {
 
 		Assert.assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
 	}
+	
+	/**
+	 * This method tests a race condition when this class thread has the Order
+	 * operation priority and change the Open Order to a different State. 
+	 */
+	@Test
+	public void testRaceConditionWithThisThreadPriorityAndNotOpenOrder() throws InterruptedException {
+		Order localOrder = this.createLocalOrder();
+
+		synchronized (localOrder) {
+			OrderInstance orderInstance = new OrderInstance("fake-id");
+
+			Mockito.doReturn(orderInstance).when(this.localInstanceProvider).requestInstance(Mockito.any(Order.class));
+			Mockito.doReturn(localOrder).when(this.orderRegistry).getNextOrderByState(Mockito.any(OrderState.class));
+			Mockito.doNothing().when(this.orderRegistry).updateOrder(Mockito.any(Order.class));
+
+			this.attendOpenOrdersThread.start();
+
+			Thread.sleep(500);
+
+			localOrder.setOrderState(OrderState.CLOSED, this.orderRegistry);
+		}
+
+		Thread.sleep(500);
+
+		Assert.assertEquals(OrderState.CLOSED, localOrder.getOrderState());
+	}
 
 	/**
-	 * This method test a race condition when the Attend Open Order Thread has
+	 * This method tests a race condition when the Attend Open Order Thread has
 	 * the Order operation priority.
 	 */
 	@Test
