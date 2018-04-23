@@ -5,7 +5,6 @@ public class Flavor implements Comparable<Flavor> {
     private final int MEM_VALUE_RELEVANCE = 1;
     private final int VCPU_VALUE_RELEVANCE = 1;
 
-    private int capacity;
     private String name;
     private String id;
 
@@ -24,18 +23,11 @@ public class Flavor implements Comparable<Flavor> {
      */
     private int disk;
 
-    public Flavor(String name, int cpu, int memInMB, int disk, int capacity) {
+    public Flavor(String name, int cpu, int memInMB, int disk) {
         this.setName(name);
         this.setCpu(cpu);
         this.setMem(memInMB);
-
-        if (disk != 0) {
-            this.setDisk(disk);
-        }
-
-        if (capacity != 0) {
-            this.setCapacity(capacity);
-        }
+        this.setDisk(disk);
     }
 
     public Flavor(String name, String id, int cpu, int memInMB, int disk) {
@@ -44,14 +36,6 @@ public class Flavor implements Comparable<Flavor> {
         this.setMem(memInMB);
         this.setDisk(disk);
         this.setId(id);
-    }
-
-    public int getCapacity() {
-        return capacity;
-    }
-
-    public void setCapacity(int capacity) {
-        this.capacity = capacity;
     }
 
     public String getName() {
@@ -112,7 +96,7 @@ public class Flavor implements Comparable<Flavor> {
     @Override
     public String toString() {
         return "Name: " + getName() + ", cpu: " + cpu + ", mem: " + memInMB
-                + ", disk: " + disk + ", capacity: " + capacity;
+                + ", disk: " + disk;
     }
 
     @Override
