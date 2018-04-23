@@ -85,11 +85,11 @@ public abstract class Order {
 		this.id = id;
 	}
 
-	public OrderState getOrderState() {
+	public synchronized OrderState getOrderState() {
 		return orderState;
 	}
 
-	public void setOrderState(OrderState state, OrderRegistry orderRegistry) {
+	public synchronized void setOrderState(OrderState state, OrderRegistry orderRegistry) {
 		this.orderState = state;
 		orderRegistry.updateOrder(this);
 	}
@@ -126,11 +126,11 @@ public abstract class Order {
 		this.providingMember = providingMember;
 	}
 
-	public OrderInstance getOrderInstance() {
+	public synchronized OrderInstance getOrderInstance() {
 		return orderInstance;
 	}
 
-	public void setOrderInstance(OrderInstance orderInstance) {
+	public synchronized void setOrderInstance(OrderInstance orderInstance) {
 		this.orderInstance = orderInstance;
 	}
 
@@ -155,7 +155,7 @@ public abstract class Order {
 	 * handle the Order to be ready to change your state and request the
 	 * Instance from the InstanceProvider.
 	 */
-	public void processOpenOrder(InstanceProvider instanceProvider) {
+	public synchronized void processOpenOrder(InstanceProvider instanceProvider) {
 		if (this.getOrderState().equals(OrderState.OPEN)) {
 			OrderInstance orderInstance = instanceProvider.requestInstance(this);
 			this.setOrderInstance(orderInstance);

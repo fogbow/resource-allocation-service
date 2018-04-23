@@ -63,7 +63,7 @@ public class NetworkOrder extends Order {
 	 * Instance from the InstanceProvider.
 	 */
 	@Override
-	public void processOpenOrder(InstanceProvider instanceProvider) {
+	public synchronized void processOpenOrder(InstanceProvider instanceProvider) {
 		super.processOpenOrder(instanceProvider);
 	}
 
