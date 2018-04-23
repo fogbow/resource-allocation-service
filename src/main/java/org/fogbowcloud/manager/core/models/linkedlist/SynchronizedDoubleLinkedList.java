@@ -16,35 +16,27 @@ public class SynchronizedDoubleLinkedList implements ChainedList {
 		return this.current;
 	}
 
-	protected Node getHead() {
+	protected synchronized Node getHead() {
 		return this.head;
 	}
 
-	protected Node getTail() {
+	protected synchronized Node getTail() {
 		return this.tail;
 	}
 
 	@Override
 	public synchronized void addItem(Order order) {
 		if (order == null) {
-			throw new NullPointerException();
+			throw new IllegalArgumentException("Order cannot be null.");
 		}
-
 		if (this.head == null) {
-			addFirst(order);
+			Node firstNode = new Node(null, order, null);
+			this.tail = this.head = this.current = firstNode;
 		} else {
 			Node newItem = new Node(this.tail, order, null);
 			this.tail.setNext(newItem);
 			this.tail = newItem;
 		}
-	}
-
-	/**
-	 * @param order - Never null
-	 */
-	protected synchronized void addFirst(Order order) {
-		Node firstNode = new Node(null, order, null);
-		this.tail = this.head = this.current = firstNode;
 	}
 
 	@Override
@@ -57,7 +49,6 @@ public class SynchronizedDoubleLinkedList implements ChainedList {
 		if (this.current == null) {
 			return null;
 		}
-
 		Order orderCurrent = this.current.getOrder();
 		Node nextNode = this.current.getNext();
 		this.current = nextNode;
@@ -70,31 +61,32 @@ public class SynchronizedDoubleLinkedList implements ChainedList {
 	 * point to the same element before this operation), unless the order to be
 	 * removed, is the one in current pointer. In this case, we must remove this
 	 * order, and point current to the next one.
-	 * 
+	 *
 	 * @param order
+	 * @return True if it was removed from the list.
+	 * 		   False, if another thread removed this order from the list and the order couldn't be find.
 	 */
 	@Override
 	public synchronized boolean removeItem(Order order) {
 		if (order == null) {
-			return false;
+			throw new IllegalArgumentException("Order cannot be null.");
 		}
-		// This Exception should be a particular one, not a general exception
 		Node nodeToRemove = findNodeToRemove(order);
 		if (nodeToRemove == null) {
 			return false;
 		}
-
-		if (nodeToRemove == this.head) {
-			removeOnHead();
-		} else if (nodeToRemove == this.tail) {
-			removeOnTail();
-		} else {
-			// check if this order is the current, and point current to the next node, if it
-			// is;
-			Node previousOrder = nodeToRemove.getPrevious();
-			Node nextOrder = nodeToRemove.getNext();
-			previousOrder.setNext(nextOrder);
-			nextOrder.setPrevious(previousOrder);
+		if (nodeToRemove.getPrevious() != null) {
+			nodeToRemove.getPrevious().setNext(nodeToRemove.getNext());
+		} else { // removing the head
+			this.head = nodeToRemove.getNext();
+		}
+		if (nodeToRemove.getNext() != null) {
+			nodeToRemove.getNext().setPrevious(nodeToRemove.getPrevious());
+		} else { // removing the tail
+			this.tail = nodeToRemove.getPrevious();
+		}
+		if (this.current == nodeToRemove) { // fix current, if current was pointing to cell just removed
+			this.current = nodeToRemove.getNext();
 		}
 		return true;
 	}
@@ -102,11 +94,10 @@ public class SynchronizedDoubleLinkedList implements ChainedList {
 	/**
 	 * @param order - Never null
 	 */
-	protected Node findNodeToRemove(Order order) {
+	protected synchronized Node findNodeToRemove(Order order) {
 		Node currentNode = this.head;
 		while (currentNode != null) {
-			String currentOrderId = currentNode.getOrder().getId();
-			if (order.getId().equals(currentOrderId)) {
+			if (order.equals(currentNode.getOrder())) {
 				return currentNode;
 			}
 			currentNode = currentNode.getNext();
@@ -114,42 +105,4 @@ public class SynchronizedDoubleLinkedList implements ChainedList {
 		return null;
 	}
 
-	private synchronized boolean removeOnHead() {
-		if (this.head == null) {
-			return false;
-		}
-
-		Node currentHead = this.head;
-		this.head = currentHead.getNext();
-		if (this.head == null) {
-			this.tail = this.current = null;
-			return true;
-		}
-
-		if (currentHead.equals(this.current)) {
-			this.current = this.head;
-		}
-		if (this.head.getNext() == null) {
-			this.tail = this.head;
-		}
-
-		return true;
-	}
-
-	private synchronized boolean removeOnTail() {
-		if (this.tail == null) {
-			return false;
-		}
-
-		Node previousTail = this.tail.getPrevious();
-		boolean isLastObject = previousTail == null;
-		if (isLastObject) {
-			this.head = this.tail = this.current = null;
-		} else {
-			previousTail.setNext(null);
-			this.tail = previousTail;
-		}
-
-		return true;
-	}
 }

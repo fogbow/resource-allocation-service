@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.models.linkedlist;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -23,9 +24,10 @@ public class SynchronizedDoubleLinkedListTest {
 		assertNull(this.list.getTail());
 		
 		Order order = createOrder("0");
-		this.list.addFirst(order);
-		
+		this.list.addItem(order);
+
 		assertEquals(order, this.list.getHead().getOrder());
+		assertEquals(order, this.list.getCurrent().getOrder());
 		assertEquals(order, this.list.getTail().getOrder());
 	}
 	
@@ -40,24 +42,31 @@ public class SynchronizedDoubleLinkedListTest {
 		
 		assertEquals(orderOne, this.list.getNext());
 		assertEquals(orderTwo, this.list.getNext());
+		// Next node of the second order is null.
 		assertNull(this.list.getNext());
 		
 		Order orderThree = createOrder("three");
 		this.list.addItem(orderThree);
-		
+
+		// To access the third order, we should have reseted the pointer, for now the pointer is on null.
 		assertNull(this.list.getNext());
 	}
 	
-	@Test(expected=NullPointerException.class)
+	@Test
 	public void testAddNullOrder() {
 		assertNull(this.list.getNext());
 		
 		Order orderNull = null;
-		this.list.addItem(orderNull);
-	}	
+		try {
+			this.list.addItem(orderNull);
+			fail("Null order should not be added.");
+		} catch (IllegalArgumentException e){
+			assertEquals("Order cannot be null.", e.getMessage());
+		}
+	}
 	
 	@Test
-	public void testResetList() {
+	public void testResetPointer() {
 		assertNull(this.list.getNext());
 		
 		Order orderOne = createOrder("one");
@@ -73,15 +82,27 @@ public class SynchronizedDoubleLinkedListTest {
 		assertEquals(orderOne, this.list.getNext());
 		assertEquals(orderTwo, this.list.getNext());
 		assertNull(this.list.getNext());
-	}	
+	}
+
+	@Test
+	public void testRemoveNullOrder() {
+		assertNull(this.list.getNext());
+
+		Order orderNull = null;
+		try {
+			this.list.removeItem(orderNull);
+			fail("Null order should not be removed.");
+		} catch (IllegalArgumentException e){
+			assertEquals("Order cannot be null.", e.getMessage());
+		}
+	}
 	
 	@Test
 	public void testFindNodeToRemove() {
 		assertNull(this.list.getNext());
-		String orderTwoId = "two";
-		
+
 		Order orderOne = createOrder("one");
-		Order orderTwo = createOrder(orderTwoId);
+		Order orderTwo = createOrder("two");
 		Order orderThree = createOrder("three");
 		Order orderFour = createOrder("four");
 		this.list.addItem(orderOne);
@@ -98,7 +119,7 @@ public class SynchronizedDoubleLinkedListTest {
 	}
 	
 	@Test
-	public void testRemoveItemOnHead() throws Exception {
+	public void testRemoveItemOnHead() {
 		Order orderOne = createOrder("one"); 
 		Order orderTwo = createOrder("two"); 
 		Order orderThree = createOrder("three");
@@ -108,11 +129,15 @@ public class SynchronizedDoubleLinkedListTest {
 		this.list.addItem(orderTwo);
 		this.list.addItem(orderThree);
 		this.list.addItem(orderFour);
+
+		assertEquals(orderOne, this.list.getHead().getOrder());
+		assertEquals(orderFour, this.list.getTail().getOrder());
 		
 		assertEquals(orderOne, this.list.getCurrent().getOrder());
 		this.list.removeItem(orderOne);
 		assertEquals(orderTwo, this.list.getCurrent().getOrder());
 		assertEquals(orderTwo, this.list.getHead().getOrder());
+		assertNull(this.list.getHead().getPrevious());
 		assertEquals(orderFour, this.list.getTail().getOrder());
 		assertEquals(orderTwo, this.list.getNext());
 		assertEquals(orderThree, this.list.getNext());
@@ -121,14 +146,17 @@ public class SynchronizedDoubleLinkedListTest {
 	}
 	
 	@Test
-	public void testRemoveItemOnTail() throws Exception {
+	public void testRemoveItemOnTail() {
 		Order orderOne = createOrder("one"); 
 		Order orderTwo = createOrder("two"); 
-		Order orderThree = createOrder("three"); 
-		
+		Order orderThree = createOrder("three");
+
 		this.list.addItem(orderOne);
 		this.list.addItem(orderTwo);
 		this.list.addItem(orderThree);
+
+		assertEquals(orderOne, this.list.getHead().getOrder());
+		assertEquals(orderThree, this.list.getTail().getOrder());
 		
 		this.list.removeItem(orderThree);
 		assertEquals(orderOne, this.list.getHead().getOrder());
@@ -139,7 +167,7 @@ public class SynchronizedDoubleLinkedListTest {
 	}
 	
 	@Test
-	public void testRemoveItemOnTailOneElementOnList() throws Exception {
+	public void testRemoveItemOneElementOnList() {
 		Order orderOne = createOrder("one"); 
 		
 		this.list.addItem(orderOne);
@@ -163,7 +191,7 @@ public class SynchronizedDoubleLinkedListTest {
 		this.list.addItem(orderTwo);
 		this.list.addItem(orderThree);
 		this.list.addItem(orderFour);
-		
+
 		this.list.removeItem(orderThree);
 		assertEquals(orderOne, this.list.getHead().getOrder());
 		assertEquals(orderFour, this.list.getTail().getOrder());
@@ -178,8 +206,32 @@ public class SynchronizedDoubleLinkedListTest {
 		assertEquals(orderFour, this.list.getTail().getOrder());
 		assertEquals(orderOne, this.list.getNext());
 		assertEquals(orderFour, this.list.getNext());
-		assertNull(this.list.getNext());		
-	}	
+		assertNull(this.list.getNext());
+	}
+
+	@Test
+	public void testReinitializingList(){
+		Order orderOne = createOrder("one");
+		this.list.addItem(orderOne);
+		assertEquals(orderOne, this.list.getHead().getOrder());
+		assertEquals(orderOne, this.list.getCurrent().getOrder());
+		assertEquals(orderOne, this.list.getTail().getOrder());
+		assertEquals(orderOne, this.list.getNext());
+
+		this.list.removeItem(orderOne);
+		assertNull(this.list.getHead());
+		assertNull(this.list.getCurrent());
+		assertNull(this.list.getTail());
+		assertNull(this.list.getNext());
+
+		orderOne = createOrder("one");
+		this.list.addItem(orderOne);
+		assertEquals(orderOne, this.list.getHead().getOrder());
+		assertEquals(orderOne, this.list.getCurrent().getOrder());
+		assertEquals(orderOne, this.list.getTail().getOrder());
+		assertEquals(orderOne, this.list.getNext());
+		assertNull(this.list.getNext());
+	}
 	
 	private Order createOrder(String orderId) {
 		Order order = new ComputeOrder();
