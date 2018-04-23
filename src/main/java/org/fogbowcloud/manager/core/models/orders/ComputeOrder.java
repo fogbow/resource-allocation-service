@@ -27,8 +27,7 @@ public class ComputeOrder extends Order {
 	@JoinColumn(name = "user_data_id")
 	private UserData userData;
 
-	public ComputeOrder() {
-	}
+	public ComputeOrder() { }
 
 	public ComputeOrder(Token localToken, Token federationToken, String requestingMember, String providingMember,
 			int vCPU, int memory, int disk, String imageName, UserData userData) {

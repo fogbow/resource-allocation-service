@@ -10,6 +10,6 @@ public interface ChainedList {
 	
 	public Order getNext() throws Exception;
 	
-	public void removeItem(Order order) throws Exception;
+	public boolean removeItem(Order order) throws Exception;
 	
 }
