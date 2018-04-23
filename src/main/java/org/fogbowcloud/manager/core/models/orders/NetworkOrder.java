@@ -1,5 +1,7 @@
 package org.fogbowcloud.manager.core.models.orders;
 
+import java.util.UUID;
+
 import org.fogbowcloud.manager.core.models.token.Token;
 
 public class NetworkOrder extends Order {
@@ -11,20 +13,18 @@ public class NetworkOrder extends Order {
 	/**
 	 * Creating Order with predefined Id.
 	 */
-	public NetworkOrder(String id, Token localToken, Token federationToken, String requestingMember, String providingMember,
-			String gateway, String address, String allocation) {
+	public NetworkOrder(String id, Token localToken, Token federationToken, String requestingMember,
+			String providingMember, String gateway, String address, String allocation) {
 		super(id, localToken, federationToken, requestingMember, providingMember);
 		this.gateway = gateway;
 		this.address = address;
 		this.allocation = allocation;
 	}
-	
+
 	public NetworkOrder(Token localToken, Token federationToken, String requestingMember, String providingMember,
 			String gateway, String address, String allocation) {
-		super(localToken, federationToken, requestingMember, providingMember);
-		this.gateway = gateway;
-		this.address = address;
-		this.allocation = allocation;
+		this(UUID.randomUUID().toString(), localToken, federationToken, requestingMember, providingMember, gateway,
+				address, allocation);
 	}
 
 	public String getGateway() {

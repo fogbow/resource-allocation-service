@@ -2,6 +2,8 @@ package org.fogbowcloud.manager.core.models.orders;
 
 import org.fogbowcloud.manager.core.models.token.Token;
 
+import java.util.UUID;
+
 import javax.persistence.*;
 
 @Entity
@@ -32,8 +34,8 @@ public class ComputeOrder extends Order {
 	/**
 	 * Creating Order with predefined Id.
 	 */
-	public ComputeOrder(String id, Token localToken, Token federationToken, String requestingMember, String providingMember,
-			int vCPU, int memory, int disk, String imageName, UserData userData) {
+	public ComputeOrder(String id, Token localToken, Token federationToken, String requestingMember,
+			String providingMember, int vCPU, int memory, int disk, String imageName, UserData userData) {
 		super(id, localToken, federationToken, requestingMember, providingMember);
 		this.vCPU = vCPU;
 		this.memory = memory;
@@ -41,15 +43,11 @@ public class ComputeOrder extends Order {
 		this.imageName = imageName;
 		this.userData = userData;
 	}
-	
+
 	public ComputeOrder(Token localToken, Token federationToken, String requestingMember, String providingMember,
 			int vCPU, int memory, int disk, String imageName, UserData userData) {
-		super(localToken, federationToken, requestingMember, providingMember);
-		this.vCPU = vCPU;
-		this.memory = memory;
-		this.disk = disk;
-		this.imageName = imageName;
-		this.userData = userData;
+		this(UUID.randomUUID().toString(), localToken, federationToken, requestingMember, providingMember, vCPU, memory,
+				disk, imageName, userData);
 	}
 
 	public int getvCPU() {

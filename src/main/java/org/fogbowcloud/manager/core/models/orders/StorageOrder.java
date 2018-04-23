@@ -1,5 +1,7 @@
 package org.fogbowcloud.manager.core.models.orders;
 
+import java.util.UUID;
+
 import org.fogbowcloud.manager.core.models.token.Token;
 
 public class StorageOrder extends Order {
@@ -9,16 +11,15 @@ public class StorageOrder extends Order {
 	/**
 	 * Creating Order with predefined Id.
 	 */
-	public StorageOrder(String id, Token localToken, Token federationToken, String requestingMember, String providingMember,
-			int storageSize) {
+	public StorageOrder(String id, Token localToken, Token federationToken, String requestingMember,
+			String providingMember, int storageSize) {
 		super(id, localToken, federationToken, requestingMember, providingMember);
 		this.storageSize = storageSize;
 	}
-	
+
 	public StorageOrder(Token localToken, Token federationToken, String requestingMember, String providingMember,
 			int storageSize) {
-		super(localToken, federationToken, requestingMember, providingMember);
-		this.storageSize = storageSize;
+		this(UUID.randomUUID().toString(), localToken, federationToken, requestingMember, providingMember, storageSize);
 	}
 
 	public int getStorageSize() {

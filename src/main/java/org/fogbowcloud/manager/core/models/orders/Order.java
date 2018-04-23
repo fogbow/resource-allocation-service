@@ -1,7 +1,5 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import java.util.UUID;
-
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
@@ -60,15 +58,6 @@ public abstract class Order {
 	 */
 	public Order(String id, Token localToken, Token federationToken, String requestingMember, String providingMember) {
 		this.id = id;
-		this.orderState = OrderState.OPEN;
-		this.localToken = localToken;
-		this.federationToken = federationToken;
-		this.requestingMember = requestingMember;
-		this.providingMember = providingMember;
-	}
-
-	public Order(Token localToken, Token federationToken, String requestingMember, String providingMember) {
-		this.id = UUID.randomUUID().toString();
 		this.orderState = OrderState.OPEN;
 		this.localToken = localToken;
 		this.federationToken = federationToken;
