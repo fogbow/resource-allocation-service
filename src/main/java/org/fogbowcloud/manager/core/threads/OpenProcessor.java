@@ -11,7 +11,7 @@ import org.fogbowcloud.manager.core.models.orders.OrderRegistry;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 
-public class AttendOpenOrdersThread extends Thread {
+public class OpenProcessor implements Runnable {
 
 	private InstanceProvider localInstanceProvider;
 	private InstanceProvider remoteInstanceProvider;
@@ -26,9 +26,9 @@ public class AttendOpenOrdersThread extends Thread {
 	 */
 	private Long sleepTime;
 
-	private static final Logger LOGGER = Logger.getLogger(AttendOpenOrdersThread.class);
+	private static final Logger LOGGER = Logger.getLogger(OpenProcessor.class);
 
-	public AttendOpenOrdersThread(InstanceProvider localInstanceProvider, InstanceProvider remoteInstanceProvider,
+	public OpenProcessor(InstanceProvider localInstanceProvider, InstanceProvider remoteInstanceProvider,
 			OrderRegistry orderRegistry, String localMemberId, Properties properties) {
 		this.localInstanceProvider = localInstanceProvider;
 		this.remoteInstanceProvider = remoteInstanceProvider;
@@ -73,7 +73,9 @@ public class AttendOpenOrdersThread extends Thread {
 					InstanceProvider instanceProvider = this.getInstanceProviderForOrder(order);
 
 					LOGGER.info("Processing Order [" + order.getId() + "]");
-					order.processOpenOrder(instanceProvider);
+					order.handleOpenOrder();
+					OrderInstance orderInstance = instanceProvider.requestInstance(order);
+					order.setOrderInstance(orderInstance);
 
 					LOGGER.info("Updating Order State after processing [" + order.getId() + "]");
 					this.updateOrderStateAfterProcessing(order);

@@ -6,7 +6,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.models.orders.OrderRegistry;
-import org.fogbowcloud.manager.core.threads.AttendOpenOrdersThread;
+import org.fogbowcloud.manager.core.threads.OpenProcessor;
 
 public class ManagerController {
 
@@ -15,7 +15,7 @@ public class ManagerController {
 	private InstanceProvider localInstanceProvider;
 	private InstanceProvider remoteInstanceProvider;
 
-	private Thread attendOpenOrdersThread;
+	private Thread openProcessorThread;
 
 	private String localMemberId;
 
@@ -28,8 +28,9 @@ public class ManagerController {
 		this.remoteInstanceProvider = remoteInstanceProvider;
 		this.orderRegistry = orderRegistry;
 
-		this.attendOpenOrdersThread = new AttendOpenOrdersThread(this.localInstanceProvider,
+		OpenProcessor openProcessor = new OpenProcessor(this.localInstanceProvider,
 				this.remoteInstanceProvider, this.orderRegistry, this.localMemberId, properties);
+		this.openProcessorThread = new Thread(openProcessor);
 		
 		this.startManagerThreads();
 	}
@@ -41,7 +42,7 @@ public class ManagerController {
 	 */
 	private void startManagerThreads() {
 		LOGGER.info("Starting Manager Threads...");
-		this.attendOpenOrdersThread.start();
+		this.openProcessorThread.start();
 	}
 
 }
