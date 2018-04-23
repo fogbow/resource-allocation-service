@@ -44,55 +44,72 @@ public class AttendOpenOrdersThread extends Thread {
 	 * Method that try to get an Instance for an Open Order. This method can
 	 * generate a race condition. For example: a user can delete a Open Order
 	 * while this method is trying to get an Instance for this Order.
-	 * 
-	 * What this method should do?
 	 */
 	@Override
 	public void run() {
 		while (true) {
 			try {
-				Order order = this.orderRegistry.getNextOpenOrder();
+				Order order = this.orderRegistry.getNextOrderByState(OrderState.OPEN);
 				if (order != null) {
-					synchronized (order) {
-						OrderState orderState = order.getOrderState();
-
-						if (orderState.equals(OrderState.OPEN)) {
-							LOGGER.info("Trying to get an Instance for Order [" + order.getId() + "]");
-
-							try {
-								InstanceProvider instanceProvider = this.getInstanceProviderForOrder(order);
-
-								order.processOpenOrder(instanceProvider);
-
-								if (order.isLocal(this.localMemberId)) {
-									OrderInstance orderInstance = order.getOrderInstance();
-									String orderInstanceId = orderInstance.getId();
-									if (!orderInstanceId.isEmpty()) {
-										LOGGER.info(
-												"The open order [" + order.getId() + "] got an local instance with id ["
-														+ orderInstanceId + "], setting your state to SPAWNING");
-
-										order.setOrderState(OrderState.SPAWNING, this.orderRegistry);
-									}
-								} else if (order.isRemote(this.localMemberId)) {
-									LOGGER.info("The open order [" + order.getId()
-											+ "] was requested for remote member, setting your state to PENDING");
-
-									order.setOrderState(OrderState.PENDING, this.orderRegistry);
-								}
-							} catch (Exception e) {
-								LOGGER.error("Error while trying to get an Instance for Order: "
-										+ System.lineSeparator() + order, e);
-								order.setOrderState(OrderState.FAILED, this.orderRegistry);
-							}
-						}
-					}
+					this.processOpenOrder(order);
 				} else {
+					LOGGER.info("There is no Open Order to be processed, sleeping Attend Open Orders Thread...");
 					Thread.sleep(this.sleepTime);
 				}
 			} catch (Exception e) {
 				LOGGER.error("Error while trying to sleep Attend Order Thread", e);
 			}
+		}
+	}
+	
+	protected void processOpenOrder(Order order) {
+		synchronized (order) {
+			OrderState orderState = order.getOrderState();
+
+			if (orderState.equals(OrderState.OPEN)) {
+				LOGGER.info("Trying to get an Instance for Order [" + order.getId() + "]");
+
+				try {
+					InstanceProvider instanceProvider = this.getInstanceProviderForOrder(order);
+
+					LOGGER.info("Processing Order [" + order.getId() + "]");
+					order.processOpenOrder(instanceProvider);
+
+					LOGGER.info("Updating Order status after processing [" + order.getId() + "]");
+					this.updateOrderStateAfterProcessing(order);
+				} catch (Exception e) {
+					LOGGER.error("Error while trying to get an Instance for Order: "
+							+ System.lineSeparator() + order, e);
+					order.setOrderState(OrderState.FAILED, this.orderRegistry);
+				}
+			}
+		}
+	}
+
+	/**
+	 * After processing an Open Order, is necessary update it state.
+	 * 
+	 * @param order
+	 */
+	protected void updateOrderStateAfterProcessing(Order order) {
+		if (order.isLocal(this.localMemberId)) {
+			OrderInstance orderInstance = order.getOrderInstance();
+			String orderInstanceId = orderInstance.getId();
+
+			if (!orderInstanceId.isEmpty()) {
+				LOGGER.info("The open order [" + order.getId() + "] got an local instance with id [" + orderInstanceId
+						+ "], setting your state to SPAWNING");
+
+				order.setOrderState(OrderState.SPAWNING, this.orderRegistry);
+			} else {
+				LOGGER.error("Order Instance Id for Order [" + order.getId() + "] is Empty");
+				throw new RuntimeException("Order Instance Id for Order [" + order.getId() + "] is Empty");
+			}
+		} else if (order.isRemote(this.localMemberId)) {
+			LOGGER.info("The open order [" + order.getId()
+					+ "] was requested for remote member, setting your state to PENDING");
+
+			order.setOrderState(OrderState.PENDING, this.orderRegistry);
 		}
 	}
 
