@@ -40,11 +40,6 @@ public class AttendOpenOrdersThread extends Thread {
 		this.sleepTime = Long.valueOf(schedulerPeriodStr);
 	}
 
-	/**
-	 * Method that try to get an Instance for an Open Order. This method can
-	 * generate a race condition. For example: a user can delete a Open Order
-	 * while this method is trying to get an Instance for this Order.
-	 */
 	@Override
 	public void run() {
 		while (true) {
@@ -61,7 +56,12 @@ public class AttendOpenOrdersThread extends Thread {
 			}
 		}
 	}
-	
+
+	/**
+	 * Method that try to get an Instance for an Open Order. This method can
+	 * generate a race condition. For example: a user can delete a Open Order
+	 * while this method is trying to get an Instance for this Order.
+	 */
 	protected void processOpenOrder(Order order) {
 		synchronized (order) {
 			OrderState orderState = order.getOrderState();
@@ -78,8 +78,8 @@ public class AttendOpenOrdersThread extends Thread {
 					LOGGER.info("Updating Order State after processing [" + order.getId() + "]");
 					this.updateOrderStateAfterProcessing(order);
 				} catch (Exception e) {
-					LOGGER.error("Error while trying to get an Instance for Order: "
-							+ System.lineSeparator() + order, e);
+					LOGGER.error("Error while trying to get an Instance for Order: " + System.lineSeparator() + order,
+							e);
 					order.setOrderState(OrderState.FAILED, this.orderRegistry);
 				}
 			}
@@ -113,6 +113,13 @@ public class AttendOpenOrdersThread extends Thread {
 		}
 	}
 
+	/**
+	 * Get the Instance Provider for an Order, if the Order is Local, the
+	 * returned Instance Provider is the Local, else, is the Remote.
+	 * 
+	 * @param order
+	 * @return
+	 */
 	protected InstanceProvider getInstanceProviderForOrder(Order order) {
 		InstanceProvider instanceProvider = null;
 		if (order.isLocal(this.localMemberId)) {
