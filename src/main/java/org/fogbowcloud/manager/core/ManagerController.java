@@ -35,7 +35,7 @@ public class ManagerController {
 	}
 
 	/**
-	 * This method starts all manager threads, if you have defined a new manager
+	 * This method starts all manager threads, if you defined a new manager
 	 * operation and this operation require a new thread to run, you should
 	 * start this thread at this method.
 	 */
