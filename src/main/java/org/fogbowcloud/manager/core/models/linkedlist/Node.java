@@ -8,8 +8,6 @@ public class Node {
 	private Node previous;
 	private Order order;
 
-	public Node(){ }
-
 	public Node(Node previous, Order order, Node next) {
 		this.previous = previous;
 		this.order = order;

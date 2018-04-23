@@ -2,13 +2,13 @@ package org.fogbowcloud.manager.core.models.linkedlist;
 
 import org.fogbowcloud.manager.core.models.orders.Order;
 
-public class SynchronizedDoubleLinkedList implements ChainedList {
+public class SynchronizedDoublyLinkedList implements ChainedList {
 
 	private Node head;
 	private Node tail;
 	private Node current;
 
-	public SynchronizedDoubleLinkedList() {
+	public SynchronizedDoublyLinkedList() {
 		this.head = this.tail = this.current = null;
 	}
 
@@ -27,7 +27,7 @@ public class SynchronizedDoubleLinkedList implements ChainedList {
 	@Override
 	public synchronized void addItem(Order order) {
 		if (order == null) {
-			throw new IllegalArgumentException("Order cannot be null.");
+			throw new IllegalArgumentException("Attempting to add a null order.");
 		}
 		if (this.head == null) {
 			Node firstNode = new Node(null, order, null);
@@ -36,6 +36,14 @@ public class SynchronizedDoubleLinkedList implements ChainedList {
 			Node newItem = new Node(this.tail, order, null);
 			this.tail.setNext(newItem);
 			this.tail = newItem;
+			/**
+			 * This check below is useful when current pointer just passed by all the list and was pointing to null,
+			 * and a new order was inserted at the end of this list. So we current should point to the new inserted
+			 * order (new tail), instead of null.
+			 */
+			if (this.current == null){
+				this.current = this.tail;
+			}
 		}
 	}
 
@@ -50,8 +58,7 @@ public class SynchronizedDoubleLinkedList implements ChainedList {
 			return null;
 		}
 		Order orderCurrent = this.current.getOrder();
-		Node nextNode = this.current.getNext();
-		this.current = nextNode;
+		this.current = this.current.getNext();
 		return orderCurrent;
 	}
 
@@ -69,7 +76,7 @@ public class SynchronizedDoubleLinkedList implements ChainedList {
 	@Override
 	public synchronized boolean removeItem(Order order) {
 		if (order == null) {
-			throw new IllegalArgumentException("Order cannot be null.");
+			throw new IllegalArgumentException("Attempting to add a null order.");
 		}
 		Node nodeToRemove = findNodeToRemove(order);
 		if (nodeToRemove == null) {
@@ -97,7 +104,7 @@ public class SynchronizedDoubleLinkedList implements ChainedList {
 	protected synchronized Node findNodeToRemove(Order order) {
 		Node currentNode = this.head;
 		while (currentNode != null) {
-			if (order.equals(currentNode.getOrder())) {
+			if (order == currentNode.getOrder()) {
 				return currentNode;
 			}
 			currentNode = currentNode.getNext();

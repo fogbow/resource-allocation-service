@@ -9,13 +9,13 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import org.junit.Before;
 import org.junit.Test;
 
-public class SynchronizedDoubleLinkedListTest {
+public class SynchronizedDoublyLinkedListTest {
 
-	private SynchronizedDoubleLinkedList list;
+	private SynchronizedDoublyLinkedList list;
 	
 	@Before
 	public void initialize() {
-		this.list = new SynchronizedDoubleLinkedList();
+		this.list = new SynchronizedDoublyLinkedList();
 	}
 	
 	@Test
@@ -48,8 +48,8 @@ public class SynchronizedDoubleLinkedListTest {
 		Order orderThree = createOrder("three");
 		this.list.addItem(orderThree);
 
-		// To access the third order, we should have reseted the pointer, for now the pointer is on null.
-		assertNull(this.list.getNext());
+		// for now the pointer is on null.
+		assertEquals(orderThree, this.list.getNext());
 	}
 	
 	@Test
@@ -61,7 +61,7 @@ public class SynchronizedDoubleLinkedListTest {
 			this.list.addItem(orderNull);
 			fail("Null order should not be added.");
 		} catch (IllegalArgumentException e){
-			assertEquals("Order cannot be null.", e.getMessage());
+			assertEquals("Attempting to add a null order.", e.getMessage());
 		}
 	}
 	
@@ -93,7 +93,7 @@ public class SynchronizedDoubleLinkedListTest {
 			this.list.removeItem(orderNull);
 			fail("Null order should not be removed.");
 		} catch (IllegalArgumentException e){
-			assertEquals("Order cannot be null.", e.getMessage());
+			assertEquals("Attempting to add a null order.", e.getMessage());
 		}
 	}
 	
