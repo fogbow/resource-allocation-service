@@ -1,6 +1,5 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.models.token.Token;
 
 import javax.persistence.*;
@@ -99,12 +98,11 @@ public class ComputeOrder extends Order {
 	}
 
 	/**
-	 * These method handle and request an open order, for this, processOpenOrder
-	 * handle the Order to be ready to change your state and request the
-	 * Instance from the InstanceProvider.
+	 * These method handle an open order, for this, handleOpenOrder handle the
+	 * Order to be ready to change your state from OPEN to SPAWNING.
 	 */
 	@Override
-	public synchronized void processOpenOrder(InstanceProvider instanceProvider) {
-		super.processOpenOrder(instanceProvider);
+	public synchronized void handleOpenOrder() {
+		// TODO:
 	}
 }
