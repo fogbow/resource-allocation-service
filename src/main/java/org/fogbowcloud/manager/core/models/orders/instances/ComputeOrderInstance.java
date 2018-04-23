@@ -14,6 +14,22 @@ public class ComputeOrderInstance extends OrderInstance {
     private String sshUserName;
     private String sshExtraPorts;
 
+    public ComputeOrderInstance(String id, String hostName, int vCPU, int memory, InstanceState state, String localIpAddress, String sshPublicAddress, String sshUserName, String sshExtraPorts) {
+        super(id);
+        this.hostName = hostName;
+        this.vCPU = vCPU;
+        this.memory = memory;
+        this.state = state;
+        this.localIpAddress = localIpAddress;
+        this.sshPublicAddress = sshPublicAddress;
+        this.sshUserName = sshUserName;
+        this.sshExtraPorts = sshExtraPorts;
+    }
+
+    public ComputeOrderInstance(String id) {
+        super(id);
+    }
+
     public String getHostName() {
         return hostName;
     }

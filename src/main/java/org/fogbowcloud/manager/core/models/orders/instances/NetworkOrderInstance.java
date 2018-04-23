@@ -11,6 +11,18 @@ public class NetworkOrderInstance extends OrderInstance {
     private String MACInterface;
     private InstanceState interfaceState;
 
+    public NetworkOrderInstance(String id, String label, InstanceState state, String address, String gateway, String VLAN, String networkInterface, String MACInterface, InstanceState interfaceState) {
+        super(id);
+        this.label = label;
+        this.state = state;
+        this.address = address;
+        this.gateway = gateway;
+        this.VLAN = VLAN;
+        this.networkInterface = networkInterface;
+        this.MACInterface = MACInterface;
+        this.interfaceState = interfaceState;
+    }
+
     public String getLabel() {
         return label;
     }
