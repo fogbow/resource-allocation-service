@@ -20,7 +20,7 @@ public abstract class Order {
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "id", nullable = false, unique = true)
-	private Long id;
+	private String id;
 
 	@Column(name = "order_state")
 	@NotNull(message = "Order state can not be null.")
@@ -63,11 +63,11 @@ public abstract class Order {
 		this.fulfilledTime = fulfilledTime;
 	}
 
-	public Long getId() {
+	public String getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(String id) {
 		this.id = id;
 	}
 
