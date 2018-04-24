@@ -20,7 +20,8 @@ public class SynchronizedDoublyLinkedListTest {
 	
 	@Test
 	public void testAddFirst() {
-		assertNull(this.list.getHead());
+        assertNull(this.list.getHead());
+        assertNull(this.list.getCurrent());
 		assertNull(this.list.getTail());
 		
 		Order order = createOrder("0");
@@ -33,7 +34,7 @@ public class SynchronizedDoublyLinkedListTest {
 	
 	@Test
 	public void testAddOrder() {
-		assertNull(this.list.getNext());
+        assertNull(this.list.getHead());
 		
 		Order orderOne = createOrder("one");
 		Order orderTwo = createOrder("two");
@@ -48,13 +49,13 @@ public class SynchronizedDoublyLinkedListTest {
 		Order orderThree = createOrder("three");
 		this.list.addItem(orderThree);
 
-		// for now the pointer is on null.
+        // addItem() should have fixed this.current to point to the newly item added to the tail of the list.
 		assertEquals(orderThree, this.list.getNext());
 	}
 	
 	@Test
 	public void testAddNullOrder() {
-		assertNull(this.list.getNext());
+        assertNull(this.list.getHead());
 		
 		Order orderNull = null;
 		try {
@@ -67,7 +68,7 @@ public class SynchronizedDoublyLinkedListTest {
 	
 	@Test
 	public void testResetPointer() {
-		assertNull(this.list.getNext());
+        assertNull(this.list.getHead());
 		
 		Order orderOne = createOrder("one");
 		Order orderTwo = createOrder("two");
@@ -86,20 +87,20 @@ public class SynchronizedDoublyLinkedListTest {
 
 	@Test
 	public void testRemoveNullOrder() {
-		assertNull(this.list.getNext());
+        assertNull(this.list.getHead());
 
 		Order orderNull = null;
 		try {
 			this.list.removeItem(orderNull);
 			fail("Null order should not be removed.");
 		} catch (IllegalArgumentException e){
-			assertEquals("Attempting to add a null order.", e.getMessage());
+			assertEquals("Attempting to remove a null order.", e.getMessage());
 		}
 	}
 	
 	@Test
 	public void testFindNodeToRemove() {
-		assertNull(this.list.getNext());
+        assertNull(this.list.getHead());
 
 		Order orderOne = createOrder("one");
 		Order orderTwo = createOrder("two");
@@ -120,6 +121,8 @@ public class SynchronizedDoublyLinkedListTest {
 	
 	@Test
 	public void testRemoveItemOnHead() {
+        assertNull(this.list.getHead());
+
 		Order orderOne = createOrder("one"); 
 		Order orderTwo = createOrder("two"); 
 		Order orderThree = createOrder("three");
@@ -147,6 +150,7 @@ public class SynchronizedDoublyLinkedListTest {
 	
 	@Test
 	public void testRemoveItemOnTail() {
+        assertNull(this.list.getHead());
 		Order orderOne = createOrder("one"); 
 		Order orderTwo = createOrder("two"); 
 		Order orderThree = createOrder("three");
@@ -168,20 +172,25 @@ public class SynchronizedDoublyLinkedListTest {
 	
 	@Test
 	public void testRemoveItemOneElementOnList() {
+        assertNull(this.list.getHead());
 		Order orderOne = createOrder("one"); 
 		
 		this.list.addItem(orderOne);
-		
-		assertEquals(orderOne, this.list.getHead().getOrder());
+
+        assertEquals(orderOne, this.list.getHead().getOrder());
+        assertEquals(orderOne, this.list.getCurrent().getOrder());
 		assertEquals(orderOne, this.list.getTail().getOrder());
 		this.list.removeItem(orderOne);
-		assertNull(this.list.getHead());
+        assertNull(this.list.getHead());
+        assertNull(this.list.getCurrent());
 		assertNull(this.list.getTail());
 		assertNull(this.list.getNext());
 	}	
 	
 	@Test
 	public void testRemoveItem() throws Exception {
+        assertNull(this.list.getHead());
+
 		Order orderOne = createOrder("one"); 
 		Order orderTwo = createOrder("two"); 
 		Order orderThree = createOrder("three"); 
@@ -211,12 +220,15 @@ public class SynchronizedDoublyLinkedListTest {
 
 	@Test
 	public void testReinitializingList(){
+        assertNull(this.list.getHead());
+
 		Order orderOne = createOrder("one");
 		this.list.addItem(orderOne);
 		assertEquals(orderOne, this.list.getHead().getOrder());
 		assertEquals(orderOne, this.list.getCurrent().getOrder());
 		assertEquals(orderOne, this.list.getTail().getOrder());
 		assertEquals(orderOne, this.list.getNext());
+        assertNull(this.list.getNext());
 
 		this.list.removeItem(orderOne);
 		assertNull(this.list.getHead());

@@ -38,7 +38,7 @@ public class SynchronizedDoublyLinkedList implements ChainedList {
 			this.tail = newItem;
 			/**
 			 * This check below is useful when current pointer just passed by all the list and was pointing to null,
-			 * and a new order was inserted at the end of this list. So we current should point to the new inserted
+			 * and a new order was inserted at the end of this list. So, current should point to the new inserted
 			 * order (new tail), instead of null.
 			 */
 			if (this.current == null){
@@ -76,7 +76,7 @@ public class SynchronizedDoublyLinkedList implements ChainedList {
 	@Override
 	public synchronized boolean removeItem(Order order) {
 		if (order == null) {
-			throw new IllegalArgumentException("Attempting to add a null order.");
+			throw new IllegalArgumentException("Attempting to remove a null order.");
 		}
 		Node nodeToRemove = findNodeToRemove(order);
 		if (nodeToRemove == null) {
