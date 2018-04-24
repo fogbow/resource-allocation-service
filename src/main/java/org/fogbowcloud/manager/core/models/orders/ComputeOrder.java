@@ -41,40 +41,20 @@ public class ComputeOrder extends Order {
 		return vCPU;
 	}
 
-	public void setvCPU(int vCPU) {
-		this.vCPU = vCPU;
-	}
-
 	public int getMemory() {
 		return memory;
-	}
-
-	public void setMemory(int memory) {
-		this.memory = memory;
 	}
 
 	public int getDisk() {
 		return disk;
 	}
 
-	public void setDisk(int disk) {
-		this.disk = disk;
-	}
-
 	public String getImageName() {
 		return imageName;
 	}
 
-	public void setImageName(String imageName) {
-		this.imageName = imageName;
-	}
-
 	public UserData getUserData() {
 		return userData;
-	}
-
-	public void setUserData(UserData userData) {
-		this.userData = userData;
 	}
 
 	@Override

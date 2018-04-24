@@ -37,10 +37,6 @@ public abstract class Order {
 		return id;
 	}
 
-	public void setId(String id) {
-		this.id = id;
-	}
-
 	public synchronized OrderState getOrderState() {
 		return orderState;
 	}
@@ -62,24 +58,12 @@ public abstract class Order {
 		return federationToken;
 	}
 
-	public void setFederationToken(Token federationToken) {
-		this.federationToken = federationToken;
-	}
-
 	public String getRequestingMember() {
 		return requestingMember;
 	}
 
-	public void setRequestingMember(String requestingMember) {
-		this.requestingMember = requestingMember;
-	}
-
 	public String getProvidingMember() {
 		return providingMember;
-	}
-
-	public void setProvidingMember(String providingMember) {
-		this.providingMember = providingMember;
 	}
 
 	public synchronized OrderInstance getOrderInstance() {
