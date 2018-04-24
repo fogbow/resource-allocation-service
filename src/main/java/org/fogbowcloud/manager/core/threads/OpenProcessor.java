@@ -6,8 +6,8 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
+import org.fogbowcloud.manager.core.models.linkedList.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.OrderRegistry;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 
@@ -16,7 +16,10 @@ public class OpenProcessor implements Runnable {
 	private InstanceProvider localInstanceProvider;
 	private InstanceProvider remoteInstanceProvider;
 
-	private OrderRegistry orderRegistry;
+	private ChainedList openOrdersList;
+	private ChainedList pendingOrdersList;
+	private ChainedList failedOrdersList;
+	private ChainedList spawningOrdersList;
 
 	private String localMemberId;
 
@@ -29,11 +32,12 @@ public class OpenProcessor implements Runnable {
 	private static final Logger LOGGER = Logger.getLogger(OpenProcessor.class);
 
 	public OpenProcessor(InstanceProvider localInstanceProvider, InstanceProvider remoteInstanceProvider,
-			OrderRegistry orderRegistry, String localMemberId, Properties properties) {
+			String localMemberId, Properties properties) {
 		this.localInstanceProvider = localInstanceProvider;
 		this.remoteInstanceProvider = remoteInstanceProvider;
-		this.orderRegistry = orderRegistry;
 		this.localMemberId = localMemberId;
+
+		// TODO: ChainedLists instanciation by Singleton pattern.
 
 		String schedulerPeriodStr = properties.getProperty(ConfigurationConstants.OPEN_ORDERS_SLEEP_TIME_KEY,
 				DefaultConfigurationConstants.OPEN_ORDERS_SLEEP_TIME);
@@ -44,15 +48,15 @@ public class OpenProcessor implements Runnable {
 	public void run() {
 		while (true) {
 			try {
-				Order order = this.orderRegistry.getNextOrderByState(OrderState.OPEN);
+				Order order = this.openOrdersList.getNext();
 				if (order != null) {
 					this.processOpenOrder(order);
 				} else {
-					LOGGER.info("There is no Open Order to be processed, sleeping Attend Open Orders Thread...");
+					LOGGER.info("There is no Open Order to be processed, sleeping OpenProcessor Thread...");
 					Thread.sleep(this.sleepTime);
 				}
-			} catch (Exception e) {
-				LOGGER.error("Error while trying to sleep Attend Order Thread", e);
+			} catch (Throwable e) {
+				LOGGER.error("Error while trying to Process an Open Order with the OpenProcessor Thread", e);
 			}
 		}
 	}
@@ -77,12 +81,19 @@ public class OpenProcessor implements Runnable {
 					OrderInstance orderInstance = instanceProvider.requestInstance(order);
 					order.setOrderInstance(orderInstance);
 
+					LOGGER.info("Removing Order [" + order.getId() + "] from Open Orders List");
+					this.openOrdersList.removeItem(order);
+
 					LOGGER.info("Updating Order State after processing [" + order.getId() + "]");
 					this.updateOrderStateAfterProcessing(order);
+					
 				} catch (Exception e) {
 					LOGGER.error("Error while trying to get an Instance for Order: " + System.lineSeparator() + order,
 							e);
-					order.setOrderState(OrderState.FAILED, this.orderRegistry);
+					order.setOrderState(OrderState.FAILED);
+
+					LOGGER.info("Adding Order [" + order.getId() + "] to Failed Orders List");
+					this.failedOrdersList.addItem(order);
 				}
 			}
 		}
@@ -102,16 +113,24 @@ public class OpenProcessor implements Runnable {
 				LOGGER.info("The open order [" + order.getId() + "] got an local instance with id [" + orderInstanceId
 						+ "], setting your state to SPAWNING");
 
-				order.setOrderState(OrderState.SPAWNING, this.orderRegistry);
+				order.setOrderState(OrderState.SPAWNING);
+
+				LOGGER.info("Adding Order [" + order.getId() + "] to Spawning Orders List");
+				this.spawningOrdersList.addItem(order);
+			
 			} else {
 				LOGGER.error("Order Instance Id for Order [" + order.getId() + "] is Empty");
 				throw new RuntimeException("Order Instance Id for Order [" + order.getId() + "] is Empty");
 			}
+		
 		} else if (order.isRemote(this.localMemberId)) {
 			LOGGER.info("The open order [" + order.getId()
 					+ "] was requested for remote member, setting your state to PENDING");
 
-			order.setOrderState(OrderState.PENDING, this.orderRegistry);
+			order.setOrderState(OrderState.PENDING);
+
+			LOGGER.info("Adding Order [" + order.getId() + "] to Pending Orders List");
+			this.pendingOrdersList.addItem(order);
 		}
 	}
 

@@ -41,9 +41,8 @@ public abstract class Order {
 		return orderState;
 	}
 
-	public synchronized void setOrderState(OrderState state, OrderRegistry orderRegistry) {
+	public synchronized void setOrderState(OrderState state) {
 		this.orderState = state;
-		orderRegistry.updateOrder(this);
 	}
 
 	public Token getLocalToken() {

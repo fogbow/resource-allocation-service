@@ -5,12 +5,9 @@ import java.util.Properties;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
-import org.fogbowcloud.manager.core.models.orders.OrderRegistry;
 import org.fogbowcloud.manager.core.threads.OpenProcessor;
 
 public class ManagerController {
-
-	private OrderRegistry orderRegistry;
 
 	private InstanceProvider localInstanceProvider;
 	private InstanceProvider remoteInstanceProvider;
@@ -22,14 +19,13 @@ public class ManagerController {
 	private static final Logger LOGGER = Logger.getLogger(ManagerController.class);
 
 	public ManagerController(Properties properties, InstanceProvider localInstanceProvider,
-			InstanceProvider remoteInstanceProvider, OrderRegistry orderRegistry) {
+			InstanceProvider remoteInstanceProvider) {
 		this.localMemberId = properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
 		this.localInstanceProvider = localInstanceProvider;
 		this.remoteInstanceProvider = remoteInstanceProvider;
-		this.orderRegistry = orderRegistry;
 
 		OpenProcessor openProcessor = new OpenProcessor(this.localInstanceProvider,
-				this.remoteInstanceProvider, this.orderRegistry, this.localMemberId, properties);
+				this.remoteInstanceProvider, this.localMemberId, properties);
 		this.openProcessorThread = new Thread(openProcessor);
 		
 		this.startManagerThreads();
