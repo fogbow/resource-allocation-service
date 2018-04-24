@@ -86,7 +86,7 @@ public class OpenProcessor implements Runnable {
 
 					LOGGER.info("Updating Order State after processing [" + order.getId() + "]");
 					this.updateOrderStateAfterProcessing(order);
-					
+
 				} catch (Exception e) {
 					LOGGER.error("Error while trying to get an Instance for Order: " + System.lineSeparator() + order,
 							e);
@@ -117,12 +117,12 @@ public class OpenProcessor implements Runnable {
 
 				LOGGER.info("Adding Order [" + order.getId() + "] to Spawning Orders List");
 				this.spawningOrdersList.addItem(order);
-			
+
 			} else {
 				LOGGER.error("Order Instance Id for Order [" + order.getId() + "] is Empty");
 				throw new RuntimeException("Order Instance Id for Order [" + order.getId() + "] is Empty");
 			}
-		
+
 		} else if (order.isRemote(this.localMemberId)) {
 			LOGGER.info("The open order [" + order.getId()
 					+ "] was requested for remote member, setting your state to PENDING");
@@ -154,6 +154,24 @@ public class OpenProcessor implements Runnable {
 			instanceProvider = this.remoteInstanceProvider;
 		}
 		return instanceProvider;
+	}
+
+	// TODO: all these setters method should be removed when the ChainedList be
+	// instanciated by the Singleton Pattern.
+	protected void setOpenOrdersList(ChainedList openOrdersList) {
+		this.openOrdersList = openOrdersList;
+	}
+
+	protected void setPendingOrdersList(ChainedList pendingOrdersList) {
+		this.pendingOrdersList = pendingOrdersList;
+	}
+
+	protected void setFailedOrdersList(ChainedList failedOrdersList) {
+		this.failedOrdersList = failedOrdersList;
+	}
+
+	protected void setSpawningOrdersList(ChainedList spawningOrdersList) {
+		this.spawningOrdersList = spawningOrdersList;
 	}
 
 }

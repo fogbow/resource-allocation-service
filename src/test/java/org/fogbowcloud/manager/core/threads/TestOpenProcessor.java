@@ -4,9 +4,9 @@ import java.util.Properties;
 
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
+import org.fogbowcloud.manager.core.models.linkedList.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.OrderRegistry;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
@@ -25,7 +25,10 @@ public class TestOpenProcessor {
 	private InstanceProvider localInstanceProvider;
 	private InstanceProvider remoteInstanceProvider;
 
-	private OrderRegistry orderRegistry;
+	private ChainedList openOrdersList;
+	private ChainedList pendingOrdersList;
+	private ChainedList failedOrdersList;
+	private ChainedList spawningOrdersList;
 
 	private Properties properties;
 
@@ -35,12 +38,20 @@ public class TestOpenProcessor {
 		this.properties = new Properties();
 		this.properties.setProperty(ConfigurationConstants.XMPP_ID_KEY, localMemberId);
 
-		this.orderRegistry = Mockito.mock(OrderRegistry.class);
 		this.localInstanceProvider = Mockito.mock(InstanceProvider.class);
 		this.remoteInstanceProvider = Mockito.mock(InstanceProvider.class);
 
-		this.openProcessor = Mockito.spy(new OpenProcessor(this.localInstanceProvider,
-				this.remoteInstanceProvider, this.orderRegistry, localMemberId, this.properties));
+		this.openOrdersList = Mockito.mock(ChainedList.class);
+		this.pendingOrdersList = Mockito.mock(ChainedList.class);
+		this.failedOrdersList = Mockito.mock(ChainedList.class);
+		this.spawningOrdersList = Mockito.mock(ChainedList.class);
+
+		this.openProcessor = Mockito.spy(new OpenProcessor(this.localInstanceProvider, this.remoteInstanceProvider,
+				localMemberId, this.properties));
+		this.openProcessor.setOpenOrdersList(this.openOrdersList);
+		this.openProcessor.setPendingOrdersList(this.pendingOrdersList);
+		this.openProcessor.setFailedOrdersList(this.failedOrdersList);
+		this.openProcessor.setSpawningOrdersList(this.spawningOrdersList);
 	}
 
 	@Test
@@ -50,7 +61,8 @@ public class TestOpenProcessor {
 		OrderInstance orderInstance = new OrderInstance("fake-id");
 
 		Mockito.doReturn(orderInstance).when(this.localInstanceProvider).requestInstance(Mockito.any(Order.class));
-		Mockito.doNothing().when(this.orderRegistry).updateOrder(Mockito.any(Order.class));
+		Mockito.doNothing().when(this.openOrdersList).removeItem(Mockito.any(Order.class));
+		Mockito.doNothing().when(this.spawningOrdersList).addItem(Mockito.any(Order.class));
 
 		this.openProcessor.processOpenOrder(localOrder);
 
@@ -234,8 +246,7 @@ public class TestOpenProcessor {
 		Order localOrder = this.createLocalOrder();
 
 		Mockito.doReturn(localOrder).when(this.orderRegistry).getNextOrderByState(Mockito.any(OrderState.class));
-		Mockito.doThrow(new RuntimeException()).when(this.openProcessor)
-				.processOpenOrder(Mockito.any(Order.class));
+		Mockito.doThrow(new RuntimeException()).when(this.openProcessor).processOpenOrder(Mockito.any(Order.class));
 
 		Thread thread = new Thread(this.openProcessor);
 		thread.start();
@@ -270,10 +281,10 @@ public class TestOpenProcessor {
 
 		Assert.assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
 	}
-	
+
 	/**
 	 * This method tests a race condition when this class thread has the Order
-	 * operation priority and change the Open Order to a different State. 
+	 * operation priority and change the Open Order to a different State.
 	 */
 	@Test
 	public void testRaceConditionWithThisThreadPriorityAndNotOpenOrder() throws InterruptedException {
