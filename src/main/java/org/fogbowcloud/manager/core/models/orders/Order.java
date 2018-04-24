@@ -17,8 +17,8 @@ import org.fogbowcloud.manager.core.models.token.Token;
 @Table(name = "tb_order")
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "type")
 @JsonSubTypes({ @JsonSubTypes.Type(value = ComputeOrder.class, name = "compute"),
-		@JsonSubTypes.Type(value = NetworkOrder.class, name = "network"),
-		@JsonSubTypes.Type(value = StorageOrder.class, name = "storage") })
+				@JsonSubTypes.Type(value = NetworkOrder.class, name = "network"),
+				@JsonSubTypes.Type(value = StorageOrder.class, name = "storage") })
 public abstract class Order {
 
 	@Id

@@ -21,39 +21,47 @@ public class AttendSpawningOrdersThread extends Thread {
 					synchronized (order) {
 						OrderState orderState = order.getOrderState();
 
-						if (orderState.equals(OrderState.SPAWNING)) {
-							// get instance of the cloud...
-							OrderInstance orderInstance = order.getOrderInstance();
-							// check if type of the order is COMPUTE...
-							if (order.getType().equals(OrderType.COMPUTE)) {
-								// The attribute InstanceState is in ComputeOrderInstance, and not
-								// OrderInstance...
-								ComputeOrderInstance computeOrderInstance = (ComputeOrderInstance) orderInstance;
-								// check if the instance is running...
-								if (computeOrderInstance.getState().equals(InstanceState.ACTIVE)) {
-									// try to communicate by SSH...
-									computeOrderInstance = waitForAnswer(order);
-									
-									// if successfully do...
-									/// remove Order from spawningOrders...
-									/// set Order state to FULFILLED...
-									/// insert Order in fulfilledOrders...
+						if (!orderState.equals(OrderState.SPAWNING)) {
+							continue;
+						}
+						
+						// get instance of the cloud...
+						OrderInstance orderInstance = order.getOrderInstance();
+						// check if type of the order is COMPUTE...
+						if (order.getType().equals(OrderType.COMPUTE)) {
+							// The attribute InstanceState is in ComputeOrderInstance, and not
+							// OrderInstance...
+							ComputeOrderInstance computeOrderInstance = (ComputeOrderInstance) orderInstance;
+							// check if the instance is running...
+							if (computeOrderInstance.getState().equals(InstanceState.ACTIVE)) {
+								// try to communicate by SSH...
+								computeOrderInstance = waitForAnswer(order);
 
-									// if failed after a few attempts do...									
-									/// remove Order from spawningOrders
-									/// set OrderState to FALLED...
-									/// insert Order in failedOrders...
-									changeOrderStateToFalled(order);
+								// if successfully do...
+								/// remove Order from spawningOrders...
+								//this.orderRegistry.removeFromSpwaningOrders(order);
+								/// set Order state to FULFILLED...
+								order.setOrderState(OrderState.FULFILLED, this.orderRegistry);
+								/// insert Order in fulfilledOrders...
+								// this.orderRegistry.insertIntoSpwaningOrders(order);
 
-								} else if (computeOrderInstance.getState().equals(InstanceState.INACTIVE)) {
-									changeOrderStateToFalled(order);
-								}
+								// if failed after a few attempts do...
+								/// remove Order from spawningOrders
+								/// set OrderState to FALLED...
+								/// insert Order in failedOrders...
+								changeOrderStateToFalled(order);
 
+							} else if (computeOrderInstance.getState().equals(InstanceState.INACTIVE)) {
+								changeOrderStateToFalled(order);
 							}
 
 						}
 
 					}
+
+
+				} else {
+					Thread.sleep(NORM_PRIORITY);
 				}
 			} catch (Exception e) {
 				// TODO: handle exception
@@ -63,11 +71,11 @@ public class AttendSpawningOrdersThread extends Thread {
 
 	private void changeOrderStateToFalled(Order order) {
 		/// remove Order from spawningOrders
-		this.orderRegistry.removeFromSpwaningOrders(order);									
+		//this.orderRegistry.removeFromSpwaningOrders(order);									
 		/// set OrderState to FALLED...
 		order.setOrderState(OrderState.FAILED, this.orderRegistry);
 		/// insert Order in failedOrders...
-		this.orderRegistry.insertIntoSpwaningOrders(order);
+		//this.orderRegistry.insertIntoSpwaningOrders(order);
 	}
 	
 	private ComputeOrderInstance waitForAnswer(Order order) {
