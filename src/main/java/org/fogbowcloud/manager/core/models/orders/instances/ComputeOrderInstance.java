@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.models.orders.instances;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class ComputeOrderInstance extends OrderInstance {
@@ -77,8 +78,11 @@ public class ComputeOrderInstance extends OrderInstance {
 		return tunnelingPorts;
 	}
 
-	public void setTunnelingPorts(Map<String, String> tunnelingPorts) {
-		this.tunnelingPorts = tunnelingPorts;
+	public void addTunnelingPorts(String key, String value) {
+		if (this.tunnelingPorts == null) {
+			this.tunnelingPorts = new HashMap<String, String>();
+		}
+		this.tunnelingPorts.put(key, value);
 	}
 	
 	public InstanceState getState() {
