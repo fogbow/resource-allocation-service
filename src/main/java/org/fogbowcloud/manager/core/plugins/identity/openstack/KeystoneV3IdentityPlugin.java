@@ -59,8 +59,13 @@ public class KeystoneV3IdentityPlugin implements IdentityPlugin {
 	}
 
 	public KeystoneV3IdentityPlugin(Properties properties) {
-		this.keystoneUrl = properties.getProperty(IDENTITY_URL) == null ? properties.getProperty(AUTH_URL)
-				: properties.getProperty(IDENTITY_URL);
+		
+		if (properties.getProperty(IDENTITY_URL) == null) {
+			this.keystoneUrl = properties.getProperty(AUTH_URL);
+		} else {
+			this.keystoneUrl = properties.getProperty(IDENTITY_URL);
+		}
+		
 		this.v3TokensEndpoint = keystoneUrl + V3_TOKENS_ENDPOINT_PATH;
 	}
 

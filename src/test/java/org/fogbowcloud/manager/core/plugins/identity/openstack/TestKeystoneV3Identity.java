@@ -2,12 +2,10 @@ package org.fogbowcloud.manager.core.plugins.identity.openstack;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.doReturn;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,14 +19,11 @@ import org.apache.http.ProtocolVersion;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicStatusLine;
 import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.utils.HttpRequestUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -51,12 +46,52 @@ public class TestKeystoneV3Identity {
 		this.keystoneV3Identity = new KeystoneV3IdentityPlugin(properties, client);
 
 	}
+	
+	@Test
+	public void testCreateToken() throws JSONException, ClientProtocolException, IOException{
+		
+		String userId = "3e57892203271c195f5d473fc84f484b8062103275ce6ad6e7bcd1baedf70d5c";
+		String userName = "fogbow";
+		String userPass = "UserPass";
+		String method = "password";
+		String roleId = "9fe2ff9ee4384b1894a90878d3e92bab";
+		String roleName = "Member";
+		Date expireDate = new Date();
+		String domainId = "2a73b8f597c04551a0fdc8e95544be8a";
+		String domainName = "LSD";
+		String projectId = "3324431f606d4a74a060cf78c16fcb21";
+		String projectName = "naf-lsd-site";
 
-	@After
-	public void tearDown() throws Exception {
+		Map<String, String> credentials = new HashMap<String, String>();
+		credentials.put(KeystoneV3IdentityPlugin.USER_ID, userId);
+		credentials.put(KeystoneV3IdentityPlugin.PASSWORD, userPass);
+		credentials.put(KeystoneV3IdentityPlugin.TENANT_ID, projectName);
+		credentials.put(KeystoneV3IdentityPlugin.PROJECT_ID, projectId);
 
+		HttpResponse httpResponse = Mockito.mock(HttpResponse.class);
+		HttpEntity httpEntity = Mockito.mock(HttpEntity.class);
+
+		JSONObject returnJson = createJsonResponse(method, roleId, roleName, expireDate, domainId, domainName, projectId,
+				projectName, userId, userName);
+
+		String content = returnJson.toString();
+		
+		InputStream contentInputStream = new ByteArrayInputStream(content.getBytes(UTF_8));
+		Mockito.when(httpEntity.getContent()).thenReturn(contentInputStream);
+		
+		Mockito.when(httpResponse.getEntity()).thenReturn(httpEntity);
+		BasicStatusLine basicStatus = new BasicStatusLine(new ProtocolVersion("", 0, 0), HttpStatus.SC_OK, "");
+		Mockito.when(httpResponse.getStatusLine()).thenReturn(basicStatus);
+		Mockito.when(httpResponse.getAllHeaders()).thenReturn(new Header[0]);
+		
+		Mockito.when(client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
+
+		Token token = keystoneV3Identity.createToken(credentials);
+
+		assertNotNull(token);
+		
 	}
-
+	
 	@Test
 	public void testRequestMountJson() throws JSONException {
 
@@ -74,6 +109,7 @@ public class TestKeystoneV3Identity {
 		JSONObject json = keystoneV3Identity.mountJson(credentials);
 
 		assertNotNull(json);
+		
 		JSONObject auth = json.getJSONObject("auth");
 		assertNotNull(auth);
 
@@ -100,61 +136,6 @@ public class TestKeystoneV3Identity {
 	}
 
 	@Test
-	public void testDoRequest() throws JSONException, ClientProtocolException, IOException {
-
-		String userId = "3e57892203271c195f5d473fc84f484b8062103275ce6ad6e7bcd1baedf70d5c";
-		String userName = "fogbow";
-		String userPass = "UserPass";
-
-		String method = "password";
-		String roleId = "9fe2ff9ee4384b1894a90878d3e92bab";
-		String roleName = "Member";
-		Date expireDate = new Date();
-		String domainId = "2a73b8f597c04551a0fdc8e95544be8a";
-		String domainName = "LSD";
-		String projectId = "3324431f606d4a74a060cf78c16fcb21";
-		String projectName = "naf-lsd-site";
-		
-		String endpoint = "http://localhost:60423/v3/auth/tokens";
-
-		Map<String, String> credentials = new HashMap<String, String>();
-		credentials.put(KeystoneV3IdentityPlugin.USER_ID, userId);
-		credentials.put(KeystoneV3IdentityPlugin.PASSWORD, userPass);
-		credentials.put(KeystoneV3IdentityPlugin.TENANT_ID, projectName);
-		credentials.put(KeystoneV3IdentityPlugin.PROJECT_ID, projectId);
-
-		JSONObject json = keystoneV3Identity.mountJson(credentials);
-
-		HttpPost request = new HttpPost(endpoint);
-		request.addHeader(HttpRequestUtil.CONTENT_TYPE, HttpRequestUtil.JSON_CONTENT_TYPE);
-		request.addHeader(HttpRequestUtil.ACCEPT, HttpRequestUtil.JSON_CONTENT_TYPE);
-		request.setEntity(new StringEntity(json.toString(), StandardCharsets.UTF_8));
-		// response = getClient().execute(request);
-
-		HttpResponse httpResponse = Mockito.mock(HttpResponse.class);
-		HttpEntity httpEntity = Mockito.mock(HttpEntity.class);
-
-		JSONObject returnJson = createJsonReturn(method, roleId, roleName, expireDate, domainId, domainName, projectId,
-				projectName, userId, userName);
-
-		String content = returnJson.toString();
-
-		InputStream contentInputStream = new ByteArrayInputStream(content.getBytes(UTF_8));
-		Mockito.when(httpEntity.getContent()).thenReturn(contentInputStream);
-		Mockito.when(httpResponse.getEntity()).thenReturn(httpEntity);
-		BasicStatusLine basicStatus = new BasicStatusLine(new ProtocolVersion("", 0, 0), HttpStatus.SC_OK, "");
-		Mockito.when(httpResponse.getStatusLine()).thenReturn(basicStatus);
-		Mockito.when(httpResponse.getAllHeaders()).thenReturn(new Header[0]);
-		//POST http://localhost:60565/v3/auth/tokens HTTP/1.1
-		Mockito.when(client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
-
-		Token token = keystoneV3Identity.createToken(credentials);
-
-		assertNotNull(token);
-
-	}
-
-	@Test
 	public void testForwardableToken() {
 		
 		String accessId = "access_ID";
@@ -175,24 +156,7 @@ public class TestKeystoneV3Identity {
 		assertEquals(attributes, tokenReturned.getAttributes());
 	}
 
-	@Test (expected = RuntimeException.class)
-	public void testCreateToken() throws JSONException, ClientProtocolException, IOException {
-
-		doReturn(null).when(client).execute(Mockito.any(HttpPost.class));
-
-		Map<String, String> credentialsB = new HashMap<String, String>();
-		credentialsB.put(KeystoneV3IdentityPlugin.USER_ID, "user");
-		credentialsB.put(KeystoneV3IdentityPlugin.PASSWORD, "wrongpass");
-		credentialsB.put(KeystoneV3IdentityPlugin.TENANT_ID, "project");
-		credentialsB.put(KeystoneV3IdentityPlugin.PROJECT_ID, "projectid");
-		
-		Token token = keystoneV3Identity.createToken(credentialsB);
-
-		assertNotNull(token);
-	}
-	
-
-	private JSONObject createJsonReturn(String method, String roleId, String roleName, Date expireDate, String domainId,
+	private JSONObject createJsonResponse(String method, String roleId, String roleName, Date expireDate, String domainId,
 			String domainName, String projectId, String projectName, String userId, String userName)
 					throws JSONException {
 
