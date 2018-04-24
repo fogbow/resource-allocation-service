@@ -1,5 +1,7 @@
 package org.fogbowcloud.manager.core.models.orders.instances;
 
+import java.util.Map;
+
 public class ComputeOrderInstance extends OrderInstance {
 
     private String hostName;
@@ -13,6 +15,7 @@ public class ComputeOrderInstance extends OrderInstance {
     private String sshPublicAddress;
     private String sshUserName;
     private String sshExtraPorts;
+    private Map<String, String> tunnelingPorts;
 
     public String getHostName() {
         return hostName;
@@ -70,7 +73,20 @@ public class ComputeOrderInstance extends OrderInstance {
         this.sshExtraPorts = sshExtraPorts;
     }
 
-    public InstanceState getState() { return state; }
+	public Map<String, String> getTunnelingPorts() {
+		return tunnelingPorts;
+	}
 
-    public void setState(InstanceState state) { this.state = state; }
+	public void setTunnelingPorts(Map<String, String> tunnelingPorts) {
+		this.tunnelingPorts = tunnelingPorts;
+	}
+	
+	public InstanceState getState() {
+		return state;
+	}
+
+	public void setState(InstanceState state) {
+		this.state = state;
+	}
+	
 }
