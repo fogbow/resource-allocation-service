@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.http.HttpStatus;
-import org.apache.commons.codec.Charsets;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
