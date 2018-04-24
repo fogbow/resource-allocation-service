@@ -12,7 +12,6 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.models.*;
 import org.fogbowcloud.manager.core.models.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.compute.ComputePlugin;
@@ -48,7 +47,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private static final String SERVERS = "/servers";
     private static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
     private static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
-    public static final String COMPUTE_NOVAV2_URL_KEY = "compute_novav2_url";
+    private static final String COMPUTE_NOVAV2_URL_KEY = "compute_novav2_url";
     private static final String NO_VALID_HOST_WAS_FOUND = "No valid host was found";
     private final String COMPUTE_V2_API_ENDPOINT = "/v2/";
 
@@ -73,7 +72,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         String flavorId = getFlavor(computeOrder).getId();
         String tenantId = getTenantId(localToken);
         String networkId = getNetworkId();
-        UserData userData = computeOrder.getUserData();
+        String userData = computeOrder.getUserData().getContent();
         String keyName = getKeyName(tenantId, localToken, computeOrder.getPublicKey());
         String endpoint = getComputeEndpoint(tenantId, SERVERS);
 
@@ -96,15 +95,15 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         }
     }
 
-    private String getTenantId(Token localToken) {
+    protected String getTenantId(Token localToken) {
         return localToken.getAttributes().get(TENANT_ID);
     }
 
-    private String getNetworkId() {
+    protected String getNetworkId() {
         return properties.getProperty(COMPUTE_NOVAV2_NETWORK_KEY);
     }
 
-    private String getKeyName(String tenantId, Token localToken, String publicKey) throws RequestException {
+    protected String getKeyName(String tenantId, Token localToken, String publicKey) throws RequestException {
         String keyname = null;
 
         if (publicKey != null && !publicKey.isEmpty()) {
@@ -128,7 +127,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         return keyname;
     }
 
-    private String getComputeEndpoint(String tenantId, String suffix) {
+    protected String getComputeEndpoint(String tenantId, String suffix) {
         return properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + tenantId + suffix;
     }
 
@@ -170,8 +169,6 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         HttpResponse response = null;
         String responseStr;
 
-        System.out.println(jsonRequest.toString());
-
         try {
             HttpPost request = new HttpPost(endpoint);
             request.addHeader(RequestHeaders.CONTENT_TYPE.getValue(), RequestHeaders.JSON_CONTENT_TYPE.getValue());
@@ -197,7 +194,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         return responseStr;
     }
 
-    protected JSONObject generateJsonRequest(String imageRef, String flavorRef, UserData userdata,
+    protected JSONObject generateJsonRequest(String imageRef, String flavorRef, String userdata,
                                            String keyName, String networkId) throws JSONException {
 
         JSONObject server = new JSONObject();
