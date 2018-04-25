@@ -58,9 +58,10 @@ public class TestOpenProcessor {
 	 * Test if the method processOpenOrder is setting to SPAWNING an Open Local
 	 * Order when the requestInstance method of InstanceProvider returns an
 	 * Instance.
+	 * @throws Exception 
 	 */
 	@Test
-	public void testProcessOpenLocalOrder() {
+	public void testProcessOpenLocalOrder() throws Exception {
 		Order localOrder = this.createLocalOrder();
 
 		OrderInstance orderInstance = new OrderInstance("fake-id");
@@ -78,9 +79,10 @@ public class TestOpenProcessor {
 	 * Test if the method processOpenOrder is setting to FAILED an Open Local
 	 * Order when the requestInstance method of InstanceProvider returns an
 	 * Instance with an empty Id.
+	 * @throws Exception 
 	 */
 	@Test
-	public void testProcessOpenLocalOrderWithEmptyInstanceId() {
+	public void testProcessOpenLocalOrderWithEmptyInstanceId() throws Exception {
 		Order localOrder = this.createLocalOrder();
 
 		OrderInstance orderInstance = new OrderInstance("");
@@ -98,9 +100,10 @@ public class TestOpenProcessor {
 	 * Test if the method processOpenOrder is setting to FAILED an Open Local
 	 * Order when the requestInstance method of InstanceProvider returns a null
 	 * Instance.
+	 * @throws Exception 
 	 */
 	@Test
-	public void testProcessOpenLocalOrderWithNullInstance() {
+	public void testProcessOpenLocalOrderWithNullInstance() throws Exception {
 		Order localOrder = this.createLocalOrder();
 
 		Mockito.doReturn(null).when(this.localInstanceProvider).requestInstance(Mockito.any(Order.class));
@@ -116,9 +119,11 @@ public class TestOpenProcessor {
 	 * Test if the method processOpenOrder is setting to FAILED an Open Local
 	 * Order when the requestInstance method of InstanceProvider throw an
 	 * Exception.
+	 * 
+	 * @throws Exception
 	 */
 	@Test
-	public void testProcessLocalOpenOrderRequestingException() {
+	public void testProcessLocalOpenOrderRequestingException() throws Exception {
 		Order localOrder = this.createLocalOrder();
 
 		Mockito.doThrow(new RuntimeException("Any Exception")).when(this.localInstanceProvider)
@@ -175,9 +180,10 @@ public class TestOpenProcessor {
 	/**
 	 * Test if the method processOpenOrder is setting to PENDING an Open Remote
 	 * Order.
+	 * @throws Exception 
 	 */
 	@Test
-	public void testProcessOpenRemoteOrder() {
+	public void testProcessOpenRemoteOrder() throws Exception {
 		Order remoteOrder = this.createRemoteOrder();
 
 		Mockito.doReturn(null).when(this.remoteInstanceProvider).requestInstance(Mockito.any(Order.class));
@@ -193,9 +199,10 @@ public class TestOpenProcessor {
 	 * Test if the method processOpenOrder is setting to FAILED an Open Remote
 	 * Order when the requestInstance method of Remote InstanceProvider throw an
 	 * Exception.
+	 * @throws Exception 
 	 */
 	@Test
-	public void testProcessRemoteOpenOrderRequestingException() {
+	public void testProcessRemoteOpenOrderRequestingException() throws Exception {
 		Order remoteOrder = this.createRemoteOrder();
 
 		Mockito.doThrow(new RuntimeException("Any Exception")).when(this.remoteInstanceProvider)
@@ -264,11 +271,10 @@ public class TestOpenProcessor {
 	/**
 	 * Test if the OpenProcessor Thread is setting an Open Local Order to
 	 * SPAWNING State after processing.
-	 * 
-	 * @throws InterruptedException
+	 * @throws Exception 
 	 */
 	@Test
-	public void testRunProcessLocalOpenOrder() throws InterruptedException {
+	public void testRunProcessLocalOpenOrder() throws Exception {
 		Order localOrder = this.createLocalOrder();
 
 		OrderInstance orderInstance = new OrderInstance("fake-id");
@@ -324,9 +330,10 @@ public class TestOpenProcessor {
 	/**
 	 * This method tests a race condition when this class thread has the Order
 	 * operation priority.
+	 * @throws Exception 
 	 */
 	@Test
-	public void testRaceConditionWithThisThreadPriority() throws InterruptedException {
+	public void testRaceConditionWithThisThreadPriority() throws Exception {
 		Order localOrder = this.createLocalOrder();
 
 		synchronized (localOrder) {
@@ -378,9 +385,11 @@ public class TestOpenProcessor {
 	/**
 	 * This method tests a race condition when the Attend Open Order Thread has
 	 * the Order operation priority.
+	 * 
+	 * @throws Exception
 	 */
 	@Test
-	public void testRaceConditionWithOpenProcessorThreadPriority() throws InterruptedException {
+	public void testRaceConditionWithOpenProcessorThreadPriority() throws Exception {
 		Order localOrder = this.createLocalOrder();
 
 		OrderInstance orderInstance = new OrderInstance("fake-id");

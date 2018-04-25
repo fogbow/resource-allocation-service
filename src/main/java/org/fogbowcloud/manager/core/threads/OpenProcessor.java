@@ -127,7 +127,7 @@ public class OpenProcessor implements Runnable {
 
 			} else {
 				LOGGER.error("Order instance id for order [" + order.getId() + "] is empty");
-				throw new RuntimeException("Order instance id for order [" + order.getId() + "] is empty");
+				throw new IllegalArgumentException("Order instance id for order [" + order.getId() + "] is empty");
 			}
 
 		} else {
@@ -145,8 +145,9 @@ public class OpenProcessor implements Runnable {
 	 * Get an Instance Provider for an Order, if the Order is Local, the
 	 * returned Instance Provider is the Local, else, is the Remote.
 	 * 
-	 * @param order 
-	 * @return Local InstanceProvider if the Order is Local, or Remote InstanceProvider if the Order is Remote
+	 * @param order
+	 * @return Local InstanceProvider if the Order is Local, or Remote
+	 *         InstanceProvider if the Order is Remote
 	 */
 	protected InstanceProvider getInstanceProviderForOrder(Order order) {
 		InstanceProvider instanceProvider = null;
