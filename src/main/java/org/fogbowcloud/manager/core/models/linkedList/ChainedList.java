@@ -11,5 +11,4 @@ public interface ChainedList {
 	public Order getNext();
 	
 	public boolean removeItem(Order order);
-	
 }
