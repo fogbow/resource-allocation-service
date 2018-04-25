@@ -37,7 +37,7 @@ public class ManagerController {
 	 * start this thread at this method.
 	 */
 	private void startManagerThreads() {
-		LOGGER.info("Starting Manager Threads...");
+		LOGGER.info("Starting Manager OpenProcessor Thread...");
 		this.openProcessorThread.start();
 	}
 
