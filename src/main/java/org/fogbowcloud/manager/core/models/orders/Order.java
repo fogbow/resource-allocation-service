@@ -89,12 +89,6 @@ public abstract class Order {
 		return !this.providingMember.equals(localMemberId);
 	}
 
-	/**
-	 * These method handle an open order, for this, handleOpenOrder handle the
-	 * Order to be ready to change your state from OPEN to SPAWNING.
-	 */
-	public abstract void handleOpenOrder();
-
 	public abstract OrderType getType();
 
 	@Override

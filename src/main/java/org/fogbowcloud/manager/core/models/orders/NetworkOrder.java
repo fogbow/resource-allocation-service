@@ -43,13 +43,4 @@ public class NetworkOrder extends Order {
 	public OrderType getType() {
 		return OrderType.NETWORK;
 	}
-
-	/**
-	 * These method handle an open order, for this, handleOpenOrder handle the
-	 * Order to be ready to change your state from OPEN to SPAWNING.
-	 */
-	@Override
-	public synchronized void handleOpenOrder() {
-	}
-
 }

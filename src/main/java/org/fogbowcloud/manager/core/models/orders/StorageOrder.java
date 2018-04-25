@@ -35,12 +35,4 @@ public class StorageOrder extends Order {
 		return OrderType.STORAGE;
 	}
 
-	/**
-	 * These method handle an open order, for this, handleOpenOrder handle the
-	 * Order to be ready to change your state from OPEN to SPAWNING.
-	 */
-	@Override
-	public synchronized void handleOpenOrder() {
-	}
-
 }

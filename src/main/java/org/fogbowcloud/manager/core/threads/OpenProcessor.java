@@ -76,8 +76,8 @@ public class OpenProcessor implements Runnable {
 				try {
 					InstanceProvider instanceProvider = this.getInstanceProviderForOrder(order);
 
+					// TODO: prepare Order to Change your State from Open to Spawning.
 					LOGGER.info("Processing Order [" + order.getId() + "]");
-					order.handleOpenOrder();
 					OrderInstance orderInstance = instanceProvider.requestInstance(order);
 					order.setOrderInstance(orderInstance);
 
