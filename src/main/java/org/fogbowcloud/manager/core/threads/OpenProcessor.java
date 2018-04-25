@@ -52,11 +52,12 @@ public class OpenProcessor implements Runnable {
 				if (order != null) {
 					this.processOpenOrder(order);
 				} else {
-					LOGGER.info("There is no Open Order to be processed, sleeping OpenProcessor Thread...");
+					LOGGER.info(
+							"There is no open order to be processed, sleeping for " + this.sleepTime + " milliseconds");
 					Thread.sleep(this.sleepTime);
 				}
 			} catch (Throwable e) {
-				LOGGER.error("Error while trying to Process an Open Order with the OpenProcessor Thread", e);
+				LOGGER.error("Error while trying to process an open order", e);
 			}
 		}
 	}
@@ -71,28 +72,29 @@ public class OpenProcessor implements Runnable {
 			OrderState orderState = order.getOrderState();
 
 			if (orderState.equals(OrderState.OPEN)) {
-				LOGGER.info("Trying to get an Instance for Order [" + order.getId() + "]");
+				LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
 
 				try {
 					InstanceProvider instanceProvider = this.getInstanceProviderForOrder(order);
 
-					// TODO: prepare Order to Change your State from Open to Spawning.
-					LOGGER.info("Processing Order [" + order.getId() + "]");
+					// TODO: prepare Order to Change your State from Open to
+					// Spawning.
+
+					LOGGER.info("Processing order [" + order.getId() + "]");
 					OrderInstance orderInstance = instanceProvider.requestInstance(order);
 					order.setOrderInstance(orderInstance);
 
-					LOGGER.info("Removing Order [" + order.getId() + "] from Open Orders List");
+					LOGGER.info("Removing order [" + order.getId() + "] from open orders list");
 					this.openOrdersList.removeItem(order);
 
-					LOGGER.info("Updating Order State after processing [" + order.getId() + "]");
+					LOGGER.info("Updating order state after processing [" + order.getId() + "]");
 					this.updateOrderStateAfterProcessing(order);
 
 				} catch (Exception e) {
-					LOGGER.error("Error while trying to get an Instance for Order: " + System.lineSeparator() + order,
-							e);
+					LOGGER.error("Error while trying to get an instance for order: " + order, e);
 					order.setOrderState(OrderState.FAILED);
 
-					LOGGER.info("Adding Order [" + order.getId() + "] to Failed Orders List");
+					LOGGER.info("Adding order [" + order.getId() + "] to failed orders list");
 					this.failedOrdersList.addItem(order);
 				}
 			}
@@ -111,25 +113,25 @@ public class OpenProcessor implements Runnable {
 
 			if (!orderInstanceId.isEmpty()) {
 				LOGGER.info("The open order [" + order.getId() + "] got an local instance with id [" + orderInstanceId
-						+ "], setting your state to SPAWNING");
+						+ "], setting your state to spawning");
 
 				order.setOrderState(OrderState.SPAWNING);
 
-				LOGGER.info("Adding Order [" + order.getId() + "] to Spawning Orders List");
+				LOGGER.info("Adding order [" + order.getId() + "] to spawning orders list");
 				this.spawningOrdersList.addItem(order);
 
 			} else {
-				LOGGER.error("Order Instance Id for Order [" + order.getId() + "] is Empty");
-				throw new RuntimeException("Order Instance Id for Order [" + order.getId() + "] is Empty");
+				LOGGER.error("Order instance id for order [" + order.getId() + "] is empty");
+				throw new RuntimeException("Order instance id for order [" + order.getId() + "] is empty");
 			}
 
 		} else if (order.isRemote(this.localMemberId)) {
 			LOGGER.info("The open order [" + order.getId()
-					+ "] was requested for remote member, setting your state to PENDING");
+					+ "] was requested for remote member, setting your state to pending");
 
 			order.setOrderState(OrderState.PENDING);
 
-			LOGGER.info("Adding Order [" + order.getId() + "] to Pending Orders List");
+			LOGGER.info("Adding order [" + order.getId() + "] to pending orders list");
 			this.pendingOrdersList.addItem(order);
 		}
 	}
