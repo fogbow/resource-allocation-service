@@ -1,12 +1,5 @@
 package org.fogbowcloud.manager.core.models.token;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -122,15 +115,10 @@ public class Token {
 				JSONHelper.toMap(jsonObject.optString("attributes")));
 	}
 
-	@Entity
-	@Table(name = "tb_user")
 	public static class User {
 
-		@Id
-		@GeneratedValue(strategy = GenerationType.AUTO)
 		private String id;
 
-		@Column(name = "name", nullable = false, unique = true)
 		private String name;
 
 		public User(String id, String name) {
