@@ -32,7 +32,7 @@ public class StorageOrder extends Order {
 
 	@Override
 	public OrderType getType() {
-		return OrderType.NETWORK;
+		return OrderType.STORAGE;
 	}
 
 	/**
