@@ -3,9 +3,17 @@ package org.fogbowcloud.manager.core.models.orders.instances;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.fogbowcloud.manager.core.utils.SshCommonUserUtil;
+import org.json.JSONObject;
+
 public class ComputeOrderInstance extends OrderInstance {
 
-    private String hostName;
+    private static final String SSH_SERVICE_NAME = null;
+	private static final String SSH_PUBLIC_ADDRESS_ATT = null;
+	private static final String SSH_USERNAME_ATT = null;
+	private static final String EXTRA_PORTS_ATT = null;
+	
+	private String hostName;
     private int vCPU;
     /**
      *  Memory attribute, must be set in MB.
@@ -85,6 +93,15 @@ public class ComputeOrderInstance extends OrderInstance {
 		this.tunnelingPorts.put(key, value);
 	}
 	
+	public void setExternalServiceAddresses(Map<String, String> serviceAddresses) {
+		if (serviceAddresses != null) {
+			this.addTunnelingPorts(SSH_PUBLIC_ADDRESS_ATT, serviceAddresses.get(SSH_SERVICE_NAME));
+			this.addTunnelingPorts(SSH_USERNAME_ATT, SshCommonUserUtil.getSshCommonUser());
+			serviceAddresses.remove(SSH_SERVICE_NAME);
+			this.addTunnelingPorts(EXTRA_PORTS_ATT, new JSONObject(serviceAddresses).toString());
+		}
+	}
+
 	public InstanceState getState() {
 		return state;
 	}
