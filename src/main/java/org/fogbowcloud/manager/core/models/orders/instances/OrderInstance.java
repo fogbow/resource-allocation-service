@@ -5,12 +5,8 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-@Entity
-@Table(name = "tb_order_instance")
 public class OrderInstance {
 
-	@Id
-	@Column(name = "id", nullable = false, unique = true)
     private String id;
 
 	public OrderInstance() {
