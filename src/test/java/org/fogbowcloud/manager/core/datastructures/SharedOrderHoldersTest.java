@@ -5,42 +5,37 @@ import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
 
+import static org.junit.Assert.*;
 
-public class SharedDataStructureTest {
+public class SharedOrderHoldersTest {
 
-    private SharedDataStructures instanceOne;
-    private SharedDataStructures instanceTwo;
+    private SharedOrderHolders instanceOne;
+    private SharedOrderHolders instanceTwo;
 
     @Before
     public void initialize() {
-        this.instanceOne = SharedDataStructures.getInstance();
-        this.instanceTwo = SharedDataStructures.getInstance();
+        this.instanceOne = SharedOrderHolders.getInstance();
+        this.instanceTwo = SharedOrderHolders.getInstance();
     }
 
     @Test
     public void testGetSameListReference() {
-
         SynchronizedDoublyLinkedList listFromInstanceOne = instanceOne.getOpenOrdersList();
         SynchronizedDoublyLinkedList listFromInstanceTwo = instanceTwo.getOpenOrdersList();
-
         assertEquals(listFromInstanceOne, listFromInstanceTwo);
 
         Order orderOne = createOrder("one");
         listFromInstanceOne.addItem(orderOne);
-
         assertEquals(listFromInstanceOne.getCurrent(), listFromInstanceTwo.getCurrent());
         assertEquals(orderOne, listFromInstanceOne.getCurrent().getOrder());
         assertEquals(orderOne, listFromInstanceTwo.getCurrent().getOrder());
 
         Order orderTwo = createOrder("two");
         listFromInstanceTwo.addItem(orderTwo);
-
         assertEquals(listFromInstanceOne.getCurrent().getNext(), listFromInstanceTwo.getCurrent().getNext());
         assertEquals(orderTwo, listFromInstanceOne.getCurrent().getNext().getOrder());
         assertEquals(orderTwo, listFromInstanceTwo.getCurrent().getNext().getOrder());
-
     }
 
     private Order createOrder(String orderId) {

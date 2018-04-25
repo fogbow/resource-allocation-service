@@ -2,14 +2,12 @@ package org.fogbowcloud.manager.core.datastructures;
 
 import org.fogbowcloud.manager.core.models.linkedList.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
-
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SharedDataStructures {
+public class SharedOrderHolders {
 
-    private static SharedDataStructures instance;
-
+    private static SharedOrderHolders instance;
     private Map<String, Order> activeOrdersMap;
     private SynchronizedDoublyLinkedList openOrders;
     private SynchronizedDoublyLinkedList spawningOrders;
@@ -18,9 +16,7 @@ public class SharedDataStructures {
     private SynchronizedDoublyLinkedList pendingOrders;
     private SynchronizedDoublyLinkedList closedOrders;
 
-
-    private SharedDataStructures() {
-
+    private SharedOrderHolders() {
         this.activeOrdersMap = new ConcurrentHashMap<String, Order>();
         this.openOrders = new SynchronizedDoublyLinkedList();
         this.spawningOrders = new SynchronizedDoublyLinkedList();
@@ -28,13 +24,12 @@ public class SharedDataStructures {
         this.fulfilledOrders = new SynchronizedDoublyLinkedList();
         this.pendingOrders = new SynchronizedDoublyLinkedList();
         this.closedOrders = new SynchronizedDoublyLinkedList();
-
     }
 
-    public static SharedDataStructures getInstance() {
-        synchronized (SharedDataStructures.class) {
+    public static SharedOrderHolders getInstance() {
+        synchronized (SharedOrderHolders.class) {
             if (instance == null) {
-                instance  = new SharedDataStructures();
+                instance  = new SharedOrderHolders();
             }
             return instance ;
         }
