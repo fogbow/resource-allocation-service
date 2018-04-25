@@ -10,13 +10,13 @@ import static org.junit.Assert.assertEquals;
 
 public class SharedDataStructureTest {
 
-    private DataSharedStructure instanceOne;
-    private DataSharedStructure instanceTwo;
+    private SharedDataStructures instanceOne;
+    private SharedDataStructures instanceTwo;
 
     @Before
     public void initialize() {
-        this.instanceOne = DataSharedStructure.getInstance();
-        this.instanceTwo = DataSharedStructure.getInstance();
+        this.instanceOne = SharedDataStructures.getInstance();
+        this.instanceTwo = SharedDataStructures.getInstance();
     }
 
     @Test

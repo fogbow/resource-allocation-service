@@ -6,9 +6,9 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DataSharedStructure {
+public class SharedDataStructures {
 
-    private static DataSharedStructure instance;
+    private static SharedDataStructures instance;
 
     private Map<String, Order> activeOrdersMap;
     private SynchronizedDoublyLinkedList openOrders;
@@ -19,7 +19,7 @@ public class DataSharedStructure {
     private SynchronizedDoublyLinkedList closedOrders;
 
 
-    private DataSharedStructure() {
+    private SharedDataStructures() {
 
         this.activeOrdersMap = new ConcurrentHashMap<String, Order>();
         this.openOrders = new SynchronizedDoublyLinkedList();
@@ -31,10 +31,10 @@ public class DataSharedStructure {
 
     }
 
-    public static DataSharedStructure getInstance() {
-        synchronized (DataSharedStructure.class) {
+    public static SharedDataStructures getInstance() {
+        synchronized (SharedDataStructures.class) {
             if (instance == null) {
-                instance  = new DataSharedStructure();
+                instance  = new SharedDataStructures();
             }
             return instance ;
         }
