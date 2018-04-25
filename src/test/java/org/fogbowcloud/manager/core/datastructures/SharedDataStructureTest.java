@@ -22,8 +22,10 @@ public class SharedDataStructureTest {
     @Test
     public void testGetSameListReference() {
 
-        SynchronizedDoublyLinkedList listFromInstanceOne = instanceOne.getOpenOrders();
-        SynchronizedDoublyLinkedList listFromInstanceTwo = instanceTwo.getOpenOrders();
+        SynchronizedDoublyLinkedList listFromInstanceOne = instanceOne.getOpenOrdersList();
+        SynchronizedDoublyLinkedList listFromInstanceTwo = instanceTwo.getOpenOrdersList();
+
+        assertEquals(listFromInstanceOne, listFromInstanceTwo);
 
         Order orderOne = createOrder("one");
         listFromInstanceOne.addItem(orderOne);

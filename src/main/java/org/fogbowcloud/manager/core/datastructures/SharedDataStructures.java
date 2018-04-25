@@ -44,27 +44,27 @@ public class SharedDataStructures {
         return activeOrdersMap;
     }
 
-    public SynchronizedDoublyLinkedList getOpenOrders() {
+    public SynchronizedDoublyLinkedList getOpenOrdersList() {
         return openOrders;
     }
 
-    public SynchronizedDoublyLinkedList getSpawningOrders() {
+    public SynchronizedDoublyLinkedList getSpawningOrdersList() {
         return spawningOrders;
     }
 
-    public SynchronizedDoublyLinkedList getFailedOrders() {
+    public SynchronizedDoublyLinkedList getFailedOrdersList() {
         return failedOrders;
     }
 
-    public SynchronizedDoublyLinkedList getFulfilledOrders() {
+    public SynchronizedDoublyLinkedList getFulfilledOrdersList() {
         return fulfilledOrders;
     }
 
-    public SynchronizedDoublyLinkedList getPendingOrders() {
+    public SynchronizedDoublyLinkedList getPendingOrdersList() {
         return pendingOrders;
     }
 
-    public SynchronizedDoublyLinkedList getClosedOrders() {
+    public SynchronizedDoublyLinkedList getClosedOrdersList() {
         return closedOrders;
     }
 
