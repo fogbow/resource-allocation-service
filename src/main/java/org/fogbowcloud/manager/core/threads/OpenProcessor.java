@@ -130,7 +130,7 @@ public class OpenProcessor implements Runnable {
 				throw new RuntimeException("Order instance id for order [" + order.getId() + "] is empty");
 			}
 
-		} else if (order.isRemote(this.localMemberId)) {
+		} else {
 			LOGGER.info("The open order [" + order.getId()
 					+ "] was requested for remote member, setting your state to pending");
 
@@ -154,7 +154,7 @@ public class OpenProcessor implements Runnable {
 			LOGGER.info("The open order [" + order.getId() + "] is local");
 
 			instanceProvider = this.localInstanceProvider;
-		} else if (order.isRemote(this.localMemberId)) {
+		} else {
 			LOGGER.info("The open order [" + order.getId() + "] is remote for the member [" + order.getProvidingMember()
 					+ "]");
 
