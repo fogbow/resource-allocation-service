@@ -31,7 +31,7 @@ public class TestLdapIdentityPlugin {
 
 		this.ldapStoneIdentity = Mockito.spy(new LdapIdentityPlugin(properties));
 		Mockito.doReturn(MOCK_SIGNATURE).when(ldapStoneIdentity).createSignature(Mockito.any(JSONObject.class));
-
+		
 	}
 
 	@Test

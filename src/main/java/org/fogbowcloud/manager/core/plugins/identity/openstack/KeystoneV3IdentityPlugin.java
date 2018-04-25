@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.identity.openstack;
 
+import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -81,7 +82,7 @@ public class KeystoneV3IdentityPlugin implements IdentityPlugin {
 			LOGGER.error("Could not mount JSON while creating token.", e);
 
 			Integer statusResponse = HttpStatus.SC_BAD_REQUEST;
-			throw new RuntimeException(statusResponse.toString());
+			throw new IllegalArgumentException(statusResponse.toString());
 		}
 
 		String authUrl = credentials.get(AUTH_URL);
@@ -156,7 +157,7 @@ public class KeystoneV3IdentityPlugin implements IdentityPlugin {
 		} finally {
 			try {
 				EntityUtils.consume(response.getEntity());
-			} catch (Throwable t) {
+			} catch (IOException t) {
 				// Do nothing
 			}
 		}
@@ -194,19 +195,21 @@ public class KeystoneV3IdentityPlugin implements IdentityPlugin {
 
 		JSONObject root = new JSONObject();
 		root.put(AUTH_PROP, auth);
+		
 		return root;
 	}
 
 	private Token getTokenFromJson(Response response) {
-		try {
-			String accessId = null;
-			Header[] headers = response.getHeaders();
-			for (Header header : headers) {
-				if (header.getName().equals(X_SUBJECT_TOKEN)) {
-					accessId = header.getValue();
-				}
+		
+		String accessId = null;
+		Header[] headers = response.getHeaders();
+		for (Header header : headers) {
+			if (header.getName().equals(X_SUBJECT_TOKEN)) {
+				accessId = header.getValue();
 			}
-
+		}
+		
+		try {
 			JSONObject root = new JSONObject(response.getContent());
 			JSONObject token = root.getJSONObject(TOKEN_PROP);
 
@@ -238,6 +241,7 @@ public class KeystoneV3IdentityPlugin implements IdentityPlugin {
 	}
 
 	private void checkStatusResponse(HttpResponse response) {
+		
 		if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
 			Integer statusResponse = HttpStatus.SC_UNAUTHORIZED;
 			throw new RuntimeException(statusResponse.toString());
