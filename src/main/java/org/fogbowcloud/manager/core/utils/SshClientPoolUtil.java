@@ -9,30 +9,29 @@ import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
+import org.fogbowcloud.manager.core.constants.CommonConfigurationConstants;
+
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.transport.verification.HostKeyVerifier;
 
-public class SshClientPool {
-	
-	// from the old class ManagerController in fogbow-manager
-	private static final int DEFAULT_MAX_POOL = 200;
+public class SshClientPoolUtil {
 	
 	protected final long TIMEOUT = 20000; // 20 seconds
 	private final long DEFAULT_SCHEDULER_PERIOD = 300000; // 5 minutes
 	
 	private Map<String, SSHConnection> pool = new HashMap<String, SSHConnection>();
-	private final ManagerTimer sshConnectionSchedulerTimer;
+	private final ManagerTimerUtil sshConnectionSchedulerTimer;
 	private DateUtils dateUtils;
 	private Semaphore semaphore;
 	private SSHClientFactory clientFactory = new SSHClientFactory();
 	
-	public SshClientPool() {
+	public SshClientPoolUtil() {
 		this(new DateUtils());
 	}
 
-	public SshClientPool(DateUtils dateUtils) {
-		this.sshConnectionSchedulerTimer = new ManagerTimer(Executors.newScheduledThreadPool(1));
-		this.semaphore = new Semaphore(DEFAULT_MAX_POOL);
+	public SshClientPoolUtil(DateUtils dateUtils) {
+		this.sshConnectionSchedulerTimer = new ManagerTimerUtil(Executors.newScheduledThreadPool(1));
+		this.semaphore = new Semaphore(CommonConfigurationConstants.DEFAULT_MAX_POOL);
 		this.dateUtils = dateUtils;
 	}
 	
@@ -106,7 +105,7 @@ public class SshClientPool {
 		this.dateUtils = dateUtils;
 	}
 	
-	public ManagerTimer getSshConnectionSchedulerTimer() {
+	public ManagerTimerUtil getSshConnectionSchedulerTimer() {
 		return sshConnectionSchedulerTimer;
 	}
 	
@@ -147,4 +146,5 @@ public class SshClientPool {
 			return timestamp;
 		}		
 	}
+	
 }

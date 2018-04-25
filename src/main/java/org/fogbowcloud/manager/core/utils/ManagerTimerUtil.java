@@ -6,14 +6,14 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
-public class ManagerTimer {
+public class ManagerTimerUtil {
 
 	private ScheduledExecutorService executor;
 	private ScheduledFuture<?> future;
 	
-	private static final Logger LOGGER = Logger.getLogger(ManagerTimer.class);
+	private static final Logger LOGGER = Logger.getLogger(ManagerTimerUtil.class);
 
-	public ManagerTimer(ScheduledExecutorService executor) {
+	public ManagerTimerUtil(ScheduledExecutorService executor) {
 		this.executor = executor;
 	}
 
