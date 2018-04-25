@@ -63,11 +63,16 @@ public class OpenProcessor implements Runnable {
 	}
 
 	/**
-	 * Method that try to get an Instance for an Open Order. This method can
-	 * generate a race condition. For example: a user can delete a Open Order
-	 * while this method is trying to get an Instance for this Order.
+	 * Get an Instance for an Open Order. If the method fail in get the
+	 * Instance, then the Order is set to FAILED, else, is set to SPAWNING if
+	 * the Order is local or PENDING if the Order is remote.
+	 * 
+	 * @param order
 	 */
 	protected void processOpenOrder(Order order) {
+		// This method can generate a race condition. For example: a user can
+		// delete a Open Order while this method is trying to get an Instance
+		// for this Order.
 		synchronized (order) {
 			OrderState orderState = order.getOrderState();
 
@@ -102,7 +107,7 @@ public class OpenProcessor implements Runnable {
 	}
 
 	/**
-	 * After processing an Open Order, is necessary update it state.
+	 * Update the Order State and Add the Order in the right Chained List.
 	 * 
 	 * @param order
 	 */
@@ -137,11 +142,11 @@ public class OpenProcessor implements Runnable {
 	}
 
 	/**
-	 * Get the Instance Provider for an Order, if the Order is Local, the
+	 * Get an Instance Provider for an Order, if the Order is Local, the
 	 * returned Instance Provider is the Local, else, is the Remote.
 	 * 
-	 * @param order
-	 * @return
+	 * @param order 
+	 * @return Local InstanceProvider if the Order is Local, or Remote InstanceProvider if the Order is Remote
 	 */
 	protected InstanceProvider getInstanceProviderForOrder(Order order) {
 		InstanceProvider instanceProvider = null;
