@@ -2,7 +2,6 @@ package org.fogbowcloud.manager.core.models.token;
 
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 import org.fogbowcloud.manager.core.utils.DateUtils;
@@ -14,10 +13,19 @@ public class Token {
 
 	private static final String EXPIRATION_DATE = "expirationDate";
 
+	private Long id;
+
 	private Map<String, String> attributes;
+
 	private String accessId;
+
 	private User user;
+
 	private DateUtils dateUtils = new DateUtils();
+
+	public Token() {
+
+	}
 
 	public Token(String accessId, User user, Date expirationTime, Map<String, String> attributes) {
 		this.accessId = accessId;
@@ -29,6 +37,14 @@ public class Token {
 		}
 
 		this.attributes.put(Token.EXPIRATION_DATE, String.valueOf(expirationTime.getTime()));
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
 	}
 
 	public String get(String attributeName) {
@@ -50,6 +66,26 @@ public class Token {
 
 	public Map<String, String> getAttributes() {
 		return attributes;
+	}
+
+	public DateUtils getDateUtils() {
+		return dateUtils;
+	}
+
+	public void setDateUtils(DateUtils dateUtils) {
+		this.dateUtils = dateUtils;
+	}
+
+	public void setAttributes(Map<String, String> attributes) {
+		this.attributes = attributes;
+	}
+
+	public void setAccessId(String accessId) {
+		this.accessId = accessId;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
 	}
 
 	public boolean isExpiredToken() {
@@ -80,47 +116,10 @@ public class Token {
 				JSONHelper.toMap(jsonObject.optString("attributes")));
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Token other = (Token) obj;
-		if (accessId == null) {
-			if (other.accessId != null)
-				return false;
-		} else if (!accessId.equals(other.accessId))
-			return false;
-		if (attributes == null) {
-			if (other.attributes != null)
-				return false;
-		} else if (attributes != null
-				&& !new HashSet(attributes.values()).equals(new HashSet(other.attributes.values())))
-			return false;
-		if (dateUtils == null) {
-			if (other.dateUtils != null)
-				return false;
-		}
-		if (user == null) {
-			if (other.user != null)
-				return false;
-		} else if (!user.equals(other.user))
-			return false;
-		return true;
-	}
-
-	/**
-	 * 
-	 * id : required and unique name : required
-	 *
-	 */
 	public static class User {
 
 		private String id;
+
 		private String name;
 
 		public User(String id, String name) {
@@ -148,6 +147,15 @@ public class Token {
 			return new User(jsonObject.optString("id"), jsonObject.optString("name"));
 		}
 
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((id == null) ? 0 : id.hashCode());
+			return result;
+		}
+
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj)
@@ -169,5 +177,4 @@ public class Token {
 		}
 
 	}
-
 }

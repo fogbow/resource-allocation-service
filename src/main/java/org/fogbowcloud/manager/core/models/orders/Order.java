@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.core.models.orders;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 
-public class Order {
+public abstract class Order {
 
 	private String id;
 	private OrderState orderState;
@@ -12,12 +12,14 @@ public class Order {
 	private String requestingMember;
 	private String providingMember;
 	private OrderInstance orderInstance;
-	private long fulfilledTime;
+	private Long fulfilledTime;
 
-	public Order(String id, OrderState orderState, Token localToken,
-				 Token federationToken, String requestingMember, String providingMember,
-				 OrderInstance orderInstance, long fulfilledTime) {
-		this.id = id;
+	public Order() {
+	
+	}
+
+	public Order(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
+				 String providingMember, OrderInstance orderInstance, Long fulfilledTime) {
 		this.orderState = orderState;
 		this.localToken = localToken;
 		this.federationToken = federationToken;
@@ -79,6 +81,7 @@ public class Order {
 		return orderInstance;
 	}
 
+
 	public void setOrderInstance(OrderInstance orderInstance) {
 		this.orderInstance = orderInstance;
 	}
@@ -87,78 +90,70 @@ public class Order {
 		return fulfilledTime;
 	}
 
-	public void setFulfilledTime(long fulfilledTime) {
+	public void setFulfilledTime(Long fulfilledTime) {
 		this.fulfilledTime = fulfilledTime;
 	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((federationToken == null) ? 0 : federationToken.hashCode());
-		result = prime * result + (int) (fulfilledTime ^ (fulfilledTime >>> 32));
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((orderInstance == null) ? 0 : orderInstance.hashCode());
-		result = prime * result + ((localToken == null) ? 0 : localToken.hashCode());
-		result = prime * result + ((orderState == null) ? 0 : orderState.hashCode());
-		result = prime * result + ((providingMember == null) ? 0 : providingMember.hashCode());
-		result = prime * result + ((requestingMember == null) ? 0 : requestingMember.hashCode());
-		return result;
+	
+	public boolean isLocal() {
+		return this.providingMember.equals(this.requestingMember);
+	}
+	
+	public boolean isRemote() {
+		return !this.providingMember.equals(this.requestingMember);
 	}
 
+	public abstract void handleOpenOrder();
+	
+	public abstract OrderType getType();
+
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		Order order = (Order) o;
+
+		if (id != null ? !id.equals(order.id) : order.id != null) return false;
+		if (orderState != order.orderState) return false;
+		if (localToken != null ? !localToken.equals(order.localToken) : order.localToken != null) return false;
+		if (federationToken != null ? !federationToken.equals(order.federationToken) : order.federationToken != null)
 			return false;
-		if (getClass() != obj.getClass())
+		if (requestingMember != null ? !requestingMember.equals(order.requestingMember) : order.requestingMember != null)
 			return false;
-		Order other = (Order) obj;
-		if (federationToken == null) {
-			if (other.federationToken != null)
-				return false;
-		} else if (!federationToken.equals(other.federationToken))
+		if (providingMember != null ? !providingMember.equals(order.providingMember) : order.providingMember != null)
 			return false;
-		if (fulfilledTime != other.fulfilledTime)
+		if (orderInstance != null ? !orderInstance.equals(order.orderInstance) : order.orderInstance != null)
 			return false;
-		if (id == null) {
-			if (other.id != null)
-				return false;
-		} else if (!id.equals(other.id))
+		if (fulfilledTime != null ? !fulfilledTime.equals(order.fulfilledTime) : order.fulfilledTime != null)
 			return false;
-		if (orderInstance == null) {
-			if (other.orderInstance != null)
-				return false;
-		} else if (!orderInstance.equals(other.orderInstance))
-			return false;
-		if (localToken == null) {
-			if (other.localToken != null)
-				return false;
-		} else if (!localToken.equals(other.localToken))
-			return false;
-		if (orderState == null) {
-			if (other.orderState != null)
-				return false;
-		} else if (!orderState.equals(other.orderState))
-			return false;
-		if (providingMember == null) {
-			if (other.providingMember != null)
-				return false;
-		} else if (!providingMember.equals(other.providingMember))
-			return false;
-		if (requestingMember == null) {
-			if (other.requestingMember != null)
-				return false;
-		} else if (!requestingMember.equals(other.requestingMember))
-			return false;
+
 		return true;
 	}
 
 	@Override
+	public int hashCode() {
+		int result = id != null ? id.hashCode() : 0;
+		result = 31 * result + (orderState != null ? orderState.hashCode() : 0);
+		result = 31 * result + (localToken != null ? localToken.hashCode() : 0);
+		result = 31 * result + (federationToken != null ? federationToken.hashCode() : 0);
+		result = 31 * result + (requestingMember != null ? requestingMember.hashCode() : 0);
+		result = 31 * result + (providingMember != null ? providingMember.hashCode() : 0);
+		result = 31 * result + (orderInstance != null ? orderInstance.hashCode() : 0);
+		result = 31 * result + (fulfilledTime != null ? fulfilledTime.hashCode() : 0);
+		return result;
+	}
+
+	@Override
 	public String toString() {
-		return "Order [id=" + id + ", orderState=" + orderState + ", localToken=" + localToken + ", federationToken="
-				+ federationToken + ", requestingMember=" + requestingMember + ", providingMember=" + providingMember
-				+ ", orderInstance=" + orderInstance + ", fulfilledTime=" + fulfilledTime + "]";
+		return "Order{" +
+				"id='" + id + '\'' +
+				", orderState=" + orderState +
+				", localToken=" + localToken +
+				", federationToken=" + federationToken +
+				", requestingMember='" + requestingMember + '\'' +
+				", providingMember='" + providingMember + '\'' +
+				", orderInstance=" + orderInstance +
+				", fulfilledTime=" + fulfilledTime +
+				'}';
 	}
 }

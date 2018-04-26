@@ -7,9 +7,10 @@ public class StorageOrder extends Order {
 
     private int storageSize;
 
-	public StorageOrder(String id, OrderState orderState, Token localToken, Token federationToken,
-						String requestingMember, String providingMember, OrderInstance orderInstance, long fulfilledTime) {
-		super(id, orderState, localToken, federationToken, requestingMember, providingMember, orderInstance, fulfilledTime);
+	public StorageOrder(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
+						String providingMember, OrderInstance orderInstace, long fulfilledTime, int storageSize) {
+		super(orderState, localToken, federationToken, requestingMember, providingMember, orderInstace, fulfilledTime);
+		this.storageSize = storageSize;
 	}
 
 	public int getStorageSize() {
@@ -20,4 +21,14 @@ public class StorageOrder extends Order {
 		this.storageSize = storageSize;
 	}
 
+	@Override
+	public OrderType getType() {
+		return OrderType.NETWORK;
+	}
+
+	@Override
+	public void handleOpenOrder() {
+		// TODO Auto-generated method stub
+		
+	}
 }

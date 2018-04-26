@@ -9,9 +9,13 @@ public class NetworkOrder extends Order {
     private String address;
     private String allocation;
 
-    public NetworkOrder(String id, OrderState orderState, Token localToken, Token federationToken,
-                        String requestingMember, String providingMember, OrderInstance orderInstance, long fulfilledTime) {
-        super(id, orderState, localToken, federationToken, requestingMember, providingMember, orderInstance, fulfilledTime);
+    public NetworkOrder(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
+                        String providingMember, OrderInstance orderInstace, long fulfilledTime, String gateway,
+                        String address, String allocation) {
+        super(orderState, localToken, federationToken, requestingMember, providingMember, orderInstace, fulfilledTime);
+        this.gateway = gateway;
+        this.address = address;
+        this.allocation = allocation;
     }
 
     public String getGateway() {
@@ -37,4 +41,15 @@ public class NetworkOrder extends Order {
     public void setAllocation(String allocation) {
         this.allocation = allocation;
     }
+
+	@Override
+	public OrderType getType() {
+		return OrderType.NETWORK;
+	}
+
+	@Override
+	public void handleOpenOrder() {
+		// TODO Auto-generated method stub
+		
+	}
 }

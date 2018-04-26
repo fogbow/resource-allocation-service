@@ -1,8 +1,9 @@
-package org.fogbowcloud.manager.core.controllers;
+package org.fogbowcloud.manager.core.rest;
 
 import java.util.List;
 
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.orders.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -16,9 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "compute")
 public class ComputeOrdersController {
+
 	@RequestMapping(method = RequestMethod.POST)
-	public ResponseEntity<String> createCompute(@RequestBody ComputeOrder ComputeOrder) {
-		return new ResponseEntity<String>(HttpStatus.OK);
+	public ResponseEntity<Order> createCompute(@RequestBody ComputeOrder computeOrder) {
+		return new ResponseEntity<Order>(HttpStatus.OK);
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
