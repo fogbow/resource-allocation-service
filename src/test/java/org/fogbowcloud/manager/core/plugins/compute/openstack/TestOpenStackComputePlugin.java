@@ -1,13 +1,9 @@
 package org.fogbowcloud.manager.core.plugins.compute.openstack;
 
 import org.fogbowcloud.manager.core.models.Flavor;
-import org.fogbowcloud.manager.core.models.NetworkLink;
-import org.fogbowcloud.manager.core.models.StorageLink;
 import org.fogbowcloud.manager.core.models.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
-import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,35 +30,32 @@ public class TestOpenStackComputePlugin {
     protected static final String FAKE_IMAGE_ID = "fake-image-id";
     protected static final String FAKE_INSTANCE_ID = "fake-instance-id";
     protected static final String FAKE_POST_RETURN = "{\"server\": {\"id\": \"fake-instance-id\"}}";
+    protected static final String INVALID_FAKE_POST_RETURN = "invalid";
 
     private OpenStackNovaV2ComputePlugin novaV2ComputeOpenStack;
     private Token localToken;
     private ComputeOrder computeOrder;
 
-    /**
-     * Do mock of computeOrder, localToken and spy of novaV2ComputeOpenStack.
-     */
     @Before
     public void setUp() throws Exception {
+        // Do mock of computeOrder, localToken and spy of novaV2ComputeOpenStack.
         Properties properties = mock(Properties.class);
         novaV2ComputeOpenStack = spy(new OpenStackNovaV2ComputePlugin(properties));
         localToken = mock(Token.class);
         computeOrder = mock(ComputeOrder.class);
     }
 
-    /**
-     * 1. Mocking following methods:
-     *  1.1 localToken
-     *  1.2 flavorId
-     *  1.3 tenantId
-     *  1.4 networkId
-     *  1.5 userData
-     *  1.6 keyName
-     *  1.7 endpoint
-     * 2. Call requestInstance(args) to check if it runs successfully.
-     */
     @Test
     public void testRequestInstance() throws IOException, RequestException {
+        // 1. Mocking following methods:
+        //  1.1 localToken
+        //  1.2 flavorId
+        //  1.3 tenantId
+        //  1.4 networkId
+        //  1.5 userData
+        //  1.6 keyName
+        //  1.7 endpoint
+        // 2. Call requestInstance(args) to check if it runs successfully.
         when(localToken.getAccessId()).thenReturn(FAKE_TOKEN);
         when(computeOrder.getLocalToken()).thenReturn(localToken);
 
@@ -98,15 +91,56 @@ public class TestOpenStackComputePlugin {
         assertEquals(instanceId, FAKE_INSTANCE_ID);
     }
 
+    @Test(expected = RequestException.class)
+    public void testRequestInstanceIrregularSyntax() throws IOException, RequestException {
+        // 1. Mocking following methods:
+        //  1.1 localToken
+        //  1.2 flavorId
+        //  1.3 tenantId
+        //  1.4 networkId
+        //  1.5 userData
+        //  1.6 keyName
+        //  1.7 endpoint
+        // 2. With an invalid JSON response a RequestException will be raised.
+        when(localToken.getAccessId()).thenReturn(FAKE_TOKEN);
+        when(computeOrder.getLocalToken()).thenReturn(localToken);
+
+        UserData userData = mock(UserData.class);
+        when(userData.getContent()).thenReturn(FAKE_USER_DATA);
+        when(computeOrder.getUserData()).thenReturn(userData);
+        String user = computeOrder.getUserData().getContent();
+
+        Flavor flavor = mock(Flavor.class);
+        when(flavor.getId()).thenReturn(FAKE_FLAVOR_ID);
+        doReturn(flavor).when(novaV2ComputeOpenStack).getFlavor(any(ComputeOrder.class));
+        String flavorId = novaV2ComputeOpenStack.getFlavor(any(ComputeOrder.class)).getId();
+
+        doReturn(FAKE_TENANT_ID).when(novaV2ComputeOpenStack).getTenantId(any(Token.class));
+
+        doReturn(FAKE_NET_ID).when(novaV2ComputeOpenStack).getNetworkId();
+        String netId = novaV2ComputeOpenStack.getNetworkId();
+
+        doReturn(FAKE_KEYNAME).when(novaV2ComputeOpenStack).getKeyName(anyString(), any(Token.class), anyString());
+        String key = novaV2ComputeOpenStack.getKeyName(anyString(), any(Token.class), anyString());
+
+        doReturn(FAKE_ENDPOINT).when(novaV2ComputeOpenStack).getComputeEndpoint(anyString(), anyString());
+
+        JSONObject json = novaV2ComputeOpenStack.generateJsonRequest(FAKE_IMAGE_ID, flavorId, user, key, netId);
+        doReturn(json).when(novaV2ComputeOpenStack)
+                .generateJsonRequest(anyString(), anyString(), anyString(), anyString(), anyString());
+
+        doReturn(INVALID_FAKE_POST_RETURN).when(novaV2ComputeOpenStack).
+                doPostRequest(eq(FAKE_ENDPOINT), eq(localToken), eq(json));
+
+        doNothing().when(novaV2ComputeOpenStack).deleteKeyName(anyString(), any(Token.class), anyString());
+
+        novaV2ComputeOpenStack.requestInstance(computeOrder, FAKE_IMAGE_ID);
+    }
+
     @Test
     public void testGenerateJsonRequest() {
-        String imageRef = "imageRef";
-        String flavorRef = "flavorRef";
-        String userdata = "user-data";
-        String keyName = "keyName";
-        String networkId = "netId";
-
-        JSONObject json = novaV2ComputeOpenStack.generateJsonRequest(imageRef, flavorRef, userdata, keyName, networkId);
+        JSONObject json = novaV2ComputeOpenStack.generateJsonRequest("imageRef",
+                "flavorRef", "user-data", "keyName", "netId");
 
         assertNotNull(json);
         JSONObject server = json.getJSONObject("server");
@@ -135,13 +169,8 @@ public class TestOpenStackComputePlugin {
 
     @Test
     public void testGenerateJsonRequestWithoutUserData() {
-        String imageRef = "imageRef";
-        String flavorRef = "flavorRef";
-        String userdata = null;
-        String keyName = "keyName";
-        String networkId = "netId";
-
-        JSONObject json = novaV2ComputeOpenStack.generateJsonRequest(imageRef, flavorRef, userdata, keyName, networkId);
+        JSONObject json = novaV2ComputeOpenStack.generateJsonRequest("imageRef",
+                "flavorRef", null, "keyName", "netId");
 
         assertNotNull(json);
         JSONObject server = json.getJSONObject("server");
@@ -173,13 +202,8 @@ public class TestOpenStackComputePlugin {
 
     @Test
     public void testGenerateJsonRequestWithoutNetwork() {
-        String imageRef = "imageRef";
-        String flavorRef = "flavorRef";
-        String userdata = "user-data";
-        String keyName = "keyName";
-        String networkId = null;
-
-        JSONObject json = novaV2ComputeOpenStack.generateJsonRequest(imageRef, flavorRef, userdata, keyName, networkId);
+        JSONObject json = novaV2ComputeOpenStack.generateJsonRequest("imageRef",
+                "flavorRef", "user-data", "keyName", null);
 
         assertNotNull(json);
         JSONObject server = json.getJSONObject("server");
@@ -209,13 +233,8 @@ public class TestOpenStackComputePlugin {
 
     @Test
     public void testGenerateJsonRequestWithoutKeyName() {
-        String imageRef = "imageRef";
-        String flavorRef = "flavorRef";
-        String userdata = "user-data";
-        String keyName = null;
-        String networkId = "netId";
-
-        JSONObject json = novaV2ComputeOpenStack.generateJsonRequest(imageRef, flavorRef, userdata, keyName, networkId);
+        JSONObject json = novaV2ComputeOpenStack.generateJsonRequest("imageRef",
+                "flavorRef", "user-data", null, "netId");
 
         assertNotNull(json);
         JSONObject server = json.getJSONObject("server");

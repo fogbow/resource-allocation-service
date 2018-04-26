@@ -41,9 +41,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private static final String KEYPAIR_JSON_FIELD = "keypair";
     private static final String UUID_JSON_FIELD = "uuid";
     private static final String FOGBOW_INSTANCE_NAME = "fogbow-instance-";
-
     private static final String TENANT_ID = "tenantId";
-
     private static final String SERVERS = "/servers";
     private static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
     private static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
@@ -55,15 +53,14 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
     private static final Logger LOGGER = Logger.getLogger(OpenStackNovaV2ComputePlugin.class);
 
-    private HttpClient client;
     private List<Flavor> flavors;
-
     private Properties properties;
+    private HttpClient client;
 
     public OpenStackNovaV2ComputePlugin(Properties properties) {
-        this.client = HttpRequestUtil.createHttpClient(60000, null, null);
         this.flavors = new ArrayList<>();
         this.properties = properties;
+        this.initClient();
     }
 
     public String requestInstance(ComputeOrder computeOrder, String imageId) throws RequestException {
@@ -92,6 +89,11 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
                 }
             }
         }
+    }
+
+    private void initClient() {
+        HttpRequestUtil.init(properties);
+        this.client = HttpRequestUtil.createHttpClient();
     }
 
     protected String getTenantId(Token localToken) {
@@ -194,7 +196,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     protected JSONObject generateJsonRequest(String imageRef, String flavorRef, String userdata,
-                                           String keyName, String networkId) throws JSONException {
+                                             String keyName, String networkId) throws JSONException {
 
         JSONObject server = new JSONObject();
         server.put(NAME_JSON_FIELD, FOGBOW_INSTANCE_NAME + UUID.randomUUID().toString());
@@ -238,10 +240,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             }
             throw new RequestException(ErrorType.BAD_REQUEST, message);
         } else if ((response.getStatusLine().getStatusCode() == HttpStatus.SC_INTERNAL_SERVER_ERROR) &&
-                (message.contains(NO_VALID_HOST_WAS_FOUND))){
+                (message.contains(NO_VALID_HOST_WAS_FOUND))) {
             throw new RequestException(ErrorType.NO_VALID_HOST_FOUND, ResponseConstants.NO_VALID_HOST_FOUND);
-        }
-        else if (response.getStatusLine().getStatusCode() > 204) {
+        } else if (response.getStatusLine().getStatusCode() > 204) {
             throw new RequestException(ErrorType.BAD_REQUEST,
                     "Status code: " + response.getStatusLine().toString() + " | Message:" + message);
         }
@@ -387,22 +388,6 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         checkStatusResponse(response, responseStr);
 
         return responseStr;
-    }
-
-    public HttpClient getClient() {
-        return client;
-    }
-
-    public void setClient(HttpClient client) {
-        this.client = client;
-    }
-
-    public List<Flavor> getFlavors() {
-        return flavors;
-    }
-
-    public void setFlavors(List<Flavor> flavors) {
-        this.flavors = flavors;
     }
 
     @Override
