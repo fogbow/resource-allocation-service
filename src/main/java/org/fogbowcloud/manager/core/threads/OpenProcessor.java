@@ -52,6 +52,7 @@ public class OpenProcessor implements Runnable {
 				if (order != null) {
 					this.processOpenOrder(order);
 				} else {
+					this.openOrdersList.resetPointer();
 					LOGGER.info(
 							"There is no open order to be processed, sleeping for " + this.sleepTime + " milliseconds");
 					Thread.sleep(this.sleepTime);
@@ -70,12 +71,13 @@ public class OpenProcessor implements Runnable {
 	 * @param order
 	 */
 	protected void processOpenOrder(Order order) {
-		// This method can generate a race condition. For example: a user can
-		// delete a Open Order while this method is trying to get an Instance
-		// for this Order.
 		synchronized (order) {
 			OrderState orderState = order.getOrderState();
 
+			// TODO: change it
+			// This method can generate a race condition. For example: a user
+			// can delete a Open Order while this method is trying to get an
+			// Instance for this Order.
 			if (orderState.equals(OrderState.OPEN)) {
 				LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
 
