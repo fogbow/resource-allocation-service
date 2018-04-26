@@ -10,6 +10,14 @@ import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 
 public interface ComputePlugin {
 
+	/**
+	 * This method is responsible for requesting the virtual machine creation on a provider.
+	 *
+	 * @param computeOrder Order for creating a virtual machine.
+	 * @param imageId Instance image ID.
+	 * @return Instance ID.
+	 * @throws RequestException When request fails.
+	 */
 	public String requestInstance(ComputeOrder computeOrder, String imageId) throws RequestException;
 
 	public ComputeOrderInstance getInstance(Token localToken, String instanceId) throws RequestException;

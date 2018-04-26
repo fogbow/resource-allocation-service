@@ -1,23 +1,22 @@
 package org.fogbowcloud.manager.core.plugins.compute.openstack;
 
 import org.fogbowcloud.manager.core.models.Flavor;
+import org.fogbowcloud.manager.core.models.NetworkLink;
+import org.fogbowcloud.manager.core.models.StorageLink;
 import org.fogbowcloud.manager.core.models.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
+import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
-import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -25,13 +24,24 @@ import static org.mockito.Mockito.*;
 
 public class TestOpenStackComputePlugin {
 
-    protected static final String TENANT_ID = "tenantId";
-
+    protected static final String FAKE_TENANT_ID = "fake-tenant-id";
+    protected static final String FAKE_TOKEN = "fake-token";
+    protected static final String FAKE_USER_DATA = "fake-user-data";
+    protected static final String FAKE_FLAVOR_ID = "fake-flavor-id";
+    protected static final String FAKE_NET_ID = "fake-net-id";
+    protected static final String FAKE_KEYNAME = "fake-keyname";
+    protected static final String FAKE_ENDPOINT = "fake-endpoint";
+    protected static final String FAKE_IMAGE_ID = "fake-image-id";
+    protected static final String FAKE_INSTANCE_ID = "fake-instance-id";
+    protected static final String FAKE_POST_RETURN = "{\"server\": {\"id\": \"fake-instance-id\"}}";
 
     private OpenStackNovaV2ComputePlugin novaV2ComputeOpenStack;
     private Token localToken;
     private ComputeOrder computeOrder;
 
+    /**
+     * Do mock of computeOrder, localToken and spy of novaV2ComputeOpenStack.
+     */
     @Before
     public void setUp() throws Exception {
         Properties properties = mock(Properties.class);
@@ -40,46 +50,52 @@ public class TestOpenStackComputePlugin {
         computeOrder = mock(ComputeOrder.class);
     }
 
+    /**
+     * 1. Mocking following methods:
+     *  1.1 localToken
+     *  1.2 flavorId
+     *  1.3 tenantId
+     *  1.4 networkId
+     *  1.5 userData
+     *  1.6 keyName
+     *  1.7 endpoint
+     * 2. Call requestInstance(args) to check if it runs successfully.
+     */
     @Test
     public void testRequestInstance() throws IOException, RequestException {
-        when(localToken.getAccessId()).thenReturn("fake-token");
+        when(localToken.getAccessId()).thenReturn(FAKE_TOKEN);
         when(computeOrder.getLocalToken()).thenReturn(localToken);
 
         UserData userData = mock(UserData.class);
-        when(userData.getContent()).thenReturn("fake-user-data");
+        when(userData.getContent()).thenReturn(FAKE_USER_DATA);
         when(computeOrder.getUserData()).thenReturn(userData);
         String user = computeOrder.getUserData().getContent();
 
         Flavor flavor = mock(Flavor.class);
-        when(flavor.getId()).thenReturn("fake-flavor-id");
-        doReturn(flavor).when(novaV2ComputeOpenStack).getFlavor(computeOrder);
-        String flavorId = novaV2ComputeOpenStack.getFlavor(computeOrder).getId();
+        when(flavor.getId()).thenReturn(FAKE_FLAVOR_ID);
+        doReturn(flavor).when(novaV2ComputeOpenStack).getFlavor(any(ComputeOrder.class));
+        String flavorId = novaV2ComputeOpenStack.getFlavor(any(ComputeOrder.class)).getId();
 
-        doReturn("fake-tenant-id").when(novaV2ComputeOpenStack).getTenantId(any(Token.class));
-        String tenantId = novaV2ComputeOpenStack.getTenantId(any(Token.class));
+        doReturn(FAKE_TENANT_ID).when(novaV2ComputeOpenStack).getTenantId(any(Token.class));
 
-        doReturn("fake-net-id").when(novaV2ComputeOpenStack).getNetworkId();
+        doReturn(FAKE_NET_ID).when(novaV2ComputeOpenStack).getNetworkId();
         String netId = novaV2ComputeOpenStack.getNetworkId();
 
-        doReturn("fake-keyname").when(novaV2ComputeOpenStack).getKeyName(tenantId, localToken, "fake-public-key");
-        String key = novaV2ComputeOpenStack.getKeyName(tenantId, localToken, "fake-public-key");
+        doReturn(FAKE_KEYNAME).when(novaV2ComputeOpenStack).getKeyName(anyString(), any(Token.class), anyString());
+        String key = novaV2ComputeOpenStack.getKeyName(anyString(), any(Token.class), anyString());
 
-        doReturn("fake-endpoint").when(novaV2ComputeOpenStack).getComputeEndpoint(any(), anyString());
-        String endpoint = novaV2ComputeOpenStack.getComputeEndpoint(any(), anyString());
+        doReturn(FAKE_ENDPOINT).when(novaV2ComputeOpenStack).getComputeEndpoint(anyString(), anyString());
 
-        JSONObject json = novaV2ComputeOpenStack.generateJsonRequest("fake-image-id", flavorId, user, key, netId);
+        JSONObject json = novaV2ComputeOpenStack.generateJsonRequest(FAKE_IMAGE_ID, flavorId, user, key, netId);
+        doReturn(json).when(novaV2ComputeOpenStack)
+                .generateJsonRequest(anyString(), anyString(), anyString(), anyString(), anyString());
 
-        doReturn("{\"server\": {\"id\": \"fake-id\"}}").when(novaV2ComputeOpenStack).
-                doPostRequest(anyString(), any(Token.class), any(JSONObject.class));
-        novaV2ComputeOpenStack.requestInstance(computeOrder, "fake-image-id");
-    }
+        doReturn(FAKE_POST_RETURN).when(novaV2ComputeOpenStack).doPostRequest(eq(FAKE_ENDPOINT), eq(localToken), eq(json));
 
-    @Test
-    public void testDoPostRequest() throws RequestException {
-        String responseStr = "fake-response";
-        doReturn(responseStr).when(this.novaV2ComputeOpenStack).doPostRequest(Mockito.anyString(), Mockito.any(Token.class), Mockito.any(JSONObject.class));
+        doNothing().when(novaV2ComputeOpenStack).deleteKeyName(anyString(), any(Token.class), anyString());
 
-        Assert.assertEquals(responseStr, this.novaV2ComputeOpenStack.doPostRequest("", localToken, new JSONObject()));
+        String instanceId = novaV2ComputeOpenStack.requestInstance(computeOrder, FAKE_IMAGE_ID);
+        assertEquals(instanceId, FAKE_INSTANCE_ID);
     }
 
     @Test

@@ -42,7 +42,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private static final String UUID_JSON_FIELD = "uuid";
     private static final String FOGBOW_INSTANCE_NAME = "fogbow-instance-";
 
-    protected static final String TENANT_ID = "tenantId";
+    private static final String TENANT_ID = "tenantId";
 
     private static final String SERVERS = "/servers";
     private static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
@@ -63,7 +63,6 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     public OpenStackNovaV2ComputePlugin(Properties properties) {
         this.client = HttpRequestUtil.createHttpClient(60000, null, null);
         this.flavors = new ArrayList<>();
-
         this.properties = properties;
     }
 
@@ -136,7 +135,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         return root.getJSONObject(SERVER_JSON_FIELD).getString(attName);
     }
 
-    private void deleteKeyName(String tenantId, Token localToken, String keyName) throws RequestException {
+    protected void deleteKeyName(String tenantId, Token localToken, String keyName) throws RequestException {
         String suffixEndpoint = SUFFIX_ENDPOINT_KEYPAIRS + "/" + keyName;
         String keynameEndpoint = getComputeEndpoint(tenantId, suffixEndpoint);
 
