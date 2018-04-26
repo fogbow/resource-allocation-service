@@ -64,8 +64,10 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     public String requestInstance(ComputeOrder computeOrder, String imageId) throws RequestException {
+        LOGGER.debug("Requesting instance with token=" + computeOrder.getLocalToken());
+
         Token localToken = computeOrder.getLocalToken();
-        String flavorId = getFlavor(computeOrder).getId();
+        String flavorId = updateAndFindSmallestFlavor(computeOrder).getId();
         String tenantId = getTenantId(localToken);
         String networkId = getNetworkId();
         String userData = computeOrder.getUserData().getContent();
@@ -145,6 +147,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     private void doDeleteRequest(String endpoint, Token localToken) throws RequestException {
+        LOGGER.debug("Doing DELETE request to OpenStack...");
+
         HttpResponse response = null;
 
         try {
@@ -167,6 +171,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     protected String doPostRequest(String endpoint, Token localToken, JSONObject jsonRequest) throws RequestException {
+        LOGGER.debug("Doing POST request to OpenStack for creating an instance...");
+
         HttpResponse response = null;
         String responseStr;
 
@@ -197,6 +203,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
     protected JSONObject generateJsonRequest(String imageRef, String flavorRef, String userdata,
                                              String keyName, String networkId) throws JSONException {
+        LOGGER.debug("Generating JSON to send as the body of instance POST request...");
 
         JSONObject server = new JSONObject();
         server.put(NAME_JSON_FIELD, FOGBOW_INSTANCE_NAME + UUID.randomUUID().toString());
@@ -248,7 +255,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         }
     }
 
-    protected Flavor getFlavor(ComputeOrder computeOrder) {
+    protected Flavor updateAndFindSmallestFlavor(ComputeOrder computeOrder) {
         updateFlavors(computeOrder.getLocalToken());
 
         return findSmallestFlavor(computeOrder);
@@ -397,27 +404,11 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
     @Override
     public List<ComputeOrderInstance> getInstances(Token localToken) throws RequestException {
-        String requestEndpoint = getComputeEndpoint(getTenantId(localToken), SERVERS);
-        String jsonResponse = doGetRequest(requestEndpoint, localToken);
-        return getInstancesFromJson(jsonResponse);
+        return null;
     }
 
     private List<ComputeOrderInstance> getInstancesFromJson(String json) {
-        LOGGER.debug("Getting instances from json: " + json);
-        List<ComputeOrderInstance> instances = new ArrayList<>();
-        JSONObject root;
-
-        try {
-            root = new JSONObject(json);
-            JSONArray servers = root.getJSONArray("servers");
-            for (int i = 0; i < servers.length(); i++) {
-                JSONObject currentServer = servers.getJSONObject(i);
-                instances.add(new ComputeOrderInstance(currentServer.getString(ID_JSON_FIELD)));
-            }
-        } catch (JSONException e) {
-            LOGGER.warn("There was an exception while getting instances from json.", e);
-        }
-        return instances;
+        return null;
     }
 
     @Override

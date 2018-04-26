@@ -66,8 +66,8 @@ public class TestOpenStackComputePlugin {
 
         Flavor flavor = mock(Flavor.class);
         when(flavor.getId()).thenReturn(FAKE_FLAVOR_ID);
-        doReturn(flavor).when(novaV2ComputeOpenStack).getFlavor(any(ComputeOrder.class));
-        String flavorId = novaV2ComputeOpenStack.getFlavor(any(ComputeOrder.class)).getId();
+        doReturn(flavor).when(novaV2ComputeOpenStack).updateAndFindSmallestFlavor(any(ComputeOrder.class));
+        String flavorId = novaV2ComputeOpenStack.updateAndFindSmallestFlavor(any(ComputeOrder.class)).getId();
 
         doReturn(FAKE_TENANT_ID).when(novaV2ComputeOpenStack).getTenantId(any(Token.class));
 
@@ -112,8 +112,8 @@ public class TestOpenStackComputePlugin {
 
         Flavor flavor = mock(Flavor.class);
         when(flavor.getId()).thenReturn(FAKE_FLAVOR_ID);
-        doReturn(flavor).when(novaV2ComputeOpenStack).getFlavor(any(ComputeOrder.class));
-        String flavorId = novaV2ComputeOpenStack.getFlavor(any(ComputeOrder.class)).getId();
+        doReturn(flavor).when(novaV2ComputeOpenStack).updateAndFindSmallestFlavor(any(ComputeOrder.class));
+        String flavorId = novaV2ComputeOpenStack.updateAndFindSmallestFlavor(any(ComputeOrder.class)).getId();
 
         doReturn(FAKE_TENANT_ID).when(novaV2ComputeOpenStack).getTenantId(any(Token.class));
 
