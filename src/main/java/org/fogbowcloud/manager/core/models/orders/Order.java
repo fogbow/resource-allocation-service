@@ -1,51 +1,24 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 
-@Entity
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@Table(name = "tb_order")
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "type")
-@JsonSubTypes({ @JsonSubTypes.Type(value = ComputeOrder.class, name = "compute"),
-		@JsonSubTypes.Type(value = NetworkOrder.class, name = "network"),
-		@JsonSubTypes.Type(value = StorageOrder.class, name = "storage")})
 public abstract class Order {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name = "id", nullable = false, unique = true)
 	private String id;
 
-	@Column(name = "order_state")
-	@NotNull(message = "Order state can not be null.")
-	@Enumerated(EnumType.STRING)
 	private OrderState orderState;
 
-	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "local_token_id")
 	private Token localToken;
 
-	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "fed_token_id")
 	private Token federationToken;
 
-	@Column(name = "requestingMember")
 	private String requestingMember;
 
-	@Column(name = "providingMember")
 	private String providingMember;
 
-	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "order_instance")
 	private OrderInstance orderInstance;
 
-	@Column(name = "fulfilledTime")
 	private Long fulfilledTime;
 
 	public Order() {

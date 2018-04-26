@@ -1,15 +1,5 @@
 package org.fogbowcloud.manager.core.models.token;
 
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
-import javax.persistence.Transient;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,30 +9,18 @@ import org.fogbowcloud.manager.core.utils.JSONHelper;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-@Entity
-@Table(name = "tb_token")
 public class Token {
 
 	private static final String EXPIRATION_DATE = "expirationDate";
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Column(name = "id", nullable = false, unique = true)
 	private Long id;
 
-	@Transient
-	/**
-	 * TODO: persist these attributes
-	 */
 	private Map<String, String> attributes;
 
-	@Column
 	private String accessId;
 
-	@OneToOne
 	private User user;
 
-	@Transient
 	private DateUtils dateUtils = new DateUtils();
 
 	public Token() {
@@ -137,15 +115,10 @@ public class Token {
 				JSONHelper.toMap(jsonObject.optString("attributes")));
 	}
 
-	@Entity
-	@Table(name = "tb_user")
 	public static class User {
 
-		@Id
-		@GeneratedValue(strategy = GenerationType.AUTO)
 		private String id;
 
-		@Column(name = "name", nullable = false, unique = true)
 		private String name;
 
 		public User(String id, String name) {
