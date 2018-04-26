@@ -1,45 +1,49 @@
 package org.fogbowcloud.manager.core.datastructures;
 
-import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.models.linkedList.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 
 public class OrderStateTransitioner {
 
-    private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
-
     /**
      * Updates the state of the given order. This method is not
-     * thread-safe. The caller must assure that only one
-     * thread can call it at the same time.
+     * thread-safe, the caller must assure that only one
+     * thread can call it at the same time. This can be done by creating
+     * a synchronized block on the order object that is passed as parameter
+     * to transition(). The reason the synchronized block is created in the
+     * code calling this method is because, usually the order will be inspected
+     * before the call to transition() is made, and this needs to be done within
+     * a synchronized block, since several threads may attempt to process the
+     * same order at the same time.
      *
-     *  @param order, the order that will transition through states
+     * @param order, the order that will transition through states
      * @param newState, the new state
      */
-    public static boolean updateState(Order order, OrderState newState) {
+    public static void transition(Order order, OrderState newState) throws OrderStateTransitionException {
         OrderState currentState = order.getOrderState();
 
-        SynchronizedDoublyLinkedList origin = getOrdersList(currentState);
+        SynchronizedDoublyLinkedList list = getOrdersList(currentState);
         SynchronizedDoublyLinkedList destination = getOrdersList(newState);
 
-        if (origin == null) {
-            LOGGER.error(String.format("Could not find origin list for state %s", currentState));
+        if (list == null) {
+            String message = String.format("Could not find list list for state %s", currentState);
+            throw new OrderStateTransitionException(message);
         } else if (destination == null) {
-            LOGGER.error(String.format("Could not find destination list for state %s", newState));
+            String message = String.format("Could not find destination list for state %s", newState);
+            throw new OrderStateTransitionException(message);
         } else {
-            if (origin.removeItem(order)) {
+            if (list.removeItem(order)) {
                 order.setOrderState(newState);
-                origin.addItem(order);
-                return true;
+                destination.addItem(order);
+                return;
             } else {
                 String template = "Could not remove order id %s from list of %s orders";
                 String message = String.format(template, order.getId(), currentState.toString());
-                LOGGER.error(message);
+                throw new OrderStateTransitionException(message);
             }
         }
-
-        return false;
     }
 
     protected static SynchronizedDoublyLinkedList getOrdersList(OrderState orderState) {
