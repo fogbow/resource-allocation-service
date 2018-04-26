@@ -16,28 +16,42 @@ public class AttendSpawningOrdersThread extends Thread {
 
 	private static final Logger LOGGER = Logger.getLogger(AttendSpawningOrdersThread.class);
 
+	private OrderRegistry orderRegistry;
 	private ComputePlugin computePĺugin;
 	private Long sleepTime;
-	private OrderRegistry orderRegistry;
 	
+	private TunnelingServiceUtil tunnelingServiceUtil;
+	private SshConnectivityUtil sshConnectivity;
+	
+	public AttendSpawningOrdersThread(OrderRegistry orderRegistry, ComputePlugin computePĺugin, Long sleepTime) {
+		this.orderRegistry = orderRegistry;
+		this.computePĺugin = computePĺugin;
+		this.sleepTime = sleepTime;
+	}
+
+	@SuppressWarnings("null")
 	@Override
 	public void run() {
 		while(true) {
+			Order order = null;
 			try {
-				Order order = this.orderRegistry.getNextOrderByState(OrderState.SPAWNING);
+				order = this.orderRegistry.getNextOrderByState(OrderState.SPAWNING);
 				if (order != null) {
 					this.processSpawningOrder(order);
 				} else {
-					LOGGER.info("There is no spawning order to be processed, sleeping attend spawning orders thread.");
+					LOGGER.info("There is no spawning order to be processed, sleeping attend spawning orders thread for order [" + order.getId() + "]");
 					Thread.sleep(this.sleepTime);
 				}
 			} catch (Throwable e) {
+				if (order == null) {
+					LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
+				}
 				LOGGER.error("Error while trying to sleep attend order thread", e);
 			}
 		}
 	}
 	
-	private void processSpawningOrder(Order order) {
+	protected void processSpawningOrder(Order order) {
 		synchronized (order) {
 			OrderState orderState = order.getOrderState();
 			
@@ -50,59 +64,70 @@ public class AttendSpawningOrdersThread extends Thread {
 						ComputeOrderInstance computeOrderInstance = this.computePĺugin
 								.getInstance(order.getLocalToken(), orderInstance.getId());
 						
-						if (computeOrderInstance.getState().equals(InstanceState.INACTIVE)) {
-							this.updateSpawningStateAfterProcessingToFailed(order);
+						if (computeOrderInstance.getState().equals(InstanceState.FAILED)) {
+							this.updateSpawningStateToFailed(order);
 						}
 						
-						
-						if (computeOrderInstance.getState().equals(InstanceState.ACTIVE)) {
-							LOGGER.info("Trying to get map of addresses (IP and Port) of an instance for order [" + order.getId() + "]");
-							
-							try {
-								TunnelingServiceUtil tunnelingServiceUtil = new TunnelingServiceUtil();
-								computeOrderInstance.setExternalServiceAddresses(
-										tunnelingServiceUtil.getExternalServiceAddresses(order.getId()));
-								LOGGER.info("Trying to communicate for Check the SSH connectivity of an instance for order [" + order.getId() + "]");
-								
-								try {
-									SshConnectivityUtil sshConnectivity = new SshConnectivityUtil(computeOrderInstance);
-									if (sshConnectivity.isActiveConnection()) {
-										this.updateSpawningStateAfterProcessingToFulfilled(order);										
-									}
-								}catch (Exception e) {
-									LOGGER.error("Error while trying to communicate for Check the SSH connectivity of an Instance for Order: "
-											+ System.lineSeparator() + order, e);
-									// set to Failed ?
-								}								
-								
-							} catch (Exception e) {
-								LOGGER.error("Error while trying to get map of addresses (IP and Port) of an Instance for Order: "
-										+ System.lineSeparator() + order, e);
-								// set to Failed ?
-							}
-						}
-						
+						LOGGER.info("Processing compute instance for order [" + order.getId() + "]");
+						this.processSpawningComputeOrderInstanceActive(order, computeOrderInstance);						
 					}
 
 				} catch (Exception e) {
-					LOGGER.error("Error while trying to get an Instance for Order: " + System.lineSeparator() + order,
-							e);
-					// set to Failed ?
+					LOGGER.error("Error while trying to get an instance for order: " + System.lineSeparator() + order, e);
 				}
+			} else {
+				LOGGER.info("this instance not state spawning for order [" + order.getId() + "]");
 			}
 		}
 	}
 
-	private void updateSpawningStateAfterProcessingToFulfilled(Order order) {
-		// TODO remove Order from spawningOrders ...
-		order.setOrderState(OrderState.FULFILLED, orderRegistry);
-		// TODO insert Order in fulfilledOrders...		
+	private void processSpawningComputeOrderInstanceActive(Order order, ComputeOrderInstance computeOrderInstance) {
+		if (computeOrderInstance.getState().equals(InstanceState.ACTIVE)) {
+			LOGGER.info("Trying to get map of addresses (IP and Port) of an instance for order [" + order.getId() + "]");
+
+			try {
+				this.loadTunnelingServiceAddresses(order, computeOrderInstance);
+				LOGGER.info("Trying to communicate for check the SSH connectivity of an instance for order [" + order.getId() + "]");
+
+				if (this.isActiveSshConnectivity(computeOrderInstance)) {
+					// TODO remove Order from spawningOrders ...
+					order.setOrderState(OrderState.FULFILLED, orderRegistry);
+					// TODO insert Order in fulfilledOrders...
+				} else {
+					LOGGER.info("Trying to communicate for the SSH connectivity return inactive of an instance for order ["	+ order.getId() + "]");
+				}
+
+			} catch (Exception e) {
+				LOGGER.error("Error while trying to get map of addresses (IP and Port) of an instance for order: " + order, e);
+			}
+		}
 	}
 
-	private void updateSpawningStateAfterProcessingToFailed(Order order) {
+	private boolean isActiveSshConnectivity(ComputeOrderInstance computeOrderInstance) {
+		SshConnectivityUtil sshConnectivity = this.sshConnectivity != null 
+				? this.sshConnectivity : new SshConnectivityUtil(computeOrderInstance);		
+		return sshConnectivity.isActiveConnection();
+	}
+	
+	private void loadTunnelingServiceAddresses(Order order, ComputeOrderInstance computeOrderInstance) {
+		TunnelingServiceUtil tunnelingServiceUtil = 
+				this.tunnelingServiceUtil != null ? this.tunnelingServiceUtil : new TunnelingServiceUtil();
+		computeOrderInstance.setExternalServiceAddresses(
+				tunnelingServiceUtil.getExternalServiceAddresses(order.getId()));
+	}
+
+	private void updateSpawningStateToFailed(Order order) {
 		// TODO remove Order from spawningOrders ...
 		order.setOrderState(OrderState.FAILED, orderRegistry);
 		// TODO insert Order in failedOrders...
 	}	
+	
+	protected void setTunnelingServiceUtil(TunnelingServiceUtil tunnelingServiceUtil) {
+		this.tunnelingServiceUtil = tunnelingServiceUtil;
+	}
+	
+	protected void setSshConnectivity(SshConnectivityUtil sshConnectivity) {
+		this.sshConnectivity = sshConnectivity;
+	}
 
 }
