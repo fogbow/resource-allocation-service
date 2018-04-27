@@ -17,17 +17,20 @@ public class ComputeOrder extends Order {
 
     private UserData userData;
 
+    private String publicKey;
+
     public ComputeOrder(){ }
 
     public ComputeOrder(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
                         String providingMember, OrderInstance orderInstance, long fulfilledTime, int vCPU, int memory,
-                        int disk, String imageName, UserData userData) {
+                        int disk, String imageName, UserData userData, String publicKey) {
         super(orderState, localToken, federationToken, requestingMember, providingMember, orderInstance, fulfilledTime);
         this.vCPU = vCPU;
         this.memory = memory;
         this.disk = disk;
         this.imageName= imageName;
         this.userData = userData;
+        this.publicKey = publicKey;
     }
 
     public int getvCPU() {
@@ -68,6 +71,14 @@ public class ComputeOrder extends Order {
 
     public void setUserData(UserData userData) {
         this.userData = userData;
+    }
+
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
     }
 
     @Override
