@@ -1,41 +1,46 @@
 package org.fogbowcloud.manager.core.services;
 
-import static org.junit.Assert.*;
-
-import java.util.Properties;
-
+import org.apache.http.HttpStatus;
+import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.identity.ldap.LdapIdentityPlugin;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mockito;
+
 
 public class AuthenticationServiceTest {
 	
 	AuthenticationService authenticationService;
-	IdentityPlugin identityPlugin;
+	IdentityPlugin ldapIdentityPlugin;
 	
 	
 	@Before
 	public void setUp() {
-		this.identityPlugin = new LdapIdentityPlugin(Mockito.any(Properties.class));
+		this.ldapIdentityPlugin = Mockito.mock(LdapIdentityPlugin.class);
+		this.authenticationService = new AuthenticationService(ldapIdentityPlugin);
 	}
 	
 	@Test
-	public void authenticateService() {
+	public void testAuthenticateService() {
+		Token token = new Token();
+		Mockito.doReturn(token).when(ldapIdentityPlugin).getToken(Mockito.anyString());
+		Assert.assertEquals(token, authenticationService.authenticate(Mockito.anyString()));
+	}
+	
+	@Test
+	public void testInvalidAccessid() {
+		Integer statusResponse = HttpStatus.SC_UNAUTHORIZED;
+		Mockito.doThrow(new RuntimeException(statusResponse.toString())).when(ldapIdentityPlugin).getToken(Mockito.anyString());
 		
-		String accessid = Mockito.mock(String.class);
+		try {
+			authenticationService.authenticate(Mockito.anyString());
+			Assert.fail();
+		} catch (RuntimeException runtimeException) {
+			Assert.assertEquals(statusResponse.toString(), runtimeException.getMessage());
+		}
 		
-		
-		
-		String accessId = "my-access-id";
-		AuthenticationService mockedAuthenticationService = Mockito.mock(AuthenticationService.class);
-		
-		ArgumentCaptor<IdentityPlugin> argument = ArgumentCaptor.forClass(IdentityPlugin.class);
-		verify(mockedAuthenticationService).
-		assertEquals("John", argument.getValue().getName());
 		
 	}
 
