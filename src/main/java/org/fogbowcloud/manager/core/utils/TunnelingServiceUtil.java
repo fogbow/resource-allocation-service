@@ -57,14 +57,13 @@ public class TunnelingServiceUtil {
 				return servicePerAddress;
 			}
 		} catch (Throwable e) {
-			// TODO throwable exception
-			LOGGER.warn("", e);
+			LOGGER.error("Error trying to communicate reverse tunnel and set map of addresses (IP and Port) for order [" + orderId + "]", e);
 		} finally {
 			if (response != null) {
 				try {
 					response.getEntity().getContent().close();
 				} catch (IOException e) {
-					// Best effort, may fail if the content was already closed.
+					LOGGER.warn("failed to close the content was already closed.", e);
 				}
 			}
 		}
