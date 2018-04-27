@@ -5,9 +5,8 @@ package org.fogbowcloud.manager.core.exceptions;
  */
 public class OrderStateTransitionException extends Exception {
 
-    private final String message;
-
     public OrderStateTransitionException(String message) {
-        this.message = message;
+        super(message);
     }
+
 }
