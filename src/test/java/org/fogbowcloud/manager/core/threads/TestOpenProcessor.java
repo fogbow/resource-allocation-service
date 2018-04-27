@@ -26,10 +26,7 @@ public class TestOpenProcessor {
 	private InstanceProvider remoteInstanceProvider;
 
 	private ChainedList openOrdersList;
-	private ChainedList pendingOrdersList;
-	private ChainedList failedOrdersList;
-	private ChainedList spawningOrdersList;
-
+	
 	private Properties properties;
 
 	@Before
@@ -40,18 +37,11 @@ public class TestOpenProcessor {
 
 		this.localInstanceProvider = Mockito.mock(InstanceProvider.class);
 		this.remoteInstanceProvider = Mockito.mock(InstanceProvider.class);
-
-		this.openOrdersList = Mockito.mock(ChainedList.class);
-		this.pendingOrdersList = Mockito.mock(ChainedList.class);
-		this.failedOrdersList = Mockito.mock(ChainedList.class);
-		this.spawningOrdersList = Mockito.mock(ChainedList.class);
+		
+		
 
 		this.openProcessor = Mockito.spy(new OpenProcessor(this.localInstanceProvider, this.remoteInstanceProvider,
 				localMemberId, this.properties));
-		this.openProcessor.setOpenOrdersList(this.openOrdersList);
-		this.openProcessor.setPendingOrdersList(this.pendingOrdersList);
-		this.openProcessor.setFailedOrdersList(this.failedOrdersList);
-		this.openProcessor.setSpawningOrdersList(this.spawningOrdersList);
 	}
 
 	/**
