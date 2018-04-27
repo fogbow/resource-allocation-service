@@ -1,5 +1,7 @@
 package org.fogbowcloud.manager.core.threads;
 
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderRegistry;
@@ -34,16 +36,18 @@ public class AttendSpawningOrdersThread extends Thread {
 	@Override
 	public void run() {
 		while(true) {
+			Order order = null;
 			try {
-				Order order = this.orderRegistry.getNextOrderByState(OrderState.SPAWNING);
+				order = this.orderRegistry.getNextOrderByState(OrderState.SPAWNING);
 				if (order != null) {
 					this.processSpawningOrder(order);
 				} else {
-					LOGGER.info("There is no spawning order to be processed, sleeping attend spawning orders thread."); // TODO Test
+					LOGGER.info("There is no spawning order to be processed, sleeping attend spawning orders thread."); // TODO Test?
 					Thread.sleep(this.sleepTime);
 				}
 			} catch (Throwable e) {
-				LOGGER.error("Error while trying to sleep attend order thread", e);
+				String orderId = order != null ? order.getId() : null;
+				LOGGER.error("Error while trying to sleep attending order [" + orderId + "] thread.", e); // Test done!
 			}
 		}
 	}
@@ -52,14 +56,19 @@ public class AttendSpawningOrdersThread extends Thread {
 		synchronized (order) {
 			OrderState orderState = order.getOrderState();
 			if (orderState.equals(OrderState.SPAWNING)) {
-				LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
+				LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");				
 				try {
 					OrderInstance orderInstance = order.getOrderInstance();
 					if (order.getType().equals(OrderType.COMPUTE)) {
-						ComputeOrderInstance computeOrderInstance = this.computePĺugin.getInstance(order.getLocalToken(), orderInstance.getId());											
-						if (computeOrderInstance.getState().equals(InstanceState.FAILED)) {
+						ComputeOrderInstance computeOrderInstance = null;
+						try {
+							computeOrderInstance = this.computePĺugin.getInstance(order.getLocalToken(), orderInstance.getId());
+						} catch (Exception e) {
+							LOGGER.error("Failed to catch the compute order instance for order [" + order.getId() + "]", e); // Test done!
+						}						
+						if (computeOrderInstance == null || computeOrderInstance.getState().equals(InstanceState.FAILED)) {
 							// TODO remove Order from spawningOrders ...
-							order.setOrderState(OrderState.FAILED, orderRegistry);
+							order.setOrderState(OrderState.FAILED, orderRegistry); // Test done!
 							// TODO insert Order in failedOrders...
 						} else {
 							LOGGER.info("Processing compute order instance active or inactive for order [" + order.getId() + "]");
@@ -70,7 +79,7 @@ public class AttendSpawningOrdersThread extends Thread {
 					LOGGER.error("Error while trying to get an instance for order: " + System.lineSeparator() + order, e);
 				}
 			} else {
-				LOGGER.info("this instance not state spawning for order [" + order.getId() + "]");
+				LOGGER.info("This order state is not spawning: order [" + order.getId() + "]"); // Test done!
 			}
 		}
 	}
@@ -78,23 +87,24 @@ public class AttendSpawningOrdersThread extends Thread {
 	private void processSpawningComputeOrderInstance(Order order, ComputeOrderInstance computeOrderInstance) {
 		if (computeOrderInstance.getState().equals(InstanceState.ACTIVE)) {
 			LOGGER.info("Trying to get map of addresses (IP and Port) of an instance for order [" + order.getId() + "]");
-			try {
-				this.loadTunnelingServiceAddresses(order, computeOrderInstance);
-				LOGGER.info("Trying to communicate for check the SSH connectivity of an instance for order [" + order.getId() + "]");
-				try {
-					if (this.isActiveSshConnectivity(computeOrderInstance)) {
-						// TODO remove Order from spawningOrders ...
-						order.setOrderState(OrderState.FULFILLED, orderRegistry);
-						// TODO insert Order in fulfilledOrders ...
+			try {				
+				if (this.isAticveTunnelingServiceAddresses(order, computeOrderInstance)) {
+					LOGGER.info("Trying to communicate for check the SSH connectivity of an instance for order [" + order.getId() + "]");
+					try {
+						if (this.isActiveSshConnectivity(computeOrderInstance)) {
+							// TODO remove Order from spawningOrders ...
+							order.setOrderState(OrderState.FULFILLED, orderRegistry); // Test done!
+							// TODO insert Order in fulfilledOrders ...
+						}
+					} catch (Exception e) {
+						LOGGER.error("Attempt to communicate with ssh connectivity returned inactive to an instance for order ["	+ order.getId() + "]", e);
 					}
-				} catch (Exception e) {
-					LOGGER.error("Attempt to communicate with ssh connectivity returned inactive to an instance for order ["	+ order.getId() + "]");
 				}
 			} catch (Exception e) {
 				LOGGER.error("Error trying to get map of addresses (IP and Port) of an instance for order: " + order, e);
 			}
 		} else {
-			LOGGER.info("the compute instance is inactive for order [" + order.getId() + "]");
+			LOGGER.info("The compute instance is inactive for order [" + order.getId() + "]"); // Test done!
 		}
 	}
 
@@ -103,9 +113,14 @@ public class AttendSpawningOrdersThread extends Thread {
 		return sshConnectivity.isActiveConnection();
 	}
 	
-	private void loadTunnelingServiceAddresses(Order order, ComputeOrderInstance computeOrderInstance) {
+	private boolean isAticveTunnelingServiceAddresses(Order order, ComputeOrderInstance computeOrderInstance) {
 		TunnelingServiceUtil tunnelingService = this.tunnelingService != null ? this.tunnelingService : new TunnelingServiceUtil();
-		computeOrderInstance.setExternalServiceAddresses(tunnelingService.getExternalServiceAddresses(order.getId()));
+		Map<String, String> externalServiceAddresses = tunnelingService.getExternalServiceAddresses(order.getId());
+		if (externalServiceAddresses != null) {
+			computeOrderInstance.setExternalServiceAddresses(externalServiceAddresses);
+			return true;
+		}
+		return false;
 	}
 	
 	protected void setTunnelingService(TunnelingServiceUtil tunnelingService) {

@@ -31,16 +31,17 @@ public class TunnelingServiceUtil {
 		if (orderId == null || orderId.isEmpty()) {
 			return null;
 		}
-		String hostAddr = properties.getProperty(ConfigurationConstants.TOKEN_HOST_PRIVATE_ADDRESS_KEY);
+		String hostAddr = this.properties.getProperty(ConfigurationConstants.TOKEN_HOST_PRIVATE_ADDRESS_KEY);
 		if (hostAddr == null) {
 			return null;
 		}
 		HttpResponse response = null;
 		try {
-			String httpHostPort = properties.getProperty(ConfigurationConstants.TOKEN_HOST_HTTP_PORT_KEY);
+			String httpHostPort = this.properties.getProperty(ConfigurationConstants.TOKEN_HOST_HTTP_PORT_KEY);
 			HttpGet httpGet = new HttpGet("http://" + hostAddr + ":" + httpHostPort + "/token/" + orderId + "/all");
-			response = reverseTunnelHttpClient.execute(httpGet);
-			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+			response = this.reverseTunnelHttpClient.execute(httpGet);
+			if (response != null && response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+				// TODO logger
 				JSONObject jsonPorts = new JSONObject(EntityUtils.toString(response.getEntity()));
 				if (jsonPorts.isNull(CommonConfigurationConstants.SSH_SERVICE_NAME)) {
 					return null;
@@ -48,7 +49,7 @@ public class TunnelingServiceUtil {
 				@SuppressWarnings("unchecked")
 				Iterator<String> serviceIterator = jsonPorts.keys();
 				Map<String, String> servicePerAddress = new HashMap<String, String>();
-				String sshPublicHostIP = properties.getProperty(ConfigurationConstants.TOKEN_HOST_PUBLIC_ADDRESS_KEY);
+				String sshPublicHostIP = this.properties.getProperty(ConfigurationConstants.TOKEN_HOST_PUBLIC_ADDRESS_KEY);
 				while (serviceIterator.hasNext()) {
 					String service = (String) serviceIterator.next();
 					String port = jsonPorts.optString(service);
@@ -57,13 +58,13 @@ public class TunnelingServiceUtil {
 				return servicePerAddress;
 			}
 		} catch (Throwable e) {
-			LOGGER.error("Error trying to communicate reverse tunnel and set map of addresses (IP and Port) for order [" + orderId + "]", e);
+			LOGGER.error("Error trying to communicate reverse tunnel or set map of addresses (IP and Port) for order [" + orderId + "]", e);
 		} finally {
 			if (response != null) {
 				try {
 					response.getEntity().getContent().close();
 				} catch (IOException e) {
-					LOGGER.warn("failed to close the content was already closed.", e);
+					LOGGER.warn("Failed to close the content was already closed.", e);
 				}
 			}
 		}

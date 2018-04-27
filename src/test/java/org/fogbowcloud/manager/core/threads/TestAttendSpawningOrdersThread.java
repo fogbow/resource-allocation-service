@@ -42,8 +42,39 @@ public class TestAttendSpawningOrdersThread {
 	}
 	
 	@Test
+	public void testProcessSpawningOrderNullToFailed() {
+		Mockito.doThrow(Exception.class).when(this.computePĺugin).getInstance(Mockito.any(Token.class), Mockito.eq(DEFAULT_ORDER_INSTANCE_ID));
+		
+		Order order = createOrder(OrderState.SPAWNING);
+		OrderInstance orderInstance = new OrderInstance(DEFAULT_ORDER_INSTANCE_ID);
+		order.setOrderInstance(orderInstance);
+		
+		this.attendSpawningOrdersThread.processSpawningOrder(order);
+		Assert.assertEquals(OrderState.FAILED, order.getOrderState());
+	}
+	
+	@Test
+	public void testToProcessOthersOrderStates() {
+		Order order = this.createOrder(OrderState.OPEN);
+		this.attendSpawningOrdersThread.processSpawningOrder(order);
+		Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+		
+		order = this.createOrder(OrderState.PENDING);
+		this.attendSpawningOrdersThread.processSpawningOrder(order);
+		Assert.assertEquals(OrderState.PENDING, order.getOrderState());
+		
+		order = this.createOrder(OrderState.FULFILLED);
+		this.attendSpawningOrdersThread.processSpawningOrder(order);
+		Assert.assertEquals(OrderState.FULFILLED, order.getOrderState());
+		
+		order = this.createOrder(OrderState.CLOSED);
+		this.attendSpawningOrdersThread.processSpawningOrder(order);
+		Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
+	}
+	
+	@Test
 	public void testRunProcessSpawningOrderWithThrowException() throws InterruptedException {
-		Order order = this.createOrder();
+		Order order = this.createOrder(OrderState.SPAWNING);
 		Mockito.doReturn(order).when(this.orderRegistry).getNextOrderByState(Mockito.any(OrderState.class));
 		Mockito.doThrow(new RuntimeException()).when(this.attendSpawningOrdersThread).processSpawningOrder(Mockito.any(Order.class));
 		this.attendSpawningOrdersThread.start();
@@ -56,7 +87,7 @@ public class TestAttendSpawningOrdersThread {
 		computeOrderInstance.setState(InstanceState.FAILED);
 		Mockito.when(this.computePĺugin.getInstance(Mockito.any(Token.class), Mockito.eq(DEFAULT_ORDER_INSTANCE_ID))).thenReturn(computeOrderInstance);
 		
-		Order order = createOrder();
+		Order order = createOrder(OrderState.SPAWNING);
 		OrderInstance orderInstance = new OrderInstance(DEFAULT_ORDER_INSTANCE_ID);
 		order.setOrderInstance(orderInstance);
 		
@@ -64,6 +95,7 @@ public class TestAttendSpawningOrdersThread {
 		Assert.assertEquals(OrderState.FAILED, order.getOrderState());
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testProcessSpawningOrderToFulfilled() {
 		ComputeOrderInstance computeOrderInstance = Mockito.spy(ComputeOrderInstance.class);
@@ -78,7 +110,7 @@ public class TestAttendSpawningOrdersThread {
 		this.attendSpawningOrdersThread.setSshConnectivity(sshConnectivityUtil);
 		Mockito.when(sshConnectivityUtil.isActiveConnection()).thenReturn(true);
 
-		Order order = createOrder();
+		Order order = createOrder(OrderState.SPAWNING);
 		OrderInstance orderInstance = new OrderInstance(DEFAULT_ORDER_INSTANCE_ID);
 		order.setOrderInstance(orderInstance);
 		
@@ -92,7 +124,7 @@ public class TestAttendSpawningOrdersThread {
 		computeOrderInstance.setState(InstanceState.INACTIVE);
 		Mockito.when(this.computePĺugin.getInstance(Mockito.any(Token.class), Mockito.eq(DEFAULT_ORDER_INSTANCE_ID))).thenReturn(computeOrderInstance);
 		
-		Order order = createOrder();
+		Order order = createOrder(OrderState.SPAWNING);
 		OrderInstance orderInstance = new OrderInstance(DEFAULT_ORDER_INSTANCE_ID);
 		order.setOrderInstance(orderInstance);
 		
@@ -100,6 +132,7 @@ public class TestAttendSpawningOrdersThread {
 		Assert.assertEquals(OrderState.SPAWNING, order.getOrderState());
 	}
 		
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testProcessSpawningComputeOrderInstanceActiveWithoutSshConnectivity() {
 		ComputeOrderInstance computeOrderInstance = Mockito.spy(ComputeOrderInstance.class);
@@ -114,7 +147,7 @@ public class TestAttendSpawningOrdersThread {
 		this.attendSpawningOrdersThread.setSshConnectivity(sshConnectivityUtil);
 		Mockito.when(sshConnectivityUtil.isActiveConnection()).thenReturn(false);
 		
-		Order order = createOrder();
+		Order order = createOrder(OrderState.SPAWNING);
 		OrderInstance orderInstance = new OrderInstance(DEFAULT_ORDER_INSTANCE_ID);
 		order.setOrderInstance(orderInstance);
 		
@@ -122,7 +155,7 @@ public class TestAttendSpawningOrdersThread {
 		Assert.assertFalse(sshConnectivityUtil.isActiveConnection());
 	}
 	
-	private Order createOrder() {
+	private Order createOrder(OrderState orderState) {
 		Token localToken = Mockito.mock(Token.class);
 		Token federationToken = Mockito.mock(Token.class);
 		UserData userData = Mockito.mock(UserData.class);
@@ -130,7 +163,7 @@ public class TestAttendSpawningOrdersThread {
 		String requestingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
 		String providingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
 		Order order = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024, 30, imageName, userData);
-		order.setOrderState(OrderState.SPAWNING, this.orderRegistry);
+		order.setOrderState(orderState, this.orderRegistry);
 		return order;
 	}
 	
