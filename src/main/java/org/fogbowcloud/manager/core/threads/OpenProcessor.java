@@ -5,6 +5,9 @@ import java.util.Properties;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.datastructures.OrderStateTransitioner;
+import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
+import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.models.linkedList.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -16,12 +19,9 @@ public class OpenProcessor implements Runnable {
 	private InstanceProvider localInstanceProvider;
 	private InstanceProvider remoteInstanceProvider;
 
-	private ChainedList openOrdersList;
-	private ChainedList pendingOrdersList;
-	private ChainedList failedOrdersList;
-	private ChainedList spawningOrdersList;
-
 	private String localMemberId;
+
+	private ChainedList openOrdersList;
 
 	/**
 	 * Attribute that represents the thread sleep time when there is no Orders
@@ -37,7 +37,8 @@ public class OpenProcessor implements Runnable {
 		this.remoteInstanceProvider = remoteInstanceProvider;
 		this.localMemberId = localMemberId;
 
-		// TODO: ChainedLists instanciation by Singleton pattern.
+		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+		this.openOrdersList = sharedOrderHolders.getOpenOrdersList();
 
 		String schedulerPeriodStr = properties.getProperty(ConfigurationConstants.OPEN_ORDERS_SLEEP_TIME_KEY,
 				DefaultConfigurationConstants.OPEN_ORDERS_SLEEP_TIME);
@@ -69,15 +70,16 @@ public class OpenProcessor implements Runnable {
 	 * the Order is local or PENDING if the Order is remote.
 	 * 
 	 * @param order
+	 * @throws OrderStateTransitionException
 	 */
-	protected void processOpenOrder(Order order) {
+	protected void processOpenOrder(Order order) throws OrderStateTransitionException {
+		// The order object synchronization is needed to prevent a race
+		// condition on order access. For example: a user can delete a Open
+		// Order while this
+		// method is trying to get an Instance for this Order.
 		synchronized (order) {
 			OrderState orderState = order.getOrderState();
 
-			// TODO: change it
-			// This method can generate a race condition. For example: a user
-			// can delete a Open Order while this method is trying to get an
-			// Instance for this Order.
 			if (orderState.equals(OrderState.OPEN)) {
 				LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
 
@@ -91,41 +93,36 @@ public class OpenProcessor implements Runnable {
 					OrderInstance orderInstance = instanceProvider.requestInstance(order);
 					order.setOrderInstance(orderInstance);
 
-					LOGGER.info("Removing order [" + order.getId() + "] from open orders list");
-					this.openOrdersList.removeItem(order);
-
 					LOGGER.info("Updating order state after processing [" + order.getId() + "]");
 					this.updateOrderStateAfterProcessing(order);
 
 				} catch (Exception e) {
 					LOGGER.error("Error while trying to get an instance for order: " + order, e);
-					order.setOrderState(OrderState.FAILED);
 
-					LOGGER.info("Adding order [" + order.getId() + "] to failed orders list");
-					this.failedOrdersList.addItem(order);
+					LOGGER.info("Transition [" + order.getId() + "] order state from open to failed");
+					OrderStateTransitioner.transition(order, OrderState.FAILED);
 				}
 			}
 		}
 	}
 
 	/**
-	 * Update the Order State and Add the Order in the right Chained List.
+	 * Update the Order State and do the right Order State Transition.
 	 * 
 	 * @param order
+	 * @throws OrderStateTransitionException
 	 */
-	protected void updateOrderStateAfterProcessing(Order order) {
+	protected void updateOrderStateAfterProcessing(Order order) throws OrderStateTransitionException {
 		if (order.isLocal(this.localMemberId)) {
 			OrderInstance orderInstance = order.getOrderInstance();
 			String orderInstanceId = orderInstance.getId();
 
 			if (!orderInstanceId.isEmpty()) {
 				LOGGER.info("The open order [" + order.getId() + "] got an local instance with id [" + orderInstanceId
-						+ "], setting your state to spawning");
+						+ "], setting your state to SPAWNING");
 
-				order.setOrderState(OrderState.SPAWNING);
-
-				LOGGER.info("Adding order [" + order.getId() + "] to spawning orders list");
-				this.spawningOrdersList.addItem(order);
+				LOGGER.info("Transition [" + order.getId() + "] order state from open to spawning");
+				OrderStateTransitioner.transition(order, OrderState.SPAWNING);
 
 			} else {
 				LOGGER.error("Order instance id for order [" + order.getId() + "] is empty");
@@ -136,10 +133,8 @@ public class OpenProcessor implements Runnable {
 			LOGGER.info("The open order [" + order.getId()
 					+ "] was requested for remote member, setting your state to pending");
 
-			order.setOrderState(OrderState.PENDING);
-
-			LOGGER.info("Adding order [" + order.getId() + "] to pending orders list");
-			this.pendingOrdersList.addItem(order);
+			LOGGER.info("Transition [" + order.getId() + "] order state from open to pending");
+			OrderStateTransitioner.transition(order, OrderState.PENDING);
 		}
 	}
 
@@ -164,24 +159,6 @@ public class OpenProcessor implements Runnable {
 			instanceProvider = this.remoteInstanceProvider;
 		}
 		return instanceProvider;
-	}
-
-	// TODO: all these setters method should be removed when the ChainedList be
-	// instanciated by the Singleton Pattern.
-	protected void setOpenOrdersList(ChainedList openOrdersList) {
-		this.openOrdersList = openOrdersList;
-	}
-
-	protected void setPendingOrdersList(ChainedList pendingOrdersList) {
-		this.pendingOrdersList = pendingOrdersList;
-	}
-
-	protected void setFailedOrdersList(ChainedList failedOrdersList) {
-		this.failedOrdersList = failedOrdersList;
-	}
-
-	protected void setSpawningOrdersList(ChainedList spawningOrdersList) {
-		this.spawningOrdersList = spawningOrdersList;
 	}
 
 }
