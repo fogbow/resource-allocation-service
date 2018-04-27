@@ -23,7 +23,7 @@ public class TunnelingServiceUtil {
 
 	private static final Logger LOGGER = Logger.getLogger(AttendSpawningOrdersThread.class);
 
-	private Properties properties; // TODO create class Properties, currently using java.util.Properties...
+	private Properties properties;
 	private HttpClient reverseTunnelHttpClient = createReverseTunnelHttpClient();
 	private PoolingHttpClientConnectionManager connectionManager;	
 

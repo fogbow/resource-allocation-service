@@ -1,11 +1,13 @@
 package org.fogbowcloud.manager.core.threads;
 
+import static org.junit.Assert.assertEquals;
 import java.util.Properties;
 
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
+import org.fogbowcloud.manager.core.models.linkedList.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.OrderRegistry;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
@@ -28,7 +30,6 @@ public class TestAttendSpawningOrdersThread {
 	
 	private Properties properties;
 	
-	private OrderRegistry orderRegistry;
 	private ComputePlugin computePĺugin;
 	private Long sleepTime;
 	
@@ -36,9 +37,8 @@ public class TestAttendSpawningOrdersThread {
 	public void setUp() {		
 		this.properties = new Properties();
 		this.properties.put(ConfigurationConstants.XMPP_ID_KEY, ".");
-		this.orderRegistry = Mockito.mock(OrderRegistry.class);
 		this.computePĺugin = Mockito.mock(ComputePlugin.class);		
-		this.attendSpawningOrdersThread = Mockito.spy(new AttendSpawningOrdersThread(this.orderRegistry, this.computePĺugin, this.sleepTime));
+		this.attendSpawningOrdersThread = Mockito.spy(new AttendSpawningOrdersThread(this.computePĺugin, this.sleepTime));
 	}
 	
 	@Test
@@ -50,7 +50,7 @@ public class TestAttendSpawningOrdersThread {
 		order.setOrderInstance(orderInstance);
 		
 		this.attendSpawningOrdersThread.processSpawningOrder(order);
-		Assert.assertEquals(OrderState.FAILED, order.getOrderState());
+		Assert.assertEquals(OrderState.FAILED, this.getFailedOrder(order));
 	}
 	
 	@Test
@@ -74,8 +74,6 @@ public class TestAttendSpawningOrdersThread {
 	
 	@Test
 	public void testRunProcessSpawningOrderWithThrowException() throws InterruptedException {
-		Order order = this.createOrder(OrderState.SPAWNING);
-		Mockito.doReturn(order).when(this.orderRegistry).getNextOrderByState(Mockito.any(OrderState.class));
 		Mockito.doThrow(new RuntimeException()).when(this.attendSpawningOrdersThread).processSpawningOrder(Mockito.any(Order.class));
 		this.attendSpawningOrdersThread.start();
 		Thread.sleep(1000);
@@ -88,11 +86,24 @@ public class TestAttendSpawningOrdersThread {
 		Mockito.when(this.computePĺugin.getInstance(Mockito.any(Token.class), Mockito.eq(DEFAULT_ORDER_INSTANCE_ID))).thenReturn(computeOrderInstance);
 		
 		Order order = createOrder(OrderState.SPAWNING);
+		SharedOrderHolders.getInstance().getSpawningOrdersList().addItem(order);
 		OrderInstance orderInstance = new OrderInstance(DEFAULT_ORDER_INSTANCE_ID);
 		order.setOrderInstance(orderInstance);
 		
 		this.attendSpawningOrdersThread.processSpawningOrder(order);
-		Assert.assertEquals(OrderState.FAILED, order.getOrderState());
+		
+		assertEquals(OrderState.FAILED, this.getFailedOrder(order));
+	}
+	
+	public Order getFailedOrder(Order order) {
+		SynchronizedDoublyLinkedList synchronizedDoublyLinkedList = SharedOrderHolders.getInstance().getFailedOrdersList();
+		Order element;
+		while ((element = synchronizedDoublyLinkedList.getNext()) != null) {
+			if (element.getId().equals(order.getId())) {
+				return element;				
+			}
+		}
+		return null;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -115,7 +126,7 @@ public class TestAttendSpawningOrdersThread {
 		order.setOrderInstance(orderInstance);
 		
 		this.attendSpawningOrdersThread.processSpawningOrder(order);		
-		Assert.assertEquals(OrderState.FULFILLED, order.getOrderState());
+		Assert.assertEquals(OrderState.FULFILLED, this.getFailedOrder(order));
 	}
 	
 	@Test
@@ -163,7 +174,6 @@ public class TestAttendSpawningOrdersThread {
 		String requestingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
 		String providingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
 		Order order = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024, 30, imageName, userData);
-		//order.setOrderState(orderState, this.orderRegistry);
 		return order;
 	}
 	
