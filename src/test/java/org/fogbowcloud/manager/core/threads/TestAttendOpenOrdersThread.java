@@ -194,7 +194,7 @@ public class TestAttendOpenOrdersThread {
 		Order order = this.createLocalOrder();
 
 		Mockito.doNothing().when(this.orderRegistry).updateOrder(Mockito.any(Order.class));
-		order.setOrderState(OrderState.PENDING, this.orderRegistry);
+		order.setOrderState(OrderState.PENDING);
 
 		this.attendOpenOrdersThread.processOpenOrder(order);
 
@@ -295,7 +295,7 @@ public class TestAttendOpenOrdersThread {
 
 		synchronized (localOrder) {
 			Assert.assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
-			localOrder.setOrderState(OrderState.OPEN, this.orderRegistry);
+			localOrder.setOrderState(OrderState.OPEN);
 		}
 
 		Assert.assertEquals(OrderState.OPEN, localOrder.getOrderState());

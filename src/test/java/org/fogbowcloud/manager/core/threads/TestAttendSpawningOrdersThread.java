@@ -163,7 +163,7 @@ public class TestAttendSpawningOrdersThread {
 		String requestingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
 		String providingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
 		Order order = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024, 30, imageName, userData);
-		order.setOrderState(orderState, this.orderRegistry);
+		//order.setOrderState(orderState, this.orderRegistry);
 		return order;
 	}
 	

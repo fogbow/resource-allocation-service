@@ -80,7 +80,7 @@ public class AttendOpenOrdersThread extends Thread {
 				} catch (Exception e) {
 					LOGGER.error("Error while trying to get an Instance for Order: "
 							+ System.lineSeparator() + order, e);
-					order.setOrderState(OrderState.FAILED, this.orderRegistry);
+					order.setOrderState(OrderState.FAILED);
 				}
 			}
 		}
@@ -100,7 +100,7 @@ public class AttendOpenOrdersThread extends Thread {
 				LOGGER.info("The open order [" + order.getId() + "] got an local instance with id [" + orderInstanceId
 						+ "], setting your state to SPAWNING");
 
-				order.setOrderState(OrderState.SPAWNING, this.orderRegistry);
+				order.setOrderState(OrderState.SPAWNING);
 			} else {
 				LOGGER.error("Order Instance Id for Order [" + order.getId() + "] is Empty");
 				throw new RuntimeException("Order Instance Id for Order [" + order.getId() + "] is Empty");
@@ -109,7 +109,7 @@ public class AttendOpenOrdersThread extends Thread {
 			LOGGER.info("The open order [" + order.getId()
 					+ "] was requested for remote member, setting your state to PENDING");
 
-			order.setOrderState(OrderState.PENDING, this.orderRegistry);
+			order.setOrderState(OrderState.PENDING);
 		}
 	}
 

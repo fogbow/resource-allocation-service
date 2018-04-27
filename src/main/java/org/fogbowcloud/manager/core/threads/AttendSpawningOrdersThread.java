@@ -68,7 +68,7 @@ public class AttendSpawningOrdersThread extends Thread {
 						}						
 						if (computeOrderInstance == null || computeOrderInstance.getState().equals(InstanceState.FAILED)) {
 							// TODO remove Order from spawningOrders ...
-							order.setOrderState(OrderState.FAILED, orderRegistry); // Test done!
+							//order.setOrderState(OrderState.FAILED, orderRegistry); // Test done!
 							// TODO insert Order in failedOrders...
 						} else {
 							LOGGER.info("Processing compute order instance active or inactive for order [" + order.getId() + "]");
@@ -93,7 +93,7 @@ public class AttendSpawningOrdersThread extends Thread {
 					try {
 						if (this.isActiveSshConnectivity(computeOrderInstance)) {
 							// TODO remove Order from spawningOrders ...
-							order.setOrderState(OrderState.FULFILLED, orderRegistry); // Test done!
+							//order.setOrderState(OrderState.FULFILLED, orderRegistry); // Test done!
 							// TODO insert Order in fulfilledOrders ...
 						}
 					} catch (Exception e) {

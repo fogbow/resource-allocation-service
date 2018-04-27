@@ -3,28 +3,18 @@ package org.fogbowcloud.manager.core.models.orders;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.models.token.Token;
 
-import javax.persistence.*;
-
-@Entity
-@DiscriminatorValue(value = "compute")
 public class ComputeOrder extends Order {
 
-	@Column(name = "vCPU")
 	private int vCPU;
 
 	/** Memory attribute, must be set in MB. */
-	@Column(name = "memory")
 	private int memory;
 
 	/** Disk attribute, must be set in GB. */
-	@Column(name = "disk")
 	private int disk;
 
-	@Column(name = "image_name")
 	private String imageName;
 
-	@OneToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "user_data_id")
 	private UserData userData;
 
 	public ComputeOrder() {
