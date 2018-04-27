@@ -7,6 +7,7 @@ import static org.junit.Assert.assertNull;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,10 +22,12 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicStatusLine;
+import org.apache.http.util.EntityUtils;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -44,7 +47,7 @@ public class TestKeystoneV3Identity {
 		Properties properties = new Properties();
 		properties.put(IDENTITY_URL_KEY, KEYSTONE_URL);
 		client = Mockito.mock(HttpClient.class);
-		this.keystoneV3Identity = new KeystoneV3IdentityPlugin(properties, client);
+		this.keystoneV3Identity = Mockito.spy(new KeystoneV3IdentityPlugin(properties, client));
 
 	}
 
@@ -249,5 +252,28 @@ public class TestKeystoneV3Identity {
 
 		return returnJson;
 	}
-
+	
+	@Test
+	public void testCheckStatusResponseWhenUnauthorized () throws ClientProtocolException, IOException {
+		
+		Map<String, String> credentials = Mockito.spy(new HashMap<String, String>());
+		Mockito.doReturn("").when(credentials).get(Mockito.any());		
+		Mockito.doReturn(new JSONObject()).when(keystoneV3Identity).mountJson(Mockito.any());
+		
+		HttpResponse httpResponse = Mockito.mock(HttpResponse.class);
+		HttpEntity httpEntity = Mockito.mock(HttpEntity.class);
+		Mockito.when(httpResponse.getEntity()).thenReturn(httpEntity);
+		BasicStatusLine basicStatus = new BasicStatusLine(new ProtocolVersion("", 0, 0), HttpStatus.SC_OK, "");
+		Mockito.when(httpResponse.getStatusLine()).thenReturn(basicStatus);
+		Mockito.when(httpResponse.getAllHeaders()).thenReturn(new Header[0]);
+		Mockito.when(client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
+		
+		try {
+			this.keystoneV3Identity.createToken(credentials);	
+			Assert.fail();
+		} catch (RuntimeException runtimeException) {
+			Integer expectedStatusResponse = HttpStatus.SC_NOT_FOUND;
+			Assert.assertEquals(expectedStatusResponse.toString(), runtimeException.toString());
+		}
+	}
 }
