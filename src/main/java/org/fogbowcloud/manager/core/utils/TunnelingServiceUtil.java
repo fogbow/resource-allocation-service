@@ -25,7 +25,18 @@ public class TunnelingServiceUtil {
 
 	private Properties properties;
 	private HttpClient reverseTunnelHttpClient = createReverseTunnelHttpClient();
-	private PoolingHttpClientConnectionManager connectionManager;	
+	private PoolingHttpClientConnectionManager connectionManager;
+	
+	private static TunnelingServiceUtil instance;
+	
+	private TunnelingServiceUtil() {}
+	
+	public static TunnelingServiceUtil getInstance() {
+		if (instance == null) {
+			instance = new TunnelingServiceUtil();
+		}
+		return instance;
+	}
 
 	public Map<String, String> getExternalServiceAddresses(String orderId) {
 		if (orderId == null || orderId.isEmpty()) {

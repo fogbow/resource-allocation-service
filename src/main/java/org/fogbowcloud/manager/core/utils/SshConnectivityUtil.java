@@ -16,24 +16,22 @@ public class SshConnectivityUtil {
 
 	private static final Logger LOGGER = Logger.getLogger(AttendSpawningOrdersThread.class);
 
-	private static Properties properties; // TODO create class Properties, currently using java.util.Properties...
+	private static Properties properties;
+
 	private SshClientPoolUtil sshClientPool = new SshClientPoolUtil();
 
-	private boolean activeConnection;
+	private static SshConnectivityUtil instance;
+	
+	private SshConnectivityUtil() {}
 
-	public SshConnectivityUtil(ComputeOrderInstance computeOrderInstance) {
-		this.activeConnection = this.checkSSHConnectivity(computeOrderInstance);
+	public static SshConnectivityUtil getInstance() {
+		if (instance == null) {
+			instance = new SshConnectivityUtil();
+		}
+		return instance;
 	}
 
-	public boolean isActiveConnection() {
-		return activeConnection;
-	}
-
-	public void setActiveConnection(boolean activeConnection) {
-		this.activeConnection = activeConnection;
-	}
-
-	private boolean checkSSHConnectivity(ComputeOrderInstance computeOrderInstance) {
+	public boolean checkSSHConnectivity(ComputeOrderInstance computeOrderInstance) {
 		if (computeOrderInstance == null || computeOrderInstance.getTunnelingPorts() == null || computeOrderInstance
 				.getTunnelingPorts().get(CommonConfigurationConstants.SSH_PUBLIC_ADDRESS_ATT) == null) {
 			return false;
