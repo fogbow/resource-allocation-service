@@ -1,6 +1,7 @@
 package org.fogbowcloud.manager.core.utils;
 
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.HttpClientConnectionManager;
@@ -18,7 +19,7 @@ public class HttpRequestUtil {
 	public static final String JSON_CONTENT_TYPE = "application/json";
 	
 	private static final Logger LOGGER = Logger.getLogger(HttpRequestUtil.class);	
-	public static int DEFAULT_TIMEOUT_REQUEST = 60000; // 1 minute
+	public static int DEFAULT_TIMEOUT_REQUEST = (int) TimeUnit.MINUTES.toMillis(1); 
 	
 	private static Integer timeoutHttpRequest;
 	

@@ -1,6 +1,5 @@
 package org.fogbowcloud.manager.core.plugins.identity.openstack;
 
-import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -56,7 +55,11 @@ public class KeystoneV3IdentityPlugin implements IdentityPlugin {
 
 	protected KeystoneV3IdentityPlugin(Properties properties, HttpClient client) {
 		this(properties);
-		this.client = client;
+		if (client == null) {
+			this.client = HttpRequestUtil.createHttpClient();
+		} else {
+			this.client = client;
+		}
 	}
 
 	public KeystoneV3IdentityPlugin(Properties properties) {
@@ -157,8 +160,8 @@ public class KeystoneV3IdentityPlugin implements IdentityPlugin {
 		} finally {
 			try {
 				EntityUtils.consume(response.getEntity());
-			} catch (IOException t) {
-				// Do nothing
+			} catch (Exception e) {
+				LOGGER.error("Could not release HTTPEntity resources.", e);
 			}
 		}
 		checkStatusResponse(response);
@@ -167,9 +170,6 @@ public class KeystoneV3IdentityPlugin implements IdentityPlugin {
 	}
 
 	private HttpClient getClient() {
-		if (client == null) {
-			client = HttpRequestUtil.createHttpClient();
-		}
 		return client;
 	}
 
@@ -215,7 +215,7 @@ public class KeystoneV3IdentityPlugin implements IdentityPlugin {
 
 			JSONObject user = token.getJSONObject(USER_PROP);
 			String userId = user.getString(ID_PROP);
-			String userName = user.getString(ID_PROP);
+			String userName = user.getString(NAME_PROP);
 
 			Map<String, String> tokenAtt = new HashMap<String, String>();
 			String tenantId = null;
