@@ -73,38 +73,44 @@ public class AttendSpawningOrdersThread extends Thread {
 	}
 
 	private void processeComputeInstance(Order order, OrderInstance orderInstance) throws OrderStateTransitionException {
-		ComputeOrderInstance computeOrderInstance = null;
-		try {
-			computeOrderInstance = this.computePlugin.getInstance(order.getLocalToken(), orderInstance.getId());
-			if (computeOrderInstance == null || computeOrderInstance.getState().equals(InstanceState.FAILED)) {
-				OrderStateTransitioner.transition(order, OrderState.FAILED);
-			} else {
-				if (computeOrderInstance.getState().equals(InstanceState.ACTIVE)) {
-					LOGGER.info("Processing active compute instance for order [" + order.getId() + "]");
-					this.setTunnelingServiceAddresses(order, computeOrderInstance);
-					if (isActiveConnectionFromInstance(computeOrderInstance)) {
-						OrderStateTransitioner.transition(order, OrderState.FULFILLED);
-					} else {
-						LOGGER.warn("Failed attempt to communicate with ssh connectivity for order [" + order.getId() + "]");
-					}
+		synchronized (order) {
+			ComputeOrderInstance computeOrderInstance = null;
+			try {
+				computeOrderInstance = this.computePlugin.getInstance(order.getLocalToken(), orderInstance.getId());
+				if (computeOrderInstance.getState().equals(InstanceState.FAILED)) {
+					OrderStateTransitioner.transition(order, OrderState.FAILED);
 				} else {
-					LOGGER.info("The compute instance is inactive for order [" + order.getId() + "]");
-				}
-			}			
-		} catch (Exception e) {
-			LOGGER.error("Error while trying to get the compute instance for order: " + System.lineSeparator() + order, e);
+					if (computeOrderInstance.getState().equals(InstanceState.ACTIVE)) {
+						LOGGER.info("Processing active compute instance for order [" + order.getId() + "]");
+						this.setTunnelingServiceAddresses(order, computeOrderInstance);
+						if (isActiveConnectionFromInstance(computeOrderInstance)) {
+							OrderStateTransitioner.transition(order, OrderState.FULFILLED);
+						} else {
+							LOGGER.warn("Failed attempt to communicate with ssh connectivity for order [" + order.getId() + "]");
+						}
+					} else {
+						LOGGER.info("The compute instance is inactive for order [" + order.getId() + "]");
+					}
+				}			
+			} catch (Exception e) {
+				LOGGER.error("Error while trying to get the compute instance for order: " + System.lineSeparator() + order, e);
+			}
 		}
+		
 	}
 
 	private void setTunnelingServiceAddresses(Order order, ComputeOrderInstance computeOrderInstance) {
-		try {
-			Map<String, String> externalServiceAddresses = tunnelingService.getExternalServiceAddresses(order.getId());
-			if (externalServiceAddresses != null) {
-				computeOrderInstance.setExternalServiceAddresses(externalServiceAddresses);
-			}	
-		} catch (Exception e) {
-			LOGGER.error("Error trying to get map of addresses (IP and Port) of the compute instance for order: " + System.lineSeparator() + order, e); // DONE!
+		synchronized (order) {
+			try {
+				Map<String, String> externalServiceAddresses = tunnelingService.getExternalServiceAddresses(order.getId());
+				if (externalServiceAddresses != null) {
+					computeOrderInstance.setExternalServiceAddresses(externalServiceAddresses);
+				}	
+			} catch (Exception e) {
+				LOGGER.error("Error trying to get map of addresses (IP and Port) of the compute instance for order: " + System.lineSeparator() + order, e);
+			}
 		}
+		
 	}
 	
 	private boolean isActiveConnectionFromInstance(ComputeOrderInstance computeOrderInstance) {

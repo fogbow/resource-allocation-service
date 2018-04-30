@@ -110,7 +110,10 @@ public class TestAttendSpawningOrdersThread {
 		Mockito.when(this.computePlugin.getInstance(Mockito.any(Token.class), Mockito.eq(DEFAULT_ORDER_INSTANCE_ID))).thenReturn(computeOrderInstance);
 		
 		this.attendSpawningOrdersThread.processSpawningOrder(order);
-		Assert.assertEquals(OrderState.SPAWNING, SharedOrderHolders.getInstance().getSpawningOrdersList().getNext().getOrderState());
+
+		Order test = SharedOrderHolders.getInstance().getSpawningOrdersList().getNext();
+		assertNotNull(test);
+		Assert.assertEquals(OrderState.SPAWNING, test.getOrderState());	
 	}
 	
 	@Test
@@ -181,6 +184,17 @@ public class TestAttendSpawningOrdersThread {
 		order.setOrderState(OrderState.CLOSED);
 		this.attendSpawningOrdersThread.processSpawningOrder(order);
 		Assert.assertFalse(OrderState.SPAWNING.equals(order.getOrderState()));
+	}
+	
+	@Test
+	public void testThreadRun() throws InterruptedException {
+		OrderInstance orderInstance = Mockito.spy(OrderInstance.class);
+		Order order = Mockito.spy(Order.class);
+		order.setOrderInstance(orderInstance);
+		Mockito.doNothing().when(this.attendSpawningOrdersThread).processSpawningOrder(order);
+		verify(order).setOrderInstance(orderInstance);
+		this.attendSpawningOrdersThread.start();
+		Thread.sleep(1000);
 	}
 	
 	@Test
