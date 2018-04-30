@@ -1,0 +1,139 @@
+package org.fogbowcloud.manager.core.datastructures;
+
+import com.sun.corba.se.impl.orbutil.concurrent.Sync;
+import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
+import org.fogbowcloud.manager.core.models.linkedList.SynchronizedDoublyLinkedList;
+import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.OrderState;
+import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
+import org.junit.After;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.internal.util.MockUtil;
+
+import static org.mockito.BDDMockito.*;
+import static org.junit.Assert.*;
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(SharedOrderHolders.class)
+public class OrderStateTransitionerTest {
+
+    private MockUtil mockUtil = new MockUtil();
+
+    private Order createOrder(OrderState orderState) {
+        Order order = new ComputeOrder();
+        order.setId("fakeOrderId");
+        order.setOrderState(orderState);
+
+        OrderInstance orderInstance = new OrderInstance("fakeId");
+        order.setOrderInstance(orderInstance);
+
+        return order;
+    }
+
+    @After
+    public void tearDown() {
+        SharedOrderHolders instance = SharedOrderHolders.getInstance();
+        if (!mockUtil.isMock(instance)) {
+            for (OrderState state : OrderState.values()) {
+                SynchronizedDoublyLinkedList ordersList = SharedOrderHolders.getInstance().getOrdersList(state);
+
+                ordersList.resetPointer();
+                Order order;
+                while ((order = ordersList.getNext()) != null) {
+                    ordersList.removeItem(order);
+                }
+            }
+        }
+    }
+
+    @Test
+    public void testValidTransition() throws OrderStateTransitionException {
+        OrderState originState = OrderState.OPEN;
+        OrderState destinationState = OrderState.SPAWNING;
+
+        SynchronizedDoublyLinkedList openOrdersList = SharedOrderHolders.getInstance().getOpenOrdersList();
+        SynchronizedDoublyLinkedList spawningOrdersList = SharedOrderHolders.getInstance().getSpawningOrdersList();
+
+        Order order = createOrder(originState);
+        openOrdersList.addItem(order);
+
+        OrderStateTransitioner.transition(order, destinationState);
+        assertNull(openOrdersList.getNext());
+        assertEquals(order, spawningOrdersList.getNext());
+    }
+
+    @Test
+    public void testTransitioningToTheCurrentState() {
+        SynchronizedDoublyLinkedList openOrdersList = SharedOrderHolders.getInstance().getOpenOrdersList();
+        Order order = createOrder(OrderState.OPEN);
+        openOrdersList.addItem(order);
+
+        try {
+            OrderStateTransitioner.transition(order, OrderState.OPEN);
+            fail("Transitioning to the current state should not be permitted.");
+        } catch (OrderStateTransitionException e) {
+        }
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testOriginListCannotBeFound() throws OrderStateTransitionException {
+        OrderState originState = OrderState.OPEN;
+        OrderState destinationState = OrderState.SPAWNING;
+
+        // origin list will fail to be found
+        SharedOrderHolders ordersHolder = Mockito.mock(SharedOrderHolders.class);
+        when(ordersHolder.getOrdersList(originState)).thenReturn(null);
+
+        PowerMockito.mockStatic(SharedOrderHolders.class);
+        given(SharedOrderHolders.getInstance()).willReturn(ordersHolder);
+
+        Order order = createOrder(originState);
+        OrderStateTransitioner.transition(order, destinationState);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testDestinationListCannotBeFound() throws OrderStateTransitionException {
+        OrderState originState = OrderState.OPEN;
+        OrderState destinationState = OrderState.SPAWNING;
+
+        SharedOrderHolders ordersHolder = Mockito.mock(SharedOrderHolders.class);
+        when(ordersHolder.getOrdersList(originState)).thenReturn(new SynchronizedDoublyLinkedList());
+
+        // destination list will fail to be found
+        when(ordersHolder.getOrdersList(destinationState)).thenReturn(null);
+
+        PowerMockito.mockStatic(SharedOrderHolders.class);
+        given(SharedOrderHolders.getInstance()).willReturn(ordersHolder);
+
+        Order order = createOrder(originState);
+        OrderStateTransitioner.transition(order, destinationState);
+    }
+
+    @Test(expected = OrderStateTransitionException.class)
+    public void testOriginListRemovalFailure() throws OrderStateTransitionException {
+        OrderState originState = OrderState.OPEN;
+        OrderState destinationState = OrderState.SPAWNING;
+
+        SynchronizedDoublyLinkedList origin = Mockito.mock(SynchronizedDoublyLinkedList.class);
+        when(origin.removeItem(any(Order.class))).thenReturn(false);
+
+        SynchronizedDoublyLinkedList destination = Mockito.mock(SynchronizedDoublyLinkedList.class);
+
+        SharedOrderHolders ordersHolder = Mockito.mock(SharedOrderHolders.class);
+        when(ordersHolder.getOrdersList(originState)).thenReturn(origin);
+        when(ordersHolder.getOrdersList(destinationState)).thenReturn(destination);
+
+        PowerMockito.mockStatic(SharedOrderHolders.class);
+        given(SharedOrderHolders.getInstance()).willReturn(ordersHolder);
+
+        Order order = createOrder(originState);
+        OrderStateTransitioner.transition(order, destinationState);
+    }
+}
