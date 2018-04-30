@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.compute.openstack;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
@@ -12,6 +11,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.models.*;
 import org.fogbowcloud.manager.core.models.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.compute.ComputePlugin;
@@ -46,7 +46,6 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
     private static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
     private static final String COMPUTE_NOVAV2_URL_KEY = "compute_novav2_url";
-    private static final String NO_VALID_HOST_WAS_FOUND = "No valid host was found";
     private final String COMPUTE_V2_API_ENDPOINT = "/v2/";
 
     private static final String COMPUTE_NOVAV2_NETWORK_KEY = "compute_novav2_network_id";
@@ -58,6 +57,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private HttpClient client;
 
     public OpenStackNovaV2ComputePlugin(Properties properties) {
+        LOGGER.debug("Creating OpenStackNovaV2ComputePlugin with properties=" + properties.toString());
+
         this.flavors = new ArrayList<>();
         this.properties = properties;
         this.initClient();
@@ -67,20 +68,22 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         LOGGER.debug("Requesting instance with token=" + computeOrder.getLocalToken());
 
         Token localToken = computeOrder.getLocalToken();
-        String flavorId = updateAndFindSmallestFlavor(computeOrder).getId();
+        Flavor flavor = updateAndFindSmallestFlavor(computeOrder);
+        String flavorId = flavor.getId();
         String tenantId = getTenantId(localToken);
         String networkId = getNetworkId();
-        String userData = computeOrder.getUserData().getContent();
+        UserData userData = computeOrder.getUserData();
+        String userDataContent = userData.getContent();
         String keyName = getKeyName(tenantId, localToken, computeOrder.getPublicKey());
         String endpoint = getComputeEndpoint(tenantId, SERVERS);
 
         try {
-            JSONObject json = generateJsonRequest(imageId, flavorId, userData, keyName, networkId);
+            JSONObject json = generateJsonRequest(imageId, flavorId, userDataContent, keyName, networkId);
             String jsonResponse = doPostRequest(endpoint, localToken, json);
 
             return getAttFromJson(ID_JSON_FIELD, jsonResponse);
         } catch (JSONException e) {
-            LOGGER.error(e);
+            LOGGER.error("Invalid JSON key: " + e);
             throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         } finally {
             if (keyName != null) {
@@ -99,7 +102,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     protected String getTenantId(Token localToken) {
-        return localToken.getAttributes().get(TENANT_ID);
+        Map<String, String> tokenAttr = localToken.getAttributes();
+        return tokenAttr.get(TENANT_ID);
     }
 
     protected String getNetworkId() {
@@ -122,7 +126,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
                 root.put(KEYPAIR_JSON_FIELD, keypair);
                 doPostRequest(osKeypairEndpoint, localToken, root);
             } catch (JSONException e) {
-                LOGGER.error(e);
+                LOGGER.error("Error while getting key name: " + e);
                 throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
             }
         }
@@ -136,7 +140,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
     private String getAttFromJson(String attName, String jsonStr) throws JSONException {
         JSONObject root = new JSONObject(jsonStr);
-        return root.getJSONObject(SERVER_JSON_FIELD).getString(attName);
+        JSONObject serveJson = root.getJSONObject(SERVER_JSON_FIELD);
+        return serveJson.getString(attName);
     }
 
     protected void deleteKeyName(String tenantId, Token localToken, String keyName) throws RequestException {
@@ -156,7 +161,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             request.addHeader(RequestHeaders.X_AUTH_TOKEN.getValue(), localToken.getAccessId());
             response = client.execute(request);
         } catch (Exception e) {
-            LOGGER.error(e);
+            LOGGER.error("Impossible to complete the DELETE request: " + e);
             throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         } finally {
             try {
@@ -186,7 +191,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             response = client.execute(request);
             responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         } catch (Exception e) {
-            LOGGER.error(e);
+            LOGGER.error("Impossible to complete the POST request: " + e);
             throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         } finally {
             try {
@@ -215,11 +220,11 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         }
 
         if (networkId != null && !networkId.isEmpty()) {
-            List<JSONObject> nets = new ArrayList<>();
+            List<JSONObject> networks = new ArrayList<>();
             JSONObject net = new JSONObject();
             net.put(UUID_JSON_FIELD, networkId);
-            nets.add(net);
-            server.put(NETWORK_JSON_FIELD, nets);
+            networks.add(net);
+            server.put(NETWORK_JSON_FIELD, networks);
         }
 
         if (keyName != null && !keyName.isEmpty()) {
@@ -233,26 +238,12 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     private void checkStatusResponse(HttpResponse response, String message) throws RequestException {
-        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-            throw new RequestException(ErrorType.UNAUTHORIZED, ResponseConstants.UNAUTHORIZED);
-        } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-            throw new RequestException(ErrorType.NOT_FOUND, ResponseConstants.NOT_FOUND);
-        } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_REQUEST) {
-            throw new RequestException(ErrorType.BAD_REQUEST, message);
-        } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_REQUEST_TOO_LONG
-                || response.getStatusLine().getStatusCode() == HttpStatus.SC_FORBIDDEN) {
-            if (message.contains(ResponseConstants.QUOTA_EXCEEDED_FOR_INSTANCES)) {
-                throw new RequestException(ErrorType.QUOTA_EXCEEDED,
-                        ResponseConstants.QUOTA_EXCEEDED_FOR_INSTANCES);
-            }
-            throw new RequestException(ErrorType.BAD_REQUEST, message);
-        } else if ((response.getStatusLine().getStatusCode() == HttpStatus.SC_INTERNAL_SERVER_ERROR) &&
-                (message.contains(NO_VALID_HOST_WAS_FOUND))) {
-            throw new RequestException(ErrorType.NO_VALID_HOST_FOUND, ResponseConstants.NO_VALID_HOST_FOUND);
-        } else if (response.getStatusLine().getStatusCode() > 204) {
-            throw new RequestException(ErrorType.BAD_REQUEST,
-                    "Status code: " + response.getStatusLine().toString() + " | Message:" + message);
-        }
+        LOGGER.debug("Checking status response...");
+
+        StatusResponseMap statusResponseMap = new StatusResponseMap(response, message);
+        StatusResponse statusResponse = statusResponseMap.getStatusResponse(response.getStatusLine().getStatusCode());
+
+        throw new RequestException(statusResponse.getErrorType(), statusResponse.getResponseConstants());
     }
 
     protected Flavor updateAndFindSmallestFlavor(ComputeOrder computeOrder) {
@@ -273,9 +264,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             return null;
         }
 
-        Collections.sort(listFlavor);
-
-        return listFlavor.get(0);
+        return Collections.min(listFlavor);
     }
 
     private boolean matches(Flavor flavor, ComputeOrder computeOrder) {
@@ -289,6 +278,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     protected synchronized void updateFlavors(Token localToken) {
+        LOGGER.debug("Updating flavors from OpenStack...");
+
         try {
             String tenantId = getTenantId(localToken);
             if (tenantId == null) {
@@ -370,6 +361,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     protected String doGetRequest(String endpoint, Token localToken) throws RequestException {
+        LOGGER.debug("Doing GET request to OpenStack...");
+
         HttpResponse response = null;
         String responseStr;
 

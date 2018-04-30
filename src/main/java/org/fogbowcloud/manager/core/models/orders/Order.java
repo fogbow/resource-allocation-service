@@ -114,33 +114,13 @@ public abstract class Order {
 		Order order = (Order) o;
 
 		if (id != null ? !id.equals(order.id) : order.id != null) return false;
-		if (orderState != order.orderState) return false;
-		if (localToken != null ? !localToken.equals(order.localToken) : order.localToken != null) return false;
-		if (federationToken != null ? !federationToken.equals(order.federationToken) : order.federationToken != null)
-			return false;
-		if (requestingMember != null ? !requestingMember.equals(order.requestingMember) : order.requestingMember != null)
-			return false;
-		if (providingMember != null ? !providingMember.equals(order.providingMember) : order.providingMember != null)
-			return false;
-		if (orderInstance != null ? !orderInstance.equals(order.orderInstance) : order.orderInstance != null)
-			return false;
-		if (fulfilledTime != null ? !fulfilledTime.equals(order.fulfilledTime) : order.fulfilledTime != null)
-			return false;
 
 		return true;
 	}
 
 	@Override
 	public int hashCode() {
-		int result = id != null ? id.hashCode() : 0;
-		result = 31 * result + (orderState != null ? orderState.hashCode() : 0);
-		result = 31 * result + (localToken != null ? localToken.hashCode() : 0);
-		result = 31 * result + (federationToken != null ? federationToken.hashCode() : 0);
-		result = 31 * result + (requestingMember != null ? requestingMember.hashCode() : 0);
-		result = 31 * result + (providingMember != null ? providingMember.hashCode() : 0);
-		result = 31 * result + (orderInstance != null ? orderInstance.hashCode() : 0);
-		result = 31 * result + (fulfilledTime != null ? fulfilledTime.hashCode() : 0);
-		return result;
+		return id != null ? id.hashCode() : 0;
 	}
 
 	@Override
