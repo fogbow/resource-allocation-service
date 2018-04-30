@@ -8,6 +8,7 @@ import org.fogbowcloud.manager.core.models.orders.StorageOrder;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
 
 public class ApplicationController {
+	
 	private AuthenticationService authenticationController;
 	private ManagerController managerController;
 	
