@@ -9,16 +9,23 @@ import org.fogbowcloud.manager.core.models.orders.StorageOrder;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
 
 public class ApplicationController {
-	
+
+	private static ApplicationController instance;
 	private AuthenticationService authenticationController;
 	private ManagerController managerController;
-	
-	public ApplicationController(AuthenticationService authenticationController, ManagerController managerController) {
-		this.authenticationController = authenticationController;
-		this.managerController = managerController;
+
+	private ApplicationController() {
+
 	}
 
-	public ApplicationController() {}
+	public static ApplicationController getInstance() {
+		synchronized (ApplicationController.class) {
+			if (instance == null) {
+				instance = new ApplicationController();
+			}
+			return instance;
+		}
+	}
 
 	public void allocateComputeOrder(ComputeOrder computeOrder) {
 		
@@ -67,5 +74,20 @@ public class ApplicationController {
 	public void removeStorageOrder(String id) {
 		
 	}
-	
+
+	public AuthenticationService getAuthenticationController() {
+		return authenticationController;
+	}
+
+	public void setAuthenticationController(AuthenticationService authenticationController) {
+		this.authenticationController = authenticationController;
+	}
+
+	public ManagerController getManagerController() {
+		return managerController;
+	}
+
+	public void setManagerController(ManagerController managerController) {
+		this.managerController = managerController;
+	}
 }
