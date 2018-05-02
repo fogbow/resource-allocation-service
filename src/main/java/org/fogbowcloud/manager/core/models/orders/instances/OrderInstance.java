@@ -3,6 +3,7 @@ package org.fogbowcloud.manager.core.models.orders.instances;
 public class OrderInstance {
 
     private String id;
+    private InstanceState state;
 
 	public OrderInstance() {
 
@@ -19,6 +20,14 @@ public class OrderInstance {
     public void setId(String id) {
         this.id = id;
     }
+    
+    public InstanceState getState() {
+		return state;
+	}
+
+	public void setState(InstanceState state) {
+		this.state = state;
+	}
 
 	@Override
 	public int hashCode() {
@@ -44,4 +53,5 @@ public class OrderInstance {
 			return false;
 		return true;
 	}
+	
 }

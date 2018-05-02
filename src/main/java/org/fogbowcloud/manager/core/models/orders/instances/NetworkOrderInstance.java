@@ -3,7 +3,6 @@ package org.fogbowcloud.manager.core.models.orders.instances;
 public class NetworkOrderInstance extends OrderInstance {
 
     private String label;
-    private InstanceState state;
     private String address;
     private String gateway;
     private String VLAN;
@@ -17,14 +16,6 @@ public class NetworkOrderInstance extends OrderInstance {
 
     public void setLabel(String label) {
         this.label = label;
-    }
-
-    public InstanceState getState() {
-        return state;
-    }
-
-    public void setState(InstanceState state) {
-        this.state = state;
     }
 
     public String getAddress() {
@@ -74,4 +65,5 @@ public class NetworkOrderInstance extends OrderInstance {
     public void setInterfaceState(InstanceState interfaceState) {
         this.interfaceState = interfaceState;
     }
+    
 }
