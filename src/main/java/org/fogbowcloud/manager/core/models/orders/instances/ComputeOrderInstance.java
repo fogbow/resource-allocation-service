@@ -18,8 +18,7 @@ public class ComputeOrderInstance extends OrderInstance {
     /**
      *  Memory attribute, must be set in MB.
      */
-    private int memory;
-    private InstanceState state;
+    private int memory;    
     private String localIpAddress;
     private String sshPublicAddress;
     private String sshUserName;
@@ -102,12 +101,4 @@ public class ComputeOrderInstance extends OrderInstance {
 		}
 	}
 
-	public InstanceState getState() {
-		return state;
-	}
-
-	public void setState(InstanceState state) {
-		this.state = state;
-	}
-	
 }
