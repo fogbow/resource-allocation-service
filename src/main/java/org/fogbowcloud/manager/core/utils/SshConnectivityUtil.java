@@ -6,7 +6,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.constants.CommonConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
-import org.fogbowcloud.manager.core.threads.AttendSpawningOrdersThread;
+import org.fogbowcloud.manager.core.threads.SpawningMonitor;
 
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.connection.channel.direct.Session;
@@ -14,7 +14,7 @@ import net.schmizz.sshj.connection.channel.direct.Session.Command;
 
 public class SshConnectivityUtil {
 
-	private static final Logger LOGGER = Logger.getLogger(AttendSpawningOrdersThread.class);
+	private static final Logger LOGGER = Logger.getLogger(SpawningMonitor.class);
 
 	private static Properties properties;
 

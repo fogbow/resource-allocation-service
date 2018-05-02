@@ -6,6 +6,8 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.datastructures.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
+import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
+import org.fogbowcloud.manager.core.models.linkedList.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
@@ -16,18 +18,19 @@ import org.fogbowcloud.manager.core.plugins.ComputePlugin;
 import org.fogbowcloud.manager.core.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.core.utils.TunnelingServiceUtil;
 
-public class AttendSpawningOrdersThread extends Thread {
+public class SpawningMonitor extends Thread {
 
-	private static final Logger LOGGER = Logger.getLogger(AttendSpawningOrdersThread.class);
+	private static final Logger LOGGER = Logger.getLogger(SpawningMonitor.class);
 
+	private InstanceProvider localInstanceProvider;
 	private ComputePlugin computePlugin;
 	private Long sleepTime;
 	private TunnelingServiceUtil tunnelingService;
 	private SshConnectivityUtil sshConnectivity;
 	
-	public AttendSpawningOrdersThread() {}
+	public SpawningMonitor() {}
 	
-	public AttendSpawningOrdersThread(ComputePlugin computePlugin, Long sleepTime) {
+	public SpawningMonitor(ComputePlugin computePlugin, Long sleepTime) {
 		this.computePlugin = computePlugin;
 		this.sleepTime = sleepTime;
 		this.tunnelingService = TunnelingServiceUtil.getInstance();
@@ -37,9 +40,11 @@ public class AttendSpawningOrdersThread extends Thread {
 	@Override
 	public void run() {
 		while(true) {
+			SynchronizedDoublyLinkedList spawningOrderList = null;
 			Order order = null;
 			try {
-				order = SharedOrderHolders.getInstance().getSpawningOrdersList().getNext();
+				spawningOrderList = SharedOrderHolders.getInstance().getSpawningOrdersList();
+				order = spawningOrderList.getNext();
 				if (order != null) {
 					this.processSpawningOrder(order);
 				} else {
@@ -47,7 +52,10 @@ public class AttendSpawningOrdersThread extends Thread {
 					Thread.sleep(this.sleepTime);
 				}
 			} catch (Throwable e) {
-				String orderId = order != null ? order.getId() : null;
+				String orderId = null;
+				if (order != null) {
+					orderId = order.getId();
+				}
 				LOGGER.error("Error while trying to thread sleep attending the order: [" + orderId + "]", e);
 			}
 		}
@@ -76,6 +84,8 @@ public class AttendSpawningOrdersThread extends Thread {
 		synchronized (order) {
 			ComputeOrderInstance computeOrderInstance = null;
 			try {
+				computeOrderInstance = (ComputeOrderInstance) this.localInstanceProvider.requestInstance(order);
+				// TODO Remove the attribute computePlugin...
 				computeOrderInstance = this.computePlugin.getInstance(order.getLocalToken(), orderInstance.getId());
 				if (computeOrderInstance.getState().equals(InstanceState.FAILED)) {
 					OrderStateTransitioner.transition(order, OrderState.FAILED);

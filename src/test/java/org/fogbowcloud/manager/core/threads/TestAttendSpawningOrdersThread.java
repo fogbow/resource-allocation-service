@@ -29,7 +29,7 @@ public class TestAttendSpawningOrdersThread {
 
 	private static final String DEFAULT_ORDER_INSTANCE_ID = "1";
 	
-	private AttendSpawningOrdersThread attendSpawningOrdersThread;
+	private SpawningMonitor attendSpawningOrdersThread;
 	private ComputePlugin computePlugin;
 	private Long sleepTime;
 	private Properties properties;
@@ -37,7 +37,7 @@ public class TestAttendSpawningOrdersThread {
 	@Before
 	public void setUp() {		
 		this.computePlugin = Mockito.mock(ComputePlugin.class);		
-		this.attendSpawningOrdersThread = Mockito.spy(new AttendSpawningOrdersThread(this.computePlugin, this.sleepTime));		
+		this.attendSpawningOrdersThread = Mockito.spy(new SpawningMonitor(this.computePlugin, this.sleepTime));		
 		this.properties = new Properties();
 		this.properties.put(ConfigurationConstants.XMPP_ID_KEY, ".");
 	}
