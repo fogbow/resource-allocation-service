@@ -1,11 +1,13 @@
 package org.fogbowcloud.manager.core.utils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
@@ -62,18 +64,22 @@ public class TunnelingServiceUtil {
 				Map<String, String> servicePerAddress = new HashMap<String, String>();
 				String sshPublicHostIP = this.properties.getProperty(ConfigurationConstants.TOKEN_HOST_PUBLIC_ADDRESS_KEY);
 				while (serviceIterator.hasNext()) {
-					String service = (String) serviceIterator.next();
+					String service = serviceIterator.next();
 					String port = jsonPorts.optString(service);
 					servicePerAddress.put(service, sshPublicHostIP + ":" + port);
 				}
 				return servicePerAddress;
 			}
 		} catch (Throwable e) {
-			LOGGER.error("Error trying to communicate reverse tunnel or set map of addresses (IP and Port) for order [" + orderId + "]", e);
+			LOGGER.error("Error while to communicate reverse tunnel or set map of addresses (IP and Port) for order [" + orderId + "]", e);
 		} finally {
 			if (response != null) {
+				HttpEntity responseEntity = null;
+				InputStream entityContent = null;
 				try {
-					response.getEntity().getContent().close();
+					responseEntity = response.getEntity();
+					entityContent = responseEntity.getContent();
+					entityContent.close();
 				} catch (IOException e) {
 					LOGGER.warn("Failed to close the content was already closed.", e);
 				}

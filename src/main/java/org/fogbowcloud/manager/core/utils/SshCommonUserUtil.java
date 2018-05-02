@@ -10,8 +10,11 @@ public class SshCommonUserUtil {
 	private static Properties properties; // TODO create class Properties, currently using java.util.Properties...
 	
 	public static String getSshCommonUser() {		
-		String sshCommonUser = properties.getProperty(ConfigurationConstants.SSH_COMMON_USER_KEY);
-		return sshCommonUser == null ? CommonConfigurationConstants.DEFAULT_COMMON_SSH_USER : sshCommonUser;
+		String sshCommonUser = properties.getProperty(ConfigurationConstants.SSH_COMMON_USER_KEY);		
+		if (sshCommonUser == null) {
+			sshCommonUser = CommonConfigurationConstants.DEFAULT_COMMON_SSH_USER;
+		}		
+		return sshCommonUser;
 	}
 	
 }

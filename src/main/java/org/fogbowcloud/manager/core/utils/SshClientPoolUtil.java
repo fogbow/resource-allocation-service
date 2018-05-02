@@ -17,7 +17,7 @@ import net.schmizz.sshj.transport.verification.HostKeyVerifier;
 public class SshClientPoolUtil {
 	
 	protected final long TIMEOUT = 20000; // 20 seconds
-	private final long DEFAULT_SCHEDULER_PERIOD = 300000; // 5 minutes
+	private final long DEFAULT_SCHEDULER_TIME = 300000; // 3 minutes
 	
 	private Map<String, SSHConnection> pool = new HashMap<String, SSHConnection>();
 	private final ManagerTimerUtil sshConnectionSchedulerTimer;
@@ -64,7 +64,7 @@ public class SshClientPoolUtil {
 			public void run() {
 				removeTimedoutSSHConnection();
 			}
-		}, 0, DEFAULT_SCHEDULER_PERIOD);
+		}, 0, DEFAULT_SCHEDULER_TIME);
 	}
 	
 	protected void removeTimedoutSSHConnection() {
@@ -73,8 +73,10 @@ public class SshClientPoolUtil {
 		}
 		
 		Set<String> keySet = new HashSet<String>(pool.keySet());
+		long poolTimestamp = 0;
 		for (String key : keySet) {
-			if (pool.get(key).getTimestamp() + TIMEOUT < dateUtils.currentTimeMillis()) {
+			poolTimestamp = pool.get(key).getTimestamp() + TIMEOUT;
+			if (poolTimestamp < dateUtils.currentTimeMillis()) {
 				pool.remove(key);
 				semaphore.release();
 			}
