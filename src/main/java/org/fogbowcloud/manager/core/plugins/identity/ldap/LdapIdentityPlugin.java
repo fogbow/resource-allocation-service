@@ -28,6 +28,7 @@ import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.exceptions.CreateTokenException;
 import org.fogbowcloud.manager.core.models.Credential;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
@@ -85,7 +86,7 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 	}
 
 	@Override
-	public Token createToken(Map<String, String> userCredentials) {
+	public Token createToken(Map<String, String> userCredentials) throws CreateTokenException {
 
 		String userId = userCredentials.get(CRED_USERNAME);
 		String password = userCredentials.get(CRED_PASSWORD);
@@ -99,8 +100,7 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 			name = ldapAuthenticate(userId, password);
 		} catch (Exception e) {
 			LOGGER.error("Couldn't load account summary from LDAP Server.", e);
-			Integer statusResponse = HttpStatus.SC_UNAUTHORIZED;
-			throw new RuntimeException(statusResponse.toString());
+			throw new CreateTokenException("Couldn't load account summary from LDAP Server.");
 		}
 
 		Map<String, String> attributes = new HashMap<String, String>();
@@ -119,10 +119,9 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 			accessId = new String(Base64.encodeBase64(accessId.getBytes(Charsets.UTF_8), false, false), Charsets.UTF_8);
 
 			return new Token(accessId, new Token.User(userId, name), expirationDate, attributes);
-		} catch (Exception e) {
-			LOGGER.error("Erro while trying to sign the token.", e);
-			Integer statusResponse = HttpStatus.SC_UNAUTHORIZED;
-			throw new RuntimeException(statusResponse.toString());
+		} catch (IOException | GeneralSecurityException e) {
+			LOGGER.error("Error while trying to sign the token.", e);
+			throw new CreateTokenException("Error while trying to sign the token.");
 		}
 
 	}
