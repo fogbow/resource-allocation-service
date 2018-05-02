@@ -1,6 +1,5 @@
 package org.fogbowcloud.manager.core.datastructures;
 
-import com.sun.corba.se.impl.orbutil.concurrent.Sync;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.models.linkedList.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -40,9 +39,11 @@ public class OrderStateTransitionerTest {
     @After
     public void tearDown() {
         SharedOrderHolders instance = SharedOrderHolders.getInstance();
+
+        // Clearing the lists if we are not mocking them
         if (!mockUtil.isMock(instance)) {
             for (OrderState state : OrderState.values()) {
-                SynchronizedDoublyLinkedList ordersList = SharedOrderHolders.getInstance().getOrdersList(state);
+                SynchronizedDoublyLinkedList ordersList = instance.getOrdersList(state);
 
                 ordersList.resetPointer();
                 Order order;
@@ -58,8 +59,9 @@ public class OrderStateTransitionerTest {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 
-        SynchronizedDoublyLinkedList openOrdersList = SharedOrderHolders.getInstance().getOpenOrdersList();
-        SynchronizedDoublyLinkedList spawningOrdersList = SharedOrderHolders.getInstance().getSpawningOrdersList();
+        SharedOrderHolders orderHolders = SharedOrderHolders.getInstance();
+        SynchronizedDoublyLinkedList openOrdersList = orderHolders.getOpenOrdersList();
+        SynchronizedDoublyLinkedList spawningOrdersList = orderHolders.getSpawningOrdersList();
 
         Order order = createOrder(originState);
         openOrdersList.addItem(order);
@@ -71,7 +73,8 @@ public class OrderStateTransitionerTest {
 
     @Test
     public void testTransitioningToTheCurrentState() {
-        SynchronizedDoublyLinkedList openOrdersList = SharedOrderHolders.getInstance().getOpenOrdersList();
+        SharedOrderHolders orderHolders = SharedOrderHolders.getInstance();
+        SynchronizedDoublyLinkedList openOrdersList = orderHolders.getOpenOrdersList();
         Order order = createOrder(OrderState.OPEN);
         openOrdersList.addItem(order);
 
