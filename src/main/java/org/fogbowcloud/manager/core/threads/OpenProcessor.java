@@ -32,10 +32,10 @@ public class OpenProcessor implements Runnable {
 	private static final Logger LOGGER = Logger.getLogger(OpenProcessor.class);
 
 	public OpenProcessor(InstanceProvider localInstanceProvider, InstanceProvider remoteInstanceProvider,
-			String localMemberId, Properties properties) {
+			Properties properties) {
 		this.localInstanceProvider = localInstanceProvider;
 		this.remoteInstanceProvider = remoteInstanceProvider;
-		this.localMemberId = localMemberId;
+		this.localMemberId = properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
 
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		this.openOrdersList = sharedOrderHolders.getOpenOrdersList();
@@ -47,19 +47,25 @@ public class OpenProcessor implements Runnable {
 
 	@Override
 	public void run() {
-		while (true) {
+		boolean isActive = true;
+		while (isActive) {
 			try {
 				Order order = this.openOrdersList.getNext();
 				if (order != null) {
-					this.processOpenOrder(order);
+					try {
+						this.processOpenOrder(order);
+					} catch (Throwable e) {
+						LOGGER.error("Error while trying to process the order" + order, e);
+					}
 				} else {
 					this.openOrdersList.resetPointer();
 					LOGGER.info(
 							"There is no open order to be processed, sleeping for " + this.sleepTime + " milliseconds");
 					Thread.sleep(this.sleepTime);
 				}
-			} catch (Throwable e) {
-				LOGGER.error("Error while trying to process an open order", e);
+			} catch (InterruptedException e) {
+				isActive = false;
+				LOGGER.warn("Thread interrupted", e);
 			}
 		}
 	}
@@ -72,7 +78,7 @@ public class OpenProcessor implements Runnable {
 	 * @param order
 	 * @throws OrderStateTransitionException
 	 */
-	protected void processOpenOrder(Order order) throws OrderStateTransitionException {
+	private void processOpenOrder(Order order) throws OrderStateTransitionException {
 		// The order object synchronization is needed to prevent a race
 		// condition on order access. For example: a user can delete a Open
 		// Order while this
@@ -112,7 +118,7 @@ public class OpenProcessor implements Runnable {
 	 * @param order
 	 * @throws OrderStateTransitionException
 	 */
-	protected void updateOrderStateAfterProcessing(Order order) throws OrderStateTransitionException {
+	private void updateOrderStateAfterProcessing(Order order) throws OrderStateTransitionException {
 		if (order.isLocal(this.localMemberId)) {
 			OrderInstance orderInstance = order.getOrderInstance();
 			String orderInstanceId = orderInstance.getId();
@@ -146,7 +152,7 @@ public class OpenProcessor implements Runnable {
 	 * @return Local InstanceProvider if the Order is Local, or Remote
 	 *         InstanceProvider if the Order is Remote
 	 */
-	protected InstanceProvider getInstanceProviderForOrder(Order order) {
+	private InstanceProvider getInstanceProviderForOrder(Order order) {
 		InstanceProvider instanceProvider = null;
 		if (order.isLocal(this.localMemberId)) {
 			LOGGER.info("The open order [" + order.getId() + "] is local");

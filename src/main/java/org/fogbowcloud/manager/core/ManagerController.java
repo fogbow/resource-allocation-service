@@ -25,7 +25,7 @@ public class ManagerController {
 		this.remoteInstanceProvider = remoteInstanceProvider;
 
 		OpenProcessor openProcessor = new OpenProcessor(this.localInstanceProvider,
-				this.remoteInstanceProvider, this.localMemberId, properties);
+				this.remoteInstanceProvider, properties);
 		this.openProcessorThread = new Thread(openProcessor);
 		
 		this.startManagerThreads();
