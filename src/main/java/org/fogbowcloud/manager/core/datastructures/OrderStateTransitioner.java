@@ -29,8 +29,9 @@ public class OrderStateTransitioner {
             throw new OrderStateTransitionException(message);
         }
 
-        SynchronizedDoublyLinkedList origin = SharedOrderHolders.getInstance().getOrdersList(currentState);
-        SynchronizedDoublyLinkedList destination = SharedOrderHolders.getInstance().getOrdersList(newState);
+        SharedOrderHolders ordersHolder = SharedOrderHolders.getInstance();
+        SynchronizedDoublyLinkedList origin = ordersHolder.getOrdersList(currentState);
+        SynchronizedDoublyLinkedList destination = ordersHolder.getOrdersList(newState);
 
         if (origin == null) {
             String message = String.format("Could not find list for state %s", currentState);
