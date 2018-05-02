@@ -57,6 +57,10 @@ public abstract class Order {
 		return federationToken;
 	}
 
+	public void setFederationToken(Token federationToken) {
+		this.federationToken = federationToken;
+	}
+
 	public String getRequestingMember() {
 		return requestingMember;
 	}
