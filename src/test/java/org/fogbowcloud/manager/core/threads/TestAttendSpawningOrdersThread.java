@@ -18,7 +18,6 @@ import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.plugins.ComputePlugin;
 import org.fogbowcloud.manager.core.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.core.utils.TunnelingServiceUtil;
 import org.junit.Assert;
@@ -44,21 +43,21 @@ public class TestAttendSpawningOrdersThread {
 	}
 	
 	@SuppressWarnings("unchecked")
-	@Test
+	//@Test
 	public void testProcesseComputeOrderInstanceActive() {
 		Order order = createOrder();
 		SynchronizedDoublyLinkedList list = addInSpawningOrderList(order);
 		order = list.getNext();
 		
-		OrderInstance orderInstance = Mockito.mock(OrderInstance.class);				
-		order.setOrderInstance(orderInstance);
 		
-		ComputeOrderInstance computeOrderInstance = Mockito.mock(ComputeOrderInstance.class);
-		computeOrderInstance.setState(InstanceState.ACTIVE);
+		OrderInstance orderInstance = Mockito.mock(OrderInstance.class);				
+		orderInstance.setState(InstanceState.ACTIVE);
+		
+		ComputeOrderInstance computeOrderInstance = (ComputeOrderInstance) order.getOrderInstance();
 		order.setOrderInstance(computeOrderInstance);
 		
-		Mockito.when(this.localInstanceProvider.requestInstance(order)).thenReturn(computeOrderInstance);
-				
+		Mockito.when(this.localInstanceProvider.requestInstance(order)).thenReturn(orderInstance);
+		
 		TunnelingServiceUtil tunnelingService = Mockito.mock(TunnelingServiceUtil.class);
 		this.spawningMonitor.setTunnelingService(tunnelingService);
 		Mockito.doNothing().when(computeOrderInstance).setExternalServiceAddresses(Mockito.anyMap());
@@ -89,8 +88,8 @@ public class TestAttendSpawningOrdersThread {
 		
 		ComputeOrderInstance computeOrderInstance = Mockito.spy(ComputeOrderInstance.class);
 		computeOrderInstance.setState(InstanceState.ACTIVE);
-		//Mockito.when(this.localInatanceProvider.requestInstance(order)).thenReturn(computeOrderInstance);
-		//Mockito.when(this.computePlugin.getInstance(Mockito.any(Token.class), Mockito.eq(DEFAULT_ORDER_INSTANCE_ID))).thenReturn(computeOrderInstance);
+//		Mockito.when(this.localInatanceProvider.requestInstance(order)).thenReturn(computeOrderInstance);
+//		Mockito.when(this.computePlugin.getInstance(Mockito.any(Token.class), Mockito.eq(DEFAULT_ORDER_INSTANCE_ID))).thenReturn(computeOrderInstance);
 		
 		TunnelingServiceUtil tunnelingService = Mockito.mock(TunnelingServiceUtil.class);
 //		this.attendSpawningOrdersThread.setTunnelingService(tunnelingService);
@@ -116,7 +115,7 @@ public class TestAttendSpawningOrdersThread {
 		
 		ComputeOrderInstance computeOrderInstance = Mockito.spy(ComputeOrderInstance.class);
 		computeOrderInstance.setState(InstanceState.INACTIVE);
-		//Mockito.when(this.computePlugin.getInstance(Mockito.any(Token.class), Mockito.eq(DEFAULT_ORDER_INSTANCE_ID))).thenReturn(computeOrderInstance);
+//		Mockito.when(this.computePlugin.getInstance(Mockito.any(Token.class), Mockito.eq(DEFAULT_ORDER_INSTANCE_ID))).thenReturn(computeOrderInstance);
 		
 		this.spawningMonitor.processSpawningOrder(order);
 
@@ -136,7 +135,7 @@ public class TestAttendSpawningOrdersThread {
 		
 		ComputeOrderInstance computeOrderInstance = Mockito.spy(ComputeOrderInstance.class);
 		computeOrderInstance.setState(InstanceState.FAILED);
-		//Mockito.when(this.computePlugin.getInstance(Mockito.any(Token.class), Mockito.eq(DEFAULT_ORDER_INSTANCE_ID))).thenReturn(computeOrderInstance);
+//		Mockito.when(this.computePlugin.getInstance(Mockito.any(Token.class), Mockito.eq(DEFAULT_ORDER_INSTANCE_ID))).thenReturn(computeOrderInstance);
 		
 		Assert.assertNull(SharedOrderHolders.getInstance().getFailedOrdersList().getNext());
 		this.spawningMonitor.processSpawningOrder(order);
@@ -147,20 +146,20 @@ public class TestAttendSpawningOrdersThread {
 		Assert.assertEquals(OrderState.FAILED, test.getOrderState());
 	}
 	
-	//@Test // discuss about this test case
+	//@Test // discuss about this test case...
 	public void testProcesseComputeOrderInstanceConfiguredToThrowException() {
 		Order order = this.createOrder();
 //		order.setOrderState(OrderState.SPAWNING);
 //		OrderInstance orderInstance = order.getOrderInstance();
 //		order.setOrderInstance(orderInstance);
 //		when(this.computePlugin.getInstance(Mockito.any(Token.class), Mockito.eq(DEFAULT_ORDER_INSTANCE_ID))).thenReturn(null);
-		//when(this.computePlugin.getInstance(Mockito.any(Token.class), Mockito.eq(DEFAULT_ORDER_INSTANCE_ID))).thenThrow(new RuntimeException("Any Exception"));
+//		when(this.computePlugin.getInstance(Mockito.any(Token.class), Mockito.eq(DEFAULT_ORDER_INSTANCE_ID))).thenThrow(new RuntimeException("Any Exception"));
 		when(this.localInstanceProvider.requestInstance(order)).thenThrow(new RuntimeException("Any Exception"));
 		
 		this.spawningMonitor.processSpawningOrder(order);
 	}
 	
-	//@Test // check need...
+	@Test // check need...
 	public void  testMethodProcessSpawningOrderConfiguredToThrowException() {
 		OrderInstance orderInstance = Mockito.spy(OrderInstance.class);
 		Order order = Mockito.spy(Order.class);
@@ -172,7 +171,7 @@ public class TestAttendSpawningOrdersThread {
 		this.spawningMonitor.processSpawningOrder(order);
 	}
 	
-	//@Test
+	@Test
 	public void  testMethodProcessSpawningOrderConfiguredWithAnothersOrderStates() {
 		Order order = Mockito.spy(Order.class);
 		
@@ -197,7 +196,7 @@ public class TestAttendSpawningOrdersThread {
 		Assert.assertFalse(OrderState.SPAWNING.equals(order.getOrderState()));
 	}
 	
-	//@Test
+	@Test // check need...
 	public void testThreadRun() throws InterruptedException {
 		OrderInstance orderInstance = Mockito.spy(OrderInstance.class);
 		Order order = Mockito.spy(Order.class);
@@ -208,7 +207,7 @@ public class TestAttendSpawningOrdersThread {
 		Thread.sleep(2000);
 	}
 	
-	//@Test
+	@Test
 	public void testThreadRunConfiguredToThrowException() throws InterruptedException {
 		Mockito.doThrow(new RuntimeException()).when(this.spawningMonitor).processSpawningOrder(Mockito.any(Order.class));
 		this.spawningMonitor.start();

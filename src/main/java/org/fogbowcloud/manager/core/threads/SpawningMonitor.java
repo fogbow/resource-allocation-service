@@ -29,27 +29,28 @@ public class SpawningMonitor extends Thread {
 
 	private TunnelingServiceUtil tunnelingService;
 	private SshConnectivityUtil sshConnectivity;
-	
+
 	private Long sleepTime;
-	
+
 	public SpawningMonitor(InstanceProvider localInstanceProvider, Properties properties) {
 		this.localInstanceProvider = localInstanceProvider;
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();
-		
+
 		TunnelingServiceUtil tunnelingService = TunnelingServiceUtil.getInstance();
 		this.tunnelingService = tunnelingService;
-		
+
 		SshConnectivityUtil sshConnectivity = SshConnectivityUtil.getInstance();
 		this.sshConnectivity = sshConnectivity;
-		
-		String schedulerPeriodStr = properties.getProperty(ConfigurationConstants.OPEN_ORDERS_SLEEP_TIME_KEY, DefaultConfigurationConstants.OPEN_ORDERS_SLEEP_TIME);
+
+		String schedulerPeriodStr = properties.getProperty(ConfigurationConstants.OPEN_ORDERS_SLEEP_TIME_KEY,
+				DefaultConfigurationConstants.OPEN_ORDERS_SLEEP_TIME);
 		this.sleepTime = Long.valueOf(schedulerPeriodStr);
 	}
 
 	@Override
 	public void run() {
-		while(true) {
+		while (true) {
 			Order order = null;
 			try {
 				order = this.spawningOrderList.getNext();
@@ -57,7 +58,8 @@ public class SpawningMonitor extends Thread {
 					this.processSpawningOrder(order);
 				} else {
 					spawningOrderList.resetPointer();
-					LOGGER.info("There is no spawning order to be processed, sleeping for " + this.sleepTime + " milliseconds");
+					LOGGER.info("There is no spawning order to be processed, sleeping for " + this.sleepTime
+							+ " milliseconds");
 					Thread.sleep(this.sleepTime);
 				}
 			} catch (Throwable e) {
@@ -74,46 +76,45 @@ public class SpawningMonitor extends Thread {
 		synchronized (order) {
 			OrderState orderState = order.getOrderState();
 			if (orderState.equals(OrderState.SPAWNING)) {
-				LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");	
+				LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
 				try {
-					OrderInstance orderInstance = this.localInstanceProvider.requestInstance(order);
-					if (order.getType().equals(OrderType.COMPUTE)) {
-						processComputeInstance(order, orderInstance);
-					}					
+					
+					this.processInstance(order);
+					
 				} catch (Exception e) {
-					LOGGER.error("Error while trying to get an instance for order: " + System.lineSeparator() + order, e);
+					LOGGER.error("Error while trying to get an instance for order: " + System.lineSeparator() + order,
+							e);
 				}
 			} else {
 				LOGGER.info("This order state is not spawning for order [" + order.getId() + "]");
 			}
 		}
 	}
-	 
-	private void processComputeInstance(Order order, OrderInstance orderInstance) throws OrderStateTransitionException {
+
+	private void processInstance(Order order) throws OrderStateTransitionException {
 		// This method does not synchronize the order object because it is private and
 		// can only be called by the processSpawningOrder method.
-		ComputeOrderInstance computeOrderInstance = null;
-		try {
-			computeOrderInstance = (ComputeOrderInstance) orderInstance;
-			if (computeOrderInstance.getState().equals(InstanceState.FAILED)) {
+
+		OrderInstance orderInstance = order.getOrderInstance();
+		
+		if (order.getType().equals(OrderType.COMPUTE)) {
+			if (orderInstance.getState().equals(InstanceState.FAILED)) {
+				// TODO: log
 				OrderStateTransitioner.transition(order, OrderState.FAILED);
-			} else {
-				if (computeOrderInstance.getState().equals(InstanceState.ACTIVE)) {
-					LOGGER.info("Processing active compute instance for order [" + order.getId() + "]");
-					this.setTunnelingServiceAddresses(order, computeOrderInstance);
-					if (isActiveConnectionFromInstance(computeOrderInstance)) {
-						OrderStateTransitioner.transition(order, OrderState.FULFILLED);
-					} else {
-						LOGGER.warn("Failed attempt to communicate with ssh connectivity for order [" + order.getId()
-								+ "]");
-					}
+			} else if (orderInstance.getState().equals(InstanceState.ACTIVE)) {
+				LOGGER.info("Processing active compute instance for order [" + order.getId() + "]");
+
+				ComputeOrderInstance computeOrderInstance = (ComputeOrderInstance) orderInstance;
+
+				this.setTunnelingServiceAddresses(order, computeOrderInstance);
+				if (isActiveConnectionFromInstance(computeOrderInstance)) {
+					OrderStateTransitioner.transition(order, OrderState.FULFILLED);
 				} else {
-					LOGGER.info("The compute instance is inactive for order [" + order.getId() + "]");
+					LOGGER.warn("Failed attempt to communicate with ssh connectivity for order [" + order.getId() + "]");
 				}
+			} else {
+				LOGGER.info("The compute instance is inactive for order [" + order.getId() + "]");
 			}
-		} catch (Exception e) {
-			LOGGER.error("Error while trying to get the compute instance for order: " + System.lineSeparator() + order,
-					e);
 		}
 	}
 
@@ -128,12 +129,12 @@ public class SpawningMonitor extends Thread {
 					+ System.lineSeparator() + order, e);
 		}
 	}
-	
+
 	private boolean isActiveConnectionFromInstance(ComputeOrderInstance computeOrderInstance) {
 		LOGGER.info("Check the communicate at SSH connectivity of the compute instance.");
 		return this.sshConnectivity.checkSSHConnectivity(computeOrderInstance);
 	}
-	
+
 	protected void setTunnelingService(TunnelingServiceUtil tunnelingService) {
 		this.tunnelingService = tunnelingService;
 	}
