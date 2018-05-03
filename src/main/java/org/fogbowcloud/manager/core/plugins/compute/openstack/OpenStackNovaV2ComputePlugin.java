@@ -36,6 +36,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private static final String VCPU_JSON_FIELD = "vcpus";
     private static final String MEMORY_JSON_FIELD = "ram";
     private static final String FLAVOR_JSON_OBJECT = "flavor";
+    private static final String FLAVOR_JSON_KEY = "flavors";
     private static final String KEY_JSON_FIELD = "key_name";
     private static final String PUBLIC_KEY_JSON_FIELD = "public_key";
     private static final String KEYPAIR_JSON_FIELD = "keypair";
@@ -68,7 +69,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         LOGGER.debug("Requesting instance with token=" + computeOrder.getLocalToken());
 
         Token localToken = computeOrder.getLocalToken();
-        Flavor flavor = updateAndFindSmallestFlavor(computeOrder);
+        Flavor flavor = findSmallestFlavor(computeOrder);
         String flavorId = flavor.getId();
         String tenantId = getTenantId(localToken);
         String networkId = getNetworkId();
@@ -81,7 +82,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             JSONObject json = generateJsonRequest(imageId, flavorId, userDataContent, keyName, networkId);
             String jsonResponse = doPostRequest(endpoint, localToken, json);
 
-            return getAttFromJson(ID_JSON_FIELD, jsonResponse);
+            String instanceId = getAttFromJson(ID_JSON_FIELD, jsonResponse);
+            return instanceId;
         } catch (JSONException e) {
             LOGGER.error("Invalid JSON key: " + e);
             throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
@@ -97,7 +99,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     private void initClient() {
-        HttpRequestUtil.init(properties);
+        HttpRequestUtil.init(this.properties);
         this.client = HttpRequestUtil.createHttpClient();
     }
 
@@ -107,7 +109,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     protected String getNetworkId() {
-        return properties.getProperty(COMPUTE_NOVAV2_NETWORK_KEY);
+        return this.properties.getProperty(COMPUTE_NOVAV2_NETWORK_KEY);
     }
 
     protected String getKeyName(String tenantId, Token localToken, String publicKey) throws RequestException {
@@ -135,13 +137,15 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     protected String getComputeEndpoint(String tenantId, String suffix) {
-        return properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + tenantId + suffix;
+        return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) +
+                COMPUTE_V2_API_ENDPOINT + tenantId + suffix;
     }
 
     private String getAttFromJson(String attName, String jsonStr) throws JSONException {
         JSONObject root = new JSONObject(jsonStr);
         JSONObject serveJson = root.getJSONObject(SERVER_JSON_FIELD);
-        return serveJson.getString(attName);
+        String jsonAttValue = serveJson.getString(attName);
+        return jsonAttValue;
     }
 
     protected void deleteKeyName(String tenantId, Token localToken, String keyName) throws RequestException {
@@ -159,7 +163,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         try {
             HttpDelete request = new HttpDelete(endpoint);
             request.addHeader(RequestHeaders.X_AUTH_TOKEN.getValue(), localToken.getAccessId());
-            response = client.execute(request);
+            response = this.client.execute(request);
         } catch (Exception e) {
             LOGGER.error("Impossible to complete the DELETE request: " + e);
             throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
@@ -188,7 +192,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             request.addHeader(RequestHeaders.X_AUTH_TOKEN.getValue(), localToken.getAccessId());
 
             request.setEntity(new StringEntity(jsonRequest.toString(), StandardCharsets.UTF_8));
-            response = client.execute(request);
+            response = this.client.execute(request);
             responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         } catch (Exception e) {
             LOGGER.error("Impossible to complete the POST request: " + e);
@@ -241,24 +245,23 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         LOGGER.debug("Checking status response...");
 
         StatusResponseMap statusResponseMap = new StatusResponseMap(response, message);
-        StatusResponse statusResponse = statusResponseMap.getStatusResponse(response.getStatusLine().getStatusCode());
+        Integer statusCode = response.getStatusLine().getStatusCode();
+        StatusResponse statusResponse = statusResponseMap.getStatusResponse(statusCode);
 
         if (statusResponse != null) {
             throw new RequestException(statusResponse.getErrorType(), statusResponse.getResponseConstants());
         }
     }
 
-    protected Flavor updateAndFindSmallestFlavor(ComputeOrder computeOrder) {
+    protected Flavor findSmallestFlavor(ComputeOrder computeOrder) {
         updateFlavors(computeOrder.getLocalToken());
-        return findSmallestFlavor(computeOrder);
-    }
 
-    private Flavor findSmallestFlavor(ComputeOrder computeOrder) {
         LOGGER.debug("Finding smallest flavor...");
 
-        Flavor flavor = new Flavor(null, computeOrder.getvCPU(),
+        Flavor minimumFlavor = new Flavor(null, computeOrder.getvCPU(),
                 computeOrder.getMemory(), computeOrder.getDisk());
-        return flavors.ceiling(flavor);
+
+        return this.flavors.ceiling(minimumFlavor);
     }
 
     protected synchronized void updateFlavors(Token localToken) {
@@ -273,16 +276,16 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             String endpoint = getComputeEndpoint(tenantId, SUFFIX_ENDPOINT_FLAVORS);
             String jsonResponseFlavors = doGetRequest(endpoint, localToken);
 
-            Map<String, String> nameToFlavorId = new HashMap<>();
+            List<String> flavorsId = new ArrayList<>();
 
-            JSONArray jsonArrayFlavors = new JSONObject(jsonResponseFlavors).getJSONArray("flavors");
+            JSONArray jsonArrayFlavors = new JSONObject(jsonResponseFlavors).getJSONArray(FLAVOR_JSON_KEY);
 
             for (int i = 0; i < jsonArrayFlavors.length(); i++) {
                 JSONObject itemFlavor = jsonArrayFlavors.getJSONObject(i);
-                nameToFlavorId.put(itemFlavor.getString(NAME_JSON_FIELD), itemFlavor.getString(ID_JSON_FIELD));
+                flavorsId.add(itemFlavor.getString(ID_JSON_FIELD));
             }
 
-            TreeSet<Flavor> newFlavors = detailFlavors(endpoint, localToken, nameToFlavorId);
+            TreeSet<Flavor> newFlavors = detailFlavors(endpoint, localToken, flavorsId);
             if (newFlavors != null) {
                 this.flavors = newFlavors;
             }
@@ -293,34 +296,34 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     private TreeSet<Flavor> detailFlavors(String endpoint, Token localToken,
-                                       Map<String, String> nameToIdFlavor) throws JSONException, RequestException {
+                                       List<String> flavorsId) throws JSONException, RequestException {
         TreeSet<Flavor> newFlavors = new TreeSet<>();
-        TreeSet<Flavor> flavorsCopy = new TreeSet<>(flavors);
+        TreeSet<Flavor> flavorsCopy = new TreeSet<>(this.flavors);
 
-        for (String flavorName : nameToIdFlavor.keySet()) {
+        for (String flavorId : flavorsId) {
             boolean containsFlavor = false;
+
             for (Flavor flavor : flavorsCopy) {
-                if (flavor.getName().equals(flavorName)) {
+                if (flavor.getId().equals(flavorId)) {
                     containsFlavor = true;
+                    newFlavors.add(flavor);
                     break;
                 }
             }
-            if (containsFlavor) {
-                continue;
+            if (! containsFlavor) {
+                String newEndpoint = endpoint + "/" + flavorId;
+                String jsonResponseSpecificFlavor = doGetRequest(newEndpoint, localToken);
+
+                JSONObject specificFlavor = new JSONObject(jsonResponseSpecificFlavor).getJSONObject(FLAVOR_JSON_OBJECT);
+
+                String id = specificFlavor.getString(ID_JSON_FIELD);
+                String name = specificFlavor.getString(NAME_JSON_FIELD);
+                int disk = specificFlavor.getInt(DISK_JSON_FIELD);
+                int ram = specificFlavor.getInt(MEMORY_JSON_FIELD);
+                int vcpus = specificFlavor.getInt(VCPU_JSON_FIELD);
+
+                newFlavors.add(new Flavor(name, id, vcpus, ram, disk));
             }
-
-            String newEndpoint = endpoint + "/" + nameToIdFlavor.get(flavorName);
-            String jsonResponseSpecificFlavor = doGetRequest(newEndpoint, localToken);
-
-            JSONObject specificFlavor = new JSONObject(jsonResponseSpecificFlavor).getJSONObject(FLAVOR_JSON_OBJECT);
-
-            String id = specificFlavor.getString(ID_JSON_FIELD);
-            String name = specificFlavor.getString(NAME_JSON_FIELD);
-            int disk = specificFlavor.getInt(DISK_JSON_FIELD);
-            int ram = specificFlavor.getInt(MEMORY_JSON_FIELD);
-            int vcpus = specificFlavor.getInt(VCPU_JSON_FIELD);
-
-            newFlavors.add(new Flavor(name, id, vcpus, ram, disk));
         }
 
         return newFlavors;
@@ -338,7 +341,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             request.addHeader(RequestHeaders.ACCEPT.getValue(), RequestHeaders.JSON_CONTENT_TYPE.getValue());
             request.addHeader(RequestHeaders.X_AUTH_TOKEN.getValue(), localToken.getAccessId());
 
-            response = client.execute(request);
+            response = this.client.execute(request);
             responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         } catch (Exception e) {
             LOGGER.error("Could not make GET request.", e);
