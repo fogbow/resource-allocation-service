@@ -3,7 +3,6 @@ package org.fogbowcloud.manager.core.utils;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.constants.CommonConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
 import org.fogbowcloud.manager.core.threads.SpawningMonitor;
@@ -32,14 +31,11 @@ public class SshConnectivityUtil {
 	}
 
 	public boolean checkSSHConnectivity(ComputeOrderInstance computeOrderInstance) {
-		if (computeOrderInstance == null || computeOrderInstance.getTunnelingPorts() == null || computeOrderInstance
-				.getTunnelingPorts().get(CommonConfigurationConstants.SSH_PUBLIC_ADDRESS_ATT) == null) {
+		if (computeOrderInstance == null || computeOrderInstance.getSshPublicAddress() == null) {
 			return false;
 		}
 		try {
-			Command sshOutput = execOnInstance(
-					computeOrderInstance.getTunnelingPorts().get(CommonConfigurationConstants.SSH_PUBLIC_ADDRESS_ATT),
-					"echo HelloWorld");
+			Command sshOutput = execOnInstance(computeOrderInstance.getSshPublicAddress(), "echo HelloWorld");
 			if (sshOutput.getExitStatus() == 0) {
 				return true;
 			}

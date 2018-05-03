@@ -45,23 +45,24 @@ public class SpawningMonitor extends Thread {
 
 	@Override
 	public void run() {
-		while (true) {
-			Order order = null;
+		boolean isActive = true;
+		while (isActive) {
 			try {
-				order = this.spawningOrderList.getNext();
+				Order order = this.spawningOrderList.getNext();
 				if (order != null) {
-					this.processSpawningOrder(order);
+					try {
+						this.processSpawningOrder(order);
+					} catch (Throwable e) {
+						LOGGER.error("Error while trying to process the order " + order, e);						
+					}
 				} else {
-					LOGGER.info("There is no spawning order to be processed, sleeping for " + this.sleepTime + " milliseconds");
 					this.spawningOrderList.resetPointer();
+					LOGGER.info("There is no spawning order to be processed, sleeping for " + this.sleepTime + " milliseconds");
 					Thread.sleep(this.sleepTime);
 				}
-			} catch (Throwable e) {
-				String orderId = null;
-				if (order != null) {
-					orderId = order.getId();
-				}
-				LOGGER.error("Error while trying to thread sleep attending the order: [" + orderId + "]", e);
+			} catch (InterruptedException e) {
+				isActive = false;
+				LOGGER.warn("Thread interrupted", e);
 			}
 		}
 	}
@@ -82,47 +83,62 @@ public class SpawningMonitor extends Thread {
 		}
 	}
 
+	/**
+	 * This method does not synchronize the order object because it is private and
+	 * can only be called by the processSpawningOrder method.
+	 */
 	private void processInstance(Order order) throws OrderStateTransitionException {
-		OrderInstance orderInstance = order.getOrderInstance();		
-		
+
+		OrderInstance orderInstance = order.getOrderInstance();
+
 		if (order.getType().equals(OrderType.COMPUTE)) {
 			if (orderInstance.getState().equals(InstanceState.FAILED)) {
 				LOGGER.info("The compute instance state is failed for order [" + order.getId() + "]");
 				OrderStateTransitioner.transition(order, OrderState.FAILED);
-			
+
 			} else if (orderInstance.getState().equals(InstanceState.ACTIVE)) {
 				LOGGER.info("Processing active compute instance for order [" + order.getId() + "]");
-				
+
 				ComputeOrderInstance computeOrderInstance = (ComputeOrderInstance) orderInstance;
 				this.setTunnelingServiceAddresses(order, computeOrderInstance);
-				
+
 				if (this.isActiveConnectionFromInstance(computeOrderInstance)) {
-					OrderStateTransitioner.transition(order, OrderState.FULFILLED);				
-				} else {
-					LOGGER.warn("Failed attempt to communicate with ssh connectivity for order [" + order.getId() + "]");
+					OrderStateTransitioner.transition(order, OrderState.FULFILLED);
 				}
-				
+
 			} else {
 				LOGGER.info("The compute instance state is inactive for order [" + order.getId() + "]");
 			}
 		}
 	}
 
+	/**
+	 * This method does not synchronize the order object because it is private and
+	 * can only be called by the processInstance method.
+	 */
 	private void setTunnelingServiceAddresses(Order order, ComputeOrderInstance computeOrderInstance) {
 		try {
 			Map<String, String> externalServiceAddresses = tunnelingService.getExternalServiceAddresses(order.getId());
 			if (externalServiceAddresses != null) {
 				computeOrderInstance.setExternalServiceAddresses(externalServiceAddresses);
 			}
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			LOGGER.error("Error trying to get map of addresses (IP and Port) of the compute instance for order: "
 					+ System.lineSeparator() + order, e);
 		}
 	}
 
+	/**
+	 * This method does not synchronize the order object because it is private and
+	 * can only be called by the processInstance method.
+	 */
 	private boolean isActiveConnectionFromInstance(ComputeOrderInstance computeOrderInstance) {
 		LOGGER.info("Check the communicate at SSH connectivity of the compute instance.");
-		return this.sshConnectivity.checkSSHConnectivity(computeOrderInstance);
+		if (this.sshConnectivity.checkSSHConnectivity(computeOrderInstance)) {
+			return true;
+		} 
+		LOGGER.warn("Failed attempt to communicate with ssh connectivity.");				
+		return false;
 	}
 
 	protected void setTunnelingService(TunnelingServiceUtil tunnelingService) {
