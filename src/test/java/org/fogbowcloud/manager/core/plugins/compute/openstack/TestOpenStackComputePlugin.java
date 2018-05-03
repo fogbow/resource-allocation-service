@@ -150,16 +150,16 @@ public class TestOpenStackComputePlugin {
         assertNotNull(name);
 
         String image = server.getString("imageRef");
-        assertNotNull(image);
+        assertEquals("imageRef", image);
 
         String key = server.getString("key_name");
-        assertNotNull(key);
+        assertEquals("keyName", key);
 
         String flavor = server.getString("flavorRef");
-        assertNotNull(flavor);
+        assertEquals("flavorRef", flavor);
 
         String user = server.getString("user_data");
-        assertNotNull(user);
+        assertEquals("user-data", user);
 
         JSONArray net = server.getJSONArray("networks");
         assertNotNull(net);
@@ -167,7 +167,7 @@ public class TestOpenStackComputePlugin {
         assertEquals("netId", net.getJSONObject(0).getString("uuid"));
     }
 
-    @Test
+    @Test(expected = JSONException.class)
     public void testGenerateJsonRequestWithoutUserData() {
         JSONObject json = novaV2ComputeOpenStack.generateJsonRequest("imageRef",
                 "flavorRef", null, "keyName", "netId");
@@ -180,27 +180,23 @@ public class TestOpenStackComputePlugin {
         assertNotNull(name);
 
         String image = server.getString("imageRef");
-        assertNotNull(image);
+        assertEquals("imageRef", image);
 
         String key = server.getString("key_name");
-        assertNotNull(key);
+        assertEquals("keyName", key);
 
         String flavor = server.getString("flavorRef");
-        assertNotNull(flavor);
+        assertEquals("flavorRef", flavor);
 
         JSONArray net = server.getJSONArray("networks");
         assertNotNull(net);
         assertEquals(1, net.length());
         assertEquals("netId", net.getJSONObject(0).getString("uuid"));
 
-        try {
-            server.get("user_data");
-        } catch (JSONException exception) {
-            // do nothing
-        }
+        server.get("user_data");
     }
 
-    @Test
+    @Test(expected = JSONException.class)
     public void testGenerateJsonRequestWithoutNetwork() {
         JSONObject json = novaV2ComputeOpenStack.generateJsonRequest("imageRef",
                 "flavorRef", "user-data", "keyName", null);
@@ -212,26 +208,19 @@ public class TestOpenStackComputePlugin {
         String name = server.getString("name");
         assertNotNull(name);
 
-        String key = server.getString("key_name");
-        assertNotNull(key);
-
         String image = server.getString("imageRef");
-        assertNotNull(image);
+        assertEquals("imageRef", image);
+
+        String key = server.getString("key_name");
+        assertEquals("keyName", key);
 
         String flavor = server.getString("flavorRef");
-        assertNotNull(flavor);
+        assertEquals("flavorRef", flavor);
 
-        try {
-            server.getJSONArray("networks");
-        } catch (JSONException e) {
-            // do nothing
-        }
-
-        String user = server.getString("user_data");
-        assertNotNull(user);
+        server.getJSONArray("networks");
     }
 
-    @Test
+    @Test(expected = JSONException.class)
     public void testGenerateJsonRequestWithoutKeyName() {
         JSONObject json = novaV2ComputeOpenStack.generateJsonRequest("imageRef",
                 "flavorRef", "user-data", null, "netId");
@@ -244,23 +233,16 @@ public class TestOpenStackComputePlugin {
         assertNotNull(name);
 
         String image = server.getString("imageRef");
-        assertNotNull(image);
-
-        try {
-            server.getString("key_name");
-        } catch (JSONException e) {
-            // do nothing
-        }
+        assertEquals("imageRef", image);
 
         String flavor = server.getString("flavorRef");
-        assertNotNull(flavor);
-
-        String user = server.getString("user_data");
-        assertNotNull(user);
+        assertEquals("flavorRef", flavor);
 
         JSONArray net = server.getJSONArray("networks");
         assertNotNull(net);
         assertEquals(1, net.length());
         assertEquals("netId", net.getJSONObject(0).getString("uuid"));
+
+        server.getString("key_name");
     }
 }
