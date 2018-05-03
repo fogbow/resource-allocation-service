@@ -54,8 +54,8 @@ public class OpenProcessor implements Runnable {
 				if (order != null) {
 					try {
 						this.processOpenOrder(order);
-					} catch (Throwable e) {
-						LOGGER.error("Error while trying to process the order" + order, e);
+					} catch (OrderStateTransitionException e) {
+						LOGGER.error("Error while trying to changing the state of order " + order, e);
 					}
 				} else {
 					this.openOrdersList.resetPointer();
@@ -66,6 +66,11 @@ public class OpenProcessor implements Runnable {
 			} catch (InterruptedException e) {
 				isActive = false;
 				LOGGER.warn("Thread interrupted", e);
+			} catch (Throwable e) {
+				// We are not sure about what do if the thread catch a
+				// Throwable. For example: stop the thread and the
+				// fogbow-manager or continue the thread normally.
+				LOGGER.error("Not expected error", e);
 			}
 		}
 	}
@@ -78,11 +83,10 @@ public class OpenProcessor implements Runnable {
 	 * @param order
 	 * @throws OrderStateTransitionException
 	 */
-	private void processOpenOrder(Order order) throws OrderStateTransitionException {
+	protected void processOpenOrder(Order order) throws OrderStateTransitionException {
 		// The order object synchronization is needed to prevent a race
 		// condition on order access. For example: a user can delete a Open
-		// Order while this
-		// method is trying to get an Instance for this Order.
+		// Order while this method is trying to get an Instance for this Order.
 		synchronized (order) {
 			OrderState orderState = order.getOrderState();
 
