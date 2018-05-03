@@ -4,6 +4,7 @@ import java.util.Properties;
 
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
+import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.models.linkedList.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -29,6 +30,8 @@ public class TestOpenProcessor {
 
 	private Properties properties;
 
+	private Thread thread;
+
 	@Before
 	public void setUp() {
 		String localMemberId = "local-member";
@@ -38,12 +41,18 @@ public class TestOpenProcessor {
 		this.localInstanceProvider = Mockito.mock(InstanceProvider.class);
 		this.remoteInstanceProvider = Mockito.mock(InstanceProvider.class);
 
+		this.thread = null;
+
 		this.openProcessor = Mockito
 				.spy(new OpenProcessor(this.localInstanceProvider, this.remoteInstanceProvider, this.properties));
 	}
-	
+
 	@After
 	public void tearDown() {
+		if (thread != null) {
+			this.thread.interrupt();
+		}
+
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		this.cleanList(sharedOrderHolders.getClosedOrdersList());
 		this.cleanList(sharedOrderHolders.getFailedOrdersList());
@@ -52,7 +61,7 @@ public class TestOpenProcessor {
 		this.cleanList(sharedOrderHolders.getPendingOrdersList());
 		this.cleanList(sharedOrderHolders.getSpawningOrdersList());
 	}
-	
+
 	private void cleanList(ChainedList list) {
 		list.resetPointer();
 		Order order = null;
@@ -84,10 +93,10 @@ public class TestOpenProcessor {
 
 		Mockito.doReturn(orderInstance).when(this.localInstanceProvider).requestInstance(Mockito.any(Order.class));
 
-		Thread thread = new Thread(this.openProcessor);
-		thread.start();
+		this.thread = new Thread(this.openProcessor);
+		this.thread.start();
 
-		Thread.sleep(1000);
+		Thread.sleep(500);
 
 		Assert.assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
 
@@ -96,8 +105,6 @@ public class TestOpenProcessor {
 		ChainedList spawningOrdersList = sharedOrderHolders.getSpawningOrdersList();
 		Assert.assertTrue(this.listIsEmpty(openOrdersList));
 		Assert.assertSame(localOrder, spawningOrdersList.getNext());
-		
-		thread.interrupt();
 	}
 
 	/**
@@ -119,10 +126,10 @@ public class TestOpenProcessor {
 
 		Mockito.doReturn(orderInstance).when(this.localInstanceProvider).requestInstance(Mockito.any(Order.class));
 
-		Thread thread = new Thread(this.openProcessor);
-		thread.start();
+		this.thread = new Thread(this.openProcessor);
+		this.thread.start();
 
-		Thread.sleep(1000);
+		Thread.sleep(500);
 
 		Assert.assertEquals(OrderState.FAILED, localOrder.getOrderState());
 
@@ -131,8 +138,6 @@ public class TestOpenProcessor {
 		ChainedList failedOrdersList = sharedOrderHolders.getFailedOrdersList();
 		Assert.assertTrue(this.listIsEmpty(openOrdersList));
 		Assert.assertSame(localOrder, failedOrdersList.getNext());
-		
-		thread.interrupt();
 	}
 
 	/**
@@ -152,10 +157,10 @@ public class TestOpenProcessor {
 
 		Mockito.doReturn(null).when(this.localInstanceProvider).requestInstance(Mockito.any(Order.class));
 
-		Thread thread = new Thread(this.openProcessor);
-		thread.start();
+		this.thread = new Thread(this.openProcessor);
+		this.thread.start();
 
-		Thread.sleep(1000);
+		Thread.sleep(500);
 
 		Assert.assertEquals(OrderState.FAILED, localOrder.getOrderState());
 
@@ -164,8 +169,6 @@ public class TestOpenProcessor {
 		ChainedList failedOrdersList = sharedOrderHolders.getFailedOrdersList();
 		Assert.assertTrue(this.listIsEmpty(openOrdersList));
 		Assert.assertEquals(localOrder, failedOrdersList.getNext());
-		
-		thread.interrupt();
 	}
 
 	/**
@@ -186,10 +189,10 @@ public class TestOpenProcessor {
 		Mockito.doThrow(new RuntimeException("Any Exception")).when(this.localInstanceProvider)
 				.requestInstance(Mockito.any(Order.class));
 
-		Thread thread = new Thread(this.openProcessor);
-		thread.start();
+		this.thread = new Thread(this.openProcessor);
+		this.thread.start();
 
-		Thread.sleep(1000);
+		Thread.sleep(500);
 
 		Assert.assertEquals(OrderState.FAILED, localOrder.getOrderState());
 
@@ -198,8 +201,6 @@ public class TestOpenProcessor {
 		ChainedList failedOrdersList = sharedOrderHolders.getFailedOrdersList();
 		Assert.assertTrue(this.listIsEmpty(openOrdersList));
 		Assert.assertSame(localOrder, failedOrdersList.getNext());
-		
-		thread.interrupt();
 	}
 
 	/**
@@ -218,10 +219,10 @@ public class TestOpenProcessor {
 
 		Mockito.doReturn(null).when(this.remoteInstanceProvider).requestInstance(Mockito.any(Order.class));
 
-		Thread thread = new Thread(this.openProcessor);
-		thread.start();
+		this.thread = new Thread(this.openProcessor);
+		this.thread.start();
 
-		Thread.sleep(1000);
+		Thread.sleep(500);
 
 		Assert.assertEquals(OrderState.PENDING, remoteOrder.getOrderState());
 
@@ -230,8 +231,6 @@ public class TestOpenProcessor {
 		ChainedList pendingOrdersList = sharedOrderHolders.getPendingOrdersList();
 		Assert.assertTrue(this.listIsEmpty(openOrdersList));
 		Assert.assertSame(remoteOrder, pendingOrdersList.getNext());
-		
-		thread.interrupt();
 	}
 
 	/**
@@ -252,10 +251,10 @@ public class TestOpenProcessor {
 		Mockito.doThrow(new RuntimeException("Any Exception")).when(this.remoteInstanceProvider)
 				.requestInstance(Mockito.any(Order.class));
 
-		Thread thread = new Thread(this.openProcessor);
-		thread.start();
+		this.thread = new Thread(this.openProcessor);
+		this.thread.start();
 
-		Thread.sleep(1000);
+		Thread.sleep(500);
 
 		Assert.assertEquals(OrderState.FAILED, remoteOrder.getOrderState());
 
@@ -265,8 +264,6 @@ public class TestOpenProcessor {
 		ChainedList failedOrdersList = sharedOrderHolders.getFailedOrdersList();
 		Assert.assertTrue(this.listIsEmpty(openOrdersList));
 		Assert.assertEquals(remoteOrder, failedOrdersList.getNext());
-		
-		thread.interrupt();
 	}
 
 	/**
@@ -285,14 +282,13 @@ public class TestOpenProcessor {
 
 		order.setOrderState(OrderState.PENDING);
 
-		Thread thread = new Thread(this.openProcessor);
-		thread.start();
+		this.thread = new Thread(this.openProcessor);
+		this.thread.start();
 
-		Thread.sleep(1000);
+		Thread.sleep(500);
 
 		Assert.assertEquals(OrderState.PENDING, order.getOrderState());
-		
-		thread.interrupt();
+		Assert.assertFalse(this.listIsEmpty(openOrdersList));
 	}
 
 	/**
@@ -302,11 +298,50 @@ public class TestOpenProcessor {
 	 */
 	@Test
 	public void testRunProcessWithNullOpenOrder() throws InterruptedException {
-		Thread thread = new Thread(this.openProcessor);
-		thread.start();
+		this.thread = new Thread(this.openProcessor);
+		this.thread.start();
 
-		Thread.sleep(1000);
-		thread.interrupt();
+		Thread.sleep(500);
+	}
+
+	@Test
+	public void testProcessOpenOrderThrowingOrderStateTransitionException()
+			throws OrderStateTransitionException, InterruptedException {
+		Order order = this.createLocalOrder();
+
+		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+		ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
+		openOrdersList.addItem(order);
+
+		Mockito.doThrow(OrderStateTransitionException.class).when(this.openProcessor)
+				.processOpenOrder(Mockito.any(Order.class));
+
+		this.thread = new Thread(this.openProcessor);
+		this.thread.start();
+
+		Thread.sleep(500);
+
+		Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+		Assert.assertFalse(this.listIsEmpty(openOrdersList));
+	}
+
+	@Test
+	public void testProcessOpenOrderThrowingAnException() throws OrderStateTransitionException, InterruptedException {
+		Order order = this.createLocalOrder();
+
+		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+		ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
+		openOrdersList.addItem(order);
+
+		Mockito.doThrow(Exception.class).when(this.openProcessor).processOpenOrder(Mockito.any(Order.class));
+
+		this.thread = new Thread(this.openProcessor);
+		this.thread.start();
+
+		Thread.sleep(500);
+
+		Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+		Assert.assertFalse(this.listIsEmpty(openOrdersList));
 	}
 
 	/**
@@ -327,10 +362,9 @@ public class TestOpenProcessor {
 
 		Mockito.doReturn(orderInstance).when(this.localInstanceProvider).requestInstance(Mockito.any(Order.class));
 
-		Thread thread;
 		synchronized (localOrder) {
-			thread = new Thread(this.openProcessor);
-			thread.start();
+			this.thread = new Thread(this.openProcessor);
+			this.thread.start();
 
 			Thread.sleep(500);
 
@@ -340,8 +374,6 @@ public class TestOpenProcessor {
 		Thread.sleep(500);
 
 		Assert.assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
-		
-		thread.interrupt();
 	}
 
 	/**
@@ -356,10 +388,9 @@ public class TestOpenProcessor {
 		ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
 		openOrdersList.addItem(localOrder);
 
-		Thread thread;
 		synchronized (localOrder) {
-			thread = new Thread(this.openProcessor);
-			thread.start();
+			this.thread = new Thread(this.openProcessor);
+			this.thread.start();
 
 			Thread.sleep(500);
 
@@ -369,8 +400,6 @@ public class TestOpenProcessor {
 		Thread.sleep(500);
 
 		Assert.assertEquals(OrderState.CLOSED, localOrder.getOrderState());
-		
-		thread.interrupt();
 	}
 
 	/**
@@ -398,8 +427,8 @@ public class TestOpenProcessor {
 					}
 				});
 
-		Thread thread = new Thread(this.openProcessor);
-		thread.start();
+		this.thread = new Thread(this.openProcessor);
+		this.thread.start();
 
 		Thread.sleep(400);
 
@@ -410,8 +439,6 @@ public class TestOpenProcessor {
 		}
 
 		Assert.assertEquals(OrderState.OPEN, localOrder.getOrderState());
-		
-		thread.interrupt();
 	}
 
 	private Order createLocalOrder() {
