@@ -39,9 +39,11 @@ public class StatusResponseMap {
     }
 
     public StatusResponse getStatusResponse(Integer key) {
-        StatusResponse statusResponse = statusResponseMap.get(key);
-
-        return (statusResponse == null) ? new StatusResponse(ErrorType.BAD_REQUEST,
-                "Status code: " + httpResponse.getStatusLine().toString() + " | Message:" + httpResponse) : statusResponse;
+        if (key > 204) {
+            return new StatusResponse(ErrorType.BAD_REQUEST,
+                    "Status code: " + httpResponse.getStatusLine().toString() + " | Message:" + httpResponse);
+        } else {
+            return statusResponseMap.get(key);
+        }
     }
 }

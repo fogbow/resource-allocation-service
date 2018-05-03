@@ -46,20 +46,20 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
     private static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
     private static final String COMPUTE_NOVAV2_URL_KEY = "compute_novav2_url";
-    private final String COMPUTE_V2_API_ENDPOINT = "/v2/";
+    private final String COMPUTE_V2_API_ENDPOINT = "/v2.1/";
 
     private static final String COMPUTE_NOVAV2_NETWORK_KEY = "compute_novav2_network_id";
 
     private static final Logger LOGGER = Logger.getLogger(OpenStackNovaV2ComputePlugin.class);
 
-    private List<Flavor> flavors;
+    private TreeSet<Flavor> flavors;
     private Properties properties;
     private HttpClient client;
 
     public OpenStackNovaV2ComputePlugin(Properties properties) {
         LOGGER.debug("Creating OpenStackNovaV2ComputePlugin with properties=" + properties.toString());
 
-        this.flavors = new ArrayList<>();
+        this.flavors = new TreeSet<>();
         this.properties = properties;
         this.initClient();
     }
@@ -167,7 +167,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             try {
                 EntityUtils.consume(response.getEntity());
             } catch (Throwable t) {
-                // Do nothing
+                LOGGER.error("Error while consuming the response: " + t);
             }
         }
 
@@ -197,7 +197,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             try {
                 EntityUtils.consume(response.getEntity());
             } catch (Throwable t) {
-                // Do nothing
+                LOGGER.error("Error while consuming the response: " + t);
             }
         }
 
@@ -243,38 +243,22 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         StatusResponseMap statusResponseMap = new StatusResponseMap(response, message);
         StatusResponse statusResponse = statusResponseMap.getStatusResponse(response.getStatusLine().getStatusCode());
 
-        throw new RequestException(statusResponse.getErrorType(), statusResponse.getResponseConstants());
+        if (statusResponse != null) {
+            throw new RequestException(statusResponse.getErrorType(), statusResponse.getResponseConstants());
+        }
     }
 
     protected Flavor updateAndFindSmallestFlavor(ComputeOrder computeOrder) {
         updateFlavors(computeOrder.getLocalToken());
-
         return findSmallestFlavor(computeOrder);
     }
 
     private Flavor findSmallestFlavor(ComputeOrder computeOrder) {
-        List<Flavor> listFlavor = new ArrayList<>();
-        for (Flavor flavor : flavors) {
-            if (matches(flavor, computeOrder)) {
-                listFlavor.add(flavor);
-            }
-        }
+        LOGGER.debug("Finding smallest flavor...");
 
-        if (listFlavor.isEmpty()) {
-            return null;
-        }
-
-        return Collections.min(listFlavor);
-    }
-
-    private boolean matches(Flavor flavor, ComputeOrder computeOrder) {
-        if (flavor.getDisk() < computeOrder.getDisk()
-                || flavor.getCpu() < computeOrder.getvCPU()
-                || flavor.getMem() < computeOrder.getMemory()) {
-            return false;
-        }
-
-        return true;
+        Flavor flavor = new Flavor(null, computeOrder.getvCPU(),
+                computeOrder.getMemory(), computeOrder.getDisk());
+        return flavors.ceiling(flavor);
     }
 
     protected synchronized void updateFlavors(Token localToken) {
@@ -298,22 +282,20 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
                 nameToFlavorId.put(itemFlavor.getString(NAME_JSON_FIELD), itemFlavor.getString(ID_JSON_FIELD));
             }
 
-            List<Flavor> newFlavors = detailFlavors(endpoint, localToken, nameToFlavorId);
+            TreeSet<Flavor> newFlavors = detailFlavors(endpoint, localToken, nameToFlavorId);
             if (newFlavors != null) {
-                this.flavors.addAll(newFlavors);
+                this.flavors = newFlavors;
             }
-
-            removeInvalidFlavors(nameToFlavorId);
 
         } catch (Exception e) {
             LOGGER.warn("Error while updating flavors.", e);
         }
     }
 
-    private List<Flavor> detailFlavors(String endpoint, Token localToken,
+    private TreeSet<Flavor> detailFlavors(String endpoint, Token localToken,
                                        Map<String, String> nameToIdFlavor) throws JSONException, RequestException {
-        List<Flavor> newFlavors = new ArrayList<>();
-        List<Flavor> flavorsCopy = new ArrayList<>(flavors);
+        TreeSet<Flavor> newFlavors = new TreeSet<>();
+        TreeSet<Flavor> flavorsCopy = new TreeSet<>(flavors);
 
         for (String flavorName : nameToIdFlavor.keySet()) {
             boolean containsFlavor = false;
@@ -344,22 +326,6 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         return newFlavors;
     }
 
-    private void removeInvalidFlavors(Map<String, String> nameToIdFlavor) {
-        ArrayList<Flavor> copyFlavors = new ArrayList<>(flavors);
-
-        for (Flavor flavor : copyFlavors) {
-            boolean containsFlavor = false;
-            for (String flavorName : nameToIdFlavor.keySet()) {
-                if (flavorName.equals(flavor.getName())) {
-                    containsFlavor = true;
-                }
-            }
-            if (!containsFlavor) {
-                this.flavors.remove(flavor);
-            }
-        }
-    }
-
     protected String doGetRequest(String endpoint, Token localToken) throws RequestException {
         LOGGER.debug("Doing GET request to OpenStack...");
 
@@ -381,7 +347,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             try {
                 EntityUtils.consume(response.getEntity());
             } catch (Throwable t) {
-                // Do nothing
+                LOGGER.error("Error while consuming the response: " + t);
             }
         }
 
