@@ -1,7 +1,8 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
+
+import java.util.UUID;
 
 public class ComputeOrder extends Order {
 
@@ -19,66 +20,43 @@ public class ComputeOrder extends Order {
 
     private String publicKey;
 
-    public ComputeOrder(){ }
-
-    public ComputeOrder(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
-                        String providingMember, OrderInstance orderInstance, long fulfilledTime, int vCPU, int memory,
-                        int disk, String imageName, UserData userData, String publicKey) {
-        super(orderState, localToken, federationToken, requestingMember, providingMember, orderInstance, fulfilledTime);
+    /**
+     * Creating Order with predefined Id.
+     */
+    public ComputeOrder(String id, Token localToken, Token federationToken, String requestingMember,
+                        String providingMember, int vCPU, int memory, int disk, String imageName, UserData userData) {
+        super(id, localToken, federationToken, requestingMember, providingMember);
         this.vCPU = vCPU;
         this.memory = memory;
         this.disk = disk;
-        this.imageName= imageName;
+        this.imageName = imageName;
         this.userData = userData;
-        this.publicKey = publicKey;
+    }
+
+    public ComputeOrder(Token localToken, Token federationToken, String requestingMember, String providingMember,
+                        int vCPU, int memory, int disk, String imageName, UserData userData) {
+        this(UUID.randomUUID().toString(), localToken, federationToken, requestingMember, providingMember, vCPU, memory,
+                disk, imageName, userData);
     }
 
     public int getvCPU() {
         return vCPU;
     }
 
-    public void setvCPU(int vCPU) {
-        this.vCPU = vCPU;
-    }
-
     public int getMemory() {
         return memory;
-    }
-
-    public void setMemory(int memory) {
-        this.memory = memory;
     }
 
     public int getDisk() {
         return disk;
     }
 
-    public void setDisk(int disk) {
-        this.disk = disk;
-    }
-
     public String getImageName() {
         return imageName;
     }
 
-    public void setImageName(String imageName) {
-        this.imageName = imageName;
-    }
-
     public UserData getUserData() {
         return userData;
-    }
-
-    public void setUserData(UserData userData) {
-        this.userData = userData;
-    }
-
-    public String getPublicKey() {
-        return publicKey;
-    }
-
-    public void setPublicKey(String publicKey) {
-        this.publicKey = publicKey;
     }
 
     @Override
@@ -86,8 +64,7 @@ public class ComputeOrder extends Order {
         return OrderType.COMPUTE;
     }
 
-    @Override
-    public void handleOpenOrder() {
-        // TODO
+    public String getPublicKey() {
+        return publicKey;
     }
 }

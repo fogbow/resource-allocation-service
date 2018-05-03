@@ -23,10 +23,6 @@ public class Token {
 
 	private DateUtils dateUtils = new DateUtils();
 
-	public Token() {
-
-	}
-
 	public Token(String accessId, User user, Date expirationTime, Map<String, String> attributes) {
 		this.accessId = accessId;
 		this.user = user;
