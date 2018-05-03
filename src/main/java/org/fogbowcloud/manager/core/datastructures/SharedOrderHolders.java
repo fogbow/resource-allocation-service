@@ -2,6 +2,8 @@ package org.fogbowcloud.manager.core.datastructures;
 
 import org.fogbowcloud.manager.core.models.linkedList.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.OrderState;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -62,6 +64,34 @@ public class SharedOrderHolders {
 
     public SynchronizedDoublyLinkedList getClosedOrdersList() {
         return closedOrders;
+    }
+
+    public SynchronizedDoublyLinkedList getOrdersList(OrderState orderState) {
+        SynchronizedDoublyLinkedList list = null;
+        switch (orderState) {
+            case OPEN:
+                list = SharedOrderHolders.getInstance().getOpenOrdersList();
+                break;
+            case SPAWNING:
+                list = SharedOrderHolders.getInstance().getSpawningOrdersList();
+                break;
+            case PENDING:
+                list = SharedOrderHolders.getInstance().getPendingOrdersList();
+                break;
+            case FULFILLED:
+                list = SharedOrderHolders.getInstance().getFulfilledOrdersList();
+                break;
+            case CLOSED:
+                list = SharedOrderHolders.getInstance().getClosedOrdersList();
+                break;
+            case FAILED:
+                list = SharedOrderHolders.getInstance().getFailedOrdersList();
+                break;
+            default:
+                break;
+        }
+
+        return list;
     }
 
 }

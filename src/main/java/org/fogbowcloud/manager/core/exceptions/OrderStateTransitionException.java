@@ -13,4 +13,5 @@ public class OrderStateTransitionException extends Exception {
     public OrderStateTransitionException(String message) {
     	super(message);
     }
+
 }
