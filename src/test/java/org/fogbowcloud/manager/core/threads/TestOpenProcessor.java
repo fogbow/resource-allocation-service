@@ -49,7 +49,7 @@ public class TestOpenProcessor {
 
 	@After
 	public void tearDown() {
-		if (thread != null) {
+		if (this.thread != null) {
 			this.thread.interrupt();
 		}
 
@@ -75,9 +75,9 @@ public class TestOpenProcessor {
 	}
 
 	/**
-	 * Test if the method processOpenOrder is setting to SPAWNING an Open Local
-	 * Order when the requestInstance method of InstanceProvider returns an
-	 * Instance.
+	 * Test if the open processor is setting to spawning an open local order
+	 * when the request instance method of instance provider returns an
+	 * instance.
 	 * 
 	 * @throws Exception
 	 */
@@ -108,9 +108,9 @@ public class TestOpenProcessor {
 	}
 
 	/**
-	 * Test if the method processOpenOrder is setting to FAILED an Open Local
-	 * Order when the requestInstance method of InstanceProvider returns an
-	 * Instance with an empty Id.
+	 * Test if the open processor is setting to failed an open local order when
+	 * the request instance method of instance provider returns an instance with
+	 * an empty Id.
 	 * 
 	 * @throws Exception
 	 */
@@ -141,9 +141,8 @@ public class TestOpenProcessor {
 	}
 
 	/**
-	 * Test if the method processOpenOrder is setting to FAILED an Open Local
-	 * Order when the requestInstance method of InstanceProvider returns a null
-	 * Instance.
+	 * Test if the open processor is setting to failed an open local order when
+	 * the request instance method of instance provider returns a null instance.
 	 * 
 	 * @throws Exception
 	 */
@@ -172,9 +171,8 @@ public class TestOpenProcessor {
 	}
 
 	/**
-	 * Test if the method processOpenOrder is setting to FAILED an Open Local
-	 * Order when the requestInstance method of InstanceProvider throw an
-	 * Exception.
+	 * Test if the open processor is setting to failed an open local order when
+	 * the request instance method of instance provider throw an exception.
 	 * 
 	 * @throws Exception
 	 */
@@ -204,8 +202,7 @@ public class TestOpenProcessor {
 	}
 
 	/**
-	 * Test if the method processOpenOrder is setting to PENDING an Open Remote
-	 * Order.
+	 * Test if the open processor is setting to pending an open remote order.
 	 * 
 	 * @throws Exception
 	 */
@@ -234,9 +231,9 @@ public class TestOpenProcessor {
 	}
 
 	/**
-	 * Test if the method processOpenOrder is setting to FAILED an Open Remote
-	 * Order when the requestInstance method of Remote InstanceProvider throw an
-	 * Exception.
+	 * Test if the open processor is setting to fail an open remote order when
+	 * the request instance method of remote instance provider throw an
+	 * exception.
 	 * 
 	 * @throws Exception
 	 */
@@ -260,15 +257,14 @@ public class TestOpenProcessor {
 
 		// test if the open order list is empty and the failedList is with the
 		// localOrder
-
 		ChainedList failedOrdersList = sharedOrderHolders.getFailedOrdersList();
 		Assert.assertTrue(this.listIsEmpty(openOrdersList));
 		Assert.assertEquals(remoteOrder, failedOrdersList.getNext());
 	}
 
 	/**
-	 * Test if the processOpenOrder does not process an Order that is not in the
-	 * OPEN State.
+	 * Test if the open processor does not process an Order that is not in the
+	 * open state.
 	 * 
 	 * @throws InterruptedException
 	 */
@@ -292,7 +288,8 @@ public class TestOpenProcessor {
 	}
 
 	/**
-	 * Test if the OpenProcessor is not processing an null Order.
+	 * Test if the open processor still running if it try to process a null
+	 * order.
 	 * 
 	 * @throws InterruptedException
 	 */
@@ -304,6 +301,14 @@ public class TestOpenProcessor {
 		Thread.sleep(500);
 	}
 
+	/**
+	 * Test if the open processor still running and do not change the order
+	 * state if the method processOpenOrder throw an order state transition
+	 * exception.
+	 * 
+	 * @throws OrderStateTransitionException
+	 * @throws InterruptedException
+	 */
 	@Test
 	public void testProcessOpenOrderThrowingOrderStateTransitionException()
 			throws OrderStateTransitionException, InterruptedException {
@@ -325,6 +330,13 @@ public class TestOpenProcessor {
 		Assert.assertFalse(this.listIsEmpty(openOrdersList));
 	}
 
+	/**
+	 * Test if the open processor still running and do not change the order
+	 * state if the method processOpenOrder throw an exception.
+	 * 
+	 * @throws OrderStateTransitionException
+	 * @throws InterruptedException
+	 */
 	@Test
 	public void testProcessOpenOrderThrowingAnException() throws OrderStateTransitionException, InterruptedException {
 		Order order = this.createLocalOrder();
@@ -345,7 +357,7 @@ public class TestOpenProcessor {
 	}
 
 	/**
-	 * This method tests a race condition when this class thread has the Order
+	 * This method tests a race condition when this class thread has the order
 	 * operation priority.
 	 * 
 	 * @throws Exception
@@ -377,8 +389,8 @@ public class TestOpenProcessor {
 	}
 
 	/**
-	 * This method tests a race condition when this class thread has the Order
-	 * operation priority and change the Open Order to a different State.
+	 * This method tests a race condition when this class thread has the order
+	 * operation priority and change the open order to a different state.
 	 */
 	@Test
 	public void testRaceConditionWithThisThreadPriorityAndNotOpenOrder() throws InterruptedException {
@@ -403,8 +415,8 @@ public class TestOpenProcessor {
 	}
 
 	/**
-	 * This method tests a race condition when the Attend Open Order Thread has
-	 * the Order operation priority.
+	 * This method tests a race condition when the attend open order thread has
+	 * the order operation priority.
 	 * 
 	 * @throws Exception
 	 */
