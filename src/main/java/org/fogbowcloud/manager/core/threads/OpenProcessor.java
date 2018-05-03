@@ -24,7 +24,7 @@ public class OpenProcessor implements Runnable {
 	private ChainedList openOrdersList;
 
 	/**
-	 * Attribute that represents the thread sleep time when there is no Orders
+	 * Attribute that represents the thread sleep time when there is no orders
 	 * to be processed.
 	 */
 	private Long sleepTime;
@@ -45,6 +45,11 @@ public class OpenProcessor implements Runnable {
 		this.sleepTime = Long.valueOf(schedulerPeriodStr);
 	}
 
+	/**
+	 * Iterates over the open orders list and try to process one open order per
+	 * time. The order being null indicates that the iteration is in the end of
+	 * the list or the list is empty.
+	 */
 	@Override
 	public void run() {
 		boolean isActive = true;
@@ -68,7 +73,7 @@ public class OpenProcessor implements Runnable {
 				LOGGER.warn("Thread interrupted", e);
 			} catch (Throwable e) {
 				// We are not sure about what do if the thread catch a
-				// Throwable. For example: stop the thread and the
+				// throwable. For example: stop the thread and the
 				// fogbow-manager or continue the thread normally.
 				LOGGER.error("Not expected error", e);
 			}
@@ -76,17 +81,17 @@ public class OpenProcessor implements Runnable {
 	}
 
 	/**
-	 * Get an Instance for an Open Order. If the method fail in get the
-	 * Instance, then the Order is set to FAILED, else, is set to SPAWNING if
-	 * the Order is local or PENDING if the Order is remote.
+	 * Get an instance for an open order. If the method fails to get the
+	 * instance, then the order is set to failed, else, is set to spawning or
+	 * pending if the order is local or remote, respectively.
 	 * 
 	 * @param order
 	 * @throws OrderStateTransitionException
 	 */
 	protected void processOpenOrder(Order order) throws OrderStateTransitionException {
 		// The order object synchronization is needed to prevent a race
-		// condition on order access. For example: a user can delete a Open
-		// Order while this method is trying to get an Instance for this Order.
+		// condition on order access. For example: a user can delete a open
+		// order while this method is trying to get an Instance for this order.
 		synchronized (order) {
 			OrderState orderState = order.getOrderState();
 
@@ -96,8 +101,8 @@ public class OpenProcessor implements Runnable {
 				try {
 					InstanceProvider instanceProvider = this.getInstanceProviderForOrder(order);
 
-					// TODO: prepare Order to Change your State from Open to
-					// Spawning.
+					// TODO: prepare order to change your state from open to
+					// spawning.
 
 					LOGGER.info("Processing order [" + order.getId() + "]");
 					OrderInstance orderInstance = instanceProvider.requestInstance(order);
@@ -117,7 +122,8 @@ public class OpenProcessor implements Runnable {
 	}
 
 	/**
-	 * Update the Order State and do the right Order State Transition.
+	 * Update the order state and do the order state transition after the open
+	 * order process.
 	 * 
 	 * @param order
 	 * @throws OrderStateTransitionException
@@ -129,7 +135,7 @@ public class OpenProcessor implements Runnable {
 
 			if (!orderInstanceId.isEmpty()) {
 				LOGGER.info("The open order [" + order.getId() + "] got an local instance with id [" + orderInstanceId
-						+ "], setting your state to SPAWNING");
+						+ "], setting your state to spawning");
 
 				LOGGER.info("Transition [" + order.getId() + "] order state from open to spawning");
 				OrderStateTransitioner.transition(order, OrderState.SPAWNING);
@@ -149,12 +155,13 @@ public class OpenProcessor implements Runnable {
 	}
 
 	/**
-	 * Get an Instance Provider for an Order, if the Order is Local, the
-	 * returned Instance Provider is the Local, else, is the Remote.
+	 * Get an instance provider for an order, if the order is Local, the
+	 * returned instance provider is the local, else, is the remote.
 	 * 
 	 * @param order
-	 * @return Local InstanceProvider if the Order is Local, or Remote
-	 *         InstanceProvider if the Order is Remote
+	 * @return InstanceProvider, if the order is local, then returns the local
+	 *         instance provider, if the order is remote, then returns the
+	 *         remote instance provider.
 	 */
 	private InstanceProvider getInstanceProviderForOrder(Order order) {
 		InstanceProvider instanceProvider = null;
