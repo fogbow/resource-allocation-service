@@ -5,7 +5,9 @@ import org.fogbowcloud.manager.core.models.linkedList.SynchronizedDoublyLinkedLi
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
+import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
+import org.fogbowcloud.manager.core.models.token.Token;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,8 +28,7 @@ public class OrderStateTransitionerTest {
     private MockUtil mockUtil = new MockUtil();
 
     private Order createOrder(OrderState orderState) {
-        Order order = new ComputeOrder();
-        order.setId("fakeOrderId");
+        Order order = this.createLocalOrder();
         order.setOrderState(orderState);
 
         OrderInstance orderInstance = new OrderInstance("fakeId");
@@ -139,4 +140,16 @@ public class OrderStateTransitionerTest {
         Order order = createOrder(originState);
         OrderStateTransitioner.transition(order, destinationState);
     }
+    
+    private Order createLocalOrder() {
+		Token localToken = Mockito.mock(Token.class);
+		Token federationToken = Mockito.mock(Token.class);
+		UserData userData = Mockito.mock(UserData.class);
+		String imageName = "fake-image-name";
+		String requestingMember = "local-member";
+		String providingMember = "local-member";
+		Order localOrder = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024, 30,
+				imageName, userData);
+		return localOrder;
+	}
 }

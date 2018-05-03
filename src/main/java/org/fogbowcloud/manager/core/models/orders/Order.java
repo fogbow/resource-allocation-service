@@ -21,35 +21,28 @@ public abstract class Order {
 
 	private Long fulfilledTime;
 
-	public Order() {
-	
-	}
-
-	public Order(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
-			String providingMember, OrderInstance orderInstace, Long fulfilledTime) {
-		this.orderState = orderState;
+	/**
+	 * Creating Order with predefined Id.
+	 */
+	public Order(String id, Token localToken, Token federationToken, String requestingMember, String providingMember) {
+		this.id = id;
+		this.orderState = OrderState.OPEN;
 		this.localToken = localToken;
 		this.federationToken = federationToken;
 		this.requestingMember = requestingMember;
 		this.providingMember = providingMember;
-		this.orderInstance = orderInstace;
-		this.fulfilledTime = fulfilledTime;
 	}
 
 	public String getId() {
 		return id;
 	}
 
-	public void setId(String id) {
-		this.id = id;
-	}
-
-	public OrderState getOrderState() {
+	public synchronized OrderState getOrderState() {
 		return orderState;
 	}
 
-	public void setOrderState(OrderState orderState) {
-		this.orderState = orderState;
+	public synchronized void setOrderState(OrderState state) {
+		this.orderState = state;
 	}
 
 	public Token getLocalToken() {
@@ -64,32 +57,20 @@ public abstract class Order {
 		return federationToken;
 	}
 
-	public void setFederationToken(Token federationToken) {
-		this.federationToken = federationToken;
-	}
-
 	public String getRequestingMember() {
 		return requestingMember;
-	}
-
-	public void setRequestingMember(String requestingMember) {
-		this.requestingMember = requestingMember;
 	}
 
 	public String getProvidingMember() {
 		return providingMember;
 	}
 
-	public void setProvidingMember(String providingMember) {
-		this.providingMember = providingMember;
-	}
-
-	public OrderInstance getOrderInstance() {
+	public synchronized OrderInstance getOrderInstance() {
 		return orderInstance;
 	}
 
-	public void setOrderInstance(OrderInstance orderInstace) {
-		this.orderInstance = orderInstace;
+	public synchronized void setOrderInstance(OrderInstance orderInstance) {
+		this.orderInstance = orderInstance;
 	}
 
 	public long getFulfilledTime() {
@@ -99,24 +80,21 @@ public abstract class Order {
 	public void setFulfilledTime(Long fulfilledTime) {
 		this.fulfilledTime = fulfilledTime;
 	}
-	
-	public boolean isLocal() {
-		return this.providingMember.equals(this.requestingMember);
-	}
-	
-	public boolean isRemote() {
-		return !this.providingMember.equals(this.requestingMember);
+
+	public boolean isLocal(String localMemberId) {
+		return this.providingMember.equals(localMemberId);
 	}
 
-	public abstract void handleOpenOrder();
-	
+	public boolean isRemote(String localMemberId) {
+		return !this.providingMember.equals(localMemberId);
+	}
+
 	public abstract OrderType getType();
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((federationToken == null) ? 0 : federationToken.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		return result;
 	}
@@ -130,17 +108,10 @@ public abstract class Order {
 		if (getClass() != obj.getClass())
 			return false;
 		Order other = (Order) obj;
-		if (federationToken == null) {
-			if (other.federationToken != null)
-				return false;
-		} else if (!federationToken.equals(other.federationToken))
-			return false;
 		if (id == null) {
 			if (other.id != null)
 				return false;
 		} else if (!id.equals(other.id))
-			return false;			
-		if (orderState != other.orderState) 
 			return false;
 		return true;
 	}
@@ -151,4 +122,5 @@ public abstract class Order {
 				+ federationToken + ", requestingMember=" + requestingMember + ", providingMember=" + providingMember
 				+ ", orderInstace=" + orderInstance + ", fulfilledTime=" + fulfilledTime + "]";
 	}
+
 }

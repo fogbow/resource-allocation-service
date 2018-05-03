@@ -1,16 +1,25 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
+import java.util.UUID;
+
 import org.fogbowcloud.manager.core.models.token.Token;
 
 public class StorageOrder extends Order {
 
-    private int storageSize;
+	private int storageSize;
 
-	public StorageOrder(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
-						String providingMember, OrderInstance orderInstace, long fulfilledTime, int storageSize) {
-		super(orderState, localToken, federationToken, requestingMember, providingMember, orderInstace, fulfilledTime);
+	/**
+	 * Creating Order with predefined Id.
+	 */
+	public StorageOrder(String id, Token localToken, Token federationToken, String requestingMember,
+			String providingMember, int storageSize) {
+		super(id, localToken, federationToken, requestingMember, providingMember);
 		this.storageSize = storageSize;
+	}
+
+	public StorageOrder(Token localToken, Token federationToken, String requestingMember, String providingMember,
+			int storageSize) {
+		this(UUID.randomUUID().toString(), localToken, federationToken, requestingMember, providingMember, storageSize);
 	}
 
 	public int getStorageSize() {
@@ -23,13 +32,7 @@ public class StorageOrder extends Order {
 
 	@Override
 	public OrderType getType() {
-		return OrderType.NETWORK;
-	}
-
-	@Override
-	public void handleOpenOrder() {
-		// TODO Auto-generated method stub
-		
+		return OrderType.STORAGE;
 	}
 
 }

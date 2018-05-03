@@ -1,5 +1,8 @@
 package org.fogbowcloud.manager.core.services;
 
+import java.util.Date;
+import java.util.HashMap;
+
 import org.apache.http.HttpStatus;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
@@ -21,7 +24,7 @@ public class AuthenticationServiceTest {
 
 	@Test
 	public void testAuthenticateService() {
-		Token token = new Token();
+		Token token = new Token("accessId", Mockito.mock(Token.User.class), new Date(), new HashMap<String, String>());
 		Mockito.doReturn(token).when(identityPlugin).getToken(Mockito.anyString());
 		Assert.assertEquals(token, authenticationService.authenticate(Mockito.anyString()));
 	}

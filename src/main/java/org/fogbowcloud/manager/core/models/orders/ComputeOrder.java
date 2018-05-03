@@ -1,7 +1,8 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
+
+import java.util.UUID;
 
 public class ComputeOrder extends Order {
 
@@ -12,71 +13,52 @@ public class ComputeOrder extends Order {
 
 	/** Disk attribute, must be set in GB. */
 	private int disk;
-	
+
 	private String imageName;
 
 	private UserData userData;
 
-	public ComputeOrder(){ }
-
-	public ComputeOrder(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
-						String providingMember, OrderInstance orderInstance, long fulfilledTime, int vCPU, int memory,
-						int disk, String imageName, UserData userData) {
-		super(orderState, localToken, federationToken, requestingMember, providingMember, orderInstance, fulfilledTime);
+	/**
+	 * Creating Order with predefined Id.
+	 */
+	public ComputeOrder(String id, Token localToken, Token federationToken, String requestingMember,
+			String providingMember, int vCPU, int memory, int disk, String imageName, UserData userData) {
+		super(id, localToken, federationToken, requestingMember, providingMember);
 		this.vCPU = vCPU;
 		this.memory = memory;
 		this.disk = disk;
-		this.imageName= imageName;
+		this.imageName = imageName;
 		this.userData = userData;
+	}
+
+	public ComputeOrder(Token localToken, Token federationToken, String requestingMember, String providingMember,
+			int vCPU, int memory, int disk, String imageName, UserData userData) {
+		this(UUID.randomUUID().toString(), localToken, federationToken, requestingMember, providingMember, vCPU, memory,
+				disk, imageName, userData);
 	}
 
 	public int getvCPU() {
 		return vCPU;
 	}
 
-	public void setvCPU(int vCPU) {
-		this.vCPU = vCPU;
-	}
-
 	public int getMemory() {
 		return memory;
-	}
-
-	public void setMemory(int memory) {
-		this.memory = memory;
 	}
 
 	public int getDisk() {
 		return disk;
 	}
 
-	public void setDisk(int disk) {
-		this.disk = disk;
-	}
-	
 	public String getImageName() {
 		return imageName;
-	}
-
-	public void setImageName(String imageName) {
-		this.imageName = imageName;
 	}
 
 	public UserData getUserData() {
 		return userData;
 	}
 
-	public void setUserData(UserData userData) {
-		this.userData = userData;
-	}
-	
 	@Override
 	public OrderType getType() {
 		return OrderType.COMPUTE;
-	}
-
-	@Override
-	public void handleOpenOrder() {
-		// TODO
 	}
 }

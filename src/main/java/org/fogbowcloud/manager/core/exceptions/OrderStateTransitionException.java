@@ -5,8 +5,13 @@ package org.fogbowcloud.manager.core.exceptions;
  */
 public class OrderStateTransitionException extends Exception {
 
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
     public OrderStateTransitionException(String message) {
-        super(message);
+    	super(message);
     }
 
 }
