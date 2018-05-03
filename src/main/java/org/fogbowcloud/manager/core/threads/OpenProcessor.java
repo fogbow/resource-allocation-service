@@ -95,13 +95,14 @@ public class OpenProcessor implements Runnable {
 		synchronized (order) {
 			OrderState orderState = order.getOrderState();
 
+			// check if after order synchronization its state still open.
 			if (orderState.equals(OrderState.OPEN)) {
 				LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
 
 				try {
 					InstanceProvider instanceProvider = this.getInstanceProviderForOrder(order);
 
-					// TODO: prepare order to change your state from open to
+					// TODO: prepare order to change its state from open to
 					// spawning.
 
 					LOGGER.info("Processing order [" + order.getId() + "]");
@@ -133,7 +134,7 @@ public class OpenProcessor implements Runnable {
 			OrderInstance orderInstance = order.getOrderInstance();
 			String orderInstanceId = orderInstance.getId();
 
-			if (!orderInstanceId.isEmpty()) {
+			if (orderInstanceId != null) {
 				LOGGER.info("The open order [" + order.getId() + "] got an local instance with id [" + orderInstanceId
 						+ "], setting your state to spawning");
 
@@ -141,8 +142,8 @@ public class OpenProcessor implements Runnable {
 				OrderStateTransitioner.transition(order, OrderState.SPAWNING);
 
 			} else {
-				LOGGER.error("Order instance id for order [" + order.getId() + "] is empty");
-				throw new IllegalArgumentException("Order instance id for order [" + order.getId() + "] is empty");
+				LOGGER.error("Order instance id for order [" + order.getId() + "] is null");
+				throw new IllegalArgumentException("Order instance id for order [" + order.getId() + "] is null");
 			}
 
 		} else {

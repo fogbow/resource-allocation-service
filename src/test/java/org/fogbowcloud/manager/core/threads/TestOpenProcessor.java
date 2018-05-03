@@ -109,39 +109,6 @@ public class TestOpenProcessor {
 
 	/**
 	 * Test if the open processor is setting to failed an open local order when
-	 * the request instance method of instance provider returns an instance with
-	 * an empty Id.
-	 * 
-	 * @throws Exception
-	 */
-	@Test
-	public void testProcessOpenLocalOrderWithEmptyInstanceId() throws Exception {
-		Order localOrder = this.createLocalOrder();
-
-		OrderInstance orderInstance = new OrderInstance("");
-
-		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-		ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-		openOrdersList.addItem(localOrder);
-
-		Mockito.doReturn(orderInstance).when(this.localInstanceProvider).requestInstance(Mockito.any(Order.class));
-
-		this.thread = new Thread(this.openProcessor);
-		this.thread.start();
-
-		Thread.sleep(500);
-
-		Assert.assertEquals(OrderState.FAILED, localOrder.getOrderState());
-
-		// test if the open order list is empty and the failedList is with the
-		// localOrder
-		ChainedList failedOrdersList = sharedOrderHolders.getFailedOrdersList();
-		Assert.assertTrue(this.listIsEmpty(openOrdersList));
-		Assert.assertSame(localOrder, failedOrdersList.getNext());
-	}
-
-	/**
-	 * Test if the open processor is setting to failed an open local order when
 	 * the request instance method of instance provider returns a null instance.
 	 * 
 	 * @throws Exception
