@@ -23,63 +23,73 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 public class TestSpawningMonitor {
-	
+
 	private Properties properties;
+	private TunnelingServiceUtil tunnelingService;
+	private SshConnectivityUtil sshConnectivity;
 	private SpawningMonitor spawningMonitor;
 	private Thread thread;
 	private ChainedList spawningOrderList;
 	private ChainedList fulfilledOrderList;
-	private ChainedList failedOrderList;	
-	
+	private ChainedList failedOrderList;
+	private ChainedList openOrderList;
+	private ChainedList pendingOrderList;
+	private ChainedList closedOrderList;
+
 	@Before
-	public void setUp() {		
+	public void setUp() {
+		this.tunnelingService = Mockito.mock(TunnelingServiceUtil.class);
+		this.sshConnectivity = Mockito.mock(SshConnectivityUtil.class);
 		this.properties = new Properties();
 		this.properties.put(ConfigurationConstants.XMPP_ID_KEY, ".");
-		this.spawningMonitor = Mockito.spy(new SpawningMonitor(properties));
+		this.spawningMonitor = Mockito
+				.spy(new SpawningMonitor(this.tunnelingService, this.sshConnectivity, this.properties));
 		this.thread = null;
-		
+
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();
 		this.fulfilledOrderList = sharedOrderHolders.getFulfilledOrdersList();
-		this.failedOrderList = sharedOrderHolders.getFailedOrdersList();		
+		this.failedOrderList = sharedOrderHolders.getFailedOrdersList();
+		this.openOrderList = sharedOrderHolders.getOpenOrdersList();
+		this.pendingOrderList = sharedOrderHolders.getPendingOrdersList();
+		this.closedOrderList = sharedOrderHolders.getClosedOrdersList();
 	}
-	
+
 	@After
 	public void tearDown() {
 		if (this.thread != null) {
 			this.thread.interrupt();
 		}
-		
+
 		this.cleanList(this.spawningOrderList);
 		this.cleanList(this.fulfilledOrderList);
 		this.cleanList(this.failedOrderList);
+		this.cleanList(this.openOrderList);
+		this.cleanList(this.pendingOrderList);
+		this.cleanList(this.closedOrderList);
 	}
-	
-	@SuppressWarnings("unchecked")
+
 	@Test
-	public void testProcesseComputeOrderInstanceActive() throws InterruptedException {
+	public void testRunProcesseComputeOrderInstanceActive() throws InterruptedException {
 		Order order = this.createOrder();
 		order.setOrderState(OrderState.SPAWNING);
 		this.spawningOrderList.addItem(order);
-		
-		ComputeOrderInstance computeOrderInstance = Mockito.spy(ComputeOrderInstance.class);				
+
+		ComputeOrderInstance computeOrderInstance = Mockito.spy(ComputeOrderInstance.class);
 		computeOrderInstance.setState(InstanceState.ACTIVE);
 		order.setOrderInstance(computeOrderInstance);
-		
-		TunnelingServiceUtil tunnelingService = Mockito.mock(TunnelingServiceUtil.class);
-		this.spawningMonitor.setTunnelingService(tunnelingService);
-		Mockito.doNothing().when(computeOrderInstance).setExternalServiceAddresses(Mockito.anyMap());
-		
-		SshConnectivityUtil sshConnectivity = Mockito.mock(SshConnectivityUtil.class);
-		this.spawningMonitor.setSshConnectivity(sshConnectivity);
-		Mockito.when(sshConnectivity.checkSSHConnectivity(computeOrderInstance)).thenReturn(true);
-		
+
+		Map<String, String> externalServiceAddresses = this.tunnelingService.getExternalServiceAddresses(order.getId());
+		Mockito.doNothing().when(computeOrderInstance).setExternalServiceAddresses(externalServiceAddresses);
+
+		Mockito.when(this.sshConnectivity.checkSSHConnectivity(computeOrderInstance)).thenReturn(true);
+
 		Assert.assertNull(this.fulfilledOrderList.getNext());
-		
+
 		Thread thread = new Thread(this.spawningMonitor);
 		thread.start();
 		Thread.sleep(500);
-		
+
 		Assert.assertNull(this.spawningOrderList.getNext());
 
 		Order test = this.fulfilledOrderList.getNext();
@@ -87,28 +97,28 @@ public class TestSpawningMonitor {
 		Assert.assertEquals(order.getOrderInstance(), test.getOrderInstance());
 		Assert.assertEquals(OrderState.FULFILLED, test.getOrderState());
 	}
-	
+
 	@Test
-	public void testProcesseComputeOrderInstanceInactive() throws InterruptedException {
+	public void testRunProcesseComputeOrderInstanceInactive() throws InterruptedException {
 		Order order = this.createOrder();
 		order.setOrderState(OrderState.SPAWNING);
 		this.spawningOrderList.addItem(order);
-		
-		ComputeOrderInstance computeOrderInstance = Mockito.spy(ComputeOrderInstance.class);				
+
+		ComputeOrderInstance computeOrderInstance = Mockito.spy(ComputeOrderInstance.class);
 		computeOrderInstance.setState(InstanceState.INACTIVE);
 		order.setOrderInstance(computeOrderInstance);
-		
+
 		Thread thread = new Thread(this.spawningMonitor);
 		thread.start();
 		Thread.sleep(500);
 
 		Order test = this.spawningOrderList.getNext();
 		Assert.assertNotNull(test);
-		Assert.assertEquals(OrderState.SPAWNING, test.getOrderState());	
+		Assert.assertEquals(OrderState.SPAWNING, test.getOrderState());
 	}
-	
+
 	@Test
-	public void testProcesseComputeOrderInstanceFailed() throws InterruptedException {
+	public void testRunProcesseComputeOrderInstanceFailed() throws InterruptedException {
 		Order order = this.createOrder();
 		order.setOrderState(OrderState.SPAWNING);
 		this.spawningOrderList.addItem(order);
@@ -116,116 +126,161 @@ public class TestSpawningMonitor {
 		ComputeOrderInstance computeOrderInstance = Mockito.spy(ComputeOrderInstance.class);
 		computeOrderInstance.setState(InstanceState.FAILED);
 		order.setOrderInstance(computeOrderInstance);
-		
+
 		Assert.assertNull(this.failedOrderList.getNext());
-		
+
 		Thread thread = new Thread(this.spawningMonitor);
 		thread.start();
 		Thread.sleep(500);
 
 		Assert.assertNull(this.spawningOrderList.getNext());
-		
-		Order test = this.failedOrderList.getNext();		
+
+		Order test = this.failedOrderList.getNext();
 		Assert.assertNotNull(test);
 		Assert.assertEquals(order.getOrderInstance(), test.getOrderInstance());
 		Assert.assertEquals(OrderState.FAILED, test.getOrderState());
 	}
-	
-	@Test
-	public void  testMethodProcessSpawningOrderConfiguredWithAnothersOrderStates() {
-		Order order = Mockito.spy(Order.class);
-		
-		order.setOrderState(OrderState.OPEN);
-		this.spawningMonitor.processSpawningOrder(order);
-		Assert.assertFalse(OrderState.SPAWNING.equals(order.getOrderState()));
-		
-		order.setOrderState(OrderState.PENDING);
-		this.spawningMonitor.processSpawningOrder(order);
-		Assert.assertFalse(OrderState.SPAWNING.equals(order.getOrderState()));
 
-		order.setOrderState(OrderState.FAILED);
+	@Test
+	public void testProcessWithoutModifyOpenOrderState() throws InterruptedException {
+		Order order = this.createOrder();
+		order.setOrderState(OrderState.OPEN);
+		this.openOrderList.addItem(order);
+
 		this.spawningMonitor.processSpawningOrder(order);
-		Assert.assertFalse(OrderState.SPAWNING.equals(order.getOrderState()));
-		
-		order.setOrderState(OrderState.FULFILLED);
-		this.spawningMonitor.processSpawningOrder(order);
-		Assert.assertFalse(OrderState.SPAWNING.equals(order.getOrderState()));
-		
-		order.setOrderState(OrderState.CLOSED);
-		this.spawningMonitor.processSpawningOrder(order);
-		Assert.assertFalse(OrderState.SPAWNING.equals(order.getOrderState()));
+
+		Order test = this.openOrderList.getNext();
+		Assert.assertEquals(OrderState.OPEN, test.getOrderState());
+		Assert.assertNull(this.spawningOrderList.getNext());
+		Assert.assertNull(this.failedOrderList.getNext());
+		Assert.assertNull(this.fulfilledOrderList.getNext());
 	}
-	
+
+	@Test
+	public void testProcessWithoutModifyPendingOrderState() throws InterruptedException {
+		Order order = this.createOrder();
+		order.setOrderState(OrderState.PENDING);
+		this.pendingOrderList.addItem(order);
+
+		this.spawningMonitor.processSpawningOrder(order);
+
+		Order test = this.pendingOrderList.getNext();
+		Assert.assertEquals(OrderState.PENDING, test.getOrderState());
+		Assert.assertNull(this.spawningOrderList.getNext());
+		Assert.assertNull(this.failedOrderList.getNext());
+		Assert.assertNull(this.fulfilledOrderList.getNext());
+	}
+
+	@Test
+	public void testProcessWithoutModifyFailedOrderState() throws InterruptedException {
+		Order order = this.createOrder();
+		order.setOrderState(OrderState.FAILED);
+		this.failedOrderList.addItem(order);
+
+		this.spawningMonitor.processSpawningOrder(order);
+
+		Order test = this.failedOrderList.getNext();
+		Assert.assertEquals(OrderState.FAILED, test.getOrderState());
+		Assert.assertNull(this.spawningOrderList.getNext());
+		Assert.assertNull(this.fulfilledOrderList.getNext());
+	}
+
+	@Test
+	public void testProcessWithoutModifyFulfilledOrderState() throws InterruptedException {
+		Order order = this.createOrder();
+		order.setOrderState(OrderState.FULFILLED);
+		this.fulfilledOrderList.addItem(order);
+
+		this.spawningMonitor.processSpawningOrder(order);
+
+		Order test = this.fulfilledOrderList.getNext();
+		Assert.assertEquals(OrderState.FULFILLED, test.getOrderState());
+		Assert.assertNull(this.spawningOrderList.getNext());
+		Assert.assertNull(this.failedOrderList.getNext());
+	}
+
+	@Test
+	public void testProcessWithoutModifyClosedOrderState() throws InterruptedException {
+		Order order = this.createOrder();
+		order.setOrderState(OrderState.CLOSED);
+		this.closedOrderList.addItem(order);
+
+		this.spawningMonitor.processSpawningOrder(order);
+
+		Order test = this.closedOrderList.getNext();
+		Assert.assertEquals(OrderState.CLOSED, test.getOrderState());
+		Assert.assertNull(this.spawningOrderList.getNext());
+		Assert.assertNull(this.failedOrderList.getNext());
+		Assert.assertNull(this.fulfilledOrderList.getNext());
+	}
+
 	@Test
 	public void testThreadRunConfiguredToThrowException() throws InterruptedException {
-		Mockito.doThrow(new RuntimeException("Any Exception")).when(this.spawningMonitor).processSpawningOrder(Mockito.any(Order.class));
+		Mockito.doThrow(new RuntimeException("Any Exception")).when(this.spawningMonitor)
+				.processSpawningOrder(Mockito.any(Order.class));
 
 		Thread thread = new Thread(this.spawningMonitor);
 		thread.start();
 		Thread.sleep(500);
 	}
-	
+
 	@Test
 	public void testRunThrowableExceptionWhileTryingToProcessInstance() throws InterruptedException {
 		Order order = this.createOrder();
 		order.setOrderState(OrderState.SPAWNING);
-		this.spawningOrderList.addItem(order);		
+		this.spawningOrderList.addItem(order);
 		order = this.spawningOrderList.getNext();
-		
+
 		Mockito.doThrow(new RuntimeException("Any Exception")).when(this.spawningMonitor).processSpawningOrder(order);
-		
+
 		Thread thread = new Thread(this.spawningMonitor);
-		thread.start();		
+		thread.start();
 		Thread.sleep(500);
 	}
-	
+
 	@Test
-	public void testRunThrowableExceptionWhileTryingToGetMapAddressesOfComputeOrderInstance() throws InterruptedException {
+	public void testRunThrowableExceptionWhileTryingToGetMapAddressesOfComputeOrderInstance()
+			throws InterruptedException {
 		Order order = this.createOrder();
 		order.setOrderState(OrderState.SPAWNING);
 		this.spawningOrderList.addItem(order);
-		
-		ComputeOrderInstance computeOrderInstance = Mockito.spy(ComputeOrderInstance.class);				
+
+		ComputeOrderInstance computeOrderInstance = Mockito.spy(ComputeOrderInstance.class);
 		computeOrderInstance.setState(InstanceState.ACTIVE);
 		order.setOrderInstance(computeOrderInstance);
-		
-		TunnelingServiceUtil tunnelingService = Mockito.mock(TunnelingServiceUtil.class);		
-		Mockito.doThrow(new RuntimeException("Any Exception")).when(tunnelingService).getExternalServiceAddresses(order.getId());
-		
+
+		Mockito.doThrow(new RuntimeException("Any Exception")).when(this.tunnelingService)
+				.getExternalServiceAddresses(order.getId());
+
 		Thread thread = new Thread(this.spawningMonitor);
-		thread.start();		
+		thread.start();
 		Thread.sleep(500);
 	}
-	
-	@SuppressWarnings("unchecked")
+
 	@Test
 	public void testRunConfiguredToFailedAttemptSshConnectivity() throws InterruptedException {
 		Order order = this.createOrder();
 		order.setOrderState(OrderState.SPAWNING);
 		this.spawningOrderList.addItem(order);
-		
-		ComputeOrderInstance computeOrderInstance = Mockito.spy(ComputeOrderInstance.class);				
+
+		ComputeOrderInstance computeOrderInstance = Mockito.spy(ComputeOrderInstance.class);
 		computeOrderInstance.setState(InstanceState.ACTIVE);
 		order.setOrderInstance(computeOrderInstance);
-		
-		TunnelingServiceUtil tunnelingService = Mockito.mock(TunnelingServiceUtil.class);
-		this.spawningMonitor.setTunnelingService(tunnelingService);
-		Mockito.doNothing().when(computeOrderInstance).setExternalServiceAddresses(Mockito.any(Map.class));
-		
-		SshConnectivityUtil sshConnectivity = Mockito.mock(SshConnectivityUtil.class);
-		this.spawningMonitor.setSshConnectivity(sshConnectivity);
-		
-		Mockito.when(sshConnectivity.checkSSHConnectivity(computeOrderInstance)).thenReturn(false);
-		
+
+		Map<String, String> externalServiceAddresses = this.tunnelingService.getExternalServiceAddresses(order.getId());
+		Mockito.doNothing().when(computeOrderInstance).setExternalServiceAddresses(externalServiceAddresses);
+
+		Mockito.when(this.sshConnectivity.checkSSHConnectivity(computeOrderInstance)).thenReturn(false);
+
 		Thread thread = new Thread(this.spawningMonitor);
-		thread.start();		
+		thread.start();
 		Thread.sleep(500);
 
 		Order test = this.spawningOrderList.getNext();
 		Assert.assertNotNull(test);
-		Assert.assertEquals(OrderState.SPAWNING, test.getOrderState());		
+		Assert.assertEquals(OrderState.SPAWNING, test.getOrderState());
 	}
-	
+
 	@Test
 	public void testRunWithIterruptThread() throws InterruptedException {
 		Thread thread = new Thread(this.spawningMonitor);
@@ -233,17 +288,18 @@ public class TestSpawningMonitor {
 		Thread.sleep(500);
 		thread.interrupt();
 	}
-	
+
 	private Order createOrder() {
 		Token localToken = Mockito.mock(Token.class);
 		Token federationToken = Mockito.mock(Token.class);
 		String requestingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
 		String providingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
 		UserData userData = Mockito.mock(UserData.class);
-		Order order = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024, 30, "Fake_Image_Name", userData);
+		Order order = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024, 30,
+				"Fake_Image_Name", userData);
 		return order;
 	}
-	
+
 	private void cleanList(ChainedList list) {
 		list.resetPointer();
 		Order order = null;
@@ -255,5 +311,5 @@ public class TestSpawningMonitor {
 		} while (order != null);
 		list.resetPointer();
 	}
-	
+
 }

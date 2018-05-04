@@ -28,15 +28,13 @@ public class SpawningMonitor extends Thread {
 	private SshConnectivityUtil sshConnectivity;
 	private Long sleepTime;
 
-	public SpawningMonitor(Properties properties) {
+	public SpawningMonitor(TunnelingServiceUtil tunnelingService, SshConnectivityUtil sshConnectivity,
+			Properties properties) {
+		this.tunnelingService = tunnelingService;
+		this.sshConnectivity = sshConnectivity;
+
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();
-
-		TunnelingServiceUtil tunnelingService = TunnelingServiceUtil.getInstance();
-		this.tunnelingService = tunnelingService;
-
-		SshConnectivityUtil sshConnectivity = SshConnectivityUtil.getInstance();
-		this.sshConnectivity = sshConnectivity;
 
 		String schedulerPeriodStr = properties.getProperty(ConfigurationConstants.OPEN_ORDERS_SLEEP_TIME_KEY,
 				DefaultConfigurationConstants.OPEN_ORDERS_SLEEP_TIME);
@@ -53,11 +51,12 @@ public class SpawningMonitor extends Thread {
 					try {
 						this.processSpawningOrder(order);
 					} catch (Throwable e) {
-						LOGGER.error("Error while trying to process the order " + order, e);						
+						LOGGER.error("Error while trying to process the order " + order, e);
 					}
 				} else {
 					this.spawningOrderList.resetPointer();
-					LOGGER.info("There is no spawning order to be processed, sleeping for " + this.sleepTime + " milliseconds");
+					LOGGER.info("There is no spawning order to be processed, sleeping for " + this.sleepTime
+							+ " milliseconds");
 					Thread.sleep(this.sleepTime);
 				}
 			} catch (InterruptedException e) {
@@ -74,8 +73,9 @@ public class SpawningMonitor extends Thread {
 				LOGGER.info("Trying to process an instance for order [" + order.getId() + "]");
 				try {
 					this.processInstance(order);
-				} catch (Exception e) {
-					LOGGER.error("Error while trying to process an instance for order: " + System.lineSeparator() + order, e);
+				} catch (Throwable e) {
+					LOGGER.error(
+							"Error while trying to process an instance for order: " + System.lineSeparator() + order, e);
 				}
 			} else {
 				LOGGER.info("This order state is not spawning for order [" + order.getId() + "]");
@@ -136,17 +136,9 @@ public class SpawningMonitor extends Thread {
 		LOGGER.info("Check the communicate at SSH connectivity of the compute instance.");
 		if (this.sshConnectivity.checkSSHConnectivity(computeOrderInstance)) {
 			return true;
-		} 
-		LOGGER.warn("Failed attempt to communicate with ssh connectivity.");				
+		}
+		LOGGER.warn("Failed attempt to communicate with ssh connectivity.");
 		return false;
-	}
-
-	protected void setTunnelingService(TunnelingServiceUtil tunnelingService) {
-		this.tunnelingService = tunnelingService;
-	}
-
-	protected void setSshConnectivity(SshConnectivityUtil sshConnectivity) {
-		this.sshConnectivity = sshConnectivity;
 	}
 
 }
