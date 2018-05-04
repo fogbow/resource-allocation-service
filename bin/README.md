@@ -1,1 +1,0 @@
-# fogbow-manager-core
