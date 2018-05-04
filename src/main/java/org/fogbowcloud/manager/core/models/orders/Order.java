@@ -1,8 +1,5 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import java.util.UUID;
-
-import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 
@@ -24,10 +21,6 @@ public abstract class Order {
 
 	private Long fulfilledTime;
 
-	public Order() {
-
-	}
-
 	/**
 	 * Creating Order with predefined Id.
 	 */
@@ -40,21 +33,8 @@ public abstract class Order {
 		this.providingMember = providingMember;
 	}
 
-	public Order(Token localToken, Token federationToken, String requestingMember, String providingMember) {
-		this.id = UUID.randomUUID().toString();
-		this.orderState = OrderState.OPEN;
-		this.localToken = localToken;
-		this.federationToken = federationToken;
-		this.requestingMember = requestingMember;
-		this.providingMember = providingMember;
-	}
-
 	public String getId() {
 		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
 	}
 
 	public synchronized OrderState getOrderState() {
@@ -77,24 +57,12 @@ public abstract class Order {
 		return federationToken;
 	}
 
-	public void setFederationToken(Token federationToken) {
-		this.federationToken = federationToken;
-	}
-
 	public String getRequestingMember() {
 		return requestingMember;
 	}
 
-	public void setRequestingMember(String requestingMember) {
-		this.requestingMember = requestingMember;
-	}
-
 	public String getProvidingMember() {
 		return providingMember;
-	}
-
-	public void setProvidingMember(String providingMember) {
-		this.providingMember = providingMember;
 	}
 
 	public synchronized OrderInstance getOrderInstance() {
@@ -119,20 +87,6 @@ public abstract class Order {
 
 	public boolean isRemote(String localMemberId) {
 		return !this.providingMember.equals(localMemberId);
-	}
-
-	/**
-	 * These method handle and request an open order, for this, processOpenOrder
-	 * handle the Order to be ready to change your state and request the
-	 * Instance from the InstanceProvider.
-	 */
-	public synchronized void processOpenOrder(InstanceProvider instanceProvider) {
-		if (this.getOrderState().equals(OrderState.OPEN)) {
-			OrderInstance orderInstance = instanceProvider.requestInstance(this);
-			this.setOrderInstance(orderInstance);
-		} else {
-			throw new RuntimeException("Order is not Open");
-		}
 	}
 
 	public abstract OrderType getType();
@@ -166,7 +120,7 @@ public abstract class Order {
 	public String toString() {
 		return "Order [id=" + id + ", orderState=" + orderState + ", localToken=" + localToken + ", federationToken="
 				+ federationToken + ", requestingMember=" + requestingMember + ", providingMember=" + providingMember
-				+ ", orderInstace=" + orderInstance + ", fulfilledTime=" + fulfilledTime + "]";
+				+ ", orderInstance=" + orderInstance + ", fulfilledTime=" + fulfilledTime + "]";
 	}
 
 }

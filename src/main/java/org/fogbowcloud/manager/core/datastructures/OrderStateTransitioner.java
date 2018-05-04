@@ -24,54 +24,31 @@ public class OrderStateTransitioner {
     public static void transition(Order order, OrderState newState) throws OrderStateTransitionException {
         OrderState currentState = order.getOrderState();
 
-        SynchronizedDoublyLinkedList list = getOrdersList(currentState);
-        SynchronizedDoublyLinkedList destination = getOrdersList(newState);
-
-        if (list == null) {
-            String message = String.format("Could not find list list for state %s", currentState);
+        if (currentState == newState) {
+            String message = String.format("Order with id %s is already %s", order.getId(), currentState);
             throw new OrderStateTransitionException(message);
+        }
+
+        SharedOrderHolders ordersHolder = SharedOrderHolders.getInstance();
+        SynchronizedDoublyLinkedList origin = ordersHolder.getOrdersList(currentState);
+        SynchronizedDoublyLinkedList destination = ordersHolder.getOrdersList(newState);
+
+        if (origin == null) {
+            String message = String.format("Could not find list for state %s", currentState);
+            throw new RuntimeException(message);
         } else if (destination == null) {
             String message = String.format("Could not find destination list for state %s", newState);
-            throw new OrderStateTransitionException(message);
+            throw new RuntimeException(message);
         } else {
-            if (list.removeItem(order)) {
+            if (origin.removeItem(order)) {
                 order.setOrderState(newState);
                 destination.addItem(order);
-                return;
             } else {
                 String template = "Could not remove order id %s from list of %s orders";
                 String message = String.format(template, order.getId(), currentState.toString());
                 throw new OrderStateTransitionException(message);
             }
         }
-    }
-
-    protected static SynchronizedDoublyLinkedList getOrdersList(OrderState orderState) {
-        SynchronizedDoublyLinkedList origin = null;
-        switch (orderState) {
-            case OPEN:
-                origin = SharedOrderHolders.getInstance().getOpenOrdersList();
-                break;
-            case SPAWNING:
-                origin = SharedOrderHolders.getInstance().getSpawningOrdersList();
-                break;
-            case PENDING:
-                origin = SharedOrderHolders.getInstance().getPendingOrdersList();
-                break;
-            case FULFILLED:
-                origin = SharedOrderHolders.getInstance().getFulfilledOrdersList();
-                break;
-            case CLOSED:
-                origin = SharedOrderHolders.getInstance().getClosedOrdersList();
-                break;
-            case FAILED:
-                origin = SharedOrderHolders.getInstance().getFailedOrdersList();
-                break;
-            default:
-                break;
-        }
-
-        return origin;
     }
 
 }

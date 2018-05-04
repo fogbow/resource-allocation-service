@@ -6,8 +6,11 @@ import static org.junit.Assert.fail;
 
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.UserData;
+import org.fogbowcloud.manager.core.models.token.Token;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public class SynchronizedDoublyLinkedListTest {
 
@@ -246,8 +249,14 @@ public class SynchronizedDoublyLinkedListTest {
     }
 
     private Order createOrder(String orderId) {
-        Order order = new ComputeOrder();
-        order.setId(orderId);
+    	Token localToken = Mockito.mock(Token.class);
+		Token federationToken = Mockito.mock(Token.class);
+		UserData userData = Mockito.mock(UserData.class);
+		String imageName = "fake-image-name";
+		String requestingMember = String.valueOf("fake-requesting-member");
+		String providingMember = String.valueOf("fake-providing-member");
+		Order order = new ComputeOrder(orderId, localToken, federationToken, requestingMember, providingMember, 8, 1024, 30,
+				imageName, userData);
         return order;
     }
 
