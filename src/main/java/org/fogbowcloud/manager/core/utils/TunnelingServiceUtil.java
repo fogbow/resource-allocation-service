@@ -24,6 +24,12 @@ import org.json.JSONObject;
 public class TunnelingServiceUtil {
 
 	private static final Logger LOGGER = Logger.getLogger(SpawningMonitor.class);
+	
+	public static final String HTTP_PROTOCOL = "http://";
+	
+	public static final String TOKEN_POINT = "/token/";
+	
+	public static final String END_POINT_ALL = "/all";
 
 	private Properties properties;
 	private HttpClient reverseTunnelHttpClient = createReverseTunnelHttpClient();
@@ -51,10 +57,11 @@ public class TunnelingServiceUtil {
 		HttpResponse response = null;
 		try {
 			String httpHostPort = this.properties.getProperty(ConfigurationConstants.TOKEN_HOST_HTTP_PORT_KEY);
-			HttpGet httpGet = new HttpGet("http://" + hostAddr + ":" + httpHostPort + "/token/" + orderId + "/all");
+			HttpGet httpGet = new HttpGet(HTTP_PROTOCOL + hostAddr + ":" + httpHostPort + TOKEN_POINT + orderId + END_POINT_ALL);
 			response = this.reverseTunnelHttpClient.execute(httpGet);
-			if (response != null && response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				// TODO logger
+			boolean isOkHttpStatusResponse  = response.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
+			if (response != null && isOkHttpStatusResponse) {
+				LOGGER.info("Start process to get addresses (IP and Port) for order [" + orderId + "]");
 				JSONObject jsonPorts = new JSONObject(EntityUtils.toString(response.getEntity()));
 				if (jsonPorts.isNull(CommonConfigurationConstants.SSH_SERVICE_NAME)) {
 					return null;

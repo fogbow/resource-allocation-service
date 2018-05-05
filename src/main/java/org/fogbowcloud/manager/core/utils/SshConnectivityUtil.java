@@ -47,19 +47,19 @@ public class SshConnectivityUtil {
 
 	private Command execOnInstance(String sshPublicAddress, String cmd) throws Exception {
 		SSHClient sshClient = sshClientPool.getClient(sshPublicAddress, SshCommonUserUtil.getSshCommonUser(),
-				getManagerSSHPrivateKeyFilePath());
+				getManagerSSHPrivateKey());
 		Session session = sshClient.startSession();
 		Command command = session.exec(cmd);
 		command.join();
 		return command;
 	}
 
-	private String getManagerSSHPrivateKeyFilePath() {
-		String publicKeyFilePath = properties.getProperty(ConfigurationConstants.SSH_PRIVATE_PATH_KEY);
-		if (publicKeyFilePath == null || publicKeyFilePath.isEmpty()) {
+	private String getManagerSSHPrivateKey() {
+		String publicKey = properties.getProperty(ConfigurationConstants.SSH_PRIVATE_PATH_KEY);
+		if (publicKey == null || publicKey.isEmpty()) {
 			return null;
 		}
-		return publicKeyFilePath;
+		return publicKey;
 	}
 
 }
