@@ -48,8 +48,9 @@ public class SharedOrderHoldersTest {
 		String imageName = "fake-image-name";
 		String requestingMember = String.valueOf("local-member");
 		String providingMember = String.valueOf("local-member");
+		String publicKey = "fake-public-key";
 		Order order = new ComputeOrder(orderId, localToken, federationToken, requestingMember, providingMember, 8, 1024,
-				30, imageName, userData);
+				30, imageName, userData, publicKey);
 		return order;
 	}
 

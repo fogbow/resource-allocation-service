@@ -24,19 +24,20 @@ public class ComputeOrder extends Order {
      * Creating Order with predefined Id.
      */
     public ComputeOrder(String id, Token localToken, Token federationToken, String requestingMember,
-                        String providingMember, int vCPU, int memory, int disk, String imageName, UserData userData) {
+                        String providingMember, int vCPU, int memory, int disk, String imageName, UserData userData, String publicKey) {
         super(id, localToken, federationToken, requestingMember, providingMember);
         this.vCPU = vCPU;
         this.memory = memory;
         this.disk = disk;
         this.imageName = imageName;
         this.userData = userData;
+        this.publicKey = publicKey;
     }
 
     public ComputeOrder(Token localToken, Token federationToken, String requestingMember, String providingMember,
-                        int vCPU, int memory, int disk, String imageName, UserData userData) {
+                        int vCPU, int memory, int disk, String imageName, UserData userData, String publicKey) {
         this(UUID.randomUUID().toString(), localToken, federationToken, requestingMember, providingMember, vCPU, memory,
-                disk, imageName, userData);
+                disk, imageName, userData, publicKey);
     }
 
     public int getvCPU() {

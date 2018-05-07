@@ -255,8 +255,9 @@ public class SynchronizedDoublyLinkedListTest {
 		String imageName = "fake-image-name";
 		String requestingMember = String.valueOf("fake-requesting-member");
 		String providingMember = String.valueOf("fake-providing-member");
-		Order order = new ComputeOrder(orderId, localToken, federationToken, requestingMember, providingMember, 8, 1024, 30,
-				imageName, userData);
+        String publicKey = "fake-public-key";
+        Order order = new ComputeOrder(orderId, localToken, federationToken, requestingMember, providingMember, 8, 1024, 30,
+				imageName, userData, publicKey);
         return order;
     }
 
