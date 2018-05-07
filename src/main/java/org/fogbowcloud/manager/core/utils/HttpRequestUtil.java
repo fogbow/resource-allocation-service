@@ -29,7 +29,7 @@ public class HttpRequestUtil {
 				timeoutHttpRequest = DEFAULT_TIMEOUT_REQUEST;
 			}
 			
-			String timeoutRequestStr = properties.getProperty(ConfigurationConstants.TIMEOUT_HTTP_REQUEST);
+			String timeoutRequestStr = properties.getProperty(ConfigurationConstants.TIMEOUT_HTTP_REQUEST_KEY);
 			timeoutHttpRequest = Integer.parseInt(timeoutRequestStr);
 		} catch (NullPointerException|NumberFormatException e) {
 			LOGGER.debug("Setting HttpRequestUtil timeout with default: " + DEFAULT_TIMEOUT_REQUEST + " ms.");
