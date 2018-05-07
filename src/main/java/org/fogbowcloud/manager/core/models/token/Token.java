@@ -27,11 +27,12 @@ public class Token {
 		this.accessId = accessId;
 		this.user = user;
 		if (attributes == null) {
-			this.attributes = new HashMap<String, String>();
+			this.attributes = new HashMap<>();
 		} else {
 			this.attributes = attributes;
 		}
-		attributes.put(Token.EXPIRATION_DATE, String.valueOf(expirationTime.getTime()));
+
+		this.attributes.put(Token.EXPIRATION_DATE, String.valueOf(expirationTime.getTime()));
 	}
 
 	public Long getId() {

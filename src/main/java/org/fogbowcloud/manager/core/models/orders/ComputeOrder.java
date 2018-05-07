@@ -6,59 +6,65 @@ import java.util.UUID;
 
 public class ComputeOrder extends Order {
 
-	private int vCPU;
+    private int vCPU;
 
-	/** Memory attribute, must be set in MB. */
-	private int memory;
+    /** Memory attribute, must be set in MB. */
+    private int memory;
 
-	/** Disk attribute, must be set in GB. */
-	private int disk;
+    /** Disk attribute, must be set in GB. */
+    private int disk;
 
-	private String imageName;
+    private String imageName;
 
-	private UserData userData;
+    private UserData userData;
 
-	/**
-	 * Creating Order with predefined Id.
-	 */
-	public ComputeOrder(String id, Token localToken, Token federationToken, String requestingMember,
-			String providingMember, int vCPU, int memory, int disk, String imageName, UserData userData) {
-		super(id, localToken, federationToken, requestingMember, providingMember);
-		this.vCPU = vCPU;
-		this.memory = memory;
-		this.disk = disk;
-		this.imageName = imageName;
-		this.userData = userData;
-	}
+    private String publicKey;
 
-	public ComputeOrder(Token localToken, Token federationToken, String requestingMember, String providingMember,
-			int vCPU, int memory, int disk, String imageName, UserData userData) {
-		this(UUID.randomUUID().toString(), localToken, federationToken, requestingMember, providingMember, vCPU, memory,
-				disk, imageName, userData);
-	}
+    /**
+     * Creating Order with predefined Id.
+     */
+    public ComputeOrder(String id, Token localToken, Token federationToken, String requestingMember,
+                        String providingMember, int vCPU, int memory, int disk, String imageName, UserData userData) {
+        super(id, localToken, federationToken, requestingMember, providingMember);
+        this.vCPU = vCPU;
+        this.memory = memory;
+        this.disk = disk;
+        this.imageName = imageName;
+        this.userData = userData;
+    }
 
-	public int getvCPU() {
-		return vCPU;
-	}
+    public ComputeOrder(Token localToken, Token federationToken, String requestingMember, String providingMember,
+                        int vCPU, int memory, int disk, String imageName, UserData userData) {
+        this(UUID.randomUUID().toString(), localToken, federationToken, requestingMember, providingMember, vCPU, memory,
+                disk, imageName, userData);
+    }
 
-	public int getMemory() {
-		return memory;
-	}
+    public int getvCPU() {
+        return vCPU;
+    }
 
-	public int getDisk() {
-		return disk;
-	}
+    public int getMemory() {
+        return memory;
+    }
 
-	public String getImageName() {
-		return imageName;
-	}
+    public int getDisk() {
+        return disk;
+    }
 
-	public UserData getUserData() {
-		return userData;
-	}
+    public String getImageName() {
+        return imageName;
+    }
 
-	@Override
-	public OrderType getType() {
-		return OrderType.COMPUTE;
-	}
+    public UserData getUserData() {
+        return userData;
+    }
+
+    @Override
+    public OrderType getType() {
+        return OrderType.COMPUTE;
+    }
+
+    public String getPublicKey() {
+        return publicKey;
+    }
 }

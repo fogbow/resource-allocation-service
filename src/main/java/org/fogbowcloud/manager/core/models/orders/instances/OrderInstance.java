@@ -7,12 +7,13 @@ public class OrderInstance {
 	private String id;
 	private InstanceState state;
 
-	public OrderInstance() {
-
-	}
-
 	public OrderInstance(String id) {
 		this.id = id;
+	}
+
+	public OrderInstance(String id, InstanceState state) {
+		this(id);
+		this.state = state;
 	}
 
 	public String getId() {

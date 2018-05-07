@@ -34,5 +34,4 @@ public class StorageOrder extends Order {
 	public OrderType getType() {
 		return OrderType.STORAGE;
 	}
-
 }
