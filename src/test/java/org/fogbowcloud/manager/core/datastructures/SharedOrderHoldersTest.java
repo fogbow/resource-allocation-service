@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.datastructures;
 
+import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.models.linkedList.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -11,7 +12,7 @@ import org.mockito.Mockito;
 
 import static org.junit.Assert.*;
 
-public class SharedOrderHoldersTest {
+public class SharedOrderHoldersTest extends BaseUnitTests {
 
 	private SharedOrderHolders instanceOne;
 	private SharedOrderHolders instanceTwo;
