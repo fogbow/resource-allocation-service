@@ -113,4 +113,9 @@ public class ApplicationController {
 		return localToken;
 	}
 
+	public Token authenticate(String accessId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
