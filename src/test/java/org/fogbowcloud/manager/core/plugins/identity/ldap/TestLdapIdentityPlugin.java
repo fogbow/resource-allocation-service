@@ -1,11 +1,12 @@
 package org.fogbowcloud.manager.core.plugins.identity.ldap;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.binary.Base64;
+import org.fogbowcloud.manager.core.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.PluginHelper;
 import org.json.JSONObject;
@@ -14,7 +15,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.http.HttpStatus;
 
 public class TestLdapIdentityPlugin {
 	private static final String IDENTITY_URL_KEY = "identity_url";
@@ -111,7 +111,6 @@ public class TestLdapIdentityPlugin {
 
 		String name = "ldapUser";
 		String password = "ldapUserPass";
-		String userName = "User Full Name";
 
 		Map<String, String> userCredentials = new HashMap<String, String>();
 		userCredentials.put(LdapIdentityPlugin.CRED_USERNAME, name);
@@ -128,8 +127,8 @@ public class TestLdapIdentityPlugin {
 
 			ldapStoneIdentity.createToken(userCredentials);
 			Assert.fail();
-		} catch (Exception e) {
-			Assert.assertEquals(HttpStatus.UNAUTHORIZED.toString(), e.getMessage());
+		} catch (UnauthorizedException e) {
+			Assert.assertEquals("Couldn't load account summary from LDAP Server.", e.getMessage());
 		}
 
 	}
@@ -163,8 +162,8 @@ public class TestLdapIdentityPlugin {
 		String newAccessId = "{name:\"nome\", expirationDate:\"123421\"}" + LdapIdentityPlugin.ACCESSID_SEPARATOR
 				+ signature;
 
-		newAccessId = new String(Base64.encodeBase64(newAccessId.getBytes(Charsets.UTF_8), false, false),
-				Charsets.UTF_8);
+		newAccessId = new String(Base64.encodeBase64(newAccessId.getBytes(StandardCharsets.UTF_8), false, false),
+				StandardCharsets.UTF_8);
 
 		Mockito.doReturn(true).when(ldapStoneIdentity).verifySign(Mockito.eq(tokenMessage), Mockito.eq(signature));
 		Mockito.doReturn(false).when(ldapStoneIdentity).verifySign(Mockito.eq(newAccessId), Mockito.eq(signature));
@@ -173,6 +172,6 @@ public class TestLdapIdentityPlugin {
 	}
 
 	public String decodeAccessId(String accessId) {
-		return new String(Base64.decodeBase64(accessId), Charsets.UTF_8);
+		return new String(Base64.decodeBase64(accessId), StandardCharsets.UTF_8);
 	}
 }
