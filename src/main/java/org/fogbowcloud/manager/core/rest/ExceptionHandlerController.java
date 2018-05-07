@@ -15,36 +15,29 @@ public class ExceptionHandlerController extends ResponseEntityExceptionHandler {
 	@ExceptionHandler(UnauthorizedException.class)
 	public final ResponseEntity<ExceptionResponse> handleUnauthorizedException(UnauthorizedException ex,
 			WebRequest request) {
-		
-		ExceptionResponse errorDetails = new ExceptionResponse();
-		errorDetails.setDetails(request.getDescription(false));
-		errorDetails.setMessage(ex.getMessage());
-		errorDetails.setStatusCode(HttpStatus.UNAUTHORIZED);
-		
-		return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
-	}
-	
-	@ExceptionHandler(UnexpectedException.class)
-	public final ResponseEntity<ExceptionResponse> handleUnexpectedException(UnexpectedException ex,
-			WebRequest request) {
-		
-		ExceptionResponse errorDetails = new ExceptionResponse();
-		errorDetails.setDetails(request.getDescription(false));
-		errorDetails.setMessage(ex.getMessage());
-		errorDetails.setStatusCode(HttpStatus.BAD_REQUEST);
+
+		ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false),
+				HttpStatus.UNAUTHORIZED);
 		
 		return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
 	}
 
-	@ExceptionHandler(Exception.class)
-	public final ResponseEntity<ExceptionResponse> handleAnyException(Exception ex,
+	@ExceptionHandler(UnexpectedException.class)
+	public final ResponseEntity<ExceptionResponse> handleUnexpectedException(UnexpectedException ex,
 			WebRequest request) {
-		
-		ExceptionResponse errorDetails = new ExceptionResponse();
-		errorDetails.setDetails(request.getDescription(false));
-		errorDetails.setMessage(ex.getMessage());
-		errorDetails.setStatusCode(HttpStatus.BAD_REQUEST);
-		
+
+		ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false),
+				HttpStatus.BAD_REQUEST);
+
 		return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
-	}	
+	}
+
+	@ExceptionHandler(Exception.class)
+	public final ResponseEntity<ExceptionResponse> handleAnyException(Exception ex, WebRequest request) {
+
+		ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false),
+				HttpStatus.BAD_REQUEST);
+
+		return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
+	}
 }

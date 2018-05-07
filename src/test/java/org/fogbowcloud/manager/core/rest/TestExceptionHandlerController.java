@@ -11,7 +11,10 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
+import net.minidev.json.JSONObject;
+import net.minidev.json.JSONValue;
+
 import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
@@ -21,15 +24,12 @@ public class TestExceptionHandlerController {
 	
 	private ComputeOrdersController computeOrdersController;
 	
-	private ObjectMapper mapper;
-		
 	@Before
 	public void setup() {
 		computeOrdersController = Mockito.mock(ComputeOrdersController.class);
 		this.mockMvc = MockMvcBuilders.standaloneSetup(computeOrdersController)
 				.setControllerAdvice(new ExceptionHandlerController())
 				.build();
-		this.mapper = new ObjectMapper();
 	}
 	
 	@Test
@@ -40,12 +40,12 @@ public class TestExceptionHandlerController {
 				.accept(MediaType.APPLICATION_JSON))
         		.andReturn().getResponse();
 		
-		ExceptionResponse r = mapper.readValue(response.getContentAsString(), ExceptionResponse.class);
-		
-		assertEquals(r.getDetails(), "uri=/compute/");
-		assertEquals(r.getMessage(), "Invalid Credentials");
-		assertEquals(r.getStatusCode(), HttpStatus.UNAUTHORIZED);
-		assertEquals(new Integer(response.getStatus()).toString(), HttpStatus.UNAUTHORIZED.toString());
+		JSONObject jsonObject = (JSONObject) JSONValue.parse(response.getContentAsString());
+
+		assertEquals(jsonObject.get("details"), "uri=/compute/");
+		assertEquals(jsonObject.get("message"), "Invalid Credentials");
+		assertEquals(jsonObject.get("statusCode"), HttpStatus.UNAUTHORIZED.name());
+		assertEquals(Integer.toString(response.getStatus()), HttpStatus.UNAUTHORIZED.toString());
 	}
 	
 	@Test
@@ -56,12 +56,12 @@ public class TestExceptionHandlerController {
 				.accept(MediaType.APPLICATION_JSON))
         		.andReturn().getResponse();
 		
-		ExceptionResponse r = mapper.readValue(response.getContentAsString(), ExceptionResponse.class);
-		
-		assertEquals(r.getDetails(), "uri=/compute/");
-		assertEquals(r.getMessage(), "Invalid token");
-		assertEquals(r.getStatusCode(), HttpStatus.UNAUTHORIZED);
-		assertEquals(new Integer(response.getStatus()).toString(), HttpStatus.UNAUTHORIZED.toString());
+		JSONObject jsonObject = (JSONObject) JSONValue.parse(response.getContentAsString());
+
+		assertEquals(jsonObject.get("details"), "uri=/compute/");
+		assertEquals(jsonObject.get("message"), "Invalid token");
+		assertEquals(jsonObject.get("statusCode"), HttpStatus.UNAUTHORIZED.name());
+		assertEquals(Integer.toString(response.getStatus()), HttpStatus.UNAUTHORIZED.toString());
 	}
 	
 	@Test
@@ -72,12 +72,12 @@ public class TestExceptionHandlerController {
 				.accept(MediaType.APPLICATION_JSON))
         		.andReturn().getResponse();
 		
-		ExceptionResponse r = mapper.readValue(response.getContentAsString(), ExceptionResponse.class);
-		
-		assertEquals(r.getDetails(), "uri=/compute/");
-		assertEquals(r.getMessage(), "Unexpected Exception");
-		assertEquals(r.getStatusCode(), HttpStatus.BAD_REQUEST);
-		assertEquals(new Integer(response.getStatus()).toString(), HttpStatus.BAD_REQUEST.toString());
+		JSONObject jsonObject = (JSONObject) JSONValue.parse(response.getContentAsString());
+
+		assertEquals(jsonObject.get("details"), "uri=/compute/");
+		assertEquals(jsonObject.get("message"), "Unexpected Exception");
+		assertEquals(jsonObject.get("statusCode"), HttpStatus.BAD_REQUEST.name());
+		assertEquals(Integer.toString(response.getStatus()), HttpStatus.BAD_REQUEST.toString());
 	}
 	
 	@Test
@@ -88,10 +88,11 @@ public class TestExceptionHandlerController {
 				.accept(MediaType.APPLICATION_JSON))
         		.andReturn().getResponse();
 		
-		ExceptionResponse r = mapper.readValue(response.getContentAsString(), ExceptionResponse.class);
+		JSONObject jsonObject = (JSONObject) JSONValue.parse(response.getContentAsString());
+
+		assertEquals(jsonObject.get("details"), "uri=/compute/");
+		assertEquals(jsonObject.get("statusCode"), HttpStatus.BAD_REQUEST.name());
 		
-		assertEquals(r.getDetails(), "uri=/compute/");
-		assertEquals(r.getStatusCode(), HttpStatus.BAD_REQUEST);
-		assertEquals(new Integer(response.getStatus()).toString(), HttpStatus.BAD_REQUEST.toString());
+		assertEquals(Integer.toString(response.getStatus()), HttpStatus.BAD_REQUEST.toString());
 	}
 }

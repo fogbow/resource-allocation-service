@@ -8,10 +8,6 @@ public class ExceptionResponse {
 	private String details;
 	private HttpStatus statusCode;
 	
-	public ExceptionResponse() {
-		
-	}
-	
 	public ExceptionResponse(String message, String details, HttpStatus statusCode) {
 		this.setMessage(message);
 		this.setDetails(details);
