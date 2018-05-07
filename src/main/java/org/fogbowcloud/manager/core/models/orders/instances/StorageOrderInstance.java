@@ -5,6 +5,12 @@ public class StorageOrderInstance extends OrderInstance {
     private String name;
     private int size;
 
+    public StorageOrderInstance(String id, String name, InstanceState state, int size) {
+        super(id, state);
+        this.name = name;
+        this.size = size;
+    }
+
     public String getName() {
         return name;
     }

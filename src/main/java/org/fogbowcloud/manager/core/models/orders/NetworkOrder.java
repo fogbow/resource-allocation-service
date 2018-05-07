@@ -1,55 +1,46 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
+import java.util.UUID;
+
 import org.fogbowcloud.manager.core.models.token.Token;
 
 public class NetworkOrder extends Order {
 
-    private String gateway;
-    private String address;
-    private String allocation;
+	private String gateway;
+	private String address;
+	private String allocation;
 
-    public NetworkOrder(OrderState orderState, Token localToken, Token federationToken, String requestingMember,
-                        String providingMember, OrderInstance orderInstace, long fulfilledTime, String gateway,
-                        String address, String allocation) {
-        super(orderState, localToken, federationToken, requestingMember, providingMember, orderInstace, fulfilledTime);
-        this.gateway = gateway;
-        this.address = address;
-        this.allocation = allocation;
-    }
+	/**
+	 * Creating Order with predefined Id.
+	 */
+	public NetworkOrder(String id, Token localToken, Token federationToken, String requestingMember,
+			String providingMember, String gateway, String address, String allocation) {
+		super(id, localToken, federationToken, requestingMember, providingMember);
+		this.gateway = gateway;
+		this.address = address;
+		this.allocation = allocation;
+	}
 
-    public String getGateway() {
-        return gateway;
-    }
+	public NetworkOrder(Token localToken, Token federationToken, String requestingMember, String providingMember,
+			String gateway, String address, String allocation) {
+		this(UUID.randomUUID().toString(), localToken, federationToken, requestingMember, providingMember, gateway,
+				address, allocation);
+	}
 
-    public void setGateway(String gateway) {
-        this.gateway = gateway;
-    }
+	public String getGateway() {
+		return gateway;
+	}
 
-    public String getAddress() {
-        return address;
-    }
+	public String getAddress() {
+		return address;
+	}
 
-    public void setAddress(String address) {
-        this.address = address;
-    }
-
-    public String getAllocation() {
-        return allocation;
-    }
-
-    public void setAllocation(String allocation) {
-        this.allocation = allocation;
-    }
+	public String getAllocation() {
+		return allocation;
+	}
 
 	@Override
 	public OrderType getType() {
 		return OrderType.NETWORK;
-	}
-
-	@Override
-	public void handleOpenOrder() {
-		// TODO Auto-generated method stub
-		
 	}
 }
