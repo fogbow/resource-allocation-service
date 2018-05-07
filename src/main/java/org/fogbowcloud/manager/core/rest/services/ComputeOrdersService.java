@@ -31,18 +31,17 @@ public class ComputeOrdersService {
     }
 
     public ResponseEntity<Order> createCompute(ComputeOrder computeOrder, String accessId, String localTokenId) {
-        System.out.println("\n\nDeu certoooooooooo\n\n");
-//        try {
-//            Token federatedToken = applicationController.authenticate(accessId);
-//            Token localToken = createLocalToken(localTokenId);
-//            setOrderTokens(computeOrder, localToken, federatedToken);
-//            computeOrder.setOrderState(OrderState.OPEN);
-//            addOrderInActiveOrdersMap(computeOrder);
-//        } catch (Exception exception) { // change to catch exception for failedAuthentication
-//            String message = "It was not possible to create new ComputeOrder. " + exception.getMessage();
-//            LOGGER.error(message);
-//            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-//        }
+        try {
+            Token federatedToken = applicationController.authenticate(accessId);
+            Token localToken = createLocalToken(localTokenId);
+            setOrderTokens(computeOrder, localToken, federatedToken);
+            computeOrder.setOrderState(OrderState.OPEN);
+            addOrderInActiveOrdersMap(computeOrder);
+        } catch (Exception exception) { // change to catch exception for failedAuthentication
+            String message = "It was not possible to create new ComputeOrder. " + exception.getMessage();
+            LOGGER.error(message);
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
         return new ResponseEntity<Order>(HttpStatus.OK);
     }
 
