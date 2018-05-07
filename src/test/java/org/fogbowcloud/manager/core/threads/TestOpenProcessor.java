@@ -427,8 +427,10 @@ public class TestOpenProcessor {
 		String imageName = "fake-image-name";
 		String requestingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
 		String providingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
+		String publicKey = "fake-public-key";
+
 		Order localOrder = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024, 30,
-				imageName, userData);
+				imageName, userData, publicKey);
 		return localOrder;
 	}
 
@@ -439,8 +441,10 @@ public class TestOpenProcessor {
 		String imageName = "fake-image-name";
 		String requestingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
 		String providingMember = "fake-remote-member";
+		String publicKey = "fake-public-key";
+
 		Order remoteOrder = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024,
-				30, imageName, userData);
+				30, imageName, userData, publicKey);
 		return remoteOrder;
 	}
 

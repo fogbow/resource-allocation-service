@@ -45,7 +45,7 @@ public class TestOpenStackComputePlugin {
         localToken = mock(Token.class);
 
         computeOrder = new ComputeOrder(localToken, null, null,
-                null, 1, 2000, 20, null, new UserData(FAKE_USER_DATA));
+                null, 1, 2000, 20, null, new UserData(FAKE_USER_DATA), null);
 
         novaV2ComputeOpenStack = spy(new OpenStackNovaV2ComputePlugin(properties));
     }

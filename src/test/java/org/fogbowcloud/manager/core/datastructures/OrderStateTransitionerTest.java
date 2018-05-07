@@ -148,8 +148,9 @@ public class OrderStateTransitionerTest {
 		String imageName = "fake-image-name";
 		String requestingMember = "local-member";
 		String providingMember = "local-member";
+		String publicKey = "fake-public-key";
 		Order localOrder = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024, 30,
-				imageName, userData);
+				imageName, userData, publicKey);
 		return localOrder;
 	}
 }
