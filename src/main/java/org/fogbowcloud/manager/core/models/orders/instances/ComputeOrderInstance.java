@@ -8,78 +8,94 @@ import org.json.JSONObject;
 
 public class ComputeOrderInstance extends OrderInstance {
 
-	private String hostName;
-	private int vCPU;
-	/**
-	 * Memory attribute, must be set in MB.
-	 */
-	private int memory;
-	private String localIpAddress;
-	private String sshPublicAddress;
-	private String sshUserName;
-	private String extraPorts;
+    private String hostName;
+    private int vCPU;
+    /**
+     *  Memory attribute, must be set in MB.
+     */
+    private int memory;
+    
+    private String localIpAddress;
+    private String sshPublicAddress;
+    private String sshUserName;
+    private String sshExtraPorts;
 
-	public String getHostName() {
-		return hostName;
-	}
+    public ComputeOrderInstance(String id, String hostName, int vCPU, int memory, InstanceState state, String localIpAddress, String sshPublicAddress, String sshUserName, String sshExtraPorts) {
+        super(id, state);
+        this.hostName = hostName;
+        this.vCPU = vCPU;
+        this.memory = memory;
+        this.localIpAddress = localIpAddress;
+        this.sshPublicAddress = sshPublicAddress;
+        this.sshUserName = sshUserName;
+        this.sshExtraPorts = sshExtraPorts;
+    }
 
-	public void setHostName(String hostName) {
-		this.hostName = hostName;
-	}
+    public ComputeOrderInstance(String id) {
+        super(id);
+    }
 
-	public int getvCPU() {
-		return vCPU;
-	}
+    public String getHostName() {
+        return hostName;
+    }
 
-	public void setvCPU(int vCPU) {
-		this.vCPU = vCPU;
-	}
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
+    }
 
-	public int getMemory() {
-		return memory;
-	}
+    public int getvCPU() {
+        return vCPU;
+    }
 
-	public void setMemory(int memory) {
-		this.memory = memory;
-	}
+    public void setvCPU(int vCPU) {
+        this.vCPU = vCPU;
+    }
 
-	public String getLocalIpAddress() {
-		return localIpAddress;
-	}
+    public int getMemory() {
+        return memory;
+    }
 
-	public void setLocalIpAddress(String localIpAddress) {
-		this.localIpAddress = localIpAddress;
-	}
+    public void setMemory(int memory) {
+        this.memory = memory;
+    }
 
-	public String getSshPublicAddress() {
-		return sshPublicAddress;
-	}
+    public String getLocalIpAddress() {
+        return localIpAddress;
+    }
 
-	public void setSshPublicAddress(String sshPublicAddress) {
-		this.sshPublicAddress = sshPublicAddress;
-	}
+    public void setLocalIpAddress(String localIpAddress) {
+        this.localIpAddress = localIpAddress;
+    }
 
-	public String getSshUserName() {
-		return sshUserName;
-	}
+    public String getSshPublicAddress() {
+        return sshPublicAddress;
+    }
 
-	public void setSshUserName(String sshUserName) {
-		this.sshUserName = sshUserName;
-	}
+    public void setSshPublicAddress(String sshPublicAddress) {
+        this.sshPublicAddress = sshPublicAddress;
+    }
 
-	public String getExtraPorts() {
-		return extraPorts;
-	}
+    public String getSshUserName() {
+        return sshUserName;
+    }
 
-	public void setExtraPorts(String extraPorts) {
-		this.extraPorts = extraPorts;
-	}
+    public void setSshUserName(String sshUserName) {
+        this.sshUserName = sshUserName;
+    }
 
+    public String getSshExtraPorts() {
+        return sshExtraPorts;
+    }
+
+    public void setSshExtraPorts(String sshExtraPorts) {
+        this.sshExtraPorts = sshExtraPorts;
+    }
+	
 	public void setExternalServiceAddresses(Map<String, String> serviceAddresses) {
 		if (serviceAddresses != null) {
 			this.sshPublicAddress = serviceAddresses.get(CommonConfigurationConstants.SSH_SERVICE_NAME);
 			this.sshUserName = SshCommonUserUtil.getSshCommonUser();
-			this.extraPorts = new JSONObject(serviceAddresses).toString();
+			this.sshExtraPorts = new JSONObject(serviceAddresses).toString();
 		}
 	}
 
