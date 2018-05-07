@@ -75,7 +75,7 @@ public class TestSpawningMonitor {
 		order.setOrderState(OrderState.SPAWNING);
 		this.spawningOrderList.addItem(order);
 
-		ComputeOrderInstance computeOrderInstance = Mockito.spy(ComputeOrderInstance.class);
+		ComputeOrderInstance computeOrderInstance = Mockito.spy(new ComputeOrderInstance("fake-id"));
 		computeOrderInstance.setState(InstanceState.ACTIVE);
 		order.setOrderInstance(computeOrderInstance);
 
@@ -104,7 +104,7 @@ public class TestSpawningMonitor {
 		order.setOrderState(OrderState.SPAWNING);
 		this.spawningOrderList.addItem(order);
 
-		ComputeOrderInstance computeOrderInstance = Mockito.spy(ComputeOrderInstance.class);
+		ComputeOrderInstance computeOrderInstance = Mockito.spy(new ComputeOrderInstance("fake-id"));
 		computeOrderInstance.setState(InstanceState.INACTIVE);
 		order.setOrderInstance(computeOrderInstance);
 
@@ -123,7 +123,7 @@ public class TestSpawningMonitor {
 		order.setOrderState(OrderState.SPAWNING);
 		this.spawningOrderList.addItem(order);
 
-		ComputeOrderInstance computeOrderInstance = Mockito.spy(ComputeOrderInstance.class);
+		ComputeOrderInstance computeOrderInstance = Mockito.spy(new ComputeOrderInstance("fake-id"));
 		computeOrderInstance.setState(InstanceState.FAILED);
 		order.setOrderInstance(computeOrderInstance);
 
@@ -245,7 +245,7 @@ public class TestSpawningMonitor {
 		order.setOrderState(OrderState.SPAWNING);
 		this.spawningOrderList.addItem(order);
 
-		ComputeOrderInstance computeOrderInstance = Mockito.spy(ComputeOrderInstance.class);
+		ComputeOrderInstance computeOrderInstance = Mockito.spy(new ComputeOrderInstance("fake-id"));
 		computeOrderInstance.setState(InstanceState.ACTIVE);
 		order.setOrderInstance(computeOrderInstance);
 
@@ -263,7 +263,7 @@ public class TestSpawningMonitor {
 		order.setOrderState(OrderState.SPAWNING);
 		this.spawningOrderList.addItem(order);
 
-		ComputeOrderInstance computeOrderInstance = Mockito.spy(ComputeOrderInstance.class);
+		ComputeOrderInstance computeOrderInstance = Mockito.spy(new ComputeOrderInstance("fake-id"));
 		computeOrderInstance.setState(InstanceState.ACTIVE);
 		order.setOrderInstance(computeOrderInstance);
 
