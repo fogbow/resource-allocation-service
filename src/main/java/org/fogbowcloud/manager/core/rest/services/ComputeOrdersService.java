@@ -1,6 +1,7 @@
 package org.fogbowcloud.manager.core.rest.services;
 
 import org.fogbowcloud.manager.core.controllers.ApplicationController;
+import org.fogbowcloud.manager.core.datastructures.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -11,6 +12,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class ComputeOrdersService {
@@ -27,7 +31,7 @@ public class ComputeOrdersService {
             setOrderTokens(computeOrder, localToken, federatedToken);
             computeOrder.setOrderState(OrderState.OPEN);
             addOrderInActiveOrdersMap(computeOrder);
-        } catch (Exception exception) { // tratar para pegar exatamente a exceptio de failedAuthentication
+        } catch (Exception exception) { // change to catch exception for failedAuthentication
             String message = "It was not possible to create new ComputeOrder. " + exception.getMessage();
             LOGGER.error(message);
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
@@ -47,8 +51,12 @@ public class ComputeOrdersService {
     }
 
     private void addOrderInActiveOrdersMap(ComputeOrder computeOrder) {
-        SharedOrderHolders.getInstance().getOpenOrdersList().addItem(computeOrder); // change to use OrderStateTransitioner
+        SharedOrderHolders ordersHolder = SharedOrderHolders.getInstance();
+        Map<String, Order> activeOrdersMap = ordersHolder.getActiveOrdersMap();
+        synchronized (computeOrder) {
+            activeOrdersMap.put(computeOrder.getId(), computeOrder);
+            ordersHolder.getOrdersList(OrderState.OPEN).addItem(computeOrder);
+        }
     }
 
 }
-
