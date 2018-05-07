@@ -15,9 +15,7 @@ public class ApplicationController {
 	private AuthenticationService authenticationController;
 	private ManagerController managerController;
 
-	private ApplicationController() {
-
-	}
+	private ApplicationController() { }
 
 	public static ApplicationController getInstance() {
 		synchronized (ApplicationController.class) {

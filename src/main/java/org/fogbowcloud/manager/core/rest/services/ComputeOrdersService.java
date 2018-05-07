@@ -18,9 +18,7 @@ public class ComputeOrdersService {
     private ApplicationController applicationController = ApplicationController.getInstance();
     private static final Logger LOGGER = LoggerFactory.getLogger(ComputeOrdersService.class);
 
-    public ComputeOrdersService() {
-
-    }
+    public ComputeOrdersService() { }
 
     public ResponseEntity<Order> createCompute(ComputeOrder computeOrder, String accessId, String localTokenId) {
         try {
