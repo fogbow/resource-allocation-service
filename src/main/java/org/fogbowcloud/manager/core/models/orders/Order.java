@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.models.orders;
 
+import org.aspectj.weaver.ast.Or;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 
@@ -20,6 +21,8 @@ public abstract class Order {
 	private OrderInstance orderInstance;
 
 	private Long fulfilledTime;
+
+	public Order() {}
 
 	/**
 	 * Creating Order with predefined Id.
