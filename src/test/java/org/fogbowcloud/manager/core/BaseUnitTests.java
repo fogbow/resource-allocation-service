@@ -8,14 +8,14 @@ import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.junit.After;
 
 public class BaseUnitTests {
-	
+
 	@After
 	public void tearDown() {
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		for (OrderState state : OrderState.values()) {
-            SynchronizedDoublyLinkedList ordersList = sharedOrderHolders.getOrdersList(state);
-            this.cleanList(ordersList);
-        }
+			SynchronizedDoublyLinkedList ordersList = sharedOrderHolders.getOrdersList(state);
+			this.cleanList(ordersList);
+		}
 	}
 
 	private void cleanList(ChainedList list) {
