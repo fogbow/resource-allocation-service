@@ -1,11 +1,29 @@
 package org.fogbowcloud.manager.core.models.orders.instances;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
+
+@Entity
+@Table(name = "tb_order_instance")
 public class OrderInstance {
 
 	// TODO: the id should not be empty. Is necessary to check it in the
 	// constructor method.
+	@Id
+	@Column(name = "id", nullable = false, unique = true)
 	private String id;
+	
+    @Column(name="role")
+    @NotNull(message = "State can not be null.")
+	@Enumerated(EnumType.STRING)
 	private InstanceState state;
+    
+    public OrderInstance() {}
 
 	public OrderInstance(String id) {
 		this.id = id;
