@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.controllers;
 
 import java.util.Collection;
 
+import org.fogbowcloud.manager.core.ManagerController;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.StorageOrder;
@@ -27,11 +28,11 @@ public class ApplicationController {
 		return null;		
 	}
 	
-	public ComputeOrder findComputeOrderById(Integer id) {
+	public ComputeOrder findComputeOrderById(String id) {
 		return null;		
 	}
 	
-	public void removeComputeOrder(Integer id) {
+	public void removeComputeOrder(String id) {
 		
 	}
 	
@@ -43,11 +44,11 @@ public class ApplicationController {
 		return null;		
 	}
 	
-	public NetworkOrder findNetworkOrderById(Integer id) {
+	public NetworkOrder findNetworkOrderById(String id) {
 		return null;		
 	}
 	
-	public void removeNetworkOrder(Integer id) {
+	public void removeNetworkOrder(String id) {
 		
 	}
 	
@@ -59,11 +60,12 @@ public class ApplicationController {
 		return null;		
 	}
 	
-	public StorageOrder findStorageOrderById(Integer id) {
+	public StorageOrder findStorageOrderById(String id) {
 		return null;		
 	}
 	
-	public void removeStorageOrder(Integer id) {
+	public void removeStorageOrder(String id) {
 		
-	}	
+	}
+	
 }
