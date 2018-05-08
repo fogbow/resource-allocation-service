@@ -8,11 +8,7 @@ import java.util.TimeZone;
 public class DateUtils {
 
 	public static final String ISO_8601_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
-
-	public DateUtils() {
-
-	}
-
+	
 	public long currentTimeMillis() {
 		return System.currentTimeMillis();
 	}

@@ -1,0 +1,281 @@
+diff --cc pom.xml
+index e13b5c3,2f01a67..0000000
+--- a/pom.xml
++++ b/pom.xml
+@@@ -65,25 -56,32 +56,33 @@@
+  		<dependency>
+  		    <groupId>commons-codec</groupId>
+  		    <artifactId>commons-codec</artifactId>
+--		    <version>1.10</version>
+  		</dependency>
+ +		
+- 		<!-- https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on -->
+  		<dependency>
+  		    <groupId>org.bouncycastle</groupId>
+  		    <artifactId>bcprov-jdk15on</artifactId>
+  		    <version>1.59</version>
+  		</dependency>
+++
++ 		<dependency>
++ 		    <groupId>org.apache.httpcomponents</groupId>
++ 		    <artifactId>httpclient</artifactId>
+ -		    <version>4.5.3</version>
++ 		</dependency>
++ 
++ 		<dependency>
++ 			<groupId>org.powermock</groupId>
++ 			<artifactId>powermock-module-junit4</artifactId>
++ 			<version>${powermock.version}</version>
++ 			<scope>test</scope>
++ 		</dependency>
+ +		
+  		<dependency>
+-             <groupId>org.apache.httpcomponents</groupId>
+-             <artifactId>httpclient</artifactId>
+-             <version>4.5.3</version>
+-         </dependency>
++ 			<groupId>org.powermock</groupId>
++ 			<artifactId>powermock-api-mockito</artifactId>
++ 			<version>${powermock.version}</version>
++ 			<scope>test</scope>
++ 		</dependency>
+ -
+ +		
+- 
+  	</dependencies>
+  
+  	<build>
+diff --cc src/main/java/org/fogbowcloud/manager/core/utils/HttpRequestUtil.java
+index 0a58735,d679813..0000000
+--- a/src/main/java/org/fogbowcloud/manager/core/utils/HttpRequestUtil.java
++++ b/src/main/java/org/fogbowcloud/manager/core/utils/HttpRequestUtil.java
+@@@ -1,8 -1,7 +1,8 @@@
+  package org.fogbowcloud.manager.core.utils;
+  
+  import java.util.Properties;
+- import java.util.concurrent.TimeUnit;
+  
+++import java.util.concurrent.TimeUnit;
+  import org.apache.http.client.config.RequestConfig;
+  import org.apache.http.conn.HttpClientConnectionManager;
+  import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+@@@ -11,90 -10,82 +11,88 @@@ import org.apache.http.impl.client.Http
+  import org.apache.log4j.Logger;
+  
+  public class HttpRequestUtil {
+- 	
+- 	// header constants
+- 	public static final String CONTENT_TYPE = "Content-Type";
+- 	public static final String ACCEPT = "Accept";
+- 	public static final String JSON_CONTENT_TYPE = "application/json";
+- 	
+- 	private static final Logger LOGGER = Logger.getLogger(HttpRequestUtil.class);	
+- 	public static int DEFAULT_TIMEOUT_REQUEST = (int) TimeUnit.MINUTES.toMillis(1); 
+- 	
++ 
+ -    private static final Logger LOGGER = Logger.getLogger(HttpRequestUtil.class);
+ -    public static int DEFAULT_TIMEOUT_REQUEST = 60000; // 1 minute
+ -    public static final String TIMEOUT_HTTP_REQUEST = "timeout_http_request";
+ -
+ -    private static Integer timeoutHttpRequest;
+ -
+ -    public static void init(Properties properties) {
+ -        try {
+ -            if (properties == null) {
+ -                timeoutHttpRequest = DEFAULT_TIMEOUT_REQUEST;
+ -            }
+ -
+ -            String timeoutRequestStr = properties.getProperty(TIMEOUT_HTTP_REQUEST);
+ -            timeoutHttpRequest = Integer.parseInt(timeoutRequestStr);
+ -        } catch (NullPointerException | NumberFormatException e) {
+ -            LOGGER.debug("Setting HttpRequestUtil timeout with default: " + DEFAULT_TIMEOUT_REQUEST + " ms.");
+ -            timeoutHttpRequest = DEFAULT_TIMEOUT_REQUEST;
+ -        } catch (Exception e) {
+ -            LOGGER.error("Is not possible to initialize HttpRequestUtil.", e);
+ -            throw e;
+ -        }
+ -        LOGGER.info("The default HttpRequestUtil timeout is: " + timeoutHttpRequest + " ms.");
+ -    }
+ -
+ -    public static CloseableHttpClient createHttpClient() {
+ -        return createHttpClient(null, null, null);
+ -    }
+ -
+ -    public static CloseableHttpClient createHttpClient(SSLConnectionSocketFactory sslsf) {
+ -        return createHttpClient(null, sslsf, null);
+ -    }
+ -
+ -    public static CloseableHttpClient createHttpClient(HttpClientConnectionManager connManager) {
+ -        return createHttpClient(null, null, connManager);
+ -    }
+ -
+ -    public static CloseableHttpClient createHttpClient(Integer timeout, SSLConnectionSocketFactory sslsf, HttpClientConnectionManager connManager) {
+ -        if (timeoutHttpRequest == null) {
+ -            init(null); // Set to default timeout.
+ -        }
+ -        HttpClientBuilder builder = HttpClientBuilder.create();
+ -        setDefaultResquestConfig(timeout, builder);
+ -        setSSLConnection(sslsf, builder);
+ -        setConnectionManager(connManager, builder);
+ -
+ -        return builder.build();
+ -    }
+ -
+ -    protected static void setDefaultResquestConfig(Integer timeout, HttpClientBuilder builder) {
+ -        RequestConfig.Builder requestBuilder = RequestConfig.custom();
+ -        if (timeout == null) {
+ -            timeout = timeoutHttpRequest;
+ -        }
+ -        LOGGER.debug("Creating httpclient with timeout: " + timeout);
+ -        requestBuilder = requestBuilder.setSocketTimeout(timeout);
+ -        builder.setDefaultRequestConfig(requestBuilder.build());
+ -    }
+ -
+ -    protected static void setConnectionManager(HttpClientConnectionManager connManager, HttpClientBuilder builder) {
+ -        if (connManager != null) {
+ -            builder.setConnectionManager(connManager);
+ -        }
+ -    }
+ -
+ -    protected static void setSSLConnection(SSLConnectionSocketFactory sslsf, HttpClientBuilder builder) {
+ -        if (sslsf != null) {
+ -            builder.setSSLSocketFactory(sslsf);
+ -        }
+ -    }
+ -
+ -    protected static int getTimeoutHttpRequest() {
+ -        return timeoutHttpRequest;
+ -    }
+ -
+ -    protected static void setTimeoutHttpRequest(Integer timeoutHttpRequest) {
+ -        HttpRequestUtil.timeoutHttpRequest = timeoutHttpRequest;
+ -    }
+++	public static final String CONTENT_TYPE_KEY = "Content-Type";
+++	public static final String ACCEPT_KEY = "Accept";
+++	public static final String JSON_CONTENT_TYPE_KEY = "application/json";
+++
+++	private static final String TIMEOUT_HTTP_REQUEST = "timeout_http_request";
+++	private static final Logger LOGGER = Logger.getLogger(HttpRequestUtil.class);
+++	private static final int DEFAULT_TIMEOUT_REQUEST = (int) TimeUnit.MINUTES.toMillis(1);
+ +	private static Integer timeoutHttpRequest;
+- 	
+++
+ +	public static void init(Properties properties) {
+ +		try {
+ +			if (properties == null) {
+ +				timeoutHttpRequest = DEFAULT_TIMEOUT_REQUEST;
+ +			}
+- 			
+- 			String timeoutRequestStr = properties.getProperty(ConfigurationConstants.TIMEOUT_HTTP_REQUEST_KEY);
+++
+++			String timeoutRequestStr = properties.getProperty(TIMEOUT_HTTP_REQUEST);
+ +			timeoutHttpRequest = Integer.parseInt(timeoutRequestStr);
+- 		} catch (NullPointerException|NumberFormatException e) {
+++		} catch (NullPointerException | NumberFormatException e) {
+ +			LOGGER.debug("Setting HttpRequestUtil timeout with default: " + DEFAULT_TIMEOUT_REQUEST + " ms.");
+ +			timeoutHttpRequest = DEFAULT_TIMEOUT_REQUEST;
+ +		} catch (Exception e) {
+ +			LOGGER.error("Is not possible to initialize HttpRequestUtil.", e);
+ +			throw e;
+ +		}
+ +		LOGGER.info("The default HttpRequestUtil timeout is: " + timeoutHttpRequest + " ms.");
+ +	}
+- 	
+++
+ +	public static CloseableHttpClient createHttpClient() {
+ +		return createHttpClient(null, null, null);
+ +	}
+- 	
+++
+ +	public static CloseableHttpClient createHttpClient(SSLConnectionSocketFactory sslsf) {
+ +		return createHttpClient(null, sslsf, null);
+ +	}
+- 	
+++
+ +	public static CloseableHttpClient createHttpClient(HttpClientConnectionManager connManager) {
+ +		return createHttpClient(null, null, connManager);
+- 	}	
+- 	
+- 	public static CloseableHttpClient createHttpClient(Integer timeout, SSLConnectionSocketFactory sslsf, HttpClientConnectionManager connManager) {
+++	}
+++
+++	public static CloseableHttpClient createHttpClient(Integer timeout, SSLConnectionSocketFactory sslsf,
+++			HttpClientConnectionManager connManager) {
+ +		if (timeoutHttpRequest == null) {
+ +			init(null); // Set to default timeout.
+ +		}
+ +		HttpClientBuilder builder = HttpClientBuilder.create();
+ +		setDefaultResquestConfig(timeout, builder);
+ +		setSSLConnection(sslsf, builder);
+ +		setConnectionManager(connManager, builder);
+- 		
+++
+ +		return builder.build();
+ +	}
+ +
+ +	protected static void setDefaultResquestConfig(Integer timeout, HttpClientBuilder builder) {
+- 		
+- 		RequestConfig.Builder requestBuilder = RequestConfig.custom();	
+- 		
+++
+++		RequestConfig.Builder requestBuilder = RequestConfig.custom();
+++
+ +		if (timeout == null) {
+ +			timeout = timeoutHttpRequest;
+ +		}
+ +		LOGGER.debug("Creating httpclient with timeout: " + timeout);
+ +		requestBuilder = requestBuilder.setSocketTimeout(timeout);
+ +		builder.setDefaultRequestConfig(requestBuilder.build());
+ +	}
+ +
+ +	protected static void setConnectionManager(HttpClientConnectionManager connManager, HttpClientBuilder builder) {
+ +		if (connManager != null) {
+ +			builder.setConnectionManager(connManager);
+ +		}
+ +	}
+ +
+ +	protected static void setSSLConnection(SSLConnectionSocketFactory sslsf, HttpClientBuilder builder) {
+ +		if (sslsf != null) {
+ +			builder.setSSLSocketFactory(sslsf);
+ +		}
+ +	}
+- 	
+++
+ +	protected static int getTimeoutHttpRequest() {
+ +		return timeoutHttpRequest;
+ +	}
+- 	
+++
+ +	protected static void setTimeoutHttpRequest(Integer timeoutHttpRequest) {
+ +		HttpRequestUtil.timeoutHttpRequest = timeoutHttpRequest;
+ +	}
+- 	
+  }
+diff --git a/src/main/java/org/fogbowcloud/manager/core/ConfigurationConstants.java b/src/main/java/org/fogbowcloud/manager/core/ConfigurationConstants.java
+deleted file mode 100644
+index 70de156..0000000
+--- a/src/main/java/org/fogbowcloud/manager/core/ConfigurationConstants.java
++++ /dev/null
+@@ -1,7 +0,0 @@
+-package org.fogbowcloud.manager.core;
+-
+-public class ConfigurationConstants {
+-	
+-	public static final String TIMEOUT_HTTP_REQUEST_KEY = "timeout_http_request";
+-	
+-}
+diff --git a/src/main/java/org/fogbowcloud/manager/core/plugins/identity/openstack/KeystoneV3IdentityPlugin.java b/src/main/java/org/fogbowcloud/manager/core/plugins/identity/openstack/KeystoneV3IdentityPlugin.java
+index 47afcd5..6c992ba 100644
+--- a/src/main/java/org/fogbowcloud/manager/core/plugins/identity/openstack/KeystoneV3IdentityPlugin.java
++++ b/src/main/java/org/fogbowcloud/manager/core/plugins/identity/openstack/KeystoneV3IdentityPlugin.java
+@@ -144,8 +144,8 @@ public class KeystoneV3IdentityPlugin implements IdentityPlugin {
+ 		String responseStr = null;
+ 		try {
+ 			HttpPost request = new HttpPost(endpoint);
+-			request.addHeader(HttpRequestUtil.CONTENT_TYPE, HttpRequestUtil.JSON_CONTENT_TYPE);
+-			request.addHeader(HttpRequestUtil.ACCEPT, HttpRequestUtil.JSON_CONTENT_TYPE);
++			request.addHeader(HttpRequestUtil.CONTENT_TYPE_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
++			request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
+ 			request.setEntity(new StringEntity(json.toString(), StandardCharsets.UTF_8));
+ 			response = getClient().execute(request);
+ 			responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);

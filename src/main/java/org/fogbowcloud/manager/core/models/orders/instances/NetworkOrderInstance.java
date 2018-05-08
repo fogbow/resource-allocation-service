@@ -3,13 +3,23 @@ package org.fogbowcloud.manager.core.models.orders.instances;
 public class NetworkOrderInstance extends OrderInstance {
 
     private String label;
-    private InstanceState state;
     private String address;
     private String gateway;
-    private String VLAN;
+    private String vLAN;
     private String networkInterface;
     private String MACInterface;
     private InstanceState interfaceState;
+
+    public NetworkOrderInstance(String id, String label, InstanceState state, String address, String gateway, String vLAN, String networkInterface, String MACInterface, InstanceState interfaceState) {
+        super(id, state);
+        this.label = label;
+        this.address = address;
+        this.gateway = gateway;
+        this.vLAN = vLAN;
+        this.networkInterface = networkInterface;
+        this.MACInterface = MACInterface;
+        this.interfaceState = interfaceState;
+    }
 
     public String getLabel() {
         return label;
@@ -17,14 +27,6 @@ public class NetworkOrderInstance extends OrderInstance {
 
     public void setLabel(String label) {
         this.label = label;
-    }
-
-    public InstanceState getState() {
-        return state;
-    }
-
-    public void setState(InstanceState state) {
-        this.state = state;
     }
 
     public String getAddress() {
@@ -43,12 +45,12 @@ public class NetworkOrderInstance extends OrderInstance {
         this.gateway = gateway;
     }
 
-    public String getVLAN() {
-        return VLAN;
+    public String getvLAN() {
+        return vLAN;
     }
 
-    public void setVLAN(String VLAN) {
-        this.VLAN = VLAN;
+    public void setvLAN(String vLAN) {
+        this.vLAN = vLAN;
     }
 
     public String getNetworkInterface() {
@@ -74,4 +76,5 @@ public class NetworkOrderInstance extends OrderInstance {
     public void setInterfaceState(InstanceState interfaceState) {
         this.interfaceState = interfaceState;
     }
+    
 }

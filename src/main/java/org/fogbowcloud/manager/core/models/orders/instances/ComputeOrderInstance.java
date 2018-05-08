@@ -8,11 +8,26 @@ public class ComputeOrderInstance extends OrderInstance {
      *  Memory attribute, must be set in MB.
      */
     private int memory;
-    private InstanceState state;
+    
     private String localIpAddress;
     private String sshPublicAddress;
     private String sshUserName;
     private String sshExtraPorts;
+
+    public ComputeOrderInstance(String id, String hostName, int vCPU, int memory, InstanceState state, String localIpAddress, String sshPublicAddress, String sshUserName, String sshExtraPorts) {
+        super(id, state);
+        this.hostName = hostName;
+        this.vCPU = vCPU;
+        this.memory = memory;
+        this.localIpAddress = localIpAddress;
+        this.sshPublicAddress = sshPublicAddress;
+        this.sshUserName = sshUserName;
+        this.sshExtraPorts = sshExtraPorts;
+    }
+
+    public ComputeOrderInstance(String id) {
+        super(id);
+    }
 
     public String getHostName() {
         return hostName;
@@ -70,7 +85,4 @@ public class ComputeOrderInstance extends OrderInstance {
         this.sshExtraPorts = sshExtraPorts;
     }
 
-    public InstanceState getState() { return state; }
-
-    public void setState(InstanceState state) { this.state = state; }
 }

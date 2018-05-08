@@ -144,8 +144,8 @@ public class KeystoneV3IdentityPlugin implements IdentityPlugin {
 		String responseStr = null;
 		try {
 			HttpPost request = new HttpPost(endpoint);
-			request.addHeader(HttpRequestUtil.CONTENT_TYPE, HttpRequestUtil.JSON_CONTENT_TYPE);
-			request.addHeader(HttpRequestUtil.ACCEPT, HttpRequestUtil.JSON_CONTENT_TYPE);
+			request.addHeader(HttpRequestUtil.CONTENT_TYPE_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
+			request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
 			request.setEntity(new StringEntity(json.toString(), StandardCharsets.UTF_8));
 			response = getClient().execute(request);
 			responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);

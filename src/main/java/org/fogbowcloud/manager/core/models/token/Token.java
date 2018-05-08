@@ -2,7 +2,6 @@ package org.fogbowcloud.manager.core.models.token;
 
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 import org.fogbowcloud.manager.core.utils.DateUtils;
@@ -11,19 +10,37 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Token {
-	
-	private static final String DATE_EXPIRATION = "dateExpiration";
-	 
+
+	private static final String EXPIRATION_DATE = "expirationDate";
+
+	private Long id;
+
 	private Map<String, String> attributes;
+
 	private String accessId;
+
 	private User user;
+
 	private DateUtils dateUtils = new DateUtils();
 
 	public Token(String accessId, User user, Date expirationTime, Map<String, String> attributes) {
 		this.accessId = accessId;
-		this.user = user;		
-		this.attributes = attributes;
-		setExpirationDate(expirationTime);
+		this.user = user;
+		if (attributes == null) {
+			this.attributes = new HashMap<>();
+		} else {
+			this.attributes = attributes;
+		}
+
+		this.attributes.put(Token.EXPIRATION_DATE, String.valueOf(expirationTime.getTime()));
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
 	}
 
 	public String get(String attributeName) {
@@ -34,25 +51,11 @@ public class Token {
 		return this.accessId;
 	}
 
-	public void setExpirationDate(Date expirationDate) {
-		if (expirationDate == null){
-			return;
-		}
-		if (attributes == null) {
-			attributes = new HashMap<String, String>();
-		}
-		attributes.put(DATE_EXPIRATION,
-				String.valueOf(expirationDate.getTime()));
-	}
-	
 	public Date getExpirationDate() {
-		if (attributes == null) {
-			return null;
-		}
-		String dataExpiration = attributes.get(DATE_EXPIRATION);
-		if (dataExpiration  != null){
+		String dataExpiration = this.attributes.get(Token.EXPIRATION_DATE);
+		if (dataExpiration != null) {
 			return new Date(Long.parseLong(dataExpiration));
-		}else {
+		} else {
 			return null;
 		}
 	}
@@ -61,13 +64,29 @@ public class Token {
 		return attributes;
 	}
 
-	public boolean isExpiredToken() {
-		long expirationDateMillis = getExpirationDate().getTime();
-		return expirationDateMillis < dateUtils.currentTimeMillis();
+	public DateUtils getDateUtils() {
+		return dateUtils;
 	}
 
 	public void setDateUtils(DateUtils dateUtils) {
 		this.dateUtils = dateUtils;
+	}
+
+	public void setAttributes(Map<String, String> attributes) {
+		this.attributes = attributes;
+	}
+
+	public void setAccessId(String accessId) {
+		this.accessId = accessId;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	public boolean isExpiredToken() {
+		long expirationDateMillis = getExpirationDate().getTime();
+		return expirationDateMillis < dateUtils.currentTimeMillis();
 	}
 
 	@Override
@@ -79,90 +98,60 @@ public class Token {
 		return this.user;
 	}
 
-	public JSONObject toJSON() throws JSONException {	
+	public JSONObject toJSON() throws JSONException {
 		return new JSONObject().put("access_id", accessId).put("user", user != null ? user.toJSON() : null)
-				.put("attributes", attributes != null ? attributes.toString() : null);			
+				.put("attributes", attributes != null ? attributes.toString() : null);
 	}
 
 	public static Token fromJSON(String jsonStr) throws JSONException {
 		JSONObject jsonObject = new JSONObject(jsonStr);
 		String accessId = jsonObject.optString("access_id");
 		JSONObject userJson = jsonObject.optJSONObject("user");
-		return new Token(!accessId.isEmpty() ? accessId : null, 
-				userJson != null ? User.fromJSON(userJson.toString()) : null,
-				null, JSONHelper.toMap(jsonObject.optString("attributes")));
+		return new Token(!accessId.isEmpty() ? accessId : null,
+				userJson != null ? User.fromJSON(userJson.toString()) : null, null,
+				JSONHelper.toMap(jsonObject.optString("attributes")));
 	}
-	
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Token other = (Token) obj;
-		if (accessId == null) {
-			if (other.accessId != null)
-				return false;
-		} else if (!accessId.equals(other.accessId))
-			return false;
-		if (attributes == null) {
-			if (other.attributes != null)
-				return false;
-		} else if (attributes != null
-				&& !new HashSet(attributes.values()).equals(new HashSet(other.attributes.values())))
-			return false;
-		if (dateUtils == null) {
-			if (other.dateUtils != null)
-				return false;
-		}
-		if (user == null) {
-			if (other.user != null)
-				return false;
-		} else if (!user.equals(other.user))
-			return false;
-		return true;
-	}
-	
-	/**
-	 * 
-	 * id : required and unique
-	 * name : required
-	 *
-	 */
+
 	public static class User {
-		
+
 		private String id;
+
 		private String name;
-		
-		public User(String id, String name) {	
+
+		public User(String id, String name) {
 			if (id == null || name == null) {
-				throw new IllegalArgumentException("User id (" + id + ") and "
-						+ "name (" + name + ") are not null.");
+				throw new IllegalArgumentException("User id (" + id + ") and " + "name (" + name + ") are not null.");
 			}
 			this.id = id;
 			this.name = name;
 		}
-		
+
 		public String getId() {
 			return id;
 		}
-		
+
 		public String getName() {
 			return name;
 		}
-		
+
 		public JSONObject toJSON() throws JSONException {
 			return new JSONObject().put("id", this.id).put("name", this.name);
 		}
-		
+
 		public static User fromJSON(String jsonStr) throws JSONException {
 			JSONObject jsonObject = new JSONObject(jsonStr);
 			return new User(jsonObject.optString("id"), jsonObject.optString("name"));
-		}			
-		
+		}
+
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((id == null) ? 0 : id.hashCode());
+			return result;
+		}
+
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj)
@@ -170,10 +159,9 @@ public class Token {
 			if (obj == null)
 				return false;
 			if (getClass() != obj.getClass())
-				return false;			
+				return false;
 			User otherUser = (User) obj;
-			if (!id.equals(otherUser.getId()) 
-				|| !name.equals(otherUser.getName())) {
+			if (!id.equals(otherUser.getId()) || !name.equals(otherUser.getName())) {
 				return false;
 			}
 			return true;
@@ -182,8 +170,7 @@ public class Token {
 		@Override
 		public String toString() {
 			return "User [id=" + id + ", name=" + name + "]";
-		}				
-		
+		}
+
 	}
-		
 }

@@ -1,7 +1,37 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-public class StorageOrder {
+import java.util.UUID;
 
-    private int storageSize;
+import org.fogbowcloud.manager.core.models.token.Token;
 
+public class StorageOrder extends Order {
+
+	private int storageSize;
+
+	/**
+	 * Creating Order with predefined Id.
+	 */
+	public StorageOrder(String id, Token localToken, Token federationToken, String requestingMember,
+			String providingMember, int storageSize) {
+		super(id, localToken, federationToken, requestingMember, providingMember);
+		this.storageSize = storageSize;
+	}
+
+	public StorageOrder(Token localToken, Token federationToken, String requestingMember, String providingMember,
+			int storageSize) {
+		this(UUID.randomUUID().toString(), localToken, federationToken, requestingMember, providingMember, storageSize);
+	}
+
+	public int getStorageSize() {
+		return storageSize;
+	}
+
+	public void setStorageSize(int storageSize) {
+		this.storageSize = storageSize;
+	}
+
+	@Override
+	public OrderType getType() {
+		return OrderType.STORAGE;
+	}
 }

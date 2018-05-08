@@ -15,18 +15,10 @@ public class Credential {
 		return name;
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
-	
 	public String getValueDefault() {
 		return valueDefault;
 	}
 	
-	public void setValueDefault(String valueDefault) {
-		this.valueDefault = valueDefault;
-	}
-
 	public boolean isRequired() {
 		return required;
 	}

@@ -1,116 +1,71 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import org.fogbowcloud.manager.core.models.NetworkLink;
-import org.fogbowcloud.manager.core.models.StorageLink;
+import org.fogbowcloud.manager.core.models.token.Token;
 
-public class ComputeOrder {
+import java.util.UUID;
 
-	private int vCPU;
-	/** Memory attribute, must be set in MB. */
-	private int memory;
-	/** Disk attribute, must be set in GB. */
-	private int disk;
-	private UserData userData;
-	private NetworkLink networkLink;
-	private StorageLink storageLink;
+public class ComputeOrder extends Order {
 
-	public int getvCPU() {
-		return vCPU;
-	}
+    private int vCPU;
 
-	public void setvCPU(int vCPU) {
-		this.vCPU = vCPU;
-	}
+    /** Memory attribute, must be set in MB. */
+    private int memory;
 
-	public int getMemory() {
-		return memory;
-	}
+    /** Disk attribute, must be set in GB. */
+    private int disk;
 
-	public void setMemory(int memory) {
-		this.memory = memory;
-	}
+    private String imageName;
 
-	public int getDisk() {
-		return disk;
-	}
+    private UserData userData;
 
-	public void setDisk(int disk) {
-		this.disk = disk;
-	}
+    private String publicKey;
 
-	public UserData getUserData() {
-		return userData;
-	}
+    /**
+     * Creating Order with predefined Id.
+     */
+    public ComputeOrder(String id, Token localToken, Token federationToken, String requestingMember,
+                        String providingMember, int vCPU, int memory, int disk, String imageName, UserData userData, String publicKey) {
+        super(id, localToken, federationToken, requestingMember, providingMember);
+        this.vCPU = vCPU;
+        this.memory = memory;
+        this.disk = disk;
+        this.imageName = imageName;
+        this.userData = userData;
+        this.publicKey = publicKey;
+    }
 
-	public void setUserData(UserData userData) {
-		this.userData = userData;
-	}
+    public ComputeOrder(Token localToken, Token federationToken, String requestingMember, String providingMember,
+                        int vCPU, int memory, int disk, String imageName, UserData userData, String publicKey) {
+        this(UUID.randomUUID().toString(), localToken, federationToken, requestingMember, providingMember, vCPU, memory,
+                disk, imageName, userData, publicKey);
+    }
 
-	public NetworkLink getNetworkLink() {
-		return networkLink;
-	}
+    public int getvCPU() {
+        return vCPU;
+    }
 
-	public void setNetworkLink(NetworkLink networkLink) {
-		this.networkLink = networkLink;
-	}
+    public int getMemory() {
+        return memory;
+    }
 
-	public StorageLink getStorageLink() {
-		return storageLink;
-	}
+    public int getDisk() {
+        return disk;
+    }
 
-	public void setStorageLink(StorageLink storageLink) {
-		this.storageLink = storageLink;
-	}
+    public String getImageName() {
+        return imageName;
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + disk;
-		result = prime * result + memory;
-		result = prime * result + ((networkLink == null) ? 0 : networkLink.hashCode());
-		result = prime * result + ((storageLink == null) ? 0 : storageLink.hashCode());
-		result = prime * result + ((userData == null) ? 0 : userData.hashCode());
-		result = prime * result + vCPU;
-		return result;
-	}
+    public UserData getUserData() {
+        return userData;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		ComputeOrder other = (ComputeOrder) obj;
-		if (disk != other.disk)
-			return false;
-		if (memory != other.memory)
-			return false;
-		if (networkLink == null) {
-			if (other.networkLink != null)
-				return false;
-		} else if (!networkLink.equals(other.networkLink))
-			return false;
-		if (storageLink == null) {
-			if (other.storageLink != null)
-				return false;
-		} else if (!storageLink.equals(other.storageLink))
-			return false;
-		if (userData == null) {
-			if (other.userData != null)
-				return false;
-		} else if (!userData.equals(other.userData))
-			return false;
-		if (vCPU != other.vCPU)
-			return false;
-		return true;
-	}
+    @Override
+    public OrderType getType() {
+        return OrderType.COMPUTE;
+    }
 
-	@Override
-	public String toString() {
-		return "ComputeOrder [vCPU=" + vCPU + ", memory=" + memory + ", disk=" + disk + ", userData=" + userData
-				+ ", networkLink=" + networkLink + ", storageLink=" + storageLink + "]";
-	}
+    public String getPublicKey() {
+        return publicKey;
+    }
 }
