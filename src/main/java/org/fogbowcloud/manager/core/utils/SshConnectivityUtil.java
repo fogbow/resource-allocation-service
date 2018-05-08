@@ -13,6 +13,8 @@ import net.schmizz.sshj.connection.channel.direct.Session.Command;
 
 public class SshConnectivityUtil {
 
+	private static final int COMMAND_STATUS = 0;
+
 	private static final String MESSAGE_ECHO_SEND = "echo HelloWorld";
 
 	private static final Logger LOGGER = Logger.getLogger(SpawningMonitor.class);
@@ -38,7 +40,7 @@ public class SshConnectivityUtil {
 		}
 		try {
 			Command sshOutput = execOnInstance(computeOrderInstance.getSshPublicAddress(), MESSAGE_ECHO_SEND);
-			if (sshOutput.getExitStatus() != null) {
+			if (sshOutput.getExitStatus() == COMMAND_STATUS) {
 				return true;
 			}
 		} catch (Exception e) {
