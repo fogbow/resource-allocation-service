@@ -29,12 +29,12 @@ public class ComputeOrdersController {
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
-	public ResponseEntity<ComputeOrder> getComputeById(@PathVariable Long id) {
+	public ResponseEntity<ComputeOrder> getComputeById(@PathVariable String id) {
 		return new ResponseEntity<ComputeOrder>(HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-	public ResponseEntity<Boolean> deleteCompute(@PathVariable Long id) {
+	public ResponseEntity<Boolean> deleteCompute(@PathVariable String id) {
 		return new ResponseEntity<Boolean>(HttpStatus.OK);
 	}
 }

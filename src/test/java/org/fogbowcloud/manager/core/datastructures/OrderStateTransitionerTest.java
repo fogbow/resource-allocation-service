@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.datastructures;
 
+import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.models.linkedList.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -8,7 +9,6 @@ import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
-import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -23,7 +23,7 @@ import static org.junit.Assert.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(SharedOrderHolders.class)
-public class OrderStateTransitionerTest {
+public class OrderStateTransitionerTest extends BaseUnitTests {
 
     private MockUtil mockUtil = new MockUtil();
 
@@ -37,7 +37,7 @@ public class OrderStateTransitionerTest {
         return order;
     }
 
-    @After
+    @Override
     public void tearDown() {
         SharedOrderHolders instance = SharedOrderHolders.getInstance();
 
@@ -148,8 +148,9 @@ public class OrderStateTransitionerTest {
 		String imageName = "fake-image-name";
 		String requestingMember = "local-member";
 		String providingMember = "local-member";
+		String publicKey = "fake-public-key";
 		Order localOrder = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024, 30,
-				imageName, userData);
+				imageName, userData, publicKey);
 		return localOrder;
 	}
 }
