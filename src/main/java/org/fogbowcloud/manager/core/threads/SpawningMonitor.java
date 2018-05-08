@@ -36,8 +36,8 @@ public class SpawningMonitor extends Thread {
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();
 
-		String schedulerPeriodStr = properties.getProperty(ConfigurationConstants.OPEN_ORDERS_SLEEP_TIME_KEY,
-				DefaultConfigurationConstants.OPEN_ORDERS_SLEEP_TIME);
+		String schedulerPeriodStr = properties.getProperty(ConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME_KEY,
+				DefaultConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME);
 		this.sleepTime = Long.valueOf(schedulerPeriodStr);
 	}
 
@@ -73,9 +73,8 @@ public class SpawningMonitor extends Thread {
 				LOGGER.info("Trying to process an instance for order [" + order.getId() + "]");
 				try {
 					this.processInstance(order);
-				} catch (Throwable e) {
-					LOGGER.error(
-							"Error while trying to process an instance for order: " + System.lineSeparator() + order, e);
+				} catch (OrderStateTransitionException e) {
+					LOGGER.error("Error while trying to changing the state of order " + order, e);
 				}
 			} else {
 				LOGGER.info("This order state is not spawning for order [" + order.getId() + "]");
@@ -123,8 +122,7 @@ public class SpawningMonitor extends Thread {
 				computeOrderInstance.setExternalServiceAddresses(externalServiceAddresses);
 			}
 		} catch (Throwable e) {
-			LOGGER.error("Error trying to get map of addresses (IP and Port) of the compute instance for order: "
-					+ System.lineSeparator() + order, e);
+			LOGGER.error("Error trying to get map of addresses (IP and Port) of the compute instance for order: " + order, e);
 		}
 	}
 

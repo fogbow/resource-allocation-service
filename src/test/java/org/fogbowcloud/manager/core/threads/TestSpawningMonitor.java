@@ -296,7 +296,7 @@ public class TestSpawningMonitor {
 		String providingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
 		UserData userData = Mockito.mock(UserData.class);
 		Order order = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024, 30,
-				"Fake_Image_Name", userData);
+				"fake_image_name", userData, "fake_public_key");
 		return order;
 	}
 

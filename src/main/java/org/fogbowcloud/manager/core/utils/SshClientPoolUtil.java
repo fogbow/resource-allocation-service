@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.TimerTask;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import org.fogbowcloud.manager.core.constants.CommonConfigurationConstants;
 
@@ -16,8 +17,8 @@ import net.schmizz.sshj.transport.verification.HostKeyVerifier;
 
 public class SshClientPoolUtil {
 	
-	protected final long TIMEOUT = 20000; // 20 seconds
-	private final long DEFAULT_SCHEDULER_TIME = 300000; // 3 minutes
+	protected final long TIMEOUT = TimeUnit.SECONDS.toSeconds(20); // reference value is 20 seconds
+	private final long DEFAULT_SCHEDULER_TIME = TimeUnit.MINUTES.toMinutes(3);; // reference value is 3 minutes
 	
 	private Map<String, SSHConnection> pool = new HashMap<String, SSHConnection>();
 	private final ManagerTimerUtil sshConnectionSchedulerTimer;

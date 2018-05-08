@@ -6,6 +6,8 @@ public class ConfigurationConstants {
 
 	// SCHEDULER PERIODS KEYS
 	public static final String OPEN_ORDERS_SLEEP_TIME_KEY = "open_orders_scheduler_period";
+	
+	public static final String SPAWNING_ORDERS_SLEEP_TIME_KEY = "spawning_orders_scheduler_period";
 
 	public static final String SSH_COMMON_USER_KEY = "ssh_common_user";
 
