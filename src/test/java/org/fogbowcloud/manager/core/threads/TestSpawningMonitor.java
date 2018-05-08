@@ -68,7 +68,22 @@ public class TestSpawningMonitor {
 		this.cleanList(this.pendingOrderList);
 		this.cleanList(this.closedOrderList);
 	}
-
+	
+	@Test
+	public void testRunThrowableExceptionWhileTryingToProcessOrder() throws InterruptedException {
+		Order order = Mockito.mock(Order.class);
+		OrderState state = null;
+		order.setOrderState(state);
+		this.spawningOrderList.addItem(order);
+		
+		Mockito.doThrow(new RuntimeException("Any Exception")).when(this.spawningMonitor)
+		.processSpawningOrder(order);
+				
+		Thread thread = new Thread(this.spawningMonitor);
+		thread.start();
+		Thread.sleep(500);
+	}
+	
 	@Test
 	public void testRunProcesseComputeOrderInstanceActive() throws InterruptedException {
 		Order order = this.createOrder();
@@ -212,30 +227,6 @@ public class TestSpawningMonitor {
 		Assert.assertNull(this.spawningOrderList.getNext());
 		Assert.assertNull(this.failedOrderList.getNext());
 		Assert.assertNull(this.fulfilledOrderList.getNext());
-	}
-
-	@Test
-	public void testThreadRunConfiguredToThrowException() throws InterruptedException {
-		Mockito.doThrow(new RuntimeException("Any Exception")).when(this.spawningMonitor)
-				.processSpawningOrder(Mockito.any(Order.class));
-
-		Thread thread = new Thread(this.spawningMonitor);
-		thread.start();
-		Thread.sleep(500);
-	}
-
-	@Test
-	public void testRunThrowableExceptionWhileTryingToProcessInstance() throws InterruptedException {
-		Order order = this.createOrder();
-		order.setOrderState(OrderState.SPAWNING);
-		this.spawningOrderList.addItem(order);
-		order = this.spawningOrderList.getNext();
-
-		Mockito.doThrow(new RuntimeException("Any Exception")).when(this.spawningMonitor).processSpawningOrder(order);
-
-		Thread thread = new Thread(this.spawningMonitor);
-		thread.start();
-		Thread.sleep(500);
 	}
 
 	@Test
