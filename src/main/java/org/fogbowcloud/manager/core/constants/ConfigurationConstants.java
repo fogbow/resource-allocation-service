@@ -19,6 +19,4 @@ public class ConfigurationConstants {
 
 	public static final String TOKEN_HOST_PUBLIC_ADDRESS_KEY = "token_host_public_address";
 
-	public static final String TIMEOUT_HTTP_REQUEST_KEY = "timeout_http_request";
-
 }
