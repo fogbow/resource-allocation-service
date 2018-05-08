@@ -1,8 +1,9 @@
 package org.fogbowcloud.manager.core.plugins;
 
 import java.util.Map;
+
+import org.fogbowcloud.manager.core.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.Credential;
 import org.fogbowcloud.manager.core.models.token.Token;
 
@@ -13,7 +14,7 @@ public interface IdentityPlugin {
 	 * @return a Token with an access ID provided by the identity service.
 	 * @throws CreateTokenException 
 	 */
-	public Token createToken(Map<String, String> userCredentials) throws UnauthorizedException, UnexpectedException;
+	public Token createToken(Map<String, String> userCredentials) throws UnauthorizedException, TokenCreationException;
 
 	/**
 	 * Some cloud middleware require tokens to be renewed before its

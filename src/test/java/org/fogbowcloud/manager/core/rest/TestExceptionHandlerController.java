@@ -2,7 +2,7 @@ package org.fogbowcloud.manager.core.rest;
 
 import org.fogbowcloud.manager.core.exceptions.InvalidCredentialsException;
 import org.fogbowcloud.manager.core.exceptions.InvalidTokenException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.exceptions.TokenCreationException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -65,8 +65,8 @@ public class TestExceptionHandlerController {
 	}
 	
 	@Test
-	public void testUnexpectedException() throws Exception {
-		Mockito.when(computeOrdersController.getAllCompute()).thenThrow(new UnexpectedException());
+	public void testTokenCreationException() throws Exception {
+		Mockito.when(computeOrdersController.getAllCompute()).thenThrow(new TokenCreationException());
 		
 		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
 				.accept(MediaType.APPLICATION_JSON))
@@ -75,7 +75,7 @@ public class TestExceptionHandlerController {
 		JSONObject jsonObject = (JSONObject) JSONValue.parse(response.getContentAsString());
 
 		assertEquals(jsonObject.get("details"), "uri=/compute/");
-		assertEquals(jsonObject.get("message"), "Unexpected Exception");
+		assertEquals(jsonObject.get("message"), "Token Creation Exception");
 		assertEquals(jsonObject.get("statusCode"), HttpStatus.BAD_REQUEST.name());
 		assertEquals(Integer.toString(response.getStatus()), HttpStatus.BAD_REQUEST.toString());
 	}

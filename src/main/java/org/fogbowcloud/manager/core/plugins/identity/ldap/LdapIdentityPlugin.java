@@ -30,8 +30,8 @@ import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.InvalidCredentialsException;
 import org.fogbowcloud.manager.core.exceptions.InvalidTokenException;
+import org.fogbowcloud.manager.core.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.Credential;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
@@ -89,7 +89,7 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 	}
 
 	@Override
-	public Token createToken(Map<String, String> userCredentials) throws UnauthorizedException, UnexpectedException {
+	public Token createToken(Map<String, String> userCredentials) throws UnauthorizedException, TokenCreationException {
 
 		String userId = userCredentials.get(CRED_USERNAME);
 		String password = userCredentials.get(CRED_PASSWORD);
@@ -124,7 +124,7 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 			return new Token(accessId, new Token.User(userId, name), expirationDate, attributes);
 		} catch (IOException | GeneralSecurityException e) {
 			LOGGER.error("Error while trying to sign the token.", e);
-			throw new UnexpectedException("Error while trying to sign the token.");
+			throw new TokenCreationException("Error while trying to sign the token.");
 		}
 
 	}

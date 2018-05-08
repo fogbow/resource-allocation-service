@@ -1,7 +1,7 @@
 package org.fogbowcloud.manager.core.rest;
 
+import org.fogbowcloud.manager.core.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -22,8 +22,8 @@ public class ExceptionHandlerController extends ResponseEntityExceptionHandler {
 		return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
 	}
 
-	@ExceptionHandler(UnexpectedException.class)
-	public final ResponseEntity<ExceptionResponse> handleUnexpectedException(UnexpectedException ex,
+	@ExceptionHandler(TokenCreationException.class)
+	public final ResponseEntity<ExceptionResponse> handleTokenCreationException(TokenCreationException ex,
 			WebRequest request) {
 
 		ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false),
