@@ -3,13 +3,13 @@ package org.fogbowcloud.manager.core.exceptions;
 public class InvalidTokenException extends UnauthorizedException {
 
 	private static final long serialVersionUID = 1L;
-	private static final String msg = "Invalid token";
+	private static final String message = "Invalid token";
 	
 	public InvalidTokenException() {
-		super(msg);
+		super(message);
 	}
 		
-	public InvalidTokenException(String msg){
-		super(msg);
+	public InvalidTokenException(String message){
+		super(message);
 	}
 }

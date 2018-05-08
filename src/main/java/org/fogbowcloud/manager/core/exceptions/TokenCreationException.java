@@ -3,13 +3,13 @@ package org.fogbowcloud.manager.core.exceptions;
 public class TokenCreationException extends Exception {
 
 	private static final long serialVersionUID = 1L;
-	private static final String msg = "Token Creation Exception"; 
+	private static final String message = "Token Creation Exception"; 
 	
 	public TokenCreationException() {
-		super(msg);
+		super(message);
 	}
 	
-	public TokenCreationException(String msg) {
-		super(msg);
+	public TokenCreationException(String message) {
+		super(message);
 	}
 }

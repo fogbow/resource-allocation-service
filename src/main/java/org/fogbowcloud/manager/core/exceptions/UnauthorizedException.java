@@ -3,13 +3,13 @@ package org.fogbowcloud.manager.core.exceptions;
 public class UnauthorizedException extends Exception {
 
 	private static final long serialVersionUID = 1L;
-	private static final String msg = "Unauthorized Error";
+	private static final String message = "Unauthorized Error";
 	
 	public UnauthorizedException() {
-		super(msg);
+		super(message);
 	}
 	
-	public UnauthorizedException(String msg) {
-		super(msg);
+	public UnauthorizedException(String message) {
+		super(message);
 	}
 }
