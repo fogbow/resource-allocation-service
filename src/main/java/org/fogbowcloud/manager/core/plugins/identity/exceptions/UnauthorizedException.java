@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.exceptions;
+package org.fogbowcloud.manager.core.plugins.identity.exceptions;
 
 public class UnauthorizedException extends Exception {
 
@@ -11,5 +11,9 @@ public class UnauthorizedException extends Exception {
 	
 	public UnauthorizedException(String message) {
 		super(message);
+	}
+	
+	public UnauthorizedException(String message, Throwable cause) {
+		super(message, cause);
 	}
 }

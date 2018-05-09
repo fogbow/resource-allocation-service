@@ -2,10 +2,10 @@ package org.fogbowcloud.manager.core.plugins;
 
 import java.util.Map;
 
-import org.fogbowcloud.manager.core.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.Credential;
 import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.plugins.identity.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 
 public interface IdentityPlugin {
 	/**

@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.exceptions;
+package org.fogbowcloud.manager.core.plugins.identity.exceptions;
 
 public class InvalidCredentialsException extends UnauthorizedException {
 
@@ -9,8 +9,11 @@ public class InvalidCredentialsException extends UnauthorizedException {
 		super(message);
 	}
 	
-	public InvalidCredentialsException (String message) {
+	public InvalidCredentialsException(String message) {
 		super(message);
 	}
 	
+	public InvalidCredentialsException(String message, Throwable cause) {
+		super(message, cause);
+	}
 }

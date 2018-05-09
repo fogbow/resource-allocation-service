@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.exceptions;
+package org.fogbowcloud.manager.core.plugins.identity.exceptions;
 
 public class TokenCreationException extends Exception {
 
@@ -11,5 +11,9 @@ public class TokenCreationException extends Exception {
 	
 	public TokenCreationException(String message) {
 		super(message);
+	}
+	
+	public TokenCreationException(String message, Throwable cause) {
+		super(message, cause);
 	}
 }

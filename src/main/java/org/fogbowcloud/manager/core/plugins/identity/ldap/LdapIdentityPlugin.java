@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.plugins.identity.ldap;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -15,7 +16,6 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-
 import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -23,18 +23,14 @@ import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
-
-import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.HttpStatus;
-import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.exceptions.InvalidCredentialsException;
-import org.fogbowcloud.manager.core.exceptions.InvalidTokenException;
-import org.fogbowcloud.manager.core.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.Credential;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
+import org.fogbowcloud.manager.core.plugins.identity.exceptions.InvalidCredentialsException;
+import org.fogbowcloud.manager.core.plugins.identity.exceptions.InvalidTokenException;
+import org.fogbowcloud.manager.core.plugins.identity.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.plugins.identity.util.RSAUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,7 +46,6 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 	private static final String ATT_NAME = "name";
 	private static final String ATT_LOGIN = "lognin";
 
-	private static final Logger LOGGER = Logger.getLogger(LdapIdentityPlugin.class);
 	private static final long EXPIRATION_INTERVAL = TimeUnit.DAYS.toMillis(365); // One
 																					// year
 
@@ -102,8 +97,7 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 		try {
 			name = ldapAuthenticate(userId, password);
 		} catch (Exception e) {
-			LOGGER.error("Couldn't load account summary from LDAP Server.", e);
-			throw new InvalidCredentialsException("Couldn't load account summary from LDAP Server.");
+			throw new InvalidCredentialsException("Couldn't load account summary from LDAP Server.", e);
 		}
 
 		Map<String, String> attributes = new HashMap<String, String>();
@@ -119,12 +113,11 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 
 			String accessId = json.toString() + ACCESSID_SEPARATOR + signature;
 
-			accessId = new String(Base64.encodeBase64(accessId.getBytes(Charsets.UTF_8), false, false), Charsets.UTF_8);
+			accessId = new String(Base64.encodeBase64(accessId.getBytes(StandardCharsets.UTF_8), false, false), StandardCharsets.UTF_8);
 
 			return new Token(accessId, new Token.User(userId, name), expirationDate, attributes);
 		} catch (IOException | GeneralSecurityException e) {
-			LOGGER.error("Error while trying to sign the token.", e);
-			throw new TokenCreationException("Error while trying to sign the token.");
+			throw new TokenCreationException("Error while trying to sign the token.", e);
 		}
 
 	}
@@ -155,11 +148,10 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 	@Override
 	public Token getToken(String accessId) throws UnauthorizedException {
 		try {
-			String decodedAccessId = new String(Base64.decodeBase64(accessId), Charsets.UTF_8);
+			String decodedAccessId = new String(Base64.decodeBase64(accessId), StandardCharsets.UTF_8);
 
 			String split[] = decodedAccessId.split(ACCESSID_SEPARATOR);
 			if (split == null || split.length < 2) {
-				LOGGER.error("Invalid accessID: " + decodedAccessId);
 				throw new InvalidTokenException("Invalid accessID: " + decodedAccessId);
 			}
 
@@ -170,7 +162,6 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 			Date expirationDate = new Date(root.getLong(ATT_EXPIRATION_DATE));
 
 			if (!verifySign(tokenMessage, signature)) {
-				LOGGER.error("Invalid accessID: " + decodedAccessId);
 				throw new UnauthorizedException("Invalid accessID: " + decodedAccessId);
 			}
 
@@ -178,9 +169,7 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 			String name = root.getString(ATT_NAME);
 			return new Token(accessId, new Token.User(uuid, name), expirationDate, new HashMap<String, String>());
 		} catch (JSONException e) {
-			LOGGER.error("Exception while getting token from json.", e);
-			Integer statusResponse = HttpStatus.SC_UNAUTHORIZED;
-			throw new InvalidTokenException(statusResponse.toString());
+			throw new InvalidTokenException("Exception while getting token from json.", e);
 		}
 	}
 
@@ -233,10 +222,7 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 			enm.close();
 
 			return name;
-
-		} catch (Exception e) {
-			LOGGER.error("Error while authenticate " + uid + " - Error: " + e.getMessage());
-			throw e;
+			
 		} finally {
 			ctx.close();
 		}
@@ -295,8 +281,7 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 			publicKey = RSAUtils.getPublicKey(this.publicKeyPath);
 			return RSAUtils.verify(publicKey, tokenMessage, signature);
 		} catch (Exception e) {
-			LOGGER.error("Error while trying to validate sing of the token.", e);
-			throw new RuntimeException("Error while trying to validate sing of the token.");
+			throw new RuntimeException("Error while trying to validate sing of the token.", e);
 		}
 	}
 

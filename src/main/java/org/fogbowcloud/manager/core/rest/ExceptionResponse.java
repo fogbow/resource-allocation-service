@@ -7,35 +7,23 @@ public class ExceptionResponse {
 	private String message;
 	private String details;
 	private HttpStatus statusCode;
-	
+
 	public ExceptionResponse(String message, String details, HttpStatus statusCode) {
-		this.setMessage(message);
-		this.setDetails(details);
-		this.setStatusCode(statusCode);
-	}
-	
-	public String getMessage() {
-		return message;
+		this.message = message;
+		this.details = details;
+		this.statusCode = statusCode;
 	}
 
-	public void setMessage(String message) {
-		this.message = message;
+	public String getMessage() {
+		return message;
 	}
 
 	public String getDetails() {
 		return details;
 	}
 
-	public void setDetails(String details) {
-		this.details = details;
-	}
-
 	public HttpStatus getStatusCode() {
 		return statusCode;
-	}
-
-	public void setStatusCode(HttpStatus statusCode) {
-		this.statusCode = statusCode;
 	}
 
 }

@@ -4,9 +4,9 @@ import java.util.Date;
 import java.util.HashMap;
 
 import org.apache.http.HttpStatus;
-import org.fogbowcloud.manager.core.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
+import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

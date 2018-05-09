@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.exceptions;
+package org.fogbowcloud.manager.core.plugins.identity.exceptions;
 
 public class InvalidTokenException extends UnauthorizedException {
 
@@ -11,5 +11,9 @@ public class InvalidTokenException extends UnauthorizedException {
 		
 	public InvalidTokenException(String message){
 		super(message);
+	}
+	
+	public InvalidTokenException(String message, Throwable cause) {
+		super(message, cause);
 	}
 }

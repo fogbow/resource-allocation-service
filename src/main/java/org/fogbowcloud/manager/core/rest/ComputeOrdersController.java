@@ -2,10 +2,10 @@ package org.fogbowcloud.manager.core.rest;
 
 import java.util.List;
 
-import org.fogbowcloud.manager.core.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.plugins.identity.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;

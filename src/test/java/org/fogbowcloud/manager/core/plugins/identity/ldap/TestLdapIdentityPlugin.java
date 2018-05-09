@@ -6,9 +6,9 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.codec.binary.Base64;
-import org.fogbowcloud.manager.core.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.PluginHelper;
+import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assert;
