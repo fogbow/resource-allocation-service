@@ -20,10 +20,6 @@ public class ComputeInstanceConnectivity {
         this.sshConnectivity = sshConnectivity;
     }
 
-    /**
-     * This method does not synchronize the order object because it is private and
-     * can only be called by the processInstance method.
-     */
     public void setTunnelingServiceAddresses(Order order, ComputeOrderInstance computeOrderInstance) {
         try {
             Map<String, String> externalServiceAddresses = this.tunnelingService.getExternalServiceAddresses(order.getId());
@@ -36,10 +32,6 @@ public class ComputeInstanceConnectivity {
         }
     }
 
-    /**
-     * This method does not synchronize the order object because it is private and
-     * can only be called by the processInstance method.
-     */
     public boolean isActiveConnectionFromInstance(ComputeOrderInstance computeOrderInstance) {
         LOGGER.info("Check the communicate at SSH connectivity of the compute instance.");
         if (this.sshConnectivity.checkSSHConnectivity(computeOrderInstance)) {

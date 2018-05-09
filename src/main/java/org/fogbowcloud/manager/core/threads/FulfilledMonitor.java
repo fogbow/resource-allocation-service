@@ -113,6 +113,10 @@ public class FulfilledMonitor implements Runnable {
         }
     }
 
+    /**
+     * This method does not synchronize the order object because it is private and
+     * can only be called by the processSpawningOrder method.
+     */
     private void processInstance(Order order) throws OrderStateTransitionException {
         OrderInstance orderInstance = this.localInstanceProvider.getInstance(order);
         OrderType orderType = order.getType();
@@ -128,7 +132,7 @@ public class FulfilledMonitor implements Runnable {
             ComputeOrderInstance computeOrderInstance = (ComputeOrderInstance) orderInstance;
             this.computeInstanceConnectivity.setTunnelingServiceAddresses(order, computeOrderInstance);
 
-            if (! this.computeInstanceConnectivity.isActiveConnectionFromInstance(computeOrderInstance)) {
+            if (!this.computeInstanceConnectivity.isActiveConnectionFromInstance(computeOrderInstance)) {
                 OrderStateTransitioner.transition(order, OrderState.FAILED);
             }
         }
