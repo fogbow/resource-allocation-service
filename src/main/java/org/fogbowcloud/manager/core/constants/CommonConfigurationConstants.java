@@ -1,9 +1,6 @@
 package org.fogbowcloud.manager.core.constants;
 
 public class CommonConfigurationConstants {
-
-	// from the old class ManagerController in fogbow-manager
-	public static final String DEFAULT_COMMON_SSH_USER = "fogbow";
 	
 	// from the old class Instance in fogbow-manager
 	public static final String EXTRA_PORTS_ATT = "org.fogbowcloud.order.extra-ports";

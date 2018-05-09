@@ -87,15 +87,17 @@ public class SpawningMonitor extends Thread {
 	 * can only be called by the processSpawningOrder method.
 	 */
 	private void processInstance(Order order) throws OrderStateTransitionException {
-
 		OrderInstance orderInstance = order.getOrderInstance();
-
-		if (order.getType().equals(OrderType.COMPUTE)) {
-			if (orderInstance.getState().equals(InstanceState.FAILED)) {
+		OrderType orderType = order.getType();
+		
+		if (orderType.equals(OrderType.COMPUTE)) {
+			InstanceState instanceState = orderInstance.getState();
+			
+			if (instanceState.equals(InstanceState.FAILED)) {
 				LOGGER.info("The compute instance state is failed for order [" + order.getId() + "]");
 				OrderStateTransitioner.transition(order, OrderState.FAILED);
 
-			} else if (orderInstance.getState().equals(InstanceState.ACTIVE)) {
+			} else if (instanceState.equals(InstanceState.ACTIVE)) {
 				LOGGER.info("Processing active compute instance for order [" + order.getId() + "]");
 
 				ComputeOrderInstance computeOrderInstance = (ComputeOrderInstance) orderInstance;
