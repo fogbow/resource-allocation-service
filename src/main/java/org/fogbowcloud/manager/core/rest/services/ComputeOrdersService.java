@@ -58,7 +58,7 @@ public class ComputeOrdersService {
         computeOrder.setLocalToken(localToken);
     }
 
-    private void addOrderInActiveOrdersMap(ComputeOrder computeOrder) throws ComputeOrdersServiceException {
+    protected void addOrderInActiveOrdersMap(ComputeOrder computeOrder) throws ComputeOrdersServiceException {
         Map<String, Order> activeOrdersMap = ordersHolder.getActiveOrdersMap();
 
         if (activeOrdersMap.containsKey(computeOrder.getId())) {
