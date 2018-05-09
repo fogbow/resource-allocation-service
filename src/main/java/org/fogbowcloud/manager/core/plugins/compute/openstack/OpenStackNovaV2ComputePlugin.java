@@ -78,16 +78,22 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         LOGGER.debug("Requesting instance with token=" + computeOrder.getLocalToken());
 
         Token localToken = computeOrder.getLocalToken();
+        
         Flavor flavor = findSmallestFlavor(computeOrder);
         String flavorId = flavor.getId();
+        
         String tenantId = getTenantId(localToken);
+        
         String networkId = getNetworkId();
-        String userDataContent = this.launchCommandGenerator.createLaunchCommand(computeOrder);
+        
+        String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
+        
         String keyName = getKeyName(tenantId, localToken, computeOrder.getPublicKey());
+        
         String endpoint = getComputeEndpoint(tenantId, SERVERS);
 
         try {
-            JSONObject json = generateJsonRequest(imageId, flavorId, userDataContent, keyName, networkId);
+            JSONObject json = generateJsonRequest(imageId, flavorId, userData, keyName, networkId);
             String jsonResponse = doPostRequest(endpoint, localToken, json);
 
             String instanceId = getAttFromJson(ID_JSON_FIELD, jsonResponse);

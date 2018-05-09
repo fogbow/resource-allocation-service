@@ -113,10 +113,12 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
 	private void addExtraUserData(CloudInitUserDataBuilder cloudInitUserDataBuilder,
 			String extraUserData, String extraUserDataContentType) {
+		
 		if (extraUserData != null || extraUserDataContentType != null) {
 			String lineSeparator = "\n";
 			String normalizedExtraUserData = extraUserData.replace(USER_DATA_LINE_BREAKER,
 					lineSeparator);
+			
 			for (FileType fileType : CloudInitUserDataBuilder.FileType.values()) {
 				String mimeType = fileType.getMimeType();
 				if (mimeType.equals(extraUserDataContentType)) {
