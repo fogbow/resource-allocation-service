@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.rest.services;
 
 import org.fogbowcloud.manager.core.controllers.ApplicationController;
-import org.fogbowcloud.manager.core.datastructures.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.ComputeOrdersServiceException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -15,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class ComputeOrdersService {
@@ -31,6 +29,10 @@ public class ComputeOrdersService {
     }
 
     public ResponseEntity<Order> createCompute(ComputeOrder computeOrder, String accessId, String localTokenId) {
+
+        if (computeOrder == null) {
+            return new ResponseEntity<Order>(HttpStatus.BAD_REQUEST);
+        }
         try {
             Token federatedToken = applicationController.authenticate(accessId);
             Token localToken = createLocalToken(localTokenId);
@@ -40,9 +42,9 @@ public class ComputeOrdersService {
         } catch (Exception exception) { // change to catch exception for failedAuthentication
             String message = "It was not possible to create new ComputeOrder. " + exception.getMessage();
             LOGGER.error(message);
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+            return new ResponseEntity<Order>(HttpStatus.UNAUTHORIZED);
         }
-        return new ResponseEntity<Order>(HttpStatus.OK);
+        return new ResponseEntity<Order>(HttpStatus.CREATED);
     }
 
     private Token createLocalToken(String localTokenId) {

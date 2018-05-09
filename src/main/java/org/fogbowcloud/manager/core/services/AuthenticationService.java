@@ -8,7 +8,7 @@ public class AuthenticationService {
 	
 	private IdentityPlugin federationIdentityPlugin;
 	
-	AuthenticationService (IdentityPlugin federationIdentityPlugin){
+	public AuthenticationService (IdentityPlugin federationIdentityPlugin){
 		this.federationIdentityPlugin = federationIdentityPlugin;
 	}
 	
