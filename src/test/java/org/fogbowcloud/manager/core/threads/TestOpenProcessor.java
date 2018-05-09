@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.threads;
 
 import java.util.Properties;
 
+import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
@@ -13,7 +14,6 @@ import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +21,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-public class TestOpenProcessor {
+public class TestOpenProcessor extends BaseUnitTests {
 
 	private OpenProcessor openProcessor;
 
@@ -47,31 +47,12 @@ public class TestOpenProcessor {
 				.spy(new OpenProcessor(this.localInstanceProvider, this.remoteInstanceProvider, this.properties));
 	}
 
-	@After
+	@Override
 	public void tearDown() {
 		if (this.thread != null) {
 			this.thread.interrupt();
 		}
-
-		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-		this.cleanList(sharedOrderHolders.getClosedOrdersList());
-		this.cleanList(sharedOrderHolders.getFailedOrdersList());
-		this.cleanList(sharedOrderHolders.getFulfilledOrdersList());
-		this.cleanList(sharedOrderHolders.getOpenOrdersList());
-		this.cleanList(sharedOrderHolders.getPendingOrdersList());
-		this.cleanList(sharedOrderHolders.getSpawningOrdersList());
-	}
-
-	private void cleanList(ChainedList list) {
-		list.resetPointer();
-		Order order = null;
-		do {
-			order = list.getNext();
-			if (order != null) {
-				list.removeItem(order);
-			}
-		} while (order != null);
-		list.resetPointer();
+		super.tearDown();
 	}
 
 	/**
@@ -427,8 +408,10 @@ public class TestOpenProcessor {
 		String imageName = "fake-image-name";
 		String requestingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
 		String providingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
+		String publicKey = "fake-public-key";
+
 		Order localOrder = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024, 30,
-				imageName, userData);
+				imageName, userData, publicKey);
 		return localOrder;
 	}
 
@@ -439,8 +422,10 @@ public class TestOpenProcessor {
 		String imageName = "fake-image-name";
 		String requestingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
 		String providingMember = "fake-remote-member";
+		String publicKey = "fake-public-key";
+
 		Order remoteOrder = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024,
-				30, imageName, userData);
+				30, imageName, userData, publicKey);
 		return remoteOrder;
 	}
 

@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
+import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.UserData;
@@ -12,7 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class SynchronizedDoublyLinkedListTest {
+public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
 
     private SynchronizedDoublyLinkedList list;
 
@@ -255,8 +256,9 @@ public class SynchronizedDoublyLinkedListTest {
 		String imageName = "fake-image-name";
 		String requestingMember = String.valueOf("fake-requesting-member");
 		String providingMember = String.valueOf("fake-providing-member");
-		Order order = new ComputeOrder(orderId, localToken, federationToken, requestingMember, providingMember, 8, 1024, 30,
-				imageName, userData);
+        String publicKey = "fake-public-key";
+        Order order = new ComputeOrder(orderId, localToken, federationToken, requestingMember, providingMember, 8, 1024, 30,
+				imageName, userData, publicKey);
         return order;
     }
 

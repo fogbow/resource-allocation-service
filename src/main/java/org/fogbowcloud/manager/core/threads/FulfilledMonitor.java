@@ -10,6 +10,12 @@ import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.models.linkedList.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
+import org.fogbowcloud.manager.core.models.orders.OrderType;
+import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
+import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
+import org.fogbowcloud.manager.core.utils.SshConnectivityUtil;
+import org.fogbowcloud.manager.core.utils.TunnelingServiceUtil;
 
 import java.util.Properties;
 
@@ -17,14 +23,13 @@ import java.util.Properties;
  * Process orders in fulfilled state. It monitors the resourced that have been
  * successfully initiated, to check for failures that may affect them.
  */
-public class FulfilledProcessor implements Runnable {
+public class FulfilledMonitor implements Runnable {
 
-    private static final Logger LOGGER = Logger.getLogger(FulfilledProcessor.class);
+    private static final Logger LOGGER = Logger.getLogger(FulfilledMonitor.class);
 
     private InstanceProvider localInstanceProvider;
-    private InstanceProvider remoteInstanceProvider;
 
-    private String localMemberId;
+    private ComputeInstanceConnectivity computeInstanceConnectivity;
 
     private ChainedList fulfilledOrdersList;
 
@@ -34,12 +39,11 @@ public class FulfilledProcessor implements Runnable {
      */
     private Long sleepTime;
 
-    public FulfilledProcessor(InstanceProvider localInstanceProvider, InstanceProvider remoteInstanceProvider,
-                              Properties properties) {
+    public FulfilledMonitor(InstanceProvider localInstanceProvider, TunnelingServiceUtil tunnelingService,
+                            SshConnectivityUtil sshConnectivity, Properties properties) {
         this.localInstanceProvider = localInstanceProvider;
-        this.remoteInstanceProvider = remoteInstanceProvider;
 
-        this.localMemberId = properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
+        this.computeInstanceConnectivity = new ComputeInstanceConnectivity(tunnelingService, sshConnectivity);
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
@@ -64,9 +68,9 @@ public class FulfilledProcessor implements Runnable {
 
                 if (order != null) {
                     try {
-                            this.processFulfilledOrder(order);
+                        this.processFulfilledOrder(order);
                     } catch (Throwable e) {
-                            LOGGER.error("Error while trying to process the order" + order, e);
+                        LOGGER.error("Error while trying to process the order" + order, e);
                     }
                 } else {
                     this.fulfilledOrdersList.resetPointer();
@@ -90,25 +94,15 @@ public class FulfilledProcessor implements Runnable {
      * @param order {@link Order}
      * @throws OrderStateTransitionException Could not remove order from list of fulfilled orders.
      */
-    private void processFulfilledOrder(Order order) throws OrderStateTransitionException {
+    protected void processFulfilledOrder(Order order) throws OrderStateTransitionException {
         synchronized (order) {
             OrderState orderState = order.getOrderState();
 
             if (orderState.equals(OrderState.FULFILLED)) {
-//                LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
+                LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
 
                 try {
-                    InstanceProvider instanceProvider = this.getInstanceProviderForOrder(order);
-
-                    // TODO: prepare order to change its state from fulfilled to failed.
-
-//                    LOGGER.info("Processing order [" + order.getId() + "]");
-//                    OrderInstance orderInstance = instanceProvider.requestInstance(order);
-//                    order.setOrderInstance(orderInstance);
-//
-//                    LOGGER.info("Updating order state after processing [" + order.getId() + "]");
-//                    this.updateOrderStateAfterProcessing(order);
-
+                    this.processInstance(order);
                 } catch (Exception e) {
                     LOGGER.error("Error while trying to get an instance for order: " + order, e);
 
@@ -119,27 +113,24 @@ public class FulfilledProcessor implements Runnable {
         }
     }
 
-    /**
-     * Get an instance provider from an order, if order is local, the
-     * returned instance provider is the local, otherwise, it is the remote.
-     *
-     * @param order {@link Order}
-     * @return corresponding instance provider.
-     */
-    private InstanceProvider getInstanceProviderForOrder(Order order) {
-        InstanceProvider instanceProvider;
+    private void processInstance(Order order) throws OrderStateTransitionException {
+        OrderInstance orderInstance = this.localInstanceProvider.getInstance(order);
+        OrderType orderType = order.getType();
 
-        if (order.isLocal(this.localMemberId)) {
-        	LOGGER.info("The open order [" + order.getId() + "] is local");
+        InstanceState instanceState = orderInstance.getState();
 
-            instanceProvider = this.localInstanceProvider;
-        } else {
-        	LOGGER.info("The open order [" + order.getId() + "] is remote for the " +
-                    "member [" + order.getProvidingMember() + "]");
+        if (instanceState.equals(InstanceState.FAILED)) {
+            LOGGER.info("Instance state is failed for order [" + order.getId() + "]");
+            OrderStateTransitioner.transition(order, OrderState.FAILED);
+        } else if (instanceState.equals(InstanceState.ACTIVE) && orderType.equals(OrderType.COMPUTE)) {
+            LOGGER.info("Processing active compute instance for order [" + order.getId() + "]");
 
-            instanceProvider = this.remoteInstanceProvider;
+            ComputeOrderInstance computeOrderInstance = (ComputeOrderInstance) orderInstance;
+            this.computeInstanceConnectivity.setTunnelingServiceAddresses(order, computeOrderInstance);
+
+            if (! this.computeInstanceConnectivity.isActiveConnectionFromInstance(computeOrderInstance)) {
+                OrderStateTransitioner.transition(order, OrderState.FAILED);
+            }
         }
-
-        return instanceProvider;
     }
 }

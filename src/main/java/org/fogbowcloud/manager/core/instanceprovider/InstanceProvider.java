@@ -13,4 +13,5 @@ public interface InstanceProvider {
 	 *             If the Instance creation fail
 	 */
 	public OrderInstance requestInstance(Order order) throws Exception;
+	public OrderInstance getInstance(Order order);
 }
