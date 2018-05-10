@@ -64,7 +64,7 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 		this.reverseTunnelPrivateIP = properties.getProperty(ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY);
 
 		this.reverseTunnelSshPort = properties.getProperty(ConfigurationConstants.REVERSE_TUNNEL_PORT_KEY,
-				DefaultLaunchCommandGenerator.DEFAULT_SSH_HOST_PORT);
+				DEFAULT_SSH_HOST_PORT);
 
 		this.reverseTunnelHttpPort = properties.getProperty(ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY);
 
@@ -114,8 +114,7 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
 		if (extraUserData != null && extraUserDataContentType != null) {
 			String lineSeparator = "\n";
-			String normalizedExtraUserData = extraUserData.replace(DefaultLaunchCommandGenerator.USER_DATA_LINE_BREAKER,
-					lineSeparator);
+			String normalizedExtraUserData = extraUserData.replace(USER_DATA_LINE_BREAKER, lineSeparator);
 
 			cloudInitUserDataBuilder.addFile(extraUserDataContentType, new StringReader(normalizedExtraUserData));
 		} else {
@@ -127,20 +126,19 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 	protected String applyTokensReplacements(ComputeOrder order, String mimeString) {
 		String orderId = order.getId();
 
-		mimeString = mimeString.replace(DefaultLaunchCommandGenerator.TOKEN_ID, orderId);
-		mimeString = mimeString.replace(DefaultLaunchCommandGenerator.TOKEN_HOST, this.reverseTunnelPrivateIP);
-		mimeString = mimeString.replace(DefaultLaunchCommandGenerator.TOKEN_HOST_SSH_PORT, this.reverseTunnelSshPort);
-		mimeString = mimeString.replace(DefaultLaunchCommandGenerator.TOKEN_HOST_HTTP_PORT, this.reverseTunnelHttpPort);
+		mimeString = mimeString.replace(TOKEN_ID, orderId);
+		mimeString = mimeString.replace(TOKEN_HOST, this.reverseTunnelPrivateIP);
+		mimeString = mimeString.replace(TOKEN_HOST_SSH_PORT, this.reverseTunnelSshPort);
+		mimeString = mimeString.replace(TOKEN_HOST_HTTP_PORT, this.reverseTunnelHttpPort);
 
 		String userPublicKey = order.getPublicKey();
 		if (userPublicKey == null) {
 			userPublicKey = "";
 		}
 
-		mimeString = mimeString.replace(DefaultLaunchCommandGenerator.TOKEN_MANAGER_SSH_PUBLIC_KEY,
-				this.managerSshPublicKey);
-		mimeString = mimeString.replace(DefaultLaunchCommandGenerator.TOKEN_USER_SSH_PUBLIC_KEY, userPublicKey);
-		mimeString = mimeString.replace(DefaultLaunchCommandGenerator.TOKEN_SSH_USER, this.sshCommonUser);
+		mimeString = mimeString.replace(TOKEN_MANAGER_SSH_PUBLIC_KEY, this.managerSshPublicKey);
+		mimeString = mimeString.replace(TOKEN_USER_SSH_PUBLIC_KEY, userPublicKey);
+		mimeString = mimeString.replace(TOKEN_SSH_USER, this.sshCommonUser);
 
 		return mimeString;
 	}
