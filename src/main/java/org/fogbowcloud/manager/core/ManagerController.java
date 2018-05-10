@@ -24,17 +24,17 @@ public class ManagerController {
 		this.localInstanceProvider = localInstanceProvider;
 		this.remoteInstanceProvider = remoteInstanceProvider;
 
-		OpenProcessor openProcessor = new OpenProcessor(this.localInstanceProvider,
-				this.remoteInstanceProvider, properties);
+		OpenProcessor openProcessor = new OpenProcessor(this.localInstanceProvider, this.remoteInstanceProvider,
+				properties);
 		this.openProcessorThread = new Thread(openProcessor);
-		
+
 		this.startManagerThreads();
 	}
 
 	/**
 	 * This method starts all manager threads, if you defined a new manager
-	 * operation and this operation require a new thread to run, you should
-	 * start this thread at this method.
+	 * operation and this operation require a new thread to run, you should start
+	 * this thread at this method.
 	 */
 	private void startManagerThreads() {
 		LOGGER.info("Starting manager open processor thread");

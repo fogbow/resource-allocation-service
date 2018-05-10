@@ -120,7 +120,7 @@ public abstract class Order {
 	public String toString() {
 		return "Order [id=" + id + ", orderState=" + orderState + ", localToken=" + localToken + ", federationToken="
 				+ federationToken + ", requestingMember=" + requestingMember + ", providingMember=" + providingMember
-				+ ", orderInstace=" + orderInstance + ", fulfilledTime=" + fulfilledTime + "]";
+				+ ", orderInstance=" + orderInstance + ", fulfilledTime=" + fulfilledTime + "]";
 	}
 
 }
