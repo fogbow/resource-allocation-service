@@ -11,12 +11,13 @@ import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-// TODO: procurar o uso do classpath para ver se vai o caminhos dos .properties será encontrado
+// TODO: search if it is possible locate *.properties in another path
 @Service("instantiationInitService")
 @PropertySource({
         "classpath:manager.properties",
@@ -43,7 +44,6 @@ public class InstantiationInitService {
     }
 
     private void setUpProperties() {
-
         List<String> configFilesNames = new ArrayList<>();
         configFilesNames.add(ConfigurationConstants.MANAGER_CONF_FILE_FULL_PATH);
         configFilesNames.add(ConfigurationConstants.FEDERATION_CONF_FILE_FULL_PATH);
@@ -57,16 +57,14 @@ public class InstantiationInitService {
                 this.properties.putAll(mProperties);
             }
         } catch (FileNotFoundException e) {
-
             String[] msgSplitted = e.getMessage().split(" ");
             String fileName = msgSplitted[0];
 
             String msg = "No " + fileName + " file was found at resources.";
             LOGGER.severe(msg);
             System.exit(EXIT_ERROR_CODE);
-
-        } catch (Exception e) {
-            // TODO: do something
+        } catch (IOException e) {
+            LOGGER.severe(e.getMessage());
         }
     }
 
@@ -96,9 +94,4 @@ public class InstantiationInitService {
         return this.properties;
     }
 
-    // TODO: getter for AuthorizationPlugin
-    // TODO: getter for MapperPlugin
-    // TODO: getter for NetworkPlugin
-    // TODO: getter for StoragePlugin
-    // TODO: criar exceptions para a pessoa configurar algo do tipo errado
 }

@@ -29,10 +29,6 @@ public class ManagerController {
 	public ManagerController(Properties properties, InstanceProvider localInstanceProvider,
 			InstanceProvider remoteInstanceProvider) {
 
-		if (properties == null) {
-			// TODO: exception message
-			throw new IllegalArgumentException();
-		}
 		this.properties = properties;
 
 		this.localMemberId = this.properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
