@@ -1,7 +1,7 @@
-package org.fogbowcloud.manager.core.rest.services;
+package org.fogbowcloud.manager.core.services;
 
 import org.fogbowcloud.manager.core.controllers.ApplicationController;
-import org.fogbowcloud.manager.core.exceptions.ComputeOrdersServiceException;
+import org.fogbowcloud.manager.core.exceptions.OrdersServiceException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.token.Token;
@@ -10,6 +10,7 @@ import org.fogbowcloud.manager.core.plugins.PluginHelper;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.plugins.identity.ldap.LdapIdentityPlugin;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
+import org.fogbowcloud.manager.core.services.OrdersService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -21,11 +22,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-public class ComputeOrdersServiceTest {
+public class OrdersServiceTest {
 
     private ApplicationController applicationController;
     private IdentityPlugin ldapIdentityPlugin;
-    private ComputeOrdersService computeOrdersService;
+    private OrdersService ordersService;
     private Properties properties;
 
     private final String IDENTITY_URL_KEY = "identity_url";
@@ -34,7 +35,7 @@ public class ComputeOrdersServiceTest {
     private final String FAKE_LOCAL_TOKEN_ID = "00000";
 
     @Before
-    public void setUp() throws ComputeOrdersServiceException, UnauthorizedException {
+    public void setUp() throws OrdersServiceException, UnauthorizedException {
         this.properties = new Properties();
         this.properties.put(IDENTITY_URL_KEY, KEYSTONE_URL);
         mockLdapIdentityPlugin();
@@ -45,16 +46,16 @@ public class ComputeOrdersServiceTest {
     }
 
     @Test
-    public void testCreatedComputeOrder() {
+    public void testCreatedComputeOrder() throws UnauthorizedException, OrdersServiceException {
         ComputeOrder computeOrder = new ComputeOrder();
-        ResponseEntity<Order> response = computeOrdersService.createCompute(computeOrder, FAKE_ACCESS_ID, FAKE_LOCAL_TOKEN_ID);
+        ordersService.createOrder(computeOrder, FAKE_ACCESS_ID, FAKE_LOCAL_TOKEN_ID);
         Assert.assertEquals(response.getStatusCode(), HttpStatus.CREATED);
     }
 
     @Test
     public void testCreateComputeOrderBadRequest() {
         ComputeOrder nullComputeOrder = null;
-        ResponseEntity<Order> response = computeOrdersService.createCompute(nullComputeOrder, FAKE_ACCESS_ID, FAKE_LOCAL_TOKEN_ID);
+        ordersService.createOrder(nullComputeOrder, FAKE_ACCESS_ID, FAKE_LOCAL_TOKEN_ID);
         Assert.assertEquals(response.getStatusCode(), HttpStatus.BAD_REQUEST);
     }
 
@@ -66,7 +67,7 @@ public class ComputeOrdersServiceTest {
         this.applicationController.setAuthenticationController(authenticationController);
 
         ComputeOrder computeOrder = new ComputeOrder();
-        ResponseEntity<Order> response = computeOrdersService.createCompute(computeOrder, FAKE_ACCESS_ID, FAKE_LOCAL_TOKEN_ID);
+        ResponseEntity<Order> response = ordersService.createCompute(computeOrder, FAKE_ACCESS_ID, FAKE_LOCAL_TOKEN_ID);
         Assert.assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
     }
 
@@ -76,9 +77,9 @@ public class ComputeOrdersServiceTest {
         Mockito.doReturn(token).when(ldapIdentityPlugin).getToken(Mockito.anyString());
     }
 
-    private void mockComputeOrdersService() throws ComputeOrdersServiceException {
-        computeOrdersService =  Mockito.spy(new ComputeOrdersService());
-        Mockito.doNothing().when(computeOrdersService).addOrderInActiveOrdersMap(Mockito.any(ComputeOrder.class));
+    private void mockComputeOrdersService() throws OrdersServiceException {
+        ordersService =  Mockito.spy(new OrdersService());
+        Mockito.doNothing().when(ordersService).addOrderInActiveOrdersMap(Mockito.any(ComputeOrder.class));
     }
 
     private Token getFakeToken() {

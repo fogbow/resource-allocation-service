@@ -3,20 +3,26 @@ package org.fogbowcloud.manager.core.controllers;
 import java.util.Collection;
 
 import org.fogbowcloud.manager.core.ManagerController;
+import org.fogbowcloud.manager.core.exceptions.OrdersServiceException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
+import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.StorageOrder;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
+import org.fogbowcloud.manager.core.services.OrdersService;
 
 public class ApplicationController {
 
 	private static ApplicationController instance;
 	private AuthenticationService authenticationController;
 	private ManagerController managerController;
+	private OrdersService ordersService;
 
-	private ApplicationController() { }
+	private ApplicationController() {
+		this.ordersService = new OrdersService();
+	}
 
 	public static ApplicationController getInstance() {
 		synchronized (ApplicationController.class) {
@@ -93,6 +99,10 @@ public class ApplicationController {
 
 	public Token authenticate(String accessId) throws UnauthorizedException {
 		return authenticationController.authenticate(accessId);
+	}
+
+	public void createOrder(Order order, String accessId, String localTokenId) throws OrdersServiceException, UnauthorizedException {
+		this.ordersService.createOrder(order, accessId, localTokenId);
 	}
 
 }
