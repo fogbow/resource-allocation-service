@@ -7,6 +7,7 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.PluginHelper;
+import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.plugins.identity.ldap.LdapIdentityPlugin;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
 import org.junit.Before;
@@ -33,7 +34,7 @@ public class ComputeOrdersServiceTest {
     private final String FAKE_LOCAL_TOKEN_ID = "00000";
 
     @Before
-    public void setUp() throws ComputeOrdersServiceException {
+    public void setUp() throws ComputeOrdersServiceException, UnauthorizedException {
         this.properties = new Properties();
         this.properties.put(IDENTITY_URL_KEY, KEYSTONE_URL);
         mockLdapIdentityPlugin();
@@ -59,7 +60,7 @@ public class ComputeOrdersServiceTest {
 
     @Test
     public void testCreateComputeOrderUnauthorized() {
-        // set a no mocked LdaPIdentityPlugin
+        // set a non mocked LdaPIdentityPlugin
         IdentityPlugin mLdapIdentityPlugin = new LdapIdentityPlugin(this.properties);
         AuthenticationService authenticationController = new AuthenticationService(mLdapIdentityPlugin);
         this.applicationController.setAuthenticationController(authenticationController);
@@ -69,7 +70,7 @@ public class ComputeOrdersServiceTest {
         Assert.assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
     }
 
-    private void mockLdapIdentityPlugin() {
+    private void mockLdapIdentityPlugin() throws UnauthorizedException {
         Token token = getFakeToken();
         this.ldapIdentityPlugin = Mockito.spy(new LdapIdentityPlugin(this.properties));
         Mockito.doReturn(token).when(ldapIdentityPlugin).getToken(Mockito.anyString());
@@ -82,7 +83,9 @@ public class ComputeOrdersServiceTest {
 
     private Token getFakeToken() {
         String fakeAccessId = "0000";
-        Token.User fakeUser = new Token.User("userId", "userName");
+        String fakeUserId = "userId";
+        String fakeUserName = "userName";
+        Token.User fakeUser = new Token.User(fakeUserId, fakeUserName);
         Date fakeExpirationTime = new Date();
         Map<String, String> fakeAttributes = new HashMap<>();
         return  new Token(fakeAccessId, fakeUser, fakeExpirationTime, fakeAttributes);
