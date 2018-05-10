@@ -14,6 +14,7 @@ import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
+import org.fogbowcloud.manager.core.utils.ComputeInstanceConnectivityUtil;
 import org.fogbowcloud.manager.core.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.core.utils.TunnelingServiceUtil;
 
@@ -28,8 +29,10 @@ public class FulfilledMonitor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(FulfilledMonitor.class);
 
     private InstanceProvider localInstanceProvider;
+    private InstanceProvider remoteInstanceProvider;
+    private String localMemberId;
 
-    private ComputeInstanceConnectivity computeInstanceConnectivity;
+    private ComputeInstanceConnectivityUtil computeInstanceConnectivity;
 
     private ChainedList fulfilledOrdersList;
 
@@ -39,11 +42,14 @@ public class FulfilledMonitor implements Runnable {
      */
     private Long sleepTime;
 
-    public FulfilledMonitor(InstanceProvider localInstanceProvider, TunnelingServiceUtil tunnelingService,
-                            SshConnectivityUtil sshConnectivity, Properties properties) {
+    public FulfilledMonitor(InstanceProvider localInstanceProvider, InstanceProvider remoteInstanceProvider,
+                            TunnelingServiceUtil tunnelingService, SshConnectivityUtil sshConnectivity,
+                            Properties properties) {
         this.localInstanceProvider = localInstanceProvider;
+        this.remoteInstanceProvider = remoteInstanceProvider;
+        this.localMemberId = properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
 
-        this.computeInstanceConnectivity = new ComputeInstanceConnectivity(tunnelingService, sshConnectivity);
+        this.computeInstanceConnectivity = new ComputeInstanceConnectivityUtil(tunnelingService, sshConnectivity);
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
@@ -70,12 +76,12 @@ public class FulfilledMonitor implements Runnable {
                     try {
                         this.processFulfilledOrder(order);
                     } catch (Throwable e) {
-                        LOGGER.error("Error while trying to process the order" + order, e);
+                        LOGGER.error("Error while trying to process the order " + order, e);
                     }
                 } else {
                     this.fulfilledOrdersList.resetPointer();
-                    LOGGER.info("There is no fulfilled order to be processed, sleeping " +
-                            "for " + this.sleepTime + " milliseconds");
+                    LOGGER.info("There is no fulfilled order to be processed, sleeping for "
+                            + this.sleepTime + " milliseconds");
                     Thread.sleep(this.sleepTime);
                 }
             } catch (InterruptedException e) {
@@ -114,11 +120,15 @@ public class FulfilledMonitor implements Runnable {
     }
 
     /**
-     * This method does not synchronize the order object because it is private and
-     * can only be called by the processSpawningOrder method.
+     * Checks if instance state is failed and changes the order state to failed.
+     * Checks SSH connectivity if instance state is active and the order type is compute.
+     *
+     * @param order {@link Order}
      */
     private void processInstance(Order order) throws OrderStateTransitionException {
-        OrderInstance orderInstance = this.localInstanceProvider.getInstance(order);
+        InstanceProvider instanceProvider = this.getInstanceProviderForOrder(order);
+
+        OrderInstance orderInstance = instanceProvider.getInstance(order);
         OrderType orderType = order.getType();
 
         InstanceState instanceState = orderInstance.getState();
@@ -136,5 +146,29 @@ public class FulfilledMonitor implements Runnable {
                 OrderStateTransitioner.transition(order, OrderState.FAILED);
             }
         }
+    }
+
+    /**
+     * Get an instance provider from an order, if order is local, the
+     * returned instance provider is the local, otherwise, it is the remote.
+     *
+     * @param order {@link Order}
+     * @return corresponding instance provider.
+     */
+    private InstanceProvider getInstanceProviderForOrder(Order order) {
+        InstanceProvider instanceProvider;
+
+        if (order.isLocal(this.localMemberId)) {
+            LOGGER.info("The open order [" + order.getId() + "] is local");
+
+            instanceProvider = this.localInstanceProvider;
+        } else {
+            LOGGER.info("The open order [" + order.getId() + "] is remote for the " +
+                    "member [" + order.getProvidingMember() + "]");
+
+            instanceProvider = this.remoteInstanceProvider;
+        }
+
+        return instanceProvider;
     }
 }

@@ -93,10 +93,10 @@ public class ComputeOrderInstance extends OrderInstance {
 	
 	public void setExternalServiceAddresses(Map<String, String> serviceAddresses) {
 		if (serviceAddresses != null) {
-			this.sshPublicAddress = serviceAddresses.get(CommonConfigurationConstants.SSH_SERVICE_NAME);
+            this.sshPublicAddress = serviceAddresses.get(CommonConfigurationConstants.SSH_SERVICE_NAME);
 			this.sshUserName = SshCommonUserUtil.getSshCommonUser();
 			this.sshExtraPorts = new JSONObject(serviceAddresses).toString();
-		}
+        }
 	}
 
 }

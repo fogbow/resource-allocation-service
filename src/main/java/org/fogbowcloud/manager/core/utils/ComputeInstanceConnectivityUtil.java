@@ -1,21 +1,23 @@
-package org.fogbowcloud.manager.core.threads;
+package org.fogbowcloud.manager.core.utils;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
-import org.fogbowcloud.manager.core.utils.SshConnectivityUtil;
-import org.fogbowcloud.manager.core.utils.TunnelingServiceUtil;
+import org.fogbowcloud.manager.core.threads.FulfilledMonitor;
 
 import java.util.Map;
 
-public class ComputeInstanceConnectivity {
+/**
+ * Class to check SSH connectivity with an compute instance.
+ */
+public class ComputeInstanceConnectivityUtil {
 
     private static final Logger LOGGER = Logger.getLogger(FulfilledMonitor.class);
 
     private TunnelingServiceUtil tunnelingService;
     private SshConnectivityUtil sshConnectivity;
 
-    public ComputeInstanceConnectivity(TunnelingServiceUtil tunnelingService, SshConnectivityUtil sshConnectivity) {
+    public ComputeInstanceConnectivityUtil(TunnelingServiceUtil tunnelingService, SshConnectivityUtil sshConnectivity) {
         this.tunnelingService = tunnelingService;
         this.sshConnectivity = sshConnectivity;
     }

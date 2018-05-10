@@ -13,6 +13,7 @@ import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
+import org.fogbowcloud.manager.core.utils.ComputeInstanceConnectivityUtil;
 import org.fogbowcloud.manager.core.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.core.utils.TunnelingServiceUtil;
 
@@ -23,12 +24,12 @@ public class SpawningMonitor extends Thread {
 	private static final Logger LOGGER = Logger.getLogger(SpawningMonitor.class);
 
 	private SynchronizedDoublyLinkedList spawningOrderList;
-	private ComputeInstanceConnectivity computeInstanceConnectivity;
+	private ComputeInstanceConnectivityUtil computeInstanceConnectivity;
 	private Long sleepTime;
 
 	public SpawningMonitor(TunnelingServiceUtil tunnelingService, SshConnectivityUtil sshConnectivity,
 			Properties properties) {
-		this.computeInstanceConnectivity = new ComputeInstanceConnectivity(tunnelingService, sshConnectivity);
+		this.computeInstanceConnectivity = new ComputeInstanceConnectivityUtil(tunnelingService, sshConnectivity);
 
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();
