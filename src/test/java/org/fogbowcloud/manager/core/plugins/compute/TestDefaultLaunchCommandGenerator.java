@@ -1,6 +1,5 @@
 package org.fogbowcloud.manager.core.plugins.compute;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -188,7 +187,7 @@ public class TestDefaultLaunchCommandGenerator {
 		new DefaultLaunchCommandGenerator(this.properties);
 	}
 
-	@Test(expected = FileNotFoundException.class)
+	@Test(expected = PropertyNotSpecifiedException.class)
 	public void testManagerSshPublicKeyPathEmpty()
 			throws PropertyNotSpecifiedException, IOException {
 		this.properties = new Properties();

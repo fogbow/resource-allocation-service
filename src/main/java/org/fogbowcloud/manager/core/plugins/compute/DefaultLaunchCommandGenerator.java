@@ -54,32 +54,26 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 				DefaultConfigurationConstants.SSH_COMMON_USER);
 
 		String managerSshPublicKeyFilePath = properties.getProperty(ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH);
-		if (managerSshPublicKeyFilePath == null) {
-			throw new PropertyNotSpecifiedException(ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH);
-		}
+		checkPropertyNotEmpty(managerSshPublicKeyFilePath, ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH);
+		
 		this.managerSshPublicKey = IOUtils.toString(new FileInputStream(new File(managerSshPublicKeyFilePath)));
-
+		checkPropertyNotEmpty(this.managerSshPublicKey, ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH);
+		
 		this.sshReverseTunnelScript = new FileReader(this.SSH_REVERSE_TUNNEL_SCRIPT_PATH);
 
 		this.reverseTunnelPrivateIP = properties.getProperty(ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY);
+		checkPropertyNotEmpty(this.reverseTunnelPrivateIP, ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY);
 
 		this.reverseTunnelSshPort = properties.getProperty(ConfigurationConstants.REVERSE_TUNNEL_PORT_KEY,
 				DEFAULT_SSH_HOST_PORT);
 
 		this.reverseTunnelHttpPort = properties.getProperty(ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY);
-
-		checkNecessaryAttributes();
+		checkPropertyNotEmpty(this.reverseTunnelHttpPort, ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY);
 	}
 
-	private void checkNecessaryAttributes() throws PropertyNotSpecifiedException {
-		if (this.reverseTunnelPrivateIP == null || this.reverseTunnelPrivateIP.trim().isEmpty()) {
-			throw new PropertyNotSpecifiedException(ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY);
-		}
-		if (this.managerSshPublicKey.trim().isEmpty()) {
-			throw new PropertyNotSpecifiedException(ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH);
-		}
-		if (this.reverseTunnelHttpPort == null || this.reverseTunnelHttpPort.trim().isEmpty()) {
-			throw new PropertyNotSpecifiedException(ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY);
+	private void checkPropertyNotEmpty(String property, String propertyKey) throws PropertyNotSpecifiedException {
+		if (property == null || property.trim().isEmpty()) {
+			throw new PropertyNotSpecifiedException(propertyKey);
 		}
 	}
 
