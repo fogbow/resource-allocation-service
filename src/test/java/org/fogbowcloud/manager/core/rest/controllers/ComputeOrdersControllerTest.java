@@ -3,7 +3,6 @@ package org.fogbowcloud.manager.core.rest.controllers;
 import org.fogbowcloud.manager.core.controllers.ApplicationController;
 import org.fogbowcloud.manager.core.exceptions.OrdersServiceException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.PluginHelper;
@@ -37,7 +36,7 @@ public class ComputeOrdersControllerTest {
     private final String LOCAL_TOKEN_ID_HEADER = "localTokenId";
 
     @Before
-    public void setUp() throws OrdersServiceException, UnauthorizedException {
+    public void setUp() throws UnauthorizedException, OrdersServiceException {
         this.properties = new Properties();
         this.properties.put(IDENTITY_URL_KEY, KEYSTONE_URL);
         mockLdapIdentityPlugin();
