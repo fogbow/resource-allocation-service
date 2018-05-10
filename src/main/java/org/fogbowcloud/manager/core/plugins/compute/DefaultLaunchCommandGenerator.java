@@ -33,10 +33,10 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
 	public static final String USER_DATA_LINE_BREAKER = "[[\\n]]";
 
-	private final String sshReverseTunnelScriptPath = "bin/fogbow-create-reverse-tunnel";
+	private final String SSH_REVERSE_TUNNEL_SCRIPT_PATH = "bin/fogbow-create-reverse-tunnel";
 	private final FileReader sshReverseTunnelScript;
 
-	private final String cloudConfigFilePath = "bin/fogbow-cloud-config.cfg";
+	private final String CLOUD_CONFIG_FILE_PATH = "bin/fogbow-cloud-config.cfg";
 	private final FileReader cloudConfigFile;
 
 	private final String sshCommonUser;
@@ -50,7 +50,7 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
 	public DefaultLaunchCommandGenerator(Properties properties)
 			throws PropertyNotSpecifiedException, IOException {
-		this.cloudConfigFile = new FileReader(new File(this.cloudConfigFilePath));
+		this.cloudConfigFile = new FileReader(new File(this.CLOUD_CONFIG_FILE_PATH));
 
 		this.sshCommonUser = properties.getProperty(ConfigurationConstants.SSH_COMMON_USER_KEY,
 				DefaultConfigurationConstants.SSH_COMMON_USER);
@@ -64,7 +64,7 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 		this.managerSshPublicKey = IOUtils
 				.toString(new FileInputStream(new File(managerSshPublicKeyFilePath)));
 
-		this.sshReverseTunnelScript = new FileReader(this.sshReverseTunnelScriptPath);
+		this.sshReverseTunnelScript = new FileReader(this.SSH_REVERSE_TUNNEL_SCRIPT_PATH);
 
 		this.reverseTunnelPrivateIP = properties
 				.getProperty(ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY);
