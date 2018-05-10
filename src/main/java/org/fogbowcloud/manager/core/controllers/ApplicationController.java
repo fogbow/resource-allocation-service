@@ -19,7 +19,6 @@ public class ApplicationController {
 	private static ApplicationController instance;
 	private AuthenticationService authenticationController;
 	private ManagerController managerController;
-
 	private OrdersManagerController ordersManagerController;
 
 	private final Logger LOGGER = LoggerFactory.getLogger(ApplicationController.class);
@@ -101,21 +100,20 @@ public class ApplicationController {
 		this.managerController = managerController;
 	}
 
+	public Token authenticate(String accessId) throws UnauthorizedException {
+		return this.authenticationController.authenticate(accessId);
+	}
+
 	public void newOrderRequest(Order order, String accessId, String localTokenId) throws OrderManagementException, UnauthorizedException {
-		Token federationToken = this.authenticationController.authenticate(accessId);
+		Token federatedToken = authenticate(accessId);
 		Token localToken = createLocalToken(localTokenId);
-		this.ordersManagerController.newOrderRequest(order, federationToken, localToken);
+		this.ordersManagerController.newOrderRequest(order, federatedToken, localToken);
 	}
 
 	private Token createLocalToken(String localTokenId) {
 		Token localToken = new Token();
 		localToken.setAccessId(localTokenId);
 		return localToken;
-	}
-
-	public Token authenticate(String accessId) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }
