@@ -8,13 +8,13 @@ import java.util.Properties;
 import org.apache.commons.codec.binary.Base64;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.PluginHelper;
+import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.http.HttpStatus;
 
 public class TestLdapIdentityPlugin {
 	private static final String IDENTITY_URL_KEY = "identity_url";
@@ -127,8 +127,8 @@ public class TestLdapIdentityPlugin {
 
 			ldapStoneIdentity.createToken(userCredentials);
 			Assert.fail();
-		} catch (Exception e) {
-			Assert.assertEquals(HttpStatus.UNAUTHORIZED.toString(), e.getMessage());
+		} catch (UnauthorizedException e) {
+			Assert.assertEquals("Couldn't load account summary from LDAP Server.", e.getMessage());
 		}
 
 	}

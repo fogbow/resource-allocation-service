@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.plugins.identity.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -24,7 +26,7 @@ public class ComputeOrdersController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
-	public ResponseEntity<List<ComputeOrder>> getAllCompute() {
+	public ResponseEntity<List<ComputeOrder>> getAllCompute() throws TokenCreationException, UnauthorizedException {
 		return new ResponseEntity<List<ComputeOrder>>(HttpStatus.OK);
 	}
 
