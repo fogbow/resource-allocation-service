@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+// TODO: procurar o uso do classpath para ver se vai o caminhos dos .properties será encontrado
 @Service("instantiationInitService")
 @PropertySource({
         "classpath:manager.properties",
@@ -24,7 +25,6 @@ import java.util.logging.Logger;
         "classpath:test.properties"
 })
 public class InstantiationInitService {
-
 
     @Autowired
     private Environment env;
@@ -88,7 +88,7 @@ public class InstantiationInitService {
         return (IdentityPlugin) this.pluginFactory.getIdentityPluginByPrefix(prefix, className, this.properties);
     }
 
-    private String getPropertyValue(String propertyId) {
+    public String getPropertyValue(String propertyId) {
         return env.getProperty(propertyId);
     }
 
