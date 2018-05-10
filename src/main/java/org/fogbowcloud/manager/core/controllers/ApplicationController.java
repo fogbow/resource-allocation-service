@@ -7,6 +7,7 @@ import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.StorageOrder;
 import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
 
 public class ApplicationController {
@@ -90,7 +91,7 @@ public class ApplicationController {
 		this.managerController = managerController;
 	}
 
-	public Token authenticate(String accessId) {
+	public Token authenticate(String accessId) throws UnauthorizedException {
 		return authenticationController.authenticate(accessId);
 	}
 
