@@ -1,21 +1,23 @@
 package org.fogbowcloud.manager.core.models.orders;
 
+import org.fogbowcloud.manager.core.plugins.compute.util.CloudInitUserDataBuilder;
+
 public class UserData {
 
-	private String extraUserDataFile;
+	private String extraUserDataFileContent;
     
-    private String extraUserDataFileType;
+    private CloudInitUserDataBuilder.FileType extraUserDataFileType;
 
-    public UserData(String extraUserDataFile, String extraUserDataFileType) {
-        this.extraUserDataFile = extraUserDataFile;
+    public UserData(String extraUserDataFile, CloudInitUserDataBuilder.FileType extraUserDataFileType) {
+        this.extraUserDataFileContent = extraUserDataFile;
         this.extraUserDataFileType = extraUserDataFileType;
     }
 
-    public String getExtraUserDataFile() {
-		return extraUserDataFile;
+    public String getExtraUserDataFileContent() {
+		return extraUserDataFileContent;
 	}
 
-    public String getExtraUserDataFileType() {
+    public CloudInitUserDataBuilder.FileType getExtraUserDataFileType() {
 		return extraUserDataFileType;
 	}
     

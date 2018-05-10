@@ -6,6 +6,7 @@ import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.compute.LaunchCommandGenerator;
+import org.fogbowcloud.manager.core.plugins.compute.util.CloudInitUserDataBuilder;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -48,7 +49,7 @@ public class TestOpenStackComputePlugin {
         localToken = mock(Token.class);
 
 		computeOrder = new ComputeOrder(localToken, null, null, null, 1, 2000, 20, null,
-				new UserData(FAKE_USER_DATA_FILE, FAKE_EXTRA_USER_DATA_FILE_TYPE), null);
+				new UserData(FAKE_USER_DATA_FILE, CloudInitUserDataBuilder.FileType.SHELL_SCRIPT), null);
 		
 		launchCommandGenerator = mock(LaunchCommandGenerator.class);
 

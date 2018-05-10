@@ -27,8 +27,7 @@ public class TestDefaultLaunchCommandGenerator {
 	private String reverseTunnelHttpPort = "fake-http-port";
 
 	private String extraUserDataFile = "fake-extra-user-data-file";
-	private String extraUserDataFileType = CloudInitUserDataBuilder.FileType.SHELL_SCRIPT
-			.getMimeType();
+	private CloudInitUserDataBuilder.FileType extraUserDataFileType = CloudInitUserDataBuilder.FileType.SHELL_SCRIPT;
 
 	@Before
 	public void setUp() throws Exception {
@@ -79,7 +78,7 @@ public class TestDefaultLaunchCommandGenerator {
 
 		String userData = cloudInitUserDataBuilder.buildUserData();
 
-		Assert.assertTrue(userData.contains(this.extraUserDataFileType));
+		Assert.assertTrue(userData.contains(this.extraUserDataFileType.getMimeType()));
 		Assert.assertTrue(userData.contains(this.extraUserDataFile));
 	}
 
@@ -92,7 +91,7 @@ public class TestDefaultLaunchCommandGenerator {
 
 		String userData = cloudInitUserDataBuilder.buildUserData();
 
-		Assert.assertFalse(userData.contains(this.extraUserDataFileType));
+		Assert.assertFalse(userData.contains(this.extraUserDataFileType.getMimeType()));
 		Assert.assertFalse(userData.contains(this.extraUserDataFile));
 	}
 
@@ -105,7 +104,7 @@ public class TestDefaultLaunchCommandGenerator {
 
 		String userData = cloudInitUserDataBuilder.buildUserData();
 
-		Assert.assertFalse(userData.contains(this.extraUserDataFileType));
+		Assert.assertFalse(userData.contains(this.extraUserDataFileType.getMimeType()));
 		Assert.assertFalse(userData.contains(this.extraUserDataFile));
 	}
 

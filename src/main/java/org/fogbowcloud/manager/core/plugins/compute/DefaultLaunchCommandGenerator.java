@@ -17,7 +17,6 @@ import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.plugins.compute.util.CloudInitUserDataBuilder;
-import org.fogbowcloud.manager.core.plugins.compute.util.CloudInitUserDataBuilder.FileType;
 
 public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
@@ -48,49 +47,39 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
 	private static final Logger LOGGER = Logger.getLogger(DefaultLaunchCommandGenerator.class);
 
-	public DefaultLaunchCommandGenerator(Properties properties)
-			throws PropertyNotSpecifiedException, IOException {
+	public DefaultLaunchCommandGenerator(Properties properties) throws PropertyNotSpecifiedException, IOException {
 		this.cloudConfigFile = new FileReader(new File(this.CLOUD_CONFIG_FILE_PATH));
 
 		this.sshCommonUser = properties.getProperty(ConfigurationConstants.SSH_COMMON_USER_KEY,
 				DefaultConfigurationConstants.SSH_COMMON_USER);
 
-		String managerSshPublicKeyFilePath = properties
-				.getProperty(ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH);
+		String managerSshPublicKeyFilePath = properties.getProperty(ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH);
 		if (managerSshPublicKeyFilePath == null) {
-			throw new PropertyNotSpecifiedException(
-					ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH);
+			throw new PropertyNotSpecifiedException(ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH);
 		}
-		this.managerSshPublicKey = IOUtils
-				.toString(new FileInputStream(new File(managerSshPublicKeyFilePath)));
+		this.managerSshPublicKey = IOUtils.toString(new FileInputStream(new File(managerSshPublicKeyFilePath)));
 
 		this.sshReverseTunnelScript = new FileReader(this.SSH_REVERSE_TUNNEL_SCRIPT_PATH);
 
-		this.reverseTunnelPrivateIP = properties
-				.getProperty(ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY);
-		
-		this.reverseTunnelSshPort = properties.getProperty(
-				ConfigurationConstants.REVERSE_TUNNEL_PORT_KEY,
+		this.reverseTunnelPrivateIP = properties.getProperty(ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY);
+
+		this.reverseTunnelSshPort = properties.getProperty(ConfigurationConstants.REVERSE_TUNNEL_PORT_KEY,
 				DefaultLaunchCommandGenerator.DEFAULT_SSH_HOST_PORT);
-		
-		this.reverseTunnelHttpPort = properties
-				.getProperty(ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY);
+
+		this.reverseTunnelHttpPort = properties.getProperty(ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY);
 
 		checkNecessaryAttributes();
 	}
 
 	private void checkNecessaryAttributes() throws PropertyNotSpecifiedException {
 		if (this.reverseTunnelPrivateIP == null || this.reverseTunnelPrivateIP.trim().isEmpty()) {
-			throw new PropertyNotSpecifiedException(
-					ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY);
+			throw new PropertyNotSpecifiedException(ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY);
 		}
 		if (this.managerSshPublicKey.trim().isEmpty()) {
-			throw new PropertyNotSpecifiedException(
-					ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH);
+			throw new PropertyNotSpecifiedException(ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH);
 		}
 		if (this.reverseTunnelHttpPort == null || this.reverseTunnelHttpPort.trim().isEmpty()) {
-			throw new PropertyNotSpecifiedException(
-					ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY);
+			throw new PropertyNotSpecifiedException(ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY);
 		}
 	}
 
@@ -103,41 +92,32 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 		UserData userData = order.getUserData();
 
 		String normalizedExtraUserData = null;
-		String extraUserData = userData.getExtraUserDataFile();
+		String extraUserData = userData.getExtraUserDataFileContent();
 		if (extraUserData != null) {
 			normalizedExtraUserData = new String(Base64.decodeBase64(extraUserData));
 		}
-		String extraUserDataContentType = userData.getExtraUserDataFileType();
+		CloudInitUserDataBuilder.FileType extraUserDataContentType = userData.getExtraUserDataFileType();
 
-		addExtraUserData(cloudInitUserDataBuilder, normalizedExtraUserData,
-				extraUserDataContentType);
+		addExtraUserData(cloudInitUserDataBuilder, normalizedExtraUserData, extraUserDataContentType);
 
 		String mimeString = cloudInitUserDataBuilder.buildUserData();
 
 		mimeString = applyTokensReplacements(order, mimeString);
 
-		String base64String = new String(
-				Base64.encodeBase64(mimeString.getBytes(StandardCharsets.UTF_8), false, false),
+		String base64String = new String(Base64.encodeBase64(mimeString.getBytes(StandardCharsets.UTF_8), false, false),
 				StandardCharsets.UTF_8);
 		return base64String;
 	}
 
-	protected void addExtraUserData(CloudInitUserDataBuilder cloudInitUserDataBuilder,
-			String extraUserData, String extraUserDataContentType) {
+	protected void addExtraUserData(CloudInitUserDataBuilder cloudInitUserDataBuilder, String extraUserData,
+			CloudInitUserDataBuilder.FileType extraUserDataContentType) {
 
 		if (extraUserData != null && extraUserDataContentType != null) {
 			String lineSeparator = "\n";
-			String normalizedExtraUserData = extraUserData
-					.replace(DefaultLaunchCommandGenerator.USER_DATA_LINE_BREAKER, lineSeparator);
+			String normalizedExtraUserData = extraUserData.replace(DefaultLaunchCommandGenerator.USER_DATA_LINE_BREAKER,
+					lineSeparator);
 
-			for (FileType fileType : CloudInitUserDataBuilder.FileType.values()) {
-				String mimeType = fileType.getMimeType();
-				if (mimeType.equals(extraUserDataContentType)) {
-					cloudInitUserDataBuilder.addFile(fileType,
-							new StringReader(normalizedExtraUserData));
-					break;
-				}
-			}
+			cloudInitUserDataBuilder.addFile(extraUserDataContentType, new StringReader(normalizedExtraUserData));
 		} else {
 			LOGGER.info(
 					"Was not possible add the extra user data file, the extra user data file or file type are null");
@@ -149,10 +129,8 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
 		mimeString = mimeString.replace(DefaultLaunchCommandGenerator.TOKEN_ID, orderId);
 		mimeString = mimeString.replace(DefaultLaunchCommandGenerator.TOKEN_HOST, this.reverseTunnelPrivateIP);
-		mimeString = mimeString.replace(DefaultLaunchCommandGenerator.TOKEN_HOST_SSH_PORT,
-				this.reverseTunnelSshPort);
-		mimeString = mimeString.replace(DefaultLaunchCommandGenerator.TOKEN_HOST_HTTP_PORT,
-				this.reverseTunnelHttpPort);
+		mimeString = mimeString.replace(DefaultLaunchCommandGenerator.TOKEN_HOST_SSH_PORT, this.reverseTunnelSshPort);
+		mimeString = mimeString.replace(DefaultLaunchCommandGenerator.TOKEN_HOST_HTTP_PORT, this.reverseTunnelHttpPort);
 
 		String userPublicKey = order.getPublicKey();
 		if (userPublicKey == null) {
@@ -162,7 +140,7 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 		mimeString = mimeString.replace(DefaultLaunchCommandGenerator.TOKEN_MANAGER_SSH_PUBLIC_KEY,
 				this.managerSshPublicKey);
 		mimeString = mimeString.replace(DefaultLaunchCommandGenerator.TOKEN_USER_SSH_PUBLIC_KEY, userPublicKey);
-		mimeString= mimeString.replace(DefaultLaunchCommandGenerator.TOKEN_SSH_USER, this.sshCommonUser);
+		mimeString = mimeString.replace(DefaultLaunchCommandGenerator.TOKEN_SSH_USER, this.sshCommonUser);
 
 		return mimeString;
 	}
