@@ -91,7 +91,7 @@ public class Token {
 
 	@Override
 	public String toString() {
-		return "Token [attributes=" + attributes + ", " + ", user=" + user + "]";
+		return "Token [attributes=" + attributes + ", " + "user=" + user + "]";
 	}
 
 	public User getUser() {

@@ -10,13 +10,13 @@ import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.PluginHelper;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.json.JSONObject;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 public class TestLdapIdentityPlugin {
+	
 	private static final String IDENTITY_URL_KEY = "identity_url";
 	private final String KEYSTONE_URL = "http://localhost:" + PluginHelper.PORT_ENDPOINT;
 
@@ -32,12 +32,7 @@ public class TestLdapIdentityPlugin {
 
 		this.ldapStoneIdentity = Mockito.spy(new LdapIdentityPlugin(properties));
 		Mockito.doReturn(MOCK_SIGNATURE).when(ldapStoneIdentity).createSignature(Mockito.any(JSONObject.class));
-
-	}
-
-	@After
-	public void tearDown() throws Exception {
-
+		
 	}
 
 	@Test
