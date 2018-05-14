@@ -1,6 +1,7 @@
 package org.fogbowcloud.manager.core.controllers;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.fogbowcloud.manager.core.ManagerController;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
@@ -124,6 +125,16 @@ public class ApplicationController {
 		Token federatedToken = authenticate(accessId);
 		Token localToken = createLocalToken(localTokenId);
 		this.ordersService.createOrder(order, federatedToken, localToken);
+	}
+	
+	public List<Order> getAllComputes(String accessId, String localTokenId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Order getOrderById(String id, String accessId, String localTokenId) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
