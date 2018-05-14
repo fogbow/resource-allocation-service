@@ -8,6 +8,7 @@ import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.orders.StorageOrder;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
@@ -120,14 +121,14 @@ public class ApplicationController {
 		return localToken;
 	}
 
-	public List<Order> getAllComputes(String accessId) throws UnauthorizedException {
+	public List<Order> getAllComputes(String accessId, OrderType orderType) throws UnauthorizedException {
     	Token federatedToken = this.authenticate(accessId);
-		return this.ordersService.getAllComputes(federatedToken);
+		return this.ordersService.getAllOrdersByType(federatedToken, orderType);
 	}
 
-	public Order getOrderById(String id, String accessId) throws UnauthorizedException {
+	public Order getOrderById(String id, String accessId, OrderType orderType) throws UnauthorizedException {
     	Token federatedToken = this.authenticate(accessId);
-		return this.ordersService.getOrderById(id, federatedToken);
+		return this.ordersService.getOrderByIdAndType(id, federatedToken, orderType);
 	}
 
 }

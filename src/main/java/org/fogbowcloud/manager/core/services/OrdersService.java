@@ -18,7 +18,8 @@ import org.slf4j.LoggerFactory;
 public class OrdersService {
 
     // TODO: usar log ao longo do código
-    private static final Logger LOGGER = LoggerFactory.getLogger(OrdersService.class);
+    @SuppressWarnings("unused")
+	private static final Logger LOGGER = LoggerFactory.getLogger(OrdersService.class);
 
     private SharedOrderHolders ordersHolder;
 
@@ -38,20 +39,20 @@ public class OrdersService {
         addOrderInActiveOrdersMap(order);
     }
     
-    public List<Order> getAllComputes(Token federatedToken) throws UnauthorizedException {
+    public List<Order> getAllOrdersByType(Token federatedToken, OrderType orderType) throws UnauthorizedException {
     	Collection<Order> orders = this.ordersHolder.getActiveOrdersMap().values();
     	
     	return orders.stream()
-    			.filter(order -> order.getType().equals(OrderType.COMPUTE))
+    			.filter(order -> order.getType().equals(orderType))
     			.filter(order -> order.getFederationToken().getUser().equals(federatedToken.getUser()))
     			.collect(Collectors.toList());
     }
 
-    public Order getOrderById(String id, Token federatedToken) throws UnauthorizedException {
+    public Order getOrderByIdAndType(String id, Token federatedToken, OrderType orderType) throws UnauthorizedException {
     	Collection<Order> orders = this.ordersHolder.getActiveOrdersMap().values();
     	
     	return orders.stream()
-    			.filter(order -> order.getType().equals(OrderType.COMPUTE))
+    			.filter(order -> order.getType().equals(orderType))
     			.filter(order -> order.getFederationToken().equals(federatedToken))
     			.filter(order -> order.getId().equals(id))
     			.findFirst()

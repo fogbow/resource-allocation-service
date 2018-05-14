@@ -6,7 +6,7 @@ import org.fogbowcloud.manager.core.controllers.ApplicationController;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.plugins.identity.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +47,7 @@ public class ComputeOrdersController {
 	public ResponseEntity<List<Order>> getAllCompute(
 			@RequestHeader(value = "accessId") String accessId
 	) throws UnauthorizedException {
-		List<Order> orders = this.applicationController.getAllComputes(accessId);
+		List<Order> orders = this.applicationController.getAllComputes(accessId, OrderType.COMPUTE);
 		return new ResponseEntity<>(orders, HttpStatus.OK);
 	}
 
@@ -56,7 +56,7 @@ public class ComputeOrdersController {
 			@PathVariable String id,
 			@RequestHeader(value = "accessId") String accessId
 	) throws UnauthorizedException {
-		Order order = this.applicationController.getOrderById(id, accessId);
+		Order order = this.applicationController.getOrderById(id, accessId, OrderType.COMPUTE);
 		return new ResponseEntity<Order>(order, HttpStatus.OK);
 	}
 
