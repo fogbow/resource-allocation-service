@@ -9,7 +9,6 @@ import org.fogbowcloud.manager.core.plugins.PluginHelper;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.plugins.identity.ldap.LdapIdentityPlugin;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
-import org.fogbowcloud.manager.core.services.OrdersService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,8 +17,6 @@ import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
-
-import static org.junit.Assert.*;
 
 public class ComputeOrdersControllerTest {
 
