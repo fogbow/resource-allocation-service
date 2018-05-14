@@ -77,7 +77,7 @@ public class TestFulfilledMonitor extends BaseUnitTests {
     }
 
     /**
-     * Test if a fulfilled order of an active compute instance has not
+     * Test if a fulfilled order of an active local compute instance has not
      * being changed to failed if SSH connectivity is reachable.
      *
      * @throws InterruptedException
@@ -111,6 +111,12 @@ public class TestFulfilledMonitor extends BaseUnitTests {
         Assert.assertNull(this.failedOrderList.getNext());
     }
 
+    /**
+     * Test if a fulfilled order of an active remote compute instance has not
+     * being changed to failed if SSH connectivity is reachable.
+     *
+     * @throws InterruptedException
+     */
     @Test
     public void testRunProcessRemoteComputeOrderInstanceReachable() throws InterruptedException {
         Order order = this.createRemoteOrder();
@@ -141,7 +147,7 @@ public class TestFulfilledMonitor extends BaseUnitTests {
     }
 
     /**
-     * Test if a fulfilled order of an active compute instance is changed
+     * Test if a fulfilled order of an active local compute instance is changed
      * to failed if SSH connectivity is not reachable.
      *
      * @throws InterruptedException
@@ -180,7 +186,7 @@ public class TestFulfilledMonitor extends BaseUnitTests {
     }
 
     /**
-     * Test if a fulfilled order of an active compute instance is changed
+     * Test if a fulfilled order of an active remote compute instance is changed
      * to failed if SSH connectivity is not reachable.
      *
      * @throws InterruptedException
@@ -219,7 +225,7 @@ public class TestFulfilledMonitor extends BaseUnitTests {
     }
 
     /**
-     * Test if a fulfilled order of an failed compute instance is
+     * Test if a fulfilled order of a failed local compute instance is
      * definitely changed to failed.
      *
      * @throws InterruptedException
@@ -253,7 +259,7 @@ public class TestFulfilledMonitor extends BaseUnitTests {
     }
 
     /**
-     * Test if a fulfilled order of an failed compute instance is
+     * Test if a fulfilled order of an failed remote compute instance is
      * definitely changed to failed.
      *
      * @throws InterruptedException
@@ -288,7 +294,7 @@ public class TestFulfilledMonitor extends BaseUnitTests {
 
     /**
      * Test if the fulfilled processor still running and do not change the order
-     * state if the method processOpenOrder throw an order state transition
+     * state if the method processFulfilledOrder throw an order state transition
      * exception.
      *
      * @throws OrderStateTransitionException
@@ -313,6 +319,33 @@ public class TestFulfilledMonitor extends BaseUnitTests {
         Order test = this.fulfilledOrderList.getNext();
         Assert.assertEquals(order.getOrderInstance(), test.getOrderInstance());
         Assert.assertEquals(OrderState.FULFILLED, order.getOrderState());
+    }
+
+    @Test
+    public void testRunThrowableExceptionWhileTryingToProcessOrder() throws InterruptedException, OrderStateTransitionException {
+        Order order = Mockito.mock(Order.class);
+        OrderState state = null;
+        order.setOrderState(state);
+        this.fulfilledOrderList.addItem(order);
+
+        Mockito.doThrow(new RuntimeException("Any Exception")).when(this.fulfilledMonitor)
+                .processFulfilledOrder(order);
+
+        Thread thread = new Thread(this.fulfilledMonitor);
+        thread.start();
+        Thread.sleep(500);
+    }
+
+    @Test
+    public void testRunExceptionWhileTryingToProcessInstance() throws OrderStateTransitionException {
+        Order order = this.createLocalOrder();
+        order.setOrderState(OrderState.FULFILLED);
+        this.fulfilledOrderList.addItem(order);
+
+        Mockito.doThrow(new OrderStateTransitionException("Any Exception")).when(this.fulfilledMonitor)
+                .processInstance(order);
+
+        this.fulfilledMonitor.processFulfilledOrder(order);
     }
 
     private Order createLocalOrder() {

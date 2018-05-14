@@ -14,7 +14,7 @@ import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
-import org.fogbowcloud.manager.core.utils.ComputeInstanceConnectivityUtil;
+import org.fogbowcloud.manager.core.utils.ComputeInstanceConnectivityChecker;
 import org.fogbowcloud.manager.core.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.core.utils.TunnelingServiceUtil;
 
@@ -32,7 +32,7 @@ public class FulfilledMonitor implements Runnable {
     private InstanceProvider remoteInstanceProvider;
     private String localMemberId;
 
-    private ComputeInstanceConnectivityUtil computeInstanceConnectivity;
+    private ComputeInstanceConnectivityChecker computeInstanceConnectivity;
 
     private ChainedList fulfilledOrdersList;
 
@@ -49,7 +49,7 @@ public class FulfilledMonitor implements Runnable {
         this.remoteInstanceProvider = remoteInstanceProvider;
         this.localMemberId = properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
 
-        this.computeInstanceConnectivity = new ComputeInstanceConnectivityUtil(tunnelingService, sshConnectivity);
+        this.computeInstanceConnectivity = new ComputeInstanceConnectivityChecker(tunnelingService, sshConnectivity);
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
@@ -75,7 +75,7 @@ public class FulfilledMonitor implements Runnable {
                 if (order != null) {
                     try {
                         this.processFulfilledOrder(order);
-                    } catch (Throwable e) {
+                    } catch (OrderStateTransitionException e) {
                         LOGGER.error("Error while trying to process the order " + order, e);
                     }
                 } else {
@@ -109,7 +109,7 @@ public class FulfilledMonitor implements Runnable {
 
                 try {
                     this.processInstance(order);
-                } catch (Exception e) {
+                } catch (OrderStateTransitionException e) {
                     LOGGER.error("Error while trying to get an instance for order: " + order, e);
 
                     LOGGER.info("Transition [" + order.getId() + "] order state from fulfilled to failed");
@@ -125,7 +125,7 @@ public class FulfilledMonitor implements Runnable {
      *
      * @param order {@link Order}
      */
-    private void processInstance(Order order) throws OrderStateTransitionException {
+    protected void processInstance(Order order) throws OrderStateTransitionException {
         InstanceProvider instanceProvider = this.getInstanceProviderForOrder(order);
 
         OrderInstance orderInstance = instanceProvider.getInstance(order);
@@ -142,9 +142,11 @@ public class FulfilledMonitor implements Runnable {
             ComputeOrderInstance computeOrderInstance = (ComputeOrderInstance) orderInstance;
             this.computeInstanceConnectivity.setTunnelingServiceAddresses(order, computeOrderInstance);
 
-            if (!this.computeInstanceConnectivity.isActiveConnectionFromInstance(computeOrderInstance)) {
+            if (!this.computeInstanceConnectivity.isInstanceReachable(computeOrderInstance)) {
                 OrderStateTransitioner.transition(order, OrderState.FAILED);
             }
+        } else {
+            LOGGER.info("The instance was processed successfully");
         }
     }
 

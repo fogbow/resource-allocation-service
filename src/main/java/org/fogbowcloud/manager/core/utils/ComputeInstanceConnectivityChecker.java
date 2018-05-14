@@ -10,14 +10,14 @@ import java.util.Map;
 /**
  * Class to check SSH connectivity with an compute instance.
  */
-public class ComputeInstanceConnectivityUtil {
+public class ComputeInstanceConnectivityChecker {
 
-    private static final Logger LOGGER = Logger.getLogger(FulfilledMonitor.class);
+    private static final Logger LOGGER = Logger.getLogger(ComputeInstanceConnectivityChecker.class);
 
     private TunnelingServiceUtil tunnelingService;
     private SshConnectivityUtil sshConnectivity;
 
-    public ComputeInstanceConnectivityUtil(TunnelingServiceUtil tunnelingService, SshConnectivityUtil sshConnectivity) {
+    public ComputeInstanceConnectivityChecker(TunnelingServiceUtil tunnelingService, SshConnectivityUtil sshConnectivity) {
         this.tunnelingService = tunnelingService;
         this.sshConnectivity = sshConnectivity;
     }
@@ -34,13 +34,8 @@ public class ComputeInstanceConnectivityUtil {
         }
     }
 
-    public boolean isActiveConnectionFromInstance(ComputeOrderInstance computeOrderInstance) {
+    public boolean isInstanceReachable(ComputeOrderInstance computeOrderInstance) {
         LOGGER.info("Check the communicate at SSH connectivity of the compute instance.");
-        if (this.sshConnectivity.checkSSHConnectivity(computeOrderInstance)) {
-            return true;
-        }
-
-        LOGGER.warn("Failed attempt to communicate with ssh connectivity.");
-        return false;
+        return this.sshConnectivity.checkSSHConnectivity(computeOrderInstance);
     }
 }
