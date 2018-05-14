@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.codec.binary.Base64;
@@ -112,31 +114,36 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
 			cloudInitUserDataBuilder.addFile(extraUserDataFileType, new StringReader(normalizedExtraUserData));
 		} else if (extraUserDataFileContent == null) {
-			LOGGER.info(
-					"It was not possible add the extra user data file, the extra user data file content is null");
+			LOGGER.info("It was not possible add the extra user data file, the extra user data file content is null");
 		} else {
-			LOGGER.info(
-					"It was not possible add the extra user data file, the extra user data file type is null");
+			LOGGER.info("It was not possible add the extra user data file, the extra user data file type is null");
 		}
 	}
 
 	protected String applyTokensReplacements(ComputeOrder order, String mimeString) {
 		String orderId = order.getId();
 
-		mimeString = mimeString.replace(TOKEN_ID, orderId);
-		mimeString = mimeString.replace(TOKEN_HOST, this.reverseTunnelPrivateIP);
-		mimeString = mimeString.replace(TOKEN_HOST_SSH_PORT, this.reverseTunnelSshPort);
-		mimeString = mimeString.replace(TOKEN_HOST_HTTP_PORT, this.reverseTunnelHttpPort);
+		Map<String, String> replacements = new HashMap<String, String>();
+		replacements.put(TOKEN_ID, orderId);
+		replacements.put(TOKEN_HOST, this.reverseTunnelPrivateIP);
+		replacements.put(TOKEN_HOST_SSH_PORT, this.reverseTunnelSshPort);
+		replacements.put(TOKEN_HOST_HTTP_PORT, this.reverseTunnelHttpPort);
 
 		String userPublicKey = order.getPublicKey();
 		if (userPublicKey == null) {
 			userPublicKey = "";
 		}
 
-		mimeString = mimeString.replace(TOKEN_MANAGER_SSH_PUBLIC_KEY, this.managerSshPublicKey);
-		mimeString = mimeString.replace(TOKEN_USER_SSH_PUBLIC_KEY, userPublicKey);
-		mimeString = mimeString.replace(TOKEN_SSH_USER, this.sshCommonUser);
+		replacements.put(TOKEN_MANAGER_SSH_PUBLIC_KEY, this.managerSshPublicKey);
+		replacements.put(TOKEN_USER_SSH_PUBLIC_KEY, userPublicKey);
+		replacements.put(TOKEN_SSH_USER, this.sshCommonUser);
 
+		String messageTemplate = "Replacing %s with %s";
+		for (String key : replacements.keySet()) {
+			String value = replacements.get(key);
+			LOGGER.info(String.format(messageTemplate, key, value));
+			mimeString = mimeString.replace(key, value);
+		}
 		return mimeString;
 	}
 
