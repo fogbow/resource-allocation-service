@@ -5,6 +5,8 @@ import org.fogbowcloud.manager.core.models.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.plugins.compute.LaunchCommandGenerator;
+import org.fogbowcloud.manager.core.plugins.compute.util.CloudInitUserDataBuilder;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,7 +22,8 @@ import static org.mockito.Mockito.*;
 
 public class TestOpenStackComputePlugin {
 
-    protected static final String FAKE_USER_DATA = "fake-user-data";
+    protected static final String FAKE_USER_DATA_FILE = "fake-extra-user-data";
+    protected static final String FAKE_EXTRA_USER_DATA_FILE_TYPE = "fake-file-type";
     protected static final String FAKE_FLAVOR_ID = "fake-flavor-id";
     protected static final String FAKE_NET_ID = "fake-net-id";
     protected static final String FAKE_KEYNAME = "fake-keyname";
@@ -35,6 +38,7 @@ public class TestOpenStackComputePlugin {
     private OpenStackNovaV2ComputePlugin novaV2ComputeOpenStack;
     private Token localToken;
     private ComputeOrder computeOrder;
+    private LaunchCommandGenerator launchCommandGenerator;
 
     @Before
     public void setUp() throws Exception {
@@ -44,20 +48,25 @@ public class TestOpenStackComputePlugin {
 
         localToken = mock(Token.class);
 
-        computeOrder = new ComputeOrder(localToken, null, null,
-                null, 1, 2000, 20, null, new UserData(FAKE_USER_DATA), null);
+		computeOrder = new ComputeOrder(localToken, null, null, null, 1, 2000, 20, null,
+				new UserData(FAKE_USER_DATA_FILE, CloudInitUserDataBuilder.FileType.SHELL_SCRIPT), null);
+		
+		launchCommandGenerator = mock(LaunchCommandGenerator.class);
 
-        novaV2ComputeOpenStack = spy(new OpenStackNovaV2ComputePlugin(properties));
+        novaV2ComputeOpenStack = spy(new OpenStackNovaV2ComputePlugin(properties, launchCommandGenerator));
     }
 
     @Test
     public void testRequestInstance() throws IOException, RequestException {
         Flavor flavor = mock(Flavor.class);
         doReturn(flavor).when(novaV2ComputeOpenStack).findSmallestFlavor(any(ComputeOrder.class));
+        
+        String fakeCommand = "fake-command"; 
+        doReturn(fakeCommand).when(launchCommandGenerator).createLaunchCommand(any(ComputeOrder.class));
 
         doReturn(FAKE_ENDPOINT).when(novaV2ComputeOpenStack).getComputeEndpoint(anyString(), anyString());
 
-        JSONObject json = novaV2ComputeOpenStack.generateJsonRequest(FAKE_IMAGE_ID, FAKE_FLAVOR_ID, FAKE_USER_DATA,
+        JSONObject json = novaV2ComputeOpenStack.generateJsonRequest(FAKE_IMAGE_ID, FAKE_FLAVOR_ID, FAKE_USER_DATA_FILE,
                 FAKE_KEYNAME, FAKE_NET_ID);
         doReturn(json).when(novaV2ComputeOpenStack)
                 .generateJsonRequest(anyString(), anyString(), anyString(), anyString(), anyString());
@@ -73,6 +82,9 @@ public class TestOpenStackComputePlugin {
     public void testRequestInstanceIrregularSyntax() throws IOException, RequestException {
         Flavor flavor = mock(Flavor.class);
         doReturn(flavor).when(novaV2ComputeOpenStack).findSmallestFlavor(any(ComputeOrder.class));
+        
+        String fakeCommand = "fake-command"; 
+        doReturn(fakeCommand).when(launchCommandGenerator).createLaunchCommand(any(ComputeOrder.class));
 
         doReturn(INVALID_FAKE_POST_RETURN).when(novaV2ComputeOpenStack).
                 doPostRequest(anyString(), any(Token.class), any(JSONObject.class));
