@@ -21,14 +21,16 @@ public abstract class Order {
 
 	private Long fulfilledTime;
 
-	public Order() {}
+	public Order(String id) {
+		this.id = id;
+		this.orderState = OrderState.OPEN;
+	}
 
 	/**
 	 * Creating Order with predefined Id.
 	 */
 	public Order(String id, Token localToken, Token federationToken, String requestingMember, String providingMember) {
-		this.id = id;
-		this.orderState = OrderState.OPEN;
+		this(id);
 		this.localToken = localToken;
 		this.federationToken = federationToken;
 		this.requestingMember = requestingMember;

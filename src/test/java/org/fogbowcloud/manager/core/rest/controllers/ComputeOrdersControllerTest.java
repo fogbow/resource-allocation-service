@@ -1,9 +1,8 @@
 package org.fogbowcloud.manager.core.rest.controllers;
 
 import org.fogbowcloud.manager.core.controllers.ApplicationController;
-import org.fogbowcloud.manager.core.exceptions.OrdersServiceException;
+import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.PluginHelper;
@@ -20,8 +19,6 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 
-import static org.junit.Assert.*;
-
 public class ComputeOrdersControllerTest {
 
     private ApplicationController applicationController;
@@ -37,7 +34,7 @@ public class ComputeOrdersControllerTest {
     private final String LOCAL_TOKEN_ID_HEADER = "localTokenId";
 
     @Before
-    public void setUp() throws OrdersServiceException, UnauthorizedException {
+    public void setUp() throws OrderManagementException, UnauthorizedException {
         this.properties = new Properties();
         this.properties.put(IDENTITY_URL_KEY, KEYSTONE_URL);
         mockLdapIdentityPlugin();
@@ -70,7 +67,7 @@ public class ComputeOrdersControllerTest {
         Mockito.doReturn(token).when(ldapIdentityPlugin).getToken(Mockito.anyString());
     }
 
-    private void mockComputeOrdersService() throws OrdersServiceException {
+    private void mockComputeOrdersService() throws OrderManagementException {
         ordersService =  Mockito.spy(new OrdersService());
         Mockito.doNothing().when(ordersService).addOrderInActiveOrdersMap(Mockito.any(ComputeOrder.class));
     }

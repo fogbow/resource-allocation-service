@@ -1,8 +1,6 @@
 package org.fogbowcloud.manager.core.services;
 
-import org.fogbowcloud.manager.core.controllers.ApplicationController;
 import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
-import org.fogbowcloud.manager.core.exceptions.OrdersServiceException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.token.Token;

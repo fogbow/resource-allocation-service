@@ -21,7 +21,7 @@ public class ComputeOrder extends Order {
     private String publicKey;
 
     public ComputeOrder() {
-        super();
+        super(UUID.randomUUID().toString());
     }
 
     /**

@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.core.controllers;
 import java.util.Collection;
 
 import org.fogbowcloud.manager.core.ManagerController;
-import org.fogbowcloud.manager.core.exceptions.OrdersServiceException;
+import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -11,17 +11,20 @@ import org.fogbowcloud.manager.core.models.orders.StorageOrder;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
-import org.fogbowcloud.manager.core.services.OrdersService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ApplicationController {
 
 	private static ApplicationController instance;
 	private AuthenticationService authenticationController;
 	private ManagerController managerController;
-	private OrdersService ordersService;
+	private OrdersManagerController ordersManagerController;
+
+	private final Logger LOGGER = LoggerFactory.getLogger(ApplicationController.class);
 
 	private ApplicationController() {
-		this.ordersService = new OrdersService();
+		this.ordersManagerController = new OrdersManagerController();
 	}
 
 	public static ApplicationController getInstance() {
@@ -98,13 +101,13 @@ public class ApplicationController {
 	}
 
 	public Token authenticate(String accessId) throws UnauthorizedException {
-		return authenticationController.authenticate(accessId);
+		return this.authenticationController.authenticate(accessId);
 	}
 
-	public void createOrder(Order order, String accessId, String localTokenId) throws OrdersServiceException, UnauthorizedException {
+	public void newOrderRequest(Order order, String accessId, String localTokenId) throws OrderManagementException, UnauthorizedException {
 		Token federatedToken = authenticate(accessId);
 		Token localToken = createLocalToken(localTokenId);
-		this.ordersService.createOrder(order, federatedToken, localToken);
+		this.ordersManagerController.newOrderRequest(order, federatedToken, localToken);
 	}
 
 	private Token createLocalToken(String localTokenId) {
@@ -112,5 +115,4 @@ public class ApplicationController {
 		localToken.setAccessId(localTokenId);
 		return localToken;
 	}
-
 }
