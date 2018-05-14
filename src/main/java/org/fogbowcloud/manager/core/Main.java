@@ -1,26 +1,20 @@
 package org.fogbowcloud.manager.core;
 
-import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.controllers.ApplicationController;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
 import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
-import org.fogbowcloud.manager.core.plugins.identity.ldap.LdapIdentityPlugin;
+import org.fogbowcloud.manager.core.plugins.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
 import org.fogbowcloud.manager.core.services.InstantiationInitService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.stereotype.Component;
 
 import java.util.Properties;
-import java.util.logging.Logger;
 
-@Component
 public class Main implements ApplicationRunner {
 
-    @Autowired
     private InstantiationInitService instantiationInitService;
 
     private Properties properties;
@@ -30,27 +24,29 @@ public class Main implements ApplicationRunner {
     private InstanceProvider localInstanceProvider;
     private InstanceProvider removeInstanceProvider;
     private AuthenticationService authService;
-    private IdentityPlugin federationIdentityPlugin;
-
-    private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
+        this.instantiationInitService = new InstantiationInitService();
+        this.properties = instantiationInitService.getProperties();
 
-        properties = instantiationInitService.getProperties();
+        this.localInstanceProvider = new LocalInstanceProvider();
+        this.removeInstanceProvider = new RemoteInstanceProvider();
 
-        localInstanceProvider = new LocalInstanceProvider();
-        removeInstanceProvider = new RemoteInstanceProvider();
-        managerController = new ManagerController(properties, localInstanceProvider, removeInstanceProvider);
-        managerController.setComputePlugin(instantiationInitService.getComputePlugin());
-        managerController.setLocalIdentityPlugin(instantiationInitService .getLocalIdentityPlugin());
-        managerController.setFederationIdentityPlugin(instantiationInitService.getFederationIdentityPlugin());
+        this.managerController = new ManagerController(this.properties, this.localInstanceProvider, this.removeInstanceProvider);
 
-        federationIdentityPlugin = new LdapIdentityPlugin(properties);
-        authService = new AuthenticationService(federationIdentityPlugin);
+        ComputePlugin computePlugin = instantiationInitService.getComputePlugin();
+        this.managerController.setComputePlugin(computePlugin);
+
+        IdentityPlugin localIdentityPlugin = instantiationInitService .getLocalIdentityPlugin();
+        this.managerController.setLocalIdentityPlugin(localIdentityPlugin);
+
+        IdentityPlugin federationIdentityPlugin = instantiationInitService.getFederationIdentityPlugin();
+        this.managerController.setFederationIdentityPlugin(federationIdentityPlugin);
+
+        this.authService = new AuthenticationService(federationIdentityPlugin);
 
         // TODO: change to use getInstance method since AppCtrl will be Singleton
-        facade = new ApplicationController();
+        facade = new ApplicationController(authService, managerController);
     }
-
 }

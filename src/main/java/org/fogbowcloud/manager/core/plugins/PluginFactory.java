@@ -27,7 +27,8 @@ public class PluginFactory {
             LOGGER.severe(msg);
             System.exit(EXIT_ERROR_CODE);
         } catch (Exception e) {
-            // TODO: do something
+            LOGGER.severe(e.getMessage());
+            System.exit(EXIT_ERROR_CODE);
         }
 
         return pluginInstance ;
