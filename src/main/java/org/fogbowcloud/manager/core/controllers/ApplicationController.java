@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.fogbowcloud.manager.core.ManagerController;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.exceptions.OrdersServiceException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -13,9 +12,9 @@ import org.fogbowcloud.manager.core.models.orders.StorageOrder;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
+import org.fogbowcloud.manager.core.services.OrdersService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.fogbowcloud.manager.core.services.OrdersService;
 
 public class ApplicationController {
 
@@ -121,20 +120,14 @@ public class ApplicationController {
 		return localToken;
 	}
 
-	public void createOrder(Order order, String accessId, String localTokenId) throws OrdersServiceException, UnauthorizedException {
-		Token federatedToken = authenticate(accessId);
-		Token localToken = createLocalToken(localTokenId);
-		this.ordersService.createOrder(order, federatedToken, localToken);
-	}
-	
-	public List<Order> getAllComputes(String accessId, String localTokenId) {
-		// TODO Auto-generated method stub
-		return null;
+	public List<Order> getAllComputes(String accessId) throws UnauthorizedException {
+    	Token federatedToken = this.authenticate(accessId);
+		return this.ordersService.getAllComputes(federatedToken);
 	}
 
-	public Order getOrderById(String id, String accessId, String localTokenId) {
-		// TODO Auto-generated method stub
-		return null;
+	public Order getOrderById(String id, String accessId) throws UnauthorizedException {
+    	Token federatedToken = this.authenticate(accessId);
+		return this.ordersService.getOrderById(id, federatedToken);
 	}
 
 }
