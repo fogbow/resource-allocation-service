@@ -121,7 +121,9 @@ public class ApplicationController {
 	}
 
 	public void createOrder(Order order, String accessId, String localTokenId) throws OrdersServiceException, UnauthorizedException {
-		this.ordersService.createOrder(order, accessId, localTokenId);
+		Token federatedToken = authenticate(accessId);
+		Token localToken = createLocalToken(localTokenId);
+		this.ordersService.createOrder(order, federatedToken, localToken);
 	}
 
 }

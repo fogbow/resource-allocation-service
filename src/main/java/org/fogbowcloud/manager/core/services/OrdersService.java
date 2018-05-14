@@ -18,39 +18,30 @@ public class OrdersService {
     // TODO: usar log ao longo do código
     private static final Logger LOGGER = LoggerFactory.getLogger(OrdersService.class);
 
-    private ApplicationController applicationController;
     private SharedOrderHolders ordersHolder;
 
     public OrdersService() {
         ordersHolder = SharedOrderHolders.getInstance();
     }
 
-    public void createOrder(Order order, String accessId, String localTokenId) throws OrdersServiceException, UnauthorizedException {
+    public void createOrder(Order order, Token federatedToken, Token localToken) throws OrdersServiceException, UnauthorizedException {
         // TODO para os headers
         if (order == null) {
             // TODO create msg
             String msg = "";
             throw new OrdersServiceException(msg);
         }
-        Token federatedToken = applicationController.authenticate(accessId);
-        Token localToken = createLocalToken(localTokenId);
         setOrderTokens(order, localToken, federatedToken);
         order.setOrderState(OrderState.OPEN);
         addOrderInActiveOrdersMap(order);
     }
 
-    private Token createLocalToken(String localTokenId) {
-        Token localToken = new Token();
-        localToken.setAccessId(localTokenId);
-        return localToken;
-    }
-
-    private void setOrderTokens(Order order, Token localToken, Token federatedToken) {
+    private void setOrderTokens(Order order, Token federatedToken, Token localToken) {
         order.setFederationToken(federatedToken);
         order.setLocalToken(localToken);
     }
 
-    protected void addOrderInActiveOrdersMap(Order order) throws OrdersServiceException {
+    public void addOrderInActiveOrdersMap(Order order) throws OrdersServiceException {
         Map<String, Order> activeOrdersMap = ordersHolder.getActiveOrdersMap();
 
         if (activeOrdersMap.containsKey(order.getId())) {
