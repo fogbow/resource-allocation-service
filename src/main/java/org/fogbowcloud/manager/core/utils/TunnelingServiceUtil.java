@@ -26,15 +26,14 @@ public class TunnelingServiceUtil {
 	private static final Logger LOGGER = Logger.getLogger(SpawningMonitor.class);
 	
 	public static final String HTTP_PROTOCOL = "http://";
-	
 	public static final String TOKEN_POINT = "/token/";
-	
 	public static final String END_POINT_ALL = "/all";
 
 	private Properties properties;
-	private HttpClient reverseTunnelHttpClient = createReverseTunnelHttpClient();
 	private PoolingHttpClientConnectionManager connectionManager;
-	
+
+	private HttpClient reverseTunnelHttpClient = createReverseTunnelHttpClient();
+
 	private static TunnelingServiceUtil instance;
 	
 	private TunnelingServiceUtil() {}
