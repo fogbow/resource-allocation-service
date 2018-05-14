@@ -25,11 +25,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class ComputeOrdersController {
 
 	private ApplicationController applicationController = ApplicationController.getInstance();
+	private static final Logger LOGGER = LoggerFactory.getLogger(ComputeOrdersController.class);
 
 	private final String ACCESS_ID_HEADER_KEY = "accessId";
 	private final String LOCAL_TOKEN_ID_HEADER_KEY = "localTokenId";
-
-	private final Logger LOGGER = LoggerFactory.getLogger(ComputeOrdersController.class);
 
 	@RequestMapping(method = RequestMethod.POST)
 	public ResponseEntity<Order> createCompute(@RequestBody ComputeOrder computeOrder,
