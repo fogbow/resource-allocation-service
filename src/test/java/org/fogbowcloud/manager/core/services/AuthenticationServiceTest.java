@@ -6,6 +6,7 @@ import java.util.HashMap;
 import org.apache.http.HttpStatus;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
+import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,14 +24,14 @@ public class AuthenticationServiceTest {
 	}
 
 	@Test
-	public void testAuthenticateService() {
+	public void testAuthenticateService() throws UnauthorizedException {
 		Token token = new Token("accessId", Mockito.mock(Token.User.class), new Date(), new HashMap<String, String>());
 		Mockito.doReturn(token).when(identityPlugin).getToken(Mockito.anyString());
 		Assert.assertEquals(token, authenticationService.authenticate(Mockito.anyString()));
 	}
 
 	@Test
-	public void testInvalidAccessid() {
+	public void testInvalidAccessid() throws UnauthorizedException {
 		Integer statusResponse = HttpStatus.SC_UNAUTHORIZED;
 		Mockito.doThrow(new RuntimeException(statusResponse.toString())).when(identityPlugin)
 				.getToken(Mockito.anyString());

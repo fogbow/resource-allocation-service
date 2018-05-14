@@ -4,14 +4,17 @@ import java.util.Map;
 
 import org.fogbowcloud.manager.core.models.Credential;
 import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.plugins.identity.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 
 public interface IdentityPlugin {
 	/**
 	 * Creates a token based on the user's credentials.
 	 * @param userCredentials
 	 * @return a Token with an access ID provided by the identity service.
+	 * @throws CreateTokenException 
 	 */
-	public Token createToken(Map<String, String> userCredentials);
+	public Token createToken(Map<String, String> userCredentials) throws UnauthorizedException, TokenCreationException;
 
 	/**
 	 * Some cloud middleware require tokens to be renewed before its
@@ -29,7 +32,7 @@ public interface IdentityPlugin {
 	 * @param accessId
 	 * @return a Token for the corresponding accessId.
 	 */
-	public Token getToken(String accessId);
+	public Token getToken(String accessId) throws UnauthorizedException;
 
 	/**
 	 * Verifies if the accessId is valid against the identity service.
