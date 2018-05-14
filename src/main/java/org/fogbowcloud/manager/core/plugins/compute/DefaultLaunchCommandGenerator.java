@@ -55,10 +55,10 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
 		String managerSshPublicKeyFilePath = properties.getProperty(ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH);
 		checkPropertyNotEmpty(managerSshPublicKeyFilePath, ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH);
-		
+
 		this.managerSshPublicKey = IOUtils.toString(new FileInputStream(new File(managerSshPublicKeyFilePath)));
 		checkPropertyNotEmpty(this.managerSshPublicKey, ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH);
-		
+
 		this.sshReverseTunnelScript = new FileReader(this.SSH_REVERSE_TUNNEL_SCRIPT_PATH);
 
 		this.reverseTunnelPrivateIP = properties.getProperty(ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY);
@@ -86,13 +86,13 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 		UserData userData = order.getUserData();
 
 		String normalizedExtraUserData = null;
-		String extraUserData = userData.getExtraUserDataFileContent();
-		if (extraUserData != null) {
-			normalizedExtraUserData = new String(Base64.decodeBase64(extraUserData));
+		String extraUserDataFileContent = userData.getExtraUserDataFileContent();
+		if (extraUserDataFileContent != null) {
+			normalizedExtraUserData = new String(Base64.decodeBase64(extraUserDataFileContent));
 		}
-		CloudInitUserDataBuilder.FileType extraUserDataContentType = userData.getExtraUserDataFileType();
+		CloudInitUserDataBuilder.FileType extraUserDataFileType = userData.getExtraUserDataFileType();
 
-		addExtraUserData(cloudInitUserDataBuilder, normalizedExtraUserData, extraUserDataContentType);
+		addExtraUserData(cloudInitUserDataBuilder, normalizedExtraUserData, extraUserDataFileType);
 
 		String mimeString = cloudInitUserDataBuilder.buildUserData();
 
@@ -103,17 +103,20 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 		return base64String;
 	}
 
-	protected void addExtraUserData(CloudInitUserDataBuilder cloudInitUserDataBuilder, String extraUserData,
-			CloudInitUserDataBuilder.FileType extraUserDataContentType) {
+	protected void addExtraUserData(CloudInitUserDataBuilder cloudInitUserDataBuilder, String extraUserDataFileContent,
+			CloudInitUserDataBuilder.FileType extraUserDataFileType) {
 
-		if (extraUserData != null && extraUserDataContentType != null) {
+		if (extraUserDataFileContent != null && extraUserDataFileType != null) {
 			String lineSeparator = "\n";
-			String normalizedExtraUserData = extraUserData.replace(USER_DATA_LINE_BREAKER, lineSeparator);
+			String normalizedExtraUserData = extraUserDataFileContent.replace(USER_DATA_LINE_BREAKER, lineSeparator);
 
-			cloudInitUserDataBuilder.addFile(extraUserDataContentType, new StringReader(normalizedExtraUserData));
+			cloudInitUserDataBuilder.addFile(extraUserDataFileType, new StringReader(normalizedExtraUserData));
+		} else if (extraUserDataFileContent == null) {
+			LOGGER.info(
+					"It was not possible add the extra user data file, the extra user data file content is null");
 		} else {
 			LOGGER.info(
-					"Was not possible add the extra user data file, the extra user data file or file type are null");
+					"It was not possible add the extra user data file, the extra user data file type is null");
 		}
 	}
 
