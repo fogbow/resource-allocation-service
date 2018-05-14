@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.rest.controllers;
+package org.fogbowcloud.manager.core.services;
 
 import org.fogbowcloud.manager.core.controllers.ApplicationController;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
@@ -10,16 +10,18 @@ import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedExce
 import org.fogbowcloud.manager.core.plugins.identity.ldap.LdapIdentityPlugin;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
 import org.fogbowcloud.manager.core.services.OrdersService;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.http.*;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.junit.Assert;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
-import java.util.*;
-
-public class ComputeOrdersControllerTest {
+public class OrdersServiceTest {
 
     private ApplicationController applicationController;
     private IdentityPlugin ldapIdentityPlugin;
@@ -30,8 +32,6 @@ public class ComputeOrdersControllerTest {
     private final String KEYSTONE_URL = "http://localhost:" + PluginHelper.PORT_ENDPOINT;
     private final String FAKE_ACCESS_ID = "11111";
     private final String FAKE_LOCAL_TOKEN_ID = "00000";
-    private final String ACESS_ID_HEADER = "accessId";
-    private final String LOCAL_TOKEN_ID_HEADER = "localTokenId";
 
     @Before
     public void setUp() throws OrderManagementException, UnauthorizedException {
@@ -45,20 +45,29 @@ public class ComputeOrdersControllerTest {
     }
 
     @Test
-    public void createdComputeTest() {
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(new MediaType[] { MediaType.APPLICATION_JSON }));
-        //headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        String fakeAccessId = "llfdsfdsf";
-        String fakeLocalTokenId = "37498327432";
-        headers.set(ACESS_ID_HEADER, fakeAccessId);
-        headers.set(LOCAL_TOKEN_ID_HEADER, fakeLocalTokenId);
-        HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
-        String url = "http://localhost:" + PluginHelper.PORT_ENDPOINT + "/compute";
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+    public void testCreatedComputeOrder() throws UnauthorizedException, OrdersServiceException {
+        ComputeOrder computeOrder = new ComputeOrder();
+        ordersService.createOrder(computeOrder, FAKE_ACCESS_ID, FAKE_LOCAL_TOKEN_ID);
         Assert.assertEquals(response.getStatusCode(), HttpStatus.CREATED);
+    }
+
+    @Test
+    public void testCreateComputeOrderBadRequest() {
+        ComputeOrder nullComputeOrder = null;
+        ordersService.createOrder(nullComputeOrder, FAKE_ACCESS_ID, FAKE_LOCAL_TOKEN_ID);
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    public void testCreateComputeOrderUnauthorized() {
+        // set a non mocked LdaPIdentityPlugin
+        IdentityPlugin mLdapIdentityPlugin = new LdapIdentityPlugin(this.properties);
+        AuthenticationService authenticationController = new AuthenticationService(mLdapIdentityPlugin);
+        this.applicationController.setAuthenticationController(authenticationController);
+
+        ComputeOrder computeOrder = new ComputeOrder();
+        ResponseEntity<Order> response = ordersService.createCompute(computeOrder, FAKE_ACCESS_ID, FAKE_LOCAL_TOKEN_ID);
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.UNAUTHORIZED);
     }
 
     private void mockLdapIdentityPlugin() throws UnauthorizedException {
