@@ -140,7 +140,6 @@ public class FulfilledMonitor implements Runnable {
             LOGGER.info("Processing active compute instance for order [" + order.getId() + "]");
 
             ComputeOrderInstance computeOrderInstance = (ComputeOrderInstance) orderInstance;
-            this.computeInstanceConnectivity.setTunnelingServiceAddresses(order, computeOrderInstance);
 
             if (!this.computeInstanceConnectivity.isInstanceReachable(computeOrderInstance)) {
                 OrderStateTransitioner.transition(order, OrderState.FAILED);
