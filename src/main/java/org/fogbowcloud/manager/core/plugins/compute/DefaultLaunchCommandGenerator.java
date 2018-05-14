@@ -32,10 +32,10 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
 	public static final String USER_DATA_LINE_BREAKER = "[[\\n]]";
 
-	private final String SSH_REVERSE_TUNNEL_SCRIPT_PATH = "bin/fogbow-create-reverse-tunnel";
+	private final String SSH_REVERSE_TUNNEL_SCRIPT_PATH = "bin/create-reverse-tunnel";
 	private final FileReader sshReverseTunnelScript;
 
-	private final String CLOUD_CONFIG_FILE_PATH = "bin/fogbow-cloud-config.cfg";
+	private final String CLOUD_CONFIG_FILE_PATH = "bin/cloud-config.cfg";
 	private final FileReader cloudConfigFile;
 
 	private final String sshCommonUser;
