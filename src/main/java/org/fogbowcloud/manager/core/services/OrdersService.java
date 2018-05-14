@@ -1,17 +1,19 @@
 package org.fogbowcloud.manager.core.services;
 
-import org.fogbowcloud.manager.core.controllers.ApplicationController;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrdersServiceException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
+import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-
-import java.util.Map;
 
 public class OrdersService {
 
@@ -34,6 +36,26 @@ public class OrdersService {
         setOrderTokens(order, localToken, federatedToken);
         order.setOrderState(OrderState.OPEN);
         addOrderInActiveOrdersMap(order);
+    }
+    
+    public List<Order> getAllComputes(Token federatedToken) throws UnauthorizedException {
+    	Collection<Order> orders = this.ordersHolder.getActiveOrdersMap().values();
+    	
+    	return orders.stream()
+    			.filter(order -> order.getType().equals(OrderType.COMPUTE))
+    			.filter(order -> order.getFederationToken().getUser().equals(federatedToken.getUser()))
+    			.collect(Collectors.toList());
+    }
+
+    public Order getOrderById(String id, Token federatedToken) throws UnauthorizedException {
+    	Collection<Order> orders = this.ordersHolder.getActiveOrdersMap().values();
+    	
+    	return orders.stream()
+    			.filter(order -> order.getType().equals(OrderType.COMPUTE))
+    			.filter(order -> order.getFederationToken().equals(federatedToken))
+    			.filter(order -> order.getId().equals(id))
+    			.findFirst()
+    			.orElse(null);  // returns null if not exists the order.
     }
 
     private void setOrderTokens(Order order, Token federatedToken, Token localToken) {

@@ -36,8 +36,7 @@ public class TestExceptionHandlerController {
 	@Test
 	public void testInvalidCredentialsException() throws Exception {
 		String accessId = "take access id";
-		String localToken = "take local token";
-		Mockito.when(computeOrdersController.getAllCompute(accessId, localToken)).thenThrow(new InvalidCredentialsException());
+		Mockito.when(computeOrdersController.getAllCompute(accessId)).thenThrow(new InvalidCredentialsException());
 		
 		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
 				.accept(MediaType.APPLICATION_JSON))
@@ -54,8 +53,7 @@ public class TestExceptionHandlerController {
 	@Test
 	public void testInvalidTokenException() throws Exception {
 		String accessId = "take access id";
-		String localToken = "take local token";
-		Mockito.when(computeOrdersController.getAllCompute(accessId, localToken)).thenThrow(new InvalidTokenException());
+		Mockito.when(computeOrdersController.getAllCompute(accessId)).thenThrow(new InvalidTokenException());
 		
 		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
 				.accept(MediaType.APPLICATION_JSON))
@@ -72,8 +70,7 @@ public class TestExceptionHandlerController {
 	@Test
 	public void testTokenCreationException() throws Exception {
 		String accessId = "take access id";
-		String localToken = "take local token";
-		Mockito.when(computeOrdersController.getAllCompute(accessId, localToken)).thenThrow(new TokenCreationException());
+		Mockito.when(computeOrdersController.getAllCompute(accessId)).thenThrow(new TokenCreationException());
 		
 		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
 				.accept(MediaType.APPLICATION_JSON))
@@ -90,8 +87,7 @@ public class TestExceptionHandlerController {
 	@Test
 	public void testAnyException() throws Exception {
 		String accessId = "take access id";
-		String localToken = "take local token";
-		Mockito.when(computeOrdersController.getAllCompute(accessId, localToken)).thenThrow(new RuntimeException());
+		Mockito.when(computeOrdersController.getAllCompute(accessId)).thenThrow(new RuntimeException());
 		
 		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
 				.accept(MediaType.APPLICATION_JSON))

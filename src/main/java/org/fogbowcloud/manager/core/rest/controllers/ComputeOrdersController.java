@@ -45,20 +45,18 @@ public class ComputeOrdersController {
 
 	@RequestMapping(method = RequestMethod.GET)
 	public ResponseEntity<List<Order>> getAllCompute(
-			@RequestHeader(value = "accessId") String accessId,
-			@RequestHeader(value = "localTokenId") String localTokenId
-	) {
-		List<Order> orders = this.applicationController.getAllComputes(accessId, localTokenId);
+			@RequestHeader(value = "accessId") String accessId
+	) throws UnauthorizedException {
+		List<Order> orders = this.applicationController.getAllComputes(accessId);
 		return new ResponseEntity<>(orders, HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public ResponseEntity<Order> getComputeById(
 			@PathVariable String id,
-			@RequestHeader(value = "accessId") String accessId,
-			@RequestHeader(value = "localTokenId") String localTokenId
-	) {
-		Order order = this.applicationController.getOrderById(id, accessId, localTokenId);
+			@RequestHeader(value = "accessId") String accessId
+	) throws UnauthorizedException {
+		Order order = this.applicationController.getOrderById(id, accessId);
 		return new ResponseEntity<Order>(order, HttpStatus.OK);
 	}
 
