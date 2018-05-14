@@ -6,6 +6,7 @@ import org.fogbowcloud.manager.core.constants.CommonConfigurationConstants;
 import org.fogbowcloud.manager.core.utils.SshCommonUserUtil;
 import org.json.JSONObject;
 
+// TODO: We need to discuss about these attributes
 public class ComputeOrderInstance extends OrderInstance {
 
     private String hostName;
@@ -29,6 +30,11 @@ public class ComputeOrderInstance extends OrderInstance {
         this.sshPublicAddress = sshPublicAddress;
         this.sshUserName = sshUserName;
         this.sshExtraPorts = sshExtraPorts;
+    }
+
+    // TODO: This method was created to make getInstance() more easy to implement
+    public ComputeOrderInstance(String id, InstanceState state) {
+        super(id, state);
     }
 
     public ComputeOrderInstance(String id) {
@@ -98,5 +104,4 @@ public class ComputeOrderInstance extends OrderInstance {
             this.sshExtraPorts = new JSONObject(serviceAddresses).toString();
         }
     }
-
 }
