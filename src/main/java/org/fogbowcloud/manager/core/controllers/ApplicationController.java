@@ -131,4 +131,10 @@ public class ApplicationController {
 		return this.ordersService.getOrderByIdAndType(id, federatedToken, orderType);
 	}
 
+	public void deleteComputeOrder(String id, String accessId, OrderType orderType) throws UnauthorizedException {
+		Token token = this.authenticate(accessId);
+		Order order = this.getOrderById(id, accessId, orderType);
+		this.ordersService.deleteOrder(order, token);		
+	}
+
 }
