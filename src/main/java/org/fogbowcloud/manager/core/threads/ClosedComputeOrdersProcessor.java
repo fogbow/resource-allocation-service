@@ -89,7 +89,7 @@ public class ClosedComputeOrdersProcessor implements Runnable {
 
     private void deactivateOrder(Order order) {
         Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
-        if (activeOrdersMap.get(order.getId()) != null) {
+        if (activeOrdersMap.containsKey(order.getId())) {
             activeOrdersMap.remove(order.getId());
         } else {
             String message = "Tried to remove order %s from the active orders but there were no order with this id";
