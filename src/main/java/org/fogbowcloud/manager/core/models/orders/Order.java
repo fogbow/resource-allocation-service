@@ -19,11 +19,9 @@ public abstract class Order {
 
 	private OrderInstance orderInstance;
 
-	private Long fulfilledTime;
-
 	public Order(String id) {
 		this.id = id;
-		this.orderState = OrderState.OPEN;
+		this.setOrderState(OrderState.OPEN);
 	}
 
 	/**
@@ -81,14 +79,6 @@ public abstract class Order {
 		this.orderInstance = orderInstance;
 	}
 
-	public long getFulfilledTime() {
-		return fulfilledTime;
-	}
-
-	public void setFulfilledTime(Long fulfilledTime) {
-		this.fulfilledTime = fulfilledTime;
-	}
-
 	public boolean isLocal(String localMemberId) {
 		return this.providingMember.equals(localMemberId);
 	}
@@ -128,7 +118,7 @@ public abstract class Order {
 	public String toString() {
 		return "Order [id=" + id + ", orderState=" + orderState + ", localToken=" + localToken + ", federationToken="
 				+ federationToken + ", requestingMember=" + requestingMember + ", providingMember=" + providingMember
-				+ ", orderInstance=" + orderInstance + ", fulfilledTime=" + fulfilledTime + "]";
+				+ ", orderInstance=" + orderInstance + "]";
 	}
 
 }
