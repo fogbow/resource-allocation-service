@@ -18,20 +18,19 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping(value = "compute")
 public class ComputeOrdersController {
 
-	private ApplicationController applicationController = ApplicationController.getInstance();
-
-	private final Logger LOGGER = LoggerFactory.getLogger(ComputeOrdersController.class);
-
 	private final String ACCESS_ID_HEADER_KEY = "accessId";
 	private final String LOCAL_TOKEN_ID_HEADER_KEY = "localTokenId";
 
+	private final Logger LOGGER = LoggerFactory.getLogger(ComputeOrdersController.class);
+
+	// ExceptionHandlerController handles the possible problems in request
 	@RequestMapping(method = RequestMethod.POST)
 	public ResponseEntity<Order> createCompute(@RequestBody ComputeOrder computeOrder,
 		@RequestHeader(ACCESS_ID_HEADER_KEY) String accessId, @RequestHeader(LOCAL_TOKEN_ID_HEADER_KEY) String localTokenId)
 			throws UnauthorizedException, OrderManagementException {
+		ApplicationController applicationController = ApplicationController.getInstance();
 		LOGGER.info("New compute order request received.");
-		// ExceptionHandlerController handles the possible problems in request
-		this.applicationController.newOrderRequest(computeOrder, accessId, localTokenId);
+		applicationController.newOrderRequest(computeOrder, accessId, localTokenId);
 		return new ResponseEntity<Order>(HttpStatus.CREATED);
 	}
 

@@ -2,6 +2,8 @@ package org.fogbowcloud.manager.core.rest.controllers;
 
 import org.fogbowcloud.manager.core.controllers.ApplicationController;
 import org.fogbowcloud.manager.core.exceptions.OrdersServiceException;
+import org.fogbowcloud.manager.core.controllers.OrdersManagerController;
+import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
@@ -9,66 +11,101 @@ import org.fogbowcloud.manager.core.plugins.PluginHelper;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.plugins.identity.ldap.LdapIdentityPlugin;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
-import org.springframework.http.*;
-import org.springframework.web.client.RestTemplate;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.RequestBuilder;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
+
+
+@RunWith(SpringRunner.class)
+@WebMvcTest(value = ComputeOrdersController.class, secure = false)
+@PrepareForTest(ApplicationController.class)
 public class ComputeOrdersControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
 
     private ApplicationController applicationController;
     private IdentityPlugin ldapIdentityPlugin;
-    private OrdersService ordersService;
+    private OrdersManagerController ordersManagerController;
     private Properties properties;
 
     private final String IDENTITY_URL_KEY = "identity_url";
     private final String KEYSTONE_URL = "http://localhost:" + PluginHelper.PORT_ENDPOINT;
-    private final String FAKE_ACCESS_ID = "11111";
-    private final String FAKE_LOCAL_TOKEN_ID = "00000";
-    private final String ACESS_ID_HEADER = "accessId";
+    private final String ACCESS_ID_HEADER = "accessId";
     private final String LOCAL_TOKEN_ID_HEADER = "localTokenId";
 
     @Before
-    public void setUp() throws UnauthorizedException, OrdersServiceException {
+    public void setUp() throws UnauthorizedException, OrderManagementException {
         this.properties = new Properties();
         this.properties.put(IDENTITY_URL_KEY, KEYSTONE_URL);
-        mockLdapIdentityPlugin();
-        AuthenticationService authenticationController = new AuthenticationService(ldapIdentityPlugin);
         this.applicationController = ApplicationController.getInstance();
-        this.applicationController.setAuthenticationController(authenticationController);
-        mockComputeOrdersService();
+
+        mockLdapIdentityPlugin();
+        mockAuthentication();
+        mockOrdersManagerController();
     }
 
     @Test
-    public void createdComputeTest() {
-        RestTemplate restTemplate = new RestTemplate();
+    public void createdComputeTest() throws Exception {
         HttpHeaders headers = new HttpHeaders();
-        headers.setAccept(Arrays.asList(new MediaType[] { MediaType.APPLICATION_JSON }));
-        //headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        String fakeAccessId = "llfdsfdsf";
-        String fakeLocalTokenId = "37498327432";
-        headers.set(ACESS_ID_HEADER, fakeAccessId);
+        String fakeAccessId = "fake-access-id";
+        String fakeLocalTokenId = "fake-local-token-id";
+        headers.set(ACCESS_ID_HEADER, fakeAccessId);
         headers.set(LOCAL_TOKEN_ID_HEADER, fakeLocalTokenId);
-        HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
-        String url = "http://localhost:" + PluginHelper.PORT_ENDPOINT + "/compute";
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
-        Assert.assertEquals(response.getStatusCode(), HttpStatus.CREATED);
+
+        // Need to mock application controller
+
+        String body = "{\"requestingMember\":\"req-member\", \"providingMember\":\"prov-member\", " +
+                "\"publicKey\":\"pub-key\", \"vCPU\":\"12\", \"memory\":\"1024\", \"disk\":\"500\", " +
+                "\"imageName\":\"ubuntu\", \"type\":\"compute\"}";
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders
+                .post("/compute")
+                .headers(headers)
+                .accept(MediaType.APPLICATION_JSON).content(body)
+                .contentType(MediaType.APPLICATION_JSON);
+
+        MvcResult result = mockMvc.perform(requestBuilder).andReturn();
+
+        int expectedStatus = HttpStatus.CREATED.value();
+        assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 
     private void mockLdapIdentityPlugin() throws UnauthorizedException {
         Token token = getFakeToken();
-        this.ldapIdentityPlugin = Mockito.spy(new LdapIdentityPlugin(this.properties));
-        Mockito.doReturn(token).when(ldapIdentityPlugin).getToken(Mockito.anyString());
+        this.ldapIdentityPlugin = spy(new LdapIdentityPlugin(this.properties));
+        doReturn(token).when(ldapIdentityPlugin).getToken(anyString());
     }
 
-    private void mockComputeOrdersService() throws OrdersServiceException {
-        ordersService =  Mockito.spy(new OrdersService());
-        Mockito.doNothing().when(ordersService).addOrderInActiveOrdersMap(Mockito.any(ComputeOrder.class));
+    private void mockAuthentication() throws UnauthorizedException {
+        Token token = getFakeToken();
+        AuthenticationService authenticationService = spy(new AuthenticationService(this.ldapIdentityPlugin));
+        this.applicationController.setAuthenticationController(authenticationService);
+        doReturn(token).when(authenticationService).authenticate(anyString());
+    }
+
+    private void mockOrdersManagerController() throws OrderManagementException {
+        ordersManagerController =  spy(new OrdersManagerController());
+        doNothing().when(ordersManagerController).addOrderInActiveOrdersMap(any(ComputeOrder.class));
     }
 
     private Token getFakeToken() {

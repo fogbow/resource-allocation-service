@@ -26,7 +26,7 @@ public class OrdersManagerController {
         addOrderInActiveOrdersMap(order);
     }
 
-    private void addOrderInActiveOrdersMap(Order order) throws OrderManagementException {
+    public void addOrderInActiveOrdersMap(Order order) throws OrderManagementException {
         String orderId = order.getId();
         Map<String, Order> activeOrdersMap = this.ordersHolder.getActiveOrdersMap();
         SynchronizedDoublyLinkedList openOrdersList = this.ordersHolder.getOpenOrdersList();
