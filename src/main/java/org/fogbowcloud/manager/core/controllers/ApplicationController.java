@@ -100,14 +100,10 @@ public class ApplicationController {
 		this.managerController = managerController;
 	}
 
-	public Token authenticate(String accessId) throws UnauthorizedException {
-		return this.authenticationController.authenticate(accessId);
-	}
-
 	public void newOrderRequest(Order order, String accessId, String localTokenId) throws OrderManagementException, UnauthorizedException {
-		Token federatedToken = authenticate(accessId);
+		Token federationToken = this.authenticationController.authenticate(accessId);
 		Token localToken = createLocalToken(localTokenId);
-		this.ordersManagerController.newOrderRequest(order, federatedToken, localToken);
+		this.ordersManagerController.newOrderRequest(order, federationToken, localToken);
 	}
 
 	private Token createLocalToken(String localTokenId) {
