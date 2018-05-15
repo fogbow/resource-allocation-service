@@ -7,10 +7,13 @@ import java.util.stream.Collectors;
 
 import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrdersServiceException;
+import org.fogbowcloud.manager.core.models.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
+import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.plugins.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,12 +25,13 @@ public class OrdersService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OrdersService.class);
 
     private SharedOrderHolders ordersHolder;
+    private ComputePlugin computePlugin;
 
     public OrdersService() {
         ordersHolder = SharedOrderHolders.getInstance();
     }
 
-    public void createOrder(Order order, Token federatedToken, Token localToken) throws OrdersServiceException, UnauthorizedException {
+	public void createOrder(Order order, Token federatedToken, Token localToken) throws OrdersServiceException, UnauthorizedException {
         // TODO para os headers
         if (order == null) {
             // TODO create msg
@@ -42,21 +46,35 @@ public class OrdersService {
     public List<Order> getAllOrdersByType(Token federatedToken, OrderType orderType) throws UnauthorizedException {
     	Collection<Order> orders = this.ordersHolder.getActiveOrdersMap().values();
     	
-    	return orders.stream()
+    	List<Order> requestedOrders = orders.stream()
     			.filter(order -> order.getType().equals(orderType))
     			.filter(order -> order.getFederationToken().getUser().equals(federatedToken.getUser()))
     			.collect(Collectors.toList());
+    	
+    	return requestedOrders;
     }
 
     public Order getOrderByIdAndType(String id, Token federatedToken, OrderType orderType) throws UnauthorizedException {
     	Collection<Order> orders = this.ordersHolder.getActiveOrdersMap().values();
     	
-    	return orders.stream()
+    	Order requestedOrder = orders.stream()
     			.filter(order -> order.getType().equals(orderType))
     			.filter(order -> order.getFederationToken().equals(federatedToken))
     			.filter(order -> order.getId().equals(id))
     			.findFirst()
     			.orElse(null);  // returns null if not exists the order.
+    	
+    	if (requestedOrder.getOrderState().equals(OrderState.FULFILLED)) {
+    		OrderInstance orderInstance;
+			try {
+				orderInstance = this.computePlugin.getInstance(requestedOrder.getLocalToken(), requestedOrder.getOrderInstance().getId());
+				requestedOrder.setOrderInstance(orderInstance);
+			} catch (RequestException e) {
+				e.printStackTrace();
+			}
+    	}
+    	
+    	return requestedOrder;
     }
 
     private void setOrderTokens(Order order, Token federatedToken, Token localToken) {

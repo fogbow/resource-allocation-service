@@ -25,11 +25,11 @@ public class ApplicationController {
 	private OrdersManagerController ordersManagerController;
 	private OrdersService ordersService;
 
-	private final Logger LOGGER = LoggerFactory.getLogger(ApplicationController.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationController.class);
 
 	private ApplicationController() {
 		this.ordersManagerController = new OrdersManagerController();
-		this.ordersService = new  OrdersService();
+		this.ordersService = new OrdersService();
 	}
 
 	public static ApplicationController getInstance() {
