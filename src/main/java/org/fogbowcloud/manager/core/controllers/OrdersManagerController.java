@@ -16,12 +16,16 @@ public class OrdersManagerController {
         this.ordersHolder = SharedOrderHolders.getInstance();
     }
 
-    public void newOrderRequest(Order order, Token federationToken, Token localToken) throws OrderManagementException {
+    public void newOrderRequest(Order order, Token localToken, Token federationToken) throws OrderManagementException {
+        if (order == null) {
+            String message = "Can't process new order request. Order reference is null.";
+            throw new OrderManagementException(message);
+        }
         setOrderTokens(order, localToken, federationToken);
         addOrderInActiveOrdersMap(order);
     }
 
-    public void addOrderInActiveOrdersMap(Order order) throws OrderManagementException {
+    private void addOrderInActiveOrdersMap(Order order) throws OrderManagementException {
         String orderId = order.getId();
         Map<String, Order> activeOrdersMap = this.ordersHolder.getActiveOrdersMap();
         SynchronizedDoublyLinkedList openOrdersList = this.ordersHolder.getOpenOrdersList();
