@@ -11,6 +11,6 @@ public class DefaultConfigurationConstants {
 	public static final String DEFAULT_INSTANCE_IP_MONITORING_TIME = Long.toString(TimeUnit.SECONDS.toMillis(10)); // reference value is 10 seconds
 	
 	// DEFAULT VALUE
-	public static final String SSH_COMMON_USER_KEY = "fogbow";
+	public static final String SSH_COMMON_USER = "fogbow";
 
 }
