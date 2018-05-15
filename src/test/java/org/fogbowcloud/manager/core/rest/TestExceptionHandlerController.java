@@ -35,7 +35,7 @@ public class TestExceptionHandlerController {
 	
 	@Test
 	public void testInvalidCredentialsException() throws Exception {
-		Mockito.when(computeOrdersController.getAllCompute()).thenThrow(new InvalidCredentialsException());
+		Mockito.when(computeOrdersController.getAllCompute("fake-access-id")).thenThrow(new InvalidCredentialsException());
 		
 		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
 				.accept(MediaType.APPLICATION_JSON))
@@ -51,7 +51,7 @@ public class TestExceptionHandlerController {
 	
 	@Test
 	public void testInvalidTokenException() throws Exception {
-		Mockito.when(computeOrdersController.getAllCompute()).thenThrow(new InvalidTokenException());
+		Mockito.when(computeOrdersController.getAllCompute("fake-access-id")).thenThrow(new InvalidTokenException());
 		
 		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
 				.accept(MediaType.APPLICATION_JSON))
@@ -67,7 +67,7 @@ public class TestExceptionHandlerController {
 	
 	@Test
 	public void testTokenCreationException() throws Exception {
-		Mockito.when(computeOrdersController.getAllCompute()).thenThrow(new TokenCreationException());
+		Mockito.when(computeOrdersController.getAllCompute("fake-access-id")).thenThrow(new TokenCreationException());
 		
 		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
 				.accept(MediaType.APPLICATION_JSON))
@@ -83,7 +83,7 @@ public class TestExceptionHandlerController {
 	
 	@Test
 	public void testAnyException() throws Exception {
-		Mockito.when(computeOrdersController.getAllCompute()).thenThrow(new RuntimeException());
+		Mockito.when(computeOrdersController.getAllCompute("fake-access-id")).thenThrow(new RuntimeException());
 		
 		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
 				.accept(MediaType.APPLICATION_JSON))
