@@ -21,7 +21,8 @@ public class OrdersManagerController {
             String message = "Can't process new order request. Order reference is null.";
             throw new OrderManagementException(message);
         }
-        setOrderTokens(order, localToken, federationToken);
+        order.setFederationToken(federationToken);
+        order.setLocalToken(localToken);
         addOrderInActiveOrdersMap(order);
     }
 
@@ -38,10 +39,5 @@ public class OrdersManagerController {
             activeOrdersMap.put(orderId, order);
             openOrdersList.addItem(order);
         }
-    }
-
-    private void setOrderTokens(Order order, Token federationToken, Token localToken) {
-        order.setFederationToken(federationToken);
-        order.setLocalToken(localToken);
     }
 }
