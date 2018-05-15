@@ -5,6 +5,7 @@ import org.fogbowcloud.manager.core.exceptions.OrdersServiceException;
 import org.fogbowcloud.manager.core.controllers.OrdersManagerController;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.PluginHelper;
@@ -14,7 +15,10 @@ import org.fogbowcloud.manager.core.services.AuthenticationService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.PowerMockRunnerDelegate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpHeaders;
@@ -32,14 +36,20 @@ import java.util.Map;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertNull;
+import static org.mockito.BDDMockito.*;
 
 
-@RunWith(SpringRunner.class)
+@RunWith(PowerMockRunner.class)
+@PowerMockRunnerDelegate(SpringRunner.class)
 @WebMvcTest(value = ComputeOrdersController.class, secure = false)
 @PrepareForTest(ApplicationController.class)
 public class ComputeOrdersControllerTest {
 
+    public static final String CORRECT_BODY = "{\"requestingMember\":\"req-member\", \"providingMember\":\"prov-member\", " +
+            "\"publicKey\":\"pub-key\", \"vCPU\":\"12\", \"memory\":\"1024\", \"disk\":\"500\", " +
+            "\"imageName\":\"ubuntu\", \"type\":\"compute\"}";
+    public static final String COMPUTE_END_POINT = "/compute";
     @Autowired
     private MockMvc mockMvc;
 
@@ -57,7 +67,7 @@ public class ComputeOrdersControllerTest {
     public void setUp() throws UnauthorizedException, OrderManagementException {
         this.properties = new Properties();
         this.properties.put(IDENTITY_URL_KEY, KEYSTONE_URL);
-        this.applicationController = ApplicationController.getInstance();
+        this.applicationController = spy(ApplicationController.class);
 
         mockLdapIdentityPlugin();
         mockAuthentication();
@@ -66,28 +76,36 @@ public class ComputeOrdersControllerTest {
 
     @Test
     public void createdComputeTest() throws Exception {
-        HttpHeaders headers = new HttpHeaders();
-        String fakeAccessId = "fake-access-id";
-        String fakeLocalTokenId = "fake-local-token-id";
-        headers.set(ACCESS_ID_HEADER, fakeAccessId);
-        headers.set(LOCAL_TOKEN_ID_HEADER, fakeLocalTokenId);
+        HttpHeaders headers = getHttpHeaders();
 
-        // Need to mock application controller
+        // Mocking application controller
+        PowerMockito.mockStatic(ApplicationController.class);
+        given(ApplicationController.getInstance()).willReturn(applicationController);
+        doNothing().when(applicationController).newOrderRequest(any(Order.class), anyString(), anyString());
 
-        String body = "{\"requestingMember\":\"req-member\", \"providingMember\":\"prov-member\", " +
-                "\"publicKey\":\"pub-key\", \"vCPU\":\"12\", \"memory\":\"1024\", \"disk\":\"500\", " +
-                "\"imageName\":\"ubuntu\", \"type\":\"compute\"}";
-
-        RequestBuilder requestBuilder = MockMvcRequestBuilders
-                .post("/compute")
-                .headers(headers)
-                .accept(MediaType.APPLICATION_JSON).content(body)
-                .contentType(MediaType.APPLICATION_JSON);
+        RequestBuilder requestBuilder = createRequestBuilder(headers, CORRECT_BODY);
 
         MvcResult result = mockMvc.perform(requestBuilder).andReturn();
 
         int expectedStatus = HttpStatus.CREATED.value();
         assertEquals(expectedStatus, result.getResponse().getStatus());
+    }
+
+    private RequestBuilder createRequestBuilder(HttpHeaders headers, String body) {
+        return MockMvcRequestBuilders
+                    .post(COMPUTE_END_POINT)
+                    .headers(headers)
+                    .accept(MediaType.APPLICATION_JSON).content(body)
+                    .contentType(MediaType.APPLICATION_JSON);
+    }
+
+    private HttpHeaders getHttpHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        String fakeAccessId = "fake-access-id";
+        String fakeLocalTokenId = "fake-local-token-id";
+        headers.set(ACCESS_ID_HEADER, fakeAccessId);
+        headers.set(LOCAL_TOKEN_ID_HEADER, fakeLocalTokenId);
+        return headers;
     }
 
     private void mockLdapIdentityPlugin() throws UnauthorizedException {
