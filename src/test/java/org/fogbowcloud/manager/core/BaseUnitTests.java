@@ -14,7 +14,7 @@ import org.mockito.Mockito;
 
 public class BaseUnitTests {
 
-	private static final String LOCAL_MEMBER_ID = "fake-local-member";
+	public static final String LOCAL_MEMBER_ID = "fake-local-member";
 
 	private Token properties;
 

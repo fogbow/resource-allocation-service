@@ -50,7 +50,9 @@ public class ClosedComputeOrdersProcessor implements Runnable {
                 if (order != null) {
                     try {
                         processClosedOrder(order);
+
                         closedOrders.removeItem(order);
+                        deactivateOrder(order);
                     } catch (OrderStateTransitionException e) {
                         LOGGER.error("Error while trying to changing the state of order " + order, e);
                     }
@@ -69,18 +71,12 @@ public class ClosedComputeOrdersProcessor implements Runnable {
         }
     }
 
-    private void processClosedOrder(Order order) throws OrderStateTransitionException {
+    private void processClosedOrder(Order order) throws Exception {
         synchronized (order) {
             if (order.getOrderInstance() != null &&
                     order.getOrderInstance().getId() != null) {
-                try {
-                    InstanceProvider provider = getInstanceProviderForOrder(order);
-                    provider.deleteInstance(order.getLocalToken(), order.getOrderInstance());
-
-                    deactivateOrder(order);
-                } catch (Throwable e) {
-                    LOGGER.error(e);
-                }
+                InstanceProvider provider = getInstanceProviderForOrder(order);
+                provider.deleteInstance(order.getLocalToken(), order.getOrderInstance());
             } else {
                 LOGGER.info(String.format("Order %s has no instance associated", order.getId()));
             }

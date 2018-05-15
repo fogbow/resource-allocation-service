@@ -32,9 +32,8 @@ public class TestClosedComputeOrdersProcessor extends BaseUnitTests {
 
     @Before
     public void setUp() {
-        String localMemberId = "local-member";
         this.properties = new Properties();
-        this.properties.setProperty(ConfigurationConstants.XMPP_ID_KEY, localMemberId);
+        this.properties.setProperty(ConfigurationConstants.XMPP_ID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 
         this.localInstanceProvider = Mockito.mock(InstanceProvider.class);
         this.remoteInstanceProvider = Mockito.mock(InstanceProvider.class);
@@ -97,6 +96,8 @@ public class TestClosedComputeOrdersProcessor extends BaseUnitTests {
 
         this.thread = new Thread(this.closedComputeOrdersProcessor);
         this.thread.start();
+
+        Thread.sleep(500);
 
         assertEquals(localOrder, activeOrdersMap.get(localOrder.getId()));
 
