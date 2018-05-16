@@ -1,5 +1,7 @@
 package org.fogbowcloud.manager.core.services;
 
+import java.util.Properties;
+
 import org.fogbowcloud.manager.core.plugins.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
@@ -11,27 +13,32 @@ import org.mockito.Mockito;
 //TODO change the name.
 public class AuthenticationServiceTest {
 
-	AuthenticationService authenticationService;
-	IdentityPlugin identityPlugin;
-	AuthorizationPlugin authorizationPlugin;
+	private AuthenticationService authenticationService;
+	private AuthorizationPlugin authorizationPlugin;
+	private IdentityPlugin federatetionIdentityPlugin;
+	private IdentityPlugin localIdentityPlugin;
+	private Properties properties;
 
 	@Before
 	public void setUp() {
-		this.identityPlugin = Mockito.mock(IdentityPlugin.class);
+		this.properties = new Properties();
+		this.federatetionIdentityPlugin = Mockito.mock(IdentityPlugin.class);
+		this.localIdentityPlugin = Mockito.mock(IdentityPlugin.class);
 		this.authorizationPlugin = Mockito.mock(AuthorizationPlugin.class);
-		this.authenticationService = new AuthenticationService(this.identityPlugin, this.authorizationPlugin);
+		this.authenticationService = new AuthenticationService(this.federatetionIdentityPlugin, 
+				this.localIdentityPlugin, this.authorizationPlugin, this.properties);
 	}
 
 	@Test
 	public void testAuthenticate() throws UnauthorizedException {
 		boolean isAuthenticated = true;
-		Mockito.doReturn(isAuthenticated).when(this.identityPlugin).isValid(Mockito.anyString());
+		Mockito.doReturn(isAuthenticated).when(this.federatetionIdentityPlugin).isValid(Mockito.anyString());
 		this.authenticationService.authenticate(Mockito.anyString());
 	}
 
 	@Test(expected=UnauthorizedException.class)
 	public void testAuthenticateNot() throws UnauthorizedException {
-		Mockito.doThrow(UnauthorizedException.class).when(this.identityPlugin).isValid(Mockito.anyString());
+		Mockito.doThrow(UnauthorizedException.class).when(this.federatetionIdentityPlugin).isValid(Mockito.anyString());
 		this.authenticationService.authenticate(Mockito.anyString());
 	}
 	
