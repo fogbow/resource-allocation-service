@@ -83,6 +83,7 @@ public class ComputeOrdersControllerTest {
         given(ApplicationController.getInstance()).willReturn(applicationController);
         doNothing().when(applicationController).newOrderRequest(any(Order.class), anyString(), anyString());
 
+        // Need to make a method to create a body based on parameters, also change the mock above
         RequestBuilder requestBuilder = createRequestBuilder(headers, CORRECT_BODY);
 
         MvcResult result = mockMvc.perform(requestBuilder).andReturn();
@@ -90,6 +91,14 @@ public class ComputeOrdersControllerTest {
         int expectedStatus = HttpStatus.CREATED.value();
         assertEquals(expectedStatus, result.getResponse().getStatus());
     }
+
+    // There's tests missing, that we need to implement, forcing Application Controller to throw different exceptions.
+
+    @Test
+    public void wrongBodyToPostComputeTest() throws Exception {
+
+    }
+
 
     private RequestBuilder createRequestBuilder(HttpHeaders headers, String body) {
         return MockMvcRequestBuilders
