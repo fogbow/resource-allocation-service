@@ -11,10 +11,11 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.models.*;
 import org.fogbowcloud.manager.core.models.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.compute.ComputePlugin;
+import org.fogbowcloud.manager.core.plugins.compute.DefaultLaunchCommandGenerator;
+import org.fogbowcloud.manager.core.plugins.compute.LaunchCommandGenerator;
 import org.fogbowcloud.manager.core.utils.HttpRequestUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -56,30 +57,43 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private TreeSet<Flavor> flavors;
     private Properties properties;
     private HttpClient client;
+    private LaunchCommandGenerator launchCommandGenerator;
 
-    public OpenStackNovaV2ComputePlugin(Properties properties) {
-        LOGGER.debug("Creating OpenStackNovaV2ComputePlugin with properties=" + properties.toString());
-
-        this.flavors = new TreeSet<>();
-        this.properties = properties;
-        this.initClient();
-    }
+	public OpenStackNovaV2ComputePlugin(Properties properties) throws Exception {
+		this(properties, new DefaultLaunchCommandGenerator(properties));
+	}
+	
+	protected OpenStackNovaV2ComputePlugin(Properties properties,
+			LaunchCommandGenerator launchCommandGenerator) throws Exception {
+		LOGGER.debug(
+				"Creating OpenStackNovaV2ComputePlugin with properties=" + properties.toString());
+		
+		this.flavors = new TreeSet<>();
+		this.properties = properties;
+		this.launchCommandGenerator = launchCommandGenerator;
+		this.initClient();
+	}
 
     public String requestInstance(ComputeOrder computeOrder, String imageId) throws RequestException {
         LOGGER.debug("Requesting instance with token=" + computeOrder.getLocalToken());
 
         Token localToken = computeOrder.getLocalToken();
+        
         Flavor flavor = findSmallestFlavor(computeOrder);
         String flavorId = flavor.getId();
+        
         String tenantId = getTenantId(localToken);
+        
         String networkId = getNetworkId();
-        UserData userData = computeOrder.getUserData();
-        String userDataContent = userData.getContent();
+        
+        String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
+        
         String keyName = getKeyName(tenantId, localToken, computeOrder.getPublicKey());
+        
         String endpoint = getComputeEndpoint(tenantId, SERVERS);
 
         try {
-            JSONObject json = generateJsonRequest(imageId, flavorId, userDataContent, keyName, networkId);
+            JSONObject json = generateJsonRequest(imageId, flavorId, userData, keyName, networkId);
             String jsonResponse = doPostRequest(endpoint, localToken, json);
 
             String instanceId = getAttFromJson(ID_JSON_FIELD, jsonResponse);

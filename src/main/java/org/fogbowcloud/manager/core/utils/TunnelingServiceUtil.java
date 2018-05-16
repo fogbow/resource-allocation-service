@@ -50,13 +50,13 @@ public class TunnelingServiceUtil {
 		if (orderId == null || orderId.isEmpty()) {
 			return null;
 		}
-		String hostAddr = this.properties.getProperty(ConfigurationConstants.TOKEN_HOST_PRIVATE_ADDRESS_KEY);
+		String hostAddr = this.properties.getProperty(ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY);
 		if (hostAddr == null) {
 			return null;
 		}
 		HttpResponse response = null;
 		try {
-			String httpHostPort = this.properties.getProperty(ConfigurationConstants.TOKEN_HOST_HTTP_PORT_KEY);
+			String httpHostPort = this.properties.getProperty(ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY);
 			HttpGet httpGet = new HttpGet(HTTP_PROTOCOL + hostAddr + ":" + httpHostPort + TOKEN_POINT + orderId + END_POINT_ALL);
 			response = this.reverseTunnelHttpClient.execute(httpGet);
 			boolean isOkHttpStatusResponse  = response.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
@@ -69,7 +69,7 @@ public class TunnelingServiceUtil {
 				@SuppressWarnings("unchecked")
 				Iterator<String> serviceIterator = jsonPorts.keys();
 				Map<String, String> servicePerAddress = new HashMap<String, String>();
-				String sshPublicHostIP = this.properties.getProperty(ConfigurationConstants.TOKEN_HOST_PUBLIC_ADDRESS_KEY);
+				String sshPublicHostIP = this.properties.getProperty(ConfigurationConstants.REVERSE_TUNNEL_PUBLIC_ADDRESS_KEY);
 				while (serviceIterator.hasNext()) {
 					String service = serviceIterator.next();
 					String port = jsonPorts.optString(service);

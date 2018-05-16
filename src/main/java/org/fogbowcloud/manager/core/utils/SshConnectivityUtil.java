@@ -59,11 +59,11 @@ public class SshConnectivityUtil {
 	}
 
 	private String getManagerSSHPrivateKey() {
-		String publicKey = properties.getProperty(ConfigurationConstants.SSH_PRIVATE_PATH_KEY);
-		if (publicKey == null || publicKey.isEmpty()) {
+		String privateKey = properties.getProperty(ConfigurationConstants.MANAGER_SSH_PRIVATE_KEY_PATH);
+		if (privateKey == null || privateKey.isEmpty()) {
 			return null;
 		}
-		return publicKey;
+		return privateKey;
 	}
 
 }
