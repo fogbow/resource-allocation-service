@@ -15,8 +15,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
 public class OrdersManagerControllerTest extends BaseUnitTests {
 
     private OrdersManagerController ordersManagerController;
