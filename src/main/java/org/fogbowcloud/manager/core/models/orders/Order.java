@@ -44,22 +44,24 @@ public abstract class Order {
 
 	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "fed_token_id")
+	@NotNull(message = "Federation token can not be null.")
 	private Token federationToken;
 
-	@Column(name = "requestingMember")
+	@Column(name = "requesting_member")
+	@NotNull(message = "Requesting member can not be null.")
 	private String requestingMember;
 
-	@Column(name = "providingMember")
+	@Column(name = "providing_member")
+	@NotNull(message = "Providing member can not be null.")
 	private String providingMember;
 
 	@OneToOne(cascade = CascadeType.ALL)
 	@JoinColumn(name = "order_instance")
 	private OrderInstance orderInstance;
 
-	@Column(name = "fulfilledTime")
-	private Long fulfilledTime;
-	
-	
+	@Column(name = "creation_time")
+	private Long creationTime;
+
 	public Order() {}
 	
 	/**
@@ -114,12 +116,12 @@ public abstract class Order {
 		this.orderInstance = orderInstance;
 	}
 
-	public long getFulfilledTime() {
-		return fulfilledTime;
+	public long getCreationTime() {
+		return creationTime;
 	}
 
-	public void setFulfilledTime(Long fulfilledTime) {
-		this.fulfilledTime = fulfilledTime;
+	public void setCreationTime(Long creationTime) {
+		this.creationTime = creationTime;
 	}
 
 	public boolean isLocal(String localMemberId) {
@@ -177,7 +179,7 @@ public abstract class Order {
 	public String toString() {
 		return "Order [id=" + id + ", orderState=" + orderState + ", localToken=" + localToken + ", federationToken="
 				+ federationToken + ", requestingMember=" + requestingMember + ", providingMember=" + providingMember
-				+ ", orderInstace=" + orderInstance + ", fulfilledTime=" + fulfilledTime + "]";
+				+ ", orderInstace=" + orderInstance + ", creationTime=" + creationTime + "]";
 	}
 
 }

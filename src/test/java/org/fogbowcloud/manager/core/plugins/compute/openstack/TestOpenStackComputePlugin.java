@@ -43,9 +43,10 @@ public class TestOpenStackComputePlugin {
         properties.put(COMPUTE_NOVAV2_NETWORK_KEY, FAKE_NET_ID);
 
         localToken = mock(Token.class);
+        String publicKey = "fake-public-key";
 
         computeOrder = new ComputeOrder(localToken, null, null,
-                null, 1, 2000, 20, null, new UserData(FAKE_USER_DATA));
+                null, 1, 2000, 20, null, new UserData(FAKE_USER_DATA), publicKey);
 
         novaV2ComputeOpenStack = spy(new OpenStackNovaV2ComputePlugin(properties));
     }

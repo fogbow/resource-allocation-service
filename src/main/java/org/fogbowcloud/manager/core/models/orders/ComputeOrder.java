@@ -6,6 +6,7 @@ import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.Transient;
+import javax.validation.constraints.NotNull;
 
 import org.fogbowcloud.manager.core.models.token.Token;
 
@@ -14,22 +15,24 @@ import org.fogbowcloud.manager.core.models.token.Token;
 public class ComputeOrder extends Order {
 
 	@Column(name = "vCPU")
+    @NotNull(message = "vCPU can not be null.")
 	private Integer vCPU;
 
 	/** Memory attribute, must be set in MB. */
 	@Column(name = "memory")
+    @NotNull(message = "Memory can not be null.")
 	private Integer memory;
 
 	/** Disk attribute, must be set in GB. */
 	@Column(name = "disk")
+    @NotNull(message = "Disk can not be null.")
 	private Integer disk;
 
-//	@OneToOne(cascade = CascadeType.ALL)
-//	@JoinColumn(name = "user_data_id")
 	@Transient
 	private UserData userData;
 
 	@Column(name = "image_name")
+    @NotNull(message = "Image name can not be null.")
     private String imageName;
 
 	@Column(name = "public_key")

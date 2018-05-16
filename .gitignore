@@ -24,3 +24,6 @@ log4j.properties
 /dist/
 /nbdist/
 /.nb-gradle/
+
+### Auto generated SQL file  ###
+create.sql
