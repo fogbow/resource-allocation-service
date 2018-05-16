@@ -128,10 +128,10 @@ public class FulfilledMonitor implements Runnable {
     protected void processInstance(Order order) throws OrderStateTransitionException {
         InstanceProvider instanceProvider = this.getInstanceProviderForOrder(order);
 
-        OrderInstance orderInstance = instanceProvider.getInstance(order);
         OrderType orderType = order.getType();
 
-        InstanceState instanceState = orderInstance.getState();
+        // We can have a getInstanceState method in InstanceProvider
+        InstanceState instanceState = instanceProvider.getInstance(order).getState();
 
         if (instanceState.equals(InstanceState.FAILED)) {
             LOGGER.info("Instance state is failed for order [" + order.getId() + "]");
@@ -139,7 +139,7 @@ public class FulfilledMonitor implements Runnable {
         } else if (instanceState.equals(InstanceState.ACTIVE) && orderType.equals(OrderType.COMPUTE)) {
             LOGGER.info("Processing active compute instance for order [" + order.getId() + "]");
 
-            ComputeOrderInstance computeOrderInstance = (ComputeOrderInstance) orderInstance;
+            ComputeOrderInstance computeOrderInstance = (ComputeOrderInstance) order.getOrderInstance();
 
             if (!this.computeInstanceConnectivity.isInstanceReachable(computeOrderInstance)) {
                 OrderStateTransitioner.transition(order, OrderState.FAILED);

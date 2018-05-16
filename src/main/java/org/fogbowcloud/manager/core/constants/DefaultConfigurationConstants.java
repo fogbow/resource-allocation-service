@@ -15,4 +15,6 @@ public class DefaultConfigurationConstants {
 	
 	// DEFAULT VALUE
 	public static final String SSH_COMMON_USER_KEY = "fogbow";
+
+	public static final String SSH_COMMON_USER = "fogbow";
 }
