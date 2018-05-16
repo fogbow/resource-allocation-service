@@ -27,4 +27,12 @@ public interface InstanceProvider {
 	 */
 	public void deleteInstance(Token token, OrderInstance orderInstance) throws Exception;
 
+	/**
+	 * Gets the instance currently associated for the provided order.
+	 *
+	 * @param order
+	 * @return
+	 */
+	public OrderInstance getInstance(Order order);
+
 }

@@ -3,6 +3,7 @@ package org.fogbowcloud.manager.core.rest;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.InvalidCredentialsException;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.InvalidTokenException;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.rest.controllers.ComputeOrdersController;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;

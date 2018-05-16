@@ -1,8 +1,5 @@
 package org.fogbowcloud.manager.core.threads;
 
-import java.util.Map;
-import java.util.Properties;
-
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
@@ -16,22 +13,23 @@ import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
+import org.fogbowcloud.manager.core.utils.ComputeInstanceConnectivityChecker;
 import org.fogbowcloud.manager.core.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.core.utils.TunnelingServiceUtil;
+
+import java.util.Properties;
 
 public class SpawningMonitor extends Thread {
 
 	private static final Logger LOGGER = Logger.getLogger(SpawningMonitor.class);
 
 	private SynchronizedDoublyLinkedList spawningOrderList;
-	private TunnelingServiceUtil tunnelingService;
-	private SshConnectivityUtil sshConnectivity;
+	private ComputeInstanceConnectivityChecker computeInstanceConnectivity;
 	private Long sleepTime;
 
 	public SpawningMonitor(TunnelingServiceUtil tunnelingService, SshConnectivityUtil sshConnectivity,
 			Properties properties) {
-		this.tunnelingService = tunnelingService;
-		this.sshConnectivity = sshConnectivity;
+		this.computeInstanceConnectivity = new ComputeInstanceConnectivityChecker(tunnelingService, sshConnectivity);
 
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();
@@ -101,9 +99,9 @@ public class SpawningMonitor extends Thread {
 				LOGGER.info("Processing active compute instance for order [" + order.getId() + "]");
 
 				ComputeOrderInstance computeOrderInstance = (ComputeOrderInstance) orderInstance;
-				this.setTunnelingServiceAddresses(order, computeOrderInstance);
+				this.computeInstanceConnectivity.setTunnelingServiceAddresses(order, computeOrderInstance);
 
-				if (this.isActiveConnectionFromInstance(computeOrderInstance)) {
+				if (this.computeInstanceConnectivity.isInstanceReachable(computeOrderInstance)) {
 					OrderStateTransitioner.transition(order, OrderState.FULFILLED);
 				}
 
@@ -112,33 +110,4 @@ public class SpawningMonitor extends Thread {
 			}
 		}
 	}
-
-	/**
-	 * This method does not synchronize the order object because it is private and
-	 * can only be called by the processInstance method.
-	 */
-	private void setTunnelingServiceAddresses(Order order, ComputeOrderInstance computeOrderInstance) {
-		try {
-			Map<String, String> externalServiceAddresses = tunnelingService.getExternalServiceAddresses(order.getId());
-			if (externalServiceAddresses != null) {
-				computeOrderInstance.setExternalServiceAddresses(externalServiceAddresses);
-			}
-		} catch (Throwable e) {
-			LOGGER.error("Error trying to get map of addresses (IP and Port) of the compute instance for order: " + order, e);
-		}
-	}
-
-	/**
-	 * This method does not synchronize the order object because it is private and
-	 * can only be called by the processInstance method.
-	 */
-	private boolean isActiveConnectionFromInstance(ComputeOrderInstance computeOrderInstance) {
-		LOGGER.info("Check the communicate at SSH connectivity of the compute instance.");
-		if (this.sshConnectivity.checkSSHConnectivity(computeOrderInstance)) {
-			return true;
-		}
-		LOGGER.warn("Failed attempt to communicate with ssh connectivity.");
-		return false;
-	}
-
 }
