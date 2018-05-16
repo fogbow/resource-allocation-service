@@ -20,6 +20,10 @@ public class ComputeOrder extends Order {
 
     private String publicKey;
 
+    public ComputeOrder() {
+        super(UUID.randomUUID().toString());
+    }
+    
     /**
      * Creating Order with predefined Id.
      */
