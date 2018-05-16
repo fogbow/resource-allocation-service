@@ -2,15 +2,16 @@ package org.fogbowcloud.manager.core.services;
 
 import java.util.Properties;
 
+import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-//FIXME implement tests. leave for later because of the project decision
-//TODO change the name.
+// TODO change the name.
 public class AuthenticationServiceTest {
 
 	private AuthenticationService authenticationService;
@@ -25,8 +26,8 @@ public class AuthenticationServiceTest {
 		this.federatetionIdentityPlugin = Mockito.mock(IdentityPlugin.class);
 		this.localIdentityPlugin = Mockito.mock(IdentityPlugin.class);
 		this.authorizationPlugin = Mockito.mock(AuthorizationPlugin.class);
-		this.authenticationService = new AuthenticationService(this.federatetionIdentityPlugin, 
-				this.localIdentityPlugin, this.authorizationPlugin, this.properties);
+		this.authenticationService = Mockito.spy(new AuthenticationService(this.federatetionIdentityPlugin, 
+				this.localIdentityPlugin, this.authorizationPlugin, this.properties));
 	}
 
 	@Test
@@ -38,8 +39,65 @@ public class AuthenticationServiceTest {
 
 	@Test(expected=UnauthorizedException.class)
 	public void testAuthenticateNot() throws UnauthorizedException {
-		Mockito.doThrow(UnauthorizedException.class).when(this.federatetionIdentityPlugin).isValid(Mockito.anyString());
+		Mockito.doThrow(UnauthorizedException.class).when(
+				this.federatetionIdentityPlugin).isValid(Mockito.anyString());
 		this.authenticationService.authenticate(Mockito.anyString());
+	}
+	
+	@Test
+	public void testAutenticateAndAuthorize() throws UnauthorizedException {
+		String federationTokenId = "federationTokenId";
+		// Authenticated
+		Mockito.doReturn(true).when(this.federatetionIdentityPlugin).isValid(Mockito.eq(federationTokenId));
+		Token token = Mockito.mock(Token.class);
+		Mockito.doReturn(token).when(this.federatetionIdentityPlugin).getToken(Mockito.eq(federationTokenId));
+		// Authorized
+		Mockito.doReturn(true).when(this.authorizationPlugin).isAuthorized(Mockito.eq(token));
+		
+		try {
+			this.authenticationService.authenticateAndAuthorize(federationTokenId);
+		} catch (Exception e) {
+			Assert.fail();
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testGetLocalTokenWithLocalTokenIdNullAndOrderProvidingLocal() throws Exception {
+		String localTokenId = null;
+		boolean isOrderProvidingLocal = true;
+		
+		Token localToken = Mockito.mock(Token.class);
+		Mockito.doReturn(localToken).when(this.localIdentityPlugin).createToken(Mockito.anyMap());
+		
+		Token tokenGenarated = this.authenticationService.getLocalToken(localTokenId, isOrderProvidingLocal);
+		Assert.assertEquals(localToken, tokenGenarated);
+	}
+	
+	@Test
+	public void testGetLocalTokenWithLocalTokenIdNotNullAndOrderProvidingLocal() throws Exception {
+		String localTokenId = "localTokenId";
+		boolean isOrderProvidingLocal = true;
+		
+		Token localToken = Mockito.mock(Token.class);
+		Mockito.doReturn(localToken).when(this.localIdentityPlugin).getToken(Mockito.eq(localTokenId));
+		
+		Token tokenGenarated = this.authenticationService.getLocalToken(localTokenId, isOrderProvidingLocal);
+		Assert.assertEquals(localToken, tokenGenarated);
+	}
+	
+	@Test
+	public void testGetLocalTokenWithLocalTokenIdNotNullAndOrderProvidingRemote() throws Exception {
+		String localTokenId = "localTokenId";
+		boolean isOrderProvidingLocal = false;
+		
+		Token token = Mockito.mock(Token.class);
+		Mockito.doReturn(token).when(this.authenticationService).createTokenBypass(Mockito.eq(localTokenId));
+		
+		Token tokenGenarated = this.authenticationService.getLocalToken(localTokenId, isOrderProvidingLocal);
+		
+		Token localTokenExpected = this.authenticationService.createTokenBypass(localTokenId);
+		Assert.assertEquals(localTokenExpected, tokenGenarated);
 	}
 	
 }

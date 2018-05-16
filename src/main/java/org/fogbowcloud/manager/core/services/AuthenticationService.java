@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.services;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 
@@ -30,21 +31,36 @@ public class AuthenticationService {
 	}
 	
 	// TODO to use UnautheticatedException
-	protected boolean authenticate(String accessId) throws UnauthorizedException {
-		return this.federationIdentityPlugin.isValid(accessId);
+	protected boolean authenticate(String federationTokenId) throws UnauthorizedException {
+		LOGGER.debug("Trying authenticate the federation token id: " + federationTokenId);
+		return this.federationIdentityPlugin.isValid(federationTokenId);
 	}
 
 	// TODO to use UnautheticatedException
-	public Token getFederationToken(String accessId) throws UnauthorizedException {
-		return this.federationIdentityPlugin.getToken(accessId);
+	public Token getFederationToken(String federationTokenId) throws UnauthorizedException {
+		LOGGER.debug("Trying to get the federation token by federation token id: " + federationTokenId);
+		return this.federationIdentityPlugin.getToken(federationTokenId);
 	}
 
-	public Token getLocalToken(String localTokenId) throws Exception {
-		if (localTokenId == null) {
-			return createFogbowLocalToken();
+	public Token getLocalToken(String localTokenId, boolean isOrderProvidingLocal) throws Exception {
+		LOGGER.debug("Trying to get the local token by local token id: " + localTokenId);
+		Token localToken = null;
+		if (isOrderProvidingLocal) {
+			if (localTokenId == null) {
+				localToken = createFogbowLocalToken();
+			} else {
+				localToken = getUserLocalToken(localTokenId);
+			}
+		} else {
+			localToken = createTokenBypass(localTokenId); 			
 		}
-		
-		return getUserLocalToken(localTokenId);
+		return localToken;
+	}
+
+	protected Token createTokenBypass(String tokenId) {
+		// TODO check obligatoriness. Required in the Token.
+		Date date = new Date(); 
+		return new Token(tokenId, null, date, null);
 	}
 	
 	protected Token getUserLocalToken(String localTokenId) {
@@ -52,7 +68,7 @@ public class AuthenticationService {
 			return this.localIdentityPlugin.getToken(localTokenId);
 		} catch (Exception e) {
 			LOGGER.warn("Is not possible get token by user local token id: " + localTokenId, e);
-			return new Token(localTokenId, null, null, null);
+			return createTokenBypass(localTokenId);
 		}		
 	}
 	
@@ -68,19 +84,20 @@ public class AuthenticationService {
 	}
 	
 	private Map<String, String> getDefaultUserCredentials() {		
-		return AuthenticationServiceHelper.getLocalCredentials(this.properties);
+		return AuthenticationServiceHelper.getDefaultLocalTokenCredentials(this.properties);
 	}
 
 	protected boolean authorize(Token federationToken) throws UnauthorizedException {
 		return this.authorizationPlugin.isAuthorized(federationToken);
 	}
 	
-	public void AutenticateAndAuthorize(String accessId) throws UnauthorizedException, UnauthenticatedException {
-		boolean isAuthenticated = authenticate(accessId);
+	// TODO think about this method. 
+	public void authenticateAndAuthorize(String federationTokenId) throws UnauthorizedException, UnauthenticatedException {
+		boolean isAuthenticated = authenticate(federationTokenId);
 		if (!isAuthenticated) {
 			throw new UnauthenticatedException("User not authenticated.");
 		}
-		Token federationToken = getFederationToken(accessId);
+		Token federationToken = getFederationToken(federationTokenId);
 		boolean isAuthorized = authorize(federationToken);
 		if (!isAuthorized) {
 			throw new UnauthorizedException("User not authorized.");
