@@ -11,10 +11,10 @@ public class ComputeOrderInstance extends OrderInstance {
     private String hostName;
     private int vCPU;
     /**
-     *  Memory attribute, must be set in MB.
+     * Memory attribute, must be set in MB.
      */
     private int memory;
-    
+
     private String localIpAddress;
     private String sshPublicAddress;
     private String sshUserName;
@@ -90,13 +90,13 @@ public class ComputeOrderInstance extends OrderInstance {
     public void setSshExtraPorts(String sshExtraPorts) {
         this.sshExtraPorts = sshExtraPorts;
     }
-	
-	public void setExternalServiceAddresses(Map<String, String> serviceAddresses) {
-		if (serviceAddresses != null) {
-			this.sshPublicAddress = serviceAddresses.get(CommonConfigurationConstants.SSH_SERVICE_NAME);
-			this.sshUserName = SshCommonUserUtil.getSshCommonUser();
-			this.sshExtraPorts = new JSONObject(serviceAddresses).toString();
-		}
-	}
+
+    public void setExternalServiceAddresses(Map<String, String> serviceAddresses) {
+        if (serviceAddresses != null) {
+            this.sshPublicAddress = serviceAddresses.get(CommonConfigurationConstants.SSH_SERVICE_NAME);
+            this.sshUserName = SshCommonUserUtil.getSshCommonUser();
+            this.sshExtraPorts = new JSONObject(serviceAddresses).toString();
+        }
+    }
 
 }

@@ -16,6 +16,8 @@ public interface InstanceProvider {
 	 */
 	public OrderInstance requestInstance(Order order) throws Exception;
 
+	public OrderInstance getInstance(Order order);
+
 	public void deleteInstance(Token localToken, OrderInstance orderInstance) throws Exception;
 
 }
