@@ -48,7 +48,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private static final String FOGBOW_INSTANCE_NAME = "fogbow-instance-";
     private static final String TENANT_ID = "tenantId";
     private static final String ACTIVE_STATUS = "active";
-    private static final String ERROR_STATUS = "error";
+    private static final String BUILD_STATUS = "build";
     private static final String SERVERS = "/servers";
     private static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
     private static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
@@ -388,7 +388,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         String jsonResponse = doGetRequest(requestEndpoint, localToken);
 
         LOGGER.debug("Getting instance from json: " + jsonResponse);
-        return getInstanceFromJson(jsonResponse);
+        ComputeOrderInstance computeOrderInstance = getInstanceFromJson(jsonResponse);
+
+        return computeOrderInstance;
     }
 
     private ComputeOrderInstance getInstanceFromJson(String jsonResponse) throws RequestException {
@@ -399,7 +401,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             String id = serverJson.getString(ID_JSON_FIELD);
             InstanceState state = getInstanceState(serverJson.getString(STATUS_JSON_FIELD));
 
-            return new ComputeOrderInstance(id, state);
+            ComputeOrderInstance computeOrderInstance = new ComputeOrderInstance(id, state);
+
+            return computeOrderInstance;
         } catch (JSONException e) {
             LOGGER.warn("There was an exception while getting instances from json.", e);
             throw new RequestException();
@@ -417,11 +421,11 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             case ACTIVE_STATUS:
                 return InstanceState.ACTIVE;
 
-            case ERROR_STATUS:
-                return InstanceState.FAILED;
+            case BUILD_STATUS:
+                return InstanceState.INACTIVE;
 
             default:
-                return InstanceState.INACTIVE;
+                return InstanceState.FAILED;
         }
     }
 

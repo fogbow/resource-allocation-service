@@ -35,7 +35,7 @@ public class TestOpenStackComputePlugin {
     protected static final String FAKE_POST_RETURN = "{\"server\": {\"id\": \"fake-instance-id\"}}";
     protected static final String FAKE_GET_RETURN_ACTIVE_INSTANCE = "{\"server\": {\"id\": \"fake-instance-id\", \"status\": \"active\"}}";
     protected static final String FAKE_GET_RETURN_FAILED_INSTANCE = "{\"server\": {\"id\": \"fake-instance-id\", \"status\": \"error\"}}";
-    protected static final String FAKE_GET_RETURN_INACTIVE_INSTANCE = "{\"server\": {\"id\": \"fake-instance-id\", \"status\": \"inactive\"}}";
+    protected static final String FAKE_GET_RETURN_INACTIVE_INSTANCE = "{\"server\": {\"id\": \"fake-instance-id\", \"status\": \"build\"}}";
     protected static final String INVALID_FAKE_POST_RETURN = "invalid";
     private static final String COMPUTE_NOVAV2_URL_KEY = "compute_novav2_url";
     private static final String COMPUTE_NOVAV2_NETWORK_KEY = "compute_novav2_network_id";
