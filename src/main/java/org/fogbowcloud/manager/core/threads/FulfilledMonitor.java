@@ -13,7 +13,6 @@ import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.utils.ComputeInstanceConnectivityChecker;
 import org.fogbowcloud.manager.core.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.core.utils.TunnelingServiceUtil;
@@ -140,6 +139,7 @@ public class FulfilledMonitor implements Runnable {
             LOGGER.info("Processing active compute instance for order [" + order.getId() + "]");
 
             ComputeOrderInstance computeOrderInstance = (ComputeOrderInstance) order.getOrderInstance();
+            computeOrderInstance.setState(instanceState);
 
             if (!this.computeInstanceConnectivity.isInstanceReachable(computeOrderInstance)) {
                 OrderStateTransitioner.transition(order, OrderState.FAILED);
