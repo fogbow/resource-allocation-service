@@ -116,7 +116,7 @@ public abstract class Order {
 		this.orderInstance = orderInstance;
 	}
 
-	public long getCreationTime() {
+	public Long getCreationTime() {
 		return creationTime;
 	}
 

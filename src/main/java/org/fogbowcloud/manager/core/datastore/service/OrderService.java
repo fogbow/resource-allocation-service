@@ -31,5 +31,4 @@ public class OrderService {
         transitionRepository.save(transition);
         return this.orderRepository.save(order);
     }
-
 }
