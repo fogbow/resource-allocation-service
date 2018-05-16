@@ -1,9 +1,13 @@
 package org.fogbowcloud.manager.core.rest.controllers;
 
 import org.fogbowcloud.manager.core.controllers.ApplicationController;
+import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.OrdersServiceException;
+import org.fogbowcloud.manager.core.models.linkedList.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.PluginHelper;
@@ -63,6 +67,25 @@ public class ComputeOrdersControllerTest {
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
         Assert.assertEquals(response.getStatusCode(), HttpStatus.CREATED);
     }
+    
+    @Test
+    public void deleteComputeTest() {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(Arrays.asList(new MediaType[] { MediaType.APPLICATION_JSON }));
+        //headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        String orderId = getComputeOrderCreationId();
+        String accessId = "llfdsfdsf";
+        String localTokenId = "37498327432";
+        headers.set(ACESS_ID_HEADER, accessId);
+        headers.set(LOCAL_TOKEN_ID_HEADER, localTokenId);
+        HttpEntity<String> entity = new HttpEntity<>("parameters", headers);
+        //String url = "http://localhost:" + PluginHelper.PORT_ENDPOINT + "/compute" + orderId;
+        String url = "http://localhost:8080/compute/" + orderId;
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
+        Assert.assertEquals(response.getStatusCode(), HttpStatus.OK);
+    }
 
     private void mockLdapIdentityPlugin() throws UnauthorizedException {
         Token token = getFakeToken();
@@ -84,5 +107,24 @@ public class ComputeOrdersControllerTest {
         Map<String, String> fakeAttributes = new HashMap<>();
         return  new Token(fakeAccessId, fakeUser, fakeExpirationTime, fakeAttributes);
     }
+	
+	private String getComputeOrderCreationId() {
+		String orderId = null;
+		
+		ComputeOrder computeOrder = Mockito.spy(new ComputeOrder());
+		computeOrder.setOrderState(OrderState.OPEN);
+		computeOrder.setLocalToken(this.getFakeToken());
+		
+		orderId = computeOrder.getId();
+		
+		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+		Map<String, Order> activeOrders = sharedOrderHolders.getActiveOrdersMap();
+		activeOrders.put(orderId, computeOrder);
+		
+		ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
+		openOrdersList.addItem(computeOrder);
+		
+		return orderId;
+	}
 
 }
