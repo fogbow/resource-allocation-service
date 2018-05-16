@@ -29,7 +29,6 @@ public abstract class Order {
 	 */
 	public Order(String id, Token localToken, Token federationToken, String requestingMember, String providingMember) {
 		this.id = id;
-		this.orderState = OrderState.OPEN;
 		this.localToken = localToken;
 		this.federationToken = federationToken;
 		this.requestingMember = requestingMember;
@@ -60,12 +59,24 @@ public abstract class Order {
 		return federationToken;
 	}
 
+	public void setFederationToken(Token federationToken) {
+		this.federationToken = federationToken;
+	}
+	
 	public String getRequestingMember() {
 		return requestingMember;
 	}
 
+	public void setRequestingMember(String requestingMember) {
+		this.requestingMember = requestingMember;
+	}
+	
 	public String getProvidingMember() {
 		return providingMember;
+	}
+	
+	public void setProvidingMember(String providingMember) {
+		this.providingMember = providingMember;
 	}
 
 	public synchronized OrderInstance getOrderInstance() {
