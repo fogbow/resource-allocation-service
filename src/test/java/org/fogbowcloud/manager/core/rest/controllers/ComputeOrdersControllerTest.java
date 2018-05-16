@@ -12,6 +12,7 @@ import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedExce
 import org.fogbowcloud.manager.core.plugins.identity.ldap.LdapIdentityPlugin;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -35,7 +36,6 @@ import java.util.Map;
 import java.util.Properties;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.mockito.BDDMockito.*;
 
 
@@ -93,7 +93,7 @@ public class ComputeOrdersControllerTest {
 
     // There's tests missing, that we need to implement, forcing Application Controller to throw different exceptions.
 
-    @Test
+    @Ignore
     public void wrongBodyToPostComputeTest() throws Exception {
 
     }

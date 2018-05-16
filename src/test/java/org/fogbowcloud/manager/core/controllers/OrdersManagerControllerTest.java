@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.controllers;
 
+import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.token.Token;
@@ -19,7 +20,7 @@ import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class OrdersManagerControllerTest {
+public class OrdersManagerControllerTest extends BaseUnitTests {
 
     private OrdersManagerController ordersManagerController;
 
