@@ -63,13 +63,17 @@ public abstract class Order {
 	private Long creationTime;
 
 	public Order() {}
-	
+
+	public Order(String id) {
+		this.id = id;
+		this.orderState = OrderState.OPEN;
+	}
+
 	/**
 	 * Creating Order with predefined Id.
 	 */
 	public Order(String id, Token localToken, Token federationToken, String requestingMember, String providingMember) {
-		this.id = id;
-		this.orderState = OrderState.OPEN;
+		this(id);
 		this.localToken = localToken;
 		this.federationToken = federationToken;
 		this.requestingMember = requestingMember;
@@ -98,6 +102,10 @@ public abstract class Order {
 
 	public Token getFederationToken() {
 		return federationToken;
+	}
+
+	public void setFederationToken(Token federationToken) {
+		this.federationToken = federationToken;
 	}
 
 	public String getRequestingMember() {
@@ -138,10 +146,6 @@ public abstract class Order {
 		this.id = id;
 	}
 
-	public void setFederationToken(Token federationToken) {
-		this.federationToken = federationToken;
-	}
-
 	public void setRequestingMember(String requestingMember) {
 		this.requestingMember = requestingMember;
 	}
@@ -179,7 +183,7 @@ public abstract class Order {
 	public String toString() {
 		return "Order [id=" + id + ", orderState=" + orderState + ", localToken=" + localToken + ", federationToken="
 				+ federationToken + ", requestingMember=" + requestingMember + ", providingMember=" + providingMember
-				+ ", orderInstace=" + orderInstance + ", creationTime=" + creationTime + "]";
+				+ ", orderInstance=" + orderInstance + ", creationTime=" + creationTime + "]";
 	}
 
 }

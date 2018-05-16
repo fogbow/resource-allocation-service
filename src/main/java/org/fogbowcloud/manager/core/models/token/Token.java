@@ -44,7 +44,7 @@ public class Token {
 	@Transient
 	private DateUtils dateUtils = new DateUtils();
 	
-	public Token() {}
+	public Token() { }
 
 	public Token(String accessId, User user, Date expirationTime, Map<String, String> attributes) {
 		this.accessId = accessId;
@@ -114,7 +114,7 @@ public class Token {
 
 	@Override
 	public String toString() {
-		return "Token [attributes=" + attributes + ", " + ", user=" + user + "]";
+		return "Token [attributes=" + attributes + ", " + "user=" + user + "]";
 	}
 
 	public User getUser() {

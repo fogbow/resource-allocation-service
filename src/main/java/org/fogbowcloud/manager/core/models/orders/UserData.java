@@ -1,29 +1,26 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import org.apache.commons.codec.binary.Base64;
+import org.fogbowcloud.manager.core.plugins.compute.util.CloudInitUserDataBuilder;
 
 public class UserData {
 
-    private Long id;
-    private String content;
+	private String extraUserDataFileContent;
 
-    public UserData(String content) {
-        this.content = content;
-    }
+	private CloudInitUserDataBuilder.FileType extraUserDataFileType;
 
-    public Long getId() {
-        return id;
-    }
+    public UserData() {}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	public UserData(String extraUserDataFile, CloudInitUserDataBuilder.FileType extraUserDataFileType) {
+		this.extraUserDataFileContent = extraUserDataFile;
+		this.extraUserDataFileType = extraUserDataFileType;
+	}
 
-    public String getContent() {
-        return Base64.encodeBase64String(content.getBytes());
-    }
+	public String getExtraUserDataFileContent() {
+		return extraUserDataFileContent;
+	}
 
-    public void setContent(String content) {
-        this.content = content;
-    }
+	public CloudInitUserDataBuilder.FileType getExtraUserDataFileType() {
+		return extraUserDataFileType;
+	}
+
 }

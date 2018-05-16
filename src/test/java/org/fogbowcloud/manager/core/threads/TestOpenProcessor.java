@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.threads;
 
 import java.util.Properties;
 
+import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
@@ -13,7 +14,6 @@ import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +21,9 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-public class TestOpenProcessor {
+public class TestOpenProcessor extends BaseUnitTests {
+
+	private static final String LOCAL_MEMBER_ID = "local-member";
 
 	private OpenProcessor openProcessor;
 
@@ -34,9 +36,8 @@ public class TestOpenProcessor {
 
 	@Before
 	public void setUp() {
-		String localMemberId = "local-member";
 		this.properties = new Properties();
-		this.properties.setProperty(ConfigurationConstants.XMPP_ID_KEY, localMemberId);
+		this.properties.setProperty(ConfigurationConstants.XMPP_ID_KEY, getLocalMemberId());
 
 		this.localInstanceProvider = Mockito.mock(InstanceProvider.class);
 		this.remoteInstanceProvider = Mockito.mock(InstanceProvider.class);
@@ -47,31 +48,17 @@ public class TestOpenProcessor {
 				.spy(new OpenProcessor(this.localInstanceProvider, this.remoteInstanceProvider, this.properties));
 	}
 
-	@After
+	@Override
 	public void tearDown() {
 		if (this.thread != null) {
 			this.thread.interrupt();
 		}
-
-		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-		this.cleanList(sharedOrderHolders.getClosedOrdersList());
-		this.cleanList(sharedOrderHolders.getFailedOrdersList());
-		this.cleanList(sharedOrderHolders.getFulfilledOrdersList());
-		this.cleanList(sharedOrderHolders.getOpenOrdersList());
-		this.cleanList(sharedOrderHolders.getPendingOrdersList());
-		this.cleanList(sharedOrderHolders.getSpawningOrdersList());
+		super.tearDown();
 	}
 
-	private void cleanList(ChainedList list) {
-		list.resetPointer();
-		Order order = null;
-		do {
-			order = list.getNext();
-			if (order != null) {
-				list.removeItem(order);
-			}
-		} while (order != null);
-		list.resetPointer();
+	@Override
+	public String getLocalMemberId() {
+		return LOCAL_MEMBER_ID;
 	}
 
 	/**
@@ -83,7 +70,7 @@ public class TestOpenProcessor {
 	 */
 	@Test
 	public void testProcessOpenLocalOrder() throws Exception {
-		Order localOrder = this.createLocalOrder();
+		Order localOrder = this.createLocalOrder(getLocalMemberId());
 
 		OrderInstance orderInstance = new OrderInstance("fake-id");
 
@@ -115,7 +102,7 @@ public class TestOpenProcessor {
 	 */
 	@Test
 	public void testProcessOpenLocalOrderWithNullInstance() throws Exception {
-		Order localOrder = this.createLocalOrder();
+		Order localOrder = this.createLocalOrder(getLocalMemberId());
 
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
@@ -145,7 +132,7 @@ public class TestOpenProcessor {
 	 */
 	@Test
 	public void testProcessLocalOpenOrderRequestingException() throws Exception {
-		Order localOrder = this.createLocalOrder();
+		Order localOrder = this.createLocalOrder(getLocalMemberId());
 
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
@@ -175,7 +162,7 @@ public class TestOpenProcessor {
 	 */
 	@Test
 	public void testProcessOpenRemoteOrder() throws Exception {
-		Order remoteOrder = this.createRemoteOrder();
+		Order remoteOrder = this.createRemoteOrder(getLocalMemberId());
 
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
@@ -206,7 +193,7 @@ public class TestOpenProcessor {
 	 */
 	@Test
 	public void testProcessRemoteOpenOrderRequestingException() throws Exception {
-		Order remoteOrder = this.createRemoteOrder();
+		Order remoteOrder = this.createRemoteOrder(getLocalMemberId());
 
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
@@ -237,7 +224,7 @@ public class TestOpenProcessor {
 	 */
 	@Test
 	public void testProcessNotOpenOrder() throws InterruptedException {
-		Order order = this.createLocalOrder();
+		Order order = this.createLocalOrder(getLocalMemberId());
 
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
@@ -279,7 +266,7 @@ public class TestOpenProcessor {
 	@Test
 	public void testProcessOpenOrderThrowingOrderStateTransitionException()
 			throws OrderStateTransitionException, InterruptedException {
-		Order order = this.createLocalOrder();
+		Order order = this.createLocalOrder(getLocalMemberId());
 
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
@@ -306,7 +293,7 @@ public class TestOpenProcessor {
 	 */
 	@Test
 	public void testProcessOpenOrderThrowingAnException() throws OrderStateTransitionException, InterruptedException {
-		Order order = this.createLocalOrder();
+		Order order = this.createLocalOrder(getLocalMemberId());
 
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
@@ -331,7 +318,7 @@ public class TestOpenProcessor {
 	 */
 	@Test
 	public void testRaceConditionWithThisThreadPriority() throws Exception {
-		Order localOrder = this.createLocalOrder();
+		Order localOrder = this.createLocalOrder(getLocalMemberId());
 
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
@@ -361,7 +348,7 @@ public class TestOpenProcessor {
 	 */
 	@Test
 	public void testRaceConditionWithThisThreadPriorityAndNotOpenOrder() throws InterruptedException {
-		Order localOrder = this.createLocalOrder();
+		Order localOrder = this.createLocalOrder(getLocalMemberId());
 
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
@@ -389,7 +376,7 @@ public class TestOpenProcessor {
 	 */
 	@Test
 	public void testRaceConditionWithOpenProcessorThreadPriority() throws Exception {
-		Order localOrder = this.createLocalOrder();
+		Order localOrder = this.createLocalOrder(getLocalMemberId());
 
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
@@ -418,32 +405,6 @@ public class TestOpenProcessor {
 		}
 
 		Assert.assertEquals(OrderState.OPEN, localOrder.getOrderState());
-	}
-
-	private Order createLocalOrder() {
-		Token localToken = Mockito.mock(Token.class);
-		Token federationToken = Mockito.mock(Token.class);
-		UserData userData = Mockito.mock(UserData.class);
-		String imageName = "fake-image-name";
-		String requestingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
-		String providingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
-		String publicKey = "fake-public-key";
-		Order localOrder = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024, 30,
-				imageName, userData, publicKey);
-		return localOrder;
-	}
-
-	private Order createRemoteOrder() {
-		Token localToken = Mockito.mock(Token.class);
-		Token federationToken = Mockito.mock(Token.class);
-		UserData userData = Mockito.mock(UserData.class);
-		String imageName = "fake-image-name";
-		String requestingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
-		String providingMember = "fake-remote-member";
-		String publicKey = "fake-public-key";
-		Order remoteOrder = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024,
-				30, imageName, userData, publicKey);
-		return remoteOrder;
 	}
 
 	private boolean listIsEmpty(ChainedList list) {

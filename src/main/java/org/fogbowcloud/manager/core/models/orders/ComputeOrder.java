@@ -38,7 +38,9 @@ public class ComputeOrder extends Order {
 	@Column(name = "public_key")
     private String publicKey;
 	
-	public ComputeOrder() {}
+    public ComputeOrder() {
+        super(UUID.randomUUID().toString());
+    }
 
     /**
      * Creating Order with predefined Id.
