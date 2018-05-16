@@ -28,7 +28,7 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
         assertNull(this.list.getCurrent());
         assertNull(this.list.getTail());
 
-        Order order = createOrder("0");
+        Order order = createLocalOrder(getLocalMemberId());
         this.list.addItem(order);
 
         assertEquals(order, this.list.getHead().getOrder());
@@ -40,8 +40,8 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
     public void testAddOrder() {
         assertNull(this.list.getHead());
 
-        Order orderOne = createOrder("one");
-        Order orderTwo = createOrder("two");
+        Order orderOne = createLocalOrder(getLocalMemberId());
+        Order orderTwo = createLocalOrder(getLocalMemberId());
         this.list.addItem(orderOne);
         this.list.addItem(orderTwo);
 
@@ -50,7 +50,7 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
         // Next node of the second order is null.
         assertNull(this.list.getNext());
 
-        Order orderThree = createOrder("three");
+        Order orderThree = createLocalOrder(getLocalMemberId());
         this.list.addItem(orderThree);
 
         // addItem() should have fixed this.current to point to the newly item added to the tail of the list.
@@ -74,8 +74,8 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
     public void testResetPointer() {
         assertNull(this.list.getHead());
 
-        Order orderOne = createOrder("one");
-        Order orderTwo = createOrder("two");
+        Order orderOne = createLocalOrder(getLocalMemberId());
+        Order orderTwo = createLocalOrder(getLocalMemberId());
         this.list.addItem(orderOne);
         this.list.addItem(orderTwo);
 
@@ -106,10 +106,10 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
     public void testFindNodeToRemove() {
         assertNull(this.list.getHead());
 
-        Order orderOne = createOrder("one");
-        Order orderTwo = createOrder("two");
-        Order orderThree = createOrder("three");
-        Order orderFour = createOrder("four");
+        Order orderOne = createLocalOrder(getLocalMemberId());
+        Order orderTwo = createLocalOrder(getLocalMemberId());
+        Order orderThree = createLocalOrder(getLocalMemberId());
+        Order orderFour = createLocalOrder(getLocalMemberId());
         this.list.addItem(orderOne);
         this.list.addItem(orderTwo);
         this.list.addItem(orderThree);
@@ -127,10 +127,10 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
     public void testRemoveItemOnHead() {
         assertNull(this.list.getHead());
 
-        Order orderOne = createOrder("one");
-        Order orderTwo = createOrder("two");
-        Order orderThree = createOrder("three");
-        Order orderFour = createOrder("four");
+        Order orderOne = createLocalOrder(getLocalMemberId());
+        Order orderTwo = createLocalOrder(getLocalMemberId());
+        Order orderThree = createLocalOrder(getLocalMemberId());
+        Order orderFour = createLocalOrder(getLocalMemberId());
 
         this.list.addItem(orderOne);
         this.list.addItem(orderTwo);
@@ -155,9 +155,9 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
     @Test
     public void testRemoveItemOnTail() {
         assertNull(this.list.getHead());
-        Order orderOne = createOrder("one");
-        Order orderTwo = createOrder("two");
-        Order orderThree = createOrder("three");
+        Order orderOne = createLocalOrder(getLocalMemberId());
+        Order orderTwo = createLocalOrder(getLocalMemberId());
+        Order orderThree = createLocalOrder(getLocalMemberId());
 
         this.list.addItem(orderOne);
         this.list.addItem(orderTwo);
@@ -177,7 +177,7 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
     @Test
     public void testRemoveItemOneElementOnList() {
         assertNull(this.list.getHead());
-        Order orderOne = createOrder("one");
+        Order orderOne = createLocalOrder(getLocalMemberId());
 
         this.list.addItem(orderOne);
 
@@ -195,10 +195,10 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
     public void testRemoveItem() throws Exception {
         assertNull(this.list.getHead());
 
-        Order orderOne = createOrder("one");
-        Order orderTwo = createOrder("two");
-        Order orderThree = createOrder("three");
-        Order orderFour = createOrder("Four");
+        Order orderOne = createLocalOrder(getLocalMemberId());
+        Order orderTwo = createLocalOrder(getLocalMemberId());
+        Order orderThree = createLocalOrder(getLocalMemberId());
+        Order orderFour = createLocalOrder(getLocalMemberId());
 
         this.list.addItem(orderOne);
         this.list.addItem(orderTwo);
@@ -226,7 +226,7 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
     public void testReinitializingList() {
         assertNull(this.list.getHead());
 
-        Order orderOne = createOrder("one");
+        Order orderOne = createLocalOrder(getLocalMemberId());
         this.list.addItem(orderOne);
         assertEquals(orderOne, this.list.getHead().getOrder());
         assertEquals(orderOne, this.list.getCurrent().getOrder());
@@ -240,26 +240,13 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
         assertNull(this.list.getTail());
         assertNull(this.list.getNext());
 
-        orderOne = createOrder("one");
+        orderOne = createLocalOrder(getLocalMemberId());
         this.list.addItem(orderOne);
         assertEquals(orderOne, this.list.getHead().getOrder());
         assertEquals(orderOne, this.list.getCurrent().getOrder());
         assertEquals(orderOne, this.list.getTail().getOrder());
         assertEquals(orderOne, this.list.getNext());
         assertNull(this.list.getNext());
-    }
-
-    private Order createOrder(String orderId) {
-    	Token localToken = Mockito.mock(Token.class);
-		Token federationToken = Mockito.mock(Token.class);
-		UserData userData = Mockito.mock(UserData.class);
-		String imageName = "fake-image-name";
-		String requestingMember = String.valueOf("fake-requesting-member");
-		String providingMember = String.valueOf("fake-providing-member");
-        String publicKey = "fake-public-key";
-        Order order = new ComputeOrder(orderId, localToken, federationToken, requestingMember, providingMember, 8, 1024, 30,
-				imageName, userData, publicKey);
-        return order;
     }
 
 }
