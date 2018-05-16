@@ -27,13 +27,18 @@ public class ManagerController {
 	private static final Logger LOGGER = Logger.getLogger(ManagerController.class);
 
 	public ManagerController(Properties properties, InstanceProvider localInstanceProvider,
-			InstanceProvider remoteInstanceProvider) {
+			InstanceProvider remoteInstanceProvider, ComputePlugin computePlugin, IdentityPlugin localIdentityPlugin,
+			IdentityPlugin federationIdentityPlugin) {
 
 		this.properties = properties;
 
 		this.localMemberId = this.properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
 		this.localInstanceProvider = localInstanceProvider;
 		this.remoteInstanceProvider = remoteInstanceProvider;
+
+		this.computePlugin = computePlugin;
+		this.localIdentityPlugin = localIdentityPlugin;
+		this.federationIdentityPlugin = federationIdentityPlugin;
 
 		OpenProcessor openProcessor = new OpenProcessor(this.localInstanceProvider, this.remoteInstanceProvider,
 				properties);
@@ -50,18 +55,6 @@ public class ManagerController {
 	private void startManagerThreads() {
 		LOGGER.info("Starting manager open processor thread");
 		this.openProcessorThread.start();
-	}
-
-	public void setComputePlugin(ComputePlugin computePlugin) {
-		this.computePlugin = computePlugin;
-	}
-
-	public void setLocalIdentityPlugin(IdentityPlugin identityPlugin) {
-		this.localIdentityPlugin = identityPlugin;
-	}
-
-	public void setFederationIdentityPlugin(IdentityPlugin federationIdentityPlugin) {
-		this.federationIdentityPlugin = federationIdentityPlugin;
 	}
 
 }

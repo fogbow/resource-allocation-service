@@ -1,6 +1,7 @@
 package org.fogbowcloud.manager.core.services;
 
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.PluginFactory;
 import org.fogbowcloud.manager.core.plugins.compute.ComputePlugin;
@@ -31,9 +32,9 @@ public class InstantiationInitService {
 
     private void setUpProperties() {
         List<String> configFilesNames = new ArrayList<>();
-        configFilesNames.add(ConfigurationConstants.MANAGER_CONF_FILE_FULL_PATH);
-        configFilesNames.add(ConfigurationConstants.FEDERATION_CONF_FILE_FULL_PATH);
-        configFilesNames.add(ConfigurationConstants.INFRA_CONF_FILE_FULL_PATH);
+        configFilesNames.add(DefaultConfigurationConstants.MANAGER_CONF_FILE_FULL_PATH);
+        configFilesNames.add(DefaultConfigurationConstants.FEDERATION_CONF_FILE_FULL_PATH);
+        configFilesNames.add(DefaultConfigurationConstants.INFRA_CONF_FILE_FULL_PATH);
 
         try {
             for (String fileName : configFilesNames) {

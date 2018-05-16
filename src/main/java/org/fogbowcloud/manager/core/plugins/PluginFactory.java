@@ -9,11 +9,6 @@ public class PluginFactory {
     private static final Logger LOGGER = Logger.getLogger(PluginFactory.class.getName());
     private static final int EXIT_ERROR_CODE = 128;
 
-
-    public PluginFactory() {
-
-    }
-
     public Object createPluginInstance(String pluginClassName, Properties properties)  {
 
         Object pluginInstance = null;

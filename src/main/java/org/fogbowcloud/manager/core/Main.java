@@ -24,8 +24,6 @@ public class Main implements ApplicationRunner {
 
     private ApplicationController facade;
     private ManagerController managerController;
-    private InstanceProvider localInstanceProvider;
-    private InstanceProvider removeInstanceProvider;
     private AuthenticationService authService;
 
     @Override
@@ -34,23 +32,17 @@ public class Main implements ApplicationRunner {
         this.instantiationInitService = new InstantiationInitService();
         this.properties = instantiationInitService.getProperties();
 
-        this.localInstanceProvider = new LocalInstanceProvider();
-        this.removeInstanceProvider = new RemoteInstanceProvider();
-
-        this.managerController = new ManagerController(this.properties, this.localInstanceProvider, this.removeInstanceProvider);
-
+        InstanceProvider localInstanceProvider = new LocalInstanceProvider();;
+        InstanceProvider remoteInstanceProvider = new RemoteInstanceProvider();
         ComputePlugin computePlugin = instantiationInitService.getComputePlugin();
-        this.managerController.setComputePlugin(computePlugin);
-
         IdentityPlugin localIdentityPlugin = instantiationInitService .getLocalIdentityPlugin();
-        this.managerController.setLocalIdentityPlugin(localIdentityPlugin);
-
         IdentityPlugin federationIdentityPlugin = instantiationInitService.getFederationIdentityPlugin();
-        this.managerController.setFederationIdentityPlugin(federationIdentityPlugin);
+        this.managerController = new ManagerController(this.properties, localInstanceProvider, remoteInstanceProvider,
+                computePlugin, localIdentityPlugin, federationIdentityPlugin);
 
         this.authService = new AuthenticationService(federationIdentityPlugin);
 
         // TODO: change to use getInstance method since AppCtrl will be Singleton
-        facade = new ApplicationController(authService, managerController);
+        this.facade = new ApplicationController(authService, managerController);
     }
 }

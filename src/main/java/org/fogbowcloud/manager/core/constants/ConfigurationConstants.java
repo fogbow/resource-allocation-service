@@ -2,17 +2,8 @@ package org.fogbowcloud.manager.core.constants;
 
 public class ConfigurationConstants {
 
-    // CONFIGURATION FILES PATHS
-	public static final String MANAGER_CONF_FILE_FULL_PATH = "src/main/resources/manager.properties";
-
-	public static final String INFRA_CONF_FILE_FULL_PATH = "src/main/resources/infrastructure.properties";
-
-	public static final String FEDERATION_CONF_FILE_FULL_PATH = "src/main/resources/federation.properties";
-
     // XMPP
 	public static final String XMPP_ID_KEY = "xmpp_jid";
-
-	public static final String XMPP_HOST_KEY = "xmpp_host";
 
 	// SCHEDULER PERIODS KEYS
 
