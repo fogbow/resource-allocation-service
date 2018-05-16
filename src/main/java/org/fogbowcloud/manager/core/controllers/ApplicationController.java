@@ -2,8 +2,10 @@ package org.fogbowcloud.manager.core.controllers;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.fogbowcloud.manager.core.ManagerController;
+import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
@@ -133,8 +135,13 @@ public class ApplicationController {
 
 	public void deleteComputeOrder(String id, String accessId, OrderType orderType) throws UnauthorizedException {
 		Token token = this.authenticate(accessId);
-		Order order = this.getOrderById(id, accessId, orderType);
-		this.ordersService.deleteOrder(order, token);		
+//		Order order = this.getOrderById(id, accessId, orderType);
+		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+		Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
+		Order order = activeOrdersMap.get(id);
+		if (order.getType().equals(orderType)) {
+			this.ordersService.deleteOrder(order, token);
+		}			
 	}
 
 }
