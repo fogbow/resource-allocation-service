@@ -4,7 +4,6 @@ import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,8 +14,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
-import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest

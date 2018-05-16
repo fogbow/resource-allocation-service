@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.rest.controllers;
 
 import org.fogbowcloud.manager.core.controllers.ApplicationController;
-import org.fogbowcloud.manager.core.exceptions.OrdersServiceException;
 import org.fogbowcloud.manager.core.controllers.OrdersManagerController;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
