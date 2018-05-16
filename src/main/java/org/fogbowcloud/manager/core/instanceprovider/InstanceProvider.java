@@ -7,7 +7,7 @@ import org.fogbowcloud.manager.core.models.token.Token;
 public interface InstanceProvider {
 
 	/**
-	 * Request an Instance for an Order.
+	 * Requests an Instance for an Order.
 	 * 
 	 * @param order
 	 * @return An OrderInstance with at least an nonempty Id.
@@ -16,6 +16,14 @@ public interface InstanceProvider {
 	 */
 	public OrderInstance requestInstance(Order order) throws Exception;
 
+	/**
+	 * Signals the cloud that the provided instance is no longer required.
+	 *
+	 * @param localToken
+	 * @param orderInstance
+	 * @throws Exception
+	 * 			   if a failure occurred when requesting the deletion of an instance
+	 */
 	public void deleteInstance(Token localToken, OrderInstance orderInstance) throws Exception;
 
 }

@@ -95,7 +95,7 @@ public class OpenProcessor implements Runnable {
 		synchronized (order) {
 			OrderState orderState = order.getOrderState();
 
-			// check if after order synchronization its state still open.
+			// check if after order synchronization its state is still open.
 			if (orderState.equals(OrderState.OPEN)) {
 				LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
 
@@ -111,7 +111,6 @@ public class OpenProcessor implements Runnable {
 
 					LOGGER.info("Updating order state after processing [" + order.getId() + "]");
 					this.updateOrderStateAfterProcessing(order);
-
 				} catch (Exception e) {
 					LOGGER.error("Error while trying to get an instance for order: " + order, e);
 
