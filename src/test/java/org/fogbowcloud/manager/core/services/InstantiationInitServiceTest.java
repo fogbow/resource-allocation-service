@@ -21,17 +21,16 @@ import java.util.Properties;
 @RunWith(SpringRunner.class)
 @ComponentScan
 @ContextConfiguration(classes = FogbowManagerApplication.class)
-@TestPropertySource("classpath:test.properties")
 @SpringBootTest
 public class InstantiationInitServiceTest {
 
-    @Autowired
     private InstantiationInitService service;
 
     private static final String TEST_CONF_FILE_FULL_PATH = "src/main/resources/test.properties";
 
     @Before
     public void setUp() throws Exception {
+        this.service = new InstantiationInitService();
         Properties mProperties = new Properties();
         FileInputStream mInput = new FileInputStream(TEST_CONF_FILE_FULL_PATH);
         mProperties.load(mInput);

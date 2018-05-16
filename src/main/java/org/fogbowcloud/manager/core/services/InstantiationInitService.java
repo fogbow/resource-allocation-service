@@ -4,10 +4,6 @@ import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.PluginFactory;
 import org.fogbowcloud.manager.core.plugins.compute.ComputePlugin;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -18,17 +14,7 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 // TODO: search if it is possible locate *.properties in another path
-@Service("instantiationInitService")
-@PropertySource({
-        "classpath:manager.properties",
-        "classpath:federation.properties",
-        "classpath:infrastructure.properties",
-        "classpath:test.properties"
-})
 public class InstantiationInitService {
-
-    @Autowired
-    private Environment env;
 
     private PluginFactory pluginFactory;
     private Properties properties;
@@ -87,7 +73,7 @@ public class InstantiationInitService {
     }
 
     public String getPropertyValue(String propertyId) {
-        return env.getProperty(propertyId);
+        return this.properties.getProperty(propertyId);
     }
 
     public Properties getProperties() {

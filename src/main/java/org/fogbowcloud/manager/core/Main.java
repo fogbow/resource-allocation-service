@@ -10,9 +10,12 @@ import org.fogbowcloud.manager.core.services.AuthenticationService;
 import org.fogbowcloud.manager.core.services.InstantiationInitService;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.stereotype.Component;
 
 import java.util.Properties;
+import java.util.logging.Logger;
 
+@Component
 public class Main implements ApplicationRunner {
 
     private InstantiationInitService instantiationInitService;
@@ -26,7 +29,8 @@ public class Main implements ApplicationRunner {
     private AuthenticationService authService;
 
     @Override
-    public void run(ApplicationArguments args) throws Exception {
+    public void run(ApplicationArguments args) {
+
         this.instantiationInitService = new InstantiationInitService();
         this.properties = instantiationInitService.getProperties();
 
