@@ -5,6 +5,9 @@ public class ConfigurationConstants {
 	public static final String XMPP_ID_KEY = "xmpp_jid";
 
 	// SCHEDULER PERIODS KEYS
+
+	public static final String CLOSED_ORDERS_SLEEP_TIME_KEY = "closed_orders_scheduler_period";
+
 	public static final String OPEN_ORDERS_SLEEP_TIME_KEY = "open_orders_sleep_time";
 	public static final String SPAWNING_ORDERS_SLEEP_TIME_KEY = "spawning_orders_sleep_time";
 
