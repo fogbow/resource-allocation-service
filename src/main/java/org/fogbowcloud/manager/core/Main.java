@@ -22,7 +22,7 @@ public class Main implements ApplicationRunner {
 
     private Properties properties;
 
-    private ApplicationController facade;
+    private ApplicationController facade = ApplicationController.getInstance();
     private ManagerController managerController;
     private AuthenticationService authService;
 
@@ -42,7 +42,7 @@ public class Main implements ApplicationRunner {
 
         this.authService = new AuthenticationService(federationIdentityPlugin);
 
-        // TODO: change to use getInstance method since AppCtrl will be Singleton
-        this.facade = new ApplicationController(authService, managerController);
+        this.facade.setAuthenticationController(this.authService);
+        this.facade.setManagerController(this.managerController);
     }
 }
