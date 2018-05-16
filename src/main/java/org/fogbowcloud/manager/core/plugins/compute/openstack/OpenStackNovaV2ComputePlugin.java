@@ -12,6 +12,7 @@ import org.fogbowcloud.manager.core.models.*;
 import org.fogbowcloud.manager.core.models.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
+import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.compute.DefaultLaunchCommandGenerator;
@@ -388,13 +389,14 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     @Override
-    public void removeInstance(Token localToken, String instanceId) {
+    public void deleteInstance(Token localToken, OrderInstance instance) throws RequestException {
+        String endpoint = getComputeEndpoint(getTenantId(localToken), SERVERS + "/" + instance.getId());
 
+        doDeleteRequest(endpoint, localToken);
     }
 
     @Override
-    public void removeInstances(Token localToken) {
-
+    public void deleteInstances(Token localToken) {
     }
 
     @Override

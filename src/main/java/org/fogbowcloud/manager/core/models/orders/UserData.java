@@ -8,6 +8,8 @@ public class UserData {
 
 	private CloudInitUserDataBuilder.FileType extraUserDataFileType;
 
+    public UserData() {}
+
 	public UserData(String extraUserDataFile, CloudInitUserDataBuilder.FileType extraUserDataFileType) {
 		this.extraUserDataFileContent = extraUserDataFile;
 		this.extraUserDataFileType = extraUserDataFileType;

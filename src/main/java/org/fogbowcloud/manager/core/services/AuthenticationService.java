@@ -42,9 +42,12 @@ public class AuthenticationService {
 		return this.federationIdentityPlugin.getToken(federationTokenId);
 	}
 
-	public Token getLocalToken(String localTokenId, boolean isOrderProvidingLocal) throws Exception {
+	public Token getLocalToken(String localTokenId, String provadingMember) throws Exception {
 		LOGGER.debug("Trying to get the local token by local token id: " + localTokenId);
 		Token localToken = null;
+		
+		boolean isOrderProvidingLocal = AuthenticationServiceUtil
+				.isProvadingLocally(provadingMember, this.properties);
 		if (isOrderProvidingLocal) {
 			if (localTokenId == null) {
 				localToken = createFogbowLocalToken();
@@ -58,7 +61,7 @@ public class AuthenticationService {
 	}
 
 	protected Token createTokenBypass(String tokenId) {
-		// TODO check obligatoriness. Required in the Token.
+		// TODO check if is necessary this Date. Check in the token object 
 		Date date = new Date(); 
 		return new Token(tokenId, null, date, null);
 	}
@@ -84,7 +87,7 @@ public class AuthenticationService {
 	}
 	
 	private Map<String, String> getDefaultUserCredentials() {		
-		return AuthenticationServiceHelper.getDefaultLocalTokenCredentials(this.properties);
+		return AuthenticationServiceUtil.getDefaultLocalTokenCredentials(this.properties);
 	}
 
 	protected boolean authorize(Token federationToken) throws UnauthorizedException {

@@ -4,8 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+
 //TODO change the name. Follow AuthenticationService's name
-public class AuthenticationServiceHelper {
+public class AuthenticationServiceUtil {
 	
 	protected static String LOCAL_TOKEN_CREDENTIALS_PREFIX = "local_token_credentails_";
 
@@ -31,6 +33,15 @@ public class AuthenticationServiceHelper {
 
 	private static String normalizeKeyProperties(String keyPropertiesStr) {
 		return keyPropertiesStr.replace(LOCAL_TOKEN_CREDENTIALS_PREFIX, "");
+	}
+	
+	// TODO change to other class
+	public static boolean isProvadingLocally(String orderProvadingMember, Properties properties) {
+		String localMember = properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
+		if (orderProvadingMember.equals(localMember)) {
+			return true;
+		}
+		return false;
 	}
 	
 }

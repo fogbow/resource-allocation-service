@@ -6,9 +6,9 @@ import java.util.Properties;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class AuthenticationServiceHelperTest {
+public class AuthenticationServiceUtilTest {
 
-	private String CREDENTIALS_PREFIX = AuthenticationServiceHelper.LOCAL_TOKEN_CREDENTIALS_PREFIX;
+	private String CREDENTIALS_PREFIX = AuthenticationServiceUtil.LOCAL_TOKEN_CREDENTIALS_PREFIX;
 	
 	@Test
 	public void testGetDefaultLocalTokenCredentials() {
@@ -24,7 +24,7 @@ public class AuthenticationServiceHelperTest {
 		properties.put(keyThree, valueThree);
 		
 		Map<String, String> defaulLocalTokenCredentials = 
-				AuthenticationServiceHelper.getDefaultLocalTokenCredentials(properties);
+				AuthenticationServiceUtil.getDefaultLocalTokenCredentials(properties);
 		Assert.assertEquals(valueOne, defaulLocalTokenCredentials.get(keyOne));
 		Assert.assertEquals(valueTwo, defaulLocalTokenCredentials.get(keyTwo));
 		Assert.assertNull(defaulLocalTokenCredentials.get(keyThree));
@@ -33,7 +33,7 @@ public class AuthenticationServiceHelperTest {
 	@Test
 	public void testGetDefaultLocalTokenCredentialsWithPropertiesNull() {
 		Map<String, String> defaulLocalTokenCredentials = 
-				AuthenticationServiceHelper.getDefaultLocalTokenCredentials(null);
+				AuthenticationServiceUtil.getDefaultLocalTokenCredentials(null);
 		Assert.assertTrue(defaulLocalTokenCredentials.isEmpty());
 	}
 	
