@@ -1,24 +1,40 @@
 package org.fogbowcloud.manager.core.controllers;
 
 import java.util.Collection;
+import java.util.Map;
 
 import org.fogbowcloud.manager.core.ManagerController;
+import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
+import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.orders.StorageOrder;
+import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
+import org.fogbowcloud.manager.core.services.ComputeOrdersService;
 
 public class ApplicationController {
 	
+	private static ApplicationController instance;
+	
 	private AuthenticationService authenticationController;
 	private ManagerController managerController;
-	
-	public ApplicationController(AuthenticationService authenticationController, ManagerController managerController) {
-		this.authenticationController = authenticationController;
-		this.managerController = managerController;
-	}
+	private ComputeOrdersService computeOrdersService;
 
-	public ApplicationController() {}
+	public ApplicationController() {
+		this.computeOrdersService = new ComputeOrdersService();
+	}
+	
+	public static ApplicationController getInstance() {
+		synchronized (ApplicationController.class) {
+			if (instance == null) {
+				instance = new ApplicationController();
+			}
+			return instance;
+		}
+	}
 
 	public void allocateComputeOrder(ComputeOrder computeOrder) {
 		
@@ -66,6 +82,36 @@ public class ApplicationController {
 	
 	public void removeStorageOrder(String id) {
 		
+	}
+
+	public AuthenticationService getAuthenticationController() {
+		return authenticationController;
+	}
+
+	public void setAuthenticationController(AuthenticationService authenticationController) {
+		this.authenticationController = authenticationController;
+	}
+
+	public ManagerController getManagerController() {
+		return managerController;
+	}
+
+	public void setManagerController(ManagerController managerController) {
+		this.managerController = managerController;
+	}
+	
+	public Token authenticate(String accessId) throws UnauthorizedException {
+		return this.authenticationController.authenticate(accessId);
+	}
+	
+	public void deleteComputeOrder(String id, String accessId, OrderType orderType) throws UnauthorizedException {
+		Token token = this.authenticate(accessId);
+		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+		Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
+		Order order = activeOrdersMap.get(id);
+		if (order.getType().equals(orderType)) {
+			this.computeOrdersService.deleteOrder(order, token);
+		}		
 	}
 	
 }
