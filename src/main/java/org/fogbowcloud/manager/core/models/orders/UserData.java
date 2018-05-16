@@ -5,8 +5,13 @@ import org.fogbowcloud.manager.core.plugins.compute.util.CloudInitUserDataBuilde
 public class UserData {
 
 	private String extraUserDataFileContent;
-
 	private CloudInitUserDataBuilder.FileType extraUserDataFileType;
+
+    public UserData() {}
+
+    public UserData(String content) {
+        this.extraUserDataFileContent = content;
+    }
 
 	public UserData(String extraUserDataFile, CloudInitUserDataBuilder.FileType extraUserDataFileType) {
 		this.extraUserDataFileContent = extraUserDataFile;

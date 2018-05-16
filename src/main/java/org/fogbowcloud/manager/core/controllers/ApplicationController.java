@@ -1,24 +1,47 @@
 package org.fogbowcloud.manager.core.controllers;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import org.fogbowcloud.manager.core.ManagerController;
+import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
+import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
+import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.orders.StorageOrder;
+import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
+import org.fogbowcloud.manager.core.services.OrdersService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ApplicationController {
-	
+
+	private static ApplicationController instance;
 	private AuthenticationService authenticationController;
 	private ManagerController managerController;
-	
-	public ApplicationController(AuthenticationService authenticationController, ManagerController managerController) {
-		this.authenticationController = authenticationController;
-		this.managerController = managerController;
+	private OrdersManagerController ordersManagerController;
+	private OrdersService ordersService;
+
+	private final Logger LOGGER = LoggerFactory.getLogger(ApplicationController.class);
+
+	private ApplicationController() {
+		this.ordersManagerController = new OrdersManagerController();
+		this.ordersService = new  OrdersService();
 	}
 
-	public ApplicationController() {}
+	public static ApplicationController getInstance() {
+		synchronized (ApplicationController.class) {
+			if (instance == null) {
+				instance = new ApplicationController();
+			}
+			return instance;
+		}
+	}
 
 	public void allocateComputeOrder(ComputeOrder computeOrder) {
 		
@@ -67,5 +90,58 @@ public class ApplicationController {
 	public void removeStorageOrder(String id) {
 		
 	}
-	
+
+	public AuthenticationService getAuthenticationController() {
+		return authenticationController;
+	}
+
+	public void setAuthenticationController(AuthenticationService authenticationController) {
+		this.authenticationController = authenticationController;
+	}
+
+	public ManagerController getManagerController() {
+		return managerController;
+	}
+
+	public void setManagerController(ManagerController managerController) {
+		this.managerController = managerController;
+	}
+
+	public Token authenticate(String accessId) throws UnauthorizedException {
+		return this.authenticationController.authenticate(accessId);
+	}
+
+	public void newOrderRequest(Order order, String accessId, String localTokenId) throws OrderManagementException, UnauthorizedException {
+		Token federatedToken = authenticate(accessId);
+		Token localToken = createLocalToken(localTokenId);
+		this.ordersManagerController.newOrderRequest(order, federatedToken, localToken);
+	}
+
+	private Token createLocalToken(String localTokenId) {
+		Token localToken = new Token();
+		localToken.setAccessId(localTokenId);
+		return localToken;
+	}
+
+	public List<Order> getAllComputes(String accessId, OrderType orderType) throws UnauthorizedException {
+    	Token federatedToken = this.authenticate(accessId);
+		return this.ordersService.getAllOrdersByType(federatedToken, orderType);
+	}
+
+	public Order getOrderById(String id, String accessId, OrderType orderType) throws UnauthorizedException {
+    	Token federatedToken = this.authenticate(accessId);
+		return this.ordersService.getOrderByIdAndType(id, federatedToken, orderType);
+	}
+
+	public void deleteComputeOrder(String id, String accessId, OrderType orderType) throws UnauthorizedException {
+		Token token = this.authenticate(accessId);
+//		Order order = this.getOrderById(id, accessId, orderType);
+		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+		Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
+		Order order = activeOrdersMap.get(id);
+		if (order.getType().equals(orderType)) {
+			this.ordersService.deleteOrder(order, token);
+		}			
+	}
+
 }
