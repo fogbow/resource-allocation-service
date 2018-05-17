@@ -18,10 +18,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.io.FileInputStream;
 import java.util.Properties;
 
-@RunWith(SpringRunner.class)
-@ComponentScan
-@ContextConfiguration(classes = FogbowManagerApplication.class)
-@SpringBootTest
 public class InstantiationInitServiceTest {
 
     private InstantiationInitService service;
