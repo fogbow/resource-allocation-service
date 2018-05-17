@@ -1,25 +1,43 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import org.fogbowcloud.manager.core.models.token.Token;
-
 import java.util.UUID;
 
+import javax.persistence.Column;
+import javax.persistence.DiscriminatorValue;
+import javax.persistence.Entity;
+import javax.persistence.Transient;
+import javax.validation.constraints.NotNull;
+
+import org.fogbowcloud.manager.core.models.token.Token;
+
+@Entity
+@DiscriminatorValue(value = "compute")
 public class ComputeOrder extends Order {
 
-    private int vCPU;
+	@Column(name = "vCPU")
+    @NotNull(message = "vCPU can not be null.")
+	private Integer vCPU;
 
-    /** Memory attribute, must be set in MB. */
-    private int memory;
+	/** Memory attribute, must be set in MB. */
+	@Column(name = "memory")
+    @NotNull(message = "Memory can not be null.")
+	private Integer memory;
 
-    /** Disk attribute, must be set in GB. */
-    private int disk;
+	/** Disk attribute, must be set in GB. */
+	@Column(name = "disk")
+    @NotNull(message = "Disk can not be null.")
+	private Integer disk;
 
+	@Transient
+	private UserData userData;
+
+	@Column(name = "image_name")
+    @NotNull(message = "Image name can not be null.")
     private String imageName;
 
-    private UserData userData;
-
+	@Column(name = "public_key")
     private String publicKey;
-
+	
     public ComputeOrder() {
         super(UUID.randomUUID().toString());
     }
@@ -72,4 +90,28 @@ public class ComputeOrder extends Order {
     public String getPublicKey() {
         return publicKey;
     }
+
+	public void setvCPU(Integer vCPU) {
+		this.vCPU = vCPU;
+	}
+
+	public void setMemory(Integer memory) {
+		this.memory = memory;
+	}
+
+	public void setDisk(Integer disk) {
+		this.disk = disk;
+	}
+
+	public void setUserData(UserData userData) {
+		this.userData = userData;
+	}
+
+	public void setImageName(String imageName) {
+		this.imageName = imageName;
+	}
+
+	public void setPublicKey(String publicKey) {
+		this.publicKey = publicKey;
+	}
 }

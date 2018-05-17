@@ -37,5 +37,4 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
 		assertEquals(orderTwo, listFromInstanceOne.getCurrent().getNext().getOrder());
 		assertEquals(orderTwo, listFromInstanceTwo.getCurrent().getNext().getOrder());
 	}
-
 }

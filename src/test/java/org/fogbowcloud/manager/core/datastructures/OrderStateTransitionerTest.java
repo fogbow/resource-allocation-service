@@ -136,5 +136,5 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         Order order = createOrder(originState);
         OrderStateTransitioner.transition(order, destinationState);
     }
-    
+
 }

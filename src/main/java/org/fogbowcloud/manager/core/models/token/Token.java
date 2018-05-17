@@ -4,25 +4,46 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
 import org.fogbowcloud.manager.core.utils.DateUtils;
 import org.fogbowcloud.manager.core.utils.JSONHelper;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+@Entity
+@Table(name = "tb_token")
 public class Token {
 
 	private static final String EXPIRATION_DATE = "expirationDate";
 
+	@Id
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	@Column(name = "id", nullable = false, unique = true)
 	private Long id;
 
+	@Transient
 	private Map<String, String> attributes;
 
+	@Column(name = "access_id", nullable = false, unique = true)
 	private String accessId;
-
+	
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "user_id")
 	private User user;
 
+	@Transient
 	private DateUtils dateUtils = new DateUtils();
-
+	
 	public Token() { }
 
 	public Token(String accessId, User user, Date expirationTime, Map<String, String> attributes) {
@@ -114,11 +135,26 @@ public class Token {
 				JSONHelper.toMap(jsonObject.optString("attributes")));
 	}
 
+	@Entity
 	public static class User {
 
+		@Id
+		@GeneratedValue(strategy = GenerationType.AUTO)
+		@Column(name = "id", nullable = false, unique = true)
 		private String id;
 
+		@Column(name = "name", nullable = false, unique = true)
 		private String name;
+		
+		public User() {}
+
+		public void setId(String id) {
+			this.id = id;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
 
 		public User(String id, String name) {
 			if (id == null || name == null) {

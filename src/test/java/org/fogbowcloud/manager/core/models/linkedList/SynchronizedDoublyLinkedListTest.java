@@ -248,5 +248,4 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
         assertEquals(orderOne, this.list.getNext());
         assertNull(this.list.getNext());
     }
-
 }
