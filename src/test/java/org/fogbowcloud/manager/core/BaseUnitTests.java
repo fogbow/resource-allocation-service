@@ -1,6 +1,5 @@
 package org.fogbowcloud.manager.core;
 
-import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
 import org.fogbowcloud.manager.core.models.linkedList.ChainedList;
 import org.fogbowcloud.manager.core.models.linkedList.SynchronizedDoublyLinkedList;
@@ -15,8 +14,6 @@ import org.mockito.Mockito;
 public class BaseUnitTests {
 
 	public static final String LOCAL_MEMBER_ID = "fake-local-member";
-
-	private Token properties;
 
 	@After
 	public void tearDown() {
