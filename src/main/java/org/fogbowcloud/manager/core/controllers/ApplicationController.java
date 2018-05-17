@@ -104,7 +104,7 @@ public class ApplicationController {
 		return this.authenticationController.authenticate(accessId);
 	}
 	
-	public void deleteComputeOrder(String id, String accessId, OrderType orderType) throws UnauthorizedException {
+	public void deleteOrder(String id, String accessId, OrderType orderType) throws UnauthorizedException {
 		Token token = this.authenticate(accessId);
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();

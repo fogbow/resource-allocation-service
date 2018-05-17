@@ -52,7 +52,7 @@ public class ApplicationControllerTest extends BaseUnitTests {
 		String orderId = this.getComputeOrderCreationId();
 		String accessId = "fake-access-id";
 		
-		this.applicationController.deleteComputeOrder(orderId, accessId, OrderType.COMPUTE);		
+		this.applicationController.deleteOrder(orderId, accessId, OrderType.COMPUTE);		
 
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		ChainedList closedOrdersList = sharedOrderHolders.getClosedOrdersList();
@@ -66,7 +66,7 @@ public class ApplicationControllerTest extends BaseUnitTests {
 	public void testThrowUnauthorizedException() throws UnauthorizedException {
 		String orderId = "fake-order-id-1";
 		String accessId = "fake-access-id!#!fake-user-id!#!fake-user-name";
-		Mockito.doThrow(new UnauthorizedException()).when(this.applicationController).deleteComputeOrder(orderId, accessId, OrderType.COMPUTE);
+		Mockito.doThrow(new UnauthorizedException()).when(this.applicationController).deleteOrder(orderId, accessId, OrderType.COMPUTE);
 	}
 
 	private void setLdapIdentityPlugin() throws UnauthorizedException {

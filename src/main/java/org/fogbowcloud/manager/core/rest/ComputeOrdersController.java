@@ -41,8 +41,9 @@ public class ComputeOrdersController {
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-	public ResponseEntity<Boolean> deleteCompute(@PathVariable String id, @RequestHeader(value = "accessId") String accessId) throws UnauthorizedException {
-		this.applicationController.deleteComputeOrder(id, accessId, OrderType.COMPUTE);
+	public ResponseEntity<Boolean> deleteCompute(@PathVariable String id,
+			@RequestHeader(value = "accessId") String accessId) throws UnauthorizedException {
+		this.applicationController.deleteOrder(id, accessId, OrderType.COMPUTE);
 		return new ResponseEntity<Boolean>(HttpStatus.OK);
 	}
 }
