@@ -8,6 +8,9 @@ import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.threads.OpenProcessor;
+import org.fogbowcloud.manager.core.threads.SpawningMonitor;
+import org.fogbowcloud.manager.core.utils.SshConnectivityUtil;
+import org.fogbowcloud.manager.core.utils.TunnelingServiceUtil;
 
 public class ManagerController {
 
@@ -15,11 +18,14 @@ public class ManagerController {
 	private InstanceProvider remoteInstanceProvider;
 
 	private Thread openProcessorThread;
+	private Thread spawningProcessorThread;
 
+	// FIXME this is necessary ? If not, remove
 	private String localMemberId;
 
 	private Properties properties;
 
+	// FIXME this is necessary ? If not, remove
 	private ComputePlugin computePlugin;
 	private IdentityPlugin localIdentityPlugin;
 	private IdentityPlugin federationIdentityPlugin;
@@ -43,6 +49,11 @@ public class ManagerController {
 		OpenProcessor openProcessor = new OpenProcessor(this.localInstanceProvider, this.remoteInstanceProvider,
 				properties);
 		this.openProcessorThread = new Thread(openProcessor);
+		
+		TunnelingServiceUtil tunnelingServiceUtil = TunnelingServiceUtil.getInstance();
+		SshConnectivityUtil sshConnectivityUtil = SshConnectivityUtil.getInstance();
+		SpawningMonitor spawningMonitor = new SpawningMonitor(tunnelingServiceUtil, sshConnectivityUtil, this.properties);
+		this.spawningProcessorThread = new Thread(spawningMonitor);
 
 		this.startManagerThreads();
 	}
@@ -55,6 +66,7 @@ public class ManagerController {
 	private void startManagerThreads() {
 		LOGGER.info("Starting manager open processor thread");
 		this.openProcessorThread.start();
+		this.spawningProcessorThread.start();
 	}
 
 }
