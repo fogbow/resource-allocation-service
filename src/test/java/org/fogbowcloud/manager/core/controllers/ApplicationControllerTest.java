@@ -32,11 +32,6 @@ public class ApplicationControllerTest extends BaseUnitTests {
 		this.applicationController.setOrdersManagerController(this.ordersManagerController);
 	}
 
-	@Override
-	public void tearDown() {
-		super.tearDown();
-	}
-
 	@Test
 	public void testDeleteComputeOrder() throws UnauthorizedException, OrderManagementException {
 		Mockito.doNothing().when(this.ordersManagerController).deleteOrder(Mockito.any(Order.class));
