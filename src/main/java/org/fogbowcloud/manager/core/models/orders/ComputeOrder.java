@@ -23,7 +23,7 @@ public class ComputeOrder extends Order {
     public ComputeOrder() {
         super(UUID.randomUUID().toString());
     }
-    
+
     /**
      * Creating Order with predefined Id.
      */

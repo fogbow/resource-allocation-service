@@ -28,7 +28,7 @@ public abstract class Order {
 	 * Creating Order with predefined Id.
 	 */
 	public Order(String id, Token localToken, Token federationToken, String requestingMember, String providingMember) {
-		this.id = id;
+		this(id);
 		this.localToken = localToken;
 		this.federationToken = federationToken;
 		this.requestingMember = requestingMember;
@@ -62,7 +62,7 @@ public abstract class Order {
 	public void setFederationToken(Token federationToken) {
 		this.federationToken = federationToken;
 	}
-	
+
 	public String getRequestingMember() {
 		return requestingMember;
 	}
