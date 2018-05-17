@@ -4,6 +4,7 @@ import static org.junit.Assert.assertNotNull;
 import java.util.Map;
 import java.util.Properties;
 
+import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
 import org.fogbowcloud.manager.core.models.linkedList.ChainedList;
@@ -22,7 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class TestSpawningMonitor {
+public class TestSpawningMonitor extends BaseUnitTests {
 
 	private Properties properties;
 	private TunnelingServiceUtil tunnelingService;
@@ -289,18 +290,6 @@ public class TestSpawningMonitor {
 		Order order = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024, 30,
 				"fake_image_name", userData, "fake_public_key");
 		return order;
-	}
-
-	private void cleanList(ChainedList list) {
-		list.resetPointer();
-		Order order = null;
-		do {
-			order = list.getNext();
-			if (order != null) {
-				list.removeItem(order);
-			}
-		} while (order != null);
-		list.resetPointer();
 	}
 
 }
