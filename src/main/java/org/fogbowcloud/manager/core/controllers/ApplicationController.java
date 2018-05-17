@@ -7,18 +7,15 @@ import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.models.token.Token.User;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
-import org.fogbowcloud.manager.core.services.OrderService;
 
 public class ApplicationController {
 
 	private static ApplicationController instance;
 	private AuthenticationService authenticationController;
-	private OrderService orderService;
 
 	private OrdersManagerController ordersManagerController;
 
 	private ApplicationController() {
-		this.orderService = new OrderService();
 		this.ordersManagerController = new OrdersManagerController();
 	}
 
@@ -40,14 +37,14 @@ public class ApplicationController {
 		Token userFederationToken = this.authenticate(accessId);
 		User user = userFederationToken.getUser();
 		
-		Order order = this.orderService.getOrderByIdAndType(user, orderId, orderType);
+		Order order = this.ordersManagerController.getOrderByIdAndType(user, orderId, orderType);
 		return order;
 	}
 
 	public void deleteOrder(String orderId, String accessId, OrderType orderType)
 			throws UnauthorizedException, OrderManagementException {
 		Order order = getOrder(orderId, accessId, orderType);
-		this.orderService.deleteOrder(order);
+		this.ordersManagerController.deleteOrder(order);
 	}
 
 	public void newOrderRequest(Order order, String accessId, String localTokenId)
@@ -67,7 +64,8 @@ public class ApplicationController {
 		this.authenticationController = authenticationController;
 	}
 
-	public void setOrderService(OrderService orderService) {
-		this.orderService = orderService;
+	protected void setOrdersManagerController(OrdersManagerController ordersManagerController) {
+		this.ordersManagerController = ordersManagerController;
 	}
+
 }

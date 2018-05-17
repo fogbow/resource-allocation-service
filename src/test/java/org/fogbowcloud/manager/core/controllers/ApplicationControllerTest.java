@@ -13,7 +13,6 @@ import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.models.token.Token.User;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
-import org.fogbowcloud.manager.core.services.OrderService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -22,15 +21,15 @@ public class ApplicationControllerTest extends BaseUnitTests {
 
 	private ApplicationController applicationController;
 	private AuthenticationService authenticationService;
-	private OrderService orderService;
+	private OrdersManagerController ordersManagerController;
 
 	@Before
 	public void setUp() throws UnauthorizedException {
 		this.authenticationService = Mockito.mock(AuthenticationService.class);
-		this.orderService = Mockito.mock(OrderService.class);
+		this.ordersManagerController = Mockito.mock(OrdersManagerController.class);
 		this.applicationController = ApplicationController.getInstance();
 		this.applicationController.setAuthenticationController(this.authenticationService);
-		this.applicationController.setOrderService(this.orderService);
+		this.applicationController.setOrdersManagerController(this.ordersManagerController);
 	}
 
 	@Override
@@ -40,10 +39,10 @@ public class ApplicationControllerTest extends BaseUnitTests {
 
 	@Test
 	public void testDeleteComputeOrder() throws UnauthorizedException, OrderManagementException {
-		Mockito.doNothing().when(this.orderService).deleteOrder(Mockito.any(Order.class));
+		Mockito.doNothing().when(this.ordersManagerController).deleteOrder(Mockito.any(Order.class));
 
 		Order order = createComputeOrder();
-		Mockito.doReturn(order).when(this.orderService).getOrderByIdAndType(Mockito.any(User.class),
+		Mockito.doReturn(order).when(this.ordersManagerController).getOrderByIdAndType(Mockito.any(User.class),
 				Mockito.anyString(), Mockito.any(OrderType.class));
 
 		Mockito.doReturn(order.getFederationToken()).when(this.authenticationService)
@@ -56,11 +55,11 @@ public class ApplicationControllerTest extends BaseUnitTests {
 	@Test(expected = OrderManagementException.class)
 	public void testDeleteComputeOrderNotFound()
 			throws UnauthorizedException, OrderManagementException {
-		Mockito.doThrow(new OrderManagementException("Not found")).when(this.orderService)
+		Mockito.doThrow(new OrderManagementException("Not found")).when(this.ordersManagerController)
 				.deleteOrder(Mockito.any(Order.class));
 
 		Order order = createComputeOrder();
-		Mockito.doReturn(order).when(this.orderService).getOrderByIdAndType(Mockito.any(User.class),
+		Mockito.doReturn(order).when(this.ordersManagerController).getOrderByIdAndType(Mockito.any(User.class),
 				Mockito.anyString(), Mockito.any(OrderType.class));
 
 		Mockito.doReturn(order.getFederationToken()).when(this.authenticationService)
