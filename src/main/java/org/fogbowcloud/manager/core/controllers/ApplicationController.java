@@ -8,11 +8,11 @@ import org.fogbowcloud.manager.core.models.token.Token.User;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
 
-public class ApplicationController {
+public class  ApplicationController {
 
 	private static ApplicationController instance;
+	
 	private AuthenticationService authenticationController;
-
 	private OrdersManagerController ordersManagerController;
 
 	private ApplicationController() {
