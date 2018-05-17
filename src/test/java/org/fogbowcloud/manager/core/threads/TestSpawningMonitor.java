@@ -4,6 +4,7 @@ import static org.junit.Assert.assertNotNull;
 import java.util.Map;
 import java.util.Properties;
 
+import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
 import org.fogbowcloud.manager.core.models.linkedList.ChainedList;
@@ -22,7 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class TestSpawningMonitor {
+public class TestSpawningMonitor extends BaseUnitTests {
 
 	private Properties properties;
 	private TunnelingServiceUtil tunnelingService;
@@ -60,13 +61,8 @@ public class TestSpawningMonitor {
 		if (this.thread != null) {
 			this.thread.interrupt();
 		}
-
-		this.cleanList(this.spawningOrderList);
-		this.cleanList(this.fulfilledOrderList);
-		this.cleanList(this.failedOrderList);
-		this.cleanList(this.openOrderList);
-		this.cleanList(this.pendingOrderList);
-		this.cleanList(this.closedOrderList);
+		
+		super.tearDown();
 	}
 	
 	@Test
@@ -79,8 +75,9 @@ public class TestSpawningMonitor {
 		Mockito.doThrow(new RuntimeException("Any Exception")).when(this.spawningMonitor)
 		.processSpawningOrder(order);
 				
-		Thread thread = new Thread(this.spawningMonitor);
-		thread.start();
+		this.thread = new Thread(this.spawningMonitor);
+		this.thread.start();
+		
 		Thread.sleep(500);
 	}
 	
@@ -101,8 +98,8 @@ public class TestSpawningMonitor {
 
 		Assert.assertNull(this.fulfilledOrderList.getNext());
 
-		Thread thread = new Thread(this.spawningMonitor);
-		thread.start();
+		this.thread = new Thread(this.spawningMonitor);
+		this.thread.start();
 		Thread.sleep(500);
 
 		Assert.assertNull(this.spawningOrderList.getNext());
@@ -123,8 +120,8 @@ public class TestSpawningMonitor {
 		computeOrderInstance.setState(InstanceState.INACTIVE);
 		order.setOrderInstance(computeOrderInstance);
 
-		Thread thread = new Thread(this.spawningMonitor);
-		thread.start();
+		this.thread = new Thread(this.spawningMonitor);
+		this.thread.start();
 		Thread.sleep(500);
 
 		Order test = this.spawningOrderList.getNext();
@@ -144,8 +141,8 @@ public class TestSpawningMonitor {
 
 		Assert.assertNull(this.failedOrderList.getNext());
 
-		Thread thread = new Thread(this.spawningMonitor);
-		thread.start();
+		this.thread = new Thread(this.spawningMonitor);
+		this.thread.start();
 		Thread.sleep(500);
 
 		Assert.assertNull(this.spawningOrderList.getNext());
@@ -243,8 +240,8 @@ public class TestSpawningMonitor {
 		Mockito.doThrow(new RuntimeException("Any Exception")).when(this.tunnelingService)
 				.getExternalServiceAddresses(order.getId());
 
-		Thread thread = new Thread(this.spawningMonitor);
-		thread.start();
+		this.thread = new Thread(this.spawningMonitor);
+		this.thread.start();
 		Thread.sleep(500);
 	}
 
@@ -263,21 +260,13 @@ public class TestSpawningMonitor {
 
 		Mockito.when(this.sshConnectivity.checkSSHConnectivity(computeOrderInstance)).thenReturn(false);
 
-		Thread thread = new Thread(this.spawningMonitor);
-		thread.start();
+		this.thread = new Thread(this.spawningMonitor);
+		this.thread.start();
 		Thread.sleep(500);
 
 		Order test = this.spawningOrderList.getNext();
 		Assert.assertNotNull(test);
 		Assert.assertEquals(OrderState.SPAWNING, test.getOrderState());
-	}
-
-	@Test
-	public void testRunWithIterruptThread() throws InterruptedException {
-		Thread thread = new Thread(this.spawningMonitor);
-		thread.start();
-		Thread.sleep(500);
-		thread.interrupt();
 	}
 
 	private Order createOrder() {
@@ -289,18 +278,6 @@ public class TestSpawningMonitor {
 		Order order = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024, 30,
 				"fake_image_name", userData, "fake_public_key");
 		return order;
-	}
-
-	private void cleanList(ChainedList list) {
-		list.resetPointer();
-		Order order = null;
-		do {
-			order = list.getNext();
-			if (order != null) {
-				list.removeItem(order);
-			}
-		} while (order != null);
-		list.resetPointer();
 	}
 
 }
