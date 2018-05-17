@@ -4,6 +4,8 @@ import org.fogbowcloud.manager.core.models.Flavor;
 import org.fogbowcloud.manager.core.models.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.UserData;
+import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
+import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.compute.LaunchCommandGenerator;
 import org.fogbowcloud.manager.core.plugins.compute.util.CloudInitUserDataBuilder;
@@ -31,6 +33,9 @@ public class TestOpenStackComputePlugin {
     protected static final String FAKE_IMAGE_ID = "fake-image-id";
     protected static final String FAKE_INSTANCE_ID = "fake-instance-id";
     protected static final String FAKE_POST_RETURN = "{\"server\": {\"id\": \"fake-instance-id\"}}";
+    protected static final String FAKE_GET_RETURN_ACTIVE_INSTANCE = "{\"server\": {\"id\": \"fake-instance-id\", \"status\": \"active\"}}";
+    protected static final String FAKE_GET_RETURN_FAILED_INSTANCE = "{\"server\": {\"id\": \"fake-instance-id\", \"status\": \"error\"}}";
+    protected static final String FAKE_GET_RETURN_INACTIVE_INSTANCE = "{\"server\": {\"id\": \"fake-instance-id\", \"status\": \"build\"}}";
     protected static final String INVALID_FAKE_POST_RETURN = "invalid";
     private static final String COMPUTE_NOVAV2_URL_KEY = "compute_novav2_url";
     private static final String COMPUTE_NOVAV2_NETWORK_KEY = "compute_novav2_network_id";
@@ -46,7 +51,7 @@ public class TestOpenStackComputePlugin {
         properties.put(COMPUTE_NOVAV2_URL_KEY, FAKE_ENDPOINT);
         properties.put(COMPUTE_NOVAV2_NETWORK_KEY, FAKE_NET_ID);
 
-        localToken = mock(Token.class);
+        this.localToken = mock(Token.class);
 
 		computeOrder = new ComputeOrder(localToken, null, null, null, 1, 2000, 20, null,
 				new UserData(FAKE_USER_DATA_FILE, CloudInitUserDataBuilder.FileType.SHELL_SCRIPT), null);
@@ -199,5 +204,54 @@ public class TestOpenStackComputePlugin {
         assertEquals("netId", net.getJSONObject(0).getString("uuid"));
 
         server.getString("key_name");
+    }
+
+    @Test
+    public void testGetActivateInstance() throws RequestException {
+        doReturn(FAKE_ENDPOINT).when(novaV2ComputeOpenStack).getComputeEndpoint(anyString(), anyString());
+
+        doReturn(FAKE_GET_RETURN_ACTIVE_INSTANCE).when(novaV2ComputeOpenStack)
+                .doGetRequest(eq(FAKE_ENDPOINT), eq(localToken));
+
+        ComputeOrderInstance computeOrderInstance = this.novaV2ComputeOpenStack.
+                getInstance(this.localToken, FAKE_INSTANCE_ID);
+
+        assertEquals(computeOrderInstance.getId(), FAKE_INSTANCE_ID);
+        assertEquals(computeOrderInstance.getState(), InstanceState.ACTIVE);
+    }
+
+    @Test
+    public void testGetFailedInstance() throws RequestException {
+        doReturn(FAKE_ENDPOINT).when(novaV2ComputeOpenStack).getComputeEndpoint(anyString(), anyString());
+
+        doReturn(FAKE_GET_RETURN_FAILED_INSTANCE).when(novaV2ComputeOpenStack)
+                .doGetRequest(eq(FAKE_ENDPOINT), eq(localToken));
+
+        ComputeOrderInstance computeOrderInstance = this.novaV2ComputeOpenStack.
+                getInstance(this.localToken, FAKE_INSTANCE_ID);
+
+        assertEquals(computeOrderInstance.getId(), FAKE_INSTANCE_ID);
+        assertEquals(computeOrderInstance.getState(), InstanceState.FAILED);
+    }
+
+    @Test
+    public void testGetInactiveInstance() throws RequestException {
+        doReturn(FAKE_ENDPOINT).when(novaV2ComputeOpenStack).getComputeEndpoint(anyString(), anyString());
+
+        doReturn(FAKE_GET_RETURN_INACTIVE_INSTANCE).when(novaV2ComputeOpenStack)
+                .doGetRequest(eq(FAKE_ENDPOINT), eq(localToken));
+
+        ComputeOrderInstance computeOrderInstance = this.novaV2ComputeOpenStack.
+                getInstance(this.localToken, FAKE_INSTANCE_ID);
+
+        assertEquals(computeOrderInstance.getId(), FAKE_INSTANCE_ID);
+        assertEquals(computeOrderInstance.getState(), InstanceState.INACTIVE);
+    }
+
+    @Test(expected = Exception.class)
+    public void testGetInstanceWithJSONException() throws RequestException {
+        doReturn(INVALID_FAKE_POST_RETURN).when(novaV2ComputeOpenStack).doGetRequest(anyString(), any(Token.class));
+
+        this.novaV2ComputeOpenStack.getInstance(this.localToken, FAKE_INSTANCE_ID);
     }
 }

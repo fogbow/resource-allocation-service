@@ -23,7 +23,7 @@ public interface ComputePlugin {
 
 	public ComputeOrderInstance getInstance(Token localToken, String instanceId) throws RequestException;
 
-	public List<ComputeOrderInstance> getInstances(Token localToken) throws RequestException;
+	public List<ComputeOrderInstance> getInstances(Token localToken);
 
 	public void deleteInstance(Token localToken, OrderInstance instance) throws RequestException;
 
