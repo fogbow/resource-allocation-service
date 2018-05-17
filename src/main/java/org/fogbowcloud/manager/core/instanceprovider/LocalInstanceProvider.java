@@ -16,7 +16,7 @@ public class LocalInstanceProvider implements InstanceProvider {
     }
 
     @Override
-    public OrderInstance requestInstance(Order order) throws RequestException {
+    public String requestInstance(Order order) throws RequestException {
         if (order instanceof ComputeOrder) {
             return requestInstance((ComputeOrder) order);
         } else if (order instanceof StorageOrder) {
@@ -28,15 +28,18 @@ public class LocalInstanceProvider implements InstanceProvider {
         }
     }
 
-    private OrderInstance requestInstance(ComputeOrder order) throws RequestException {
-        String imageName = order.getImageName();
-        String id = computePlugin.requestInstance(order, imageName);
-        return new OrderInstance(id, InstanceState.ACTIVE);
+    private String requestInstance(ComputeOrder order) throws RequestException {
+        return computePlugin.requestInstance(order, order.getImageName());
     }
 
     @Override
     public void deleteInstance(Token token, OrderInstance orderInstance) throws Exception {
         computePlugin.deleteInstance(token, orderInstance);
+    }
+
+    @Override
+    public OrderInstance getInstance(Order order) throws RequestException {
+        return computePlugin.getInstance(order.getLocalToken(), order.getOrderInstance().getId());
     }
 
 }

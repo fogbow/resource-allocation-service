@@ -8,14 +8,14 @@ import org.fogbowcloud.manager.core.models.token.Token;
 public interface InstanceProvider {
 
 	/**
-	 * Requests an Instance for a ComputeOrder.
+	 * Requests an Instance for a Order.
 	 * 
 	 * @param order
 	 * @return An OrderInstance with at least an nonempty Id.
 	 * @throws Exception
 	 *             If the Instance creation fail
 	 */
-	public OrderInstance requestInstance(Order order) throws Exception;
+	public String requestInstance(Order order) throws Exception;
 
 	/**
 	 * Signals the cloud that the provided instance is no longer required.
@@ -33,6 +33,6 @@ public interface InstanceProvider {
 	 * @param order
 	 * @return
 	 */
-	public OrderInstance getInstance(Order order);
+	public OrderInstance getInstance(Order order) throws Exception;
 
 }

@@ -106,8 +106,8 @@ public class OpenProcessor implements Runnable {
 					// spawning.
 
 					LOGGER.info("Processing order [" + order.getId() + "]");
-					OrderInstance orderInstance = instanceProvider.requestInstance(order);
-					order.setOrderInstance(orderInstance);
+					String orderInstanceId = instanceProvider.requestInstance(order);
+					order.setOrderInstance(new OrderInstance(orderInstanceId));
 
 					LOGGER.info("Updating order state after processing [" + order.getId() + "]");
 					this.updateOrderStateAfterProcessing(order);
