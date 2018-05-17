@@ -2,10 +2,10 @@ package org.fogbowcloud.manager.core.services;
 
 import java.util.Properties;
 
+import org.fogbowcloud.manager.core.manager.plugins.AuthorizationPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.IdentityPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.plugins.AuthorizationPlugin;
-import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
-import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

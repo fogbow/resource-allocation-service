@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.core.services;
 import java.util.Map;
 import java.util.Properties;
 
-import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 import org.junit.Assert;
 import org.junit.Test;
 

@@ -1,8 +1,7 @@
 package org.fogbowcloud.manager.core;
 
-import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
-import org.fogbowcloud.manager.core.models.linkedList.ChainedList;
-import org.fogbowcloud.manager.core.models.linkedList.SynchronizedDoublyLinkedList;
+import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
+import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;

@@ -14,7 +14,7 @@ public class NetworkOrder extends Order {
 	 * Creating Order with predefined Id.
 	 */
 	public NetworkOrder(String id, Token localToken, Token federationToken, String requestingMember,
-			String providingMember, String gateway, String address, String allocation) {
+						String providingMember, String gateway, String address, String allocation) {
 		super(id, localToken, federationToken, requestingMember, providingMember);
 		this.gateway = gateway;
 		this.address = address;

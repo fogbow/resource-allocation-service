@@ -1,11 +1,13 @@
 package org.fogbowcloud.manager.core.instanceprovider;
 
-import org.fogbowcloud.manager.core.models.exceptions.RequestException;
-import org.fogbowcloud.manager.core.models.orders.*;
-import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
+import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
+import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.StorageOrder;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.plugins.compute.ComputePlugin;
+import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
 
 public class LocalInstanceProvider implements InstanceProvider {
 

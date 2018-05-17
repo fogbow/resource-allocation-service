@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 
 //TODO change the name. Follow AuthenticationController's name
 public class AuthenticationServiceUtil {

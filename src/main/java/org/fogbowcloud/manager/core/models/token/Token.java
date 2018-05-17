@@ -4,8 +4,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.fogbowcloud.manager.core.utils.DateUtils;
-import org.fogbowcloud.manager.core.utils.JSONHelper;
+import org.fogbowcloud.manager.utils.DateUtils;
+import org.fogbowcloud.manager.utils.JSONHelper;
 import org.json.JSONException;
 import org.json.JSONObject;
 

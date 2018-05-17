@@ -3,9 +3,9 @@ package org.fogbowcloud.manager.core.services;
 import java.io.FileInputStream;
 import java.util.Properties;
 
-import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
-import org.fogbowcloud.manager.core.plugins.compute.ComputePlugin;
+import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.manager.plugins.IdentityPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,7 +36,7 @@ public class InstantiationInitServiceTest {
 
     @Test
     public void testCreateFederationIdentityPluginInstance() {
-        String expected_federation_identity_class_value = "org.fogbowcloud.manager.core.plugins.identity.ldap.LdapIdentityPlugin";
+        String expected_federation_identity_class_value = "org.fogbowcloud.manager.core.manager.plugins.identity.ldap.LdapIdentityPlugin";
 
         IdentityPlugin plugin = this.service.getFederationIdentityPlugin();
         Assert.assertEquals(plugin.getClass().getName(), expected_federation_identity_class_value);
@@ -44,7 +44,7 @@ public class InstantiationInitServiceTest {
 
     @Test
     public void testCreateLocalIdentityPluginInstance() {
-        String expected_local_identity_class_value = "org.fogbowcloud.manager.core.plugins.identity.openstack.KeystoneV3IdentityPlugin";
+        String expected_local_identity_class_value = "org.fogbowcloud.manager.core.manager.plugins.identity.openstack.KeystoneV3IdentityPlugin";
 
         IdentityPlugin plugin = this.service.getLocalIdentityPlugin();
         Assert.assertEquals(plugin.getClass().getName(), expected_local_identity_class_value);
@@ -52,7 +52,7 @@ public class InstantiationInitServiceTest {
 
     @Test
     public void testGetComputePlugin() {
-        String expected_compute_plugin_class_value = "org.fogbowcloud.manager.core.plugins.compute.openstack.OpenStackNovaV2ComputePlugin";
+        String expected_compute_plugin_class_value = "org.fogbowcloud.manager.core.manager.plugins.compute.openstack.OpenStackNovaV2ComputePlugin";
 
         ComputePlugin plugin = this.service.getComputePlugin();
         Assert.assertEquals(plugin.getClass().getName(), expected_compute_plugin_class_value);

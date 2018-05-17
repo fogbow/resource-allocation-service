@@ -1,11 +1,11 @@
 package org.fogbowcloud.manager.core.services;
 
-import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.manager.core.plugins.AuthorizationPlugin;
-import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
-import org.fogbowcloud.manager.core.plugins.PluginFactory;
-import org.fogbowcloud.manager.core.plugins.compute.ComputePlugin;
+import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.manager.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.manager.plugins.AuthorizationPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.IdentityPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.PluginFactory;
+import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
