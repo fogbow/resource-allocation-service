@@ -13,6 +13,7 @@ import org.fogbowcloud.manager.core.models.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
+import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.compute.DefaultLaunchCommandGenerator;
@@ -34,6 +35,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private static final String IMAGE_JSON_FIELD = "imageRef";
     private static final String USER_DATA_JSON_FIELD = "user_data";
     private static final String NETWORK_JSON_FIELD = "networks";
+    private static final String STATUS_JSON_FIELD = "status";
     private static final String DISK_JSON_FIELD = "disk";
     private static final String VCPU_JSON_FIELD = "vcpus";
     private static final String MEMORY_JSON_FIELD = "ram";
@@ -45,6 +47,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private static final String UUID_JSON_FIELD = "uuid";
     private static final String FOGBOW_INSTANCE_NAME = "fogbow-instance-";
     private static final String TENANT_ID = "tenantId";
+    private static final String ACTIVE_STATUS = "active";
+    private static final String BUILD_STATUS = "build";
     private static final String SERVERS = "/servers";
     private static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
     private static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
@@ -376,15 +380,58 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
     @Override
     public ComputeOrderInstance getInstance(Token localToken, String instanceId) throws RequestException {
-        return null;
+        LOGGER.info("Getting instance " + instanceId + " with token " + localToken);
+
+        String tenantId = getTenantId(localToken);
+        String requestEndpoint = getComputeEndpoint(tenantId, SERVERS + "/" + instanceId);
+
+        String jsonResponse = doGetRequest(requestEndpoint, localToken);
+
+        LOGGER.debug("Getting instance from json: " + jsonResponse);
+        ComputeOrderInstance computeOrderInstance = getInstanceFromJson(jsonResponse);
+
+        return computeOrderInstance;
     }
 
+    private ComputeOrderInstance getInstanceFromJson(String jsonResponse) throws RequestException {
+        try {
+            JSONObject rootServer = new JSONObject(jsonResponse);
+            JSONObject serverJson = rootServer.getJSONObject(SERVER_JSON_FIELD);
+
+            String id = serverJson.getString(ID_JSON_FIELD);
+            InstanceState state = getInstanceState(serverJson.getString(STATUS_JSON_FIELD));
+
+            ComputeOrderInstance computeOrderInstance = new ComputeOrderInstance(id, state);
+
+            return computeOrderInstance;
+        } catch (JSONException e) {
+            LOGGER.warn("There was an exception while getting instances from json.", e);
+            throw new RequestException();
+        }
+    }
+
+    /**
+     * This method will map Openstack instance status to Fogbow instance status.
+     *
+     * @param instanceStatus status from JSON.
+     * @return {@link InstanceState}
+     */
+    private InstanceState getInstanceState(String instanceStatus) {
+        switch (instanceStatus.toLowerCase()) {
+            case ACTIVE_STATUS:
+                return InstanceState.ACTIVE;
+
+            case BUILD_STATUS:
+                return InstanceState.INACTIVE;
+
+            default:
+                return InstanceState.FAILED;
+        }
+    }
+
+    // TODO: Is it necessary?
     @Override
-    public List<ComputeOrderInstance> getInstances(Token localToken) throws RequestException {
-        return null;
-    }
-
-    private List<ComputeOrderInstance> getInstancesFromJson(String json) {
+    public List<ComputeOrderInstance> getInstances(Token localToken) {
         return null;
     }
 

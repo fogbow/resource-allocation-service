@@ -14,10 +14,10 @@ import org.fogbowcloud.manager.core.services.AuthenticationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ApplicationController {
+public class  ApplicationController {
 
 	private static ApplicationController instance;
-	private AuthenticationService authenticationController;
+	private AuthenticationService authenticationService;
 	private ManagerController managerController;
 
 	private OrdersManagerController ordersManagerController;
@@ -86,11 +86,11 @@ public class ApplicationController {
 	}
 
 	public AuthenticationService getAuthenticationController() {
-		return authenticationController;
+		return authenticationService;
 	}
 
 	public void setAuthenticationController(AuthenticationService authenticationController) {
-		this.authenticationController = authenticationController;
+		this.authenticationService = authenticationController;
 	}
 
 	public ManagerController getManagerController() {
@@ -102,7 +102,7 @@ public class ApplicationController {
 	}
 
 	public void newOrderRequest(Order order, String accessId, String localTokenId) throws OrderManagementException, UnauthorizedException {
-		Token federationToken = this.authenticationController.authenticate(accessId);
+		Token federationToken = this.authenticationService.authenticate(accessId);
 		Token localToken = createLocalToken(localTokenId);
 		this.ordersManagerController.newOrderRequest(order, federationToken, localToken);
 	}
