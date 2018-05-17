@@ -21,7 +21,8 @@ public class ComputeOrderInstance extends OrderInstance {
     private String sshUserName;
     private String sshExtraPorts;
 
-    public ComputeOrderInstance(String id, String hostName, int vCPU, int memory, InstanceState state, String localIpAddress, String sshPublicAddress, String sshUserName, String sshExtraPorts) {
+    public ComputeOrderInstance(String id, String hostName, int vCPU, int memory, InstanceState state, String localIpAddress,
+                                String sshPublicAddress, String sshUserName, String sshExtraPorts) {
         super(id, state);
         this.hostName = hostName;
         this.vCPU = vCPU;
@@ -30,11 +31,6 @@ public class ComputeOrderInstance extends OrderInstance {
         this.sshPublicAddress = sshPublicAddress;
         this.sshUserName = sshUserName;
         this.sshExtraPorts = sshExtraPorts;
-    }
-
-    // TODO: This method was created to make getInstance() more easy to implement
-    public ComputeOrderInstance(String id, InstanceState state) {
-        super(id, state);
     }
 
     public ComputeOrderInstance(String id) {
