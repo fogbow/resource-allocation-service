@@ -24,9 +24,9 @@ import java.util.Properties;
  * successfully initiated, to check for failures that may affect them.
  */
 //FIXME change the name to FulfilledProcessor
-public class FulfilledMonitor implements Runnable {
+public class FulfilledProcessor implements Runnable {
 
-    private static final Logger LOGGER = Logger.getLogger(FulfilledMonitor.class);
+    private static final Logger LOGGER = Logger.getLogger(FulfilledProcessor.class);
 
     private InstanceProvider localInstanceProvider;
     private InstanceProvider remoteInstanceProvider;
@@ -42,9 +42,9 @@ public class FulfilledMonitor implements Runnable {
      */
     private Long sleepTime;
 
-    public FulfilledMonitor(InstanceProvider localInstanceProvider, InstanceProvider remoteInstanceProvider,
-                            TunnelingServiceUtil tunnelingService, SshConnectivityUtil sshConnectivity,
-                            Properties properties) {
+    public FulfilledProcessor(InstanceProvider localInstanceProvider, InstanceProvider remoteInstanceProvider,
+                              TunnelingServiceUtil tunnelingService, SshConnectivityUtil sshConnectivity,
+                              Properties properties) {
         this.localInstanceProvider = localInstanceProvider;
         this.remoteInstanceProvider = remoteInstanceProvider;
         this.localMemberId = properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);

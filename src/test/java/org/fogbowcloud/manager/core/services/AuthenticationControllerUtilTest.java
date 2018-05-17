@@ -7,7 +7,7 @@ import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class AuthenticationServiceUtilTest {
+public class AuthenticationControllerUtilTest {
 
 	private String CREDENTIALS_PREFIX = AuthenticationServiceUtil.LOCAL_TOKEN_CREDENTIALS_PREFIX;
 	

@@ -12,17 +12,17 @@ import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 
 // TODO change the name. Fubica's suggestion is : "AAAController"
-public class AuthenticationService {
+public class AuthenticationController {
 	
-	private static final Logger LOGGER = Logger.getLogger(AuthenticationService.class);
+	private static final Logger LOGGER = Logger.getLogger(AuthenticationController.class);
 
 	private IdentityPlugin federationIdentityPlugin;
 	private IdentityPlugin localIdentityPlugin;
 	private AuthorizationPlugin authorizationPlugin;
 	private Properties properties;
 	
-	public AuthenticationService (IdentityPlugin federationIdentityPlugin, IdentityPlugin localIdentityPlugin, 
-			AuthorizationPlugin authorizationPlugin, Properties properties){
+	public AuthenticationController(IdentityPlugin federationIdentityPlugin, IdentityPlugin localIdentityPlugin,
+									AuthorizationPlugin authorizationPlugin, Properties properties){
 		// TODO check if there are the local token properties
 		this.federationIdentityPlugin = federationIdentityPlugin;
 		this.localIdentityPlugin = localIdentityPlugin;

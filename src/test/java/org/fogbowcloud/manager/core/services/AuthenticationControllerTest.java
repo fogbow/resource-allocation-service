@@ -19,9 +19,9 @@ import org.powermock.modules.junit4.PowerMockRunner;
 // TODO change the name.
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ AuthenticationServiceUtil.class })
-public class AuthenticationServiceTest {
+public class AuthenticationControllerTest {
 
-	private AuthenticationService authenticationService;
+	private AuthenticationController authenticationController;
 	private AuthorizationPlugin authorizationPlugin;
 	private IdentityPlugin federatetionIdentityPlugin;
 	private IdentityPlugin localIdentityPlugin;
@@ -33,7 +33,7 @@ public class AuthenticationServiceTest {
 		this.federatetionIdentityPlugin = Mockito.mock(IdentityPlugin.class);
 		this.localIdentityPlugin = Mockito.mock(IdentityPlugin.class);
 		this.authorizationPlugin = Mockito.mock(AuthorizationPlugin.class);
-		this.authenticationService = Mockito.spy(new AuthenticationService(this.federatetionIdentityPlugin, 
+		this.authenticationController = Mockito.spy(new AuthenticationController(this.federatetionIdentityPlugin,
 				this.localIdentityPlugin, this.authorizationPlugin, this.properties));
 		PowerMockito.mockStatic(AuthenticationServiceUtil.class);
 	}
@@ -42,14 +42,14 @@ public class AuthenticationServiceTest {
 	public void testAuthenticate() throws UnauthorizedException {
 		boolean isAuthenticated = true;
 		Mockito.doReturn(isAuthenticated).when(this.federatetionIdentityPlugin).isValid(Mockito.anyString());
-		this.authenticationService.authenticate(Mockito.anyString());
+		this.authenticationController.authenticate(Mockito.anyString());
 	}
 
 	@Test(expected=UnauthorizedException.class)
 	public void testAuthenticateNot() throws UnauthorizedException {
 		Mockito.doThrow(UnauthorizedException.class).when(
 				this.federatetionIdentityPlugin).isValid(Mockito.anyString());
-		this.authenticationService.authenticate(Mockito.anyString());
+		this.authenticationController.authenticate(Mockito.anyString());
 	}
 	
 	@Test
@@ -63,7 +63,7 @@ public class AuthenticationServiceTest {
 		Mockito.doReturn(true).when(this.authorizationPlugin).isAuthorized(Mockito.eq(token));
 		
 		try {
-			this.authenticationService.authenticateAndAuthorize(federationTokenId);
+			this.authenticationController.authenticateAndAuthorize(federationTokenId);
 		} catch (Exception e) {
 			Assert.fail();
 		}
@@ -81,7 +81,7 @@ public class AuthenticationServiceTest {
 		Token localToken = Mockito.mock(Token.class);
 		Mockito.doReturn(localToken).when(this.localIdentityPlugin).createToken(Mockito.anyMap());
 		
-		Token tokenGenarated = this.authenticationService.getLocalToken(localTokenId, providingMember);
+		Token tokenGenarated = this.authenticationController.getLocalToken(localTokenId, providingMember);
 		Assert.assertEquals(localToken, tokenGenarated);
 	}
 	
@@ -96,7 +96,7 @@ public class AuthenticationServiceTest {
 		Token localToken = Mockito.mock(Token.class);
 		Mockito.doReturn(localToken).when(this.localIdentityPlugin).getToken(Mockito.eq(localTokenId));
 		
-		Token tokenGenarated = this.authenticationService.getLocalToken(localTokenId, providingMember);
+		Token tokenGenarated = this.authenticationController.getLocalToken(localTokenId, providingMember);
 		Assert.assertEquals(localToken, tokenGenarated);
 	}
 	
@@ -109,11 +109,11 @@ public class AuthenticationServiceTest {
 				BDDMockito.anyString(), BDDMockito.any(Properties.class))).willReturn(isProvadingLocally);
 		
 		Token token = Mockito.mock(Token.class);
-		Mockito.doReturn(token).when(this.authenticationService).createTokenBypass(Mockito.eq(localTokenId));
+		Mockito.doReturn(token).when(this.authenticationController).createTokenBypass(Mockito.eq(localTokenId));
 		
-		Token tokenGenarated = this.authenticationService.getLocalToken(localTokenId, providingMember);
+		Token tokenGenarated = this.authenticationController.getLocalToken(localTokenId, providingMember);
 		
-		Token localTokenExpected = this.authenticationService.createTokenBypass(localTokenId);
+		Token localTokenExpected = this.authenticationController.createTokenBypass(localTokenId);
 		Assert.assertEquals(localTokenExpected, tokenGenarated);
 	}
 }

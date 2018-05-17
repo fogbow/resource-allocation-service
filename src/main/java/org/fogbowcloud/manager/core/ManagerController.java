@@ -8,7 +8,7 @@ import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.threads.OpenProcessor;
-import org.fogbowcloud.manager.core.threads.SpawningMonitor;
+import org.fogbowcloud.manager.core.threads.SpawningProcessor;
 import org.fogbowcloud.manager.core.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.core.utils.TunnelingServiceUtil;
 
@@ -52,8 +52,8 @@ public class ManagerController {
 		
 		TunnelingServiceUtil tunnelingServiceUtil = TunnelingServiceUtil.getInstance();
 		SshConnectivityUtil sshConnectivityUtil = SshConnectivityUtil.getInstance();
-		SpawningMonitor spawningMonitor = new SpawningMonitor(tunnelingServiceUtil, sshConnectivityUtil, this.properties);
-		this.spawningProcessorThread = new Thread(spawningMonitor);
+		SpawningProcessor spawningProcessor = new SpawningProcessor(tunnelingServiceUtil, sshConnectivityUtil, this.properties);
+		this.spawningProcessorThread = new Thread(spawningProcessor);
 
 		this.startManagerThreads();
 	}

@@ -28,9 +28,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyMapOf;
 
-public class TestFulfilledMonitor extends BaseUnitTests {
+public class TestFulfilledProcessor extends BaseUnitTests {
 
-    private FulfilledMonitor fulfilledMonitor;
+    private FulfilledProcessor fulfilledProcessor;
 
     private InstanceProvider localInstanceProvider;
     private InstanceProvider remoteInstanceProvider;
@@ -58,8 +58,8 @@ public class TestFulfilledMonitor extends BaseUnitTests {
 
         this.thread = null;
 
-        this.fulfilledMonitor = Mockito
-                .spy(new FulfilledMonitor(this.localInstanceProvider, this.remoteInstanceProvider,
+        this.fulfilledProcessor = Mockito
+                .spy(new FulfilledProcessor(this.localInstanceProvider, this.remoteInstanceProvider,
                         this.tunnelingService, this.sshConnectivity, this.properties));
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
@@ -102,7 +102,7 @@ public class TestFulfilledMonitor extends BaseUnitTests {
 
         Assert.assertNull(this.failedOrderList.getNext());
 
-        this.thread = new Thread(this.fulfilledMonitor);
+        this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
         Thread.sleep(500);
@@ -137,7 +137,7 @@ public class TestFulfilledMonitor extends BaseUnitTests {
 
         Assert.assertNull(this.failedOrderList.getNext());
 
-        this.thread = new Thread(this.fulfilledMonitor);
+        this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
         Thread.sleep(500);
@@ -172,7 +172,7 @@ public class TestFulfilledMonitor extends BaseUnitTests {
 
         Assert.assertNull(this.failedOrderList.getNext());
 
-        this.thread = new Thread(this.fulfilledMonitor);
+        this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
         Thread.sleep(500);
@@ -211,7 +211,7 @@ public class TestFulfilledMonitor extends BaseUnitTests {
 
         Assert.assertNull(this.failedOrderList.getNext());
 
-        this.thread = new Thread(this.fulfilledMonitor);
+        this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
         Thread.sleep(500);
@@ -245,7 +245,7 @@ public class TestFulfilledMonitor extends BaseUnitTests {
 
         Assert.assertNull(this.failedOrderList.getNext());
 
-        this.thread = new Thread(this.fulfilledMonitor);
+        this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
         Thread.sleep(500);
@@ -279,7 +279,7 @@ public class TestFulfilledMonitor extends BaseUnitTests {
 
         Assert.assertNull(this.failedOrderList.getNext());
 
-        this.thread = new Thread(this.fulfilledMonitor);
+        this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
         Thread.sleep(500);
@@ -308,10 +308,10 @@ public class TestFulfilledMonitor extends BaseUnitTests {
 
         this.fulfilledOrderList.addItem(order);
 
-        Mockito.doThrow(OrderStateTransitionException.class).when(this.fulfilledMonitor)
+        Mockito.doThrow(OrderStateTransitionException.class).when(this.fulfilledProcessor)
                 .processFulfilledOrder(Mockito.any(Order.class));
 
-        this.thread = new Thread(this.fulfilledMonitor);
+        this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
         Thread.sleep(500);
@@ -328,10 +328,10 @@ public class TestFulfilledMonitor extends BaseUnitTests {
         order.setOrderState(state);
         this.fulfilledOrderList.addItem(order);
 
-        Mockito.doThrow(new RuntimeException("Any Exception")).when(this.fulfilledMonitor)
+        Mockito.doThrow(new RuntimeException("Any Exception")).when(this.fulfilledProcessor)
                 .processFulfilledOrder(order);
 
-        this.thread = new Thread(this.fulfilledMonitor);
+        this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
         Thread.sleep(500);
     }
@@ -342,10 +342,10 @@ public class TestFulfilledMonitor extends BaseUnitTests {
         order.setOrderState(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
 
-        Mockito.doThrow(new OrderStateTransitionException("Any Exception")).when(this.fulfilledMonitor)
+        Mockito.doThrow(new OrderStateTransitionException("Any Exception")).when(this.fulfilledProcessor)
                 .processInstance(order);
 
-        this.fulfilledMonitor.processFulfilledOrder(order);
+        this.fulfilledProcessor.processFulfilledOrder(order);
     }
 
     private Order createLocalOrder() {

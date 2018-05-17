@@ -20,16 +20,16 @@ import org.fogbowcloud.manager.core.utils.TunnelingServiceUtil;
 import java.util.Properties;
 
 // FIXME change the name to SpawningProcessor
-public class SpawningMonitor extends Thread {
+public class SpawningProcessor extends Thread {
 
-	private static final Logger LOGGER = Logger.getLogger(SpawningMonitor.class);
+	private static final Logger LOGGER = Logger.getLogger(SpawningProcessor.class);
 
 	private SynchronizedDoublyLinkedList spawningOrderList;
 	private ComputeInstanceConnectivityChecker computeInstanceConnectivity;
 	private Long sleepTime;
 
-	public SpawningMonitor(TunnelingServiceUtil tunnelingService, SshConnectivityUtil sshConnectivity,
-			Properties properties) {
+	public SpawningProcessor(TunnelingServiceUtil tunnelingService, SshConnectivityUtil sshConnectivity,
+							 Properties properties) {
 		this.computeInstanceConnectivity = new ComputeInstanceConnectivityChecker(tunnelingService, sshConnectivity);
 
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();

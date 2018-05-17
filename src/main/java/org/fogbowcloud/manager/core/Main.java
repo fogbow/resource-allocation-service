@@ -9,7 +9,7 @@ import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
 import org.fogbowcloud.manager.core.plugins.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.compute.ComputePlugin;
-import org.fogbowcloud.manager.core.services.AuthenticationService;
+import org.fogbowcloud.manager.core.services.AuthenticationController;
 import org.fogbowcloud.manager.core.services.InstantiationInitService;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -24,7 +24,7 @@ public class Main implements ApplicationRunner {
 
     private ApplicationController facade = ApplicationController.getInstance();
     private ManagerController managerController;
-    private AuthenticationService authService;
+    private AuthenticationController authService;
 
     @Override
     public void run(ApplicationArguments args) {
@@ -43,7 +43,7 @@ public class Main implements ApplicationRunner {
         this.managerController = new ManagerController(this.properties, localInstanceProvider, remoteInstanceProvider,
                 computePlugin, localIdentityPlugin, federationIdentityPlugin);
 
-        this.authService = new AuthenticationService(federationIdentityPlugin, localIdentityPlugin,
+        this.authService = new AuthenticationController(federationIdentityPlugin, localIdentityPlugin,
         		authorizationPlugin, this.properties);
 
         this.facade.setAuthenticationController(this.authService);

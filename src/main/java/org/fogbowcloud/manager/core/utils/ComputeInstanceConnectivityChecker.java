@@ -3,7 +3,6 @@ package org.fogbowcloud.manager.core.utils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
-import org.fogbowcloud.manager.core.threads.FulfilledMonitor;
 
 import java.util.Map;
 

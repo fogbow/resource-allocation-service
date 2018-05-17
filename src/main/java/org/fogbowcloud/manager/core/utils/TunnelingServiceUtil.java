@@ -18,12 +18,12 @@ import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.constants.CommonConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.threads.SpawningMonitor;
+import org.fogbowcloud.manager.core.threads.SpawningProcessor;
 import org.json.JSONObject;
 
 public class TunnelingServiceUtil {
 
-	private static final Logger LOGGER = Logger.getLogger(SpawningMonitor.class);
+	private static final Logger LOGGER = Logger.getLogger(SpawningProcessor.class);
 	
 	public static final String HTTP_PROTOCOL = "http://";
 	public static final String TOKEN_POINT = "/token/";

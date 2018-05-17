@@ -5,9 +5,8 @@ import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.models.token.Token.User;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.services.AuthenticationService;
+import org.fogbowcloud.manager.core.services.AuthenticationController;
 
 import java.util.List;
 
@@ -15,7 +14,7 @@ public class ApplicationController {
 
 	private static ApplicationController instance;
 
-	private AuthenticationService authenticationController;
+	private AuthenticationController authenticationController;
 	private OrdersManagerController ordersManagerController;
 
 	private ApplicationController() {
@@ -41,7 +40,7 @@ public class ApplicationController {
 		this.ordersManagerController.deleteOrder(order);
 	}
 
-	public void setAuthenticationController(AuthenticationService authenticationController) {
+	public void setAuthenticationController(AuthenticationController authenticationController) {
 		this.authenticationController = authenticationController;
 	}
 

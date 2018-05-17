@@ -5,7 +5,7 @@ import java.util.Properties;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
-import org.fogbowcloud.manager.core.threads.SpawningMonitor;
+import org.fogbowcloud.manager.core.threads.SpawningProcessor;
 
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.connection.channel.direct.Session;
@@ -17,7 +17,7 @@ public class SshConnectivityUtil {
 
 	private static final String MESSAGE_ECHO_SEND = "echo HelloWorld";
 
-	private static final Logger LOGGER = Logger.getLogger(SpawningMonitor.class);
+	private static final Logger LOGGER = Logger.getLogger(SpawningProcessor.class);
 
 	private static Properties properties;
 

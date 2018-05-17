@@ -23,12 +23,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class TestSpawningMonitor extends BaseUnitTests {
+public class TestSpawningProcessor extends BaseUnitTests {
 
 	private Properties properties;
 	private TunnelingServiceUtil tunnelingService;
 	private SshConnectivityUtil sshConnectivity;
-	private SpawningMonitor spawningMonitor;
+	private SpawningProcessor spawningProcessor;
 	private Thread thread;
 	private ChainedList spawningOrderList;
 	private ChainedList fulfilledOrderList;
@@ -43,8 +43,8 @@ public class TestSpawningMonitor extends BaseUnitTests {
 		this.sshConnectivity = Mockito.mock(SshConnectivityUtil.class);
 		this.properties = new Properties();
 		this.properties.put(ConfigurationConstants.XMPP_ID_KEY, ".");
-		this.spawningMonitor = Mockito
-				.spy(new SpawningMonitor(this.tunnelingService, this.sshConnectivity, this.properties));
+		this.spawningProcessor = Mockito
+				.spy(new SpawningProcessor(this.tunnelingService, this.sshConnectivity, this.properties));
 		this.thread = null;
 
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
@@ -72,10 +72,10 @@ public class TestSpawningMonitor extends BaseUnitTests {
 		order.setOrderState(state);
 		this.spawningOrderList.addItem(order);
 		
-		Mockito.doThrow(new RuntimeException("Any Exception")).when(this.spawningMonitor)
+		Mockito.doThrow(new RuntimeException("Any Exception")).when(this.spawningProcessor)
 		.processSpawningOrder(order);
 				
-		this.thread = new Thread(this.spawningMonitor);
+		this.thread = new Thread(this.spawningProcessor);
 		this.thread.start();
 		
 		Thread.sleep(500);
@@ -98,7 +98,7 @@ public class TestSpawningMonitor extends BaseUnitTests {
 
 		Assert.assertNull(this.fulfilledOrderList.getNext());
 
-		this.thread = new Thread(this.spawningMonitor);
+		this.thread = new Thread(this.spawningProcessor);
 		this.thread.start();
 		Thread.sleep(500);
 
@@ -120,7 +120,7 @@ public class TestSpawningMonitor extends BaseUnitTests {
 		computeOrderInstance.setState(InstanceState.INACTIVE);
 		order.setOrderInstance(computeOrderInstance);
 
-		this.thread = new Thread(this.spawningMonitor);
+		this.thread = new Thread(this.spawningProcessor);
 		this.thread.start();
 		Thread.sleep(500);
 
@@ -141,7 +141,7 @@ public class TestSpawningMonitor extends BaseUnitTests {
 
 		Assert.assertNull(this.failedOrderList.getNext());
 
-		this.thread = new Thread(this.spawningMonitor);
+		this.thread = new Thread(this.spawningProcessor);
 		this.thread.start();
 		Thread.sleep(500);
 
@@ -159,7 +159,7 @@ public class TestSpawningMonitor extends BaseUnitTests {
 		order.setOrderState(OrderState.OPEN);
 		this.openOrderList.addItem(order);
 
-		this.spawningMonitor.processSpawningOrder(order);
+		this.spawningProcessor.processSpawningOrder(order);
 
 		Order test = this.openOrderList.getNext();
 		Assert.assertEquals(OrderState.OPEN, test.getOrderState());
@@ -174,7 +174,7 @@ public class TestSpawningMonitor extends BaseUnitTests {
 		order.setOrderState(OrderState.PENDING);
 		this.pendingOrderList.addItem(order);
 
-		this.spawningMonitor.processSpawningOrder(order);
+		this.spawningProcessor.processSpawningOrder(order);
 
 		Order test = this.pendingOrderList.getNext();
 		Assert.assertEquals(OrderState.PENDING, test.getOrderState());
@@ -189,7 +189,7 @@ public class TestSpawningMonitor extends BaseUnitTests {
 		order.setOrderState(OrderState.FAILED);
 		this.failedOrderList.addItem(order);
 
-		this.spawningMonitor.processSpawningOrder(order);
+		this.spawningProcessor.processSpawningOrder(order);
 
 		Order test = this.failedOrderList.getNext();
 		Assert.assertEquals(OrderState.FAILED, test.getOrderState());
@@ -203,7 +203,7 @@ public class TestSpawningMonitor extends BaseUnitTests {
 		order.setOrderState(OrderState.FULFILLED);
 		this.fulfilledOrderList.addItem(order);
 
-		this.spawningMonitor.processSpawningOrder(order);
+		this.spawningProcessor.processSpawningOrder(order);
 
 		Order test = this.fulfilledOrderList.getNext();
 		Assert.assertEquals(OrderState.FULFILLED, test.getOrderState());
@@ -217,7 +217,7 @@ public class TestSpawningMonitor extends BaseUnitTests {
 		order.setOrderState(OrderState.CLOSED);
 		this.closedOrderList.addItem(order);
 
-		this.spawningMonitor.processSpawningOrder(order);
+		this.spawningProcessor.processSpawningOrder(order);
 
 		Order test = this.closedOrderList.getNext();
 		Assert.assertEquals(OrderState.CLOSED, test.getOrderState());
@@ -240,7 +240,7 @@ public class TestSpawningMonitor extends BaseUnitTests {
 		Mockito.doThrow(new RuntimeException("Any Exception")).when(this.tunnelingService)
 				.getExternalServiceAddresses(order.getId());
 
-		this.thread = new Thread(this.spawningMonitor);
+		this.thread = new Thread(this.spawningProcessor);
 		this.thread.start();
 		Thread.sleep(500);
 	}
@@ -260,7 +260,7 @@ public class TestSpawningMonitor extends BaseUnitTests {
 
 		Mockito.when(this.sshConnectivity.checkSSHConnectivity(computeOrderInstance)).thenReturn(false);
 
-		this.thread = new Thread(this.spawningMonitor);
+		this.thread = new Thread(this.spawningProcessor);
 		this.thread.start();
 		Thread.sleep(500);
 
