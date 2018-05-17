@@ -53,24 +53,13 @@ public class ComputeOrdersControllerTest {
     private MockMvc mockMvc;
 
     private ApplicationController applicationController;
-    private IdentityPlugin ldapIdentityPlugin;
-    private OrdersManagerController ordersManagerController;
-    private Properties properties;
 
-    private final String IDENTITY_URL_KEY = "identity_url";
-    private final String KEYSTONE_URL = "http://localhost:" + PluginHelper.PORT_ENDPOINT;
     private final String ACCESS_ID_HEADER = "accessId";
     private final String LOCAL_TOKEN_ID_HEADER = "localTokenId";
 
     @Before
     public void setUp() throws UnauthorizedException, OrderManagementException {
-        this.properties = new Properties();
-        this.properties.put(IDENTITY_URL_KEY, KEYSTONE_URL);
         this.applicationController = spy(ApplicationController.class);
-
-        mockLdapIdentityPlugin();
-        mockAuthentication();
-        mockOrdersManagerController();
     }
 
     @Test
@@ -115,33 +104,4 @@ public class ComputeOrdersControllerTest {
         headers.set(LOCAL_TOKEN_ID_HEADER, fakeLocalTokenId);
         return headers;
     }
-
-    private void mockLdapIdentityPlugin() throws UnauthorizedException {
-        Token token = getFakeToken();
-        this.ldapIdentityPlugin = spy(new LdapIdentityPlugin(this.properties));
-        doReturn(token).when(ldapIdentityPlugin).getToken(anyString());
-    }
-
-    private void mockAuthentication() throws UnauthorizedException {
-        Token token = getFakeToken();
-        AuthenticationService authenticationService = spy(new AuthenticationService(this.ldapIdentityPlugin));
-        this.applicationController.setAuthenticationController(authenticationService);
-        doReturn(token).when(authenticationService).authenticate(anyString());
-    }
-
-    private void mockOrdersManagerController() throws OrderManagementException {
-        ordersManagerController =  spy(new OrdersManagerController());
-        doNothing().when(ordersManagerController).addOrderInActiveOrdersMap(any(ComputeOrder.class));
-    }
-
-    private Token getFakeToken() {
-        String fakeAccessId = "0000";
-        String fakeUserId = "userId";
-        String fakeUserName = "userName";
-        Token.User fakeUser = new Token.User(fakeUserId, fakeUserName);
-        Date fakeExpirationTime = new Date();
-        Map<String, String> fakeAttributes = new HashMap<>();
-        return  new Token(fakeAccessId, fakeUser, fakeExpirationTime, fakeAttributes);
-    }
-
 }
