@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ComputeOrdersController {
 
 	private ApplicationController applicationController = ApplicationController.getInstance();
-	
+
 	private final String ACCESS_ID_HEADER_KEY = "accessId";
 	private final String LOCAL_TOKEN_ID_HEADER_KEY = "localTokenId";
 
@@ -36,7 +36,8 @@ public class ComputeOrdersController {
 	// ExceptionHandlerController handles the possible problems in request
 	@RequestMapping(method = RequestMethod.POST)
 	public ResponseEntity<Order> createCompute(@RequestBody ComputeOrder computeOrder,
-		@RequestHeader(ACCESS_ID_HEADER_KEY) String accessId, @RequestHeader(LOCAL_TOKEN_ID_HEADER_KEY) String localTokenId)
+			@RequestHeader(ACCESS_ID_HEADER_KEY) String accessId,
+			@RequestHeader(LOCAL_TOKEN_ID_HEADER_KEY) String localTokenId)
 			throws UnauthorizedException, OrderManagementException {
 		LOGGER.info("New compute order request received.");
 		this.applicationController.newOrderRequest(computeOrder, accessId, localTokenId);
@@ -44,7 +45,7 @@ public class ComputeOrdersController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
-	public ResponseEntity<List<ComputeOrder>> getAllCompute() throws TokenCreationException, UnauthorizedException{
+	public ResponseEntity<List<ComputeOrder>> getAllCompute() throws TokenCreationException, UnauthorizedException {
 		return new ResponseEntity<List<ComputeOrder>>(HttpStatus.OK);
 	}
 
@@ -55,7 +56,7 @@ public class ComputeOrdersController {
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
 	public ResponseEntity<Boolean> deleteCompute(@PathVariable String id,
-			@RequestHeader(value = "accessId") String accessId) throws UnauthorizedException {
+			@RequestHeader(value = "accessId") String accessId) throws UnauthorizedException, OrderManagementException {
 		this.applicationController.deleteOrder(id, accessId, OrderType.COMPUTE);
 		return new ResponseEntity<Boolean>(HttpStatus.OK);
 	}
