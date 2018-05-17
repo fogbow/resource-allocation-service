@@ -3,11 +3,9 @@ package org.fogbowcloud.manager.core.rest.controllers;
 import java.util.List;
 
 import org.fogbowcloud.manager.core.controllers.ApplicationController;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
-import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -36,9 +34,12 @@ public class ComputeOrdersController {
 	@RequestMapping(method = RequestMethod.POST)
 	public ResponseEntity<Order> createCompute(@RequestBody ComputeOrder computeOrder,
 		@RequestHeader(ACCESS_ID_HEADER_KEY) String accessId, @RequestHeader(LOCAL_TOKEN_ID_HEADER_KEY) String localTokenId)
-			throws UnauthorizedException, OrderManagementException {
+			throws Exception {
 		LOGGER.info("New compute order request received.");
-		// ExceptionHandlerController handles the possible problems in request
+
+		// The applicationController is being loaded here, because the getInstance that was used in the variable declaration
+		// disallows a static mock on this method.
+		this.applicationController = ApplicationController.getInstance();
 		this.applicationController.newOrderRequest(computeOrder, accessId, localTokenId);
 		return new ResponseEntity<Order>(HttpStatus.CREATED);
 	}
@@ -46,7 +47,7 @@ public class ComputeOrdersController {
 	@RequestMapping(method = RequestMethod.GET)
 	public ResponseEntity<List<Order>> getAllCompute(
 			@RequestHeader(value = "accessId") String accessId
-	) throws UnauthorizedException {
+	) throws Exception {
 		List<Order> orders = this.applicationController.getAllComputes(accessId, OrderType.COMPUTE);
 		return new ResponseEntity<>(orders, HttpStatus.OK);
 	}
@@ -55,7 +56,7 @@ public class ComputeOrdersController {
 	public ResponseEntity<Order> getComputeById(
 			@PathVariable String id,
 			@RequestHeader(value = "accessId") String accessId
-	) throws UnauthorizedException {
+	) throws Exception {
 		Order order = this.applicationController.getOrderById(id, accessId, OrderType.COMPUTE);
 		return new ResponseEntity<Order>(order, HttpStatus.OK);
 	}

@@ -19,7 +19,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
 
-
 public class TestExceptionHandlerController {
 	
 	private MockMvc mockMvc;
