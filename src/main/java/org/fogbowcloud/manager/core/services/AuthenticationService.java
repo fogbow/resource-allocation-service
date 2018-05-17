@@ -47,7 +47,7 @@ public class AuthenticationService {
 		Token localToken = null;
 		
 		boolean isOrderProvidingLocal = AuthenticationServiceUtil
-				.isProvadingLocally(provadingMember, this.properties);
+				.isOrderProvadingLocally(provadingMember, this.properties);
 		if (isOrderProvidingLocal) {
 			if (localTokenId == null) {
 				localToken = createFogbowLocalToken();

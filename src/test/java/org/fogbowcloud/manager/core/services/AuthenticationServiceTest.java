@@ -75,7 +75,7 @@ public class AuthenticationServiceTest {
 		String localTokenId = null;
 		String providingMember = "localmember";
 		boolean isProvadingLocally = true;
-		BDDMockito.given(AuthenticationServiceUtil.isProvadingLocally(
+		BDDMockito.given(AuthenticationServiceUtil.isOrderProvadingLocally(
 				BDDMockito.anyString(), BDDMockito.any(Properties.class))).willReturn(isProvadingLocally);
 		
 		Token localToken = Mockito.mock(Token.class);
@@ -90,7 +90,7 @@ public class AuthenticationServiceTest {
 		String localTokenId = "localTokenId";
 		String providingMember = "localmember";
 		boolean isProvadingLocally = true;
-		BDDMockito.given(AuthenticationServiceUtil.isProvadingLocally(
+		BDDMockito.given(AuthenticationServiceUtil.isOrderProvadingLocally(
 				BDDMockito.anyString(), BDDMockito.any(Properties.class))).willReturn(isProvadingLocally);
 		
 		Token localToken = Mockito.mock(Token.class);
@@ -105,7 +105,7 @@ public class AuthenticationServiceTest {
 		String localTokenId = "localTokenId";
 		String providingMember = "remoteMember";
 		boolean isProvadingLocally = false;
-		BDDMockito.given(AuthenticationServiceUtil.isProvadingLocally(
+		BDDMockito.given(AuthenticationServiceUtil.isOrderProvadingLocally(
 				BDDMockito.anyString(), BDDMockito.any(Properties.class))).willReturn(isProvadingLocally);
 		
 		Token token = Mockito.mock(Token.class);

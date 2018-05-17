@@ -35,10 +35,10 @@ public class AuthenticationServiceUtil {
 		return keyPropertiesStr.replace(LOCAL_TOKEN_CREDENTIALS_PREFIX, "");
 	}
 	
-	// TODO change to other class
-	public static boolean isProvadingLocally(String orderProvadingMember, Properties properties) {
+	// TODO change to other class util
+	public static boolean isOrderProvadingLocally(String orderProvadingMember, Properties properties) {
 		String localMember = properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
-		if (orderProvadingMember.equals(localMember)) {
+		if (orderProvadingMember == null || orderProvadingMember.equals(localMember)) {
 			return true;
 		}
 		return false;

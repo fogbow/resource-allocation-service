@@ -3,6 +3,7 @@ package org.fogbowcloud.manager.core.services;
 import java.util.Map;
 import java.util.Properties;
 
+import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -36,5 +37,41 @@ public class AuthenticationServiceUtilTest {
 				AuthenticationServiceUtil.getDefaultLocalTokenCredentials(null);
 		Assert.assertTrue(defaulLocalTokenCredentials.isEmpty());
 	}
+	
+	@Test
+	public void testIsOrderProvadingLocally() {
+		String provadingMember = "localmember";
+		Properties properties = new Properties();
+		properties.put(ConfigurationConstants.XMPP_ID_KEY, provadingMember);
+		
+		boolean isProvadingLocally = AuthenticationServiceUtil
+				.isOrderProvadingLocally(provadingMember, properties);
+		
+		Assert.assertTrue(isProvadingLocally);
+	}
+	
+	@Test
+	public void testIsOrderProvadingLocallyWithMemberNull() {
+		Properties properties = new Properties();
+		properties.put(ConfigurationConstants.XMPP_ID_KEY, "member");
+		
+		boolean isProvadingLocally = AuthenticationServiceUtil
+				.isOrderProvadingLocally(null, properties);
+		
+		Assert.assertTrue(isProvadingLocally);
+	}	
+	
+	@Test
+	public void testIsOrderProvadingLocallyWithMemberRemote() {
+		String provadingMember = "member";
+		Properties properties = new Properties();
+		properties.put(ConfigurationConstants.XMPP_ID_KEY, provadingMember);
+		
+		String remoteMember = "remotemember";
+		boolean isProvadingLocally = AuthenticationServiceUtil
+				.isOrderProvadingLocally(remoteMember, properties);
+		
+		Assert.assertFalse(isProvadingLocally);
+	}		
 	
 }
