@@ -331,8 +331,8 @@ public class TestFulfilledMonitor extends BaseUnitTests {
         Mockito.doThrow(new RuntimeException("Any Exception")).when(this.fulfilledMonitor)
                 .processFulfilledOrder(order);
 
-        Thread thread = new Thread(this.fulfilledMonitor);
-        thread.start();
+        this.thread = new Thread(this.fulfilledMonitor);
+        this.thread.start();
         Thread.sleep(500);
     }
 
