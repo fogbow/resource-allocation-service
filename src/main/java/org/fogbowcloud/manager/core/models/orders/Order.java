@@ -25,7 +25,7 @@ public abstract class Order {
 		this.id = id;
 		this.orderState = OrderState.OPEN;
 	}
-
+	public Order() {}
 	/**
 	 * Creating Order with predefined Id.
 	 */

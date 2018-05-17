@@ -1,6 +1,7 @@
 package org.fogbowcloud.manager.core.controllers;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.fogbowcloud.manager.core.ManagerController;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
@@ -8,21 +9,28 @@ import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.orders.StorageOrder;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
+import org.fogbowcloud.manager.core.services.OrdersService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class  ApplicationController {
 
 	private static ApplicationController instance;
 	private AuthenticationService authenticationService;
 	private ManagerController managerController;
-
 	private OrdersManagerController ordersManagerController;
+	private OrdersService ordersService;
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationController.class);
 
 	private ApplicationController() {
 		this.ordersManagerController = new OrdersManagerController();
+		this.ordersService = new OrdersService();
 	}
 
 	public static ApplicationController getInstance() {
@@ -96,6 +104,18 @@ public class  ApplicationController {
 
 	public void setManagerController(ManagerController managerController) {
 		this.managerController = managerController;
+	}
+
+	public List<Order> getAllComputes(String accessId, OrderType orderType) throws UnauthorizedException, UnauthenticatedException {
+		this.authenticationService.authenticateAndAuthorize(accessId);
+		Token federationToken = this.authenticationService.getFederationToken(accessId);
+		return this.ordersService.getAllOrdersByType(federationToken, orderType);
+	}
+
+	public Order getOrderById(String id, String accessId, OrderType orderType) throws UnauthorizedException, UnauthenticatedException {
+		this.authenticationService.authenticateAndAuthorize(accessId);
+		Token federationToken = this.authenticationService.getFederationToken(accessId);
+		return this.ordersService.getOrderByIdAndType(id, federationToken, orderType);
 	}
 
 	public void newOrderRequest(Order order, String accessId, String localTokenId) 

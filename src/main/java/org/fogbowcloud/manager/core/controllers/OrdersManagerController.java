@@ -1,12 +1,12 @@
 package org.fogbowcloud.manager.core.controllers;
 
+import java.util.Map;
+
 import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.models.linkedList.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.token.Token;
-
-import java.util.Map;
 
 public class OrdersManagerController {
 
