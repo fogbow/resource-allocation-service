@@ -31,6 +31,8 @@ public class ConfigurationConstants {
 	public static final String COMPUTE_CLASS_KEY = "compute_class";
 
 	public static final String IDENTITY_CLASS_KEY = "identity_class";
+	
+	public static final String AUTHORIZATION_CLASS_KEY = "authorization_class";
 
 	// PREFIXES
 	public static final String LOCAL_PREFIX = "local_";

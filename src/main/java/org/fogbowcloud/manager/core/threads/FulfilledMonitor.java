@@ -23,6 +23,7 @@ import java.util.Properties;
  * Process orders in fulfilled state. It monitors the resourced that have been
  * successfully initiated, to check for failures that may affect them.
  */
+//FIXME change the name to FulfilledProcessor
 public class FulfilledMonitor implements Runnable {
 
     private static final Logger LOGGER = Logger.getLogger(FulfilledMonitor.class);

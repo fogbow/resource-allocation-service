@@ -3,16 +3,22 @@ package org.fogbowcloud.manager.core.rest.controllers;
 import java.util.List;
 
 import org.fogbowcloud.manager.core.controllers.ApplicationController;
+import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 @CrossOrigin
 @RestController
@@ -29,8 +35,8 @@ public class ComputeOrdersController {
 	// ExceptionHandlerController handles the possible problems in request
 	@RequestMapping(method = RequestMethod.POST)
 	public ResponseEntity<Order> createCompute(@RequestBody ComputeOrder computeOrder,
-	                                           @RequestHeader(ACCESS_ID_HEADER_KEY) String accessId, @RequestHeader(LOCAL_TOKEN_ID_HEADER_KEY) String localTokenId)
-			throws UnauthorizedException, OrderManagementException {
+		@RequestHeader(ACCESS_ID_HEADER_KEY) String accessId, @RequestHeader(LOCAL_TOKEN_ID_HEADER_KEY) String localTokenId)
+			throws UnauthenticatedException, Exception {
 		LOGGER.info("New compute order request received.");
 
 		// The applicationController is being loaded here, because the getInstance that was used in the variable declaration

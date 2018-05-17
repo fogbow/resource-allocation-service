@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import org.fogbowcloud.manager.core.ManagerController;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
+import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -11,8 +12,6 @@ import org.fogbowcloud.manager.core.models.orders.StorageOrder;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class  ApplicationController {
 
@@ -21,8 +20,6 @@ public class  ApplicationController {
 	private ManagerController managerController;
 
 	private OrdersManagerController ordersManagerController;
-
-	private final Logger LOGGER = LoggerFactory.getLogger(ApplicationController.class);
 
 	private ApplicationController() {
 		this.ordersManagerController = new OrdersManagerController();
@@ -101,16 +98,13 @@ public class  ApplicationController {
 		this.managerController = managerController;
 	}
 
-	public void newOrderRequest(Order order, String accessId, String localTokenId) throws OrderManagementException, UnauthorizedException {
-		Token federationToken = this.authenticationService.authenticate(accessId);
-		Token localToken = createLocalToken(localTokenId);
+	public void newOrderRequest(Order order, String accessId, String localTokenId) 
+				throws OrderManagementException, UnauthorizedException, UnauthenticatedException, Exception {		
+		this.authenticationService.authenticateAndAuthorize(accessId);
+		Token federationToken = this.authenticationService.getFederationToken(accessId);
+		String providingMember = order.getProvidingMember();
+		Token localToken = this.authenticationService.getLocalToken(localTokenId, providingMember);
 		this.ordersManagerController.newOrderRequest(order, federationToken, localToken);
-	}
-
-	private Token createLocalToken(String localTokenId) {
-		Token localToken = new Token();
-		localToken.setAccessId(localTokenId);
-		return localToken;
 	}
 
 }

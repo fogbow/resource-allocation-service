@@ -1,5 +1,9 @@
 package org.fogbowcloud.manager.core.controllers;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -7,13 +11,6 @@ import org.fogbowcloud.manager.core.models.token.Token;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 public class OrdersManagerControllerTest extends BaseUnitTests {
 
