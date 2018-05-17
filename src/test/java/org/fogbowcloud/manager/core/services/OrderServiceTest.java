@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
+import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.models.linkedList.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -17,9 +18,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class ComputeOrdersServiceTest extends BaseUnitTests {
+public class OrderServiceTest extends BaseUnitTests {
 
-	private ComputeOrdersService computeOrdersService;
+	private OrderService orderService;
 	private Map<String, Order> activeOrdersMap;
 	private ChainedList openOrdersList;
 	private ChainedList pendingOrdersList;
@@ -38,7 +39,7 @@ public class ComputeOrdersServiceTest extends BaseUnitTests {
 		this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
 		this.failedOrdersList = sharedOrderHolders.getFailedOrdersList();
 		this.closedOrdersList = sharedOrderHolders.getClosedOrdersList();
-		this.computeOrdersService = Mockito.spy(new ComputeOrdersService());
+		this.orderService = Mockito.spy(new OrderService());
 	}
 
 	@After
@@ -47,11 +48,11 @@ public class ComputeOrdersServiceTest extends BaseUnitTests {
 	}
 
 	@Test
-	public void testDeleteOrderStateClosed() {
+	public void testDeleteOrderStateClosed() throws OrderManagementException {
 		String orderId = getComputeOrderCreationId(OrderState.CLOSED);
 		ComputeOrder computeOrder = (ComputeOrder) activeOrdersMap.get(orderId);
 
-		this.computeOrdersService.deleteOrder(computeOrder);
+		this.orderService.deleteOrder(computeOrder);
 
 		Order test = this.closedOrdersList.getNext();
 		Assert.assertNotNull(test);
@@ -60,13 +61,13 @@ public class ComputeOrdersServiceTest extends BaseUnitTests {
 	}
 
 	@Test
-	public void testDeleteOrderStateFailed() {
+	public void testDeleteOrderStateFailed() throws OrderManagementException {
 		String orderId = getComputeOrderCreationId(OrderState.FAILED);
 		ComputeOrder computeOrder = (ComputeOrder) activeOrdersMap.get(orderId);
 
 		Assert.assertNull(this.closedOrdersList.getNext());
 
-		this.computeOrdersService.deleteOrder(computeOrder);
+		this.orderService.deleteOrder(computeOrder);
 
 		Order test = this.closedOrdersList.getNext();
 		Assert.assertNotNull(test);
@@ -75,13 +76,13 @@ public class ComputeOrdersServiceTest extends BaseUnitTests {
 	}
 
 	@Test
-	public void testDeleteOrderStateFulfilled() {
+	public void testDeleteOrderStateFulfilled() throws OrderManagementException {
 		String orderId = getComputeOrderCreationId(OrderState.FULFILLED);
 		ComputeOrder computeOrder = (ComputeOrder) activeOrdersMap.get(orderId);
 
 		Assert.assertNull(this.closedOrdersList.getNext());
 
-		this.computeOrdersService.deleteOrder(computeOrder);
+		this.orderService.deleteOrder(computeOrder);
 
 		Order test = this.closedOrdersList.getNext();
 		Assert.assertNotNull(test);
@@ -90,13 +91,13 @@ public class ComputeOrdersServiceTest extends BaseUnitTests {
 	}
 
 	@Test
-	public void testDeleteOrderStateSpawning() {
+	public void testDeleteOrderStateSpawning() throws OrderManagementException {
 		String orderId = getComputeOrderCreationId(OrderState.SPAWNING);
 		ComputeOrder computeOrder = (ComputeOrder) activeOrdersMap.get(orderId);
 
 		Assert.assertNull(this.closedOrdersList.getNext());
 
-		this.computeOrdersService.deleteOrder(computeOrder);
+		this.orderService.deleteOrder(computeOrder);
 
 		Order test = this.closedOrdersList.getNext();
 		Assert.assertNotNull(test);
@@ -105,13 +106,13 @@ public class ComputeOrdersServiceTest extends BaseUnitTests {
 	}
 
 	@Test
-	public void testDeleteOrderStatePending() {
+	public void testDeleteOrderStatePending() throws OrderManagementException {
 		String orderId = getComputeOrderCreationId(OrderState.PENDING);
 		ComputeOrder computeOrder = (ComputeOrder) activeOrdersMap.get(orderId);
 
 		Assert.assertNull(this.closedOrdersList.getNext());
 
-		this.computeOrdersService.deleteOrder(computeOrder);
+		this.orderService.deleteOrder(computeOrder);
 
 		Order test = this.closedOrdersList.getNext();
 		Assert.assertNotNull(test);
@@ -120,18 +121,23 @@ public class ComputeOrdersServiceTest extends BaseUnitTests {
 	}
 
 	@Test
-	public void testDeleteOrderStateOpen() {
+	public void testDeleteOrderStateOpen() throws OrderManagementException {
 		String orderId = getComputeOrderCreationId(OrderState.OPEN);
 		ComputeOrder computeOrder = (ComputeOrder) activeOrdersMap.get(orderId);
 
 		Assert.assertNull(this.closedOrdersList.getNext());
 
-		this.computeOrdersService.deleteOrder(computeOrder);
+		this.orderService.deleteOrder(computeOrder);
 
 		Order test = this.closedOrdersList.getNext();
 		Assert.assertNotNull(test);
 		Assert.assertEquals(computeOrder, test);
 		Assert.assertEquals(OrderState.CLOSED, test.getOrderState());
+	}
+	
+	@Test(expected = OrderManagementException.class)
+	public void testDeleteNullOrder() throws OrderManagementException {
+		this.orderService.deleteOrder(null);
 	}
 
 	private Token createToken() {
