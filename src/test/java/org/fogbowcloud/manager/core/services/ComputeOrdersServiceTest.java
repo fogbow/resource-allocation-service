@@ -6,7 +6,6 @@ import java.util.HashMap;
 
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
-import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.models.linkedList.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -47,27 +46,12 @@ public class ComputeOrdersServiceTest extends BaseUnitTests {
 		super.tearDown();
 	}
 
-	@Test(expected = OrderStateTransitionException.class)
-	public void testThrowOrderStateTransitionException() {
-		String orderId = getComputeOrderCreationId(OrderState.OPEN);
-		ComputeOrder computeOrder = (ComputeOrder) activeOrdersMap.get(orderId);
-
-		Token token = this.createToken();
-
-		Mockito.doThrow(OrderStateTransitionException.class).when(this.computeOrdersService)
-				.deleteOrder(computeOrder, token);
-
-		this.computeOrdersService.deleteOrder(computeOrder, token);
-	}
-
 	@Test
 	public void testDeleteOrderStateClosed() {
 		String orderId = getComputeOrderCreationId(OrderState.CLOSED);
 		ComputeOrder computeOrder = (ComputeOrder) activeOrdersMap.get(orderId);
 
-		Token token = this.createToken();
-
-		this.computeOrdersService.deleteOrder(computeOrder, token);
+		this.computeOrdersService.deleteOrder(computeOrder);
 
 		Order test = this.closedOrdersList.getNext();
 		Assert.assertNotNull(test);
@@ -80,11 +64,9 @@ public class ComputeOrdersServiceTest extends BaseUnitTests {
 		String orderId = getComputeOrderCreationId(OrderState.FAILED);
 		ComputeOrder computeOrder = (ComputeOrder) activeOrdersMap.get(orderId);
 
-		Token token = this.createToken();
-
 		Assert.assertNull(this.closedOrdersList.getNext());
 
-		this.computeOrdersService.deleteOrder(computeOrder, token);
+		this.computeOrdersService.deleteOrder(computeOrder);
 
 		Order test = this.closedOrdersList.getNext();
 		Assert.assertNotNull(test);
@@ -97,11 +79,9 @@ public class ComputeOrdersServiceTest extends BaseUnitTests {
 		String orderId = getComputeOrderCreationId(OrderState.FULFILLED);
 		ComputeOrder computeOrder = (ComputeOrder) activeOrdersMap.get(orderId);
 
-		Token token = this.createToken();
-
 		Assert.assertNull(this.closedOrdersList.getNext());
 
-		this.computeOrdersService.deleteOrder(computeOrder, token);
+		this.computeOrdersService.deleteOrder(computeOrder);
 
 		Order test = this.closedOrdersList.getNext();
 		Assert.assertNotNull(test);
@@ -114,11 +94,9 @@ public class ComputeOrdersServiceTest extends BaseUnitTests {
 		String orderId = getComputeOrderCreationId(OrderState.SPAWNING);
 		ComputeOrder computeOrder = (ComputeOrder) activeOrdersMap.get(orderId);
 
-		Token token = this.createToken();
-
 		Assert.assertNull(this.closedOrdersList.getNext());
 
-		this.computeOrdersService.deleteOrder(computeOrder, token);
+		this.computeOrdersService.deleteOrder(computeOrder);
 
 		Order test = this.closedOrdersList.getNext();
 		Assert.assertNotNull(test);
@@ -131,11 +109,9 @@ public class ComputeOrdersServiceTest extends BaseUnitTests {
 		String orderId = getComputeOrderCreationId(OrderState.PENDING);
 		ComputeOrder computeOrder = (ComputeOrder) activeOrdersMap.get(orderId);
 
-		Token token = this.createToken();
-
 		Assert.assertNull(this.closedOrdersList.getNext());
 
-		this.computeOrdersService.deleteOrder(computeOrder, token);
+		this.computeOrdersService.deleteOrder(computeOrder);
 
 		Order test = this.closedOrdersList.getNext();
 		Assert.assertNotNull(test);
@@ -148,11 +124,9 @@ public class ComputeOrdersServiceTest extends BaseUnitTests {
 		String orderId = getComputeOrderCreationId(OrderState.OPEN);
 		ComputeOrder computeOrder = (ComputeOrder) activeOrdersMap.get(orderId);
 
-		Token token = this.createToken();
-
 		Assert.assertNull(this.closedOrdersList.getNext());
 
-		this.computeOrdersService.deleteOrder(computeOrder, token);
+		this.computeOrdersService.deleteOrder(computeOrder);
 
 		Order test = this.closedOrdersList.getNext();
 		Assert.assertNotNull(test);
