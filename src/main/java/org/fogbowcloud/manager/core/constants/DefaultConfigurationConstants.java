@@ -5,6 +5,11 @@ import java.util.concurrent.TimeUnit;
 
 public class DefaultConfigurationConstants {
 
+	// CONFIGURATION FILES PATHS
+	public static final String MANAGER_CONF_FILE_FULL_PATH = "src/main/resources/manager.properties";
+	public static final String INFRA_CONF_FILE_FULL_PATH = "src/main/resources/infrastructure.properties";
+	public static final String FEDERATION_CONF_FILE_FULL_PATH = "src/main/resources/federation.properties";
+
 	// SCHEDULER PERIODS
 	public static final String OPEN_ORDERS_SLEEP_TIME = Long.toString(TimeUnit.SECONDS.toMillis(1)); // 1 second
 	public static final String CLOSED_ORDERS_SLEEP_TIME = Long.toString(TimeUnit.SECONDS.toMillis(1)); // 1 second

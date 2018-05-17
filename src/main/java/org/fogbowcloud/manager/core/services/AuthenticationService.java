@@ -21,7 +21,7 @@ public class AuthenticationService {
 	private AuthorizationPlugin authorizationPlugin;
 	private Properties properties;
 	
-	AuthenticationService (IdentityPlugin federationIdentityPlugin, IdentityPlugin localIdentityPlugin, 
+	public AuthenticationService (IdentityPlugin federationIdentityPlugin, IdentityPlugin localIdentityPlugin, 
 			AuthorizationPlugin authorizationPlugin, Properties properties){
 		// TODO check if there are the local token properties
 		this.federationIdentityPlugin = federationIdentityPlugin;

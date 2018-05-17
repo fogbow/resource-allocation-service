@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.constants;
 
 public class ConfigurationConstants {
 
+    // XMPP
 	public static final String XMPP_ID_KEY = "xmpp_jid";
 
 	// SCHEDULER PERIODS KEYS
@@ -25,5 +26,18 @@ public class ConfigurationConstants {
 	public static final String REVERSE_TUNNEL_PORT_KEY = "reverse_tunnel_port";
 	public static final String REVERSE_TUNNEL_HTTP_PORT_KEY = "reverse_tunnel_http_port";
 
+	
+	// PLUGINS CLASSES
+	public static final String COMPUTE_CLASS_KEY = "compute_class";
+
+	public static final String IDENTITY_CLASS_KEY = "identity_class";
+	
+	public static final String AUTHORIZATION_CLASS_KEY = "authorization_class";
+
+	// PREFIXES
+	public static final String LOCAL_PREFIX = "local_";
+
+	public static final String FEDERATION_PREFIX = "federation_";
 
 }
+

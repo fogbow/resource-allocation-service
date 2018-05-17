@@ -13,10 +13,10 @@ import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
 
-public class ApplicationController {
+public class  ApplicationController {
 
 	private static ApplicationController instance;
-	private AuthenticationService authenticationController;
+	private AuthenticationService authenticationService;
 	private ManagerController managerController;
 
 	private OrdersManagerController ordersManagerController;
@@ -83,11 +83,11 @@ public class ApplicationController {
 	}
 
 	public AuthenticationService getAuthenticationController() {
-		return authenticationController;
+		return authenticationService;
 	}
 
 	public void setAuthenticationController(AuthenticationService authenticationController) {
-		this.authenticationController = authenticationController;
+		this.authenticationService = authenticationController;
 	}
 
 	public ManagerController getManagerController() {
@@ -100,10 +100,10 @@ public class ApplicationController {
 
 	public void newOrderRequest(Order order, String accessId, String localTokenId) 
 				throws OrderManagementException, UnauthorizedException, UnauthenticatedException, Exception {		
-		this.authenticationController.authenticateAndAuthorize(accessId);
-		Token federationToken = this.authenticationController.getFederationToken(accessId);
+		this.authenticationService.authenticateAndAuthorize(accessId);
+		Token federationToken = this.authenticationService.getFederationToken(accessId);
 		String providingMember = order.getProvidingMember();
-		Token localToken = this.authenticationController.getLocalToken(localTokenId, providingMember);
+		Token localToken = this.authenticationService.getLocalToken(localTokenId, providingMember);
 		this.ordersManagerController.newOrderRequest(order, federationToken, localToken);
 	}
 
