@@ -50,12 +50,10 @@ public class ComputeOrdersControllerTest {
     private final String LOCAL_TOKEN_ID_HEADER = "localTokenId";
 
     @Before
-
     public void setUp() throws UnauthorizedException, OrderManagementException {
         this.applicationController = spy(ApplicationController.class);
     }
 
-    @Ignore
     @Test
     public void createdComputeTest() throws Exception {
         HttpHeaders headers = getHttpHeaders();
