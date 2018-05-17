@@ -1,17 +1,29 @@
 package org.fogbowcloud.manager.core.services;
 
 import org.fogbowcloud.manager.core.datastructures.OrderStateTransitioner;
+import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
+import org.fogbowcloud.manager.core.models.orders.OrderType;
+import org.fogbowcloud.manager.core.models.token.Token.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ComputeOrdersService {
+public class OrderService {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ComputeOrdersService.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(OrderService.class);
+	
+	// TODO:
+	public Order getOrderByIdAndType(User user, String orderId, OrderType orderType) {
+		throw new UnsupportedOperationException("Not implemented yet");
+	}
 
-	public void deleteOrder(Order order) {
+	public void deleteOrder(Order order) throws OrderManagementException {
+		if (order == null) {
+			String message = "Cannot delete a null order";
+			throw new OrderManagementException(message);
+		}
 		synchronized (order) {
 			OrderState orderState = order.getOrderState(); 
 			if (!orderState.equals(OrderState.CLOSED)) {
