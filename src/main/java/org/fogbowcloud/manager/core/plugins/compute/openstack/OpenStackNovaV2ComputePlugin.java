@@ -399,9 +399,20 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             JSONObject serverJson = rootServer.getJSONObject(SERVER_JSON_FIELD);
 
             String id = serverJson.getString(ID_JSON_FIELD);
+            String hostName = serverJson.getString(NAME_JSON_FIELD);
+            int vCPU = serverJson.getJSONObject(FLAVOR_JSON_OBJECT).getInt(VCPU_JSON_FIELD);
+            int memory = serverJson.getJSONObject(FLAVOR_JSON_OBJECT).getInt(MEMORY_JSON_FIELD);
             InstanceState state = getInstanceState(serverJson.getString(STATUS_JSON_FIELD));
 
-            ComputeOrderInstance computeOrderInstance = new ComputeOrderInstance(id, state);
+            // TODO: Why should I pass all this attributes for computeOrderInstance if they are
+            // all related to tunneling? We don't have it on the cloud provider JSON response.
+            String localIpAddress = "";
+            String sshPublicAddress = "";
+            String sshUserName = "";
+            String sshExtraPorts = "";
+
+            ComputeOrderInstance computeOrderInstance = new ComputeOrderInstance(id, hostName, vCPU, memory,
+                    state, localIpAddress, sshPublicAddress, sshUserName, sshExtraPorts);
 
             return computeOrderInstance;
         } catch (JSONException e) {

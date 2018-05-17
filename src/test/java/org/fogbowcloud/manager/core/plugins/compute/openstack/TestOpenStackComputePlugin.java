@@ -25,7 +25,6 @@ import static org.mockito.Mockito.*;
 public class TestOpenStackComputePlugin {
 
     protected static final String FAKE_USER_DATA_FILE = "fake-extra-user-data";
-    protected static final String FAKE_EXTRA_USER_DATA_FILE_TYPE = "fake-file-type";
     protected static final String FAKE_FLAVOR_ID = "fake-flavor-id";
     protected static final String FAKE_NET_ID = "fake-net-id";
     protected static final String FAKE_KEYNAME = "fake-keyname";
@@ -33,9 +32,12 @@ public class TestOpenStackComputePlugin {
     protected static final String FAKE_IMAGE_ID = "fake-image-id";
     protected static final String FAKE_INSTANCE_ID = "fake-instance-id";
     protected static final String FAKE_POST_RETURN = "{\"server\": {\"id\": \"fake-instance-id\"}}";
-    protected static final String FAKE_GET_RETURN_ACTIVE_INSTANCE = "{\"server\": {\"id\": \"fake-instance-id\", \"status\": \"active\"}}";
-    protected static final String FAKE_GET_RETURN_FAILED_INSTANCE = "{\"server\": {\"id\": \"fake-instance-id\", \"status\": \"error\"}}";
-    protected static final String FAKE_GET_RETURN_INACTIVE_INSTANCE = "{\"server\": {\"id\": \"fake-instance-id\", \"status\": \"build\"}}";
+    protected static final String FAKE_GET_RETURN_ACTIVE_INSTANCE = "{\"server\": {\"id\": \"fake-instance-id\", " +
+            "\"status\": \"active\", \"name\": \"host\", \"flavor\": {\"vcpus\": 1, \"ram\": 3}}}";
+    protected static final String FAKE_GET_RETURN_FAILED_INSTANCE = "{\"server\": {\"id\": \"fake-instance-id\", " +
+            "\"status\": \"error\", \"name\": \"host\", \"flavor\": {\"vcpus\": 1, \"ram\": 3}}}";
+    protected static final String FAKE_GET_RETURN_INACTIVE_INSTANCE = "{\"server\": {\"id\": \"fake-instance-id\", " +
+            "\"status\": \"build\", \"name\": \"host\", \"flavor\": {\"vcpus\": 1, \"ram\": 3}}}";
     protected static final String INVALID_FAKE_POST_RETURN = "invalid";
     private static final String COMPUTE_NOVAV2_URL_KEY = "compute_novav2_url";
     private static final String COMPUTE_NOVAV2_NETWORK_KEY = "compute_novav2_network_id";
