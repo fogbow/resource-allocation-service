@@ -32,12 +32,14 @@ public class Main implements ApplicationRunner {
         this.instantiationInitService = new InstantiationInitService();
         this.properties = this.instantiationInitService.getProperties();
 
-        InstanceProvider localInstanceProvider = new LocalInstanceProvider();;
-        InstanceProvider remoteInstanceProvider = new RemoteInstanceProvider();
         ComputePlugin computePlugin = this.instantiationInitService.getComputePlugin();
         IdentityPlugin localIdentityPlugin = this.instantiationInitService .getLocalIdentityPlugin();
         IdentityPlugin federationIdentityPlugin = this.instantiationInitService.getFederationIdentityPlugin();
         AuthorizationPlugin authorizationPlugin = this.instantiationInitService.getAuthorizationPlugin();
+        
+        InstanceProvider localInstanceProvider = new LocalInstanceProvider(computePlugin);
+        InstanceProvider remoteInstanceProvider = new RemoteInstanceProvider();
+
         this.managerController = new ManagerController(this.properties, localInstanceProvider, remoteInstanceProvider,
                 computePlugin, localIdentityPlugin, federationIdentityPlugin);
 

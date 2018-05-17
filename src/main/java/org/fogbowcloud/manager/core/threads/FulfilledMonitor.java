@@ -130,8 +130,13 @@ public class FulfilledMonitor implements Runnable {
 
         OrderType orderType = order.getType();
 
-        // We can have a getInstanceState method in InstanceProvider
-        InstanceState instanceState = instanceProvider.getInstance(order).getState();
+        InstanceState instanceState = null;
+        try {
+            instanceState = instanceProvider.getInstance(order).getState();
+        } catch (Exception e) {
+            LOGGER.error("Error while getting instance from the cloud.", e);
+            return;
+        }
 
         if (instanceState.equals(InstanceState.FAILED)) {
             LOGGER.info("Instance state is failed for order [" + order.getId() + "]");

@@ -7,7 +7,7 @@ import org.fogbowcloud.manager.core.models.token.Token;
 public class RemoteInstanceProvider implements InstanceProvider {
 
     @Override
-    public OrderInstance requestInstance(Order order) throws Exception {
+    public String requestInstance(Order order) throws Exception {
         return null;
     }
 
