@@ -28,7 +28,8 @@ public class ComputeOrdersController {
 	private final String ACCESS_ID_HEADER_KEY = "accessId";
 	private final String LOCAL_TOKEN_ID_HEADER_KEY = "localTokenId";
 
-	private ApplicationController applicationController = ApplicationController.getInstance();
+
+	private ApplicationController applicationController;
 	private final Logger LOGGER = LoggerFactory.getLogger(ComputeOrdersController.class);
 
 	// ExceptionHandlerController handles the possible problems in request
@@ -37,12 +38,16 @@ public class ComputeOrdersController {
 		@RequestHeader(ACCESS_ID_HEADER_KEY) String accessId, @RequestHeader(LOCAL_TOKEN_ID_HEADER_KEY) String localTokenId)
 			throws UnauthenticatedException, Exception {
 		LOGGER.info("New compute order request received.");
+
+		// The applicationController is being loaded here, because the getInstance that was used in the variable declaration
+		// disallows a static mock on this method.
+		this.applicationController = ApplicationController.getInstance();
 		this.applicationController.newOrderRequest(computeOrder, accessId, localTokenId);
 		return new ResponseEntity<Order>(HttpStatus.CREATED);
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
-	public ResponseEntity<List<ComputeOrder>> getAllCompute() throws TokenCreationException, UnauthorizedException{
+	public ResponseEntity<List<ComputeOrder>> getAllCompute() throws TokenCreationException, UnauthorizedException {
 		return new ResponseEntity<List<ComputeOrder>>(HttpStatus.OK);
 	}
 

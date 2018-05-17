@@ -5,26 +5,12 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
 import org.fogbowcloud.manager.core.controllers.ApplicationController;
-import org.fogbowcloud.manager.core.controllers.OrdersManagerController;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
-import org.fogbowcloud.manager.core.plugins.PluginHelper;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.services.AuthenticationService;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -59,24 +45,14 @@ public class ComputeOrdersControllerTest {
     private MockMvc mockMvc;
 
     private ApplicationController applicationController;
-    private IdentityPlugin localIdentityPlugin;
-    private OrdersManagerController ordersManagerController;
-    private Properties properties;
 
-    private final String IDENTITY_URL_KEY = "identity_url";
-    private final String KEYSTONE_URL = "http://localhost:" + PluginHelper.PORT_ENDPOINT;
     private final String ACCESS_ID_HEADER = "accessId";
     private final String LOCAL_TOKEN_ID_HEADER = "localTokenId";
 
     @Before
-    public void setUp() throws UnauthenticatedException, Exception {
-        this.properties = new Properties();
-        this.properties.put(IDENTITY_URL_KEY, KEYSTONE_URL);
-        this.applicationController = spy(ApplicationController.class);
 
-        mockLocalIdentityPlugin();
-        mockAuthentication();
-        mockOrdersManagerController();
+    public void setUp() throws UnauthorizedException, OrderManagementException {
+        this.applicationController = spy(ApplicationController.class);
     }
 
     @Ignore
@@ -122,35 +98,4 @@ public class ComputeOrdersControllerTest {
         headers.set(LOCAL_TOKEN_ID_HEADER, fakeLocalTokenId);
         return headers;
     }
-
-    private void mockLocalIdentityPlugin() throws UnauthorizedException {
-        Token token = getFakeToken();
-        this.localIdentityPlugin = mock(IdentityPlugin.class);
-        doReturn(token).when(this.localIdentityPlugin).getToken(anyString());
-    }
-
-    private void mockAuthentication() throws UnauthorizedException, UnauthenticatedException, Exception {
-        Token token = getFakeToken();
-        AuthenticationService authenticationService = mock(AuthenticationService.class);
-        this.applicationController.setAuthenticationController(authenticationService);
-        doNothing().when(authenticationService).authenticateAndAuthorize(anyString());
-        doReturn(token).when(authenticationService).getFederationToken(anyString());
-        doReturn(token).when(authenticationService).getLocalToken(anyString(), anyString());
-    }
-
-    private void mockOrdersManagerController() throws OrderManagementException {
-        this.ordersManagerController =  spy(new OrdersManagerController());
-        doNothing().when(this.ordersManagerController).addOrderInActiveOrdersMap(any(ComputeOrder.class));
-    }
-
-    private Token getFakeToken() {
-        String fakeAccessId = "0000";
-        String fakeUserId = "userId";
-        String fakeUserName = "userName";
-        Token.User fakeUser = new Token.User(fakeUserId, fakeUserName);
-        Date fakeExpirationTime = new Date();
-        Map<String, String> fakeAttributes = new HashMap<>();
-        return  new Token(fakeAccessId, fakeUser, fakeExpirationTime, fakeAttributes);
-    }
-
 }

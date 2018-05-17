@@ -1,11 +1,13 @@
 package org.fogbowcloud.manager.core.rest;
 
+import static org.junit.Assert.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.InvalidCredentialsException;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.InvalidTokenException;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.rest.controllers.ComputeOrdersController;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
@@ -16,9 +18,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
-
-import static org.junit.Assert.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 public class TestExceptionHandlerController {
 	
@@ -82,7 +81,6 @@ public class TestExceptionHandlerController {
 		assertEquals(Integer.toString(response.getStatus()), HttpStatus.BAD_REQUEST.toString());
 	}
 	
-	@Ignore
 	@Test
 	public void testAnyException() throws Exception {
 		Mockito.when(computeOrdersController.getAllCompute()).thenThrow(new RuntimeException());
