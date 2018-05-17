@@ -14,7 +14,7 @@ import org.fogbowcloud.manager.core.models.orders.StorageOrder;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
-import org.fogbowcloud.manager.core.services.OrdersService;
+import org.fogbowcloud.manager.core.services.OrdersManagerController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,13 +24,13 @@ public class  ApplicationController {
 	private AuthenticationService authenticationService;
 	private ManagerController managerController;
 	private OrdersManagerController ordersManagerController;
-	private OrdersService ordersService;
+	private OrdersManagerController ordersService;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ApplicationController.class);
 
 	private ApplicationController() {
 		this.ordersManagerController = new OrdersManagerController();
-		this.ordersService = new OrdersService();
+		this.ordersService = new OrdersManagerController();
 	}
 
 	public static ApplicationController getInstance() {
