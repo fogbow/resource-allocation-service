@@ -3,12 +3,9 @@ package org.fogbowcloud.manager.core.datastructures;
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.models.linkedList.SynchronizedDoublyLinkedList;
-import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.orders.UserData;
-import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
-import org.fogbowcloud.manager.core.models.token.Token;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -33,7 +30,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         return order;
     }
 
-    @Override
+    @After
     public void tearDown() {
         SharedOrderHolders instance = SharedOrderHolders.getInstance();
 

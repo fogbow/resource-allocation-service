@@ -61,13 +61,8 @@ public class TestSpawningMonitor extends BaseUnitTests {
 		if (this.thread != null) {
 			this.thread.interrupt();
 		}
-
-		this.cleanList(this.spawningOrderList);
-		this.cleanList(this.fulfilledOrderList);
-		this.cleanList(this.failedOrderList);
-		this.cleanList(this.openOrderList);
-		this.cleanList(this.pendingOrderList);
-		this.cleanList(this.closedOrderList);
+		
+		super.tearDown();
 	}
 	
 	@Test
@@ -80,8 +75,9 @@ public class TestSpawningMonitor extends BaseUnitTests {
 		Mockito.doThrow(new RuntimeException("Any Exception")).when(this.spawningMonitor)
 		.processSpawningOrder(order);
 				
-		Thread thread = new Thread(this.spawningMonitor);
-		thread.start();
+		this.thread = new Thread(this.spawningMonitor);
+		this.thread.start();
+		
 		Thread.sleep(500);
 	}
 	
@@ -102,8 +98,8 @@ public class TestSpawningMonitor extends BaseUnitTests {
 
 		Assert.assertNull(this.fulfilledOrderList.getNext());
 
-		Thread thread = new Thread(this.spawningMonitor);
-		thread.start();
+		this.thread = new Thread(this.spawningMonitor);
+		this.thread.start();
 		Thread.sleep(500);
 
 		Assert.assertNull(this.spawningOrderList.getNext());
@@ -124,8 +120,8 @@ public class TestSpawningMonitor extends BaseUnitTests {
 		computeOrderInstance.setState(InstanceState.INACTIVE);
 		order.setOrderInstance(computeOrderInstance);
 
-		Thread thread = new Thread(this.spawningMonitor);
-		thread.start();
+		this.thread = new Thread(this.spawningMonitor);
+		this.thread.start();
 		Thread.sleep(500);
 
 		Order test = this.spawningOrderList.getNext();
@@ -145,8 +141,8 @@ public class TestSpawningMonitor extends BaseUnitTests {
 
 		Assert.assertNull(this.failedOrderList.getNext());
 
-		Thread thread = new Thread(this.spawningMonitor);
-		thread.start();
+		this.thread = new Thread(this.spawningMonitor);
+		this.thread.start();
 		Thread.sleep(500);
 
 		Assert.assertNull(this.spawningOrderList.getNext());
@@ -244,8 +240,8 @@ public class TestSpawningMonitor extends BaseUnitTests {
 		Mockito.doThrow(new RuntimeException("Any Exception")).when(this.tunnelingService)
 				.getExternalServiceAddresses(order.getId());
 
-		Thread thread = new Thread(this.spawningMonitor);
-		thread.start();
+		this.thread = new Thread(this.spawningMonitor);
+		this.thread.start();
 		Thread.sleep(500);
 	}
 
@@ -264,21 +260,13 @@ public class TestSpawningMonitor extends BaseUnitTests {
 
 		Mockito.when(this.sshConnectivity.checkSSHConnectivity(computeOrderInstance)).thenReturn(false);
 
-		Thread thread = new Thread(this.spawningMonitor);
-		thread.start();
+		this.thread = new Thread(this.spawningMonitor);
+		this.thread.start();
 		Thread.sleep(500);
 
 		Order test = this.spawningOrderList.getNext();
 		Assert.assertNotNull(test);
 		Assert.assertEquals(OrderState.SPAWNING, test.getOrderState());
-	}
-
-	@Test
-	public void testRunWithIterruptThread() throws InterruptedException {
-		Thread thread = new Thread(this.spawningMonitor);
-		thread.start();
-		Thread.sleep(500);
-		thread.interrupt();
 	}
 
 	private Order createOrder() {

@@ -47,6 +47,5 @@ public class Main implements ApplicationRunner {
         		authorizationPlugin, this.properties);
 
         this.facade.setAuthenticationController(this.authService);
-        this.facade.setManagerController(this.managerController);
     }
 }

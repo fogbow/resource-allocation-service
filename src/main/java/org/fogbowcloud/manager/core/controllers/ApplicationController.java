@@ -1,24 +1,19 @@
 package org.fogbowcloud.manager.core.controllers;
 
-import java.util.Collection;
-
-import org.fogbowcloud.manager.core.ManagerController;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.StorageOrder;
+import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.models.token.Token.User;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
 
-public class  ApplicationController {
+public class ApplicationController {
 
 	private static ApplicationController instance;
-	private AuthenticationService authenticationService;
-	private ManagerController managerController;
 
+	private AuthenticationService authenticationController;
 	private OrdersManagerController ordersManagerController;
 
 	private ApplicationController() {
@@ -34,77 +29,38 @@ public class  ApplicationController {
 		}
 	}
 
-	public void allocateComputeOrder(ComputeOrder computeOrder) {
-		
-	}
-	
-	public Collection<ComputeOrder> findAllComputeOrder() {
-		return null;		
-	}
-	
-	public ComputeOrder findComputeOrderById(String id) {
-		return null;		
-	}
-	
-	public void removeComputeOrder(String id) {
-		
-	}
-	
-	public void allocateNetworkOrder(NetworkOrder networkOrder) {
-		
-	}
-	
-	public Collection<NetworkOrder> findAllNetworkOrder() {
-		return null;		
-	}
-	
-	public NetworkOrder findNetworkOrderById(String id) {
-		return null;		
-	}
-	
-	public void removeNetworkOrder(String id) {
-		
-	}
-	
-	public void allocateStorageOrder(StorageOrder storageOrder) {
-		
-	}
-	
-	public Collection<StorageOrder> findAllStorageOrder() {
-		return null;		
-	}
-	
-	public StorageOrder findStorageOrderById(String id) {
-		return null;		
-	}
-	
-	public void removeStorageOrder(String id) {
-		
+	public Token authenticate(String accessId) throws UnauthorizedException {
+		return this.authenticationController.getFederationToken(accessId);
 	}
 
-	public AuthenticationService getAuthenticationController() {
-		return authenticationService;
+	public Order getOrder(String orderId, String accessId, OrderType orderType) throws UnauthorizedException {
+		Token userFederationToken = this.authenticate(accessId);
+		User user = userFederationToken.getUser();
+
+		Order order = this.ordersManagerController.getOrderByIdAndType(user, orderId, orderType);
+		return order;
+	}
+
+	public void deleteOrder(String orderId, String accessId, OrderType orderType)
+			throws UnauthorizedException, OrderManagementException {
+		Order order = getOrder(orderId, accessId, orderType);
+		this.ordersManagerController.deleteOrder(order);
 	}
 
 	public void setAuthenticationController(AuthenticationService authenticationController) {
-		this.authenticationService = authenticationController;
+		this.authenticationController = authenticationController;
 	}
 
-	public ManagerController getManagerController() {
-		return managerController;
+	protected void setOrdersManagerController(OrdersManagerController ordersManagerController) {
+		this.ordersManagerController = ordersManagerController;
 	}
 
-	public void setManagerController(ManagerController managerController) {
-		this.managerController = managerController;
-	}
-
-	public void newOrderRequest(Order order, String accessId, String localTokenId) 
-				throws OrderManagementException, UnauthorizedException, UnauthenticatedException, Exception {		
-		this.authenticationService.authenticateAndAuthorize(accessId);
-		Token federationToken = this.authenticationService.getFederationToken(accessId);
+	public void newOrderRequest(Order order, String accessId, String localTokenId)
+			throws OrderManagementException, UnauthorizedException, UnauthenticatedException, Exception {
+		this.authenticationController.authenticateAndAuthorize(accessId);
+		Token federationToken = this.authenticationController.getFederationToken(accessId);
 		String providingMember = order.getProvidingMember();
-		Token localToken = this.authenticationService.getLocalToken(localTokenId, providingMember);
+		Token localToken = this.authenticationController.getLocalToken(localTokenId, providingMember);
 		this.ordersManagerController.newOrderRequest(order, federationToken, localToken);
 	}
-
 }

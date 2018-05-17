@@ -19,13 +19,11 @@ public abstract class Order {
 
 	private OrderInstance orderInstance;
 
-	private Long fulfilledTime;
-
 	public Order(String id) {
 		this.id = id;
-		this.orderState = OrderState.OPEN;
+		this.setOrderState(OrderState.OPEN);
 	}
-
+	
 	/**
 	 * Creating Order with predefined Id.
 	 */
@@ -69,8 +67,16 @@ public abstract class Order {
 		return requestingMember;
 	}
 
+	public void setRequestingMember(String requestingMember) {
+		this.requestingMember = requestingMember;
+	}
+	
 	public String getProvidingMember() {
 		return providingMember;
+	}
+	
+	public void setProvidingMember(String providingMember) {
+		this.providingMember = providingMember;
 	}
 
 	public synchronized OrderInstance getOrderInstance() {
@@ -79,14 +85,6 @@ public abstract class Order {
 
 	public synchronized void setOrderInstance(OrderInstance orderInstance) {
 		this.orderInstance = orderInstance;
-	}
-
-	public long getFulfilledTime() {
-		return fulfilledTime;
-	}
-
-	public void setFulfilledTime(Long fulfilledTime) {
-		this.fulfilledTime = fulfilledTime;
 	}
 
 	public boolean isLocal(String localMemberId) {
@@ -128,7 +126,7 @@ public abstract class Order {
 	public String toString() {
 		return "Order [id=" + id + ", orderState=" + orderState + ", localToken=" + localToken + ", federationToken="
 				+ federationToken + ", requestingMember=" + requestingMember + ", providingMember=" + providingMember
-				+ ", orderInstance=" + orderInstance + ", fulfilledTime=" + fulfilledTime + "]";
+				+ ", orderInstance=" + orderInstance + "]";
 	}
 
 }

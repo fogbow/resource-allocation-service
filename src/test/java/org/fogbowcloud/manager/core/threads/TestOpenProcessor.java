@@ -8,12 +8,9 @@ import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.models.linkedList.ChainedList;
-import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.orders.UserData;
-import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
-import org.fogbowcloud.manager.core.models.token.Token;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,8 +19,6 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 public class TestOpenProcessor extends BaseUnitTests {
-
-	private static final String LOCAL_MEMBER_ID = "local-member";
 
 	private OpenProcessor openProcessor;
 
@@ -37,7 +32,7 @@ public class TestOpenProcessor extends BaseUnitTests {
 	@Before
 	public void setUp() {
 		this.properties = new Properties();
-		this.properties.setProperty(ConfigurationConstants.XMPP_ID_KEY, getLocalMemberId());
+		this.properties.setProperty(ConfigurationConstants.XMPP_ID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 
 		this.localInstanceProvider = Mockito.mock(InstanceProvider.class);
 		this.remoteInstanceProvider = Mockito.mock(InstanceProvider.class);
@@ -48,17 +43,12 @@ public class TestOpenProcessor extends BaseUnitTests {
 				.spy(new OpenProcessor(this.localInstanceProvider, this.remoteInstanceProvider, this.properties));
 	}
 
-	@Override
+	@After
 	public void tearDown() {
 		if (this.thread != null) {
 			this.thread.interrupt();
 		}
 		super.tearDown();
-	}
-
-	@Override
-	public String getLocalMemberId() {
-		return LOCAL_MEMBER_ID;
 	}
 
 	/**
@@ -270,7 +260,7 @@ public class TestOpenProcessor extends BaseUnitTests {
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
 		openOrdersList.addItem(order);
-
+		
 		Mockito.doThrow(OrderStateTransitionException.class).when(this.openProcessor)
 				.processOpenOrder(Mockito.any(Order.class));
 
