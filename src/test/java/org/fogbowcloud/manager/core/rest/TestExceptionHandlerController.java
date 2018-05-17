@@ -7,6 +7,7 @@ import org.fogbowcloud.manager.core.plugins.identity.exceptions.InvalidCredentia
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.InvalidTokenException;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.rest.controllers.ComputeOrdersController;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -16,7 +17,6 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
 
 public class TestExceptionHandlerController {
@@ -35,13 +35,14 @@ public class TestExceptionHandlerController {
 	
 	@Test
 	public void testInvalidCredentialsException() throws Exception {
-		Mockito.when(computeOrdersController.getAllCompute()).thenThrow(new InvalidCredentialsException());
+		Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString())).thenThrow(new InvalidCredentialsException());
 		
 		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
-				.accept(MediaType.APPLICATION_JSON))
+				.accept(MediaType.APPLICATION_JSON)
+				.header("accessId", Mockito.anyString()))
         		.andReturn().getResponse();
-		
-		JSONObject jsonObject = (JSONObject) JSONValue.parse(response.getContentAsString());
+
+		JSONObject jsonObject = new JSONObject(response.getContentAsString());
 
 		assertEquals(jsonObject.get("details"), "uri=/compute/");
 		assertEquals(jsonObject.get("message"), "Invalid Credentials");
@@ -51,13 +52,14 @@ public class TestExceptionHandlerController {
 	
 	@Test
 	public void testInvalidTokenException() throws Exception {
-		Mockito.when(computeOrdersController.getAllCompute()).thenThrow(new InvalidTokenException());
+		Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString())).thenThrow(new InvalidTokenException());
 		
 		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
-				.accept(MediaType.APPLICATION_JSON))
+				.accept(MediaType.APPLICATION_JSON)
+				.header("accessId", Mockito.anyString()))
         		.andReturn().getResponse();
-		
-		JSONObject jsonObject = (JSONObject) JSONValue.parse(response.getContentAsString());
+
+		JSONObject jsonObject = new JSONObject(response.getContentAsString());
 
 		assertEquals(jsonObject.get("details"), "uri=/compute/");
 		assertEquals(jsonObject.get("message"), "Invalid token");
@@ -67,13 +69,14 @@ public class TestExceptionHandlerController {
 	
 	@Test
 	public void testTokenCreationException() throws Exception {
-		Mockito.when(computeOrdersController.getAllCompute()).thenThrow(new TokenCreationException());
+		Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString())).thenThrow(new TokenCreationException());
 		
 		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
-				.accept(MediaType.APPLICATION_JSON))
+				.accept(MediaType.APPLICATION_JSON)
+				.header("accessId", Mockito.anyString()))
         		.andReturn().getResponse();
-		
-		JSONObject jsonObject = (JSONObject) JSONValue.parse(response.getContentAsString());
+
+		JSONObject jsonObject = new JSONObject(response.getContentAsString());
 
 		assertEquals(jsonObject.get("details"), "uri=/compute/");
 		assertEquals(jsonObject.get("message"), "Token Creation Exception");
@@ -83,14 +86,14 @@ public class TestExceptionHandlerController {
 	
 	@Test
 	public void testAnyException() throws Exception {
-		Mockito.when(computeOrdersController.getAllCompute()).thenThrow(new RuntimeException());
+		Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString())).thenThrow(new RuntimeException());
 		
 		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
-				.accept(MediaType.APPLICATION_JSON))
+				.accept(MediaType.APPLICATION_JSON)
+				.header("accessId", Mockito.anyString()))
         		.andReturn().getResponse();
-		
-		JSONObject jsonObject = (JSONObject) JSONValue.parse(response.getContentAsString());
 
+		JSONObject jsonObject = new JSONObject(response.getContentAsString());
 		assertEquals(jsonObject.get("details"), "uri=/compute/");
 		assertEquals(jsonObject.get("statusCode"), HttpStatus.BAD_REQUEST.name());
 		

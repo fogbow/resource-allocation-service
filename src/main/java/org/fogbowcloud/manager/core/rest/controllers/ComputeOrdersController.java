@@ -49,18 +49,25 @@ public class ComputeOrdersController {
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
-	public ResponseEntity<List<ComputeOrder>> getAllCompute() throws TokenCreationException, UnauthorizedException {
-		return new ResponseEntity<List<ComputeOrder>>(HttpStatus.OK);
+	public ResponseEntity<List<Order>> getAllCompute(
+			@RequestHeader(value = "accessId") String accessId
+	) throws Exception {
+		List<Order> orders = this.applicationController.getAllComputes(accessId, OrderType.COMPUTE);
+		return new ResponseEntity<>(orders, HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
-	public ResponseEntity<ComputeOrder> getComputeById(@PathVariable String id) {
-		return new ResponseEntity<ComputeOrder>(HttpStatus.OK);
+	public ResponseEntity<Order> getComputeById(
+			@PathVariable String id,
+			@RequestHeader(value = "accessId") String accessId
+	) throws Exception {
+		Order order = this.applicationController.getOrderById(id, accessId, OrderType.COMPUTE);
+		return new ResponseEntity<Order>(order, HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
 	public ResponseEntity<Boolean> deleteCompute(@PathVariable String id,
-			@RequestHeader(value = "accessId") String accessId) throws UnauthorizedException, OrderManagementException {
+			@RequestHeader(value = "accessId") String accessId) throws UnauthorizedException, OrderManagementException, UnauthenticatedException {
 		this.applicationController.deleteOrder(id, accessId, OrderType.COMPUTE);
 		return new ResponseEntity<Boolean>(HttpStatus.OK);
 	}

@@ -9,6 +9,8 @@ import org.fogbowcloud.manager.core.models.token.Token.User;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.services.AuthenticationService;
 
+import java.util.List;
+
 public class ApplicationController {
 
 	private static ApplicationController instance;
@@ -33,17 +35,9 @@ public class ApplicationController {
 		return this.authenticationController.getFederationToken(accessId);
 	}
 
-	public Order getOrder(String orderId, String accessId, OrderType orderType) throws UnauthorizedException {
-		Token userFederationToken = this.authenticate(accessId);
-		User user = userFederationToken.getUser();
-
-		Order order = this.ordersManagerController.getOrderByIdAndType(user, orderId, orderType);
-		return order;
-	}
-
 	public void deleteOrder(String orderId, String accessId, OrderType orderType)
-			throws UnauthorizedException, OrderManagementException {
-		Order order = getOrder(orderId, accessId, orderType);
+			throws UnauthorizedException, OrderManagementException, UnauthenticatedException {
+		Order order = this.getOrderById(orderId, accessId, orderType);
 		this.ordersManagerController.deleteOrder(order);
 	}
 
@@ -53,6 +47,18 @@ public class ApplicationController {
 
 	protected void setOrdersManagerController(OrdersManagerController ordersManagerController) {
 		this.ordersManagerController = ordersManagerController;
+	}
+
+	public List<Order> getAllComputes(String accessId, OrderType orderType) throws UnauthorizedException, UnauthenticatedException {
+		this.authenticationController.authenticateAndAuthorize(accessId);
+		Token federationToken = this.authenticationController.getFederationToken(accessId);
+		return this.ordersManagerController.getAllOrdersByType(federationToken, orderType);
+	}
+
+	public Order getOrderById(String id, String accessId, OrderType orderType) throws UnauthorizedException, UnauthenticatedException {
+		this.authenticationController.authenticateAndAuthorize(accessId);
+		Token federationToken = this.authenticationController.getFederationToken(accessId);
+		return this.ordersManagerController.getOrderByIdAndType(id, federationToken, orderType);
 	}
 
 	public void newOrderRequest(Order order, String accessId, String localTokenId)
