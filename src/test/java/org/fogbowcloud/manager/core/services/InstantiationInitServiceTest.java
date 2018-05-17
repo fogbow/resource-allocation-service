@@ -1,22 +1,14 @@
 package org.fogbowcloud.manager.core.services;
 
-import org.fogbowcloud.manager.core.FogbowManagerApplication;
+import java.io.FileInputStream;
+import java.util.Properties;
+
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.compute.ComputePlugin;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
-
-import java.io.FileInputStream;
-import java.util.Properties;
 
 public class InstantiationInitServiceTest {
 

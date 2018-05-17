@@ -1,5 +1,9 @@
 package org.fogbowcloud.manager.core.controllers;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.datastructures.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
@@ -12,10 +16,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 public class OrdersManagerControllerTest extends BaseUnitTests {
 

@@ -10,7 +10,6 @@ import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.models.linkedList.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -63,13 +62,12 @@ public class TestOpenProcessor extends BaseUnitTests {
 	public void testProcessOpenLocalOrder() throws Exception {
 		Order localOrder = this.createLocalOrder(getLocalMemberId());
 
-		OrderInstance orderInstance = new OrderInstance("fake-id");
-
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
 		openOrdersList.addItem(localOrder);
 
-		Mockito.doReturn(orderInstance).when(this.localInstanceProvider).requestInstance(Mockito.any(Order.class));
+		String id = "fake-id";
+		Mockito.doReturn(id).when(this.localInstanceProvider).requestInstance(Mockito.any(Order.class));
 
 		this.thread = new Thread(this.openProcessor);
 		this.thread.start();
@@ -315,9 +313,8 @@ public class TestOpenProcessor extends BaseUnitTests {
 		ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
 		openOrdersList.addItem(localOrder);
 
-		OrderInstance orderInstance = new OrderInstance("fake-id");
-
-		Mockito.doReturn(orderInstance).when(this.localInstanceProvider).requestInstance(Mockito.any(Order.class));
+		String id = "fake-id";
+		Mockito.doReturn(id).when(this.localInstanceProvider).requestInstance(Mockito.any(Order.class));
 
 		synchronized (localOrder) {
 			this.thread = new Thread(this.openProcessor);
@@ -373,14 +370,14 @@ public class TestOpenProcessor extends BaseUnitTests {
 		ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
 		openOrdersList.addItem(localOrder);
 
-		OrderInstance orderInstance = new OrderInstance("fake-id");
+		String id = "fake-id";
 
 		Mockito.when(this.localInstanceProvider.requestInstance(Mockito.any(Order.class)))
-				.thenAnswer(new Answer<OrderInstance>() {
+				.thenAnswer(new Answer<String>() {
 					@Override
-					public OrderInstance answer(InvocationOnMock invocation) throws InterruptedException {
+					public String answer(InvocationOnMock invocation) throws InterruptedException {
 						Thread.sleep(500);
-						return orderInstance;
+						return id;
 					}
 				});
 

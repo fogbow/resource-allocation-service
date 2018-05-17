@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.services;
 
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.plugins.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.IdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.PluginFactory;
 import org.fogbowcloud.manager.core.plugins.compute.ComputePlugin;
@@ -68,6 +69,11 @@ public class InstantiationInitService {
         return this.getIdentityPlugin(ConfigurationConstants.FEDERATION_PREFIX);
     }
 
+    public AuthorizationPlugin getAuthorizationPlugin() {
+    	String className = this.getPropertyValue(ConfigurationConstants.AUTHORIZATION_CLASS_KEY);
+    	return (AuthorizationPlugin) this.pluginFactory.createPluginInstance(className, this.properties);
+    }
+    
     private IdentityPlugin getIdentityPlugin(String prefix) {
         String className =  this.getPropertyValue(prefix + ConfigurationConstants.IDENTITY_CLASS_KEY);
         return (IdentityPlugin) this.pluginFactory.getIdentityPluginByPrefix(prefix, className, this.properties);

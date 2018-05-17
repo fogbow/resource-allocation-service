@@ -1,5 +1,8 @@
 package org.fogbowcloud.manager.core.rest;
 
+import static org.junit.Assert.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.InvalidCredentialsException;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.InvalidTokenException;
 import org.fogbowcloud.manager.core.plugins.identity.exceptions.TokenCreationException;
@@ -15,9 +18,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import net.minidev.json.JSONObject;
 import net.minidev.json.JSONValue;
-
-import static org.junit.Assert.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 public class TestExceptionHandlerController {
 	

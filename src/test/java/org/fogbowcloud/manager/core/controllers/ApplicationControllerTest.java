@@ -41,15 +41,14 @@ public class ApplicationControllerTest extends BaseUnitTests {
 				Mockito.anyString(), Mockito.any(OrderType.class));
 
 		Mockito.doReturn(order.getFederationToken()).when(this.authenticationService)
-				.authenticate(Mockito.anyString());
+				.getFederationToken(Mockito.anyString());
 
-		this.applicationController.deleteOrder(order.getId(),
-				order.getFederationToken().getAccessId(), OrderType.COMPUTE);
+		this.applicationController.deleteOrder(order.getId(), order.getFederationToken().getAccessId(),
+				OrderType.COMPUTE);
 	}
 
 	@Test(expected = OrderManagementException.class)
-	public void testDeleteComputeOrderNotFound()
-			throws UnauthorizedException, OrderManagementException {
+	public void testDeleteComputeOrderNotFound() throws UnauthorizedException, OrderManagementException {
 		Mockito.doThrow(new OrderManagementException("Not found")).when(this.ordersManagerController)
 				.deleteOrder(Mockito.any(Order.class));
 
@@ -58,33 +57,30 @@ public class ApplicationControllerTest extends BaseUnitTests {
 				Mockito.anyString(), Mockito.any(OrderType.class));
 
 		Mockito.doReturn(order.getFederationToken()).when(this.authenticationService)
-				.authenticate(Mockito.anyString());
+				.getFederationToken(Mockito.anyString());
 
-		this.applicationController.deleteOrder(order.getId(),
-				order.getFederationToken().getAccessId(), OrderType.COMPUTE);
+		this.applicationController.deleteOrder(order.getId(), order.getFederationToken().getAccessId(),
+				OrderType.COMPUTE);
 	}
 
 	@Test(expected = UnauthorizedException.class)
-	public void testDeleteComputeUnauthorized()
-			throws UnauthorizedException, OrderManagementException {
+	public void testDeleteComputeUnauthorized() throws UnauthorizedException, OrderManagementException {
 		Order order = createComputeOrder();
 
 		Mockito.doThrow(new UnauthorizedException()).when(this.authenticationService)
-				.authenticate(Mockito.anyString());
+				.getFederationToken(Mockito.anyString());
 
-		this.applicationController.deleteOrder(order.getId(),
-				order.getFederationToken().getAccessId(), OrderType.COMPUTE);
+		this.applicationController.deleteOrder(order.getId(), order.getFederationToken().getAccessId(),
+				OrderType.COMPUTE);
 	}
 
 	private Order createComputeOrder() {
 		User user = new User("fake-user-id", "fake-user-name");
-		Token localToken = new Token("fake-accessId", user, new Date(),
-				new HashMap<String, String>());
-		Token federationToken = new Token("fake-accessId", user, new Date(),
-				new HashMap<String, String>());
+		Token localToken = new Token("fake-accessId", user, new Date(), new HashMap<String, String>());
+		Token federationToken = new Token("fake-accessId", user, new Date(), new HashMap<String, String>());
 
-		Order order = new ComputeOrder(localToken, federationToken, "fake-member-id",
-				"fake-member-id", 2, 2, 30, "fake-image-name", new UserData(), "fake-public-key");
+		Order order = new ComputeOrder(localToken, federationToken, "fake-member-id", "fake-member-id", 2, 2, 30,
+				"fake-image-name", new UserData(), "fake-public-key");
 		return order;
 	}
 

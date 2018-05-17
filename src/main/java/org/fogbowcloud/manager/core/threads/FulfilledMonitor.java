@@ -23,6 +23,7 @@ import java.util.Properties;
  * Process orders in fulfilled state. It monitors the resourced that have been
  * successfully initiated, to check for failures that may affect them.
  */
+//FIXME change the name to FulfilledProcessor
 public class FulfilledMonitor implements Runnable {
 
     private static final Logger LOGGER = Logger.getLogger(FulfilledMonitor.class);
@@ -129,8 +130,13 @@ public class FulfilledMonitor implements Runnable {
 
         OrderType orderType = order.getType();
 
-        // We can have a getInstanceState method in InstanceProvider
-        InstanceState instanceState = instanceProvider.getInstance(order).getState();
+        InstanceState instanceState = null;
+        try {
+            instanceState = instanceProvider.getInstance(order).getState();
+        } catch (Exception e) {
+            LOGGER.error("Error while getting instance from the cloud.", e);
+            return;
+        }
 
         if (instanceState.equals(InstanceState.FAILED)) {
             LOGGER.info("Instance state is failed for order [" + order.getId() + "]");

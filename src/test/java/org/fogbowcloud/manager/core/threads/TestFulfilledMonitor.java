@@ -83,7 +83,7 @@ public class TestFulfilledMonitor extends BaseUnitTests {
      * @throws InterruptedException
      */
     @Test
-    public void testRunProcessLocalComputeOrderInstanceReachable() throws InterruptedException {
+    public void testRunProcessLocalComputeOrderInstanceReachable() throws Exception {
         Order order = this.createLocalOrder();
         order.setOrderState(OrderState.FULFILLED);
 
@@ -118,7 +118,7 @@ public class TestFulfilledMonitor extends BaseUnitTests {
      * @throws InterruptedException
      */
     @Test
-    public void testRunProcessRemoteComputeOrderInstanceReachable() throws InterruptedException {
+    public void testRunProcessRemoteComputeOrderInstanceReachable() throws Exception {
         Order order = this.createRemoteOrder();
         order.setOrderState(OrderState.FULFILLED);
 
@@ -153,7 +153,7 @@ public class TestFulfilledMonitor extends BaseUnitTests {
      * @throws InterruptedException
      */
     @Test
-    public void testRunProcessLocalComputeOrderInstanceNotReachable() throws InterruptedException {
+    public void testRunProcessLocalComputeOrderInstanceNotReachable() throws Exception {
         Order order = this.createLocalOrder();
         order.setOrderState(OrderState.FULFILLED);
 
@@ -192,7 +192,7 @@ public class TestFulfilledMonitor extends BaseUnitTests {
      * @throws InterruptedException
      */
     @Test
-    public void testRunProcessRemoteComputeOrderInstanceNotReachable() throws InterruptedException {
+    public void testRunProcessRemoteComputeOrderInstanceNotReachable() throws Exception {
         Order order = this.createRemoteOrder();
         order.setOrderState(OrderState.FULFILLED);
 
@@ -231,7 +231,7 @@ public class TestFulfilledMonitor extends BaseUnitTests {
      * @throws InterruptedException
      */
     @Test
-    public void testRunProcessLocalComputeOrderInstanceFailed() throws InterruptedException {
+    public void testRunProcessLocalComputeOrderInstanceFailed() throws Exception {
         Order order = this.createLocalOrder();
         order.setOrderState(OrderState.FULFILLED);
 
@@ -265,7 +265,7 @@ public class TestFulfilledMonitor extends BaseUnitTests {
      * @throws InterruptedException
      */
     @Test
-    public void testRunProcessRemoteComputeOrderInstanceFailed() throws InterruptedException {
+    public void testRunProcessRemoteComputeOrderInstanceFailed() throws Exception {
         Order order = this.createRemoteOrder();
         order.setOrderState(OrderState.FULFILLED);
 
