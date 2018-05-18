@@ -336,7 +336,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     @Test
-    public void testRunExceptionWhileTryingToProcessInstance() throws OrderStateTransitionException {
+    public void testRunExceptionWhileTryingToProcessInstance() throws Exception {
         Order order = this.createLocalOrder();
         order.setOrderState(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);

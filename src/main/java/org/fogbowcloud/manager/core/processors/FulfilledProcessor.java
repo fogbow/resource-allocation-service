@@ -23,7 +23,6 @@ import java.util.Properties;
  * Process orders in fulfilled state. It monitors the resourced that have been
  * successfully initiated, to check for failures that may affect them.
  */
-//FIXME change the name to FulfilledProcessor
 public class FulfilledProcessor implements Runnable {
 
     private static final Logger LOGGER = Logger.getLogger(FulfilledProcessor.class);
@@ -54,9 +53,9 @@ public class FulfilledProcessor implements Runnable {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
 
-        String schedulerPeriodStr = properties.getProperty(ConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME_KEY,
+        String sleepTimeStr = properties.getProperty(ConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME_KEY,
                 DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME);
-        this.sleepTime = Long.valueOf(schedulerPeriodStr);
+        this.sleepTime = Long.valueOf(sleepTimeStr);
     }
 
     /**
@@ -74,7 +73,7 @@ public class FulfilledProcessor implements Runnable {
 
                 if (order != null) {
                     try {
-                        this.processFulfilledOrder(order);
+                        processFulfilledOrder(order);
                     } catch (OrderStateTransitionException e) {
                         LOGGER.error("Error while trying to process the order " + order, e);
                     }
@@ -94,8 +93,8 @@ public class FulfilledProcessor implements Runnable {
     }
 
     /**
-     * Get an instance for a fulfilled order. If that instance is not reachable
-     * then order state is set to failed.
+     * Gets an instance for a fulfilled order. If that instance is not reachable
+     * the order state is set to failed.
      *
      * @param order {@link Order}
      * @throws OrderStateTransitionException Could not remove order from list of fulfilled orders.
@@ -108,11 +107,11 @@ public class FulfilledProcessor implements Runnable {
                 LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
 
                 try {
-                    this.processInstance(order);
+                    processInstance(order);
                 } catch (OrderStateTransitionException e) {
-                    LOGGER.error("Error while trying to get an instance for order: " + order, e);
-
-                    LOGGER.info("Transition [" + order.getId() + "] order state from fulfilled to failed");
+                    LOGGER.error("Transition [" + order.getId() + "] order state from fulfilled to failed");
+                } catch (Exception e) {
+                    LOGGER.error("Error while getting instance from the cloud.", e);
                     OrderStateTransitioner.transition(order, OrderState.FAILED);
                 }
             }
@@ -125,18 +124,12 @@ public class FulfilledProcessor implements Runnable {
      *
      * @param order {@link Order}
      */
-    protected void processInstance(Order order) throws OrderStateTransitionException {
-        InstanceProvider instanceProvider = this.getInstanceProviderForOrder(order);
+    protected void processInstance(Order order) throws Exception {
+        InstanceProvider instanceProvider = getInstanceProviderForOrder(order);
 
         OrderType orderType = order.getType();
 
-        InstanceState instanceState = null;
-        try {
-            instanceState = instanceProvider.getInstance(order).getState();
-        } catch (Exception e) {
-            LOGGER.error("Error while getting instance from the cloud.", e);
-            return;
-        }
+        InstanceState instanceState = instanceProvider.getInstance(order).getState();
 
         if (instanceState.equals(InstanceState.FAILED)) {
             LOGGER.info("Instance state is failed for order [" + order.getId() + "]");
@@ -144,6 +137,7 @@ public class FulfilledProcessor implements Runnable {
         } else if (instanceState.equals(InstanceState.ACTIVE) && orderType.equals(OrderType.COMPUTE)) {
             LOGGER.info("Processing active compute instance for order [" + order.getId() + "]");
 
+            // TODO Need to get the tunnelling information
             ComputeOrderInstance computeOrderInstance = (ComputeOrderInstance) order.getOrderInstance();
             computeOrderInstance.setState(instanceState);
 

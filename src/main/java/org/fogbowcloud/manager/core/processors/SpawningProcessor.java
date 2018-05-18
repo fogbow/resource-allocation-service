@@ -104,6 +104,8 @@ public class SpawningProcessor implements Runnable {
 				LOGGER.info("Processing active compute instance for order [" + order.getId() + "]");
 
 				ComputeOrderInstance computeOrderInstance = (ComputeOrderInstance) orderInstance;
+
+				// TODO Check tunnel interaction to try to avoid doing this multiple times
 				this.computeInstanceConnectivity.setTunnelingServiceAddresses(order, computeOrderInstance);
 
 				if (this.computeInstanceConnectivity.isInstanceReachable(computeOrderInstance)) {

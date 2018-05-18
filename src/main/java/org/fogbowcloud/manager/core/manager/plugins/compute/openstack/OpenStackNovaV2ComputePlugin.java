@@ -446,6 +446,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
     @Override
     public void deleteInstance(Token localToken, OrderInstance instance) throws RequestException {
+        if (instance.getId() == null) {
+            throw new RequestException();
+        }
         String endpoint = getComputeEndpoint(getTenantId(localToken), SERVERS + "/" + instance.getId());
 
         doDeleteRequest(endpoint, localToken);

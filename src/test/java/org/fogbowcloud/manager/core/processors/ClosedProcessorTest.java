@@ -1,13 +1,13 @@
 package org.fogbowcloud.manager.core.processors;
 
 import org.fogbowcloud.manager.core.BaseUnitTests;
+import org.fogbowcloud.manager.core.OrderController;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
-import org.fogbowcloud.manager.core.models.token.Token;
 
 import java.util.Map;
 import java.util.Properties;
@@ -18,9 +18,9 @@ import org.mockito.Mockito;
 
 import static org.junit.Assert.*;
 
-public class ClosedComputeOrdersProcessorTest extends BaseUnitTests {
+public class ClosedProcessorTest extends BaseUnitTests {
 
-    private ClosedComputeOrdersProcessor closedComputeOrdersProcessor;
+    private ClosedProcessor closedProcessor;
 
     private InstanceProvider localInstanceProvider;
     private InstanceProvider remoteInstanceProvider;
@@ -28,17 +28,20 @@ public class ClosedComputeOrdersProcessorTest extends BaseUnitTests {
     private Properties properties;
 
     private Thread thread;
+    private OrderController orderController;
 
     @Before
     public void setUp() {
         this.properties = new Properties();
         this.properties.setProperty(ConfigurationConstants.XMPP_ID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 
+        this.orderController = Mockito.mock(OrderController.class);
         this.localInstanceProvider = Mockito.mock(InstanceProvider.class);
         this.remoteInstanceProvider = Mockito.mock(InstanceProvider.class);
 
-        this.closedComputeOrdersProcessor = Mockito
-                .spy(new ClosedComputeOrdersProcessor(this.properties, this.localInstanceProvider, this.remoteInstanceProvider));
+        this.closedProcessor = Mockito
+                .spy(new ClosedProcessor(this.localInstanceProvider, this.remoteInstanceProvider,
+                        this.orderController, this.properties));
     }
 
     @Override
@@ -66,7 +69,7 @@ public class ClosedComputeOrdersProcessorTest extends BaseUnitTests {
         Mockito.doNothing().when(this.localInstanceProvider)
                 .deleteInstance(Mockito.any(OrderInstance.class));
 
-        this.thread = new Thread(this.closedComputeOrdersProcessor);
+        this.thread = new Thread(this.closedProcessor);
         this.thread.start();
 
         Thread.sleep(500);
@@ -93,7 +96,7 @@ public class ClosedComputeOrdersProcessorTest extends BaseUnitTests {
         Mockito.doThrow(Exception.class).when(this.localInstanceProvider)
                 .deleteInstance(Mockito.any(OrderInstance.class));
 
-        this.thread = new Thread(this.closedComputeOrdersProcessor);
+        this.thread = new Thread(this.closedProcessor);
         this.thread.start();
 
         Thread.sleep(500);

@@ -12,6 +12,7 @@ public class SharedOrderHolders {
     private static SharedOrderHolders instance;
 
     private Map<String, Order> activeOrdersMap;
+
     private SynchronizedDoublyLinkedList openOrders;
     private SynchronizedDoublyLinkedList spawningOrders;
     private SynchronizedDoublyLinkedList failedOrders;

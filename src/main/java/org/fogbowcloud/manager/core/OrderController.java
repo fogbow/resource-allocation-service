@@ -106,4 +106,14 @@ public class OrderController {
         }
     }
 
+    public void removeOrderFromActiveOrdersMap(Order order) {
+        Map<String, Order> activeOrdersMap = this.orderHolders.getActiveOrdersMap();
+        if (activeOrdersMap.containsKey(order.getId())) {
+            activeOrdersMap.remove(order.getId());
+        } else {
+            String message = "Tried to remove order %s from the active orders but there were no order with this id";
+            LOGGER.error(String.format(message, order.getId()));
+        }
+    }
+
 }
