@@ -1,11 +1,13 @@
 package org.fogbowcloud.manager.core.processors;
 
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.manager.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
+import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -19,25 +21,29 @@ import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
 
 import java.util.Properties;
 
-// FIXME change the name to SpawningProcessor
-public class SpawningProcessor extends Thread {
+public class SpawningProcessor implements Runnable {
 
 	private static final Logger LOGGER = Logger.getLogger(SpawningProcessor.class);
 
-	private SynchronizedDoublyLinkedList spawningOrderList;
+	private ChainedList spawningOrderList;
 	private ComputeInstanceConnectivityUtils computeInstanceConnectivity;
+
 	private Long sleepTime;
 
+	private InstanceProvider localInstanceProvider;
+
 	public SpawningProcessor(TunnelingServiceUtil tunnelingService, SshConnectivityUtil sshConnectivity,
-							 Properties properties) {
+							 InstanceProvider localInstanceProvider, Properties properties) {
 		this.computeInstanceConnectivity = new ComputeInstanceConnectivityUtils(tunnelingService, sshConnectivity);
+
+		this.localInstanceProvider = localInstanceProvider;
 
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();
 
-		String schedulerPeriodStr = properties.getProperty(ConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME_KEY,
+		String sleepTimeStr = properties.getProperty(ConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME_KEY,
 				DefaultConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME);
-		this.sleepTime = Long.valueOf(schedulerPeriodStr);
+		this.sleepTime = Long.valueOf(sleepTimeStr);
 	}
 
 	@Override
@@ -48,9 +54,9 @@ public class SpawningProcessor extends Thread {
 				Order order = this.spawningOrderList.getNext();
 				if (order != null) {
 					try {
-						this.processSpawningOrder(order);
-					} catch (Throwable e) {
-						LOGGER.error("Error while trying to process the order " + order, e);
+						processSpawningOrder(order);
+					} catch (OrderStateTransitionException e) {
+						LOGGER.error("Error while trying to change the state of order " + order, e);
 					}
 				} else {
 					this.spawningOrderList.resetPointer();
@@ -61,20 +67,18 @@ public class SpawningProcessor extends Thread {
 			} catch (InterruptedException e) {
 				isActive = false;
 				LOGGER.warn("Thread interrupted", e);
+			} catch (Throwable e) {
+				LOGGER.error("Unexpected error", e);
 			}
 		}
 	}
 
-	protected void processSpawningOrder(Order order) {
+	protected void processSpawningOrder(Order order) throws Exception {
 		synchronized (order) {
 			OrderState orderState = order.getOrderState();
 			if (orderState.equals(OrderState.SPAWNING)) {
 				LOGGER.info("Trying to process an instance for order [" + order.getId() + "]");
-				try {
-					this.processInstance(order);
-				} catch (OrderStateTransitionException e) {
-					LOGGER.error("Error while trying to changing the state of order " + order, e);
-				}
+				processInstance(order);
 			} else {
 				LOGGER.info("This order state is not spawning for order [" + order.getId() + "]");
 			}
@@ -85,8 +89,8 @@ public class SpawningProcessor extends Thread {
 	 * This method does not synchronize the order object because it is private and
 	 * can only be called by the processSpawningOrder method.
 	 */
-	private void processInstance(Order order) throws OrderStateTransitionException {
-		OrderInstance orderInstance = order.getOrderInstance();
+	private void processInstance(Order order) throws Exception {
+		OrderInstance orderInstance = this.localInstanceProvider.getInstance(order);
 		OrderType orderType = order.getType();
 		
 		if (orderType.equals(OrderType.COMPUTE)) {

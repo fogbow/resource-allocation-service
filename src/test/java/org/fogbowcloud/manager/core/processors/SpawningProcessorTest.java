@@ -6,6 +6,7 @@ import java.util.Properties;
 
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
+import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -27,13 +28,14 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
 	private Properties properties;
 
-    private TunnelingServiceUtil tunnelingService;
+	private InstanceProvider instanceProvider;
+
+	private TunnelingServiceUtil tunnelingService;
 	private SshConnectivityUtil sshConnectivity;
-	
+
 	private SpawningProcessor spawningProcessor;
-	
+
 	private Thread thread;
-	
 	private ChainedList spawningOrderList;
 	private ChainedList fulfilledOrderList;
 	private ChainedList failedOrderList;
@@ -45,10 +47,11 @@ public class SpawningProcessorTest extends BaseUnitTests {
 	public void setUp() {
 		this.tunnelingService = Mockito.mock(TunnelingServiceUtil.class);
 		this.sshConnectivity = Mockito.mock(SshConnectivityUtil.class);
+		this.instanceProvider = Mockito.mock(InstanceProvider.class);
 		this.properties = new Properties();
 		this.properties.put(ConfigurationConstants.XMPP_ID_KEY, ".");
 		this.spawningProcessor = Mockito
-				.spy(new SpawningProcessor(this.tunnelingService, this.sshConnectivity, this.properties));
+				.spy(new SpawningProcessor(this.tunnelingService, this.sshConnectivity, this.instanceProvider, this.properties));
 		this.thread = null;
 
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
@@ -70,7 +73,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
 	}
 	
 	@Test
-	public void testRunThrowableExceptionWhileTryingToProcessOrder() throws InterruptedException {
+	public void testRunThrowableExceptionWhileTryingToProcessOrder() throws Exception {
 		Order order = Mockito.mock(Order.class);
 		OrderState state = null;
 		order.setOrderState(state);
@@ -158,7 +161,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
 	}
 
 	@Test
-	public void testProcessWithoutModifyOpenOrderState() throws InterruptedException {
+	public void testProcessWithoutModifyOpenOrderState() throws Exception {
 		Order order = this.createOrder();
 		order.setOrderState(OrderState.OPEN);
 		this.openOrderList.addItem(order);
@@ -173,7 +176,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
 	}
 
 	@Test
-	public void testProcessWithoutModifyPendingOrderState() throws InterruptedException {
+	public void testProcessWithoutModifyPendingOrderState() throws Exception {
 		Order order = this.createOrder();
 		order.setOrderState(OrderState.PENDING);
 		this.pendingOrderList.addItem(order);
@@ -188,7 +191,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
 	}
 
 	@Test
-	public void testProcessWithoutModifyFailedOrderState() throws InterruptedException {
+	public void testProcessWithoutModifyFailedOrderState() throws Exception {
 		Order order = this.createOrder();
 		order.setOrderState(OrderState.FAILED);
 		this.failedOrderList.addItem(order);
@@ -202,7 +205,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
 	}
 
 	@Test
-	public void testProcessWithoutModifyFulfilledOrderState() throws InterruptedException {
+	public void testProcessWithoutModifyFulfilledOrderState() throws Exception {
 		Order order = this.createOrder();
 		order.setOrderState(OrderState.FULFILLED);
 		this.fulfilledOrderList.addItem(order);
@@ -216,7 +219,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
 	}
 
 	@Test
-	public void testProcessWithoutModifyClosedOrderState() throws InterruptedException {
+	public void testProcessWithoutModifyClosedOrderState() throws Exception {
 		Order order = this.createOrder();
 		order.setOrderState(OrderState.CLOSED);
 		this.closedOrderList.addItem(order);

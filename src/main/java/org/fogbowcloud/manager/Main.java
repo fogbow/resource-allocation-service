@@ -24,7 +24,7 @@ public class Main implements ApplicationRunner {
     private Properties properties;
 
     private ApplicationFacade facade = ApplicationFacade.getInstance();
-    private ProcessingController processingController;
+    private ProcessorController processorController;
     private AAAController aaaController;
 
     @Override
@@ -44,7 +44,7 @@ public class Main implements ApplicationRunner {
         InstanceProvider localInstanceProvider = new LocalInstanceProvider(computePlugin, this.aaaController);
         InstanceProvider remoteInstanceProvider = new RemoteInstanceProvider();
 
-        this.processingController = new ProcessingController(this.properties, localInstanceProvider, remoteInstanceProvider,
+        this.processorController = new ProcessorController(this.properties, localInstanceProvider, remoteInstanceProvider,
                 computePlugin, localIdentityPlugin, federationIdentityPlugin);
 
         this.facade.setAAAController(this.aaaController);

@@ -14,10 +14,10 @@ public class CommonConfigurationConstants {
 	// from the old class Instance in fogbow-manager
 	public static final String SSH_USERNAME_ATT = "org.fogbowcloud.order.ssh-username";
 	
-	// from the old class ProcessingController in fogbow-manager
+	// from the old class ProcessorController in fogbow-manager
 	public static final int DEFAULT_MAX_IP_MONITORING_TRIES = 90; // reference value is 30 tries
 
-	// from the old class ProcessingController in fogbow-manager
+	// from the old class ProcessorController in fogbow-manager
 	public static final int DEFAULT_MAX_POOL = 200;
 
 }

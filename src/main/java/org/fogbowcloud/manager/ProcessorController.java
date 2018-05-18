@@ -12,7 +12,7 @@ import org.fogbowcloud.manager.core.processors.SpawningProcessor;
 import org.fogbowcloud.manager.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
 
-public class ProcessingController {
+public class ProcessorController {
 
 	private InstanceProvider localInstanceProvider;
 	private InstanceProvider remoteInstanceProvider;
@@ -30,11 +30,11 @@ public class ProcessingController {
 	private IdentityPlugin localIdentityPlugin;
 	private IdentityPlugin federationIdentityPlugin;
 
-	private static final Logger LOGGER = Logger.getLogger(ProcessingController.class);
+	private static final Logger LOGGER = Logger.getLogger(ProcessorController.class);
 
-	public ProcessingController(Properties properties, InstanceProvider localInstanceProvider,
-								InstanceProvider remoteInstanceProvider, ComputePlugin computePlugin, IdentityPlugin localIdentityPlugin,
-								IdentityPlugin federationIdentityPlugin) {
+	public ProcessorController(Properties properties, InstanceProvider localInstanceProvider,
+							   InstanceProvider remoteInstanceProvider, ComputePlugin computePlugin, IdentityPlugin localIdentityPlugin,
+							   IdentityPlugin federationIdentityPlugin) {
 
 		this.properties = properties;
 
@@ -52,7 +52,8 @@ public class ProcessingController {
 		
 		TunnelingServiceUtil tunnelingServiceUtil = TunnelingServiceUtil.getInstance();
 		SshConnectivityUtil sshConnectivityUtil = SshConnectivityUtil.getInstance();
-		SpawningProcessor spawningProcessor = new SpawningProcessor(tunnelingServiceUtil, sshConnectivityUtil, this.properties);
+		SpawningProcessor spawningProcessor = new SpawningProcessor(tunnelingServiceUtil,
+				sshConnectivityUtil, localInstanceProvider, this.properties);
 		this.spawningProcessorThread = new Thread(spawningProcessor);
 
 		this.startManagerThreads();

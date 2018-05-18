@@ -40,9 +40,9 @@ public class OpenProcessor implements Runnable {
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		this.openOrdersList = sharedOrderHolders.getOpenOrdersList();
 
-		String schedulerPeriodStr = properties.getProperty(ConfigurationConstants.OPEN_ORDERS_SLEEP_TIME_KEY,
+		String sleepTimeStr = properties.getProperty(ConfigurationConstants.OPEN_ORDERS_SLEEP_TIME_KEY,
 				DefaultConfigurationConstants.OPEN_ORDERS_SLEEP_TIME);
-		this.sleepTime = Long.valueOf(schedulerPeriodStr);
+		this.sleepTime = Long.valueOf(sleepTimeStr);
 	}
 
 	/**
@@ -58,13 +58,13 @@ public class OpenProcessor implements Runnable {
 				Order order = this.openOrdersList.getNext();
 				if (order != null) {
 					try {
-						this.processOpenOrder(order);
+						processOpenOrder(order);
 					} catch (OrderStateTransitionException e) {
-						LOGGER.error("Error while trying to changing the state of order " + order, e);
+						LOGGER.error("Error while trying to change the state of order " + order, e);
 					}
 				} else {
 					this.openOrdersList.resetPointer();
-					LOGGER.info(
+					LOGGER.debug(
 							"There is no open order to be processed, sleeping for " + this.sleepTime + " milliseconds");
 					Thread.sleep(this.sleepTime);
 				}
@@ -72,10 +72,7 @@ public class OpenProcessor implements Runnable {
 				isActive = false;
 				LOGGER.warn("Thread interrupted", e);
 			} catch (Throwable e) {
-				// We are not sure about what do if the thread catch a
-				// throwable. For example: stop the thread and the
-				// fogbow-manager or continue the thread normally.
-				LOGGER.error("Not expected error", e);
+				LOGGER.error("Unexpected error", e);
 			}
 		}
 	}
@@ -101,9 +98,6 @@ public class OpenProcessor implements Runnable {
 
 				try {
 					InstanceProvider instanceProvider = this.getInstanceProviderForOrder(order);
-
-					// TODO: prepare order to change its state from open to
-					// spawning.
 
 					LOGGER.info("Processing order [" + order.getId() + "]");
 					String orderInstanceId = instanceProvider.requestInstance(order);
@@ -166,11 +160,11 @@ public class OpenProcessor implements Runnable {
 	private InstanceProvider getInstanceProviderForOrder(Order order) {
 		InstanceProvider instanceProvider = null;
 		if (order.isLocal(this.localMemberId)) {
-			LOGGER.info("The open order [" + order.getId() + "] is local");
+			LOGGER.debug("The open order [" + order.getId() + "] is local");
 
 			instanceProvider = this.localInstanceProvider;
 		} else {
-			LOGGER.info("The open order [" + order.getId() + "] is remote for the member [" + order.getProvidingMember()
+			LOGGER.debug("The open order [" + order.getId() + "] is remote for the member [" + order.getProvidingMember()
 					+ "]");
 
 			instanceProvider = this.remoteInstanceProvider;

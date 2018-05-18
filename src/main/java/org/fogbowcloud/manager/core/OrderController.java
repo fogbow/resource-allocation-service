@@ -84,6 +84,7 @@ public class OrderController {
             String message = "Can't process new order request. Order reference is null.";
             throw new OrderManagementException(message);
         }
+
         order.setFederationToken(federationToken);
         addOrderInActiveOrdersMap(order);
     }
@@ -99,6 +100,7 @@ public class OrderController {
                 throw new OrderManagementException(message);
             }
 
+            order.setOrderState(OrderState.OPEN);
             activeOrdersMap.put(orderId, order);
             openOrdersList.addItem(order);
         }

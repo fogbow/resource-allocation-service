@@ -19,7 +19,6 @@ public interface InstanceProvider {
 	/**
 	 * Signals the cloud that the provided instance is no longer required.
 	 *
-	 * @param token
 	 * @param orderInstance
 	 * @throws Exception
 	 * 			   if a failure occurred when requesting the deletion of an instance
