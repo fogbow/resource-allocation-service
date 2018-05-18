@@ -348,7 +348,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     private Order createLocalOrder() {
-        Token localToken = Mockito.mock(Token.class);
         Token federationToken = Mockito.mock(Token.class);
         UserData userData = Mockito.mock(UserData.class);
         String imageName = "fake-image-name";
@@ -356,13 +355,12 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         String providingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
         String publicKey = "fake-public-key";
 
-        Order localOrder = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024, 30,
+        Order localOrder = new ComputeOrder(federationToken, requestingMember, providingMember, 8, 1024, 30,
                 imageName, userData, publicKey);
         return localOrder;
     }
 
     private Order createRemoteOrder() {
-        Token localToken = Mockito.mock(Token.class);
         Token federationToken = Mockito.mock(Token.class);
         UserData userData = Mockito.mock(UserData.class);
         String imageName = "fake-image-name";
@@ -370,7 +368,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         String providingMember = "fake-remote-member";
         String publicKey = "fake-public-key";
 
-        Order remoteOrder = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024,
+        Order remoteOrder = new ComputeOrder(federationToken, requestingMember, providingMember, 8, 1024,
                 30, imageName, userData, publicKey);
         return remoteOrder;
     }

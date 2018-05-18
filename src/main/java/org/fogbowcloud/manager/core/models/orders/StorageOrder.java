@@ -11,15 +11,15 @@ public class StorageOrder extends Order {
 	/**
 	 * Creating Order with predefined Id.
 	 */
-	public StorageOrder(String id, Token localToken, Token federationToken, String requestingMember,
+	public StorageOrder(String id, Token federationToken, String requestingMember,
 			String providingMember, int storageSize) {
-		super(id, localToken, federationToken, requestingMember, providingMember);
+		super(id, federationToken, requestingMember, providingMember);
 		this.storageSize = storageSize;
 	}
 
-	public StorageOrder(Token localToken, Token federationToken, String requestingMember, String providingMember,
+	public StorageOrder(Token federationToken, String requestingMember, String providingMember,
 			int storageSize) {
-		this(UUID.randomUUID().toString(), localToken, federationToken, requestingMember, providingMember, storageSize);
+		this(UUID.randomUUID().toString(), federationToken, requestingMember, providingMember, storageSize);
 	}
 
 	public int getStorageSize() {

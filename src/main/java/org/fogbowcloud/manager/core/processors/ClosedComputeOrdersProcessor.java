@@ -76,7 +76,7 @@ public class ClosedComputeOrdersProcessor implements Runnable {
             if (order.getOrderInstance() != null &&
                     order.getOrderInstance().getId() != null) {
                 InstanceProvider provider = getInstanceProviderForOrder(order);
-                provider.deleteInstance(order.getLocalToken(), order.getOrderInstance());
+                provider.deleteInstance(order.getOrderInstance());
             } else {
                 LOGGER.info(String.format("Order %s has no instance associated", order.getId()));
             }
@@ -84,7 +84,7 @@ public class ClosedComputeOrdersProcessor implements Runnable {
     }
 
     private void deactivateOrder(Order order) {
-        Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
+        Map<String, Order> activeOrdersMap = this.sharedOrderHolders.getActiveOrdersMap();
         if (activeOrdersMap.containsKey(order.getId())) {
             activeOrdersMap.remove(order.getId());
         } else {

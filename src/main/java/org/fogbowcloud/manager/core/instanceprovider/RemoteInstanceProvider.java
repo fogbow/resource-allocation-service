@@ -12,12 +12,12 @@ public class RemoteInstanceProvider implements InstanceProvider {
     }
 
     @Override
-    public OrderInstance getInstance(Order order) {
-        return null;
+    public void deleteInstance(OrderInstance orderInstance) throws Exception {
+
     }
 
     @Override
-    public void deleteInstance(Token localToken, OrderInstance orderInstance) throws Exception {
-
+    public OrderInstance getInstance(Order order) throws Exception {
+        return null;
     }
 }

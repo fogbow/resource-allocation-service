@@ -262,7 +262,7 @@ public class TestDefaultLaunchCommandGenerator {
 				.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
 		String publicKey = "fake-public-key";
 
-		ComputeOrder localOrder = new ComputeOrder(localToken, federationToken, requestingMember,
+		ComputeOrder localOrder = new ComputeOrder(federationToken, requestingMember,
 				providingMember, 8, 1024, 30, imageName, userData, publicKey);
 		return localOrder;
 	}
@@ -278,7 +278,7 @@ public class TestDefaultLaunchCommandGenerator {
 				.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
 		String publicKey = "fake-public-key";
 
-		ComputeOrder localOrder = new ComputeOrder(localToken, federationToken, requestingMember,
+		ComputeOrder localOrder = new ComputeOrder(federationToken, requestingMember,
 				providingMember, 8, 1024, 30, imageName, userData, publicKey);
 		return localOrder;
 	}
@@ -293,7 +293,7 @@ public class TestDefaultLaunchCommandGenerator {
 		String providingMember = String
 				.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
 
-		ComputeOrder localOrder = new ComputeOrder(localToken, federationToken, requestingMember,
+		ComputeOrder localOrder = new ComputeOrder(federationToken, requestingMember,
 				providingMember, 8, 1024, 30, imageName, userData, null);
 		return localOrder;
 	}

@@ -44,9 +44,8 @@ public class OrderControllerTest extends BaseUnitTests {
         try {
             OrderController ordersManagerController = new OrderController();
             ComputeOrder computeOrder = new ComputeOrder();
-            Token localToken = getFakeToken();
             Token federationToken = getFakeToken();
-            ordersManagerController.newOrderRequest(computeOrder, localToken, federationToken);
+            ordersManagerController.activateOrder(computeOrder, federationToken);
         } catch (OrderManagementException e) {
             Assert.fail();
         }
@@ -56,9 +55,8 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testFailedNewOrderRequestOrderIsNull() {
         try {
             ComputeOrder computeOrder = null;
-            Token localToken = getFakeToken();
             Token federationToken = getFakeToken();
-            this.ordersManagerController.newOrderRequest(computeOrder, localToken, federationToken);
+            this.ordersManagerController.activateOrder(computeOrder, federationToken);
         } catch (OrderManagementException e) {
             String expectedErrorMessage = "Can't process new order request. Order reference is null.";
             Assert.assertEquals(e.getMessage(), expectedErrorMessage);
@@ -191,7 +189,6 @@ public class OrderControllerTest extends BaseUnitTests {
 		Token token = this.createToken();
 
 		ComputeOrder computeOrder = Mockito.spy(new ComputeOrder());
-		computeOrder.setLocalToken(token);
 		computeOrder.setFederationToken(token);
 		computeOrder.setOrderState(orderState);
 

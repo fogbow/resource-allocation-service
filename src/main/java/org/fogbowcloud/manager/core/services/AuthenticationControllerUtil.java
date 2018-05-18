@@ -4,21 +4,29 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 
-//TODO change the name. Follow AuthenticationController's name
+import javax.el.PropertyNotFoundException;
+
+//TODO change the name. Follow AAAController's name
 public class AuthenticationControllerUtil {
 	
 	protected static String LOCAL_TOKEN_CREDENTIALS_PREFIX = "local_token_credentails_";
 
-	/*
-	 * Catch credentials with prefix in the properties (LOCAL_TOKEN_CREDENTIALS_PREFIX) 
+	/**
+	 * Gets credentials with prefix in the properties (LOCAL_TOKEN_CREDENTIALS_PREFIX).
+	 *
+	 * @param properties
+	 * @return
+	 * @throws PropertyNotSpecifiedException
 	 */
-	public static Map<String, String> getDefaultLocalTokenCredentials(Properties properties) {		
+	public static Map<String, String> getDefaultLocalTokenCredentials(Properties properties) throws PropertyNotSpecifiedException {
 		Map<String, String> localDefaultTokenCredentials = new HashMap<String, String>();
 		if (properties == null) {
-			return localDefaultTokenCredentials;
+			throw new PropertyNotSpecifiedException("Empty property map");
 		}
+
 		for (Object keyProperties : properties.keySet()) {
 			String keyPropertiesStr = keyProperties.toString();
 			if (keyPropertiesStr.startsWith(LOCAL_TOKEN_CREDENTIALS_PREFIX)) {
@@ -28,7 +36,12 @@ public class AuthenticationControllerUtil {
 				localDefaultTokenCredentials.put(key, value);
 			}
 		}
-		return localDefaultTokenCredentials;
+
+		if (localDefaultTokenCredentials.isEmpty()) {
+			throw new PropertyNotSpecifiedException("Default local token credentials not found");
+		} else {
+			return localDefaultTokenCredentials;
+		}
 	}
 
 	private static String normalizeKeyProperties(String keyPropertiesStr) {
@@ -36,7 +49,7 @@ public class AuthenticationControllerUtil {
 	}
 	
 	// TODO change to other class util
-	public static boolean isOrderProvadingLocally(String orderProvadingMember, Properties properties) {
+	public static boolean isOrderProvidingLocally(String orderProvadingMember, Properties properties) {
 		String localMember = properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
 		if (orderProvadingMember == null || orderProvadingMember.equals(localMember)) {
 			return true;

@@ -79,12 +79,10 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 		this.initClient();
 	}
 
-    public String requestInstance(ComputeOrder computeOrder, String imageId) throws RequestException {
-        LOGGER.debug("Requesting instance with token=" + computeOrder.getLocalToken());
+    public String requestInstance(ComputeOrder computeOrder, Token localToken, String imageId) throws RequestException {
+        LOGGER.debug("Requesting instance with token=" + localToken);
 
-        Token localToken = computeOrder.getLocalToken();
-        
-        Flavor flavor = findSmallestFlavor(computeOrder);
+        Flavor flavor = findSmallestFlavor(computeOrder, localToken);
         String flavorId = flavor.getId();
         
         String tenantId = getTenantId(localToken);
@@ -272,8 +270,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         }
     }
 
-    protected Flavor findSmallestFlavor(ComputeOrder computeOrder) {
-        updateFlavors(computeOrder.getLocalToken());
+    protected Flavor findSmallestFlavor(ComputeOrder computeOrder, Token localToken) {
+        updateFlavors(localToken);
 
         LOGGER.debug("Finding smallest flavor...");
 

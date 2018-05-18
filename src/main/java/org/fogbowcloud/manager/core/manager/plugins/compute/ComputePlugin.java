@@ -16,11 +16,11 @@ public interface ComputePlugin {
 	 * This method requests the virtual machine creation on a provider.
 	 *
 	 * @param computeOrder {@link Order} for creating a virtual machine.
-	 * @param imageId Instance image ID.
-	 * @return Instance ID.
+	 * @param localToken
+     *@param imageId Instance image ID.  @return Instance ID.
 	 * @throws RequestException {@link RequestException} When request fails.
 	 */
-	public String requestInstance(ComputeOrder computeOrder, String imageId) throws RequestException;
+	public String requestInstance(ComputeOrder computeOrder, Token localToken, String imageId) throws RequestException;
 
 	public ComputeOrderInstance getInstance(Token localToken, String instanceId) throws RequestException;
 

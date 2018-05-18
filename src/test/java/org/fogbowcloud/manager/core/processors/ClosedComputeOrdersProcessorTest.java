@@ -64,7 +64,7 @@ public class ClosedComputeOrdersProcessorTest extends BaseUnitTests {
         closedOrders.addItem(localOrder);
 
         Mockito.doNothing().when(this.localInstanceProvider)
-                .deleteInstance(Mockito.any(Token.class), Mockito.any(OrderInstance.class));
+                .deleteInstance(Mockito.any(OrderInstance.class));
 
         this.thread = new Thread(this.closedComputeOrdersProcessor);
         this.thread.start();
@@ -91,7 +91,7 @@ public class ClosedComputeOrdersProcessorTest extends BaseUnitTests {
         closedOrders.addItem(localOrder);
 
         Mockito.doThrow(Exception.class).when(this.localInstanceProvider)
-                .deleteInstance(Mockito.any(Token.class), Mockito.any(OrderInstance.class));
+                .deleteInstance(Mockito.any(OrderInstance.class));
 
         this.thread = new Thread(this.closedComputeOrdersProcessor);
         this.thread.start();

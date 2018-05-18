@@ -26,48 +26,47 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = "compute")
 public class ComputeOrdersController {
 
-	private final String ACCESS_ID_HEADER_KEY = "accessId";
-	private final String LOCAL_TOKEN_ID_HEADER_KEY = "localTokenId";
+	private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
 	private ApplicationFacade applicationFacade;
 	private final Logger LOGGER = LoggerFactory.getLogger(ComputeOrdersController.class);
 
 	// ExceptionTranslator handles the possible problems in request
+	// TODO check if we need to set the value on @RequestHeader
 	@RequestMapping(method = RequestMethod.POST)
 	public ResponseEntity<Order> createCompute(@RequestBody ComputeOrder computeOrder,
-			@RequestHeader(ACCESS_ID_HEADER_KEY) String accessId,
-			@RequestHeader(LOCAL_TOKEN_ID_HEADER_KEY) String localTokenId)
+			@RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
 			throws UnauthenticatedException, Exception {
 		LOGGER.info("New compute order request received.");
 
 		// The applicationFacade is being loaded here, because the getInstance that was used in the variable declaration
 		// disallows a static mock on this method.
 		this.applicationFacade = ApplicationFacade.getInstance();
-		this.applicationFacade.newOrderRequest(computeOrder, accessId, localTokenId);
+		this.applicationFacade.createCompute(computeOrder, federationTokenValue);
 		return new ResponseEntity<Order>(HttpStatus.CREATED);
 	}
 
 	@RequestMapping(method = RequestMethod.GET)
-	public ResponseEntity<List<Order>> getAllCompute(
-			@RequestHeader(value = "accessId") String accessId
+	public ResponseEntity<List<ComputeOrder>> getAllCompute(
+			@RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue
 	) throws Exception {
-		List<Order> orders = this.applicationFacade.getAllComputes(accessId, OrderType.COMPUTE);
+		List<ComputeOrder> orders = this.applicationFacade.getAllComputes(federationTokenValue);
 		return new ResponseEntity<>(orders, HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
-	public ResponseEntity<Order> getComputeById(
+	public ResponseEntity<ComputeOrder> getCompute(
 			@PathVariable String id,
-			@RequestHeader(value = "accessId") String accessId
+			@RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue
 	) throws Exception {
-		Order order = this.applicationFacade.getOrderById(id, accessId, OrderType.COMPUTE);
-		return new ResponseEntity<Order>(order, HttpStatus.OK);
+		ComputeOrder order = this.applicationFacade.getCompute(id, federationTokenValue);
+		return new ResponseEntity<ComputeOrder>(order, HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
 	public ResponseEntity<Boolean> deleteCompute(@PathVariable String id,
-			@RequestHeader(value = "accessId") String accessId) throws UnauthorizedException, OrderManagementException, UnauthenticatedException {
-		this.applicationFacade.deleteOrder(id, accessId, OrderType.COMPUTE);
+			@RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue) throws UnauthorizedException, OrderManagementException, UnauthenticatedException {
+		this.applicationFacade.deleteCompute(id, federationTokenValue);
 		return new ResponseEntity<Boolean>(HttpStatus.OK);
 	}
 

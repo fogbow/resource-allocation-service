@@ -3,16 +3,17 @@ package org.fogbowcloud.manager.core.services;
 import java.util.Map;
 import java.util.Properties;
 
+import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class AuthenticationControllerUtilTest {
+public class AAAControllerUtilTest {
 
 	private String CREDENTIALS_PREFIX = AuthenticationControllerUtil.LOCAL_TOKEN_CREDENTIALS_PREFIX;
 	
 	@Test
-	public void testGetDefaultLocalTokenCredentials() {
+	public void testGetDefaultLocalTokenCredentials() throws PropertyNotSpecifiedException {
 		Properties properties = new Properties();
 		String keyOne = "one";
 		String keyTwo = "two";
@@ -32,7 +33,7 @@ public class AuthenticationControllerUtilTest {
 	}
 	
 	@Test
-	public void testGetDefaultLocalTokenCredentialsWithPropertiesNull() {
+	public void testGetDefaultLocalTokenCredentialsWithPropertiesNull() throws PropertyNotSpecifiedException {
 		Map<String, String> defaulLocalTokenCredentials = 
 				AuthenticationControllerUtil.getDefaultLocalTokenCredentials(null);
 		Assert.assertTrue(defaulLocalTokenCredentials.isEmpty());
@@ -45,7 +46,7 @@ public class AuthenticationControllerUtilTest {
 		properties.put(ConfigurationConstants.XMPP_ID_KEY, provadingMember);
 		
 		boolean isProvadingLocally = AuthenticationControllerUtil
-				.isOrderProvadingLocally(provadingMember, properties);
+				.isOrderProvidingLocally(provadingMember, properties);
 		
 		Assert.assertTrue(isProvadingLocally);
 	}
@@ -56,7 +57,7 @@ public class AuthenticationControllerUtilTest {
 		properties.put(ConfigurationConstants.XMPP_ID_KEY, "member");
 		
 		boolean isProvadingLocally = AuthenticationControllerUtil
-				.isOrderProvadingLocally(null, properties);
+				.isOrderProvidingLocally(null, properties);
 		
 		Assert.assertTrue(isProvadingLocally);
 	}	
@@ -69,7 +70,7 @@ public class AuthenticationControllerUtilTest {
 		
 		String remoteMember = "remotemember";
 		boolean isProvadingLocally = AuthenticationControllerUtil
-				.isOrderProvadingLocally(remoteMember, properties);
+				.isOrderProvidingLocally(remoteMember, properties);
 		
 		Assert.assertFalse(isProvadingLocally);
 	}		

@@ -24,7 +24,7 @@ public interface InstanceProvider {
 	 * @throws Exception
 	 * 			   if a failure occurred when requesting the deletion of an instance
 	 */
-	public void deleteInstance(Token token, OrderInstance orderInstance) throws Exception;
+	public void deleteInstance(OrderInstance orderInstance) throws Exception;
 
 	/**
 	 * Gets the instance currently associated for the provided order.

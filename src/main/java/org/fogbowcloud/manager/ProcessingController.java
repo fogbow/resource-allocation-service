@@ -12,7 +12,7 @@ import org.fogbowcloud.manager.core.processors.SpawningProcessor;
 import org.fogbowcloud.manager.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
 
-public class ManagerController {
+public class ProcessingController {
 
 	private InstanceProvider localInstanceProvider;
 	private InstanceProvider remoteInstanceProvider;
@@ -30,11 +30,11 @@ public class ManagerController {
 	private IdentityPlugin localIdentityPlugin;
 	private IdentityPlugin federationIdentityPlugin;
 
-	private static final Logger LOGGER = Logger.getLogger(ManagerController.class);
+	private static final Logger LOGGER = Logger.getLogger(ProcessingController.class);
 
-	public ManagerController(Properties properties, InstanceProvider localInstanceProvider,
-			InstanceProvider remoteInstanceProvider, ComputePlugin computePlugin, IdentityPlugin localIdentityPlugin,
-			IdentityPlugin federationIdentityPlugin) {
+	public ProcessingController(Properties properties, InstanceProvider localInstanceProvider,
+								InstanceProvider remoteInstanceProvider, ComputePlugin computePlugin, IdentityPlugin localIdentityPlugin,
+								IdentityPlugin federationIdentityPlugin) {
 
 		this.properties = properties;
 

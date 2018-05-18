@@ -55,7 +55,7 @@ public class TestOpenStackComputePlugin {
 
         this.localToken = mock(Token.class);
 
-		computeOrder = new ComputeOrder(localToken, null, null, null, 1, 2000, 20, null,
+		computeOrder = new ComputeOrder(null, null, null, 1, 2000, 20, null,
 				new UserData(FAKE_USER_DATA_FILE, CloudInitUserDataBuilder.FileType.SHELL_SCRIPT), null);
 		
 		launchCommandGenerator = mock(LaunchCommandGenerator.class);
@@ -66,7 +66,7 @@ public class TestOpenStackComputePlugin {
     @Test
     public void testRequestInstance() throws IOException, RequestException {
         Flavor flavor = mock(Flavor.class);
-        doReturn(flavor).when(novaV2ComputeOpenStack).findSmallestFlavor(any(ComputeOrder.class));
+        doReturn(flavor).when(novaV2ComputeOpenStack).findSmallestFlavor(any(ComputeOrder.class), localToken);
         
         String fakeCommand = "fake-command"; 
         doReturn(fakeCommand).when(launchCommandGenerator).createLaunchCommand(any(ComputeOrder.class));
@@ -81,14 +81,14 @@ public class TestOpenStackComputePlugin {
         doReturn(FAKE_POST_RETURN).when(novaV2ComputeOpenStack).
                 doPostRequest(eq(FAKE_ENDPOINT), eq(localToken), eq(json));
 
-        String instanceId = novaV2ComputeOpenStack.requestInstance(computeOrder, FAKE_IMAGE_ID);
+        String instanceId = novaV2ComputeOpenStack.requestInstance(computeOrder, localToken, FAKE_IMAGE_ID);
         assertEquals(instanceId, FAKE_INSTANCE_ID);
     }
 
     @Test(expected = RequestException.class)
     public void testRequestInstanceIrregularSyntax() throws IOException, RequestException {
         Flavor flavor = mock(Flavor.class);
-        doReturn(flavor).when(novaV2ComputeOpenStack).findSmallestFlavor(any(ComputeOrder.class));
+        doReturn(flavor).when(novaV2ComputeOpenStack).findSmallestFlavor(any(ComputeOrder.class), localToken);
         
         String fakeCommand = "fake-command"; 
         doReturn(fakeCommand).when(launchCommandGenerator).createLaunchCommand(any(ComputeOrder.class));
@@ -96,7 +96,7 @@ public class TestOpenStackComputePlugin {
         doReturn(INVALID_FAKE_POST_RETURN).when(novaV2ComputeOpenStack).
                 doPostRequest(anyString(), any(Token.class), any(JSONObject.class));
 
-        novaV2ComputeOpenStack.requestInstance(computeOrder, FAKE_IMAGE_ID);
+        novaV2ComputeOpenStack.requestInstance(computeOrder, localToken, FAKE_IMAGE_ID);
     }
 
     @Test

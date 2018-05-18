@@ -11,6 +11,7 @@ import static org.mockito.Mockito.spy;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -45,14 +46,14 @@ public class ComputeOrdersControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    private ApplicationFacade applicationController;
+    private ApplicationFacade facade;
 
     private final String ACCESS_ID_HEADER = "accessId";
     private final String LOCAL_TOKEN_ID_HEADER = "localTokenId";
 
     @Before
     public void setUp() throws UnauthorizedException, OrderManagementException {
-        this.applicationController = spy(ApplicationFacade.class);
+        this.facade = spy(ApplicationFacade.class);
     }
 
     @Test
@@ -61,8 +62,8 @@ public class ComputeOrdersControllerTest {
 
         // Mocking application controller
         PowerMockito.mockStatic(ApplicationFacade.class);
-        given(ApplicationFacade.getInstance()).willReturn(this.applicationController);
-        doNothing().when(this.applicationController).newOrderRequest(any(Order.class), anyString(), anyString());
+        given(ApplicationFacade.getInstance()).willReturn(this.facade);
+        doNothing().when(this.facade).createCompute(any(ComputeOrder.class), anyString());
 
         // Need to make a method to create a body based on parameters, also change the mock above
         RequestBuilder requestBuilder = createRequestBuilder(headers, CORRECT_BODY);

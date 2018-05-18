@@ -61,7 +61,7 @@ public class BaseUnitTests {
 		String imageName = "fake-image-name";
 		String publicKey = "fake-public-key";
 
-		Order localOrder = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024, 30,
+		Order localOrder = new ComputeOrder(federationToken, requestingMember, providingMember, 8, 1024, 30,
 				imageName, userData, publicKey);
 		return localOrder;
 	}

@@ -27,9 +27,9 @@ public class ComputeOrder extends Order {
     /**
      * Creating Order with predefined Id.
      */
-    public ComputeOrder(String id, Token localToken, Token federationToken, String requestingMember,
+    public ComputeOrder(String id, Token federationToken, String requestingMember,
                         String providingMember, int vCPU, int memory, int disk, String imageName, UserData userData, String publicKey) {
-        super(id, localToken, federationToken, requestingMember, providingMember);
+        super(id, federationToken, requestingMember, providingMember);
         this.vCPU = vCPU;
         this.memory = memory;
         this.disk = disk;
@@ -38,9 +38,9 @@ public class ComputeOrder extends Order {
         this.publicKey = publicKey;
     }
 
-    public ComputeOrder(Token localToken, Token federationToken, String requestingMember, String providingMember,
+    public ComputeOrder(Token federationToken, String requestingMember, String providingMember,
                         int vCPU, int memory, int disk, String imageName, UserData userData, String publicKey) {
-        this(UUID.randomUUID().toString(), localToken, federationToken, requestingMember, providingMember, vCPU, memory,
+        this(UUID.randomUUID().toString(), federationToken, requestingMember, providingMember, vCPU, memory,
                 disk, imageName, userData, publicKey);
     }
 

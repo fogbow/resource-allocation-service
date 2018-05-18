@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.manager.plugins;
 
 import java.util.Map;
 
+import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.models.Credential;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
@@ -36,7 +37,7 @@ public interface IdentityPlugin {
 	 * @param accessId
 	 * @return a Token for the corresponding accessId.
 	 */
-	public Token getToken(String accessId) throws UnauthorizedException;
+	public Token getToken(String accessId) throws UnauthenticatedException, UnauthorizedException;
 
 	/**
 	 * Verifies if the accessId is valid against the identity service.

@@ -84,7 +84,8 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 	}
 
 	@Override
-	public Token createToken(Map<String, String> userCredentials) throws UnauthorizedException, TokenCreationException {
+	public Token createToken(Map<String, String> userCredentials) throws
+			UnauthorizedException, TokenCreationException {
 
 		String userId = userCredentials.get(CRED_USERNAME);
 		String password = userCredentials.get(CRED_PASSWORD);

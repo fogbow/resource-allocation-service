@@ -2,14 +2,13 @@ package org.fogbowcloud.manager.core.models.orders;
 
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.models.token.Token.User;
 
 public abstract class Order {
 
 	private String id;
 
 	private OrderState orderState;
-
-	private Token localToken;
 
 	private Token federationToken;
 
@@ -21,15 +20,13 @@ public abstract class Order {
 
 	public Order(String id) {
 		this.id = id;
-		this.setOrderState(OrderState.OPEN);
 	}
-	
+
 	/**
 	 * Creating Order with predefined Id.
 	 */
-	public Order(String id, Token localToken, Token federationToken, String requestingMember, String providingMember) {
+	public Order(String id, Token federationToken, String requestingMember, String providingMember) {
 		this(id);
-		this.localToken = localToken;
 		this.federationToken = federationToken;
 		this.requestingMember = requestingMember;
 		this.providingMember = providingMember;
@@ -45,14 +42,6 @@ public abstract class Order {
 
 	public synchronized void setOrderState(OrderState state) {
 		this.orderState = state;
-	}
-
-	public Token getLocalToken() {
-		return localToken;
-	}
-
-	public void setLocalToken(Token localToken) {
-		this.localToken = localToken;
 	}
 
 	public Token getFederationToken() {
@@ -95,6 +84,10 @@ public abstract class Order {
 		return !this.providingMember.equals(localMemberId);
 	}
 
+	public User getUser() {
+		return this.federationToken.getUser();
+	}
+
 	public abstract OrderType getType();
 
 	@Override
@@ -124,7 +117,7 @@ public abstract class Order {
 
 	@Override
 	public String toString() {
-		return "Order [id=" + id + ", orderState=" + orderState + ", localToken=" + localToken + ", federationToken="
+		return "Order [id=" + id + ", orderState=" + orderState + ", federationToken="
 				+ federationToken + ", requestingMember=" + requestingMember + ", providingMember=" + providingMember
 				+ ", orderInstance=" + orderInstance + "]";
 	}

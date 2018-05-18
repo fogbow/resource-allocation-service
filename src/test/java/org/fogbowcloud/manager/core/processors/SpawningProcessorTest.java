@@ -274,12 +274,11 @@ public class SpawningProcessorTest extends BaseUnitTests {
 	}
 
 	private Order createOrder() {
-		Token localToken = Mockito.mock(Token.class);
 		Token federationToken = Mockito.mock(Token.class);
 		String requestingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
 		String providingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
 		UserData userData = Mockito.mock(UserData.class);
-		Order order = new ComputeOrder(localToken, federationToken, requestingMember, providingMember, 8, 1024, 30,
+		Order order = new ComputeOrder(federationToken, requestingMember, providingMember, 8, 1024, 30,
 				"fake_image_name", userData, "fake_public_key");
 		return order;
 	}
