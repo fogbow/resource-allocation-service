@@ -9,7 +9,7 @@ import org.junit.Test;
 
 public class AuthenticationControllerUtilTest {
 
-	private String CREDENTIALS_PREFIX = AuthenticationServiceUtil.LOCAL_TOKEN_CREDENTIALS_PREFIX;
+	private String CREDENTIALS_PREFIX = AuthenticationControllerUtil.LOCAL_TOKEN_CREDENTIALS_PREFIX;
 	
 	@Test
 	public void testGetDefaultLocalTokenCredentials() {
@@ -25,7 +25,7 @@ public class AuthenticationControllerUtilTest {
 		properties.put(keyThree, valueThree);
 		
 		Map<String, String> defaulLocalTokenCredentials = 
-				AuthenticationServiceUtil.getDefaultLocalTokenCredentials(properties);
+				AuthenticationControllerUtil.getDefaultLocalTokenCredentials(properties);
 		Assert.assertEquals(valueOne, defaulLocalTokenCredentials.get(keyOne));
 		Assert.assertEquals(valueTwo, defaulLocalTokenCredentials.get(keyTwo));
 		Assert.assertNull(defaulLocalTokenCredentials.get(keyThree));
@@ -34,7 +34,7 @@ public class AuthenticationControllerUtilTest {
 	@Test
 	public void testGetDefaultLocalTokenCredentialsWithPropertiesNull() {
 		Map<String, String> defaulLocalTokenCredentials = 
-				AuthenticationServiceUtil.getDefaultLocalTokenCredentials(null);
+				AuthenticationControllerUtil.getDefaultLocalTokenCredentials(null);
 		Assert.assertTrue(defaulLocalTokenCredentials.isEmpty());
 	}
 	
@@ -44,7 +44,7 @@ public class AuthenticationControllerUtilTest {
 		Properties properties = new Properties();
 		properties.put(ConfigurationConstants.XMPP_ID_KEY, provadingMember);
 		
-		boolean isProvadingLocally = AuthenticationServiceUtil
+		boolean isProvadingLocally = AuthenticationControllerUtil
 				.isOrderProvadingLocally(provadingMember, properties);
 		
 		Assert.assertTrue(isProvadingLocally);
@@ -55,7 +55,7 @@ public class AuthenticationControllerUtilTest {
 		Properties properties = new Properties();
 		properties.put(ConfigurationConstants.XMPP_ID_KEY, "member");
 		
-		boolean isProvadingLocally = AuthenticationServiceUtil
+		boolean isProvadingLocally = AuthenticationControllerUtil
 				.isOrderProvadingLocally(null, properties);
 		
 		Assert.assertTrue(isProvadingLocally);
@@ -68,7 +68,7 @@ public class AuthenticationControllerUtilTest {
 		properties.put(ConfigurationConstants.XMPP_ID_KEY, provadingMember);
 		
 		String remoteMember = "remotemember";
-		boolean isProvadingLocally = AuthenticationServiceUtil
+		boolean isProvadingLocally = AuthenticationControllerUtil
 				.isOrderProvadingLocally(remoteMember, properties);
 		
 		Assert.assertFalse(isProvadingLocally);

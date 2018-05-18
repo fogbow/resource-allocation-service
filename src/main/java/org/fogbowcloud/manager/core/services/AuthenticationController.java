@@ -11,7 +11,7 @@ import org.fogbowcloud.manager.core.manager.plugins.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.IdentityPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 
-// TODO change the name. Fubica's suggestion is : "AAAController"
+// TODO change the name.
 public class AuthenticationController {
 	
 	private static final Logger LOGGER = Logger.getLogger(AuthenticationController.class);
@@ -46,7 +46,7 @@ public class AuthenticationController {
 		LOGGER.debug("Trying to get the local token by local token id: " + localTokenId);
 		Token localToken = null;
 		
-		boolean isOrderProvidingLocal = AuthenticationServiceUtil
+		boolean isOrderProvidingLocal = AuthenticationControllerUtil
 				.isOrderProvadingLocally(provadingMember, this.properties);
 		if (isOrderProvidingLocal) {
 			if (localTokenId == null) {
@@ -87,7 +87,7 @@ public class AuthenticationController {
 	}
 	
 	private Map<String, String> getDefaultUserCredentials() {		
-		return AuthenticationServiceUtil.getDefaultLocalTokenCredentials(this.properties);
+		return AuthenticationControllerUtil.getDefaultLocalTokenCredentials(this.properties);
 	}
 
 	protected boolean authorize(Token federationToken) throws UnauthorizedException {

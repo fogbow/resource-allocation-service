@@ -16,9 +16,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-// TODO change the name.
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ AuthenticationServiceUtil.class })
+@PrepareForTest({ AuthenticationControllerUtil.class })
 public class AuthenticationControllerTest {
 
 	private AuthenticationController authenticationController;
@@ -35,7 +34,7 @@ public class AuthenticationControllerTest {
 		this.authorizationPlugin = Mockito.mock(AuthorizationPlugin.class);
 		this.authenticationController = Mockito.spy(new AuthenticationController(this.federatetionIdentityPlugin,
 				this.localIdentityPlugin, this.authorizationPlugin, this.properties));
-		PowerMockito.mockStatic(AuthenticationServiceUtil.class);
+		PowerMockito.mockStatic(AuthenticationControllerUtil.class);
 	}
 
 	@Test
@@ -75,7 +74,7 @@ public class AuthenticationControllerTest {
 		String localTokenId = null;
 		String providingMember = "localmember";
 		boolean isProvadingLocally = true;
-		BDDMockito.given(AuthenticationServiceUtil.isOrderProvadingLocally(
+		BDDMockito.given(AuthenticationControllerUtil.isOrderProvadingLocally(
 				BDDMockito.anyString(), BDDMockito.any(Properties.class))).willReturn(isProvadingLocally);
 		
 		Token localToken = Mockito.mock(Token.class);
@@ -90,7 +89,7 @@ public class AuthenticationControllerTest {
 		String localTokenId = "localTokenId";
 		String providingMember = "localmember";
 		boolean isProvadingLocally = true;
-		BDDMockito.given(AuthenticationServiceUtil.isOrderProvadingLocally(
+		BDDMockito.given(AuthenticationControllerUtil.isOrderProvadingLocally(
 				BDDMockito.anyString(), BDDMockito.any(Properties.class))).willReturn(isProvadingLocally);
 		
 		Token localToken = Mockito.mock(Token.class);
@@ -105,7 +104,7 @@ public class AuthenticationControllerTest {
 		String localTokenId = "localTokenId";
 		String providingMember = "remoteMember";
 		boolean isProvadingLocally = false;
-		BDDMockito.given(AuthenticationServiceUtil.isOrderProvadingLocally(
+		BDDMockito.given(AuthenticationControllerUtil.isOrderProvadingLocally(
 				BDDMockito.anyString(), BDDMockito.any(Properties.class))).willReturn(isProvadingLocally);
 		
 		Token token = Mockito.mock(Token.class);

@@ -7,7 +7,7 @@ import java.util.Properties;
 import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 
 //TODO change the name. Follow AuthenticationController's name
-public class AuthenticationServiceUtil {
+public class AuthenticationControllerUtil {
 	
 	protected static String LOCAL_TOKEN_CREDENTIALS_PREFIX = "local_token_credentails_";
 
