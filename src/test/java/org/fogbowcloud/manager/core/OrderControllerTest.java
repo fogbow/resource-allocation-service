@@ -3,8 +3,12 @@ package org.fogbowcloud.manager.core;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
+import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
+import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
+import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -18,6 +22,7 @@ import org.mockito.Mockito;
 public class OrderControllerTest extends BaseUnitTests {
 
     private OrderController ordersManagerController;
+
     private Map<String, Order> activeOrdersMap;
 	private ChainedList openOrdersList;
 	private ChainedList pendingOrdersList;
@@ -26,10 +31,20 @@ public class OrderControllerTest extends BaseUnitTests {
 	private ChainedList failedOrdersList;
 	private ChainedList closedOrdersList;
 
+	private Properties properties;
+	private LocalInstanceProvider localInstanceProvider;
+	private RemoteInstanceProvider remoteInstanceProvider;
+
     @Before
     public void setUp() {
-        this.ordersManagerController = new OrderController();
+    	this.properties = Mockito.mock(Properties.class);
+		this.localInstanceProvider = Mockito.mock(LocalInstanceProvider.class);
+		this.remoteInstanceProvider = Mockito.mock(RemoteInstanceProvider.class);
+
+        this.ordersManagerController = new OrderController(this.properties, this.localInstanceProvider, this.remoteInstanceProvider);
+
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+
         this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
 		this.openOrdersList = sharedOrderHolders.getOpenOrdersList();
 		this.pendingOrdersList = sharedOrderHolders.getPendingOrdersList();
@@ -42,7 +57,8 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test
     public void testNewOrderRequest() {
         try {
-            OrderController ordersManagerController = new OrderController();
+            OrderController ordersManagerController = new OrderController(this.properties,
+					this.localInstanceProvider, this.remoteInstanceProvider);
             ComputeOrder computeOrder = new ComputeOrder();
             Token federationToken = getFakeToken();
             ordersManagerController.activateOrder(computeOrder, federationToken);

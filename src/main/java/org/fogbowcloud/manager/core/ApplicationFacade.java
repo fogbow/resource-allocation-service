@@ -32,12 +32,12 @@ public class ApplicationFacade {
 		}
 	}
 
-	public void deleteCompute(String computeId, String federationTokenValue) throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
+	public void deleteCompute(String computeId, String federationTokenValue) throws Exception {
 		deleteOrder(computeId, federationTokenValue, OrderType.COMPUTE);
 	}
 
 	private void deleteOrder(String orderId, String federationTokenValue, OrderType orderType)
-			throws UnauthorizedException, OrderManagementException, UnauthenticatedException {
+			throws Exception {
 		this.aaaController.authenticate(federationTokenValue);
 
 		Token federationToken = this.aaaController.getFederationToken(federationTokenValue);
@@ -66,11 +66,11 @@ public class ApplicationFacade {
 		return this.orderController.getAllOrders(federationToken.getUser(), orderType);
 	}
 
-	public ComputeOrder getCompute(String computeId, String federationTokenValue) throws UnauthorizedException, UnauthenticatedException {
+	public ComputeOrder getCompute(String computeId, String federationTokenValue) throws Exception {
 		return (ComputeOrder) getOrder(computeId, federationTokenValue, OrderType.COMPUTE);
 	}
 
-	private Order getOrder(String id, String federationTokenValue, OrderType type) throws UnauthorizedException, UnauthenticatedException {
+	private Order getOrder(String id, String federationTokenValue, OrderType type) throws Exception {
 		this.aaaController.authenticate(federationTokenValue);
 		Token federationToken = this.aaaController.getFederationToken(federationTokenValue);
 

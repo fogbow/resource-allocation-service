@@ -41,13 +41,13 @@ public class Main implements ApplicationRunner {
         this.aaaController = new AAAController(federationIdentityPlugin, localIdentityPlugin,
         		authorizationPlugin, this.properties);
 
-        InstanceProvider localInstanceProvider = new LocalInstanceProvider(computePlugin, this.aaaController);
-        InstanceProvider remoteInstanceProvider = new RemoteInstanceProvider();
+        LocalInstanceProvider localInstanceProvider = new LocalInstanceProvider(computePlugin, this.aaaController);
+        RemoteInstanceProvider remoteInstanceProvider = new RemoteInstanceProvider();
 
         this.processorController = new ProcessorController(this.properties, localInstanceProvider, remoteInstanceProvider,
                 computePlugin, localIdentityPlugin, federationIdentityPlugin);
 
         this.facade.setAAAController(this.aaaController);
-        this.facade.setOrderController(new OrderController());
+        this.facade.setOrderController(new OrderController(this.properties, localInstanceProvider, remoteInstanceProvider));
     }
 }

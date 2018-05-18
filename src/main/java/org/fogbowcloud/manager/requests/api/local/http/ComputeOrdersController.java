@@ -56,17 +56,17 @@ public class ComputeOrdersController {
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.GET)
 	public ResponseEntity<ComputeOrder> getCompute(
-			@PathVariable String id,
+			@PathVariable String computeId,
 			@RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue
 	) throws Exception {
-		ComputeOrder order = this.applicationFacade.getCompute(id, federationTokenValue);
+		ComputeOrder order = this.applicationFacade.getCompute(computeId, federationTokenValue);
 		return new ResponseEntity<ComputeOrder>(order, HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-	public ResponseEntity<Boolean> deleteCompute(@PathVariable String id,
-			@RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue) throws UnauthorizedException, OrderManagementException, UnauthenticatedException {
-		this.applicationFacade.deleteCompute(id, federationTokenValue);
+	public ResponseEntity<Boolean> deleteCompute(@PathVariable String computeId,
+			@RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue) throws Exception {
+		this.applicationFacade.deleteCompute(computeId, federationTokenValue);
 		return new ResponseEntity<Boolean>(HttpStatus.OK);
 	}
 

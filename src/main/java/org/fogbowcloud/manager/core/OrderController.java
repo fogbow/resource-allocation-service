@@ -2,10 +2,16 @@ package org.fogbowcloud.manager.core;
 
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
+import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
+import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
+import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
+import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
+import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.models.token.Token.User;
 import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
@@ -17,16 +23,23 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 public class OrderController {
 	
 	private static final Logger LOGGER = LoggerFactory.getLogger(ComputeOrdersController.class);
-
     private SharedOrderHolders orderHolders;
-    private ComputePlugin computePlugin;
 
-    public OrderController() {
+    private final InstanceProvider localInstanceProvider;
+    private final InstanceProvider remoteInstanceProvider;
+
+    private final String localMemberId;
+
+    public OrderController(Properties properties, LocalInstanceProvider localInstanceProvider, RemoteInstanceProvider remoteInstanceProvider) {
+        this.localMemberId = properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
+        this.localInstanceProvider = localInstanceProvider;
+        this.remoteInstanceProvider = remoteInstanceProvider;
         this.orderHolders = SharedOrderHolders.getInstance();
     }
 
@@ -41,7 +54,7 @@ public class OrderController {
         return requestedOrders;
     }
 
-    public Order getOrder(String id, User user, OrderType orderType) {
+    public Order getOrder(String id, User user, OrderType orderType) throws Exception {
         Order requestedOrder = this.orderHolders.getActiveOrdersMap().get(id);
 
         // TODO Do we need to perform this check?
@@ -53,6 +66,12 @@ public class OrderController {
 
         if (!requestedOrder.getType().equals(orderType)) {
             return null;
+        }
+
+        if (requestedOrder.getOrderState().equals(OrderState.FULFILLED)) {
+            InstanceProvider instanceProvider = getInstanceProviderForOrder(requestedOrder);
+            OrderInstance orderInstance = instanceProvider.getInstance(requestedOrder);
+            requestedOrder.setOrderInstance(orderInstance);
         }
 
         return requestedOrder;
@@ -116,4 +135,20 @@ public class OrderController {
         }
     }
 
+    private InstanceProvider getInstanceProviderForOrder(Order order) {
+        InstanceProvider instanceProvider;
+
+        if (order.isLocal(this.localMemberId)) {
+            LOGGER.info("The open order [" + order.getId() + "] is local");
+
+            instanceProvider = this.localInstanceProvider;
+        } else {
+            LOGGER.info("The open order [" + order.getId() + "] is remote for the " +
+                    "member [" + order.getProvidingMember() + "]");
+
+            instanceProvider = this.remoteInstanceProvider;
+        }
+
+        return instanceProvider;
+    }
 }
