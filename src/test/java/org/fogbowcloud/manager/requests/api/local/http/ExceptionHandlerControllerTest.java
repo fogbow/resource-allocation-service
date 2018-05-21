@@ -19,14 +19,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 public class TestExceptionHandlerController {
-	
+
+	private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
+
 	private MockMvc mockMvc;
 	
 	private ComputeOrdersController computeOrdersController;
 	
 	@Before
 	public void setup() {
-		computeOrdersController = Mockito.mock(ComputeOrdersController.class);
+		this.computeOrdersController = Mockito.mock(ComputeOrdersController.class);
 		this.mockMvc = MockMvcBuilders.standaloneSetup(computeOrdersController)
 				.setControllerAdvice(new ExceptionTranslator())
 				.build();
@@ -38,7 +40,7 @@ public class TestExceptionHandlerController {
 		
 		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
 				.accept(MediaType.APPLICATION_JSON)
-				.header("accessId", Mockito.anyString()))
+				.header(FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
         		.andReturn().getResponse();
 
 		JSONObject jsonObject = new JSONObject(response.getContentAsString());
@@ -55,7 +57,7 @@ public class TestExceptionHandlerController {
 		
 		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
 				.accept(MediaType.APPLICATION_JSON)
-				.header("accessId", Mockito.anyString()))
+				.header(FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
         		.andReturn().getResponse();
 
 		JSONObject jsonObject = new JSONObject(response.getContentAsString());
@@ -72,8 +74,10 @@ public class TestExceptionHandlerController {
 		
 		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
 				.accept(MediaType.APPLICATION_JSON)
-				.header("accessId", Mockito.anyString()))
+				.header(FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
         		.andReturn().getResponse();
+
+		System.out.println(response.getContentAsString());
 
 		JSONObject jsonObject = new JSONObject(response.getContentAsString());
 
@@ -89,7 +93,7 @@ public class TestExceptionHandlerController {
 		
 		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
 				.accept(MediaType.APPLICATION_JSON)
-				.header("accessId", Mockito.anyString()))
+				.header(FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
         		.andReturn().getResponse();
 
 		JSONObject jsonObject = new JSONObject(response.getContentAsString());
