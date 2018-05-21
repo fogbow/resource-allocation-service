@@ -18,7 +18,9 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-public class TestExceptionHandlerController {
+public class ExceptionHandlerControllerTest {
+
+	private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
     private MockMvc mockMvc;
 
@@ -42,7 +44,7 @@ public class TestExceptionHandlerController {
                 mockMvc.perform(
                                 get("/compute/")
                                         .accept(MediaType.APPLICATION_JSON)
-                                        .header("accessId", Mockito.anyString()))
+                                        .header(FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
                         .andReturn()
                         .getResponse();
 
@@ -63,7 +65,7 @@ public class TestExceptionHandlerController {
                 mockMvc.perform(
                                 get("/compute/")
                                         .accept(MediaType.APPLICATION_JSON)
-                                        .header("accessId", Mockito.anyString()))
+                                        .header(FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
                         .andReturn()
                         .getResponse();
 
@@ -84,7 +86,7 @@ public class TestExceptionHandlerController {
                 mockMvc.perform(
                                 get("/compute/")
                                         .accept(MediaType.APPLICATION_JSON)
-                                        .header("accessId", Mockito.anyString()))
+                                        .header(FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
                         .andReturn()
                         .getResponse();
 
@@ -105,7 +107,7 @@ public class TestExceptionHandlerController {
                 mockMvc.perform(
                                 get("/compute/")
                                         .accept(MediaType.APPLICATION_JSON)
-                                        .header("accessId", Mockito.anyString()))
+                                        .header(FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
                         .andReturn()
                         .getResponse();
 
