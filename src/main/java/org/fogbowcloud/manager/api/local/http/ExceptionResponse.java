@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.requests.api.local.http;
+package org.fogbowcloud.manager.api.local.http;
 
 import org.springframework.http.HttpStatus;
 

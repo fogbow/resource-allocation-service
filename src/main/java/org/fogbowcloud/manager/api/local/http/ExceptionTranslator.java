@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.requests.api.local.http;
+package org.fogbowcloud.manager.api.local.http;
 
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;

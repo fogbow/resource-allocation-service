@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core;
 
+import org.fogbowcloud.manager.api.local.http.ComputeOrdersController;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
@@ -16,7 +17,6 @@ import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.models.token.Token.User;
 import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.requests.api.local.http.ComputeOrdersController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
