@@ -7,7 +7,7 @@ import org.fogbowcloud.manager.core.models.token.Token;
 
 public interface AuthorizationPlugin {
 
-	public boolean isAuthorized(Token token, Operation operation, Order order);
+    public boolean isAuthorized(Token token, Operation operation, Order order);
 
-	public boolean isAuthorized(Token token, Operation operation, OrderType type);
+    public boolean isAuthorized(Token token, Operation operation, OrderType type);
 }

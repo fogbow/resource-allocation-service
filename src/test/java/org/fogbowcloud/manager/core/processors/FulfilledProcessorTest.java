@@ -1,5 +1,9 @@
 package org.fogbowcloud.manager.core.processors;
 
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
+import java.util.Properties;
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
@@ -16,16 +20,10 @@ import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import java.util.Properties;
-
-import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
 
 public class FulfilledProcessorTest extends BaseUnitTests {
 
@@ -57,9 +55,14 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         this.thread = null;
 
-        this.fulfilledProcessor = Mockito
-                .spy(new FulfilledProcessor(this.localInstanceProvider, this.remoteInstanceProvider,
-                        this.tunnelingService, this.sshConnectivity, this.properties));
+        this.fulfilledProcessor =
+                Mockito.spy(
+                        new FulfilledProcessor(
+                                this.localInstanceProvider,
+                                this.remoteInstanceProvider,
+                                this.tunnelingService,
+                                this.sshConnectivity,
+                                this.properties));
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrderList = sharedOrderHolders.getFulfilledOrdersList();
@@ -76,8 +79,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     /**
-     * Test if a fulfilled order of an active local compute instance has not
-     * being changed to failed if SSH connectivity is reachable.
+     * Test if a fulfilled order of an active local compute instance has not being changed to failed
+     * if SSH connectivity is reachable.
      *
      * @throws InterruptedException
      */
@@ -92,12 +95,16 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         orderInstance.setState(InstanceState.ACTIVE);
         order.setOrderInstance(orderInstance);
 
-        Mockito.doReturn(orderInstance).when(this.localInstanceProvider).getInstance(any(Order.class));
+        Mockito.doReturn(orderInstance)
+                .when(this.localInstanceProvider)
+                .getInstance(any(Order.class));
 
-        Mockito.doNothing().when((ComputeOrderInstance) orderInstance)
+        Mockito.doNothing()
+                .when((ComputeOrderInstance) orderInstance)
                 .setExternalServiceAddresses(anyMapOf(String.class, String.class));
 
-        Mockito.when(this.sshConnectivity.checkSSHConnectivity(any(ComputeOrderInstance.class))).thenReturn(true);
+        Mockito.when(this.sshConnectivity.checkSSHConnectivity(any(ComputeOrderInstance.class)))
+                .thenReturn(true);
 
         assertNull(this.failedOrderList.getNext());
 
@@ -111,8 +118,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     /**
-     * Test if a fulfilled order of an active remote compute instance has not
-     * being changed to failed if SSH connectivity is reachable.
+     * Test if a fulfilled order of an active remote compute instance has not being changed to
+     * failed if SSH connectivity is reachable.
      *
      * @throws InterruptedException
      */
@@ -127,12 +134,16 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         orderInstance.setState(InstanceState.ACTIVE);
         order.setOrderInstance(orderInstance);
 
-        Mockito.doReturn(orderInstance).when(this.remoteInstanceProvider).getInstance(any(Order.class));
+        Mockito.doReturn(orderInstance)
+                .when(this.remoteInstanceProvider)
+                .getInstance(any(Order.class));
 
-        Mockito.doNothing().when((ComputeOrderInstance) orderInstance)
+        Mockito.doNothing()
+                .when((ComputeOrderInstance) orderInstance)
                 .setExternalServiceAddresses(anyMapOf(String.class, String.class));
 
-        Mockito.when(this.sshConnectivity.checkSSHConnectivity(any(ComputeOrderInstance.class))).thenReturn(true);
+        Mockito.when(this.sshConnectivity.checkSSHConnectivity(any(ComputeOrderInstance.class)))
+                .thenReturn(true);
 
         assertNull(this.failedOrderList.getNext());
 
@@ -146,8 +157,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     /**
-     * Test if a fulfilled order of an active local compute instance is changed
-     * to failed if SSH connectivity is not reachable.
+     * Test if a fulfilled order of an active local compute instance is changed to failed if SSH
+     * connectivity is not reachable.
      *
      * @throws InterruptedException
      */
@@ -162,12 +173,16 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         orderInstance.setState(InstanceState.ACTIVE);
         order.setOrderInstance(orderInstance);
 
-        Mockito.doReturn(orderInstance).when(this.localInstanceProvider).getInstance(any(Order.class));
+        Mockito.doReturn(orderInstance)
+                .when(this.localInstanceProvider)
+                .getInstance(any(Order.class));
 
-        Mockito.doNothing().when((ComputeOrderInstance) orderInstance)
+        Mockito.doNothing()
+                .when((ComputeOrderInstance) orderInstance)
                 .setExternalServiceAddresses(anyMapOf(String.class, String.class));
 
-        Mockito.when(this.sshConnectivity.checkSSHConnectivity(any(ComputeOrderInstance.class))).thenReturn(false);
+        Mockito.when(this.sshConnectivity.checkSSHConnectivity(any(ComputeOrderInstance.class)))
+                .thenReturn(false);
 
         assertNull(this.failedOrderList.getNext());
 
@@ -185,8 +200,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     /**
-     * Test if a fulfilled order of an active remote compute instance is changed
-     * to failed if SSH connectivity is not reachable.
+     * Test if a fulfilled order of an active remote compute instance is changed to failed if SSH
+     * connectivity is not reachable.
      *
      * @throws InterruptedException
      */
@@ -201,12 +216,16 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         orderInstance.setState(InstanceState.ACTIVE);
         order.setOrderInstance(orderInstance);
 
-        Mockito.doReturn(orderInstance).when(this.remoteInstanceProvider).getInstance(any(Order.class));
+        Mockito.doReturn(orderInstance)
+                .when(this.remoteInstanceProvider)
+                .getInstance(any(Order.class));
 
-        Mockito.doNothing().when((ComputeOrderInstance) orderInstance)
+        Mockito.doNothing()
+                .when((ComputeOrderInstance) orderInstance)
                 .setExternalServiceAddresses(anyMapOf(String.class, String.class));
 
-        Mockito.when(this.sshConnectivity.checkSSHConnectivity(any(ComputeOrderInstance.class))).thenReturn(false);
+        Mockito.when(this.sshConnectivity.checkSSHConnectivity(any(ComputeOrderInstance.class)))
+                .thenReturn(false);
 
         assertNull(this.failedOrderList.getNext());
 
@@ -224,8 +243,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     /**
-     * Test if a fulfilled order of a failed local compute instance is
-     * definitely changed to failed.
+     * Test if a fulfilled order of a failed local compute instance is definitely changed to failed.
      *
      * @throws InterruptedException
      */
@@ -240,7 +258,9 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         orderInstance.setState(InstanceState.FAILED);
         order.setOrderInstance(orderInstance);
 
-        Mockito.doReturn(orderInstance).when(this.localInstanceProvider).getInstance(any(Order.class));
+        Mockito.doReturn(orderInstance)
+                .when(this.localInstanceProvider)
+                .getInstance(any(Order.class));
 
         assertNull(this.failedOrderList.getNext());
 
@@ -258,8 +278,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     /**
-     * Test if a fulfilled order of an failed remote compute instance is
-     * definitely changed to failed.
+     * Test if a fulfilled order of an failed remote compute instance is definitely changed to
+     * failed.
      *
      * @throws InterruptedException
      */
@@ -274,7 +294,9 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         orderInstance.setState(InstanceState.FAILED);
         order.setOrderInstance(orderInstance);
 
-        Mockito.doReturn(orderInstance).when(this.remoteInstanceProvider).getInstance(any(Order.class));
+        Mockito.doReturn(orderInstance)
+                .when(this.remoteInstanceProvider)
+                .getInstance(any(Order.class));
 
         assertNull(this.failedOrderList.getNext());
 
@@ -292,9 +314,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     /**
-     * Test if the fulfilled processor still running and do not change the order
-     * state if the method processFulfilledOrder throw an order state transition
-     * exception.
+     * Test if the fulfilled processor still running and do not change the order state if the method
+     * processFulfilledOrder throw an order state transition exception.
      *
      * @throws OrderStateTransitionException
      * @throws InterruptedException
@@ -307,7 +328,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         this.fulfilledOrderList.addItem(order);
 
-        Mockito.doThrow(OrderStateTransitionException.class).when(this.fulfilledProcessor)
+        Mockito.doThrow(OrderStateTransitionException.class)
+                .when(this.fulfilledProcessor)
                 .processFulfilledOrder(Mockito.any(Order.class));
 
         this.thread = new Thread(this.fulfilledProcessor);
@@ -321,13 +343,15 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     @Test
-    public void testRunThrowableExceptionWhileTryingToProcessOrder() throws InterruptedException, OrderStateTransitionException {
+    public void testRunThrowableExceptionWhileTryingToProcessOrder()
+            throws InterruptedException, OrderStateTransitionException {
         Order order = Mockito.mock(Order.class);
         OrderState state = null;
         order.setOrderState(state);
         this.fulfilledOrderList.addItem(order);
 
-        Mockito.doThrow(new RuntimeException("Any Exception")).when(this.fulfilledProcessor)
+        Mockito.doThrow(new RuntimeException("Any Exception"))
+                .when(this.fulfilledProcessor)
                 .processFulfilledOrder(order);
 
         this.thread = new Thread(this.fulfilledProcessor);
@@ -341,7 +365,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         order.setOrderState(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
 
-        Mockito.doThrow(new OrderStateTransitionException("Any Exception")).when(this.fulfilledProcessor)
+        Mockito.doThrow(new OrderStateTransitionException("Any Exception"))
+                .when(this.fulfilledProcessor)
                 .processInstance(order);
 
         this.fulfilledProcessor.processFulfilledOrder(order);
@@ -351,12 +376,23 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Token federationToken = Mockito.mock(Token.class);
         UserData userData = Mockito.mock(UserData.class);
         String imageName = "fake-image-name";
-        String requestingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
-        String providingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
+        String requestingMember =
+                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
+        String providingMember =
+                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
         String publicKey = "fake-public-key";
 
-        Order localOrder = new ComputeOrder(federationToken, requestingMember, providingMember, 8, 1024, 30,
-                imageName, userData, publicKey);
+        Order localOrder =
+                new ComputeOrder(
+                        federationToken,
+                        requestingMember,
+                        providingMember,
+                        8,
+                        1024,
+                        30,
+                        imageName,
+                        userData,
+                        publicKey);
         return localOrder;
     }
 
@@ -364,12 +400,22 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Token federationToken = Mockito.mock(Token.class);
         UserData userData = Mockito.mock(UserData.class);
         String imageName = "fake-image-name";
-        String requestingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
+        String requestingMember =
+                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
         String providingMember = "fake-remote-member";
         String publicKey = "fake-public-key";
 
-        Order remoteOrder = new ComputeOrder(federationToken, requestingMember, providingMember, 8, 1024,
-                30, imageName, userData, publicKey);
+        Order remoteOrder =
+                new ComputeOrder(
+                        federationToken,
+                        requestingMember,
+                        providingMember,
+                        8,
+                        1024,
+                        30,
+                        imageName,
+                        userData,
+                        publicKey);
         return remoteOrder;
     }
 }

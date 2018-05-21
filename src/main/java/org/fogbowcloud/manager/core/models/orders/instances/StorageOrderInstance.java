@@ -26,5 +26,4 @@ public class StorageOrderInstance extends OrderInstance {
     public void setSize(int size) {
         this.size = size;
     }
-    
 }

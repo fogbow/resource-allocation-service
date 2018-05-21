@@ -1,10 +1,8 @@
 package org.fogbowcloud.manager;
 
 import java.util.Properties;
-
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.OrderController;
-import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
 import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
 import org.fogbowcloud.manager.core.manager.plugins.AuthorizationPlugin;
@@ -34,20 +32,35 @@ public class Main implements ApplicationRunner {
         this.properties = this.instantiationInitService.getProperties();
 
         ComputePlugin computePlugin = this.instantiationInitService.getComputePlugin();
-        IdentityPlugin localIdentityPlugin = this.instantiationInitService .getLocalIdentityPlugin();
-        IdentityPlugin federationIdentityPlugin = this.instantiationInitService.getFederationIdentityPlugin();
-        AuthorizationPlugin authorizationPlugin = this.instantiationInitService.getAuthorizationPlugin();
+        IdentityPlugin localIdentityPlugin = this.instantiationInitService.getLocalIdentityPlugin();
+        IdentityPlugin federationIdentityPlugin =
+                this.instantiationInitService.getFederationIdentityPlugin();
+        AuthorizationPlugin authorizationPlugin =
+                this.instantiationInitService.getAuthorizationPlugin();
 
-        this.aaaController = new AAAController(federationIdentityPlugin, localIdentityPlugin,
-        		authorizationPlugin, this.properties);
+        this.aaaController =
+                new AAAController(
+                        federationIdentityPlugin,
+                        localIdentityPlugin,
+                        authorizationPlugin,
+                        this.properties);
 
-        LocalInstanceProvider localInstanceProvider = new LocalInstanceProvider(computePlugin, this.aaaController);
+        LocalInstanceProvider localInstanceProvider =
+                new LocalInstanceProvider(computePlugin, this.aaaController);
         RemoteInstanceProvider remoteInstanceProvider = new RemoteInstanceProvider();
 
-        this.processorController = new ProcessorController(this.properties, localInstanceProvider, remoteInstanceProvider,
-                computePlugin, localIdentityPlugin, federationIdentityPlugin);
+        this.processorController =
+                new ProcessorController(
+                        this.properties,
+                        localInstanceProvider,
+                        remoteInstanceProvider,
+                        computePlugin,
+                        localIdentityPlugin,
+                        federationIdentityPlugin);
 
         this.facade.setAAAController(this.aaaController);
-        this.facade.setOrderController(new OrderController(this.properties, localInstanceProvider, remoteInstanceProvider));
+        this.facade.setOrderController(
+                new OrderController(
+                        this.properties, localInstanceProvider, remoteInstanceProvider));
     }
 }

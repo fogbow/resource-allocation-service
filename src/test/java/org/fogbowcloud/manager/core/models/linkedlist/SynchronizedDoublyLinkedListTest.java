@@ -49,7 +49,8 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
         Order orderThree = createLocalOrder(getLocalMemberId());
         this.list.addItem(orderThree);
 
-        // addItem() should have fixed this.current to point to the newly item added to the tail of the list.
+        // addItem() should have fixed this.current to point to the newly item added to the tail of
+        // the list.
         assertEquals(orderThree, this.list.getNext());
     }
 
@@ -244,5 +245,4 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
         assertEquals(orderOne, this.list.getNext());
         assertNull(this.list.getNext());
     }
-
 }

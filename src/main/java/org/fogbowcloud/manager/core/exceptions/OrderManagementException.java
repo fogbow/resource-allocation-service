@@ -7,5 +7,4 @@ public class OrderManagementException extends Exception {
     public OrderManagementException(String msg) {
         super(msg);
     }
-
 }

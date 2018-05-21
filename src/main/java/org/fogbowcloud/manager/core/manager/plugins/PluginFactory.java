@@ -9,7 +9,7 @@ public class PluginFactory {
     private static final Logger LOGGER = Logger.getLogger(PluginFactory.class.getName());
     private static final int EXIT_ERROR_CODE = 128;
 
-    public Object createPluginInstance(String pluginClassName, Properties properties)  {
+    public Object createPluginInstance(String pluginClassName, Properties properties) {
 
         Object pluginInstance = null;
 
@@ -18,7 +18,10 @@ public class PluginFactory {
             Constructor constructor = mClass.getConstructor(Properties.class);
             pluginInstance = constructor.newInstance(properties);
         } catch (ClassNotFoundException e) {
-            String msg = "No " + pluginClassName + " class under this repository. Please inform a valid class.";
+            String msg =
+                    "No "
+                            + pluginClassName
+                            + " class under this repository. Please inform a valid class.";
             LOGGER.severe(msg);
             System.exit(EXIT_ERROR_CODE);
         } catch (Exception e) {
@@ -26,10 +29,11 @@ public class PluginFactory {
             System.exit(EXIT_ERROR_CODE);
         }
 
-        return pluginInstance ;
+        return pluginInstance;
     }
 
-    public Object getIdentityPluginByPrefix(String prefix, String className, Properties properties) {
+    public Object getIdentityPluginByPrefix(
+            String prefix, String className, Properties properties) {
 
         Properties pluginProperties = new Properties();
 
