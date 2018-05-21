@@ -1,5 +1,9 @@
 package org.fogbowcloud.manager.core.processors;
 
+import static org.junit.Assert.*;
+
+import java.util.Map;
+import java.util.Properties;
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.OrderController;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
@@ -8,15 +12,9 @@ import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
-
-import java.util.Map;
-import java.util.Properties;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import static org.junit.Assert.*;
 
 public class ClosedProcessorTest extends BaseUnitTests {
 
@@ -33,15 +31,20 @@ public class ClosedProcessorTest extends BaseUnitTests {
     @Before
     public void setUp() {
         this.properties = new Properties();
-        this.properties.setProperty(ConfigurationConstants.XMPP_ID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
+        this.properties.setProperty(
+                ConfigurationConstants.XMPP_ID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 
         this.orderController = Mockito.mock(OrderController.class);
         this.localInstanceProvider = Mockito.mock(InstanceProvider.class);
         this.remoteInstanceProvider = Mockito.mock(InstanceProvider.class);
 
-        this.closedProcessor = Mockito
-                .spy(new ClosedProcessor(this.localInstanceProvider, this.remoteInstanceProvider,
-                        this.orderController, this.properties));
+        this.closedProcessor =
+                Mockito.spy(
+                        new ClosedProcessor(
+                                this.localInstanceProvider,
+                                this.remoteInstanceProvider,
+                                this.orderController,
+                                this.properties));
     }
 
     @Override
@@ -66,7 +69,8 @@ public class ClosedProcessorTest extends BaseUnitTests {
         activeOrdersMap.put(localOrder.getId(), localOrder);
         closedOrders.addItem(localOrder);
 
-        Mockito.doNothing().when(this.localInstanceProvider)
+        Mockito.doNothing()
+                .when(this.localInstanceProvider)
                 .deleteInstance(Mockito.any(OrderInstance.class));
 
         this.thread = new Thread(this.closedProcessor);
@@ -93,7 +97,8 @@ public class ClosedProcessorTest extends BaseUnitTests {
         activeOrdersMap.put(localOrder.getId(), localOrder);
         closedOrders.addItem(localOrder);
 
-        Mockito.doThrow(Exception.class).when(this.localInstanceProvider)
+        Mockito.doThrow(Exception.class)
+                .when(this.localInstanceProvider)
                 .deleteInstance(Mockito.any(OrderInstance.class));
 
         this.thread = new Thread(this.closedProcessor);
@@ -106,5 +111,4 @@ public class ClosedProcessorTest extends BaseUnitTests {
         closedOrders.resetPointer();
         assertEquals(localOrder, closedOrders.getNext());
     }
-
 }

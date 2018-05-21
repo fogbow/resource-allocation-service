@@ -8,19 +8,13 @@ public class Flavor implements Comparable<Flavor> {
     private String name;
     private String id;
 
-    /**
-     * Number of cores of the CPU.
-     */
+    /** Number of cores of the CPU. */
     private int cpu;
 
-    /**
-     * RAM memory in MB.
-     */
+    /** RAM memory in MB. */
     private int memInMB;
 
-    /**
-     * Disk in GB.
-     */
+    /** Disk in GB. */
     private int disk;
 
     public Flavor(String name, int cpu, int memInMB, int disk) {
@@ -95,8 +89,7 @@ public class Flavor implements Comparable<Flavor> {
 
     @Override
     public String toString() {
-        return "Name: " + getName() + ", cpu: " + cpu + ", mem: " + memInMB
-                + ", disk: " + disk;
+        return "Name: " + getName() + ", cpu: " + cpu + ", mem: " + memInMB + ", disk: " + disk;
     }
 
     @Override

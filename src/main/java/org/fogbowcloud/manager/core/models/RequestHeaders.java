@@ -1,8 +1,10 @@
 package org.fogbowcloud.manager.core.models;
 
 public enum RequestHeaders {
-
-    CONTENT_TYPE("Content-Type"), ACCEPT("Accept"), X_AUTH_TOKEN("X-Auth-Token"), JSON_CONTENT_TYPE("application/json");
+    CONTENT_TYPE("Content-Type"),
+    ACCEPT("Accept"),
+    X_AUTH_TOKEN("X-Auth-Token"),
+    JSON_CONTENT_TYPE("application/json");
 
     private String value;
 

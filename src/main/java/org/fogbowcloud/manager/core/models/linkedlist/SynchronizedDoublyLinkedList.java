@@ -37,9 +37,9 @@ public class SynchronizedDoublyLinkedList implements ChainedList {
             this.tail.setNext(newItem);
             this.tail = newItem;
             /**
-             * This check below is useful when current pointer just passed by all the list and was pointing to null,
-             * and a new order was inserted at the end of this list. So, current should point to the new inserted
-             * order (new tail), instead of null.
+             * This check below is useful when current pointer just passed by all the list and was
+             * pointing to null, and a new order was inserted at the end of this list. So, current
+             * should point to the new inserted order (new tail), instead of null.
              */
             if (this.current == null) {
                 this.current = this.tail;
@@ -63,15 +63,14 @@ public class SynchronizedDoublyLinkedList implements ChainedList {
     }
 
     /**
-     * This method removes a given order. Note that this remove method should not
-     * modify the current pointer (i.e., after removing, the current pointer, must
-     * point to the same element before this operation), unless the order to be
-     * removed, is the one in current pointer. In this case, we must remove this
-     * order, and point current to the next one.
+     * This method removes a given order. Note that this remove method should not modify the current
+     * pointer (i.e., after removing, the current pointer, must point to the same element before
+     * this operation), unless the order to be removed, is the one in current pointer. In this case,
+     * we must remove this order, and point current to the next one.
      *
      * @param order
-     * @return True if it was removed from the list.
-     * False, if another thread removed this order from the list and the order couldn't be find.
+     * @return True if it was removed from the list. False, if another thread removed this order
+     *     from the list and the order couldn't be find.
      */
     @Override
     public synchronized boolean removeItem(Order order) {
@@ -92,15 +91,14 @@ public class SynchronizedDoublyLinkedList implements ChainedList {
         } else { // removing the tail
             this.tail = nodeToRemove.getPrevious();
         }
-        if (this.current == nodeToRemove) { // fix current, if current was pointing to cell just removed
+        if (this.current
+                == nodeToRemove) { // fix current, if current was pointing to cell just removed
             this.current = nodeToRemove.getNext();
         }
         return true;
     }
 
-    /**
-     * @param order - Never null
-     */
+    /** @param order - Never null */
     protected synchronized Node findNodeToRemove(Order order) {
         Node currentNode = this.head;
         while (currentNode != null) {
@@ -111,5 +109,4 @@ public class SynchronizedDoublyLinkedList implements ChainedList {
         }
         return null;
     }
-
 }
