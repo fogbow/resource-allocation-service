@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
 
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
@@ -274,23 +275,194 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		this.application.createCompute(null, order.getFederationToken().getAccessId());
 	}
-	
+
 	@Test
-	public void testGetOrder() throws Exception {
+	public void testGetComputeOrder() throws Exception {
 		ComputeOrder order = createComputeOrder();
-		
+
 		this.orderController.activateOrder(order, order.getFederationToken());
-		
+
 		Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
-		
+
 		Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
-		
+
 		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
 				Mockito.any(OrderType.class));
-		
+
 		ComputeOrder actualOrder = this.application.getCompute(order.getId(), order.getFederationToken().getAccessId());
-		
+
 		Assert.assertSame(order, actualOrder);
+	}
+
+	@Test(expected = UnauthenticatedException.class)
+	public void testGetComputeOrderUnauthenticated() throws Exception {
+		ComputeOrder order = createComputeOrder();
+
+		this.orderController.activateOrder(order, order.getFederationToken());
+
+		Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).authenticate(Mockito.anyString());
+
+		Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+				Mockito.any(Order.class));
+
+		this.application.getCompute(order.getId(), order.getFederationToken().getAccessId());
+	}
+
+	@Test(expected = UnauthorizedException.class)
+	public void testGetComputeOrderTokenUnauthorized() throws Exception {
+		ComputeOrder order = createComputeOrder();
+
+		this.orderController.activateOrder(order, order.getFederationToken());
+
+		Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+		Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+				Mockito.any(Order.class));
+
+		this.application.getCompute(order.getId(), order.getFederationToken().getAccessId());
+	}
+
+	@Test(expected = UnauthenticatedException.class)
+	public void testGetComputeOrderTokenUnauthenticated() throws Exception {
+		ComputeOrder order = createComputeOrder();
+
+		this.orderController.activateOrder(order, order.getFederationToken());
+
+		Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+		Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController)
+				.getFederationToken(Mockito.anyString());
+
+		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+				Mockito.any(Order.class));
+
+		this.application.getCompute(order.getId(), order.getFederationToken().getAccessId());
+	}
+
+	@Test(expected = UnauthorizedException.class)
+	public void testGetComputeOrderUnauthorizedOperation() throws Exception {
+		ComputeOrder order = createComputeOrder();
+
+		this.orderController.activateOrder(order, order.getFederationToken());
+
+		Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+		Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+		Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(Token.class),
+				Mockito.any(Operation.class), Mockito.any(Order.class));
+
+		this.application.getCompute(order.getId(), order.getFederationToken().getAccessId());
+	}
+
+	@Test
+	public void testGetAllComputes() throws OrderManagementException, UnauthenticatedException, UnauthorizedException {
+		ComputeOrder order = createComputeOrder();
+
+		this.orderController.activateOrder(order, order.getFederationToken());
+
+		Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+		Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+				Mockito.any(OrderType.class));
+
+		List<ComputeOrder> allComputes = this.application.getAllComputes(order.getFederationToken().getAccessId());
+
+		Assert.assertEquals(1, allComputes.size());
+
+		Assert.assertSame(order, allComputes.get(0));
+	}
+
+	@Test
+	public void testGetAllComputesEmpty()
+			throws OrderManagementException, UnauthenticatedException, UnauthorizedException {
+		ComputeOrder order = createComputeOrder();
+
+		Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+		Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+				Mockito.any(OrderType.class));
+
+		List<ComputeOrder> allComputes = this.application.getAllComputes(order.getFederationToken().getAccessId());
+
+		Assert.assertEquals(0, allComputes.size());
+	}
+
+	@Test(expected = UnauthenticatedException.class)
+	public void testGetAllComputesUnauthenticated()
+			throws OrderManagementException, UnauthenticatedException, UnauthorizedException {
+		ComputeOrder order = createComputeOrder();
+
+		this.orderController.activateOrder(order, order.getFederationToken());
+
+		Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).authenticate(Mockito.anyString());
+
+		Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+				Mockito.any(OrderType.class));
+
+		this.application.getAllComputes(order.getFederationToken().getAccessId());
+	}
+
+	@Test(expected = UnauthenticatedException.class)
+	public void testGetAllComputesTokenUnauthenticated()
+			throws OrderManagementException, UnauthenticatedException, UnauthorizedException {
+		ComputeOrder order = createComputeOrder();
+
+		this.orderController.activateOrder(order, order.getFederationToken());
+
+		Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+		Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController)
+				.getFederationToken(Mockito.anyString());
+
+		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+				Mockito.any(OrderType.class));
+
+		this.application.getAllComputes(order.getFederationToken().getAccessId());
+	}
+
+	@Test(expected = UnauthorizedException.class)
+	public void testGetAllComputesTokenUnauthorized()
+			throws OrderManagementException, UnauthenticatedException, UnauthorizedException {
+		ComputeOrder order = createComputeOrder();
+
+		this.orderController.activateOrder(order, order.getFederationToken());
+
+		Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+		Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+				Mockito.any(OrderType.class));
+
+		this.application.getAllComputes(order.getFederationToken().getAccessId());
+	}
+
+	@Test(expected = UnauthorizedException.class)
+	public void testGetAllComputesOperationUnauthorized()
+			throws OrderManagementException, UnauthenticatedException, UnauthorizedException {
+		ComputeOrder order = createComputeOrder();
+
+		this.orderController.activateOrder(order, order.getFederationToken());
+
+		Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+		Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+		Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+				Mockito.any(OrderType.class));
+
+		this.application.getAllComputes(order.getFederationToken().getAccessId());
 	}
 
 	private ComputeOrder createComputeOrder() {
