@@ -1,6 +1,10 @@
 package org.fogbowcloud.manager.core.processors;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyMapOf;
+
 import java.util.Map;
 import java.util.Properties;
 
@@ -15,6 +19,7 @@ import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
@@ -89,26 +94,28 @@ public class SpawningProcessorTest extends BaseUnitTests {
 	}
 	
 	@Test
-	public void testRunProcesseComputeOrderInstanceActive() throws InterruptedException {
+	public void testRunProcessComputeOrderInstanceActive() throws Exception {
 		Order order = this.createOrder();
-		order.setOrderState(OrderState.SPAWNING);
-		this.spawningOrderList.addItem(order);
+        order.setOrderState(OrderState.SPAWNING);
+        this.spawningOrderList.addItem(order);
 
-		ComputeOrderInstance computeOrderInstance = Mockito.spy(new ComputeOrderInstance("fake-id"));
-		computeOrderInstance.setState(InstanceState.ACTIVE);
-		order.setOrderInstance(computeOrderInstance);
+        OrderInstance orderInstance = Mockito.spy(new ComputeOrderInstance("fake-id"));
+        orderInstance.setState(InstanceState.ACTIVE);
+        order.setOrderInstance(orderInstance);
 
-		Map<String, String> externalServiceAddresses = this.tunnelingService.getExternalServiceAddresses(order.getId());
-		Mockito.doNothing().when(computeOrderInstance).setExternalServiceAddresses(externalServiceAddresses);
+        Mockito.doReturn(orderInstance).when(this.instanceProvider).getInstance(any(Order.class));
 
-		Mockito.when(this.sshConnectivity.checkSSHConnectivity(computeOrderInstance)).thenReturn(true);
+        Mockito.doNothing().when((ComputeOrderInstance) orderInstance)
+                .setExternalServiceAddresses(anyMapOf(String.class, String.class));
 
-		Assert.assertNull(this.fulfilledOrderList.getNext());
+        Mockito.when(this.sshConnectivity.checkSSHConnectivity(any(ComputeOrderInstance.class))).thenReturn(true);
 
-		this.thread = new Thread(this.spawningProcessor);
-		this.thread.start();
-		Thread.sleep(500);
+        assertNull(this.fulfilledOrderList.getNext());
 
+        this.thread = new Thread(this.spawningProcessor);
+        this.thread.start();
+        Thread.sleep(500);
+        
 		Assert.assertNull(this.spawningOrderList.getNext());
 
 		Order test = this.fulfilledOrderList.getNext();
@@ -137,27 +144,32 @@ public class SpawningProcessorTest extends BaseUnitTests {
 	}
 
 	@Test
-	public void testRunProcesseComputeOrderInstanceFailed() throws InterruptedException {
+	public void testRunProcesseComputeOrderInstanceFailed() throws Exception {
 		Order order = this.createOrder();
-		order.setOrderState(OrderState.SPAWNING);
-		this.spawningOrderList.addItem(order);
+        order.setOrderState(OrderState.SPAWNING);
+        this.spawningOrderList.addItem(order);
 
-		ComputeOrderInstance computeOrderInstance = Mockito.spy(new ComputeOrderInstance("fake-id"));
-		computeOrderInstance.setState(InstanceState.FAILED);
-		order.setOrderInstance(computeOrderInstance);
+        OrderInstance orderInstance = Mockito.spy(new ComputeOrderInstance("fake-id"));
+        orderInstance.setState(InstanceState.FAILED);
+        order.setOrderInstance(orderInstance);
 
-		Assert.assertNull(this.failedOrderList.getNext());
+        Mockito.doReturn(orderInstance).when(this.instanceProvider).getInstance(any(Order.class));
 
-		this.thread = new Thread(this.spawningProcessor);
-		this.thread.start();
-		Thread.sleep(500);
+        Mockito.doNothing().when((ComputeOrderInstance) orderInstance)
+                .setExternalServiceAddresses(anyMapOf(String.class, String.class));
 
+        assertNull(this.failedOrderList.getNext());
+
+        this.thread = new Thread(this.spawningProcessor);
+        this.thread.start();
+        Thread.sleep(500);
+        
 		Assert.assertNull(this.spawningOrderList.getNext());
 
 		Order test = this.failedOrderList.getNext();
-		Assert.assertNotNull(test);
+		assertNotNull(test);
 		Assert.assertEquals(order.getOrderInstance(), test.getOrderInstance());
-		Assert.assertEquals(OrderState.FAILED, test.getOrderState());
+		Assert.assertEquals(OrderState.FAILED, test.getOrderState());		
 	}
 
 	@Test
