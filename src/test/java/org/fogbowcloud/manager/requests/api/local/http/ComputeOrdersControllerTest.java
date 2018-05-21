@@ -1,6 +1,5 @@
 package org.fogbowcloud.manager.requests.api.local.http;
 
-
 import static org.junit.Assert.assertEquals;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
@@ -13,7 +12,6 @@ import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.Order;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -40,12 +38,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @PrepareForTest(ApplicationFacade.class)
 public class ComputeOrdersControllerTest {
 
-    public static final String CORRECT_BODY = "{\"requestingMember\":\"req-member\", \"providingMember\":\"prov-member\", " +
-            "\"publicKey\":\"pub-key\", \"vCPU\":\"12\", \"memory\":\"1024\", \"disk\":\"500\", " +
-            "\"imageName\":\"ubuntu\", \"type\":\"compute\"}";
+    public static final String CORRECT_BODY =
+            "{\"requestingMember\":\"req-member\", \"providingMember\":\"prov-member\", "
+                    + "\"publicKey\":\"pub-key\", \"vCPU\":\"12\", \"memory\":\"1024\", \"disk\":\"500\", "
+                    + "\"imageName\":\"ubuntu\", \"type\":\"compute\"}";
     public static final String COMPUTE_END_POINT = "/compute";
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
 
     private ApplicationFacade facade;
 
@@ -75,19 +73,17 @@ public class ComputeOrdersControllerTest {
         assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 
-    // There's tests missing, that we need to implement, forcing Application Controller to throw different exceptionsOLD.
+    // There's tests missing, that we need to implement, forcing Application Controller to throw
+    // different exceptionsOLD.
 
     @Ignore
-    public void wrongBodyToPostComputeTest() throws Exception {
-
-    }
-
+    public void wrongBodyToPostComputeTest() throws Exception {}
 
     private RequestBuilder createRequestBuilder(HttpHeaders headers, String body) {
-        return MockMvcRequestBuilders
-                .post(COMPUTE_END_POINT)
+        return MockMvcRequestBuilders.post(COMPUTE_END_POINT)
                 .headers(headers)
-                .accept(MediaType.APPLICATION_JSON).content(body)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(body)
                 .contentType(MediaType.APPLICATION_JSON);
     }
 

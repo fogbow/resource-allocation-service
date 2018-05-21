@@ -1,12 +1,5 @@
 package org.fogbowcloud.manager.core.services;
 
-import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.manager.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.manager.core.manager.plugins.AuthorizationPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.IdentityPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.PluginFactory;
-import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
-
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -14,6 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
+import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.manager.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.manager.plugins.AuthorizationPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.IdentityPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.PluginFactory;
+import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
 
 // TODO: search if it is possible locate *.properties in another path
 public class InstantiationInitService {
@@ -70,13 +69,16 @@ public class InstantiationInitService {
     }
 
     public AuthorizationPlugin getAuthorizationPlugin() {
-    	String className = this.getPropertyValue(ConfigurationConstants.AUTHORIZATION_CLASS_KEY);
-    	return (AuthorizationPlugin) this.pluginFactory.createPluginInstance(className, this.properties);
+        String className = this.getPropertyValue(ConfigurationConstants.AUTHORIZATION_CLASS_KEY);
+        return (AuthorizationPlugin)
+                this.pluginFactory.createPluginInstance(className, this.properties);
     }
-    
+
     private IdentityPlugin getIdentityPlugin(String prefix) {
-        String className =  this.getPropertyValue(prefix + ConfigurationConstants.IDENTITY_CLASS_KEY);
-        return (IdentityPlugin) this.pluginFactory.getIdentityPluginByPrefix(prefix, className, this.properties);
+        String className =
+                this.getPropertyValue(prefix + ConfigurationConstants.IDENTITY_CLASS_KEY);
+        return (IdentityPlugin)
+                this.pluginFactory.getIdentityPluginByPrefix(prefix, className, this.properties);
     }
 
     public String getPropertyValue(String propertyId) {
@@ -86,5 +88,4 @@ public class InstantiationInitService {
     public Properties getProperties() {
         return this.properties;
     }
-
 }

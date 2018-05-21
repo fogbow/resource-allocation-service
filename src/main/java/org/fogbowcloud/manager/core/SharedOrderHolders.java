@@ -1,11 +1,10 @@
 package org.fogbowcloud.manager.core;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class SharedOrderHolders {
 
@@ -33,9 +32,9 @@ public class SharedOrderHolders {
     public static SharedOrderHolders getInstance() {
         synchronized (SharedOrderHolders.class) {
             if (instance == null) {
-                instance  = new SharedOrderHolders();
+                instance = new SharedOrderHolders();
             }
-            return instance ;
+            return instance;
         }
     }
 
@@ -94,6 +93,4 @@ public class SharedOrderHolders {
 
         return list;
     }
-
 }
-

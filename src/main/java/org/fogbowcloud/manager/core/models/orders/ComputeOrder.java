@@ -1,8 +1,7 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import org.fogbowcloud.manager.core.models.token.Token;
-
 import java.util.UUID;
+import org.fogbowcloud.manager.core.models.token.Token;
 
 public class ComputeOrder extends Order {
 
@@ -24,11 +23,18 @@ public class ComputeOrder extends Order {
         super(UUID.randomUUID().toString());
     }
 
-    /**
-     * Creating Order with predefined Id.
-     */
-    public ComputeOrder(String id, Token federationToken, String requestingMember,
-                        String providingMember, int vCPU, int memory, int disk, String imageName, UserData userData, String publicKey) {
+    /** Creating Order with predefined Id. */
+    public ComputeOrder(
+            String id,
+            Token federationToken,
+            String requestingMember,
+            String providingMember,
+            int vCPU,
+            int memory,
+            int disk,
+            String imageName,
+            UserData userData,
+            String publicKey) {
         super(id, federationToken, requestingMember, providingMember);
         this.vCPU = vCPU;
         this.memory = memory;
@@ -38,10 +44,27 @@ public class ComputeOrder extends Order {
         this.publicKey = publicKey;
     }
 
-    public ComputeOrder(Token federationToken, String requestingMember, String providingMember,
-                        int vCPU, int memory, int disk, String imageName, UserData userData, String publicKey) {
-        this(UUID.randomUUID().toString(), federationToken, requestingMember, providingMember, vCPU, memory,
-                disk, imageName, userData, publicKey);
+    public ComputeOrder(
+            Token federationToken,
+            String requestingMember,
+            String providingMember,
+            int vCPU,
+            int memory,
+            int disk,
+            String imageName,
+            UserData userData,
+            String publicKey) {
+        this(
+                UUID.randomUUID().toString(),
+                federationToken,
+                requestingMember,
+                providingMember,
+                vCPU,
+                memory,
+                disk,
+                imageName,
+                userData,
+                publicKey);
     }
 
     public int getvCPU() {

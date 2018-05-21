@@ -6,120 +6,123 @@ import org.fogbowcloud.manager.core.models.token.Token.User;
 
 public abstract class Order {
 
-	private String id;
+    private String id;
 
-	private OrderState orderState;
+    private OrderState orderState;
 
-	private Token federationToken;
+    private Token federationToken;
 
-	private String requestingMember;
+    private String requestingMember;
 
-	private String providingMember;
+    private String providingMember;
 
-	private OrderInstance orderInstance;
+    private OrderInstance orderInstance;
 
-	public Order(String id) {
-		this.id = id;
-	}
+    public Order(String id) {
+        this.id = id;
+    }
 
-	/**
-	 * Creating Order with predefined Id.
-	 */
-	public Order(String id, Token federationToken, String requestingMember, String providingMember) {
-		this(id);
-		this.federationToken = federationToken;
-		this.requestingMember = requestingMember;
-		this.providingMember = providingMember;
-	}
+    /** Creating Order with predefined Id. */
+    public Order(
+            String id, Token federationToken, String requestingMember, String providingMember) {
+        this(id);
+        this.federationToken = federationToken;
+        this.requestingMember = requestingMember;
+        this.providingMember = providingMember;
+    }
 
-	public String getId() {
-		return id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public synchronized OrderState getOrderState() {
-		return orderState;
-	}
+    public synchronized OrderState getOrderState() {
+        return orderState;
+    }
 
-	public synchronized void setOrderState(OrderState state) {
-		this.orderState = state;
-	}
+    public synchronized void setOrderState(OrderState state) {
+        this.orderState = state;
+    }
 
-	public Token getFederationToken() {
-		return federationToken;
-	}
+    public Token getFederationToken() {
+        return federationToken;
+    }
 
-	public void setFederationToken(Token federationToken) {
-		this.federationToken = federationToken;
-	}
+    public void setFederationToken(Token federationToken) {
+        this.federationToken = federationToken;
+    }
 
-	public String getRequestingMember() {
-		return requestingMember;
-	}
+    public String getRequestingMember() {
+        return requestingMember;
+    }
 
-	public void setRequestingMember(String requestingMember) {
-		this.requestingMember = requestingMember;
-	}
-	
-	public String getProvidingMember() {
-		return providingMember;
-	}
-	
-	public void setProvidingMember(String providingMember) {
-		this.providingMember = providingMember;
-	}
+    public void setRequestingMember(String requestingMember) {
+        this.requestingMember = requestingMember;
+    }
 
-	public synchronized OrderInstance getOrderInstance() {
-		return orderInstance;
-	}
+    public String getProvidingMember() {
+        return providingMember;
+    }
 
-	public synchronized void setOrderInstance(OrderInstance orderInstance) {
-		this.orderInstance = orderInstance;
-	}
+    public void setProvidingMember(String providingMember) {
+        this.providingMember = providingMember;
+    }
 
-	public boolean isLocal(String localMemberId) {
-		return this.providingMember.equals(localMemberId);
-	}
+    public synchronized OrderInstance getOrderInstance() {
+        return orderInstance;
+    }
 
-	public boolean isRemote(String localMemberId) {
-		return !this.providingMember.equals(localMemberId);
-	}
+    public synchronized void setOrderInstance(OrderInstance orderInstance) {
+        this.orderInstance = orderInstance;
+    }
 
-	public User getUser() {
-		return this.federationToken.getUser();
-	}
+    public boolean isLocal(String localMemberId) {
+        return this.providingMember.equals(localMemberId);
+    }
 
-	public abstract OrderType getType();
+    public boolean isRemote(String localMemberId) {
+        return !this.providingMember.equals(localMemberId);
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		return result;
-	}
+    public User getUser() {
+        return this.federationToken.getUser();
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Order other = (Order) obj;
-		if (id == null) {
-			if (other.id != null)
-				return false;
-		} else if (!id.equals(other.id))
-			return false;
-		return true;
-	}
+    public abstract OrderType getType();
 
-	@Override
-	public String toString() {
-		return "Order [id=" + id + ", orderState=" + orderState + ", federationToken="
-				+ federationToken + ", requestingMember=" + requestingMember + ", providingMember=" + providingMember
-				+ ", orderInstance=" + orderInstance + "]";
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        return result;
+    }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        Order other = (Order) obj;
+        if (id == null) {
+            if (other.id != null) return false;
+        } else if (!id.equals(other.id)) return false;
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "Order [id="
+                + id
+                + ", orderState="
+                + orderState
+                + ", federationToken="
+                + federationToken
+                + ", requestingMember="
+                + requestingMember
+                + ", providingMember="
+                + providingMember
+                + ", orderInstance="
+                + orderInstance
+                + "]";
+    }
 }
