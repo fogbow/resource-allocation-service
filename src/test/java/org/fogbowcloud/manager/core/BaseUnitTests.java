@@ -1,5 +1,7 @@
 package org.fogbowcloud.manager.core;
 
+import java.util.Map;
+
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -21,6 +23,8 @@ public class BaseUnitTests {
             SynchronizedDoublyLinkedList ordersList = sharedOrderHolders.getOrdersList(state);
             cleanList(ordersList);
         }
+        Map<String, Order> activeOrderMap = sharedOrderHolders.getActiveOrdersMap();
+        activeOrderMap.clear();
     }
 
     protected void cleanList(ChainedList list) {
@@ -55,7 +59,6 @@ public class BaseUnitTests {
     }
 
     private Order createOrder(String requestingMember, String providingMember) {
-        Token localToken = Mockito.mock(Token.class);
         Token federationToken = Mockito.mock(Token.class);
         UserData userData = Mockito.mock(UserData.class);
         String imageName = "fake-image-name";
