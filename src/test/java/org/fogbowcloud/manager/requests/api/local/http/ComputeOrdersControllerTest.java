@@ -1,19 +1,11 @@
 package org.fogbowcloud.manager.requests.api.local.http;
 
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.spy;
-
 import org.fogbowcloud.manager.api.local.http.ComputeOrdersController;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.Order;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -33,6 +25,13 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.spy;
+
 // TODO review this tests
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
@@ -49,8 +48,7 @@ public class ComputeOrdersControllerTest {
 
     private ApplicationFacade facade;
 
-    private final String ACCESS_ID_HEADER = "accessId";
-    private final String LOCAL_TOKEN_ID_HEADER = "localTokenId";
+    private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
     @Before
     public void setUp() throws UnauthorizedException, OrderManagementException {
@@ -93,10 +91,8 @@ public class ComputeOrdersControllerTest {
 
     private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        String fakeAccessId = "fake-access-id";
-        String fakeLocalTokenId = "fake-local-token-id";
-        headers.set(ACCESS_ID_HEADER, fakeAccessId);
-        headers.set(LOCAL_TOKEN_ID_HEADER, fakeLocalTokenId);
+        String fakeFederationTokenValue = "fake-access-id";
+        headers.set(FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
         return headers;
     }
 }
