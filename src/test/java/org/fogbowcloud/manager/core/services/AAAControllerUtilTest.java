@@ -34,8 +34,7 @@ public class AAAControllerUtilTest {
     @Test(expected = PropertyNotSpecifiedException.class)
     public void testGetDefaultLocalTokenCredentialsWithPropertiesNull()
             throws PropertyNotSpecifiedException {
-        Map<String, String> defaulLocalTokenCredentials =
-                AuthenticationControllerUtil.getDefaultLocalTokenCredentials(null);
+    	AuthenticationControllerUtil.getDefaultLocalTokenCredentials(null);
     }
 
     @Test
