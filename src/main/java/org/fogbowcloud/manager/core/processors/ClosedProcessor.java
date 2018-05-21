@@ -1,17 +1,16 @@
 package org.fogbowcloud.manager.core.processors;
 
+import java.util.Properties;
 import javassist.NotFoundException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.OrderController;
-import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.manager.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
+import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.manager.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
-
-import java.util.Properties;
 
 public class ClosedProcessor implements Runnable {
 
@@ -28,13 +27,18 @@ public class ClosedProcessor implements Runnable {
 
     private SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 
-    public ClosedProcessor(InstanceProvider localInstanceProvider, InstanceProvider remoteInstanceProvider,
-                           OrderController orderController, Properties properties) {
+    public ClosedProcessor(
+            InstanceProvider localInstanceProvider,
+            InstanceProvider remoteInstanceProvider,
+            OrderController orderController,
+            Properties properties) {
         SharedOrderHolders sharedOrdersHolder = SharedOrderHolders.getInstance();
         this.closedOrders = sharedOrdersHolder.getClosedOrdersList();
 
-        String sleepTimeStr = properties.getProperty(ConfigurationConstants.CLOSED_ORDERS_SLEEP_TIME_KEY,
-                DefaultConfigurationConstants.CLOSED_ORDERS_SLEEP_TIME);
+        String sleepTimeStr =
+                properties.getProperty(
+                        ConfigurationConstants.CLOSED_ORDERS_SLEEP_TIME_KEY,
+                        DefaultConfigurationConstants.CLOSED_ORDERS_SLEEP_TIME);
         this.sleepTime = Long.valueOf(sleepTimeStr);
 
         this.localMemberId = properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
@@ -54,12 +58,15 @@ public class ClosedProcessor implements Runnable {
                     try {
                         processClosedOrder(order);
                     } catch (OrderStateTransitionException e) {
-                        LOGGER.error("Error while trying to changing the state of order " + order, e);
+                        LOGGER.error(
+                                "Error while trying to changing the state of order " + order, e);
                     }
                 } else {
                     this.closedOrders.resetPointer();
                     LOGGER.info(
-                            "There is no closed order to be processed, sleeping for " + this.sleepTime + " milliseconds");
+                            "There is no closed order to be processed, sleeping for "
+                                    + this.sleepTime
+                                    + " milliseconds");
                     Thread.sleep(this.sleepTime);
                 }
             } catch (InterruptedException e) {
@@ -77,7 +84,7 @@ public class ClosedProcessor implements Runnable {
                 InstanceProvider provider = getInstanceProviderForOrder(order);
                 try {
                     provider.deleteInstance(order.getOrderInstance());
-                // TODO create InstanceNotFoundException
+                    // TODO create InstanceNotFoundException
                 } catch (NotFoundException e) {
                     LOGGER.warn("", e);
                 } catch (Exception e) {

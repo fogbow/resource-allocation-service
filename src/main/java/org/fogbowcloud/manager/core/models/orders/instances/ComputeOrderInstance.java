@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.models.orders.instances;
 
 import java.util.Map;
-
 import org.fogbowcloud.manager.core.manager.constants.CommonConfigurationConstants;
 import org.fogbowcloud.manager.utils.SshCommonUserUtil;
 import org.json.JSONObject;
@@ -11,9 +10,7 @@ public class ComputeOrderInstance extends OrderInstance {
 
     private String hostName;
     private int vCPU;
-    /**
-     * Memory attribute, must be set in MB.
-     */
+    /** Memory attribute, must be set in MB. */
     private int memory;
 
     private String localIpAddress;
@@ -21,8 +18,16 @@ public class ComputeOrderInstance extends OrderInstance {
     private String sshUserName;
     private String sshExtraPorts;
 
-    public ComputeOrderInstance(String id, String hostName, int vCPU, int memory, InstanceState state, String localIpAddress,
-                                String sshPublicAddress, String sshUserName, String sshExtraPorts) {
+    public ComputeOrderInstance(
+            String id,
+            String hostName,
+            int vCPU,
+            int memory,
+            InstanceState state,
+            String localIpAddress,
+            String sshPublicAddress,
+            String sshUserName,
+            String sshExtraPorts) {
         super(id, state);
         this.hostName = hostName;
         this.vCPU = vCPU;
@@ -95,7 +100,8 @@ public class ComputeOrderInstance extends OrderInstance {
 
     public void setExternalServiceAddresses(Map<String, String> serviceAddresses) {
         if (serviceAddresses != null) {
-            this.sshPublicAddress = serviceAddresses.get(CommonConfigurationConstants.SSH_SERVICE_NAME);
+            this.sshPublicAddress =
+                    serviceAddresses.get(CommonConfigurationConstants.SSH_SERVICE_NAME);
             this.sshUserName = SshCommonUserUtil.getSshCommonUser();
             this.sshExtraPorts = new JSONObject(serviceAddresses).toString();
         }

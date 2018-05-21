@@ -3,6 +3,8 @@ package org.fogbowcloud.manager.requests.api.local.http;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
+import org.fogbowcloud.manager.api.local.http.ComputeOrdersController;
+import org.fogbowcloud.manager.api.local.http.ExceptionTranslator;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.InvalidCredentialsException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.InvalidTokenException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
@@ -17,83 +19,100 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 public class TestExceptionHandlerController {
-	
-	private MockMvc mockMvc;
-	
-	private ComputeOrdersController computeOrdersController;
-	
-	@Before
-	public void setup() {
-		computeOrdersController = Mockito.mock(ComputeOrdersController.class);
-		this.mockMvc = MockMvcBuilders.standaloneSetup(computeOrdersController)
-				.setControllerAdvice(new ExceptionTranslator())
-				.build();
-	}
-	
-	@Test
-	public void testInvalidCredentialsException() throws Exception {
-		Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString())).thenThrow(new InvalidCredentialsException());
-		
-		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
-				.accept(MediaType.APPLICATION_JSON)
-				.header("accessId", Mockito.anyString()))
-        		.andReturn().getResponse();
 
-		JSONObject jsonObject = new JSONObject(response.getContentAsString());
+    private MockMvc mockMvc;
 
-		assertEquals(jsonObject.get("details"), "uri=/compute/");
-		assertEquals(jsonObject.get("message"), "Invalid Credentials");
-		assertEquals(jsonObject.get("statusCode"), HttpStatus.UNAUTHORIZED.name());
-		assertEquals(Integer.toString(response.getStatus()), HttpStatus.UNAUTHORIZED.toString());
-	}
-	
-	@Test
-	public void testInvalidTokenException() throws Exception {
-		Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString())).thenThrow(new InvalidTokenException());
-		
-		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
-				.accept(MediaType.APPLICATION_JSON)
-				.header("accessId", Mockito.anyString()))
-        		.andReturn().getResponse();
+    private ComputeOrdersController computeOrdersController;
 
-		JSONObject jsonObject = new JSONObject(response.getContentAsString());
+    @Before
+    public void setup() {
+        computeOrdersController = Mockito.mock(ComputeOrdersController.class);
+        this.mockMvc =
+                MockMvcBuilders.standaloneSetup(computeOrdersController)
+                        .setControllerAdvice(new ExceptionTranslator())
+                        .build();
+    }
 
-		assertEquals(jsonObject.get("details"), "uri=/compute/");
-		assertEquals(jsonObject.get("message"), "Invalid token");
-		assertEquals(jsonObject.get("statusCode"), HttpStatus.UNAUTHORIZED.name());
-		assertEquals(Integer.toString(response.getStatus()), HttpStatus.UNAUTHORIZED.toString());
-	}
-	
-	@Test
-	public void testTokenCreationException() throws Exception {
-		Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString())).thenThrow(new TokenCreationException());
-		
-		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
-				.accept(MediaType.APPLICATION_JSON)
-				.header("accessId", Mockito.anyString()))
-        		.andReturn().getResponse();
+    @Test
+    public void testInvalidCredentialsException() throws Exception {
+        Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString()))
+                .thenThrow(new InvalidCredentialsException());
 
-		JSONObject jsonObject = new JSONObject(response.getContentAsString());
+        MockHttpServletResponse response =
+                mockMvc.perform(
+                                get("/compute/")
+                                        .accept(MediaType.APPLICATION_JSON)
+                                        .header("accessId", Mockito.anyString()))
+                        .andReturn()
+                        .getResponse();
 
-		assertEquals(jsonObject.get("details"), "uri=/compute/");
-		assertEquals(jsonObject.get("message"), "Token Creation Exception");
-		assertEquals(jsonObject.get("statusCode"), HttpStatus.BAD_REQUEST.name());
-		assertEquals(Integer.toString(response.getStatus()), HttpStatus.BAD_REQUEST.toString());
-	}
-	
-	@Test
-	public void testAnyException() throws Exception {
-		Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString())).thenThrow(new RuntimeException());
-		
-		MockHttpServletResponse response = mockMvc.perform(get("/compute/")
-				.accept(MediaType.APPLICATION_JSON)
-				.header("accessId", Mockito.anyString()))
-        		.andReturn().getResponse();
+        JSONObject jsonObject = new JSONObject(response.getContentAsString());
 
-		JSONObject jsonObject = new JSONObject(response.getContentAsString());
-		assertEquals(jsonObject.get("details"), "uri=/compute/");
-		assertEquals(jsonObject.get("statusCode"), HttpStatus.BAD_REQUEST.name());
-		
-		assertEquals(Integer.toString(response.getStatus()), HttpStatus.BAD_REQUEST.toString());
-	}
+        assertEquals(jsonObject.get("details"), "uri=/compute/");
+        assertEquals(jsonObject.get("message"), "Invalid Credentials");
+        assertEquals(jsonObject.get("statusCode"), HttpStatus.UNAUTHORIZED.name());
+        assertEquals(Integer.toString(response.getStatus()), HttpStatus.UNAUTHORIZED.toString());
+    }
+
+    @Test
+    public void testInvalidTokenException() throws Exception {
+        Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString()))
+                .thenThrow(new InvalidTokenException());
+
+        MockHttpServletResponse response =
+                mockMvc.perform(
+                                get("/compute/")
+                                        .accept(MediaType.APPLICATION_JSON)
+                                        .header("accessId", Mockito.anyString()))
+                        .andReturn()
+                        .getResponse();
+
+        JSONObject jsonObject = new JSONObject(response.getContentAsString());
+
+        assertEquals(jsonObject.get("details"), "uri=/compute/");
+        assertEquals(jsonObject.get("message"), "Invalid token");
+        assertEquals(jsonObject.get("statusCode"), HttpStatus.UNAUTHORIZED.name());
+        assertEquals(Integer.toString(response.getStatus()), HttpStatus.UNAUTHORIZED.toString());
+    }
+
+    @Test
+    public void testTokenCreationException() throws Exception {
+        Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString()))
+                .thenThrow(new TokenCreationException());
+
+        MockHttpServletResponse response =
+                mockMvc.perform(
+                                get("/compute/")
+                                        .accept(MediaType.APPLICATION_JSON)
+                                        .header("accessId", Mockito.anyString()))
+                        .andReturn()
+                        .getResponse();
+
+        JSONObject jsonObject = new JSONObject(response.getContentAsString());
+
+        assertEquals(jsonObject.get("details"), "uri=/compute/");
+        assertEquals(jsonObject.get("message"), "Token Creation Exception");
+        assertEquals(jsonObject.get("statusCode"), HttpStatus.BAD_REQUEST.name());
+        assertEquals(Integer.toString(response.getStatus()), HttpStatus.BAD_REQUEST.toString());
+    }
+
+    @Test
+    public void testAnyException() throws Exception {
+        Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString()))
+                .thenThrow(new RuntimeException());
+
+        MockHttpServletResponse response =
+                mockMvc.perform(
+                                get("/compute/")
+                                        .accept(MediaType.APPLICATION_JSON)
+                                        .header("accessId", Mockito.anyString()))
+                        .andReturn()
+                        .getResponse();
+
+        JSONObject jsonObject = new JSONObject(response.getContentAsString());
+        assertEquals(jsonObject.get("details"), "uri=/compute/");
+        assertEquals(jsonObject.get("statusCode"), HttpStatus.BAD_REQUEST.name());
+
+        assertEquals(Integer.toString(response.getStatus()), HttpStatus.BAD_REQUEST.toString());
+    }
 }

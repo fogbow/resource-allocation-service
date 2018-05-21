@@ -1,12 +1,18 @@
 package org.fogbowcloud.manager.core;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.stream.Collectors;
+import org.fogbowcloud.manager.api.local.http.ComputeOrdersController;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
 import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
 import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -14,21 +20,12 @@ import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.models.token.Token.User;
-import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
-import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.requests.api.local.http.ComputeOrdersController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.stream.Collectors;
-
 public class OrderController {
-	
-	private static final Logger LOGGER = LoggerFactory.getLogger(ComputeOrdersController.class);
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ComputeOrdersController.class);
     private SharedOrderHolders orderHolders;
 
     private final InstanceProvider localInstanceProvider;
@@ -36,7 +33,10 @@ public class OrderController {
 
     private final String localMemberId;
 
-    public OrderController(Properties properties, LocalInstanceProvider localInstanceProvider, RemoteInstanceProvider remoteInstanceProvider) {
+    public OrderController(
+            Properties properties,
+            LocalInstanceProvider localInstanceProvider,
+            RemoteInstanceProvider remoteInstanceProvider) {
         this.localMemberId = properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
         this.localInstanceProvider = localInstanceProvider;
         this.remoteInstanceProvider = remoteInstanceProvider;
@@ -46,10 +46,11 @@ public class OrderController {
     public List<Order> getAllOrders(User user, OrderType type) throws UnauthorizedException {
         Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
 
-        List<Order> requestedOrders = orders.stream()
-                .filter(order -> order.getType().equals(type))
-                .filter(order -> order.getUser().equals(user))
-                .collect(Collectors.toList());
+        List<Order> requestedOrders =
+                orders.stream()
+                        .filter(order -> order.getType().equals(type))
+                        .filter(order -> order.getUser().equals(user))
+                        .collect(Collectors.toList());
 
         return requestedOrders;
     }
@@ -77,26 +78,31 @@ public class OrderController {
         return requestedOrder;
     }
 
- 	public void deleteOrder(Order order) throws OrderManagementException {
- 		if (order == null) {
- 			String message = "Cannot delete a null order";
- 			throw new OrderManagementException(message);
- 		}
- 		synchronized (order) {
- 			OrderState orderState = order.getOrderState(); 
- 			if (!orderState.equals(OrderState.CLOSED)) {
- 				try {
- 					OrderStateTransitioner.transition(order, OrderState.CLOSED);
- 				} catch (OrderStateTransitionException e) {
- 					LOGGER.error("This should never happen. Error to try change status" + order.getOrderState()
- 							+ " to closed for order [" + order.getId() + "]", e);
- 				}
- 			} else {
+    public void deleteOrder(Order order) throws OrderManagementException {
+        if (order == null) {
+            String message = "Cannot delete a null order";
+            throw new OrderManagementException(message);
+        }
+        synchronized (order) {
+            OrderState orderState = order.getOrderState();
+            if (!orderState.equals(OrderState.CLOSED)) {
+                try {
+                    OrderStateTransitioner.transition(order, OrderState.CLOSED);
+                } catch (OrderStateTransitionException e) {
+                    LOGGER.error(
+                            "This should never happen. Error to try change status"
+                                    + order.getOrderState()
+                                    + " to closed for order ["
+                                    + order.getId()
+                                    + "]",
+                            e);
+                }
+            } else {
                 String message = "Order [" + order.getId() + "] is already in the closed state";
- 				throw new OrderManagementException(message);
- 			}
- 		}
- 	}
+                throw new OrderManagementException(message);
+            }
+        }
+    }
 
     public void activateOrder(Order order, Token federationToken) throws OrderManagementException {
         if (order == null) {
@@ -115,7 +121,8 @@ public class OrderController {
 
         synchronized (order) {
             if (activeOrdersMap.containsKey(orderId)) {
-                String message = String.format("Order with id %s is already in active orders map.", orderId);
+                String message =
+                        String.format("Order with id %s is already in active orders map.", orderId);
                 throw new OrderManagementException(message);
             }
 
@@ -130,7 +137,8 @@ public class OrderController {
         if (activeOrdersMap.containsKey(order.getId())) {
             activeOrdersMap.remove(order.getId());
         } else {
-            String message = "Tried to remove order %s from the active orders but there were no order with this id";
+            String message =
+                    "Tried to remove order %s from the active orders but there were no order with this id";
             LOGGER.error(String.format(message, order.getId()));
         }
     }
@@ -143,8 +151,13 @@ public class OrderController {
 
             instanceProvider = this.localInstanceProvider;
         } else {
-            LOGGER.info("The open order [" + order.getId() + "] is remote for the " +
-                    "member [" + order.getProvidingMember() + "]");
+            LOGGER.info(
+                    "The open order ["
+                            + order.getId()
+                            + "] is remote for the "
+                            + "member ["
+                            + order.getProvidingMember()
+                            + "]");
 
             instanceProvider = this.remoteInstanceProvider;
         }

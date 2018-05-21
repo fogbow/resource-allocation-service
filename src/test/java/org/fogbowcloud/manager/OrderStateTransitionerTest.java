@@ -1,5 +1,8 @@
 package org.fogbowcloud.manager;
 
+import static org.junit.Assert.*;
+import static org.mockito.BDDMockito.*;
+
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
@@ -10,15 +13,11 @@ import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.mockito.internal.util.MockUtil;
-
-import static org.mockito.BDDMockito.*;
-import static org.junit.Assert.*;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(SharedOrderHolders.class)
@@ -103,7 +102,8 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         OrderState destinationState = OrderState.SPAWNING;
 
         SharedOrderHolders ordersHolder = Mockito.mock(SharedOrderHolders.class);
-        when(ordersHolder.getOrdersList(originState)).thenReturn(new SynchronizedDoublyLinkedList());
+        when(ordersHolder.getOrdersList(originState))
+                .thenReturn(new SynchronizedDoublyLinkedList());
 
         // destination list will fail to be found
         when(ordersHolder.getOrdersList(destinationState)).thenReturn(null);
@@ -135,5 +135,4 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         Order order = createOrder(originState);
         OrderStateTransitioner.transition(order, destinationState);
     }
-    
 }
