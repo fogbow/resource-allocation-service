@@ -66,7 +66,7 @@ public class TestOpenStackComputePlugin {
     @Test
     public void testRequestInstance() throws IOException, RequestException {
         Flavor flavor = mock(Flavor.class);
-        doReturn(flavor).when(novaV2ComputeOpenStack).findSmallestFlavor(any(ComputeOrder.class), localToken);
+        doReturn(flavor).when(novaV2ComputeOpenStack).findSmallestFlavor(any(ComputeOrder.class), eq(localToken));
         
         String fakeCommand = "fake-command"; 
         doReturn(fakeCommand).when(launchCommandGenerator).createLaunchCommand(any(ComputeOrder.class));
@@ -88,7 +88,7 @@ public class TestOpenStackComputePlugin {
     @Test(expected = RequestException.class)
     public void testRequestInstanceIrregularSyntax() throws IOException, RequestException {
         Flavor flavor = mock(Flavor.class);
-        doReturn(flavor).when(novaV2ComputeOpenStack).findSmallestFlavor(any(ComputeOrder.class), localToken);
+        doReturn(flavor).when(novaV2ComputeOpenStack).findSmallestFlavor(any(ComputeOrder.class), eq(localToken));
         
         String fakeCommand = "fake-command"; 
         doReturn(fakeCommand).when(launchCommandGenerator).createLaunchCommand(any(ComputeOrder.class));
