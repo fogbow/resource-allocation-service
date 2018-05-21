@@ -89,23 +89,20 @@ public class OrderControllerTest extends BaseUnitTests {
         String fakeAccessId = "0000";
         String fakeUserId = "userId";
         String fakeUserName = "userName";
+        
         Token.User fakeUser = new Token.User(fakeUserId, fakeUserName);
         Date fakeExpirationTime = new Date();
         Map<String, String> fakeAttributes = new HashMap<>();
+        
         return new Token(fakeAccessId, fakeUser, fakeExpirationTime, fakeAttributes);
     }
 
-    @Test
+    @Test(expected = OrderManagementException.class)
     public void testDeleteOrderStateClosed() throws OrderManagementException {
         String orderId = getComputeOrderCreationId(OrderState.CLOSED);
         ComputeOrder computeOrder = (ComputeOrder) activeOrdersMap.get(orderId);
 
         this.ordersManagerController.deleteOrder(computeOrder);
-
-        Order test = this.closedOrdersList.getNext();
-        Assert.assertNotNull(test);
-        Assert.assertEquals(computeOrder, test);
-        Assert.assertEquals(OrderState.CLOSED, test.getOrderState());
     }
 
     @Test
