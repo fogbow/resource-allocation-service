@@ -31,10 +31,25 @@ public class AAAControllerUtilTest {
         Assert.assertNull(defaulLocalTokenCredentials.get(keyThree));
     }
 
-    @Test(expected = PropertyNotSpecifiedException.class)
+    @Test
     public void testGetDefaultLocalTokenCredentialsWithPropertiesNull()
             throws PropertyNotSpecifiedException {
-    	AuthenticationControllerUtil.getDefaultLocalTokenCredentials(null);
+    	try {
+    		AuthenticationControllerUtil.getDefaultLocalTokenCredentials(null);
+		} catch (PropertyNotSpecifiedException e) {
+			Assert.assertEquals("Empty property map", e.getMessage());
+		}
+    	
+    }
+    
+    @Test
+    public void testGetDefaultLocalTokenCredentialsWithPropertiesEmpty()
+            throws PropertyNotSpecifiedException {
+    	try {
+    		AuthenticationControllerUtil.getDefaultLocalTokenCredentials(new Properties());
+		} catch (PropertyNotSpecifiedException e) {
+			Assert.assertEquals("Default local token credentials not found", e.getMessage());
+		}
     }
 
     @Test
