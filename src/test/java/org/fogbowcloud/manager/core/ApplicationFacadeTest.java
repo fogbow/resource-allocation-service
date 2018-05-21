@@ -274,6 +274,24 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		this.application.createCompute(null, order.getFederationToken().getAccessId());
 	}
+	
+	@Test
+	public void testGetOrder() throws Exception {
+		ComputeOrder order = createComputeOrder();
+		
+		this.orderController.activateOrder(order, order.getFederationToken());
+		
+		Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+		
+		Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+		
+		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+				Mockito.any(OrderType.class));
+		
+		ComputeOrder actualOrder = this.application.getCompute(order.getId(), order.getFederationToken().getAccessId());
+		
+		Assert.assertSame(order, actualOrder);
+	}
 
 	private ComputeOrder createComputeOrder() {
 		Token.User user = new Token.User("fake-user-id", "fake-user-name");
