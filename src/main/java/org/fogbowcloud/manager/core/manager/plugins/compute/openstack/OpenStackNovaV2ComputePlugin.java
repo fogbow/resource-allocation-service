@@ -1,6 +1,7 @@
 package org.fogbowcloud.manager.core.manager.plugins.compute.openstack;
 
-import org.fogbowcloud.manager.core.models.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
@@ -10,21 +11,19 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
-import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
-import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.manager.plugins.compute.DefaultLaunchCommandGenerator;
 import org.fogbowcloud.manager.core.manager.plugins.compute.LaunchCommandGenerator;
+import org.fogbowcloud.manager.core.models.*;
+import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
+import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
+import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.utils.HttpRequestUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.nio.charset.StandardCharsets;
-import java.util.*;
 
 public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
@@ -64,35 +63,36 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private HttpClient client;
     private LaunchCommandGenerator launchCommandGenerator;
 
-	public OpenStackNovaV2ComputePlugin(Properties properties) throws Exception {
-		this(properties, new DefaultLaunchCommandGenerator(properties));
-	}
-	
-	protected OpenStackNovaV2ComputePlugin(Properties properties,
-			LaunchCommandGenerator launchCommandGenerator) throws Exception {
-		LOGGER.debug(
-				"Creating OpenStackNovaV2ComputePlugin with properties=" + properties.toString());
-		
-		this.flavors = new TreeSet<>();
-		this.properties = properties;
-		this.launchCommandGenerator = launchCommandGenerator;
-		this.initClient();
-	}
+    public OpenStackNovaV2ComputePlugin(Properties properties) throws Exception {
+        this(properties, new DefaultLaunchCommandGenerator(properties));
+    }
 
-    public String requestInstance(ComputeOrder computeOrder, Token localToken, String imageId) throws RequestException {
+    protected OpenStackNovaV2ComputePlugin(
+            Properties properties, LaunchCommandGenerator launchCommandGenerator) throws Exception {
+        LOGGER.debug(
+                "Creating OpenStackNovaV2ComputePlugin with properties=" + properties.toString());
+
+        this.flavors = new TreeSet<>();
+        this.properties = properties;
+        this.launchCommandGenerator = launchCommandGenerator;
+        this.initClient();
+    }
+
+    public String requestInstance(ComputeOrder computeOrder, Token localToken, String imageId)
+            throws RequestException {
         LOGGER.debug("Requesting instance with token=" + localToken);
 
         Flavor flavor = findSmallestFlavor(computeOrder, localToken);
         String flavorId = flavor.getId();
-        
+
         String tenantId = getTenantId(localToken);
-        
+
         String networkId = getNetworkId();
-        
+
         String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
-        
+
         String keyName = getKeyName(tenantId, localToken, computeOrder.getPublicKey());
-        
+
         String endpoint = getComputeEndpoint(tenantId, SERVERS);
 
         try {
@@ -129,7 +129,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         return this.properties.getProperty(COMPUTE_NOVAV2_NETWORK_KEY);
     }
 
-    protected String getKeyName(String tenantId, Token localToken, String publicKey) throws RequestException {
+    protected String getKeyName(String tenantId, Token localToken, String publicKey)
+            throws RequestException {
         String keyname = null;
 
         if (publicKey != null && !publicKey.isEmpty()) {
@@ -146,7 +147,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
                 doPostRequest(osKeypairEndpoint, localToken, root);
             } catch (JSONException e) {
                 LOGGER.error("Error while getting key name: " + e);
-                throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+                throw new RequestException(
+                        ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
             }
         }
 
@@ -154,8 +156,10 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     protected String getComputeEndpoint(String tenantId, String suffix) {
-        return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) +
-                COMPUTE_V2_API_ENDPOINT + tenantId + suffix;
+        return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY)
+                + COMPUTE_V2_API_ENDPOINT
+                + tenantId
+                + suffix;
     }
 
     private String getAttFromJson(String attName, String jsonStr) throws JSONException {
@@ -165,7 +169,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         return jsonAttValue;
     }
 
-    protected void deleteKeyName(String tenantId, Token localToken, String keyName) throws RequestException {
+    protected void deleteKeyName(String tenantId, Token localToken, String keyName)
+            throws RequestException {
         String suffixEndpoint = SUFFIX_ENDPOINT_KEYPAIRS + "/" + keyName;
         String keynameEndpoint = getComputeEndpoint(tenantId, suffixEndpoint);
 
@@ -196,7 +201,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         checkStatusResponse(response, "");
     }
 
-    protected String doPostRequest(String endpoint, Token localToken, JSONObject jsonRequest) throws RequestException {
+    protected String doPostRequest(String endpoint, Token localToken, JSONObject jsonRequest)
+            throws RequestException {
         LOGGER.debug("Doing POST request to OpenStack for creating an instance...");
 
         HttpResponse response = null;
@@ -204,8 +210,11 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
         try {
             HttpPost request = new HttpPost(endpoint);
-            request.addHeader(RequestHeaders.CONTENT_TYPE.getValue(), RequestHeaders.JSON_CONTENT_TYPE.getValue());
-            request.addHeader(RequestHeaders.ACCEPT.getValue(), RequestHeaders.JSON_CONTENT_TYPE.getValue());
+            request.addHeader(
+                    RequestHeaders.CONTENT_TYPE.getValue(),
+                    RequestHeaders.JSON_CONTENT_TYPE.getValue());
+            request.addHeader(
+                    RequestHeaders.ACCEPT.getValue(), RequestHeaders.JSON_CONTENT_TYPE.getValue());
             request.addHeader(RequestHeaders.X_AUTH_TOKEN.getValue(), localToken.getAccessId());
 
             request.setEntity(new StringEntity(jsonRequest.toString(), StandardCharsets.UTF_8));
@@ -227,8 +236,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         return responseStr;
     }
 
-    protected JSONObject generateJsonRequest(String imageRef, String flavorRef, String userdata,
-                                             String keyName, String networkId) throws JSONException {
+    protected JSONObject generateJsonRequest(
+            String imageRef, String flavorRef, String userdata, String keyName, String networkId)
+            throws JSONException {
         LOGGER.debug("Generating JSON to send as the body of instance POST request...");
 
         JSONObject server = new JSONObject();
@@ -258,7 +268,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         return root;
     }
 
-    private void checkStatusResponse(HttpResponse response, String message) throws RequestException {
+    private void checkStatusResponse(HttpResponse response, String message)
+            throws RequestException {
         LOGGER.debug("Checking status response...");
 
         StatusResponseMap statusResponseMap = new StatusResponseMap(response, message);
@@ -266,7 +277,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         StatusResponse statusResponse = statusResponseMap.getStatusResponse(statusCode);
 
         if (statusResponse != null) {
-            throw new RequestException(statusResponse.getErrorType(), statusResponse.getResponseConstants());
+            throw new RequestException(
+                    statusResponse.getErrorType(), statusResponse.getResponseConstants());
         }
     }
 
@@ -275,8 +287,12 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
         LOGGER.debug("Finding smallest flavor...");
 
-        Flavor minimumFlavor = new Flavor(null, computeOrder.getvCPU(),
-                computeOrder.getMemory(), computeOrder.getDisk());
+        Flavor minimumFlavor =
+                new Flavor(
+                        null,
+                        computeOrder.getvCPU(),
+                        computeOrder.getMemory(),
+                        computeOrder.getDisk());
 
         return this.flavors.ceiling(minimumFlavor);
     }
@@ -295,7 +311,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
             List<String> flavorsId = new ArrayList<>();
 
-            JSONArray jsonArrayFlavors = new JSONObject(jsonResponseFlavors).getJSONArray(FLAVOR_JSON_KEY);
+            JSONArray jsonArrayFlavors =
+                    new JSONObject(jsonResponseFlavors).getJSONArray(FLAVOR_JSON_KEY);
 
             for (int i = 0; i < jsonArrayFlavors.length(); i++) {
                 JSONObject itemFlavor = jsonArrayFlavors.getJSONObject(i);
@@ -312,8 +329,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         }
     }
 
-    private TreeSet<Flavor> detailFlavors(String endpoint, Token localToken,
-                                       List<String> flavorsId) throws JSONException, RequestException {
+    private TreeSet<Flavor> detailFlavors(String endpoint, Token localToken, List<String> flavorsId)
+            throws JSONException, RequestException {
         TreeSet<Flavor> newFlavors = new TreeSet<>();
         TreeSet<Flavor> flavorsCopy = new TreeSet<>(this.flavors);
 
@@ -327,11 +344,13 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
                     break;
                 }
             }
-            if (! containsFlavor) {
+            if (!containsFlavor) {
                 String newEndpoint = endpoint + "/" + flavorId;
                 String jsonResponseSpecificFlavor = doGetRequest(newEndpoint, localToken);
 
-                JSONObject specificFlavor = new JSONObject(jsonResponseSpecificFlavor).getJSONObject(FLAVOR_JSON_OBJECT);
+                JSONObject specificFlavor =
+                        new JSONObject(jsonResponseSpecificFlavor)
+                                .getJSONObject(FLAVOR_JSON_OBJECT);
 
                 String id = specificFlavor.getString(ID_JSON_FIELD);
                 String name = specificFlavor.getString(NAME_JSON_FIELD);
@@ -354,8 +373,11 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
         try {
             HttpGet request = new HttpGet(endpoint);
-            request.addHeader(RequestHeaders.CONTENT_TYPE.getValue(), RequestHeaders.JSON_CONTENT_TYPE.getValue());
-            request.addHeader(RequestHeaders.ACCEPT.getValue(), RequestHeaders.JSON_CONTENT_TYPE.getValue());
+            request.addHeader(
+                    RequestHeaders.CONTENT_TYPE.getValue(),
+                    RequestHeaders.JSON_CONTENT_TYPE.getValue());
+            request.addHeader(
+                    RequestHeaders.ACCEPT.getValue(), RequestHeaders.JSON_CONTENT_TYPE.getValue());
             request.addHeader(RequestHeaders.X_AUTH_TOKEN.getValue(), localToken.getAccessId());
 
             response = this.client.execute(request);
@@ -377,7 +399,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     @Override
-    public ComputeOrderInstance getInstance(Token localToken, String instanceId) throws RequestException {
+    public ComputeOrderInstance getInstance(Token localToken, String instanceId)
+            throws RequestException {
         LOGGER.info("Getting instance " + instanceId + " with token " + localToken);
 
         String tenantId = getTenantId(localToken);
@@ -409,8 +432,17 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             String sshUserName = "";
             String sshExtraPorts = "";
 
-            ComputeOrderInstance computeOrderInstance = new ComputeOrderInstance(id, hostName, vCPU, memory,
-                    state, localIpAddress, sshPublicAddress, sshUserName, sshExtraPorts);
+            ComputeOrderInstance computeOrderInstance =
+                    new ComputeOrderInstance(
+                            id,
+                            hostName,
+                            vCPU,
+                            memory,
+                            state,
+                            localIpAddress,
+                            sshPublicAddress,
+                            sshUserName,
+                            sshExtraPorts);
 
             return computeOrderInstance;
         } catch (JSONException e) {
@@ -449,14 +481,14 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         if (instance.getId() == null) {
             throw new RequestException();
         }
-        String endpoint = getComputeEndpoint(getTenantId(localToken), SERVERS + "/" + instance.getId());
+        String endpoint =
+                getComputeEndpoint(getTenantId(localToken), SERVERS + "/" + instance.getId());
 
         doDeleteRequest(endpoint, localToken);
     }
 
     @Override
-    public void deleteInstances(Token localToken) {
-    }
+    public void deleteInstances(Token localToken) {}
 
     @Override
     public String attachStorage(Token localToken, StorageLink storageLink) {

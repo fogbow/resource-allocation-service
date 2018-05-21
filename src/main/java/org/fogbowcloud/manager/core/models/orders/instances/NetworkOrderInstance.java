@@ -10,7 +10,16 @@ public class NetworkOrderInstance extends OrderInstance {
     private String MACInterface;
     private InstanceState interfaceState;
 
-    public NetworkOrderInstance(String id, String label, InstanceState state, String address, String gateway, String vLAN, String networkInterface, String MACInterface, InstanceState interfaceState) {
+    public NetworkOrderInstance(
+            String id,
+            String label,
+            InstanceState state,
+            String address,
+            String gateway,
+            String vLAN,
+            String networkInterface,
+            String MACInterface,
+            InstanceState interfaceState) {
         super(id, state);
         this.label = label;
         this.address = address;
@@ -76,5 +85,4 @@ public class NetworkOrderInstance extends OrderInstance {
     public void setInterfaceState(InstanceState interfaceState) {
         this.interfaceState = interfaceState;
     }
-    
 }
