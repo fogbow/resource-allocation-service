@@ -13,6 +13,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.manager.constants.OpenStackConfigurationConstants;
 import org.fogbowcloud.manager.core.manager.plugins.volume.VolumePlugin;
 import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
@@ -42,14 +43,9 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	private static final String VALUE_AVAILABLE_STATUS = "available";
 	
 	protected static final String SUFIX_ENDPOINT_VOLUMES = "/volumes";
-	protected static final String V2_API_ENDPOINT = "/v2/";
-	
+
 	// TODO put in the properties examples
 	public static final String VOLUME_NOVAV2_URL_KEY = "volume_v2_url";
-
-	// TODO change to a common class. KeystoneV3IdentityPlugin and
-	// OpenStackV2VolumePlugin class have the same attr
-	protected static final String TENANT_ID = "tenantId";
 
 	private HttpClient client;
 	private String volumeV2APIEndpoint;
@@ -57,14 +53,15 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	private static final Logger LOGGER = Logger.getLogger(OpenStackV2VolumePlugin.class);
 
 	public OpenStackV2VolumePlugin(Properties properties) {
-		this.volumeV2APIEndpoint = properties.getProperty(VOLUME_NOVAV2_URL_KEY) + V2_API_ENDPOINT;
+		this.volumeV2APIEndpoint = properties.getProperty(VOLUME_NOVAV2_URL_KEY)
+				+ OpenStackConfigurationConstants.V2_API_ENDPOINT;
 
 		initClient();
 	}
 	
 	@Override
 	public String requestInstance(Token localToken, StorageOrderInstance storageOrderInstance) throws RequestException {
-		String tenantId = localToken.getAttributes().get(TENANT_ID);
+		String tenantId = localToken.getAttributes().get(OpenStackConfigurationConstants.TENANT_ID);
 		if (tenantId == null) {
 			// TODO check this exception. Put a message
 			throw new RequestException(ErrorType.BAD_REQUEST, "");
@@ -88,7 +85,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 	@Override
 	public StorageOrderInstance getInstance(Token localToken, String storageOrderInstanceId) throws RequestException {
-		String tenantId = localToken.getAttributes().get(TENANT_ID);
+		String tenantId = localToken.getAttributes().get(OpenStackConfigurationConstants.TENANT_ID);
 		if (tenantId == null) {
 			// TODO check this exception. Put a message
 			throw new RequestException(ErrorType.BAD_REQUEST, "");
@@ -102,7 +99,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 	@Override
 	public void removeInstance(Token localToken, String storageOrderInstanceId) throws RequestException {
-		String tenantId = localToken.getAttributes().get(TENANT_ID);
+		String tenantId = localToken.getAttributes().get(OpenStackConfigurationConstants.TENANT_ID);
 		if (tenantId == null) {
 			// TODO check this exception. Put a message			
 			throw new RequestException(ErrorType.BAD_REQUEST, "");
