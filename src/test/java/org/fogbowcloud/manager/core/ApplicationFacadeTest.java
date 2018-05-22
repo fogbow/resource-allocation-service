@@ -14,6 +14,7 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.orders.UserData;
+import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.manager.constants.Operation;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
@@ -465,13 +466,435 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.application.getAllComputes(order.getFederationToken().getAccessId());
 	}
 
-	private ComputeOrder createComputeOrder() {
-		Token.User user = new Token.User("fake-user-id", "fake-user-name");
-		Token federationToken = new Token("fake-accessId", user, new Date(), new HashMap<String, String>());
+	@Test
+    public void testCreateVolumeOrder() throws Exception {
+        VolumeOrder order = createVolumeOrder();
 
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        Assert.assertNull(order.getOrderState());
+
+        this.application.createVolume(order, order.getFederationToken().getAccessId());
+
+        Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+    }
+	
+	@Test
+    public void testCreateVolumeOrderUnauthenticated() throws Exception {
+        VolumeOrder order = createVolumeOrder();
+
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        try {
+            this.application.createVolume(order, order.getFederationToken().getAccessId());
+            Assert.fail();
+        } catch (UnauthenticatedException e) {
+            Assert.assertNull(order.getOrderState());
+        }
+    }
+	
+	@Test
+    public void testCreateVolumeOrderTokenUnauthenticated() throws Exception {
+        VolumeOrder order = createVolumeOrder();
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController)
+                .getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        Assert.assertNull(order.getOrderState());
+
+        try {
+            this.application.createVolume(order, order.getFederationToken().getAccessId());
+            Assert.fail();
+        } catch (UnauthenticatedException e) {
+            Assert.assertNull(order.getOrderState());
+        }
+    }
+	
+	@Test
+    public void testCreateVolumeOrderTokenUnauthorized() throws Exception {
+        VolumeOrder order = createVolumeOrder();
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        Assert.assertNull(order.getOrderState());
+
+        try {
+            this.application.createVolume(order, order.getFederationToken().getAccessId());
+            Assert.fail();
+        } catch (UnauthorizedException e) {
+            Assert.assertNull(order.getOrderState());
+        }
+    }
+	
+	@Test
+    public void testCreateVolumeOrderUnauthorizedOperation() throws Exception {
+        VolumeOrder order = createVolumeOrder();
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(Token.class),
+                Mockito.any(Operation.class), Mockito.any(OrderType.class));
+
+        Assert.assertNull(order.getOrderState());
+
+        try {
+            this.application.createVolume(order, order.getFederationToken().getAccessId());
+            Assert.fail();
+        } catch (UnauthorizedException e) {
+            Assert.assertNull(order.getOrderState());
+        }
+    }
+	
+	@Test(expected = OrderManagementException.class)
+    public void testCreateNullVolumeOrder() throws Exception {
+        VolumeOrder order = createVolumeOrder();
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        Assert.assertNull(order.getOrderState());
+
+        this.application.createVolume(null, order.getFederationToken().getAccessId());
+    }
+	
+	@Test
+    public void testGetVolumeOrder() throws Exception {
+        VolumeOrder order = createVolumeOrder();
+
+        this.orderController.activateOrder(order, order.getFederationToken());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        VolumeOrder actualOrder = this.application.getVolume(order.getId(), order.getFederationToken().getAccessId());
+
+        Assert.assertSame(order, actualOrder);
+    }
+	
+	@Test(expected = UnauthenticatedException.class)
+    public void testGetVolumeOrderUnauthenticated() throws Exception {
+        ComputeOrder order = createComputeOrder();
+
+        this.orderController.activateOrder(order, order.getFederationToken());
+
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        this.application.getVolume(order.getId(), order.getFederationToken().getAccessId());
+    }
+	
+	@Test(expected = UnauthorizedException.class)
+    public void testGetVolumeOrderTokenUnauthorized() throws Exception {
+        VolumeOrder order = createVolumeOrder();
+
+        this.orderController.activateOrder(order, order.getFederationToken());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        this.application.getVolume(order.getId(), order.getFederationToken().getAccessId());
+    }
+	
+	@Test(expected = UnauthenticatedException.class)
+    public void testGetVolumeOrderTokenUnauthenticated() throws Exception {
+        VolumeOrder order = createVolumeOrder();
+
+        this.orderController.activateOrder(order, order.getFederationToken());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController)
+                .getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        this.application.getVolume(order.getId(), order.getFederationToken().getAccessId());
+    }
+	
+	@Test(expected = UnauthorizedException.class)
+    public void testGetVolumeOrderUnauthorizedOperation() throws Exception {
+        VolumeOrder order = createVolumeOrder();
+
+        this.orderController.activateOrder(order, order.getFederationToken());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(Token.class),
+                Mockito.any(Operation.class), Mockito.any(Order.class));
+
+        this.application.getVolume(order.getId(), order.getFederationToken().getAccessId());
+    }
+	
+	@Test
+    public void testGetAllVolumes() throws OrderManagementException, UnauthenticatedException, UnauthorizedException {
+        VolumeOrder order = createVolumeOrder();
+
+        this.orderController.activateOrder(order, order.getFederationToken());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        List<VolumeOrder> allVolumes = this.application.getAllVolumes(order.getFederationToken().getAccessId());
+
+        Assert.assertEquals(1, allVolumes.size());
+
+        Assert.assertSame(order, allVolumes.get(0));
+    }
+	
+	@Test
+    public void testGetAllVolumesEmpty()
+            throws OrderManagementException, UnauthenticatedException, UnauthorizedException {
+        VolumeOrder order = createVolumeOrder();
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        List<VolumeOrder> allVolumes = this.application.getAllVolumes(order.getFederationToken().getAccessId());
+
+        Assert.assertEquals(0, allVolumes.size());
+    }
+	
+	@Test(expected = UnauthenticatedException.class)
+    public void testGetAllVolumesTokenUnauthenticated()
+            throws OrderManagementException, UnauthenticatedException, UnauthorizedException {
+        VolumeOrder order = createVolumeOrder();
+
+        this.orderController.activateOrder(order, order.getFederationToken());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController)
+                .getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        this.application.getAllVolumes(order.getFederationToken().getAccessId());
+    }
+	
+	@Test(expected = UnauthorizedException.class)
+    public void testGetAllVolumesTokenUnauthorized()
+            throws OrderManagementException, UnauthenticatedException, UnauthorizedException {
+        VolumeOrder order = createVolumeOrder();
+
+        this.orderController.activateOrder(order, order.getFederationToken());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        this.application.getAllVolumes(order.getFederationToken().getAccessId());
+    }
+	
+	@Test(expected = UnauthorizedException.class)
+    public void testGetAllVolumesOperationUnauthorized()
+            throws OrderManagementException, UnauthenticatedException, UnauthorizedException {
+        VolumeOrder order = createVolumeOrder();
+
+        this.orderController.activateOrder(order, order.getFederationToken());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        this.application.getAllVolumes(order.getFederationToken().getAccessId());
+    }
+	
+	@Test
+    public void testDeleteVolumeOrder() throws Exception {
+        VolumeOrder order = createVolumeOrder();
+        
+        this.orderController.activateOrder(order, order.getFederationToken());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+        
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        this.application.deleteVolume(order.getId(), order.getFederationToken().getAccessId());
+
+        Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
+    }
+	
+	@Test
+    public void testDeleteVolumeOrderUnathenticated() throws Exception {
+        VolumeOrder order = createVolumeOrder();
+        
+        this.orderController.activateOrder(order, order.getFederationToken());
+        
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString(), Mockito.any(Token.User.class),
+                Mockito.any(OrderType.class));
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        try {
+            this.application.deleteVolume(order.getId(), order.getFederationToken().getAccessId());
+            Assert.fail();
+        } catch (UnauthenticatedException e) {
+            Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+        }
+    }
+	
+	@Test
+    public void testDeleteVolumeOrderTokenUnathenticated() throws Exception {
+        VolumeOrder order = createVolumeOrder();
+        
+        this.orderController.activateOrder(order, order.getFederationToken());
+        
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+        
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+        
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController)
+                .getFederationToken(Mockito.anyString());
+
+        try {
+            this.application.deleteVolume(order.getId(), order.getFederationToken().getAccessId());
+            Assert.fail();
+        } catch (UnauthenticatedException e) {
+            Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+        }
+    }
+	
+	@Test
+    public void testDeleteVolumeOrderTokenUnauthorized() throws Exception {
+        VolumeOrder order = createVolumeOrder();
+        
+        this.orderController.activateOrder(order, order.getFederationToken());
+        
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+        
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+        
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        try {
+            this.application.deleteVolume(order.getId(), order.getFederationToken().getAccessId());
+            Assert.fail();
+        } catch (UnauthorizedException e) {
+            Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+        }
+    }
+	
+	@Test(expected = OrderManagementException.class)
+    public void testDeleteVolumeOrderNullGet() throws Exception {
+	    VolumeOrder order = createVolumeOrder();
+	    
+	    Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+        
+        Mockito.doReturn(null).when(this.orderController).getOrder(Mockito.anyString(), Mockito.any(Token.User.class),
+                Mockito.any(OrderType.class));
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        this.application.deleteVolume(order.getId(), order.getFederationToken().getAccessId());
+    }
+
+    @Test
+    public void testDeleteVolumeOrderUnauthorizedOperation() throws Exception {
+        VolumeOrder order = createVolumeOrder();
+        
+        this.orderController.activateOrder(order, order.getFederationToken());
+        
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());        
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(Token.class),
+                Mockito.any(Operation.class), Mockito.any(Order.class));
+
+        Mockito.doNothing().when(this.orderController).deleteOrder(Mockito.any(Order.class));
+
+        try {
+            this.application.deleteVolume(order.getId(), order.getFederationToken().getAccessId());
+            Assert.fail();
+        } catch (UnauthorizedException e) {
+            Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+        }
+    }
+	
+	private ComputeOrder createComputeOrder() {
+		Token federationToken = createToken();
 		ComputeOrder order = new ComputeOrder(federationToken, "fake-member-id", "fake-member-id", 2, 2, 30,
 				"fake-image-name", new UserData(), "fake-public-key");
 		return order;
+	}
+	
+	private VolumeOrder createVolumeOrder() {
+        Token federationToken = createToken();
+        VolumeOrder volumeOrder = new VolumeOrder(federationToken, "fake-member-id", "fake-member-id", 1);
+        return volumeOrder;
+    }
+	
+	private Token createToken() {
+	    Token.User user = new Token.User("fake-user-id", "fake-user-name");
+        Token federationToken = new Token("fake-accessId", user, new Date(), new HashMap<String, String>());
+	    return federationToken;
 	}
 
 }
