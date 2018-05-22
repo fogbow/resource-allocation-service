@@ -1,20 +1,18 @@
 package org.fogbowcloud.manager.core.manager.plugins.volume;
 
-import java.util.List;
-
+import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.orders.instances.StorageOrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 
 public interface VolumePlugin {
 
-	public String requestInstance(Token localToken);
+	public String requestInstance(Token localToken, StorageOrderInstance storageOrderInstance) 
+			throws RequestException;
 
-	public List<StorageOrderInstance> getInstances(Token token);
+	public StorageOrderInstance getInstance(Token token, String storageOrderInstanceId) 
+			throws RequestException;
 
-	public StorageOrderInstance getInstance(Token token, String instanceId);
-
-	public void removeInstance(Token token, String instanceId);
-
-	public void removeInstances(Token token);
+	public void removeInstance(Token token, String storageOrderInstanceId) 
+			throws RequestException;
 	
 }
