@@ -37,7 +37,7 @@ public class ComputeInstanceConnectivityUtils {
     }
 
     public boolean isInstanceReachable(ComputeOrderInstance computeOrderInstance) {
-        LOGGER.info("Check the communicate at SSH connectivity of the compute instance.");
+        LOGGER.debug("Checking the connectivity to the compute instance through SSH.");
         return this.sshConnectivity.checkSSHConnectivity(computeOrderInstance);
     }
 }

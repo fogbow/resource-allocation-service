@@ -1,11 +1,5 @@
 package org.fogbowcloud.manager.utils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Properties;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -19,6 +13,13 @@ import org.fogbowcloud.manager.core.manager.constants.CommonConfigurationConstan
 import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.processors.SpawningProcessor;
 import org.json.JSONObject;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
 
 public class TunnelingServiceUtil {
 
@@ -35,7 +36,8 @@ public class TunnelingServiceUtil {
 
     private static TunnelingServiceUtil instance;
 
-    private TunnelingServiceUtil() {}
+    private TunnelingServiceUtil() {
+    }
 
     public static TunnelingServiceUtil getInstance() {
         if (instance == null) {
@@ -72,8 +74,8 @@ public class TunnelingServiceUtil {
             boolean isOkHttpStatusResponse =
                     response.getStatusLine().getStatusCode() == HttpStatus.SC_OK;
             if (response != null && isOkHttpStatusResponse) {
-                LOGGER.info(
-                        "Start process to get addresses (IP and Port) for order [" + orderId + "]");
+                LOGGER.debug(
+                        "Getting addresses (IP and Port) for order [" + orderId + "]");
                 JSONObject jsonPorts = new JSONObject(EntityUtils.toString(response.getEntity()));
                 if (jsonPorts.isNull(CommonConfigurationConstants.SSH_SERVICE_NAME)) {
                     return null;

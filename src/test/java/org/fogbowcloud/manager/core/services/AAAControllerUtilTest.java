@@ -25,7 +25,7 @@ public class AAAControllerUtilTest {
         properties.put(keyThree, valueThree);
 
         Map<String, String> defaulLocalTokenCredentials =
-                AuthenticationControllerUtil.getDefaultLocalTokenCredentials(properties);
+            AuthenticationControllerUtil.getDefaultLocalTokenCredentials(properties);
         Assert.assertEquals(valueOne, defaulLocalTokenCredentials.get(keyOne));
         Assert.assertEquals(valueTwo, defaulLocalTokenCredentials.get(keyTwo));
         Assert.assertNull(defaulLocalTokenCredentials.get(keyThree));
@@ -33,23 +33,23 @@ public class AAAControllerUtilTest {
 
     @Test
     public void testGetDefaultLocalTokenCredentialsWithPropertiesNull()
-            throws PropertyNotSpecifiedException {
-    	try {
-    		AuthenticationControllerUtil.getDefaultLocalTokenCredentials(null);
-		} catch (PropertyNotSpecifiedException e) {
-			Assert.assertEquals("Empty property map", e.getMessage());
-		}
-    	
+        throws PropertyNotSpecifiedException {
+        try {
+            AuthenticationControllerUtil.getDefaultLocalTokenCredentials(null);
+        } catch (PropertyNotSpecifiedException e) {
+            Assert.assertEquals("Empty property map", e.getMessage());
+        }
+
     }
-    
+
     @Test
     public void testGetDefaultLocalTokenCredentialsWithPropertiesEmpty()
-            throws PropertyNotSpecifiedException {
-    	try {
-    		AuthenticationControllerUtil.getDefaultLocalTokenCredentials(new Properties());
-		} catch (PropertyNotSpecifiedException e) {
-			Assert.assertEquals("Default local token credentials not found", e.getMessage());
-		}
+        throws PropertyNotSpecifiedException {
+        try {
+            AuthenticationControllerUtil.getDefaultLocalTokenCredentials(new Properties());
+        } catch (PropertyNotSpecifiedException e) {
+            Assert.assertEquals("Default local token credentials not found", e.getMessage());
+        }
     }
 
     @Test
@@ -59,7 +59,7 @@ public class AAAControllerUtilTest {
         properties.put(ConfigurationConstants.XMPP_ID_KEY, provadingMember);
 
         boolean isProvadingLocally =
-                AuthenticationControllerUtil.isOrderProvidingLocally(provadingMember, properties);
+            AuthenticationControllerUtil.isOrderProvidingLocally(provadingMember, properties);
 
         Assert.assertTrue(isProvadingLocally);
     }
@@ -70,7 +70,7 @@ public class AAAControllerUtilTest {
         properties.put(ConfigurationConstants.XMPP_ID_KEY, "member");
 
         boolean isProvadingLocally =
-                AuthenticationControllerUtil.isOrderProvidingLocally(null, properties);
+            AuthenticationControllerUtil.isOrderProvidingLocally(null, properties);
 
         Assert.assertTrue(isProvadingLocally);
     }
@@ -83,7 +83,7 @@ public class AAAControllerUtilTest {
 
         String remoteMember = "remotemember";
         boolean isProvadingLocally =
-                AuthenticationControllerUtil.isOrderProvidingLocally(remoteMember, properties);
+            AuthenticationControllerUtil.isOrderProvidingLocally(remoteMember, properties);
 
         Assert.assertFalse(isProvadingLocally);
     }
