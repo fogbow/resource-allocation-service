@@ -5,7 +5,7 @@ import java.util.List;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.orders.StorageOrder;
+import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.token.Token;
 
 public interface ManagerDatastore {
@@ -28,5 +28,5 @@ public interface ManagerDatastore {
 
     public Collection<NetworkOrder> findAllNetworkOrder();
 
-    public Collection<StorageOrder> findAllStorageOrder();
+    public Collection<VolumeOrder> findAllStorageOrder();
 }

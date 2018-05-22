@@ -2,7 +2,7 @@ package org.fogbowcloud.manager.core.manager.plugins.compute;
 
 import java.util.List;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.models.StorageLink;
+import org.fogbowcloud.manager.core.models.VolumeLink;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
@@ -31,9 +31,9 @@ public interface ComputePlugin {
 
     public void deleteInstances(Token localToken);
 
-    public String attachStorage(Token localToken, StorageLink storageLink);
+    public String attachStorage(Token localToken, VolumeLink storageLink);
 
-    public String detachStorage(Token localToken, StorageLink storageLink);
+    public String detachStorage(Token localToken, VolumeLink storageLink);
 
     public String getImageId(Token localToken, String imageName);
 }

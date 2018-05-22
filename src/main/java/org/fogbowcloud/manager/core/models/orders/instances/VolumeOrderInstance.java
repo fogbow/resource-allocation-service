@@ -1,11 +1,11 @@
 package org.fogbowcloud.manager.core.models.orders.instances;
 
-public class StorageOrderInstance extends OrderInstance {
+public class VolumeOrderInstance extends OrderInstance {
 
     private String name;
     private int size;
 
-    public StorageOrderInstance(String id, String name, InstanceState state, int size) {
+    public VolumeOrderInstance(String id, String name, InstanceState state, int size) {
         super(id, state);
         this.name = name;
         this.size = size;
