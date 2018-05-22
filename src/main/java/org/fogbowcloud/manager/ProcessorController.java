@@ -19,9 +19,6 @@ public class ProcessorController {
     private Thread openProcessorThread;
     private Thread spawningProcessorThread;
 
-    // FIXME this is necessary ? If not, remove
-    private String localMemberId;
-
     private Properties properties;
 
     // FIXME this is necessary ? If not, remove
@@ -41,7 +38,6 @@ public class ProcessorController {
 
         this.properties = properties;
 
-        this.localMemberId = this.properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
         this.localInstanceProvider = localInstanceProvider;
         this.remoteInstanceProvider = remoteInstanceProvider;
 
@@ -72,7 +68,7 @@ public class ProcessorController {
      * operation require a new thread to run, you should start this thread at this method.
      */
     private void startManagerThreads() {
-        LOGGER.info("Starting manager open processor thread");
+        LOGGER.info("Starting all processor threads");
         this.openProcessorThread.start();
         this.spawningProcessorThread.start();
     }

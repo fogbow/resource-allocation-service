@@ -4,13 +4,17 @@ import static org.junit.Assert.*;
 
 import java.util.Properties;
 import org.fogbowcloud.manager.core.BaseUnitTests;
+import org.fogbowcloud.manager.core.OrderController;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
+import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
-import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
+import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
+import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
 import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
+import org.fogbowcloud.manager.core.models.token.Token;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,8 +26,9 @@ public class OpenProcessorTest extends BaseUnitTests {
 
     private OpenProcessor openProcessor;
 
-    private InstanceProvider localInstanceProvider;
-    private InstanceProvider remoteInstanceProvider;
+    private LocalInstanceProvider localInstanceProvider;
+    private RemoteInstanceProvider remoteInstanceProvider;
+    private OrderController orderController;
 
     private Properties properties;
 
@@ -35,8 +40,8 @@ public class OpenProcessorTest extends BaseUnitTests {
         this.properties.setProperty(
                 ConfigurationConstants.XMPP_ID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 
-        this.localInstanceProvider = Mockito.mock(InstanceProvider.class);
-        this.remoteInstanceProvider = Mockito.mock(InstanceProvider.class);
+        this.localInstanceProvider = Mockito.mock(LocalInstanceProvider.class);
+        this.remoteInstanceProvider = Mockito.mock(RemoteInstanceProvider.class);
 
         this.thread = null;
 
@@ -46,6 +51,8 @@ public class OpenProcessorTest extends BaseUnitTests {
                                 this.localInstanceProvider,
                                 this.remoteInstanceProvider,
                                 this.properties));
+
+        this.orderController = new OrderController(properties, localInstanceProvider, remoteInstanceProvider);
     }
 
     @After
@@ -66,9 +73,8 @@ public class OpenProcessorTest extends BaseUnitTests {
     public void testProcessOpenLocalOrder() throws Exception {
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        openOrdersList.addItem(localOrder);
+        Token federationToken = null;
+        this.orderController.activateOrder(localOrder, federationToken);
 
         String id = "fake-id";
         Mockito.doReturn(id)
@@ -84,6 +90,8 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         // test if the open order list is empty and the spawningList is with the
         // localOrder
+        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
         ChainedList spawningOrdersList = sharedOrderHolders.getSpawningOrdersList();
         assertTrue(this.listIsEmpty(openOrdersList));
         assertSame(localOrder, spawningOrdersList.getNext());
@@ -99,9 +107,8 @@ public class OpenProcessorTest extends BaseUnitTests {
     public void testProcessOpenLocalOrderWithNullInstance() throws Exception {
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        openOrdersList.addItem(localOrder);
+        Token federationToken = null;
+        this.orderController.activateOrder(localOrder, federationToken);
 
         Mockito.doReturn(null)
                 .when(this.localInstanceProvider)
@@ -116,6 +123,8 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         // test if the open order list is empty and the failedList is with the
         // localOrder
+        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
         ChainedList failedOrdersList = sharedOrderHolders.getFailedOrdersList();
         assertTrue(this.listIsEmpty(openOrdersList));
         assertEquals(localOrder, failedOrdersList.getNext());
@@ -131,9 +140,8 @@ public class OpenProcessorTest extends BaseUnitTests {
     public void testProcessLocalOpenOrderRequestingException() throws Exception {
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        openOrdersList.addItem(localOrder);
+        Token federationToken = null;
+        this.orderController.activateOrder(localOrder, federationToken);
 
         Mockito.doThrow(new RuntimeException("Any Exception"))
                 .when(this.localInstanceProvider)
@@ -148,6 +156,8 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         // test if the open order list is empty and the failedList is with the
         // localOrder
+        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
         ChainedList failedOrdersList = sharedOrderHolders.getFailedOrdersList();
         assertTrue(this.listIsEmpty(openOrdersList));
         assertSame(localOrder, failedOrdersList.getNext());
@@ -162,9 +172,8 @@ public class OpenProcessorTest extends BaseUnitTests {
     public void testProcessOpenRemoteOrder() throws Exception {
         Order remoteOrder = this.createRemoteOrder(getLocalMemberId());
 
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        openOrdersList.addItem(remoteOrder);
+        Token federationToken = null;
+        this.orderController.activateOrder(remoteOrder, federationToken);
 
         Mockito.doReturn(null)
                 .when(this.remoteInstanceProvider)
@@ -179,6 +188,8 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         // test if the open order list is empty and the failedList is with the
         // localOrder
+        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
         ChainedList pendingOrdersList = sharedOrderHolders.getPendingOrdersList();
         assertTrue(this.listIsEmpty(openOrdersList));
         assertSame(remoteOrder, pendingOrdersList.getNext());
@@ -194,9 +205,8 @@ public class OpenProcessorTest extends BaseUnitTests {
     public void testProcessRemoteOpenOrderRequestingException() throws Exception {
         Order remoteOrder = this.createRemoteOrder(getLocalMemberId());
 
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        openOrdersList.addItem(remoteOrder);
+        Token federationToken = null;
+        this.orderController.activateOrder(remoteOrder, federationToken);
 
         Mockito.doThrow(new RuntimeException("Any Exception"))
                 .when(this.remoteInstanceProvider)
@@ -211,6 +221,8 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         // test if the open order list is empty and the failedList is with the
         // localOrder
+        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
         ChainedList failedOrdersList = sharedOrderHolders.getFailedOrdersList();
         assertTrue(this.listIsEmpty(openOrdersList));
         assertEquals(remoteOrder, failedOrdersList.getNext());
@@ -222,12 +234,11 @@ public class OpenProcessorTest extends BaseUnitTests {
      * @throws InterruptedException
      */
     @Test
-    public void testProcessNotOpenOrder() throws InterruptedException {
+    public void testProcessNotOpenOrder() throws InterruptedException, OrderManagementException {
         Order order = this.createLocalOrder(getLocalMemberId());
 
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        openOrdersList.addItem(order);
+        Token federationToken = null;
+        this.orderController.activateOrder(order, federationToken);
 
         order.setOrderState(OrderState.PENDING);
 
@@ -236,6 +247,8 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         Thread.sleep(500);
 
+        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
         assertEquals(OrderState.PENDING, order.getOrderState());
         assertFalse(this.listIsEmpty(openOrdersList));
     }
@@ -262,12 +275,11 @@ public class OpenProcessorTest extends BaseUnitTests {
      */
     @Test
     public void testProcessOpenOrderThrowingOrderStateTransitionException()
-            throws OrderStateTransitionException, InterruptedException {
+            throws Exception {
         Order order = this.createLocalOrder(getLocalMemberId());
 
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        openOrdersList.addItem(order);
+        Token federationToken = null;
+        this.orderController.activateOrder(order, federationToken);
 
         Mockito.doThrow(OrderStateTransitionException.class)
                 .when(this.openProcessor)
@@ -278,6 +290,8 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         Thread.sleep(500);
 
+        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
         assertEquals(OrderState.OPEN, order.getOrderState());
         assertFalse(this.listIsEmpty(openOrdersList));
     }
@@ -291,12 +305,11 @@ public class OpenProcessorTest extends BaseUnitTests {
      */
     @Test
     public void testProcessOpenOrderThrowingAnException()
-            throws OrderStateTransitionException, InterruptedException {
+            throws Exception {
         Order order = this.createLocalOrder(getLocalMemberId());
 
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        openOrdersList.addItem(order);
+        Token federationToken = null;
+        this.orderController.activateOrder(order, federationToken);
 
         Mockito.doThrow(Exception.class)
                 .when(this.openProcessor)
@@ -307,6 +320,9 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         Thread.sleep(500);
 
+        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
+        openOrdersList.addItem(order);
         assertEquals(OrderState.OPEN, order.getOrderState());
         assertFalse(this.listIsEmpty(openOrdersList));
     }
@@ -320,9 +336,8 @@ public class OpenProcessorTest extends BaseUnitTests {
     public void testRaceConditionWithThisThreadPriority() throws Exception {
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        openOrdersList.addItem(localOrder);
+        Token federationToken = null;
+        this.orderController.activateOrder(localOrder, federationToken);
 
         String id = "fake-id";
         Mockito.doReturn(id)
@@ -349,12 +364,11 @@ public class OpenProcessorTest extends BaseUnitTests {
      */
     @Test
     public void testRaceConditionWithThisThreadPriorityAndNotOpenOrder()
-            throws InterruptedException {
+            throws Exception {
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        openOrdersList.addItem(localOrder);
+        Token federationToken = null;
+        this.orderController.activateOrder(localOrder, federationToken);
 
         synchronized (localOrder) {
             this.thread = new Thread(this.openProcessor);
@@ -380,9 +394,8 @@ public class OpenProcessorTest extends BaseUnitTests {
     public void testRaceConditionWithOpenProcessorThreadPriority() throws Exception {
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        openOrdersList.addItem(localOrder);
+        Token federationToken = null;
+        this.orderController.activateOrder(localOrder, federationToken);
 
         String id = "fake-id";
 

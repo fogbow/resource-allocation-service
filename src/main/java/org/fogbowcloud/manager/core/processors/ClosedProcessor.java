@@ -63,7 +63,7 @@ public class ClosedProcessor implements Runnable {
                     }
                 } else {
                     this.closedOrders.resetPointer();
-                    LOGGER.info(
+                    LOGGER.debug(
                             "There is no closed order to be processed, sleeping for "
                                     + this.sleepTime
                                     + " milliseconds");
@@ -86,9 +86,9 @@ public class ClosedProcessor implements Runnable {
                     provider.deleteInstance(order.getOrderInstance());
                     // TODO create InstanceNotFoundException
                 } catch (NotFoundException e) {
-                    LOGGER.warn("", e);
+                    LOGGER.warn("Instance was not found", e);
                 } catch (Exception e) {
-                    LOGGER.error("", e);
+                    LOGGER.error("Unexpected error", e);
                     return;
                 }
 

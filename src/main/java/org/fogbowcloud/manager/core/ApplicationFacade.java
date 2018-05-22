@@ -1,7 +1,5 @@
 package org.fogbowcloud.manager.core;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.manager.constants.Operation;
@@ -11,6 +9,9 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.services.AAAController;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ApplicationFacade {
 

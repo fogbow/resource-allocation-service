@@ -80,7 +80,7 @@ public class FulfilledProcessor implements Runnable {
                     }
                 } else {
                     this.fulfilledOrdersList.resetPointer();
-                    LOGGER.info(
+                    LOGGER.debug(
                             "There is no fulfilled order to be processed, sleeping for "
                                     + this.sleepTime
                                     + " milliseconds");
@@ -90,7 +90,7 @@ public class FulfilledProcessor implements Runnable {
                 isActive = false;
                 LOGGER.warn("Thread interrupted", e);
             } catch (Throwable e) {
-                LOGGER.error("Not expected error", e);
+                LOGGER.error("Unexpected error", e);
             }
         }
     }
@@ -153,7 +153,7 @@ public class FulfilledProcessor implements Runnable {
                 OrderStateTransitioner.transition(order, OrderState.FAILED);
             }
         } else {
-            LOGGER.info("The instance was processed successfully");
+            LOGGER.debug("The instance was processed successfully");
         }
     }
 
@@ -168,11 +168,11 @@ public class FulfilledProcessor implements Runnable {
         InstanceProvider instanceProvider;
 
         if (order.isLocal(this.localMemberId)) {
-            LOGGER.info("The open order [" + order.getId() + "] is local");
+            LOGGER.debug("The open order [" + order.getId() + "] is local");
 
             instanceProvider = this.localInstanceProvider;
         } else {
-            LOGGER.info(
+            LOGGER.debug(
                     "The open order ["
                             + order.getId()
                             + "] is remote for the "

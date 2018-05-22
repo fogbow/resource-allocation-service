@@ -19,8 +19,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @CrossOrigin
 @RestController
-@RequestMapping(value = "compute")
+@RequestMapping(value = ComputeOrdersController.COMPUTE_ENDPOINT)
 public class ComputeOrdersController {
+
+    public static final String COMPUTE_ENDPOINT = "compute";
 
     private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
@@ -34,7 +36,7 @@ public class ComputeOrdersController {
             @RequestBody ComputeOrder computeOrder,
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws UnauthenticatedException, Exception {
-        LOGGER.info("New compute order request received.");
+        LOGGER.info("New compute order request received");
 
         // The applicationFacade is being loaded here, because the getInstance that was used in the
         // variable declaration
@@ -48,6 +50,7 @@ public class ComputeOrdersController {
     public ResponseEntity<List<ComputeOrder>> getAllCompute(
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
+        LOGGER.info("Get all compute orders request received");
         List<ComputeOrder> orders = this.applicationFacade.getAllComputes(federationTokenValue);
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
@@ -57,6 +60,7 @@ public class ComputeOrdersController {
             @PathVariable String computeId,
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
+        LOGGER.info("Get request to compute order with id <" + computeId + "> received");
         ComputeOrder order = this.applicationFacade.getCompute(computeId, federationTokenValue);
         return new ResponseEntity<ComputeOrder>(order, HttpStatus.OK);
     }
@@ -66,6 +70,7 @@ public class ComputeOrdersController {
             @PathVariable String computeId,
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
+        LOGGER.info("Get compute order to id <%s> received");
         this.applicationFacade.deleteCompute(computeId, federationTokenValue);
         return new ResponseEntity<Boolean>(HttpStatus.OK);
     }
