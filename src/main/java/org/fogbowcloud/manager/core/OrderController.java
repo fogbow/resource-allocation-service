@@ -90,7 +90,7 @@ public class OrderController {
                     OrderStateTransitioner.transition(order, OrderState.CLOSED);
                 } catch (OrderStateTransitionException e) {
                     LOGGER.error(
-                            "This should never happen. Error to try change status"
+                            "This should never happen. Error trying to change the status from"
                                     + order.getOrderState()
                                     + " to closed for order ["
                                     + order.getId()
@@ -138,7 +138,7 @@ public class OrderController {
             activeOrdersMap.remove(order.getId());
         } else {
             String message =
-                    "Tried to remove order %s from the active orders but there were no order with this id";
+                    "Tried to remove order %s from the active orders but it was not active";
             LOGGER.error(String.format(message, order.getId()));
         }
     }
@@ -147,11 +147,11 @@ public class OrderController {
         InstanceProvider instanceProvider;
 
         if (order.isLocal(this.localMemberId)) {
-            LOGGER.info("The open order [" + order.getId() + "] is local");
+            LOGGER.debug("The order [" + order.getId() + "] is local");
 
             instanceProvider = this.localInstanceProvider;
         } else {
-            LOGGER.info(
+            LOGGER.debug(
                     "The open order ["
                             + order.getId()
                             + "] is remote for the "

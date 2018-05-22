@@ -64,7 +64,7 @@ public class SpawningProcessor implements Runnable {
                     }
                 } else {
                     this.spawningOrderList.resetPointer();
-                    LOGGER.info(
+                    LOGGER.debug(
                             "There is no spawning order to be processed, sleeping for "
                                     + this.sleepTime
                                     + " milliseconds");
@@ -83,10 +83,10 @@ public class SpawningProcessor implements Runnable {
         synchronized (order) {
             OrderState orderState = order.getOrderState();
             if (orderState.equals(OrderState.SPAWNING)) {
-                LOGGER.info("Trying to process an instance for order [" + order.getId() + "]");
+                LOGGER.debug("Trying to process an instance for order [" + order.getId() + "]");
                 processInstance(order);
             } else {
-                LOGGER.info("This order state is not spawning for order [" + order.getId() + "]");
+                LOGGER.debug("This order state is not spawning for order [" + order.getId() + "]");
             }
         }
     }
@@ -103,12 +103,12 @@ public class SpawningProcessor implements Runnable {
             InstanceState instanceState = orderInstance.getState();
 
             if (instanceState.equals(InstanceState.FAILED)) {
-                LOGGER.info(
+                LOGGER.debug(
                         "The compute instance state is failed for order [" + order.getId() + "]");
                 OrderStateTransitioner.transition(order, OrderState.FAILED);
 
             } else if (instanceState.equals(InstanceState.ACTIVE)) {
-                LOGGER.info("Processing active compute instance for order [" + order.getId() + "]");
+                LOGGER.debug("Processing active compute instance for order [" + order.getId() + "]");
 
                 ComputeOrderInstance computeOrderInstance = (ComputeOrderInstance) orderInstance;
 
@@ -121,7 +121,7 @@ public class SpawningProcessor implements Runnable {
                 }
 
             } else {
-                LOGGER.info(
+                LOGGER.debug(
                         "The compute instance state is inactive for order [" + order.getId() + "]");
             }
         }

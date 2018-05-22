@@ -43,7 +43,7 @@ public class SshConnectivityUtil {
                 return true;
             }
         } catch (Exception e) {
-            LOGGER.debug("Check for SSH connectivity failed.", e);
+            LOGGER.error("Failure while checking connectivity.", e);
         }
         return false;
     }

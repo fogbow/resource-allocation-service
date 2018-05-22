@@ -135,10 +135,10 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
             cloudInitUserDataBuilder.addFile(
                     extraUserDataFileType, new StringReader(normalizedExtraUserData));
         } else if (extraUserDataFileContent == null) {
-            LOGGER.info(
+            LOGGER.warn(
                     "It was not possible add the extra user data file, the extra user data file content is null");
         } else {
-            LOGGER.info(
+            LOGGER.warn(
                     "It was not possible add the extra user data file, the extra user data file type is null");
         }
     }
@@ -164,7 +164,7 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
         String messageTemplate = "Replacing %s with %s";
         for (String key : replacements.keySet()) {
             String value = replacements.get(key);
-            LOGGER.info(String.format(messageTemplate, key, value));
+            LOGGER.debug(String.format(messageTemplate, key, value));
             mimeString = mimeString.replace(key, value);
         }
         return mimeString;

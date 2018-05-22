@@ -74,14 +74,13 @@ public class KeystoneV3IdentityPlugin implements IdentityPlugin {
 
     @Override
     public Token createToken(Map<String, String> credentials) {
-
         LOGGER.debug("Creating new Token");
 
         JSONObject json;
         try {
             json = mountJson(credentials);
         } catch (JSONException e) {
-            LOGGER.error("Could not mount JSON while creating token.", e);
+            LOGGER.error("Could not mount JSON while creating token", e);
 
             Integer statusResponse = HttpStatus.SC_BAD_REQUEST;
             throw new IllegalArgumentException(statusResponse.toString());
@@ -154,18 +153,18 @@ public class KeystoneV3IdentityPlugin implements IdentityPlugin {
             response = getClient().execute(request);
             responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         } catch (UnknownHostException e) {
-            LOGGER.error("Could not do post request, unknown host.", e);
+            LOGGER.error("Could not do post request, unknown host", e);
             Integer statusResponse = HttpStatus.SC_BAD_REQUEST;
             throw new RuntimeException(statusResponse.toString());
         } catch (Exception e) {
-            LOGGER.error("Could not do post request.", e);
+            LOGGER.error("Could not do post request", e);
             Integer statusResponse = HttpStatus.SC_BAD_REQUEST;
             throw new RuntimeException(statusResponse.toString());
         } finally {
             try {
                 EntityUtils.consume(response.getEntity());
             } catch (Exception e) {
-                LOGGER.error("Could not release HTTPEntity resources.", e);
+                LOGGER.error("Could not release HTTPEntity resources", e);
             }
         }
         checkStatusResponse(response);
@@ -228,18 +227,18 @@ public class KeystoneV3IdentityPlugin implements IdentityPlugin {
                 tenantId = token.getJSONObject(PROJECT_PROP).getString(ID_PROP);
                 tokenAtt.put(TENANT_ID, tenantId);
             } catch (JSONException e) {
-                LOGGER.debug("There is no tenantId inside json response.");
+                LOGGER.debug("There is no tenantId inside json response");
             }
             try {
                 tenantName = token.getJSONObject(PROJECT_PROP).getString(NAME_PROP);
                 tokenAtt.put(TENANT_NAME, tenantName);
             } catch (JSONException e) {
-                LOGGER.debug("There is no tenantName inside json response.");
+                LOGGER.debug("There is no tenantName inside json response");
             }
 
             return new Token(accessId, new Token.User(userId, userName), new Date(), tokenAtt);
         } catch (Exception e) {
-            LOGGER.error("Exception while getting token from json.", e);
+            LOGGER.error("Exception while getting token from json", e);
             return null;
         }
     }

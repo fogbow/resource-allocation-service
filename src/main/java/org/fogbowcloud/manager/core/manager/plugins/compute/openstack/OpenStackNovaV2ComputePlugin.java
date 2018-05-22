@@ -109,7 +109,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
                 try {
                     deleteKeyName(tenantId, localToken, keyName);
                 } catch (Throwable t) {
-                    LOGGER.warn("Could not delete key.", t);
+                    LOGGER.warn("Could not delete key", t);
                 }
             }
         }
@@ -178,7 +178,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     private void doDeleteRequest(String endpoint, Token localToken) throws RequestException {
-        LOGGER.debug("Doing DELETE request to OpenStack...");
+        LOGGER.debug("Doing DELETE request to OpenStack on endpoint <" + endpoint + ">");
 
         HttpResponse response = null;
 
@@ -187,13 +187,13 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             request.addHeader(RequestHeaders.X_AUTH_TOKEN.getValue(), localToken.getAccessId());
             response = this.client.execute(request);
         } catch (Exception e) {
-            LOGGER.error("Impossible to complete the DELETE request: " + e);
+            LOGGER.error("Unable to complete the DELETE request: ", e);
             throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         } finally {
             try {
                 EntityUtils.consume(response.getEntity());
             } catch (Throwable t) {
-                LOGGER.error("Error while consuming the response: " + t);
+                LOGGER.error("Error while consuming the response: ", t);
             }
         }
 
@@ -203,7 +203,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
     protected String doPostRequest(String endpoint, Token localToken, JSONObject jsonRequest)
             throws RequestException {
-        LOGGER.debug("Doing POST request to OpenStack for creating an instance...");
+        LOGGER.debug("Doing POST request to OpenStack for creating an instance");
 
         HttpResponse response = null;
         String responseStr;
@@ -239,7 +239,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     protected JSONObject generateJsonRequest(
             String imageRef, String flavorRef, String userdata, String keyName, String networkId)
             throws JSONException {
-        LOGGER.debug("Generating JSON to send as the body of instance POST request...");
+        LOGGER.debug("Generating JSON to send as the body of instance POST request");
 
         JSONObject server = new JSONObject();
         server.put(NAME_JSON_FIELD, FOGBOW_INSTANCE_NAME + UUID.randomUUID().toString());
@@ -285,7 +285,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     protected Flavor findSmallestFlavor(ComputeOrder computeOrder, Token localToken) {
         updateFlavors(localToken);
 
-        LOGGER.debug("Finding smallest flavor...");
+        LOGGER.debug("Finding smallest flavor");
 
         Flavor minimumFlavor =
                 new Flavor(
@@ -298,7 +298,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     protected synchronized void updateFlavors(Token localToken) {
-        LOGGER.debug("Updating flavors from OpenStack...");
+        LOGGER.debug("Updating flavors from OpenStack");
 
         try {
             String tenantId = getTenantId(localToken);
@@ -325,7 +325,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             }
 
         } catch (Exception e) {
-            LOGGER.warn("Error while updating flavors.", e);
+            LOGGER.warn("Error while updating flavors", e);
         }
     }
 
@@ -366,7 +366,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     protected String doGetRequest(String endpoint, Token localToken) throws RequestException {
-        LOGGER.debug("Doing GET request to OpenStack...");
+        LOGGER.debug("Doing DELETE request to OpenStack on endpoint <" + endpoint + ">");
 
         HttpResponse response = null;
         String responseStr;
@@ -446,7 +446,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
             return computeOrderInstance;
         } catch (JSONException e) {
-            LOGGER.warn("There was an exception while getting instances from json.", e);
+            LOGGER.warn("There was an exception while getting instances from json", e);
             throw new RequestException();
         }
     }

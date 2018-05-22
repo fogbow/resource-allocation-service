@@ -15,22 +15,20 @@ import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 
 public class OpenProcessor implements Runnable {
 
+    private static final Logger LOGGER = Logger.getLogger(OpenProcessor.class);
     private InstanceProvider localInstanceProvider;
     private InstanceProvider remoteInstanceProvider;
-
     private String localMemberId;
-
     private ChainedList openOrdersList;
-
-    /** Attribute that represents the thread sleep time when there is no orders to be processed. */
+    /**
+     * Attribute that represents the thread sleep time when there is no orders to be processed.
+     */
     private Long sleepTime;
 
-    private static final Logger LOGGER = Logger.getLogger(OpenProcessor.class);
-
     public OpenProcessor(
-            InstanceProvider localInstanceProvider,
-            InstanceProvider remoteInstanceProvider,
-            Properties properties) {
+        InstanceProvider localInstanceProvider,
+        InstanceProvider remoteInstanceProvider,
+        Properties properties) {
         this.localInstanceProvider = localInstanceProvider;
         this.remoteInstanceProvider = remoteInstanceProvider;
         this.localMemberId = properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
@@ -39,9 +37,9 @@ public class OpenProcessor implements Runnable {
         this.openOrdersList = sharedOrderHolders.getOpenOrdersList();
 
         String sleepTimeStr =
-                properties.getProperty(
-                        ConfigurationConstants.OPEN_ORDERS_SLEEP_TIME_KEY,
-                        DefaultConfigurationConstants.OPEN_ORDERS_SLEEP_TIME);
+            properties.getProperty(
+                ConfigurationConstants.OPEN_ORDERS_SLEEP_TIME_KEY,
+                DefaultConfigurationConstants.OPEN_ORDERS_SLEEP_TIME);
         this.sleepTime = Long.valueOf(sleepTimeStr);
     }
 
@@ -64,9 +62,9 @@ public class OpenProcessor implements Runnable {
                 } else {
                     this.openOrdersList.resetPointer();
                     LOGGER.debug(
-                            "There is no open order to be processed, sleeping for "
-                                    + this.sleepTime
-                                    + " milliseconds");
+                        "There is no open order to be processed, sleeping for "
+                            + this.sleepTime
+                            + " milliseconds");
                     Thread.sleep(this.sleepTime);
                 }
             } catch (InterruptedException e) {
@@ -82,9 +80,6 @@ public class OpenProcessor implements Runnable {
      * Get an instance for an open order. If the method fails to get the instance, then the order is
      * set to failed, else, is set to spawning or pending if the order is local or remote,
      * respectively.
-     *
-     * @param order
-     * @throws OrderStateTransitionException
      */
     protected void processOpenOrder(Order order) throws OrderStateTransitionException {
         // The order object synchronization is needed to prevent a race
@@ -95,22 +90,19 @@ public class OpenProcessor implements Runnable {
 
             // check if after order synchronization its state is still open.
             if (orderState.equals(OrderState.OPEN)) {
-                LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
+                LOGGER.debug("Trying to get an instance for order [" + order.getId() + "]");
 
                 try {
                     InstanceProvider instanceProvider = this.getInstanceProviderForOrder(order);
 
-                    LOGGER.info("Processing order [" + order.getId() + "]");
+                    LOGGER.debug("Processing order [" + order.getId() + "]");
                     String orderInstanceId = instanceProvider.requestInstance(order);
                     order.setOrderInstance(new OrderInstance(orderInstanceId));
 
-                    LOGGER.info("Updating order state after processing [" + order.getId() + "]");
+                    LOGGER.debug("Updating order state after processing [" + order.getId() + "]");
                     this.updateOrderStateAfterProcessing(order);
                 } catch (Exception e) {
                     LOGGER.error("Error while trying to get an instance for order: " + order, e);
-
-                    LOGGER.info(
-                            "Transition [" + order.getId() + "] order state from open to failed");
                     OrderStateTransitioner.transition(order, OrderState.FAILED);
                 }
             }
@@ -119,9 +111,6 @@ public class OpenProcessor implements Runnable {
 
     /**
      * Update the order state and do the order state transition after the open order process.
-     *
-     * @param order
-     * @throws OrderStateTransitionException
      */
     private void updateOrderStateAfterProcessing(Order order) throws OrderStateTransitionException {
         if (order.isLocal(this.localMemberId)) {
@@ -129,29 +118,28 @@ public class OpenProcessor implements Runnable {
             String orderInstanceId = orderInstance.getId();
 
             if (orderInstanceId != null) {
-                LOGGER.info(
-                        "The open order ["
-                                + order.getId()
-                                + "] got an local instance with id ["
-                                + orderInstanceId
-                                + "], setting your state to spawning");
+                LOGGER.debug(
+                    "The open order ["
+                        + order.getId()
+                        + "] got an local instance with id ["
+                        + orderInstanceId
+                        + "], setting your state to spawning");
 
-                LOGGER.info("Transition [" + order.getId() + "] order state from open to spawning");
+                LOGGER.debug("Transition [" + order.getId() + "] order state from open to spawning");
                 OrderStateTransitioner.transition(order, OrderState.SPAWNING);
 
             } else {
-                LOGGER.error("Order instance id for order [" + order.getId() + "] is null");
                 throw new IllegalArgumentException(
-                        "Order instance id for order [" + order.getId() + "] is null");
+                    "Order instance id for order [" + order.getId() + "] is null");
             }
 
         } else {
             LOGGER.info(
-                    "The open order ["
-                            + order.getId()
-                            + "] was requested for remote member, setting your state to pending");
+                "The open order ["
+                    + order.getId()
+                    + "] was requested for remote member, setting your state to pending");
 
-            LOGGER.info("Transition [" + order.getId() + "] order state from open to pending");
+            LOGGER.debug("Transition [" + order.getId() + "] order state from open to pending");
             OrderStateTransitioner.transition(order, OrderState.PENDING);
         }
     }
@@ -160,9 +148,8 @@ public class OpenProcessor implements Runnable {
      * Get an instance provider for an order, if the order is Local, the returned instance provider
      * is the local, else, is the remote.
      *
-     * @param order
      * @return InstanceProvider, if the order is local, then returns the local instance provider, if
-     *     the order is remote, then returns the remote instance provider.
+     * the order is remote, then returns the remote instance provider.
      */
     private InstanceProvider getInstanceProviderForOrder(Order order) {
         InstanceProvider instanceProvider = null;
@@ -172,11 +159,11 @@ public class OpenProcessor implements Runnable {
             instanceProvider = this.localInstanceProvider;
         } else {
             LOGGER.debug(
-                    "The open order ["
-                            + order.getId()
-                            + "] is remote for the member ["
-                            + order.getProvidingMember()
-                            + "]");
+                "The open order ["
+                    + order.getId()
+                    + "] is remote for the member ["
+                    + order.getProvidingMember()
+                    + "]");
 
             instanceProvider = this.remoteInstanceProvider;
         }

@@ -29,13 +29,13 @@ public class HttpRequestUtil {
             String timeoutRequestStr = properties.getProperty(TIMEOUT_HTTP_REQUEST);
             timeoutHttpRequest = Integer.parseInt(timeoutRequestStr);
         } catch (NullPointerException | NumberFormatException e) {
-            LOGGER.debug(
+            LOGGER.info(
                     "Setting HttpRequestUtil timeout with default: "
                             + DEFAULT_TIMEOUT_REQUEST
                             + " ms.");
             timeoutHttpRequest = DEFAULT_TIMEOUT_REQUEST;
         } catch (Exception e) {
-            LOGGER.error("Is not possible to initialize HttpRequestUtil.", e);
+            LOGGER.error("It is not possible to initialize HttpRequestUtil.", e);
             throw e;
         }
         LOGGER.info("The default HttpRequestUtil timeout is: " + timeoutHttpRequest + " ms.");
