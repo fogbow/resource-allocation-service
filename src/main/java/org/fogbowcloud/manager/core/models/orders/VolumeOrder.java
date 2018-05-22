@@ -35,8 +35,8 @@ public class VolumeOrder extends Order {
         return volumeSize;
     }
 
-    public void setVolumeSize(int storageSize) {
-        this.volumeSize = storageSize;
+    public void setVolumeSize(int volumeSize) {
+        this.volumeSize = volumeSize;
     }
 
     @Override
