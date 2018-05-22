@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.processors;
 
 import static org.junit.Assert.assertNotNull;
-
 import java.util.Map;
 import java.util.Properties;
 import org.fogbowcloud.manager.core.BaseUnitTests;
@@ -15,6 +14,7 @@ import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
@@ -50,13 +50,8 @@ public class SpawningProcessorTest extends BaseUnitTests {
         this.instanceProvider = Mockito.mock(InstanceProvider.class);
         this.properties = new Properties();
         this.properties.put(ConfigurationConstants.XMPP_ID_KEY, ".");
-        this.spawningProcessor =
-                Mockito.spy(
-                        new SpawningProcessor(
-                                this.tunnelingService,
-                                this.sshConnectivity,
-                                this.instanceProvider,
-                                this.properties));
+        this.spawningProcessor = Mockito.spy(new SpawningProcessor(this.tunnelingService,
+                this.sshConnectivity, this.instanceProvider, this.properties));
         this.thread = null;
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
@@ -84,8 +79,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         order.setOrderState(state);
         this.spawningOrderList.addItem(order);
 
-        Mockito.doThrow(new RuntimeException("Any Exception"))
-                .when(this.spawningProcessor)
+        Mockito.doThrow(new RuntimeException("Any Exception")).when(this.spawningProcessor)
                 .processSpawningOrder(order);
 
         this.thread = new Thread(this.spawningProcessor);
@@ -95,23 +89,23 @@ public class SpawningProcessorTest extends BaseUnitTests {
     }
 
     @Test
-    public void testRunProcesseComputeOrderInstanceActive() throws InterruptedException {
+    public void testRunProcesseComputeOrderInstanceActive() throws Exception {
         Order order = this.createOrder();
         order.setOrderState(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
 
-        ComputeOrderInstance computeOrderInstance =
-                Mockito.spy(new ComputeOrderInstance("fake-id"));
-        computeOrderInstance.setState(InstanceState.ACTIVE);
-        order.setOrderInstance(computeOrderInstance);
+        OrderInstance orderInstance = Mockito.spy(new ComputeOrderInstance("fake-id"));
+        orderInstance.setState(InstanceState.ACTIVE);
+        order.setOrderInstance(orderInstance);
 
-        Map<String, String> externalServiceAddresses =
-                this.tunnelingService.getExternalServiceAddresses(order.getId());
-        Mockito.doNothing()
-                .when(computeOrderInstance)
-                .setExternalServiceAddresses(externalServiceAddresses);
+        Mockito.doReturn(orderInstance).when(this.instanceProvider)
+                .getInstance(Mockito.any(Order.class));
 
-        Mockito.when(this.sshConnectivity.checkSSHConnectivity(computeOrderInstance))
+        Mockito.doNothing().when((ComputeOrderInstance) orderInstance)
+                .setExternalServiceAddresses(Mockito.anyMapOf(String.class, String.class));
+
+        Mockito.when(
+                this.sshConnectivity.checkSSHConnectivity(Mockito.any(ComputeOrderInstance.class)))
                 .thenReturn(true);
 
         Assert.assertNull(this.fulfilledOrderList.getNext());
@@ -149,15 +143,20 @@ public class SpawningProcessorTest extends BaseUnitTests {
     }
 
     @Test
-    public void testRunProcesseComputeOrderInstanceFailed() throws InterruptedException {
+    public void testRunProcesseComputeOrderInstanceFailed() throws Exception {
         Order order = this.createOrder();
         order.setOrderState(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
 
-        ComputeOrderInstance computeOrderInstance =
-                Mockito.spy(new ComputeOrderInstance("fake-id"));
-        computeOrderInstance.setState(InstanceState.FAILED);
-        order.setOrderInstance(computeOrderInstance);
+        OrderInstance orderInstance = Mockito.spy(new ComputeOrderInstance("fake-id"));
+        orderInstance.setState(InstanceState.FAILED);
+        order.setOrderInstance(orderInstance);
+
+        Mockito.doReturn(orderInstance).when(this.instanceProvider)
+                .getInstance(Mockito.any(Order.class));
+
+        Mockito.doNothing().when((ComputeOrderInstance) orderInstance)
+                .setExternalServiceAddresses(Mockito.anyMapOf(String.class, String.class));
 
         Assert.assertNull(this.failedOrderList.getNext());
 
@@ -168,7 +167,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.spawningOrderList.getNext());
 
         Order test = this.failedOrderList.getNext();
-        Assert.assertNotNull(test);
+        assertNotNull(test);
         Assert.assertEquals(order.getOrderInstance(), test.getOrderInstance());
         Assert.assertEquals(OrderState.FAILED, test.getOrderState());
     }
@@ -258,8 +257,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         computeOrderInstance.setState(InstanceState.ACTIVE);
         order.setOrderInstance(computeOrderInstance);
 
-        Mockito.doThrow(new RuntimeException("Any Exception"))
-                .when(this.tunnelingService)
+        Mockito.doThrow(new RuntimeException("Any Exception")).when(this.tunnelingService)
                 .getExternalServiceAddresses(order.getId());
 
         this.thread = new Thread(this.spawningProcessor);
@@ -280,8 +278,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
         Map<String, String> externalServiceAddresses =
                 this.tunnelingService.getExternalServiceAddresses(order.getId());
-        Mockito.doNothing()
-                .when(computeOrderInstance)
+        Mockito.doNothing().when(computeOrderInstance)
                 .setExternalServiceAddresses(externalServiceAddresses);
 
         Mockito.when(this.sshConnectivity.checkSSHConnectivity(computeOrderInstance))
@@ -303,17 +300,8 @@ public class SpawningProcessorTest extends BaseUnitTests {
         String providingMember =
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
         UserData userData = Mockito.mock(UserData.class);
-        Order order =
-                new ComputeOrder(
-                        federationToken,
-                        requestingMember,
-                        providingMember,
-                        8,
-                        1024,
-                        30,
-                        "fake_image_name",
-                        userData,
-                        "fake_public_key");
+        Order order = new ComputeOrder(federationToken, requestingMember, providingMember, 8, 1024,
+                30, "fake_image_name", userData, "fake_public_key");
         return order;
     }
 }
