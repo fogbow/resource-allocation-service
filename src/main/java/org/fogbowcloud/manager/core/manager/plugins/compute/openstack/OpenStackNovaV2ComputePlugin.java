@@ -491,12 +491,12 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     public void deleteInstances(Token localToken) {}
 
     @Override
-    public String attachStorage(Token localToken, StorageLink storageLink) {
+    public String attachVolume(Token localToken, VolumeLink volumeLink) {
         return null;
     }
 
     @Override
-    public String detachStorage(Token localToken, StorageLink storageLink) {
+    public String detachVolume(Token localToken, VolumeLink volumeLink) {
         return null;
     }
 
