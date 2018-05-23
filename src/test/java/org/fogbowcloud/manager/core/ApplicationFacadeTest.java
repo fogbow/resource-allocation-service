@@ -10,6 +10,7 @@ import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
 import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
@@ -603,7 +604,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	
 	@Test(expected = UnauthenticatedException.class)
     public void testGetVolumeOrderUnauthenticated() throws Exception {
-        ComputeOrder order = createComputeOrder();
+        VolumeOrder order = createVolumeOrder();
 
         this.orderController.activateOrder(order, order.getFederationToken());
 
@@ -878,19 +879,437 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         }
     }
 	
-	private ComputeOrder createComputeOrder() {
+    @Test
+    public void testCreateNetworkOrder() throws Exception {
+        NetworkOrder order = createNetworkOrder();
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        Assert.assertNull(order.getOrderState());
+
+        this.application.createNetwork(order, order.getFederationToken().getAccessId());
+
+        Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+    }
+    
+    @Test
+    public void testCreateNetworkOrderUnauthenticated() throws Exception {
+        NetworkOrder order = createNetworkOrder();
+
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        try {
+            this.application.createNetwork(order, order.getFederationToken().getAccessId());
+            Assert.fail();
+        } catch (UnauthenticatedException e) {
+            Assert.assertNull(order.getOrderState());
+        }
+    }
+    
+    @Test
+    public void testCreateNetworkOrderTokenUnauthenticated() throws Exception {
+        NetworkOrder order = createNetworkOrder();
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController)
+                .getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        Assert.assertNull(order.getOrderState());
+
+        try {
+            this.application.createNetwork(order, order.getFederationToken().getAccessId());
+            Assert.fail();
+        } catch (UnauthenticatedException e) {
+            Assert.assertNull(order.getOrderState());
+        }
+    }
+    
+    @Test
+    public void testCreateNetworkOrderTokenUnauthorized() throws Exception {
+        NetworkOrder order = createNetworkOrder();
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        Assert.assertNull(order.getOrderState());
+
+        try {
+            this.application.createNetwork(order, order.getFederationToken().getAccessId());
+            Assert.fail();
+        } catch (UnauthorizedException e) {
+            Assert.assertNull(order.getOrderState());
+        }
+    }
+    
+    @Test
+    public void testCreateNetworkOrderUnauthorizedOperation() throws Exception {
+        NetworkOrder order = createNetworkOrder();
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(Token.class),
+                Mockito.any(Operation.class), Mockito.any(OrderType.class));
+
+        Assert.assertNull(order.getOrderState());
+
+        try {
+            this.application.createNetwork(order, order.getFederationToken().getAccessId());
+            Assert.fail();
+        } catch (UnauthorizedException e) {
+            Assert.assertNull(order.getOrderState());
+        }
+    }
+    
+    @Test(expected = OrderManagementException.class)
+    public void testCreateNullNetworkOrder() throws Exception {
+        NetworkOrder order = createNetworkOrder();
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        Assert.assertNull(order.getOrderState());
+
+        this.application.createNetwork(null, order.getFederationToken().getAccessId());
+    }
+    
+    @Test
+    public void testGetNetworkOrder() throws Exception {
+        NetworkOrder order = createNetworkOrder();
+
+        this.orderController.activateOrder(order, order.getFederationToken());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        NetworkOrder actualOrder = this.application.getNetwork(order.getId(), order.getFederationToken().getAccessId());
+
+        Assert.assertSame(order, actualOrder);
+    }
+
+    @Test(expected = UnauthenticatedException.class)
+    public void testGetNetworkOrderUnauthenticated() throws Exception {
+        NetworkOrder order = createNetworkOrder();
+
+        this.orderController.activateOrder(order, order.getFederationToken());
+
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        this.application.getNetwork(order.getId(), order.getFederationToken().getAccessId());
+    }
+
+    @Test(expected = UnauthorizedException.class)
+    public void testGetNetworkOrderTokenUnauthorized() throws Exception {
+        NetworkOrder order = createNetworkOrder();
+
+        this.orderController.activateOrder(order, order.getFederationToken());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        this.application.getNetwork(order.getId(), order.getFederationToken().getAccessId());
+    }
+    
+    @Test(expected = UnauthenticatedException.class)
+    public void testGetNetworkOrderTokenUnauthenticated() throws Exception {
+        NetworkOrder order = createNetworkOrder();
+
+        this.orderController.activateOrder(order, order.getFederationToken());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController)
+                .getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        this.application.getNetwork(order.getId(), order.getFederationToken().getAccessId());
+    }
+    
+    @Test(expected = UnauthorizedException.class)
+    public void testGetNetworkOrderUnauthorizedOperation() throws Exception {
+        NetworkOrder order = createNetworkOrder();
+
+        this.orderController.activateOrder(order, order.getFederationToken());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(Token.class),
+                Mockito.any(Operation.class), Mockito.any(Order.class));
+
+        this.application.getNetwork(order.getId(), order.getFederationToken().getAccessId());
+    }
+    
+    @Test
+    public void testGetAllNetworks() throws OrderManagementException, UnauthenticatedException, UnauthorizedException {
+        NetworkOrder order = createNetworkOrder();
+
+        this.orderController.activateOrder(order, order.getFederationToken());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        List<NetworkOrder> allNetworks = this.application.getAllNetworks(order.getFederationToken().getAccessId());
+
+        Assert.assertEquals(1, allNetworks.size());
+
+        Assert.assertSame(order, allNetworks.get(0));
+    }
+    
+    @Test
+    public void testGetAllNetworksEmpty()
+            throws OrderManagementException, UnauthenticatedException, UnauthorizedException {
+        NetworkOrder order = createNetworkOrder();
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        List<NetworkOrder> allNetworks = this.application.getAllNetworks(order.getFederationToken().getAccessId());
+
+        Assert.assertEquals(0, allNetworks.size());
+    }
+    
+    @Test(expected = UnauthenticatedException.class)
+    public void testGetAllNetworksTokenUnauthenticated()
+            throws OrderManagementException, UnauthenticatedException, UnauthorizedException {
+        NetworkOrder order = createNetworkOrder();
+
+        this.orderController.activateOrder(order, order.getFederationToken());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController)
+                .getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        this.application.getAllNetworks(order.getFederationToken().getAccessId());
+    }
+    
+    @Test(expected = UnauthorizedException.class)
+    public void testGetAllNetworksTokenUnauthorized()
+            throws OrderManagementException, UnauthenticatedException, UnauthorizedException {
+        NetworkOrder order = createNetworkOrder();
+
+        this.orderController.activateOrder(order, order.getFederationToken());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        this.application.getAllNetworks(order.getFederationToken().getAccessId());
+    }
+    
+    @Test(expected = UnauthorizedException.class)
+    public void testGetAllNetworksOperationUnauthorized()
+            throws OrderManagementException, UnauthenticatedException, UnauthorizedException {
+        NetworkOrder order = createNetworkOrder();
+
+        this.orderController.activateOrder(order, order.getFederationToken());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        this.application.getAllNetworks(order.getFederationToken().getAccessId());
+    }
+    
+    @Test
+    public void testDeleteNetworkOrder() throws Exception {
+        NetworkOrder order = createNetworkOrder();
+        
+        this.orderController.activateOrder(order, order.getFederationToken());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+        
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        this.application.deleteNetwork(order.getId(), order.getFederationToken().getAccessId());
+
+        Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
+    }
+    
+    @Test
+    public void testDeleteNetworkOrderUnathenticated() throws Exception {
+        NetworkOrder order = createNetworkOrder();
+        
+        this.orderController.activateOrder(order, order.getFederationToken());
+        
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString(), Mockito.any(Token.User.class),
+                Mockito.any(OrderType.class));
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        try {
+            this.application.deleteNetwork(order.getId(), order.getFederationToken().getAccessId());
+            Assert.fail();
+        } catch (UnauthenticatedException e) {
+            Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+        }
+    }
+    
+    @Test
+    public void testDeleteNetworkOrderTokenUnathenticated() throws Exception {
+        NetworkOrder order = createNetworkOrder();
+        
+        this.orderController.activateOrder(order, order.getFederationToken());
+        
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+        
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+        
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController)
+                .getFederationToken(Mockito.anyString());
+
+        try {
+            this.application.deleteNetwork(order.getId(), order.getFederationToken().getAccessId());
+            Assert.fail();
+        } catch (UnauthenticatedException e) {
+            Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+        }
+    }
+    
+    @Test
+    public void testDeleteNetworkOrderTokenUnauthorized() throws Exception {
+        NetworkOrder order = createNetworkOrder();
+        
+        this.orderController.activateOrder(order, order.getFederationToken());
+        
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+        
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+        
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        try {
+            this.application.deleteNetwork(order.getId(), order.getFederationToken().getAccessId());
+            Assert.fail();
+        } catch (UnauthorizedException e) {
+            Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+        }
+    }
+    
+    @Test(expected = OrderManagementException.class)
+    public void testDeleteNetworkOrderNullGet() throws Exception {
+        NetworkOrder order = createNetworkOrder();
+        
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+        
+        Mockito.doReturn(null).when(this.orderController).getOrder(Mockito.anyString(), Mockito.any(Token.User.class),
+                Mockito.any(OrderType.class));
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(Token.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        this.application.deleteNetwork(order.getId(), order.getFederationToken().getAccessId());
+    }
+
+    @Test
+    public void testDeleteNetworkOrderUnauthorizedOperation() throws Exception {
+        NetworkOrder order = createNetworkOrder();
+        
+        this.orderController.activateOrder(order, order.getFederationToken());
+        
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());        
+
+        Mockito.doReturn(order.getFederationToken()).when(this.aaaController).getFederationToken(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(Token.class),
+                Mockito.any(Operation.class), Mockito.any(Order.class));
+
+        Mockito.doNothing().when(this.orderController).deleteOrder(Mockito.any(Order.class));
+
+        try {
+            this.application.deleteNetwork(order.getId(), order.getFederationToken().getAccessId());
+            Assert.fail();
+        } catch (UnauthorizedException e) {
+            Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+        }
+    }
+    
+	private NetworkOrder createNetworkOrder() {
+	    Token federationToken = createToken();
+        NetworkOrder order = new NetworkOrder(federationToken, "fake-member-id", "fake-member-id", "fake-gateway", "fake-address", "fake-allocation");
+        return order;
+    }
+	   
+    private VolumeOrder createVolumeOrder() {
+        Token federationToken = createToken();
+        VolumeOrder volumeOrder = new VolumeOrder(federationToken, "fake-member-id", "fake-member-id", 1);
+        return volumeOrder;
+    }
+
+    private ComputeOrder createComputeOrder() {
 		Token federationToken = createToken();
 		ComputeOrder order = new ComputeOrder(federationToken, "fake-member-id", "fake-member-id", 2, 2, 30,
 				"fake-image-name", new UserData(), "fake-public-key");
 		return order;
 	}
-	
-	private VolumeOrder createVolumeOrder() {
-        Token federationToken = createToken();
-        VolumeOrder volumeOrder = new VolumeOrder(federationToken, "fake-member-id", "fake-member-id", 1);
-        return volumeOrder;
-    }
-	
+
 	private Token createToken() {
 	    Token.User user = new Token.User("fake-user-id", "fake-user-name");
         Token federationToken = new Token("fake-accessId", user, new Date(), new HashMap<String, String>());
