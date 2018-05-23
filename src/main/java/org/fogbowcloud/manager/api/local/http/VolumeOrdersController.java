@@ -17,13 +17,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(value = "volume")
+@RequestMapping(value = VolumeOrdersController.VOLUME_ENDPOINT)
 public class VolumeOrdersController {
+
+    public static final String VOLUME_ENDPOINT = "volume";
 
     private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
     private ApplicationFacade applicationFacade;
-    private final Logger LOGGER = LoggerFactory.getLogger(ComputeOrdersController.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(VolumeOrdersController.class);
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Order> createVolume(@RequestBody VolumeOrder volumeOrder,

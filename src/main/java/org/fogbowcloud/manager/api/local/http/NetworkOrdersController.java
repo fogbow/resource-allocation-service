@@ -17,13 +17,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(value = "network")
+@RequestMapping(value = NetworkOrdersController.NETWORK_ENDPOINT)
 public class NetworkOrdersController {
 
+    public static final String NETWORK_ENDPOINT = "network";
+    
     private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
     private ApplicationFacade applicationFacade;
-    private final Logger LOGGER = LoggerFactory.getLogger(ComputeOrdersController.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(NetworkOrdersController.class);
     
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Order> createNetwork(@RequestBody NetworkOrder networkOrder,
