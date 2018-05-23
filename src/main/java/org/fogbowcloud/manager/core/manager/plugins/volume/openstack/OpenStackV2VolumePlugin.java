@@ -13,7 +13,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.manager.constants.OpenStackConfigurationConstants;
+import org.fogbowcloud.manager.core.manager.constants.OpenStackConstants;
 import org.fogbowcloud.manager.core.manager.plugins.volume.VolumePlugin;
 import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
@@ -39,13 +39,12 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	protected static final String KEY_JSON_SIZE = "size";
 	protected static final String KEY_JSON_NAME = "name";
 	protected static final String KEY_JSON_ID = "id";
-	
+
 	private static final String VALUE_AVAILABLE_STATUS = "available";
-	
-	protected static final String SUFIX_ENDPOINT_VOLUMES = "/volumes";
 
 	// TODO put in the properties examples
 	public static final String VOLUME_NOVAV2_URL_KEY = "volume_v2_url";
+	protected static final String SUFIX_ENDPOINT_VOLUMES = "/volumes";
 
 	private HttpClient client;
 	private String volumeV2APIEndpoint;
@@ -54,16 +53,17 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 	public OpenStackV2VolumePlugin(Properties properties) {
 		this.volumeV2APIEndpoint = properties.getProperty(VOLUME_NOVAV2_URL_KEY)
-				+ OpenStackConfigurationConstants.V2_API_ENDPOINT;
+				+ OpenStackConstants.V2_API_ENDPOINT;
 
 		initClient();
 	}
 	
 	@Override
 	public String requestInstance(Token localToken, StorageOrderInstance storageOrderInstance) throws RequestException {
-		String tenantId = localToken.getAttributes().get(OpenStackConfigurationConstants.TENANT_ID);
+		String tenantId = localToken.getAttributes().get(OpenStackConstants.TENANT_ID);
 		if (tenantId == null) {
-			// TODO check this exception. Put a message
+			String msg = "It was not possible to request new instance. Tenant id is not specified.";
+			LOGGER.error(msg);
 			throw new RequestException(ErrorType.BAD_REQUEST, "");
 		}
 		String size = String.valueOf(storageOrderInstance.getSize());
@@ -85,7 +85,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 	@Override
 	public StorageOrderInstance getInstance(Token localToken, String storageOrderInstanceId) throws RequestException {
-		String tenantId = localToken.getAttributes().get(OpenStackConfigurationConstants.TENANT_ID);
+		String tenantId = localToken.getAttributes().get(OpenStackConstants.TENANT_ID);
 		if (tenantId == null) {
 			// TODO check this exception. Put a message
 			throw new RequestException(ErrorType.BAD_REQUEST, "");
@@ -99,7 +99,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 	@Override
 	public void removeInstance(Token localToken, String storageOrderInstanceId) throws RequestException {
-		String tenantId = localToken.getAttributes().get(OpenStackConfigurationConstants.TENANT_ID);
+		String tenantId = localToken.getAttributes().get(OpenStackConstants.TENANT_ID);
 		if (tenantId == null) {
 			// TODO check this exception. Put a message			
 			throw new RequestException(ErrorType.BAD_REQUEST, "");
@@ -118,7 +118,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 			HttpPost request = new HttpPost(endpoint);
             request.addHeader(RequestHeaders.CONTENT_TYPE.getValue(),
                     RequestHeaders.JSON_CONTENT_TYPE.getValue());
-            request.addHeader(RequestHeaders.ACCEPT.getValue(), 
+            request.addHeader(RequestHeaders.ACCEPT.getValue(),
             		RequestHeaders.JSON_CONTENT_TYPE.getValue());
             request.addHeader(RequestHeaders.X_AUTH_TOKEN.getValue(), authToken);
 			request.setEntity(new StringEntity(json.toString(), StandardCharsets.UTF_8));
@@ -224,7 +224,6 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 			String sizeStr = volumeJson.optString(KEY_JSON_SIZE);
 			int size = Integer.valueOf(sizeStr);
 
-			// TODO check if is necessary to use "int" in the size attr
 			return new StorageOrderInstance(id, name, status, size);
 		} catch (Exception e) {
 			LOGGER.error("There was an exception while getting instance storage.", e);
