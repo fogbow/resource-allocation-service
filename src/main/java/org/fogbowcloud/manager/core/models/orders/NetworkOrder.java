@@ -9,6 +9,10 @@ public class NetworkOrder extends Order {
     private String address;
     private String allocation;
 
+    public NetworkOrder() {
+        super(UUID.randomUUID().toString());
+    }
+    
     /** Creating Order with predefined Id. */
     public NetworkOrder(
             String id,

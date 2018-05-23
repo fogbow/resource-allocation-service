@@ -7,6 +7,10 @@ public class VolumeOrder extends Order {
 
     private int volumeSize;
 
+    public VolumeOrder() {
+        super(UUID.randomUUID().toString());
+    }
+    
     /** Creating Order with predefined Id. */
     public VolumeOrder(
             String id,
@@ -33,10 +37,6 @@ public class VolumeOrder extends Order {
 
     public int getVolumeSize() {
         return volumeSize;
-    }
-
-    public void setVolumeSize(int storageSize) {
-        this.volumeSize = storageSize;
     }
 
     @Override
