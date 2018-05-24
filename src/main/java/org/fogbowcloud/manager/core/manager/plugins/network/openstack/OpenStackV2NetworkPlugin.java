@@ -264,7 +264,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         }
     }
 
-    protected NetworkOrderInstance getInstanceFromJson(String json, Token token) {
+    protected NetworkOrderInstance getInstanceFromJson(String json, Token token) throws RequestException {
         String networkId = null;
         String label = null;
         InstanceState instanceState = null;
@@ -303,7 +303,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
                 }
                 address = subnetJSONObject.optString(KEY_CIDR);
             }
-        } catch (Exception e) {
+        } catch (JSONException e) {
             String messageTemplate = "Was not possible to get subnet informations of subnet id %s";
             LOGGER.warn(String.format(messageTemplate, subnetId), e);
         }
