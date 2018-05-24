@@ -67,11 +67,11 @@ public class NetworkOrderInstance extends OrderInstance {
         this.vLAN = vLAN;
     }
 
-    protected NetworkAllocation getAllocation() {
+    public NetworkAllocation getAllocation() {
         return allocation;
     }
 
-    protected void setAllocation(NetworkAllocation allocation) {
+    public void setAllocation(NetworkAllocation allocation) {
         this.allocation = allocation;
     }
 
