@@ -1,6 +1,7 @@
 package org.fogbowcloud.manager.api.local.http;
 
 import java.util.List;
+import java.util.UUID;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -26,7 +27,6 @@ public class ComputeOrdersController {
 
     private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
-    private ApplicationFacade applicationFacade;
     private final Logger LOGGER = LoggerFactory.getLogger(ComputeOrdersController.class);
 
     // ExceptionTranslator handles the possible problems in request
@@ -41,8 +41,9 @@ public class ComputeOrdersController {
         // The applicationFacade is being loaded here, because the getInstance that was used in the
         // variable declaration
         // disallows a static mock on this method.
-        this.applicationFacade = ApplicationFacade.getInstance();
-        this.applicationFacade.createCompute(computeOrder, federationTokenValue);
+
+        computeOrder.setId(UUID.randomUUID().toString()); // FIXME Find a better location for this
+        ApplicationFacade.getInstance().createCompute(computeOrder, federationTokenValue);
         return new ResponseEntity<Order>(HttpStatus.CREATED);
     }
 
@@ -51,7 +52,7 @@ public class ComputeOrdersController {
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
         LOGGER.info("Get all compute orders request received");
-        List<ComputeOrder> orders = this.applicationFacade.getAllComputes(federationTokenValue);
+        List<ComputeOrder> orders = ApplicationFacade.getInstance().getAllComputes(federationTokenValue);
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
 
@@ -61,7 +62,7 @@ public class ComputeOrdersController {
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
         LOGGER.info("Get request to compute order with id <" + computeId + "> received");
-        ComputeOrder order = this.applicationFacade.getCompute(computeId, federationTokenValue);
+        ComputeOrder order = ApplicationFacade.getInstance().getCompute(computeId, federationTokenValue);
         return new ResponseEntity<ComputeOrder>(order, HttpStatus.OK);
     }
 
@@ -71,7 +72,7 @@ public class ComputeOrdersController {
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
         LOGGER.info("Get compute order to id <%s> received");
-        this.applicationFacade.deleteCompute(computeId, federationTokenValue);
+        ApplicationFacade.getInstance().deleteCompute(computeId, federationTokenValue);
         return new ResponseEntity<Boolean>(HttpStatus.OK);
     }
 }

@@ -4,7 +4,7 @@ IS_OPENSSH=$(ssh -ver 2>&1 | grep OpenSSH)
 IS_NEW_OPENSSH=$(ssh -V 2>&1 | grep OpenSSH)
 IS_DROPBEAR=$(ssh -ver 2>&1 | grep Dropbear)
 if [ -n "$IS_OPENSSH" ] || [ -n "$IS_NEW_OPENSSH" ]; then
-  SSH_OPTIONS="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ServerAliveInterval=30"
+  SSH_OPTIONS="-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ServerAliveInterval=30 -o HostKeyAlgorithms=+ssh-dss"
 elif [ -n "$IS_DROPBEAR" ]; then
   SSH_OPTIONS="-y -K 30"
 fi

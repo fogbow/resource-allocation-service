@@ -95,4 +95,5 @@ public class ComputeOrder extends Order {
     public String getPublicKey() {
         return publicKey;
     }
+
 }

@@ -52,7 +52,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
     private static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
     private static final String COMPUTE_NOVAV2_URL_KEY = "compute_novav2_url";
-    private final String COMPUTE_V2_API_ENDPOINT = "/v2.1/";
+    private final String COMPUTE_V2_API_ENDPOINT = "/v2/";
 
     private static final String COMPUTE_NOVAV2_NETWORK_KEY = "compute_novav2_network_id";
 
@@ -366,7 +366,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     protected String doGetRequest(String endpoint, Token localToken) throws RequestException {
-        LOGGER.debug("Doing DELETE request to OpenStack on endpoint <" + endpoint + ">");
+        LOGGER.debug("Doing GET request to OpenStack on endpoint <" + endpoint + ">");
 
         HttpResponse response = null;
         String responseStr;
@@ -421,8 +421,11 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
             String id = serverJson.getString(ID_JSON_FIELD);
             String hostName = serverJson.getString(NAME_JSON_FIELD);
-            int vCPU = serverJson.getJSONObject(FLAVOR_JSON_OBJECT).getInt(VCPU_JSON_FIELD);
-            int memory = serverJson.getJSONObject(FLAVOR_JSON_OBJECT).getInt(MEMORY_JSON_FIELD);
+
+//          FIXME We need to GET the flavor details in order to fill vcpus and ram
+//          int vCPU = serverJson.getJSONObject(FLAVOR_JSON_OBJECT).getInt(VCPU_JSON_FIELD);
+//          int memory = serverJson.getJSONObject(FLAVOR_JSON_OBJECT).getInt(MEMORY_JSON_FIELD);
+
             InstanceState state = getInstanceState(serverJson.getString(STATUS_JSON_FIELD));
 
             // TODO: Why should I pass all this attributes for computeOrderInstance if they are
@@ -436,8 +439,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
                     new ComputeOrderInstance(
                             id,
                             hostName,
-                            vCPU,
-                            memory,
+                            -1,
+                            -1,
                             state,
                             localIpAddress,
                             sshPublicAddress,

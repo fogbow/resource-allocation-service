@@ -8,6 +8,7 @@ import org.fogbowcloud.manager.core.manager.plugins.IdentityPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.processors.OpenProcessor;
 import org.fogbowcloud.manager.core.processors.SpawningProcessor;
+import org.fogbowcloud.manager.utils.SshCommonUserUtil;
 import org.fogbowcloud.manager.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
 
@@ -52,6 +53,9 @@ public class ProcessorController {
 
         TunnelingServiceUtil tunnelingServiceUtil = TunnelingServiceUtil.getInstance();
         SshConnectivityUtil sshConnectivityUtil = SshConnectivityUtil.getInstance();
+        tunnelingServiceUtil.setProperties(properties); // FIXME Find a better location for this
+        SshCommonUserUtil.setProperties(properties); // FIXME Find a better location for this
+        SshConnectivityUtil.setProperties(properties); // FIXME Find a better location for this
         SpawningProcessor spawningProcessor =
                 new SpawningProcessor(
                         tunnelingServiceUtil,

@@ -15,7 +15,7 @@ import org.fogbowcloud.manager.core.manager.constants.CommonConfigurationConstan
 
 public class SshClientPoolUtil {
 
-    protected final long TIMEOUT = TimeUnit.SECONDS.toSeconds(20); // reference value is 20 seconds
+    protected final long TIMEOUT = TimeUnit.SECONDS.toSeconds(1); // reference value is 1 seconds
     private final long DEFAULT_SCHEDULER_TIME =
             TimeUnit.MINUTES.toMinutes(3);; // reference value is 3 minutes
 

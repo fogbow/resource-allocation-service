@@ -14,9 +14,11 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.manager.plugins.IdentityPlugin;
 import org.fogbowcloud.manager.core.models.Credential;
 import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.services.AuthenticationControllerUtil;
 import org.fogbowcloud.manager.utils.HttpRequestUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -44,32 +46,35 @@ public class KeystoneV3IdentityPlugin implements IdentityPlugin {
     public static final String PASSWORD = "password";
     public static final String USER_ID = "userId";
 
-    private static final int LAST_SUCCESSFUL_STATUS = 204;
-    public static String V3_TOKENS_ENDPOINT_PATH = "/v3/auth/tokens";
+    public static final int LAST_SUCCESSFUL_STATUS = 204;
+
+    public static String V3_TOKENS_ENDPOINT_PATH = "/auth/tokens";
+
     public static final String AUTH_URL = "authUrl";
 
     private String keystoneUrl;
     private String v3TokensEndpoint;
     private HttpClient client;
 
-    protected KeystoneV3IdentityPlugin(Properties properties, HttpClient client) {
-        this(properties);
-        if (client == null) {
-            this.client = HttpRequestUtil.createHttpClient();
-        } else {
-            this.client = client;
-        }
-    }
+    protected KeystoneV3IdentityPlugin(Properties properties, HttpClient client)
+        throws PropertyNotSpecifiedException {
+        Map<String, String> defaultCredentials = AuthenticationControllerUtil
+            .getDefaultLocalTokenCredentials(properties);
 
-    public KeystoneV3IdentityPlugin(Properties properties) {
-
-        if (properties.getProperty(IDENTITY_URL) == null) {
-            this.keystoneUrl = properties.getProperty(AUTH_URL);
-        } else {
-            this.keystoneUrl = properties.getProperty(IDENTITY_URL);
-        }
+        String identityUrl = properties.getProperty(IDENTITY_URL);
+        this.keystoneUrl = identityUrl != null ? identityUrl : defaultCredentials.get(AUTH_URL);
 
         this.v3TokensEndpoint = keystoneUrl + V3_TOKENS_ENDPOINT_PATH;
+        this.client = client != null ? client : HttpRequestUtil.createHttpClient();
+    }
+
+    /**
+     *
+     * @param properties
+     * @throws PropertyNotSpecifiedException if a required property was not set
+     */
+    public KeystoneV3IdentityPlugin(Properties properties) throws PropertyNotSpecifiedException {
+        this(properties, null);
     }
 
     @Override

@@ -46,6 +46,10 @@ public class TunnelingServiceUtil {
         return instance;
     }
 
+    public void setProperties(Properties properties) {
+        this.properties = properties;
+    }
+
     public Map<String, String> getExternalServiceAddresses(String orderId) {
         if (orderId == null || orderId.isEmpty()) {
             return null;

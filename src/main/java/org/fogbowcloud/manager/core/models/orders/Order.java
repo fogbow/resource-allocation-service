@@ -35,6 +35,10 @@ public abstract class Order {
         return id;
     }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
     public synchronized OrderState getOrderState() {
         return orderState;
     }

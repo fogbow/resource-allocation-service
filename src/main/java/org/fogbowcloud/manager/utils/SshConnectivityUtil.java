@@ -68,4 +68,8 @@ public class SshConnectivityUtil {
         }
         return privateKey;
     }
+
+    public static void setProperties(Properties properties) {
+        SshConnectivityUtil.properties = properties;
+    }
 }
