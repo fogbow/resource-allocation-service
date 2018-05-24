@@ -39,8 +39,25 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	protected static final String KEY_JSON_NAME = "name";
 	protected static final String KEY_JSON_ID = "id";
 
+	private static final String VALUE_CREATING_STATUS = "creating";
 	private static final String VALUE_AVAILABLE_STATUS = "available";
-	private static final String VALUE_FAILED_STATUS = "";
+	private static final String VALUE_ATTACHING_STATUS = "attaching";
+	private static final String VALUE_DETACHING_STATUS = "detaching";
+	private static final String VALUE_IN_USE_STATUS = "in-use";
+	private static final String VALUE_MAINTENANCE_STATUS = "maintenance";
+	private static final String VALUE_DELETING_STATUS = "deleting";
+	private static final String VALUE_AWAITING_TRANSFER_STATUS = "awaiting-transfer";
+	private static final String VALUE_ERROR_STATUS = "error";
+	private static final String VALUE_ERROR_DELETING_STATUS = "error_deleting";
+	private static final String VALUE_BACKING_UP_STATUS = "backing-up";
+	private static final String VALUE_RESTORING_BACKUP_STATUS = "restoring-backup";
+	private static final String VALUE_ERROR_BACKING_UP_STATUS = "error_backing-up";
+	private static final String VALUE_ERROR_RESTORING_STATUS = "error_restoring";
+	private static final String VALUE_ERROR_EXTENDING_STATUS = "error_extending";
+	private static final String VALUE_DOWNLOADING_STATUS = "downloading";
+	private static final String VALUE_UPLOADING_STATUS = "uploading";
+	private static final String VALUE_RETYPING_STATUS = "retyping";
+	private static final String VALUE_EXTENDING_STATUS = "extending";
 
 	// TODO put in the properties examples
 	public static final String VOLUME_NOVAV2_URL_KEY = "volume_v2_url";
@@ -62,8 +79,8 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	public String requestInstance(Token localToken, StorageOrderInstance storageOrderInstance) throws RequestException {
 		String tenantId = localToken.getAttributes().get(OpenStackConstants.TENANT_ID);
 		if (tenantId == null) {
-			LOGGER.error(this.TENANT_ID_IS_NOT_SPECIFIED_ERROR);
-			throw new RequestException(ErrorType.BAD_REQUEST, this.TENANT_ID_IS_NOT_SPECIFIED_ERROR);
+			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
+			throw new RequestException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 		}
 		String size = String.valueOf(storageOrderInstance.getSize());
 
@@ -86,7 +103,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	public StorageOrderInstance getInstance(Token localToken, String storageOrderInstanceId) throws RequestException {
 		String tenantId = localToken.getAttributes().get(OpenStackConstants.TENANT_ID);
 		if (tenantId == null) {
-			throw new RequestException(ErrorType.BAD_REQUEST, this.TENANT_ID_IS_NOT_SPECIFIED_ERROR);
+			throw new RequestException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 		}		
 		
 		String endpoint = this.volumeV2APIEndpoint + tenantId 
@@ -99,8 +116,8 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	public void removeInstance(Token localToken, String storageOrderInstanceId) throws RequestException {
 		String tenantId = localToken.getAttributes().get(OpenStackConstants.TENANT_ID);
 		if (tenantId == null) {
-			LOGGER.error(this.TENANT_ID_IS_NOT_SPECIFIED_ERROR);
-			throw new RequestException(ErrorType.BAD_REQUEST, this.TENANT_ID_IS_NOT_SPECIFIED_ERROR);
+			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
+			throw new RequestException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 		}		
 		
 		String endpoint = this.volumeV2APIEndpoint + tenantId 
@@ -231,15 +248,49 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	}
 	
 	// TODO check openstack documentation. https://developer.openstack.org/api-ref/block-storage/v2/
+	// TODO: Better map openstack states. Should be better create InstanceState.BUSY?
 	protected InstanceState getInstanceState(String statusOpenstack) {
-        switch (statusOpenstack.toLowerCase()) {
-	        case VALUE_AVAILABLE_STATUS:
-	            return InstanceState.ACTIVE;
-	        // TODO check if exists a failed status
-	        case VALUE_FAILED_STATUS:
-	        	return InstanceState.FAILED;
-	        default:
-	            return InstanceState.INACTIVE;            
+		switch (statusOpenstack.toLowerCase()) {
+			case VALUE_CREATING_STATUS:
+				return InstanceState.INACTIVE;
+			case VALUE_AVAILABLE_STATUS:
+				return InstanceState.ACTIVE;
+			case VALUE_ATTACHING_STATUS:
+				return InstanceState.ACTIVE;
+			case VALUE_DETACHING_STATUS:
+				return InstanceState.ACTIVE;
+			case VALUE_IN_USE_STATUS:
+				return InstanceState.ACTIVE;
+			case VALUE_MAINTENANCE_STATUS:
+				return InstanceState.ACTIVE;
+			case VALUE_DELETING_STATUS:
+				return InstanceState.ACTIVE;
+			case VALUE_AWAITING_TRANSFER_STATUS:
+				return InstanceState.ACTIVE;
+			case VALUE_ERROR_STATUS:
+				return InstanceState.FAILED;
+			case VALUE_ERROR_DELETING_STATUS:
+				return InstanceState.FAILED;
+			case VALUE_BACKING_UP_STATUS:
+				return InstanceState.ACTIVE;
+			case VALUE_RESTORING_BACKUP_STATUS:
+				return InstanceState.ACTIVE;
+			case VALUE_ERROR_RESTORING_STATUS:
+				return InstanceState.FAILED;
+			case VALUE_ERROR_BACKING_UP_STATUS:
+				return InstanceState.FAILED;
+			case VALUE_ERROR_EXTENDING_STATUS:
+				return InstanceState.FAILED;
+			case VALUE_DOWNLOADING_STATUS:
+				return InstanceState.ACTIVE;
+			case VALUE_UPLOADING_STATUS:
+				return InstanceState.ACTIVE;
+			case VALUE_RETYPING_STATUS:
+				return InstanceState.ACTIVE;
+			case VALUE_EXTENDING_STATUS:
+				return InstanceState.ACTIVE;
+			default:
+				return InstanceState.INACTIVE;
         }
 	}
 
