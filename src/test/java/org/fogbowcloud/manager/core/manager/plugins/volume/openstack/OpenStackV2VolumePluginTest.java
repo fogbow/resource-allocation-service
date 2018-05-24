@@ -8,7 +8,7 @@ import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.manager.constants.OpenStackConstants;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.orders.instances.StorageOrderInstance;
+import org.fogbowcloud.manager.core.models.orders.instances.VolumeOrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -74,7 +74,7 @@ public class OpenStackV2VolumePluginTest {
         String name = "fake-name";
         InstanceState state = InstanceState.ACTIVE;
         int size = 2;
-        StorageOrderInstance storageOrderInstance = new StorageOrderInstance(id, name, state, size);
+        VolumeOrderInstance storageOrderInstance = new VolumeOrderInstance(id, name, state, size);
 
         try {
             this.openStackV2VolumePlugin.requestInstance(this.tokenDefault, storageOrderInstance);
@@ -88,7 +88,7 @@ public class OpenStackV2VolumePluginTest {
     @Test(expected=RequestException.class)
     public void testRequestInstanceWithoutTenantId() throws RequestException {
         this.tokenDefault.getAttributes().clear();
-        StorageOrderInstance storageOrderInstance = null;
+        VolumeOrderInstance storageOrderInstance = null;
         this.openStackV2VolumePlugin.requestInstance(this.tokenDefault, storageOrderInstance);
     }
 
@@ -101,7 +101,7 @@ public class OpenStackV2VolumePluginTest {
 
     @Test
     public void testGetInstanceFromJson() throws RequestException  {
-        StorageOrderInstance instance = this.openStackV2VolumePlugin.getInstanceFromJson(
+        VolumeOrderInstance instance = this.openStackV2VolumePlugin.getInstanceFromJson(
                 generateInstanceJsonResponse(FAKE_INSTANCE_ID).toString());
         Assert.assertEquals(FAKE_INSTANCE_ID, instance.getId());
     }

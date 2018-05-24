@@ -19,7 +19,7 @@ import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
 import org.fogbowcloud.manager.core.models.ResponseConstants;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.orders.instances.StorageOrderInstance;
+import org.fogbowcloud.manager.core.models.orders.instances.VolumeOrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.utils.HttpRequestUtil;
 import org.json.JSONException;
@@ -76,7 +76,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	}
 	
 	@Override
-	public String requestInstance(Token localToken, StorageOrderInstance storageOrderInstance) throws RequestException {
+	public String requestInstance(Token localToken, VolumeOrderInstance storageOrderInstance) throws RequestException {
 		String tenantId = localToken.getAttributes().get(OpenStackConstants.TENANT_ID);
 		if (tenantId == null) {
 			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
@@ -95,12 +95,12 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 		String endpoint = this.volumeV2APIEndpoint + tenantId + SUFIX_ENDPOINT_VOLUMES;
 		String responseStr = doPostRequest(endpoint, localToken.getAccessId(), jsonRequest);
-		StorageOrderInstance instanceFromJson = getInstanceFromJson(responseStr);
+		VolumeOrderInstance instanceFromJson = getInstanceFromJson(responseStr);
 		return instanceFromJson != null ? instanceFromJson.getId() : null;
 	}
 
 	@Override
-	public StorageOrderInstance getInstance(Token localToken, String storageOrderInstanceId) throws RequestException {
+	public VolumeOrderInstance  getInstance(Token localToken, String storageOrderInstanceId) throws RequestException {
 		String tenantId = localToken.getAttributes().get(OpenStackConstants.TENANT_ID);
 		if (tenantId == null) {
 			throw new RequestException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);
@@ -227,7 +227,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 		}
 	}	
 	
-	protected StorageOrderInstance getInstanceFromJson(String json) throws RequestException {
+	protected VolumeOrderInstance  getInstanceFromJson(String json) throws RequestException {
 		try {
 			JSONObject rootServer = new JSONObject(json);
 			JSONObject volumeJson = rootServer.getJSONObject(KEY_JSON_VOLUME);
@@ -239,7 +239,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 			String sizeStr = volumeJson.optString(KEY_JSON_SIZE);
 			int size = Integer.valueOf(sizeStr);
 
-			return new StorageOrderInstance(id, name, status, size);
+			return new VolumeOrderInstance (id, name, status, size);
 		} catch (Exception e) {
 			String errorMsg = "There was an exception while getting instance storage.";
 			LOGGER.error(errorMsg, e);

@@ -9,7 +9,7 @@ import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.Unauthor
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.StorageOrder;
+import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.services.AAAController;
@@ -30,7 +30,7 @@ public class LocalInstanceProvider implements InstanceProvider {
                     PropertyNotSpecifiedException, UnauthorizedException {
         if (order instanceof ComputeOrder) {
             return requestInstance((ComputeOrder) order);
-        } else if (order instanceof StorageOrder) {
+        } else if (order instanceof VolumeOrder) {
             throw new UnsupportedOperationException("Not implemented yet.");
         } else if (order instanceof NetworkOrder) {
             throw new UnsupportedOperationException("Not implemented yet.");
