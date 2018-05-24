@@ -6,7 +6,7 @@ import org.apache.http.client.methods.*;
 import org.apache.http.util.EntityUtils;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.manager.constants.OpenStackConstants;
-import org.fogbowcloud.manager.core.manager.constants.RequestsConstants;
+import org.fogbowcloud.manager.core.models.RequestHeaders;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.orders.instances.StorageOrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
@@ -65,9 +65,7 @@ public class OpenStackV2VolumePluginTest {
         String url = FAKE_STORAGE_URL + OpenStackConstants.V2_API_ENDPOINT + FAKE_TENANT_ID
                 + OpenStackV2VolumePlugin.SUFIX_ENDPOINT_VOLUMES;
         HttpUriRequest request = new HttpPost(url);
-        request.addHeader(RequestsConstants.HEADER_CONTENT_TYPE, RequestsConstants.JSON_CONTENT_TYPE);
-        request.addHeader(RequestsConstants.HEADER_ACCEPT, RequestsConstants.JSON_CONTENT_TYPE);
-        request.addHeader(RequestsConstants.HEADER_X_AUTH_TOKEN, this.tokenDefault.getAccessId());
+        addHeaders(request);
 
         this.expectedRequest = new HttpUriRequestMatcher(request, this.openStackV2VolumePlugin
                 .generateJsonEntityToCreateInstance(FAKE_SIZE).toString());
@@ -113,9 +111,8 @@ public class OpenStackV2VolumePluginTest {
         String url = FAKE_STORAGE_URL + OpenStackConstants.V2_API_ENDPOINT + FAKE_TENANT_ID
                 + OpenStackV2VolumePlugin.SUFIX_ENDPOINT_VOLUMES + "/" + FAKE_INSTANCE_ID;
         HttpUriRequest request = new HttpGet(url);
-        request.addHeader(RequestsConstants.HEADER_CONTENT_TYPE, RequestsConstants.JSON_CONTENT_TYPE);
-        request.addHeader(RequestsConstants.HEADER_ACCEPT, RequestsConstants.JSON_CONTENT_TYPE);
-        request.addHeader(RequestsConstants.HEADER_X_AUTH_TOKEN, this.tokenDefault.getAccessId());
+        addHeaders(request);
+
         this.expectedRequest = new HttpUriRequestMatcher(request, null);
 
         try {
@@ -137,9 +134,8 @@ public class OpenStackV2VolumePluginTest {
         String url = FAKE_STORAGE_URL + OpenStackConstants.V2_API_ENDPOINT + FAKE_TENANT_ID
                 + OpenStackV2VolumePlugin.SUFIX_ENDPOINT_VOLUMES + "/" + FAKE_INSTANCE_ID;
         HttpUriRequest request = new HttpDelete(url);
-        request.addHeader(RequestsConstants.HEADER_CONTENT_TYPE, RequestsConstants.JSON_CONTENT_TYPE);
-        request.addHeader(RequestsConstants.HEADER_ACCEPT, RequestsConstants.JSON_CONTENT_TYPE);
-        request.addHeader(RequestsConstants.HEADER_X_AUTH_TOKEN, this.tokenDefault.getAccessId());
+        addHeaders(request);
+
         this.expectedRequest = new HttpUriRequestMatcher(request, null);
 
         try {
@@ -160,6 +156,12 @@ public class OpenStackV2VolumePluginTest {
     @Test
     public void getInstanceState() {
         // TODO
+    }
+
+    private void addHeaders(HttpUriRequest request) {
+        request.addHeader(RequestHeaders.CONTENT_TYPE.getValue(), RequestHeaders.JSON_CONTENT_TYPE.getValue());
+        request.addHeader(RequestHeaders.ACCEPT.getValue(), RequestHeaders.JSON_CONTENT_TYPE.getValue());
+        request.addHeader(RequestHeaders.X_AUTH_TOKEN.getValue(), this.tokenDefault.getAccessId());
     }
 
     private JSONObject generateInstanceJsonResponse(String instanceId) throws JSONException {
@@ -214,7 +216,7 @@ public class OpenStackV2VolumePluginTest {
             for (Header comparedHeader : comparedHeaders) {
                 boolean headerEquals = false;
                 for (Header header : this.request.getAllHeaders()) {
-                    if (header.getName().equals(RequestsConstants.HEADER_X_AUTH_TOKEN)) {
+                    if (header.getName().equals(RequestHeaders.X_AUTH_TOKEN.getValue())) {
                         if (header.getName().equals(comparedHeader.getName())) {
                             headerEquals = true;
                             break;
