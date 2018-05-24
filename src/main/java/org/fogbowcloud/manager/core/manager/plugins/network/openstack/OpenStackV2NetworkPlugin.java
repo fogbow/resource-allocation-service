@@ -36,8 +36,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class OpenStackV2NetworkPlugin implements NetworkPlugin {
-    protected static final String STATUS_OPENSTACK_ACTIVE = "ACTIVE";
-
     private static final String MSG_LOG_ERROR_MANIPULATE_JSON =
             "An error occurred when manipulate json.";
     protected static final String MSG_LOG_THERE_IS_INSTANCE_ASSOCIATED =
