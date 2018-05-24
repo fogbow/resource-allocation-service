@@ -23,6 +23,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicStatusLine;
 import org.fogbowcloud.manager.core.manager.plugins.PluginHelper;
 import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.services.AuthenticationControllerUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -44,7 +45,21 @@ public class TestKeystoneV3Identity {
     public void setUp() throws Exception {
         Properties properties = new Properties();
         properties.put(IDENTITY_URL_KEY, KEYSTONE_URL);
+
+        String prefix = AuthenticationControllerUtil.LOCAL_TOKEN_CREDENTIALS_PREFIX;
+
+        String userIdKey = prefix + KeystoneV3IdentityPlugin.USER_ID;
+        String passwordKey = prefix + KeystoneV3IdentityPlugin.PASSWORD;
+        String projectIdKey = prefix + KeystoneV3IdentityPlugin.PROJECT_ID;
+        String authUrlKey = prefix + KeystoneV3IdentityPlugin.AUTH_URL;
+
+        properties.put(userIdKey, "fakeUserId");
+        properties.put(passwordKey, "fakePassword");
+        properties.put(projectIdKey, "fakeProjectId");
+        properties.put(authUrlKey, "fakeAuthUrl");
+
         client = Mockito.mock(HttpClient.class);
+
         this.keystoneV3Identity = Mockito.spy(new KeystoneV3IdentityPlugin(properties, client));
     }
 

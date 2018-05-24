@@ -49,7 +49,6 @@ public class ProcessorController {
         OpenProcessor openProcessor =
                 new OpenProcessor(
                         this.localInstanceProvider, this.remoteInstanceProvider, properties);
-        this.openProcessorThread = new Thread(openProcessor);
 
         TunnelingServiceUtil tunnelingServiceUtil = TunnelingServiceUtil.getInstance();
         SshConnectivityUtil sshConnectivityUtil = SshConnectivityUtil.getInstance();
@@ -62,6 +61,8 @@ public class ProcessorController {
                         sshConnectivityUtil,
                         localInstanceProvider,
                         this.properties);
+
+        this.openProcessorThread = new Thread(openProcessor);
         this.spawningProcessorThread = new Thread(spawningProcessor);
 
         this.startManagerThreads();

@@ -9,7 +9,7 @@ import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 // TODO change the name. Follow AAAController's name
 public class AuthenticationControllerUtil {
 
-    protected static String LOCAL_TOKEN_CREDENTIALS_PREFIX = "local_token_credentials_";
+    public static String LOCAL_TOKEN_CREDENTIALS_PREFIX = "local_token_credentials_";
 
     /**
      * Gets credentials with prefix in the properties (LOCAL_TOKEN_CREDENTIALS_PREFIX).

@@ -1,13 +1,19 @@
 package org.fogbowcloud.manager;
 
+import java.util.Map;
 import java.util.Properties;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.OrderController;
+import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
 import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
 import org.fogbowcloud.manager.core.manager.plugins.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.IdentityPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
+import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.models.Credential;
+import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.services.AAAController;
 import org.fogbowcloud.manager.core.services.InstantiationInitService;
 import org.springframework.boot.ApplicationArguments;
@@ -32,9 +38,13 @@ public class Main implements ApplicationRunner {
         this.properties = this.instantiationInitService.getProperties();
 
         ComputePlugin computePlugin = this.instantiationInitService.getComputePlugin();
+
         IdentityPlugin localIdentityPlugin = this.instantiationInitService.getLocalIdentityPlugin();
+
         IdentityPlugin federationIdentityPlugin =
                 this.instantiationInitService.getFederationIdentityPlugin();
+        federationIdentityPlugin = getAllowAllIdentityPlugin();
+
         AuthorizationPlugin authorizationPlugin =
                 this.instantiationInitService.getAuthorizationPlugin();
 
@@ -62,5 +72,46 @@ public class Main implements ApplicationRunner {
         this.facade.setOrderController(
                 new OrderController(
                         this.properties, localInstanceProvider, remoteInstanceProvider));
+    }
+
+    private IdentityPlugin getAllowAllIdentityPlugin() {
+        return new IdentityPlugin() {
+            @Override
+            public Token createToken(Map<String, String> userCredentials)
+                throws UnauthorizedException, TokenCreationException {
+                return null;
+            }
+
+            @Override
+            public Token reIssueToken(Token token) {
+                return null;
+            }
+
+            @Override
+            public Token getToken(String accessId)
+                throws UnauthenticatedException, UnauthorizedException {
+                return null;
+            }
+
+            @Override
+            public boolean isValid(String accessId) {
+                return true;
+            }
+
+            @Override
+            public Credential[] getCredentials() {
+                return new Credential[0];
+            }
+
+            @Override
+            public String getAuthenticationURI() {
+                return null;
+            }
+
+            @Override
+            public Token getForwardableToken(Token originalToken) {
+                return null;
+            }
+        };
     }
 }
