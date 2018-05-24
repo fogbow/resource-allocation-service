@@ -5,8 +5,10 @@ import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.manager.constants.Operation;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
+import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.services.AAAController;
 
@@ -103,4 +105,51 @@ public class ApplicationFacade {
     public void setOrderController(OrderController orderController) {
         this.orderController = orderController;
     }
+
+    public void createVolume(VolumeOrder volumeOrder, String federationTokenValue) throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
+        activateOrder(volumeOrder, federationTokenValue, OrderType.VOLUME);
+    }
+
+    public List<VolumeOrder> getAllVolumes(String federationTokenValue) throws UnauthorizedException, UnauthenticatedException {
+        List<VolumeOrder> volumeOrders = new ArrayList<VolumeOrder>();
+
+        // TODO is there a better way to do this?
+        List<Order> allOrders = getAllOrders(federationTokenValue, OrderType.VOLUME);
+        for (Order order : allOrders) {
+            volumeOrders.add((VolumeOrder) order);
+        }
+        return volumeOrders;
+    }
+
+    public VolumeOrder getVolume(String volumeId, String federationTokenValue) throws Exception {
+        return (VolumeOrder) getOrder(volumeId, federationTokenValue, OrderType.VOLUME);
+    }
+
+    public void deleteVolume(String volumeId, String federationTokenValue) throws Exception {
+        deleteOrder(volumeId, federationTokenValue, OrderType.VOLUME);        
+    }
+
+    public void createNetwork(NetworkOrder networkOrder, String federationTokenValue) throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
+        activateOrder(networkOrder, federationTokenValue, OrderType.NETWORK);        
+    }
+
+    public List<NetworkOrder> getAllNetworks(String federationTokenValue) throws UnauthorizedException, UnauthenticatedException {
+        List<NetworkOrder> networkOrders = new ArrayList<NetworkOrder>();
+
+        // TODO is there a better way to do this?
+        List<Order> allOrders = getAllOrders(federationTokenValue, OrderType.NETWORK);
+        for (Order order : allOrders) {
+            networkOrders.add((NetworkOrder) order);
+        }
+        return networkOrders;
+    }
+
+    public NetworkOrder getNetwork(String networkId, String federationTokenValue) throws Exception {
+        return (NetworkOrder) getOrder(networkId, federationTokenValue, OrderType.NETWORK);
+    }
+
+    public void deleteNetwork(String networkId, String federationTokenValue) throws Exception {
+        deleteOrder(networkId, federationTokenValue, OrderType.NETWORK);        
+    }
+    
 }

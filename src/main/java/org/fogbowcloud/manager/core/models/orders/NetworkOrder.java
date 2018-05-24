@@ -7,8 +7,12 @@ public class NetworkOrder extends Order {
 
     private String gateway;
     private String address;
-    private String allocation;
+    private NetworkAllocation allocation;
 
+    public NetworkOrder() {
+        super(UUID.randomUUID().toString());
+    }
+    
     /** Creating Order with predefined Id. */
     public NetworkOrder(
             String id,
@@ -17,7 +21,7 @@ public class NetworkOrder extends Order {
             String providingMember,
             String gateway,
             String address,
-            String allocation) {
+            NetworkAllocation allocation) {
         super(id, federationToken, requestingMember, providingMember);
         this.gateway = gateway;
         this.address = address;
@@ -30,7 +34,7 @@ public class NetworkOrder extends Order {
             String providingMember,
             String gateway,
             String address,
-            String allocation) {
+            NetworkAllocation allocation) {
         this(
                 UUID.randomUUID().toString(),
                 federationToken,
@@ -49,7 +53,7 @@ public class NetworkOrder extends Order {
         return address;
     }
 
-    public String getAllocation() {
+    public NetworkAllocation getAllocation() {
         return allocation;
     }
 

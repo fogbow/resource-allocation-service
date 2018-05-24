@@ -7,6 +7,10 @@ public class VolumeOrder extends Order {
 
     private int volumeSize;
 
+    public VolumeOrder() {
+        super(UUID.randomUUID().toString());
+    }
+
     /** Creating Order with predefined Id. */
     public VolumeOrder(
             String id,

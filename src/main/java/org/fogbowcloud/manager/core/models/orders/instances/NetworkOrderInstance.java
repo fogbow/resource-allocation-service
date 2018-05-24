@@ -1,11 +1,14 @@
 package org.fogbowcloud.manager.core.models.orders.instances;
 
+import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
+
 public class NetworkOrderInstance extends OrderInstance {
 
     private String label;
     private String address;
     private String gateway;
     private String vLAN;
+    private NetworkAllocation allocation;
     private String networkInterface;
     private String MACInterface;
     private InstanceState interfaceState;
@@ -17,6 +20,7 @@ public class NetworkOrderInstance extends OrderInstance {
             String address,
             String gateway,
             String vLAN,
+            NetworkAllocation networkAllocation,
             String networkInterface,
             String MACInterface,
             InstanceState interfaceState) {
@@ -25,6 +29,7 @@ public class NetworkOrderInstance extends OrderInstance {
         this.address = address;
         this.gateway = gateway;
         this.vLAN = vLAN;
+        this.allocation = networkAllocation;
         this.networkInterface = networkInterface;
         this.MACInterface = MACInterface;
         this.interfaceState = interfaceState;
@@ -60,6 +65,14 @@ public class NetworkOrderInstance extends OrderInstance {
 
     public void setvLAN(String vLAN) {
         this.vLAN = vLAN;
+    }
+
+    public NetworkAllocation getAllocation() {
+        return allocation;
+    }
+
+    public void setAllocation(NetworkAllocation allocation) {
+        this.allocation = allocation;
     }
 
     public String getNetworkInterface() {
