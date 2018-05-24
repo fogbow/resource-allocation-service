@@ -3,9 +3,7 @@ package org.fogbowcloud.manager.core.manager.plugins.network.openstack;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 import org.apache.http.HttpEntity;
@@ -203,25 +201,21 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
 
     @Override
     public void deleteInstance(Token token, String instanceId) throws RequestException {
-        String routerIdToRemove = null;
-        String networkIdToRemove = instanceId;
-
         // TODO: ensure that all the necessary token attributes are set.
         String tenantId = token.getAttributes().get(TENANT_ID);
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_PORTS + "?" + KEY_TENANT_ID
                 + "=" + tenantId;
         String responseStr = doGetRequest(endpoint, token.getAccessId());
 
+        String routerId = null;
+        List<String> subnets = new ArrayList<String>();
+        JSONObject rootServer = new JSONObject(responseStr);
         try {
-            List<String> subnets = new ArrayList<String>();
-            JSONObject rootServer = new JSONObject(responseStr);
             JSONArray routerPortsJSONArray = rootServer.optJSONArray(KEY_JSON_PORTS);
             for (int i = 0; i < routerPortsJSONArray.length(); i++) {
-
                 String networkId = routerPortsJSONArray.optJSONObject(i).optString(KEY_NETWORK_ID);
 
                 if (networkId.equals(instanceId)) {
-
                     String deviceOwner =
                             routerPortsJSONArray.optJSONObject(i).optString(KEY_DEVICE_OWNER);
 
@@ -231,9 +225,8 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
                                 MSG_LOG_THERE_IS_INSTANCE_ASSOCIATED + "( " + instanceId + " ).");
                     }
 
-                    if (NETWORK_ROUTER.equals(deviceOwner)) {
-                        routerIdToRemove =
-                                routerPortsJSONArray.optJSONObject(i).optString(KEY_DEVICE_ID);
+                    if (deviceOwner.equals(NETWORK_ROUTER)) {
+                        routerId = routerPortsJSONArray.optJSONObject(i).optString(KEY_DEVICE_ID);
                     }
 
                     if (!deviceOwner.equals(NETWORK_DHCP)) {
@@ -242,33 +235,33 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
                                         .optJSONObject(0).optString(KEY_JSON_SUBNET_ID);
                         subnets.add(subnetId);
                     }
-
                 }
             }
-
             for (String subnetId : subnets) {
                 JSONObject jsonRequest = generateJsonEntitySubnetId(subnetId);
-                if (routerIdToRemove != null) {
-                    endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_ROUTER + "/"
-                            + routerIdToRemove + "/" + SUFFIX_ENDPOINT_REMOVE_ROUTER_INTERFACE_ADD;
+                if (routerId != null) {
+                    endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_ROUTER + "/" + routerId
+                            + "/" + SUFFIX_ENDPOINT_REMOVE_ROUTER_INTERFACE_ADD;
                     doPutRequest(endpoint, token.getAccessId(), jsonRequest);
                 }
-
             }
         } catch (JSONException e) {
-            LOGGER.error(MSG_LOG_ERROR_MANIPULATE_JSON, e);
+            LOGGER.error(MSG_LOG_ERROR_MANIPULATE_JSON);
             throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         } catch (NullPointerException e) {
-            LOGGER.error(MSG_LOG_ERROR_MANIPULATE_JSON, e);
+            LOGGER.error(MSG_LOG_ERROR_MANIPULATE_JSON);
             throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
-        } catch (RequestException e) {
-            LOGGER.error("An error occurred when removing router interface.", e);
-            throw e;
         }
-        if (routerIdToRemove != null) {
-            removeRouter(token, routerIdToRemove, false);
+
+
+        if (routerId != null) {
+            removeRouter(token, routerId);
         }
-        removeNetwork(token, networkIdToRemove, true);
+        if (!removeNetwork(token, instanceId)) {
+            String messageTemplate = "Was not possible delete network with id %s";
+            LOGGER.error(String.format(messageTemplate, instanceId));
+            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+        }
     }
 
     protected NetworkOrderInstance getInstanceFromJson(String json, Token token) {
@@ -311,12 +304,16 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
                 address = subnetJSONObject.optString(KEY_CIDR);
             }
         } catch (Exception e) {
-            String messageTemplate =
-                    "Was not possible to get subnet informations of subnet id %s";
+            String messageTemplate = "Was not possible to get subnet informations of subnet id %s";
             LOGGER.warn(String.format(messageTemplate, subnetId), e);
         }
-        NetworkOrderInstance instance = new NetworkOrderInstance(networkId, label, instanceState,
-                address, gateway, vlan, allocation, null, null, null);
+
+        NetworkOrderInstance instance = null;
+        if (networkId != null) {
+            instance = new NetworkOrderInstance(networkId, label, instanceState, address, gateway,
+                    vlan, allocation, null, null, null);
+        }
+
         return instance;
     }
 
@@ -458,29 +455,35 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
 
         return subnet;
     }
-    
-    protected void removeNetwork(Token token, String networkId) {
+
+    protected boolean removeNetwork(Token token, String networkId) {
+        boolean deleted = false;
         String messageTemplate = "Removing network %s";
         LOGGER.debug(String.format(messageTemplate, networkId));
         try {
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK + "/" + networkId;
             doDeleteRequest(endpoint, token.getAccessId());
+            deleted = true;
         } catch (RequestException e) {
             messageTemplate = "Was not possible remove network %s";
             LOGGER.error(String.format(messageTemplate, networkId), e);
         }
+        return deleted;
     }
 
-    protected void removeRouter(Token token, String routerId) {
+    protected boolean removeRouter(Token token, String routerId) {
+        boolean deleted = false;
         String messageTemplate = "Removing router %s";
         LOGGER.debug(String.format(messageTemplate, routerId));
         try {
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_ROUTER + "/" + routerId;
             doDeleteRequest(endpoint, token.getAccessId());
+            deleted = true;
         } catch (RequestException e) {
             messageTemplate = "Was not possible remove router %s";
             LOGGER.error(String.format(messageTemplate, routerId), e);
         }
+        return deleted;
     }
 
     protected String doPostRequest(String endpoint, String authToken, JSONObject data)
