@@ -25,11 +25,10 @@ import org.fogbowcloud.manager.utils.HttpRequestUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-// TODO implement tests
-// TODO review all Exceptions
 public class OpenStackV2VolumePlugin implements VolumePlugin {
-
-	private static final String COULD_NOT_CONSUME_ENTITY = "Could not consume entity";
+	
+	private final String COULD_NOT_CONSUME_ENTITY_ERROR = "Could not consume entity";
+	private final String TENANT_ID_IS_NOT_SPECIFIED_ERROR = "Tenant id is not specified.";
 	
 	protected static final String KEY_JSON_INSTANCE_UUID = "instance_uuid";
 	protected static final String KEY_JSON_MOUNTPOINT = "mountpoint";
@@ -41,6 +40,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	protected static final String KEY_JSON_ID = "id";
 
 	private static final String VALUE_AVAILABLE_STATUS = "available";
+	private static final String VALUE_FAILED_STATUS = "";
 
 	// TODO put in the properties examples
 	public static final String VOLUME_NOVAV2_URL_KEY = "volume_v2_url";
@@ -62,9 +62,8 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	public String requestInstance(Token localToken, StorageOrderInstance storageOrderInstance) throws RequestException {
 		String tenantId = localToken.getAttributes().get(OpenStackConstants.TENANT_ID);
 		if (tenantId == null) {
-			String msg = "It was not possible to request new instance. Tenant id is not specified.";
-			LOGGER.error(msg);
-			throw new RequestException(ErrorType.BAD_REQUEST, "");
+			LOGGER.error(this.TENANT_ID_IS_NOT_SPECIFIED_ERROR);
+			throw new RequestException(ErrorType.BAD_REQUEST, this.TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 		}
 		String size = String.valueOf(storageOrderInstance.getSize());
 
@@ -72,9 +71,9 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 		try {
 			jsonRequest = generateJsonEntityToCreateInstance(size);
 		} catch (JSONException e) {
-			LOGGER.error("An error occurred when generating json.", e);
-			// TODO check this exception. Put a message
-			throw new RequestException(ErrorType.BAD_REQUEST, "");
+			String errorMsg = "An error occurred when generating json.";
+			LOGGER.error(errorMsg, e);
+			throw new RequestException(ErrorType.BAD_REQUEST, errorMsg);
 		}
 
 		String endpoint = this.volumeV2APIEndpoint + tenantId + SUFIX_ENDPOINT_VOLUMES;
@@ -87,8 +86,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	public StorageOrderInstance getInstance(Token localToken, String storageOrderInstanceId) throws RequestException {
 		String tenantId = localToken.getAttributes().get(OpenStackConstants.TENANT_ID);
 		if (tenantId == null) {
-			// TODO check this exception. Put a message
-			throw new RequestException(ErrorType.BAD_REQUEST, "");
+			throw new RequestException(ErrorType.BAD_REQUEST, this.TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 		}		
 		
 		String endpoint = this.volumeV2APIEndpoint + tenantId 
@@ -101,8 +99,8 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	public void removeInstance(Token localToken, String storageOrderInstanceId) throws RequestException {
 		String tenantId = localToken.getAttributes().get(OpenStackConstants.TENANT_ID);
 		if (tenantId == null) {
-			// TODO check this exception. Put a message			
-			throw new RequestException(ErrorType.BAD_REQUEST, "");
+			LOGGER.error(this.TENANT_ID_IS_NOT_SPECIFIED_ERROR);
+			throw new RequestException(ErrorType.BAD_REQUEST, this.TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 		}		
 		
 		String endpoint = this.volumeV2APIEndpoint + tenantId 
@@ -133,7 +131,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 			try {
 				EntityUtils.consume(response.getEntity());
 			} catch (Throwable t) {
-				LOGGER.warn(COULD_NOT_CONSUME_ENTITY, t);
+				LOGGER.warn(COULD_NOT_CONSUME_ENTITY_ERROR, t);
 			}
 		}
 		checkStatusResponse(response, responseStr);
@@ -162,13 +160,14 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 			try {
 				EntityUtils.consume(response.getEntity());
 			} catch (Throwable t) {
-				LOGGER.warn(COULD_NOT_CONSUME_ENTITY, t);
+				LOGGER.warn(COULD_NOT_CONSUME_ENTITY_ERROR, t);
 			}
 		}
 		checkStatusResponse(response, responseStr);
 		return responseStr;
 	}
 	
+	// TODO change to a common class. KeystoneV3IdentityPlugin and OpenStackV2VolumePlugin class have the same method	
 	protected void doDeleteRequest(String endpoint, String authToken) throws RequestException {
 		HttpResponse response = null;
 		try {
@@ -183,7 +182,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 			try {
 				EntityUtils.consume(response.getEntity());
 			} catch (Throwable t) {
-				LOGGER.warn(COULD_NOT_CONSUME_ENTITY, t);
+				LOGGER.warn(COULD_NOT_CONSUME_ENTITY_ERROR, t);
 			}
 		}
 		String emptyMessage = "";
@@ -191,7 +190,6 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	}	
 	
 	// TODO change to a common class. KeystoneV3IdentityPlugin and OpenStackV2VolumePlugin class have the same method
-	// TODO check this method. Why is necessary ?
 	private void checkStatusResponse(HttpResponse response, String message) throws RequestException {
 		if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
 			throw new RequestException(ErrorType.UNAUTHORIZED, "");
@@ -226,17 +224,20 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 			return new StorageOrderInstance(id, name, status, size);
 		} catch (Exception e) {
-			LOGGER.error("There was an exception while getting instance storage.", e);
-			throw new RequestException(ErrorType.BAD_REQUEST, "");
+			String errorMsg = "There was an exception while getting instance storage.";
+			LOGGER.error(errorMsg, e);
+			throw new RequestException(ErrorType.BAD_REQUEST, errorMsg);
 		}
 	}
 	
 	// TODO check openstack documentation. https://developer.openstack.org/api-ref/block-storage/v2/
-	// TODO check what are the InstanceStates to Volume. 
 	protected InstanceState getInstanceState(String statusOpenstack) {
         switch (statusOpenstack.toLowerCase()) {
 	        case VALUE_AVAILABLE_STATUS:
 	            return InstanceState.ACTIVE;
+	        // TODO check if exists a failed status
+	        case VALUE_FAILED_STATUS:
+	        	return InstanceState.FAILED;
 	        default:
 	            return InstanceState.INACTIVE;            
         }

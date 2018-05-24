@@ -14,6 +14,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.apache.http.client.HttpClient;
 import org.apache.http.impl.DefaultHttpResponseFactory;
@@ -96,8 +97,8 @@ public class OpenStackV2VolumePluginTest {
     @Test
     public void testGenerateJsonEntityToCreateInstance() {
         JSONObject jsonEntity = this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE);
-        Assert.assertEquals(FAKE_SIZE, jsonEntity.getJSONObject(this.openStackV2VolumePlugin.KEY_JSON_VOLUME)
-                .getString(this.openStackV2VolumePlugin.KEY_JSON_SIZE));
+        Assert.assertEquals(FAKE_SIZE, jsonEntity.getJSONObject(OpenStackV2VolumePlugin.KEY_JSON_VOLUME)
+                .getString(OpenStackV2VolumePlugin.KEY_JSON_SIZE));
     }
 
     @Test
@@ -155,6 +156,7 @@ public class OpenStackV2VolumePluginTest {
         this.openStackV2VolumePlugin.removeInstance(tokenDefault, FAKE_INSTANCE_ID);
     }
 
+    @Ignore
     @Test
     public void getInstanceState() {
         // TODO
@@ -174,10 +176,6 @@ public class OpenStackV2VolumePluginTest {
         private HttpUriRequest request;
         private String entityStrCompare;
         private boolean doNotCheck;
-
-        public HttpUriRequestMatcher() {
-            this.doNotCheck = true;
-        }
 
         public HttpUriRequestMatcher(Object request, String entityStrCompare) {
             this.request = (HttpUriRequest) request;
