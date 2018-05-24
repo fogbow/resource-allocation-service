@@ -536,7 +536,7 @@ public class OpenStackV2NetworkPluginTest {
                 httpResponsePutInterface);
 
         NetworkOrder order = createEmptyOrder();
-        this.openStackV2NetworkPlugin.requestInstance(this.defaultToken, order);
+        this.openStackV2NetworkPlugin.requestInstance(order, this.defaultToken);
 
         Mockito.verify(this.client, Mockito.times(4)).execute(Mockito.any(HttpUriRequest.class));
     }
@@ -549,7 +549,7 @@ public class OpenStackV2NetworkPluginTest {
 
 
         NetworkOrder order = createEmptyOrder();
-        this.openStackV2NetworkPlugin.requestInstance(this.defaultToken, order);
+        this.openStackV2NetworkPlugin.requestInstance(order, this.defaultToken);
 
         Mockito.verify(this.client, Mockito.times(1)).execute(Mockito.any(HttpUriRequest.class));
     }
@@ -564,7 +564,7 @@ public class OpenStackV2NetworkPluginTest {
 
         NetworkOrder order = createEmptyOrder();
         try {
-            this.openStackV2NetworkPlugin.requestInstance(this.defaultToken, order);
+            this.openStackV2NetworkPlugin.requestInstance(order, this.defaultToken);
             Assert.fail();
         } catch (Exception e) {
         }
@@ -585,7 +585,7 @@ public class OpenStackV2NetworkPluginTest {
 
 
         NetworkOrder order = createEmptyOrder();
-        this.openStackV2NetworkPlugin.requestInstance(this.defaultToken, order);
+        this.openStackV2NetworkPlugin.requestInstance(order, this.defaultToken);
 
         Mockito.verify(this.client, Mockito.times(5)).execute(Mockito.any(HttpUriRequest.class));
     }
@@ -604,7 +604,7 @@ public class OpenStackV2NetworkPluginTest {
 
         NetworkOrder order = createEmptyOrder();
         try {
-            this.openStackV2NetworkPlugin.requestInstance(this.defaultToken, order);
+            this.openStackV2NetworkPlugin.requestInstance(order, this.defaultToken);
             Assert.fail();
         } catch (Exception e) {
         }

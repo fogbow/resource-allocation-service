@@ -10,6 +10,7 @@ import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
 import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -1293,7 +1294,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     
 	private NetworkOrder createNetworkOrder() {
 	    Token federationToken = createToken();
-        NetworkOrder order = new NetworkOrder(federationToken, "fake-member-id", "fake-member-id", "fake-gateway", "fake-address", "fake-allocation");
+        NetworkOrder order = new NetworkOrder(federationToken, "fake-member-id", "fake-member-id", "fake-gateway", "fake-address", NetworkAllocation.STATIC);
         return order;
     }
 	   

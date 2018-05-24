@@ -7,7 +7,7 @@ import org.fogbowcloud.manager.core.models.token.Token;
 
 public interface NetworkPlugin {
 
-	public String requestInstance(Token localToken, NetworkOrder order) throws RequestException;
+	public String requestInstance(NetworkOrder order, Token localToken) throws RequestException;
 
 	public NetworkOrderInstance getInstance(Token token, String instanceId) throws RequestException;
 

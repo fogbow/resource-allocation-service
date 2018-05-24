@@ -111,7 +111,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     }
 
     @Override
-    public String requestInstance(Token localToken, NetworkOrder order) throws RequestException {
+    public String requestInstance(NetworkOrder order, Token localToken) throws RequestException {
         JSONObject jsonRequest = null;
         String tenantId = localToken.getAttributes().get(TENANT_ID);
 
