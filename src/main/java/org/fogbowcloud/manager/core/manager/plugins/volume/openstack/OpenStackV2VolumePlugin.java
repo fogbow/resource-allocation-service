@@ -18,6 +18,7 @@ import org.fogbowcloud.manager.core.manager.plugins.volume.VolumePlugin;
 import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
 import org.fogbowcloud.manager.core.models.ResponseConstants;
+import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.orders.instances.VolumeOrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
@@ -76,13 +77,13 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	}
 	
 	@Override
-	public String requestInstance(Token localToken, VolumeOrderInstance storageOrderInstance) throws RequestException {
+	public String requestInstance(VolumeOrder order, Token localToken) throws RequestException {
 		String tenantId = localToken.getAttributes().get(OpenStackConstants.TENANT_ID);
 		if (tenantId == null) {
 			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 			throw new RequestException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 		}
-		String size = String.valueOf(storageOrderInstance.getSize());
+		String size = String.valueOf(order.getVolumeSize());
 
 		JSONObject jsonRequest = null;
 		try {

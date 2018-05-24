@@ -7,6 +7,7 @@ import org.apache.http.util.EntityUtils;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.manager.constants.OpenStackConstants;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
+import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.orders.instances.VolumeOrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
@@ -74,10 +75,9 @@ public class OpenStackV2VolumePluginTest {
         String name = "fake-name";
         InstanceState state = InstanceState.ACTIVE;
         int size = 2;
-        VolumeOrderInstance storageOrderInstance = new VolumeOrderInstance(id, name, state, size);
-
+        VolumeOrder order = new VolumeOrder(id, null, "", "", size);
         try {
-            this.openStackV2VolumePlugin.requestInstance(this.tokenDefault, storageOrderInstance);
+            this.openStackV2VolumePlugin.requestInstance(order, this.tokenDefault);
         } catch (Exception e) {
 
         }
@@ -88,8 +88,7 @@ public class OpenStackV2VolumePluginTest {
     @Test(expected=RequestException.class)
     public void testRequestInstanceWithoutTenantId() throws RequestException {
         this.tokenDefault.getAttributes().clear();
-        VolumeOrderInstance storageOrderInstance = null;
-        this.openStackV2VolumePlugin.requestInstance(this.tokenDefault, storageOrderInstance);
+        this.openStackV2VolumePlugin.requestInstance(null, this.tokenDefault);
     }
 
     @Test

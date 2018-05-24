@@ -9,6 +9,7 @@ import org.fogbowcloud.manager.core.manager.plugins.network.NetworkPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.volume.VolumePlugin;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.NetworkOrderInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
@@ -50,7 +51,9 @@ public class LocalInstanceProvider implements InstanceProvider {
                 break;
 
             case VOLUME:
-                requestInstance = this.volumePlugin.requestInstance(localToken);
+                VolumeOrder volumeOrder = (VolumeOrder) order;
+
+                requestInstance = this.volumePlugin.requestInstance(volumeOrder, localToken);
                 break;
         }
         if (requestInstance == null) {
