@@ -19,6 +19,8 @@ import org.apache.http.message.BasicStatusLine;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.manager.constants.OpenStackConfigurationConstants;
 import org.fogbowcloud.manager.core.models.ResponseConstants;
+import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
+import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.instances.NetworkOrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.json.JSONArray;
@@ -73,7 +75,7 @@ public class OpenStackV2NetworkPluginTest {
     @Test
     public void testGenerateJsonEntityToCreateRouter() throws JSONException {
         JSONObject generateJsonEntityToCreateRouter =
-                openStackV2NetworkPlugin.generateJsonEntityToCreateRouter();
+                this.openStackV2NetworkPlugin.generateJsonEntityToCreateRouter();
 
         JSONObject routerJsonObject = generateJsonEntityToCreateRouter
                 .optJSONObject(OpenStackV2NetworkPlugin.KEY_JSON_ROUTER);
@@ -87,7 +89,7 @@ public class OpenStackV2NetworkPluginTest {
     @Test
     public void testGenerateJsonEntityToCreateNetwork() throws JSONException {
         JSONObject generateJsonEntityToCreateNetwork =
-                openStackV2NetworkPlugin.generateJsonEntityToCreateNetwork(DEFAULT_TENANT_ID);
+                this.openStackV2NetworkPlugin.generateJsonEntityToCreateNetwork(DEFAULT_TENANT_ID);
 
         JSONObject networkJsonObject = generateJsonEntityToCreateNetwork
                 .optJSONObject(OpenStackV2NetworkPlugin.KEY_JSON_NETWORK);
@@ -103,10 +105,10 @@ public class OpenStackV2NetworkPluginTest {
         String dnsOne = "one";
         String dnsTwo = "Two";
         properties.put(OpenStackV2NetworkPlugin.KEY_DNS_NAMESERVERS, dnsOne + "," + dnsTwo);
-        openStackV2NetworkPlugin = new OpenStackV2NetworkPlugin(properties);
-        Assert.assertEquals(2, openStackV2NetworkPlugin.getDnsList().length);
-        Assert.assertEquals(dnsOne, openStackV2NetworkPlugin.getDnsList()[0]);
-        Assert.assertEquals(dnsTwo, openStackV2NetworkPlugin.getDnsList()[1]);
+        this.openStackV2NetworkPlugin = new OpenStackV2NetworkPlugin(properties);
+        Assert.assertEquals(2, this.openStackV2NetworkPlugin.getDnsList().length);
+        Assert.assertEquals(dnsOne, this.openStackV2NetworkPlugin.getDnsList()[0]);
+        Assert.assertEquals(dnsTwo, this.openStackV2NetworkPlugin.getDnsList()[1]);
     }
 
     @Test
@@ -115,18 +117,16 @@ public class OpenStackV2NetworkPluginTest {
         String dnsOne = "one";
         String dnsTwo = "Two";
         properties.put(OpenStackV2NetworkPlugin.KEY_DNS_NAMESERVERS, dnsOne + "," + dnsTwo);
-        openStackV2NetworkPlugin = new OpenStackV2NetworkPlugin(properties);
+        this.openStackV2NetworkPlugin = new OpenStackV2NetworkPlugin(properties);
 
         String networkId = "networkId";
         String address = "10.10.10.10/24";
         String gateway = "10.10.10.11";
-        Map<String, String> xOCCIAtt = new HashMap<String, String>();
-        xOCCIAtt.put(OCCIConstants.NETWORK_ADDRESS, address);
-        xOCCIAtt.put(OCCIConstants.NETWORK_GATEWAY, gateway);
-        xOCCIAtt.put(OCCIConstants.NETWORK_ALLOCATION,
-                OCCIConstants.NetworkAllocation.DYNAMIC.getValue());
-        JSONObject generateJsonEntityToCreateSubnet = openStackV2NetworkPlugin
-                .generateJsonEntityToCreateSubnet(networkId, DEFAULT_TENANT_ID, xOCCIAtt);
+        NetworkOrder order =
+                createNetworkOrder(networkId, address, gateway, NetworkAllocation.DYNAMIC);
+
+        JSONObject generateJsonEntityToCreateSubnet = this.openStackV2NetworkPlugin
+                .generateJsonEntityToCreateSubnet(order.getId(), DEFAULT_TENANT_ID, order);
 
         JSONObject subnetJsonObject = generateJsonEntityToCreateSubnet
                 .optJSONObject(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET);
@@ -134,10 +134,11 @@ public class OpenStackV2NetworkPluginTest {
                 subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_TENANT_ID));
         Assert.assertTrue(subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_NAME)
                 .contains(OpenStackV2NetworkPlugin.DEFAULT_SUBNET_NAME));
-        Assert.assertEquals(networkId,
+        Assert.assertEquals(order.getId(),
                 subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_NETWORK_ID));
-        Assert.assertEquals(address, subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_CIDR));
-        Assert.assertEquals(gateway,
+        Assert.assertEquals(order.getAddress(),
+                subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_CIDR));
+        Assert.assertEquals(order.getGateway(),
                 subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_GATEWAY_IP));
         Assert.assertEquals(true,
                 subnetJsonObject.optBoolean(OpenStackV2NetworkPlugin.KEY_ENABLE_DHCP));
@@ -158,7 +159,7 @@ public class OpenStackV2NetworkPluginTest {
         JSONObject subnetJsonObject = generateJsonEntityToCreateSubnet
                 .optJSONObject(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET);
         Assert.assertEquals(OpenStackV2NetworkPlugin.DEFAULT_NETWORK_ADDRESS,
-                subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_CIRD));
+                subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_CIDR));
     }
 
     @Test
@@ -602,6 +603,15 @@ public class OpenStackV2NetworkPluginTest {
         }
 
         Mockito.verify(client, Mockito.times(6)).execute(Mockito.any(HttpUriRequest.class));
+    }
+
+    private NetworkOrder createNetworkOrder(String networkId, String address, String gateway,
+            NetworkAllocation allocation) {
+        String requestingMember = "fake-requesting-member";
+        String providingMember = "fake-providing-member";
+        NetworkOrder order = new NetworkOrder(networkId, Mockito.mock(Token.class),
+                requestingMember, providingMember, gateway, address, NetworkAllocation.DYNAMIC);
+        return order;
     }
 
     private HttpResponse createHttpResponse(String content, int httpStatus) throws IOException {
