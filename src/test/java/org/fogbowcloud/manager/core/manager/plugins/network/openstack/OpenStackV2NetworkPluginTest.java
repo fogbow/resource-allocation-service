@@ -18,6 +18,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.message.BasicStatusLine;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.manager.constants.OpenStackConfigurationConstants;
+import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.ResponseConstants;
 import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
@@ -64,13 +65,6 @@ public class OpenStackV2NetworkPluginTest {
     @After
     public void validate() {
         Mockito.validateMockitoUsage();
-    }
-
-    @Test(expected = RequestException.class)
-    public void testRequestInstanceWithoutTenantId() throws RequestException {
-        Token token = new Token("accessId", new Token.User("user", "user"), new Date(),
-                new HashMap<String, String>());
-        openStackV2NetworkPlugin.requestInstance(token, null);
     }
 
     @Test
@@ -262,7 +256,7 @@ public class OpenStackV2NetworkPluginTest {
         networkContentJsonObject.put(OpenStackV2NetworkPlugin.KEY_ID, networkId);
         networkContentJsonObject.put(OpenStackV2NetworkPlugin.KEY_PROVIDER_SEGMENTATION_ID, vlan);
         networkContentJsonObject.put(OpenStackV2NetworkPlugin.KEY_STATUS,
-                OpenStackV2NetworkPlugin.STATUS_OPENSTACK_ACTIVE);
+                OpenStackNetworkInstanceStateMapper.ACTIVE_STATUS);
         networkContentJsonObject.put(OpenStackV2NetworkPlugin.KEY_NAME, networkName);
         JSONArray subnetJsonArray = new JSONArray(Arrays.asList(new String[] {subnetId}));
         networkContentJsonObject.put(OpenStackV2NetworkPlugin.KEY_SUBNETS, subnetJsonArray);
@@ -299,13 +293,6 @@ public class OpenStackV2NetworkPluginTest {
         Assert.assertEquals(NetworkAllocation.DYNAMIC, instance.getAllocation());
     }
 
-    @Test(expected = RequestException.class)
-    public void testRemoveWithoutTenantId() throws RequestException {
-        Token token = new Token("accessId", new Token.User("user", "user"), new Date(),
-                new HashMap<String, String>());
-        this.openStackV2NetworkPlugin.deleteInstance(token, "instanceId");
-    }
-
     @Test
     public void testRemoveInstance() throws IOException, JSONException, RequestException {
         JSONObject portOneJsonObject = new JSONObject();
@@ -313,10 +300,14 @@ public class OpenStackV2NetworkPluginTest {
         portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_NETWORK_ID, networkId);
         portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_OWNER,
                 NETWORK_HA_ROUTER_REPLICATED_INTERFACE);
-        portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_ID, "routerId");
+
+        String routerId = "routerId";
+        portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_ID, routerId);
         JSONArray subnetsjsonArray = new JSONArray();
         JSONObject subnetObject = new JSONObject();
-        subnetObject.put(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET_ID, "subnetId");
+
+        String subnetId = "subnetId";
+        subnetObject.put(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET_ID, subnetId);
         subnetsjsonArray.put(0, subnetObject);
         portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_FIXES_IPS, subnetsjsonArray);
 
@@ -331,13 +322,13 @@ public class OpenStackV2NetworkPluginTest {
         HttpResponse httpResponsePutRemoveInterface = createHttpResponse("", HttpStatus.SC_OK);
         HttpResponse httpResponseDeleteRouter = createHttpResponse("", HttpStatus.SC_OK);
         HttpResponse httpResponseDeleteNetwork = createHttpResponse("", HttpStatus.SC_OK);
-        Mockito.when(client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(
+        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(
                 httpResponseGetPorts, httpResponsePutRemoveInterface, httpResponseDeleteRouter,
                 httpResponseDeleteNetwork);
 
-        openStackV2NetworkPlugin.deleteInstance(defaultToken, networkId);
+        this.openStackV2NetworkPlugin.deleteInstance(this.defaultToken, networkId);
 
-        Mockito.verify(client, Mockito.times(4)).execute(Mockito.any(HttpUriRequest.class));
+        Mockito.verify(this.client, Mockito.times(4)).execute(Mockito.any(HttpUriRequest.class));
     }
 
     @Test
@@ -347,7 +338,9 @@ public class OpenStackV2NetworkPluginTest {
         portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_NETWORK_ID, networkId);
         portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_OWNER,
                 NETWORK_HA_ROUTER_REPLICATED_INTERFACE);
-        portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_ID, "routerId");
+
+        String routerId = "routerId";
+        portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_ID, routerId);
 
         JSONArray portsArrayJsonObject = new JSONArray();
         portsArrayJsonObject.put(0, portOneJsonObject);
@@ -364,8 +357,9 @@ public class OpenStackV2NetworkPluginTest {
             this.openStackV2NetworkPlugin.deleteInstance(this.defaultToken, networkId);
             Assert.fail();
         } catch (RequestException e) {
-            Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, e.getMessage());
-            Assert.assertEquals(ResponseConstants.IRREGULAR_SYNTAX, e.getMessage());
+            String errorMessage = e.getMessage();
+            Assert.assertTrue(errorMessage.contains(ErrorType.BAD_REQUEST.toString()));
+            Assert.assertTrue(errorMessage.contains(ResponseConstants.IRREGULAR_SYNTAX.toString()));
         } catch (Exception e) {
             Assert.fail();
         }
@@ -381,10 +375,14 @@ public class OpenStackV2NetworkPluginTest {
         portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_NETWORK_ID, networkId);
         portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_OWNER,
                 NETWORK_HA_ROUTER_REPLICATED_INTERFACE);
-        portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_ID, "routerId");
+
+        String routerId = "routerId";
+        portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_ID, routerId);
+
         JSONArray subnetsjsonArray = new JSONArray();
         JSONObject subnetObject = new JSONObject();
-        subnetObject.put(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET_ID, "subnetId");
+        String subnetId = "subnetId";
+        subnetObject.put(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET_ID, subnetId);
         subnetsjsonArray.put(0, subnetObject);
         portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_FIXES_IPS, subnetsjsonArray);
 
@@ -398,19 +396,20 @@ public class OpenStackV2NetworkPluginTest {
                 createHttpResponse(portsJsonObject.toString(), HttpStatus.SC_OK);
         HttpResponse httpResponseDeleteRouter = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
         HttpResponse httpResponseDeleteNetwork = createHttpResponse("", HttpStatus.SC_OK);
-        Mockito.when(client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(
+        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(
                 httpResponseGetPorts, httpResponseDeleteRouter, httpResponseDeleteNetwork);
 
         try {
-            openStackV2NetworkPlugin.deleteInstance(defaultToken, networkId);
+            this.openStackV2NetworkPlugin.deleteInstance(this.defaultToken, networkId);
             Assert.fail();
         } catch (RequestException e) {
-            Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, e.getMessage());
+            String errorMessage = e.getMessage();
+            Assert.assertTrue(errorMessage.contains(ErrorType.BAD_REQUEST.toString()));
         } catch (Exception e) {
             Assert.fail();
         }
 
-        Mockito.verify(client, Mockito.times(2)).execute(Mockito.any(HttpUriRequest.class));
+        Mockito.verify(this.client, Mockito.times(2)).execute(Mockito.any(HttpUriRequest.class));
     }
 
     @Test
@@ -421,10 +420,14 @@ public class OpenStackV2NetworkPluginTest {
         portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_NETWORK_ID, networkId);
         portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_OWNER,
                 NETWORK_HA_ROUTER_REPLICATED_INTERFACE);
-        portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_ID, "routerId");
+        
+        String routerId = "routerId";
+        portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_ID, routerId);
+        
         JSONArray subnetsjsonArray = new JSONArray();
         JSONObject subnetObject = new JSONObject();
-        subnetObject.put(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET_ID, "subnetId");
+        String subnetId = "subnetId";
+        subnetObject.put(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET_ID, subnetId);
         subnetsjsonArray.put(0, subnetObject);
         portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_FIXES_IPS, subnetsjsonArray);
 
@@ -438,14 +441,15 @@ public class OpenStackV2NetworkPluginTest {
                 createHttpResponse(portsJsonObject.toString(), HttpStatus.SC_OK);
         HttpResponse httpResponseDeleteRouter = createHttpResponse("", HttpStatus.SC_OK);
         HttpResponse httpResponseDeleteNetwork = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
-        Mockito.when(client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(
+        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(
                 httpResponseGetPorts, httpResponseDeleteRouter, httpResponseDeleteNetwork);
 
         try {
-            openStackV2NetworkPlugin.deleteInstance(defaultToken, networkId);
+            this.openStackV2NetworkPlugin.deleteInstance(this.defaultToken, networkId);
             Assert.fail();
         } catch (RequestException e) {
-            Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, e.getMessage());
+            String errorMessage = e.getMessage();
+            Assert.assertTrue(errorMessage.contains(ErrorType.BAD_REQUEST.toString()));
         } catch (Exception e) {
             Assert.fail();
         }
@@ -458,7 +462,6 @@ public class OpenStackV2NetworkPluginTest {
             throws JSONException, IOException, RequestException {
         String networkId = "networkId";
         String routerId = "routerId";
-        String EMPTY = "";
 
         // generate ports json response
         JSONObject portOneJsonObject = new JSONObject();
@@ -466,9 +469,11 @@ public class OpenStackV2NetworkPluginTest {
         portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_OWNER,
                 NETWORK_HA_ROUTER_REPLICATED_INTERFACE);
         portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_ID, routerId);
+        
         JSONArray subnetsjsonArray = new JSONArray();
         JSONObject subnetObject = new JSONObject();
-        subnetObject.put(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET_ID, "subnetId");
+        String subnetId = "subnetId";
+        subnetObject.put(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET_ID, subnetId);
         subnetsjsonArray.put(0, subnetObject);
         portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_FIXES_IPS, subnetsjsonArray);
 
@@ -482,7 +487,7 @@ public class OpenStackV2NetworkPluginTest {
         HttpResponse httpResponseGetPorts =
                 createHttpResponse(portsJsonObject.toString(), HttpStatus.SC_OK);
         HttpResponse httpResponseDeleteRouter =
-                createHttpResponse(EMPTY, HttpStatus.SC_BAD_REQUEST);
+                createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
         Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class)))
                 .thenReturn(httpResponseGetPorts, httpResponseDeleteRouter);
 
@@ -490,7 +495,8 @@ public class OpenStackV2NetworkPluginTest {
             this.openStackV2NetworkPlugin.deleteInstance(this.defaultToken, networkId);
             Assert.fail();
         } catch (RequestException e) {
-            Assert.assertEquals(HttpStatus.SC_BAD_REQUEST, e.getMessage());
+            String errorMessage = e.getMessage();
+            Assert.assertTrue(errorMessage.contains(ErrorType.BAD_REQUEST.toString()));
         } catch (Exception e) {
             Assert.fail();
         }
@@ -503,9 +509,9 @@ public class OpenStackV2NetworkPluginTest {
         // mock
         Mockito.reset(this.client);
         httpResponseGetPorts = createHttpResponse(portsJsonObject.toString(), HttpStatus.SC_OK);
-        HttpResponse httpResponseDeleteNetwork = createHttpResponse(EMPTY, HttpStatus.SC_OK);
-        httpResponseDeleteRouter = createHttpResponse(EMPTY, HttpStatus.SC_OK);
-        HttpResponse httpResponsePutRequest = createHttpResponse(EMPTY, HttpStatus.SC_OK);
+        HttpResponse httpResponseDeleteNetwork = createHttpResponse("", HttpStatus.SC_OK);
+        httpResponseDeleteRouter = createHttpResponse("", HttpStatus.SC_OK);
+        HttpResponse httpResponsePutRequest = createHttpResponse("", HttpStatus.SC_OK);
         Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(
                 httpResponseGetPorts, httpResponsePutRequest, httpResponseDeleteRouter,
                 httpResponseDeleteNetwork);
@@ -525,27 +531,27 @@ public class OpenStackV2NetworkPluginTest {
         HttpResponse httpResponsePostNetwork = createHttpResponse("", HttpStatus.SC_OK);
         HttpResponse httpResponsePostSubnet = createHttpResponse("", HttpStatus.SC_OK);
         HttpResponse httpResponsePutInterface = createHttpResponse("", HttpStatus.SC_OK);
-        Mockito.when(client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(
+        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(
                 httpResponsePostRouter, httpResponsePostNetwork, httpResponsePostSubnet,
                 httpResponsePutInterface);
 
-        Map<String, String> xOCCIAtt = new HashMap<String, String>();
-        openStackV2NetworkPlugin.deleteInstance(defaultToken, null);
+        NetworkOrder order = createEmptyOrder();
+        this.openStackV2NetworkPlugin.requestInstance(this.defaultToken, order);
 
-        Mockito.verify(client, Mockito.times(4)).execute(Mockito.any(HttpUriRequest.class));
+        Mockito.verify(this.client, Mockito.times(4)).execute(Mockito.any(HttpUriRequest.class));
     }
 
     @Test(expected = RequestException.class)
     public void testRequestInstancePostRouterError() throws IOException, RequestException {
         HttpResponse httpResponsePostRouter = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
-        Mockito.when(client.execute(Mockito.any(HttpUriRequest.class)))
+        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class)))
                 .thenReturn(httpResponsePostRouter);
 
 
-        Map<String, String> xOCCIAtt = new HashMap<String, String>();
-        openStackV2NetworkPlugin.requestInstance(defaultToken, null);
+        NetworkOrder order = createEmptyOrder();
+        this.openStackV2NetworkPlugin.requestInstance(this.defaultToken, order);
 
-        Mockito.verify(client, Mockito.times(1)).execute(Mockito.any(HttpUriRequest.class));
+        Mockito.verify(this.client, Mockito.times(1)).execute(Mockito.any(HttpUriRequest.class));
     }
 
     @Test
@@ -553,17 +559,17 @@ public class OpenStackV2NetworkPluginTest {
         HttpResponse httpResponsePostRouter = createHttpResponse("", HttpStatus.SC_OK);
         HttpResponse httpResponsePostNetwork = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
         HttpResponse httpResponseRemoveRouter = createHttpResponse("", HttpStatus.SC_OK);
-        Mockito.when(client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(
+        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(
                 httpResponsePostRouter, httpResponsePostNetwork, httpResponseRemoveRouter);
 
-        Map<String, String> xOCCIAtt = new HashMap<String, String>();
+        NetworkOrder order = createEmptyOrder();
         try {
-            openStackV2NetworkPlugin.requestInstance(defaultToken, null);
+            this.openStackV2NetworkPlugin.requestInstance(this.defaultToken, order);
             Assert.fail();
         } catch (Exception e) {
         }
 
-        Mockito.verify(client, Mockito.times(3)).execute(Mockito.any(HttpUriRequest.class));
+        Mockito.verify(this.client, Mockito.times(3)).execute(Mockito.any(HttpUriRequest.class));
     }
 
     @Test(expected = RequestException.class)
@@ -573,15 +579,15 @@ public class OpenStackV2NetworkPluginTest {
         HttpResponse httpResponsePostSubnet = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
         HttpResponse httpResponseRemoveRouter = createHttpResponse("", HttpStatus.SC_OK);
         HttpResponse httpResponseRemoveNetwork = createHttpResponse("", HttpStatus.SC_OK);
-        Mockito.when(client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(
+        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(
                 httpResponsePostRouter, httpResponsePostNetwork, httpResponsePostSubnet,
                 httpResponseRemoveRouter, httpResponseRemoveNetwork);
 
 
-        Map<String, String> xOCCIAtt = new HashMap<String, String>();
-        openStackV2NetworkPlugin.requestInstance(defaultToken, null);
+        NetworkOrder order = createEmptyOrder();
+        this.openStackV2NetworkPlugin.requestInstance(this.defaultToken, order);
 
-        Mockito.verify(client, Mockito.times(5)).execute(Mockito.any(HttpUriRequest.class));
+        Mockito.verify(this.client, Mockito.times(5)).execute(Mockito.any(HttpUriRequest.class));
     }
 
     @Test
@@ -592,18 +598,18 @@ public class OpenStackV2NetworkPluginTest {
         HttpResponse httpResponsePutInterface = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
         HttpResponse httpResponseRemoveRouter = createHttpResponse("", HttpStatus.SC_OK);
         HttpResponse httpResponseRemoveNetwork = createHttpResponse("", HttpStatus.SC_OK);
-        Mockito.when(client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(
+        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(
                 httpResponsePostRouter, httpResponsePostNetwork, httpResponsePostSubnet,
                 httpResponsePutInterface, httpResponseRemoveRouter, httpResponseRemoveNetwork);
 
-        Map<String, String> xOCCIAtt = new HashMap<String, String>();
+        NetworkOrder order = createEmptyOrder();
         try {
-            openStackV2NetworkPlugin.requestInstance(defaultToken, null);
+            this.openStackV2NetworkPlugin.requestInstance(this.defaultToken, order);
             Assert.fail();
         } catch (Exception e) {
         }
 
-        Mockito.verify(client, Mockito.times(6)).execute(Mockito.any(HttpUriRequest.class));
+        Mockito.verify(this.client, Mockito.times(6)).execute(Mockito.any(HttpUriRequest.class));
     }
 
     private NetworkOrder createNetworkOrder(String networkId, String address, String gateway,
@@ -613,6 +619,10 @@ public class OpenStackV2NetworkPluginTest {
         NetworkOrder order = new NetworkOrder(networkId, Mockito.mock(Token.class),
                 requestingMember, providingMember, gateway, address, allocation);
         return order;
+    }
+
+    private NetworkOrder createEmptyOrder() {
+        return new NetworkOrder(null, null, null, null, null, null);
     }
 
     private HttpResponse createHttpResponse(String content, int httpStatus) throws IOException {
