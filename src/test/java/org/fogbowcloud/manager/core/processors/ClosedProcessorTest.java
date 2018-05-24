@@ -6,12 +6,16 @@ import java.util.Map;
 import java.util.Properties;
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.OrderController;
+import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
-import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
+import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
+import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
 import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
+import org.fogbowcloud.manager.core.models.token.Token;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -20,8 +24,8 @@ public class ClosedProcessorTest extends BaseUnitTests {
 
     private ClosedProcessor closedProcessor;
 
-    private InstanceProvider localInstanceProvider;
-    private InstanceProvider remoteInstanceProvider;
+    private RemoteInstanceProvider remoteInstanceProvider;
+    private LocalInstanceProvider localInstanceProvider;
 
     private Properties properties;
 
@@ -34,9 +38,10 @@ public class ClosedProcessorTest extends BaseUnitTests {
         this.properties.setProperty(
                 ConfigurationConstants.XMPP_ID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 
-        this.orderController = Mockito.mock(OrderController.class);
-        this.localInstanceProvider = Mockito.mock(InstanceProvider.class);
-        this.remoteInstanceProvider = Mockito.mock(InstanceProvider.class);
+        this.orderController = new OrderController(properties, localInstanceProvider, remoteInstanceProvider);
+
+        this.localInstanceProvider = Mockito.mock(LocalInstanceProvider.class);
+        this.remoteInstanceProvider = Mockito.mock(RemoteInstanceProvider.class);
 
         this.closedProcessor =
                 Mockito.spy(
@@ -62,12 +67,10 @@ public class ClosedProcessorTest extends BaseUnitTests {
         Order localOrder = createLocalOrder(getLocalMemberId());
         localOrder.setOrderInstance(orderInstance);
 
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList closedOrders = sharedOrderHolders.getClosedOrdersList();
+        Token federationToken = null;
+        this.orderController.activateOrder(localOrder, federationToken);
 
-        Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
-        activeOrdersMap.put(localOrder.getId(), localOrder);
-        closedOrders.addItem(localOrder);
+        OrderStateTransitioner.transition(localOrder, OrderState.CLOSED);
 
         Mockito.doNothing()
                 .when(this.localInstanceProvider)
@@ -78,6 +81,9 @@ public class ClosedProcessorTest extends BaseUnitTests {
 
         Thread.sleep(500);
 
+        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+        ChainedList closedOrders = sharedOrderHolders.getClosedOrdersList();
+        Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
         assertNull(activeOrdersMap.get(localOrder.getId()));
 
         closedOrders.resetPointer();
@@ -90,13 +96,11 @@ public class ClosedProcessorTest extends BaseUnitTests {
         Order localOrder = createLocalOrder(getLocalMemberId());
         localOrder.setOrderInstance(orderInstance);
 
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList closedOrders = sharedOrderHolders.getClosedOrdersList();
-        Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
+        Token federationToken = null;
+        this.orderController.activateOrder(localOrder, federationToken);
 
-        activeOrdersMap.put(localOrder.getId(), localOrder);
-        closedOrders.addItem(localOrder);
-
+        OrderStateTransitioner.transition(localOrder, OrderState.CLOSED);
+        
         Mockito.doThrow(Exception.class)
                 .when(this.localInstanceProvider)
                 .deleteInstance(Mockito.any(OrderInstance.class));
@@ -106,6 +110,9 @@ public class ClosedProcessorTest extends BaseUnitTests {
 
         Thread.sleep(500);
 
+        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+        ChainedList closedOrders = sharedOrderHolders.getClosedOrdersList();
+        Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
         assertEquals(localOrder, activeOrdersMap.get(localOrder.getId()));
 
         closedOrders.resetPointer();

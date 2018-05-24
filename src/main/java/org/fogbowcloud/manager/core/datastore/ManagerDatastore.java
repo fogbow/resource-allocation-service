@@ -26,7 +26,7 @@ public interface ManagerDatastore {
 
     public List<Order> findAllComputeOrder();
 
-    public Collection<NetworkOrder> findAllNetworkOrder();
+    public Collection<NetworkOrder> findAllNetworkOrders();
 
-    public Collection<VolumeOrder> findAllStorageOrder();
+    public Collection<VolumeOrder> findAllVolumeOrders();
 }

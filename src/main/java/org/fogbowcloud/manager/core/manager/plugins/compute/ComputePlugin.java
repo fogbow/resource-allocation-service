@@ -31,9 +31,9 @@ public interface ComputePlugin {
 
     public void deleteInstances(Token localToken);
 
-    public String attachStorage(Token localToken, VolumeLink storageLink);
+    public String attachVolume(Token localToken, VolumeLink volumeLink);
 
-    public String detachStorage(Token localToken, VolumeLink storageLink);
+    public String detachVolume(Token localToken, VolumeLink volumeLink);
 
     public String getImageId(Token localToken, String imageName);
 }

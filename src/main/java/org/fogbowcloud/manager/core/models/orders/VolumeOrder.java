@@ -39,6 +39,10 @@ public class VolumeOrder extends Order {
         return volumeSize;
     }
 
+    public void setVolumeSize(int volumeSize) {
+        this.volumeSize = volumeSize;
+    }
+
     @Override
     public OrderType getType() {
         return OrderType.VOLUME;
