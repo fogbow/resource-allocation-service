@@ -124,6 +124,16 @@ public class OrderController {
                 throw new OrderManagementException(message);
             }
 
+            // when the order is local, the requestingMember field is null
+            // otherwise, it has already been set by the remote member
+            if (order.getRequestingMember() == null) {
+                order.setRequestingMember(this.localMemberId);
+            }
+
+            if (order.getProvidingMember() == null) {
+                order.setProvidingMember(this.localMemberId);
+            }
+
             order.setOrderState(OrderState.OPEN);
             activeOrdersMap.put(orderId, order);
             openOrdersList.addItem(order);
@@ -147,7 +157,7 @@ public class OrderController {
         InstanceProvider instanceProvider;
 
         synchronized (order) {
-            if (order.isLocal(this.localMemberId)) {
+            if (order.isProviderLocal(this.localMemberId)) {
                 LOGGER.debug("The order [" + order.getId() + "] is local");
 
                 instanceProvider = this.localInstanceProvider;

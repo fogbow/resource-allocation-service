@@ -7,6 +7,34 @@ import org.fogbowcloud.manager.core.models.orders.OrderState;
 
 public class OrderStateTransitioner {
 
+    // TODO implement this
+    private static final String LOCAL_MEMBER_ID = "";
+
+    public static void transition(Order order, OrderState newState)
+        throws OrderStateTransitionException {
+        if (order.isRequesterRemote(LOCAL_MEMBER_ID)) {
+            switch (newState) {
+                case FAILED:
+                    // send xmpp message to requester
+                    newState = OrderState.CLOSED;
+                    break;
+                case FULFILLED:
+                    // send xmpp message to requester
+                    break;
+            }
+        }
+
+        if (!order.isProviderLocal(LOCAL_MEMBER_ID)) {
+            switch (newState) {
+                case CLOSED:
+                    // send xmpp message to provider
+                    break;
+            }
+        }
+
+        doTransition(order, newState);
+    }
+
     /**
      * Updates the state of the given order. This method is not thread-safe, the caller must assure
      * that only one thread can call it at the same time. This can be done by creating a
@@ -19,7 +47,7 @@ public class OrderStateTransitioner {
      * @param order, the order that will transition through states
      * @param newState, the new state
      */
-    public static void transition(Order order, OrderState newState)
+    private static void doTransition(Order order, OrderState newState)
             throws OrderStateTransitionException {
         OrderState currentState = order.getOrderState();
 
@@ -51,4 +79,5 @@ public class OrderStateTransitioner {
             }
         }
     }
+
 }

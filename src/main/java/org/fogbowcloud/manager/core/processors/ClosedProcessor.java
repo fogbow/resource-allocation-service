@@ -1,11 +1,9 @@
 package org.fogbowcloud.manager.core.processors;
 
 import java.util.Properties;
-import javassist.NotFoundException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.OrderController;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
-import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
@@ -80,21 +78,17 @@ public class ClosedProcessor implements Runnable {
     private void processClosedOrder(Order order)
         throws PropertyNotSpecifiedException, TokenCreationException, RequestException, UnauthorizedException {
         synchronized (order) {
-            if (order.getInstanceId() != null) {
-                InstanceProvider provider = getInstanceProviderForOrder(order);
-                provider.deleteInstance(order);
+            InstanceProvider provider = getInstanceProviderForOrder(order);
+            provider.deleteInstance(order);
 
-                this.closedOrders.removeItem(order);
-                orderController.removeOrderFromActiveOrdersMap(order);
-            } else {
-                LOGGER.info(String.format("Order %s has no instance associated", order.getId()));
-            }
+            this.closedOrders.removeItem(order);
+            orderController.removeOrderFromActiveOrdersMap(order);
         }
     }
 
     private InstanceProvider getInstanceProviderForOrder(Order order) {
         InstanceProvider instanceProvider = null;
-        if (order.isLocal(this.localMemberId)) {
+        if (order.isProviderLocal(this.localMemberId)) {
             instanceProvider = this.localInstanceProvider;
         } else {
             instanceProvider = this.remoteInstanceProvider;

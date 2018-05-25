@@ -176,7 +176,7 @@ public class FulfilledProcessor implements Runnable {
     private InstanceProvider getInstanceProviderForOrder(Order order) {
         InstanceProvider instanceProvider;
 
-        if (order.isLocal(this.localMemberId)) {
+        if (order.isProviderLocal(this.localMemberId)) {
             LOGGER.debug("The open order [" + order.getId() + "] is local");
 
             instanceProvider = this.localInstanceProvider;

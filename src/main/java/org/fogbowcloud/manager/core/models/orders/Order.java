@@ -80,12 +80,12 @@ public abstract class Order {
         this.instanceId = instanceId;
     }
 
-    public boolean isLocal(String localMemberId) {
+    public boolean isProviderLocal(String localMemberId) {
         return this.providingMember.equals(localMemberId);
     }
 
-    public boolean isRemote(String localMemberId) {
-        return !this.providingMember.equals(localMemberId);
+    public boolean isRequesterRemote(String localMemberId) {
+        return !this.requestingMember.equals(localMemberId);
     }
 
     public abstract OrderType getType();

@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.instanceprovider;
 
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
+import org.fogbowcloud.manager.core.exceptions.RemoteConnectionException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
@@ -17,7 +18,7 @@ public interface InstanceProvider {
      * @throws Exception If the Instance creation fail
      */
     public String requestInstance(Order order) throws PropertyNotSpecifiedException,
-        UnauthorizedException, TokenCreationException, RequestException;
+        UnauthorizedException, TokenCreationException, RequestException, RemoteConnectionException;
 
     /**
      * Signals the cloud that the provided instance is no longer required.

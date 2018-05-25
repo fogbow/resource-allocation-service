@@ -105,32 +105,31 @@ public class SpawningProcessor implements Runnable {
         Instance instance = this.localInstanceProvider.getInstance(order);
         OrderType orderType = order.getType();
 
-        if (orderType.equals(OrderType.COMPUTE)) {
-            InstanceState instanceState = instance.getState();
+        InstanceState instanceState = instance.getState();
 
-            if (instanceState.equals(InstanceState.FAILED)) {
-                LOGGER.debug(
-                    "The compute instance state is failed for order [" + order.getId() + "]");
-                OrderStateTransitioner.transition(order, OrderState.FAILED);
+        if (instanceState.equals(InstanceState.FAILED)) {
+            LOGGER.debug(
+                "The compute instance state is failed for order [" + order.getId() + "]");
+            OrderStateTransitioner.transition(order, OrderState.FAILED);
 
-            } else if (instanceState.equals(InstanceState.READY)) {
-                LOGGER
-                    .debug("Processing active compute instance for order [" + order.getId() + "]");
+        } else if (instanceState.equals(InstanceState.READY)) {
+            LOGGER
+                .debug("Processing active compute instance for order [" + order.getId() + "]");
 
+            if (orderType.equals(OrderType.COMPUTE)) {
                 SshTunnelConnectionData sshTunnelConnectionData = this.computeInstanceConnectivity
                     .getSshTunnelConnectionData(order.getId());
                 if (sshTunnelConnectionData != null) {
                     boolean instanceReachable = this.computeInstanceConnectivity
                         .isInstanceReachable(sshTunnelConnectionData);
-                    if (instanceReachable) {
-                        OrderStateTransitioner.transition(order, OrderState.FULFILLED);
+                    if (!instanceReachable) {
+                        // try again later
+                        return;
                     }
                 }
-
-            } else {
-                LOGGER.debug(
-                    "The compute instance state is inactive for order [" + order.getId() + "]");
             }
+
+            OrderStateTransitioner.transition(order, OrderState.FULFILLED);
         }
     }
 }

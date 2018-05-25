@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
+import org.fogbowcloud.manager.core.exceptions.RemoteConnectionException;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.manager.constants.DefaultConfigurationConstants;
@@ -92,14 +93,16 @@ public class OpenProcessor implements Runnable {
                 LOGGER.debug("Trying to get an instance for order [" + order.getId() + "]");
 
                 try {
-                    InstanceProvider instanceProvider = this.getInstanceProviderForOrder(order);
+                    InstanceProvider instanceProvider = getInstanceProviderForOrder(order);
 
                     LOGGER.debug("Processing order [" + order.getId() + "]");
                     String orderInstanceId = instanceProvider.requestInstance(order);
                     order.setInstanceId(orderInstanceId);
 
                     LOGGER.debug("Updating order state after processing [" + order.getId() + "]");
-                    this.updateOrderStateAfterProcessing(order);
+                    updateOrderStateAfterProcessing(order);
+                } catch (RemoteConnectionException e) {
+                    LOGGER.error("", e);
                 } catch (Exception e) {
                     LOGGER.error("Error while trying to get an instance for order: " + order, e);
                     OrderStateTransitioner.transition(order, OrderState.FAILED);
@@ -112,7 +115,7 @@ public class OpenProcessor implements Runnable {
      * Update the order state and do the order state transition after the open order process.
      */
     private void updateOrderStateAfterProcessing(Order order) throws OrderStateTransitionException {
-        if (order.isLocal(this.localMemberId)) {
+        if (order.isProviderLocal(this.localMemberId)) {
             String orderInstanceId = order.getInstanceId();
 
             if (orderInstanceId != null) {
@@ -151,7 +154,7 @@ public class OpenProcessor implements Runnable {
      */
     private InstanceProvider getInstanceProviderForOrder(Order order) {
         InstanceProvider instanceProvider = null;
-        if (order.isLocal(this.localMemberId)) {
+        if (order.isProviderLocal(this.localMemberId)) {
             LOGGER.debug("The open order [" + order.getId() + "] is local");
 
             instanceProvider = this.localInstanceProvider;
