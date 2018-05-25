@@ -3,7 +3,8 @@ package org.fogbowcloud.manager.core.services;
 import java.io.FileInputStream;
 import java.util.Properties;
 import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.manager.plugins.IdentityPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.FederationIdentityPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.LocalIdentityPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
 import org.junit.Assert;
 import org.junit.Before;
@@ -38,7 +39,7 @@ public class InstantiationInitServiceTest {
         String expected_federation_identity_class_value =
                 "org.fogbowcloud.manager.core.manager.plugins.identity.ldap.LdapIdentityPlugin";
 
-        IdentityPlugin plugin = this.service.getFederationIdentityPlugin();
+        FederationIdentityPlugin plugin = this.service.getFederationIdentityPlugin();
         Assert.assertEquals(plugin.getClass().getName(), expected_federation_identity_class_value);
     }
 
@@ -47,7 +48,7 @@ public class InstantiationInitServiceTest {
         String expected_local_identity_class_value =
                 "org.fogbowcloud.manager.core.manager.plugins.identity.openstack.KeystoneV3IdentityPlugin";
 
-        IdentityPlugin plugin = this.service.getLocalIdentityPlugin();
+        LocalIdentityPlugin plugin = this.service.getLocalIdentityPlugin();
         Assert.assertEquals(plugin.getClass().getName(), expected_local_identity_class_value);
     }
 

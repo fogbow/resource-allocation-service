@@ -1,64 +1,144 @@
 package org.fogbowcloud.manager.core.instanceprovider;
 
+import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.manager.plugins.network.NetworkPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.volume.VolumePlugin;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
-import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
+import org.fogbowcloud.manager.core.models.orders.instances.Instance;
+import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.services.AAAController;
 
 public class LocalInstanceProvider implements InstanceProvider {
 
     private final ComputePlugin computePlugin;
+    private final NetworkPlugin networkPlugin;
+    private final VolumePlugin volumePlugin;
     private final AAAController aaaController;
 
-    public LocalInstanceProvider(ComputePlugin computePlugin, AAAController aaaController) {
+    private static final Logger LOGGER = Logger.getLogger(LocalInstanceProvider.class);
+
+    public LocalInstanceProvider(ComputePlugin computePlugin, NetworkPlugin networkPlugin,
+            VolumePlugin volumePlugin, AAAController aaaController) {
+        super();
         this.computePlugin = computePlugin;
+        this.networkPlugin = networkPlugin;
+        this.volumePlugin = volumePlugin;
         this.aaaController = aaaController;
     }
 
     @Override
-    public String requestInstance(Order order)
-            throws UnauthenticatedException, TokenCreationException, RequestException,
-                    PropertyNotSpecifiedException, UnauthorizedException {
-        if (order instanceof ComputeOrder) {
-            return requestInstance((ComputeOrder) order);
-        } else if (order instanceof VolumeOrder) {
+    public String requestInstance(Order order) throws PropertyNotSpecifiedException,
+            UnauthorizedException, TokenCreationException, RequestException {
+        String requestInstance = null;
+        Token localToken = this.aaaController.getLocalToken();
+        switch (order.getType()) {
+            case COMPUTE:
+                ComputeOrder computeOrder = (ComputeOrder) order;
+                String imageName = computeOrder.getImageName();
+                requestInstance =
+                        this.computePlugin.requestInstance(computeOrder, localToken, imageName);
+                break;
+
+            case NETWORK:
+                NetworkOrder networkOrder = (NetworkOrder) order;
+                requestInstance = this.networkPlugin.requestInstance(networkOrder, localToken);
+                break;
+
+            case VOLUME:
+                VolumeOrder volumeOrder = (VolumeOrder) order;
+                requestInstance = this.volumePlugin.requestInstance(volumeOrder, localToken);
+                break;
+        }
+        if (requestInstance == null) {
             throw new UnsupportedOperationException("Not implemented yet.");
-        } else if (order instanceof NetworkOrder) {
-            throw new UnsupportedOperationException("Not implemented yet.");
-        } else {
-            throw new UnsupportedOperationException("Not implemented yet.");
+        }
+        return requestInstance;
+    }
+
+    // TODO check the possibility of changing the parameter 'instance' to 'order'
+    @Override
+    public void deleteInstance(Order order)
+        throws RequestException, TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException {
+        Token localToken = this.aaaController.getLocalToken();
+        switch (order.getType()) {
+            case COMPUTE:
+                this.computePlugin.deleteInstance(localToken, order.getInstanceId());
+                break;
+            case VOLUME:
+                this.volumePlugin.deleteInstance(localToken, order.getInstanceId());
+                break;
+            case NETWORK:
+                this.networkPlugin.deleteInstance(localToken, order.getInstanceId());
+                break;
+            default:
+                LOGGER.error("Undefined type " + order.getType());
+                break;
         }
     }
 
-    private String requestInstance(ComputeOrder order)
-            throws RequestException, TokenCreationException, UnauthorizedException,
-                    UnauthenticatedException, PropertyNotSpecifiedException {
-
+    @Override
+    public Instance getInstance(Order order) throws RequestException, TokenCreationException,
+        UnauthorizedException, PropertyNotSpecifiedException, InstanceNotFoundException {
+        Instance instance;
         Token localToken = this.aaaController.getLocalToken();
-        return this.computePlugin.requestInstance(order, localToken, order.getImageName());
+
+        synchronized (order) {
+            String instanceId = order.getInstanceId();
+
+            if (instanceId != null) {
+                instance = getResourceInstance(instanceId, order.getType(), localToken);
+            } else {
+                // When there is no instance, an empty one is created with the appropriate state
+                instance = new Instance(null);
+                switch (order.getOrderState()) {
+                    case OPEN:
+                        instance.setState(InstanceState.INACTIVE);
+                        break;
+                    case FAILED:
+                        instance.setState(InstanceState.FAILED);
+                        break;
+                    case CLOSED:
+                        throw new InstanceNotFoundException();
+                    default:
+                        LOGGER.error("Inconsistent state.");
+                        instance.setState(InstanceState.INCONSISTENT);
+                }
+            }
+        }
+
+        return instance;
     }
 
-    @Override
-    public void deleteInstance(OrderInstance orderInstance) throws Exception {
-        Token localToken = this.aaaController.getLocalToken();
-        this.computePlugin.deleteInstance(localToken, orderInstance);
-    }
+    private Instance getResourceInstance(String instanceId, OrderType orderType, Token localToken)
+        throws RequestException {
+        Instance instance;
+        switch (orderType) {
+            case COMPUTE:
+                instance = this.computePlugin.getInstance(localToken, instanceId);
+                break;
 
-    @Override
-    public OrderInstance getInstance(Order order)
-            throws RequestException, TokenCreationException, UnauthorizedException,
-                    PropertyNotSpecifiedException {
-        Token localToken = this.aaaController.getLocalToken();
-        String orderInstanceId = order.getOrderInstance().getId();
-        return this.computePlugin.getInstance(localToken, orderInstanceId);
+            case NETWORK:
+                instance = this.networkPlugin.getInstance(localToken, instanceId);
+                break;
+
+            case VOLUME:
+                instance = this.volumePlugin.getInstance(localToken, instanceId);
+                break;
+
+            default:
+                throw new UnsupportedOperationException("Not implemented yet.");
+        }
+        return instance;
     }
 }

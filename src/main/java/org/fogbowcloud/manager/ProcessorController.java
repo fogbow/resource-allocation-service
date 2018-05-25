@@ -3,8 +3,8 @@ package org.fogbowcloud.manager;
 import java.util.Properties;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
-import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.manager.plugins.IdentityPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.FederationIdentityPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.LocalIdentityPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.processors.OpenProcessor;
 import org.fogbowcloud.manager.core.processors.SpawningProcessor;
@@ -24,8 +24,8 @@ public class ProcessorController {
 
     // FIXME this is necessary ? If not, remove
     private ComputePlugin computePlugin;
-    private IdentityPlugin localIdentityPlugin;
-    private IdentityPlugin federationIdentityPlugin;
+    private LocalIdentityPlugin localIdentityPlugin;
+    private FederationIdentityPlugin federationIdentityPlugin;
 
     private static final Logger LOGGER = Logger.getLogger(ProcessorController.class);
 
@@ -34,8 +34,8 @@ public class ProcessorController {
             InstanceProvider localInstanceProvider,
             InstanceProvider remoteInstanceProvider,
             ComputePlugin computePlugin,
-            IdentityPlugin localIdentityPlugin,
-            IdentityPlugin federationIdentityPlugin) {
+            LocalIdentityPlugin localIdentityPlugin,
+            FederationIdentityPlugin federationIdentityPlugin) {
 
         this.properties = properties;
 

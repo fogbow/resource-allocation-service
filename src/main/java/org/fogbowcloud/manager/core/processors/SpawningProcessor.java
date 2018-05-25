@@ -4,17 +4,22 @@ import java.util.Properties;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
+import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
+import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
+import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.manager.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
-import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
+import org.fogbowcloud.manager.core.models.orders.instances.Instance;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.utils.ComputeInstanceConnectivityUtils;
 import org.fogbowcloud.manager.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
@@ -31,12 +36,12 @@ public class SpawningProcessor implements Runnable {
     private InstanceProvider localInstanceProvider;
 
     public SpawningProcessor(
-            TunnelingServiceUtil tunnelingService,
-            SshConnectivityUtil sshConnectivity,
-            InstanceProvider localInstanceProvider,
-            Properties properties) {
+        TunnelingServiceUtil tunnelingService,
+        SshConnectivityUtil sshConnectivity,
+        InstanceProvider localInstanceProvider,
+        Properties properties) {
         this.computeInstanceConnectivity =
-                new ComputeInstanceConnectivityUtils(tunnelingService, sshConnectivity);
+            new ComputeInstanceConnectivityUtils(tunnelingService, sshConnectivity);
 
         this.localInstanceProvider = localInstanceProvider;
 
@@ -44,9 +49,9 @@ public class SpawningProcessor implements Runnable {
         this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();
 
         String sleepTimeStr =
-                properties.getProperty(
-                        ConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME_KEY,
-                        DefaultConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME);
+            properties.getProperty(
+                ConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME_KEY,
+                DefaultConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME);
         this.sleepTime = Long.valueOf(sleepTimeStr);
     }
 
@@ -65,9 +70,9 @@ public class SpawningProcessor implements Runnable {
                 } else {
                     this.spawningOrderList.resetPointer();
                     LOGGER.debug(
-                            "There is no spawning order to be processed, sleeping for "
-                                    + this.sleepTime
-                                    + " milliseconds");
+                        "There is no spawning order to be processed, sleeping for "
+                            + this.sleepTime
+                            + " milliseconds");
                     Thread.sleep(this.sleepTime);
                 }
             } catch (InterruptedException e) {
@@ -95,34 +100,36 @@ public class SpawningProcessor implements Runnable {
      * This method does not synchronize the order object because it is private and can only be
      * called by the processSpawningOrder method.
      */
-    private void processInstance(Order order) throws Exception {
-        OrderInstance orderInstance = this.localInstanceProvider.getInstance(order);
+    private void processInstance(Order order)
+        throws PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException, UnauthorizedException, OrderStateTransitionException {
+        Instance instance = this.localInstanceProvider.getInstance(order);
         OrderType orderType = order.getType();
 
         if (orderType.equals(OrderType.COMPUTE)) {
-            InstanceState instanceState = orderInstance.getState();
+            InstanceState instanceState = instance.getState();
 
             if (instanceState.equals(InstanceState.FAILED)) {
                 LOGGER.debug(
-                        "The compute instance state is failed for order [" + order.getId() + "]");
+                    "The compute instance state is failed for order [" + order.getId() + "]");
                 OrderStateTransitioner.transition(order, OrderState.FAILED);
 
-            } else if (instanceState.equals(InstanceState.ACTIVE)) {
-                LOGGER.debug("Processing active compute instance for order [" + order.getId() + "]");
+            } else if (instanceState.equals(InstanceState.READY)) {
+                LOGGER
+                    .debug("Processing active compute instance for order [" + order.getId() + "]");
 
-                ComputeOrderInstance computeOrderInstance = (ComputeOrderInstance) orderInstance;
-
-                // TODO Check tunnel interaction to try to avoid doing this multiple times
-                this.computeInstanceConnectivity.setTunnelingServiceAddresses(
-                        order, computeOrderInstance);
-
-                if (this.computeInstanceConnectivity.isInstanceReachable(computeOrderInstance)) {
-                    OrderStateTransitioner.transition(order, OrderState.FULFILLED);
+                SshTunnelConnectionData sshTunnelConnectionData = this.computeInstanceConnectivity
+                    .getSshTunnelConnectionData(order.getId());
+                if (sshTunnelConnectionData != null) {
+                    boolean instanceReachable = this.computeInstanceConnectivity
+                        .isInstanceReachable(sshTunnelConnectionData);
+                    if (instanceReachable) {
+                        OrderStateTransitioner.transition(order, OrderState.FULFILLED);
+                    }
                 }
 
             } else {
                 LOGGER.debug(
-                        "The compute instance state is inactive for order [" + order.getId() + "]");
+                    "The compute instance state is inactive for order [" + order.getId() + "]");
             }
         }
     }

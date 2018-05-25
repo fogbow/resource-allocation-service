@@ -11,7 +11,6 @@ import org.fogbowcloud.manager.core.manager.constants.DefaultConfigurationConsta
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 
 public class OpenProcessor implements Runnable {
 
@@ -97,7 +96,7 @@ public class OpenProcessor implements Runnable {
 
                     LOGGER.debug("Processing order [" + order.getId() + "]");
                     String orderInstanceId = instanceProvider.requestInstance(order);
-                    order.setOrderInstance(new OrderInstance(orderInstanceId));
+                    order.setInstanceId(orderInstanceId);
 
                     LOGGER.debug("Updating order state after processing [" + order.getId() + "]");
                     this.updateOrderStateAfterProcessing(order);
@@ -114,8 +113,7 @@ public class OpenProcessor implements Runnable {
      */
     private void updateOrderStateAfterProcessing(Order order) throws OrderStateTransitionException {
         if (order.isLocal(this.localMemberId)) {
-            OrderInstance orderInstance = order.getOrderInstance();
-            String orderInstanceId = orderInstance.getId();
+            String orderInstanceId = order.getInstanceId();
 
             if (orderInstanceId != null) {
                 LOGGER.debug(

@@ -13,4 +13,8 @@ public class UnauthenticatedException extends Exception {
     public UnauthenticatedException(String message) {
         super(message);
     }
+
+    public UnauthenticatedException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

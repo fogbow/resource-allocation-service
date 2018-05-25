@@ -1,31 +1,36 @@
 package org.fogbowcloud.manager.core.models.orders;
 
 import java.util.UUID;
+import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.models.token.Token;
 
 public class VolumeOrder extends Order {
 
     private int volumeSize;
 
+    public VolumeOrder() {
+        super(UUID.randomUUID().toString());
+    }
+
     /** Creating Order with predefined Id. */
     public VolumeOrder(
             String id,
-            Token federationToken,
+            FederationUser federationUser,
             String requestingMember,
             String providingMember,
             int volumeSize) {
-        super(id, federationToken, requestingMember, providingMember);
+        super(id, federationUser, requestingMember, providingMember);
         this.volumeSize = volumeSize;
     }
 
     public VolumeOrder(
-            Token federationToken,
+            FederationUser federationUser,
             String requestingMember,
             String providingMember,
             int volumeSize) {
         this(
                 UUID.randomUUID().toString(),
-                federationToken,
+                federationUser,
                 requestingMember,
                 providingMember,
                 volumeSize);

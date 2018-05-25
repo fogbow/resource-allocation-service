@@ -1,17 +1,17 @@
 package org.fogbowcloud.manager.core.models.orders.instances;
 
-public class OrderInstance {
+public class Instance {
 
     // TODO: the id should not be empty. Is necessary to check it in the
     // constructor method.
     private String id;
     private InstanceState state;
 
-    public OrderInstance(String id) {
+    public Instance(String id) {
         this.id = id;
     }
 
-    public OrderInstance(String id, InstanceState state) {
+    public Instance(String id, InstanceState state) {
         this(id);
         this.state = state;
     }
@@ -45,7 +45,7 @@ public class OrderInstance {
         if (this == obj) return true;
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
-        OrderInstance other = (OrderInstance) obj;
+        Instance other = (Instance) obj;
         if (id == null) {
             if (other.id != null) return false;
         } else if (!id.equals(other.id)) return false;

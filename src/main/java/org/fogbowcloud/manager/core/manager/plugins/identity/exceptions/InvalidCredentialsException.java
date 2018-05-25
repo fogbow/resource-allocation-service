@@ -1,6 +1,8 @@
 package org.fogbowcloud.manager.core.manager.plugins.identity.exceptions;
 
-public class InvalidCredentialsException extends UnauthorizedException {
+import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
+
+public class InvalidCredentialsException extends UnauthenticatedException {
 
     private static final long serialVersionUID = 1L;
     private static final String message = "Invalid Credentials";

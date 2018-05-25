@@ -5,8 +5,8 @@ import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.VolumeLink;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
-import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
+import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
+import org.fogbowcloud.manager.core.models.orders.instances.Instance;
 import org.fogbowcloud.manager.core.models.token.Token;
 
 public interface ComputePlugin {
@@ -22,12 +22,12 @@ public interface ComputePlugin {
     public String requestInstance(ComputeOrder computeOrder, Token localToken, String imageId)
             throws RequestException;
 
-    public ComputeOrderInstance getInstance(Token localToken, String instanceId)
+    public ComputeInstance getInstance(Token localToken, String instanceId)
             throws RequestException;
 
-    public List<ComputeOrderInstance> getInstances(Token localToken);
+    public List<ComputeInstance> getInstances(Token localToken);
 
-    public void deleteInstance(Token localToken, OrderInstance instance) throws RequestException;
+    public void deleteInstance(Token localToken, String instanceId) throws RequestException;
 
     public void deleteInstances(Token localToken);
 

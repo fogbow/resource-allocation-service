@@ -10,7 +10,8 @@ import java.util.logging.Logger;
 import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.manager.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.manager.plugins.AuthorizationPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.IdentityPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.FederationIdentityPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.LocalIdentityPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.PluginFactory;
 import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
 
@@ -60,12 +61,13 @@ public class InstantiationInitService {
         return (ComputePlugin) this.pluginFactory.createPluginInstance(className, this.properties);
     }
 
-    public IdentityPlugin getLocalIdentityPlugin() {
+    public LocalIdentityPlugin getLocalIdentityPlugin() {
         return this.getIdentityPlugin(ConfigurationConstants.LOCAL_PREFIX);
     }
 
-    public IdentityPlugin getFederationIdentityPlugin() {
-        return this.getIdentityPlugin(ConfigurationConstants.FEDERATION_PREFIX);
+    public FederationIdentityPlugin getFederationIdentityPlugin() {
+        // TODO implement this
+        return null;
     }
 
     public AuthorizationPlugin getAuthorizationPlugin() {
@@ -74,10 +76,10 @@ public class InstantiationInitService {
                 this.pluginFactory.createPluginInstance(className, this.properties);
     }
 
-    private IdentityPlugin getIdentityPlugin(String prefix) {
+    private LocalIdentityPlugin getIdentityPlugin(String prefix) {
         String className =
                 this.getPropertyValue(prefix + ConfigurationConstants.IDENTITY_CLASS_KEY);
-        return (IdentityPlugin)
+        return (LocalIdentityPlugin)
                 this.pluginFactory.getIdentityPluginByPrefix(prefix, className, this.properties);
     }
 

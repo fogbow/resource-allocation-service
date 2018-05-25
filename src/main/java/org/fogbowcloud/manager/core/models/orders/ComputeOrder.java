@@ -1,6 +1,7 @@
 package org.fogbowcloud.manager.core.models.orders;
 
 import java.util.UUID;
+import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.models.token.Token;
 
 public class ComputeOrder extends Order {
@@ -26,7 +27,7 @@ public class ComputeOrder extends Order {
     /** Creating Order with predefined Id. */
     public ComputeOrder(
             String id,
-            Token federationToken,
+            FederationUser federationUser,
             String requestingMember,
             String providingMember,
             int vCPU,
@@ -35,7 +36,7 @@ public class ComputeOrder extends Order {
             String imageName,
             UserData userData,
             String publicKey) {
-        super(id, federationToken, requestingMember, providingMember);
+        super(id, federationUser, requestingMember, providingMember);
         this.vCPU = vCPU;
         this.memory = memory;
         this.disk = disk;
@@ -45,7 +46,7 @@ public class ComputeOrder extends Order {
     }
 
     public ComputeOrder(
-            Token federationToken,
+            FederationUser federationUser,
             String requestingMember,
             String providingMember,
             int vCPU,
@@ -56,7 +57,7 @@ public class ComputeOrder extends Order {
             String publicKey) {
         this(
                 UUID.randomUUID().toString(),
-                federationToken,
+                federationUser,
                 requestingMember,
                 providingMember,
                 vCPU,

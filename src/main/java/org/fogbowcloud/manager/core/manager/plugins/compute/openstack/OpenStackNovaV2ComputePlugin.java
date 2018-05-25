@@ -11,14 +11,15 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.manager.constants.OpenStackConfigurationConstants;
+import org.fogbowcloud.manager.core.manager.plugins.InstanceStateMapper;
 import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.manager.plugins.compute.DefaultLaunchCommandGenerator;
 import org.fogbowcloud.manager.core.manager.plugins.compute.LaunchCommandGenerator;
 import org.fogbowcloud.manager.core.models.*;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
+import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.utils.HttpRequestUtil;
 import org.json.JSONArray;
@@ -46,15 +47,15 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private static final String UUID_JSON_FIELD = "uuid";
     private static final String FOGBOW_INSTANCE_NAME = "fogbow-instance-";
     private static final String TENANT_ID = "tenantId";
-    private static final String ACTIVE_STATUS = "active";
-    private static final String BUILD_STATUS = "build";
+    private static final String COMPUTE_NOVAV2_NETWORK_KEY = "compute_novav2_network_id";
+
     private static final String SERVERS = "/servers";
     private static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
     private static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
-    private static final String COMPUTE_NOVAV2_URL_KEY = "compute_novav2_url";
-    private final String COMPUTE_V2_API_ENDPOINT = "/v2/";
+    private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
 
-    private static final String COMPUTE_NOVAV2_NETWORK_KEY = "compute_novav2_network_id";
+    private static final String ACTIVE_STATUS = "active";
+    private static final String BUILD_STATUS = "build";
 
     private static final Logger LOGGER = Logger.getLogger(OpenStackNovaV2ComputePlugin.class);
 
@@ -62,6 +63,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private Properties properties;
     private HttpClient client;
     private LaunchCommandGenerator launchCommandGenerator;
+    private InstanceStateMapper instanceStateMapper;
 
     public OpenStackNovaV2ComputePlugin(Properties properties) throws Exception {
         this(properties, new DefaultLaunchCommandGenerator(properties));
@@ -75,6 +77,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         this.flavors = new TreeSet<>();
         this.properties = properties;
         this.launchCommandGenerator = launchCommandGenerator;
+        this.instanceStateMapper = new OpenStackComputeInstanceStateMapper();
         this.initClient();
     }
 
@@ -156,7 +159,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     protected String getComputeEndpoint(String tenantId, String suffix) {
-        return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY)
+        return this.properties.getProperty(OpenStackConfigurationConstants.COMPUTE_NOVAV2_URL_KEY)
                 + COMPUTE_V2_API_ENDPOINT
                 + tenantId
                 + suffix;
@@ -399,7 +402,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     @Override
-    public ComputeOrderInstance getInstance(Token localToken, String instanceId)
+    public ComputeInstance getInstance(Token localToken, String instanceId)
             throws RequestException {
         LOGGER.info("Getting instance " + instanceId + " with token " + localToken);
 
@@ -409,12 +412,12 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         String jsonResponse = doGetRequest(requestEndpoint, localToken);
 
         LOGGER.debug("Getting instance from json: " + jsonResponse);
-        ComputeOrderInstance computeOrderInstance = getInstanceFromJson(jsonResponse);
+        ComputeInstance computeInstance = getInstanceFromJson(jsonResponse);
 
-        return computeOrderInstance;
+        return computeInstance;
     }
 
-    private ComputeOrderInstance getInstanceFromJson(String jsonResponse) throws RequestException {
+    private ComputeInstance getInstanceFromJson(String jsonResponse) throws RequestException {
         try {
             JSONObject rootServer = new JSONObject(jsonResponse);
             JSONObject serverJson = rootServer.getJSONObject(SERVER_JSON_FIELD);
@@ -422,21 +425,21 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             String id = serverJson.getString(ID_JSON_FIELD);
             String hostName = serverJson.getString(NAME_JSON_FIELD);
 
-//          FIXME We need to GET the flavor details in order to fill vcpus and ram
+            //          FIXME We need to GET the flavor details in order to fill vcpus and ram
 //          int vCPU = serverJson.getJSONObject(FLAVOR_JSON_OBJECT).getInt(VCPU_JSON_FIELD);
 //          int memory = serverJson.getJSONObject(FLAVOR_JSON_OBJECT).getInt(MEMORY_JSON_FIELD);
 
-            InstanceState state = getInstanceState(serverJson.getString(STATUS_JSON_FIELD));
+            InstanceState state = instanceStateMapper.getInstanceState(serverJson.getString(STATUS_JSON_FIELD));
 
-            // TODO: Why should I pass all this attributes for computeOrderInstance if they are
+            // TODO: Why should I pass all this attributes for computeInstance if they are
             // all related to tunneling? We don't have it on the cloud provider JSON response.
             String localIpAddress = "";
             String sshPublicAddress = "";
             String sshUserName = "";
             String sshExtraPorts = "";
 
-            ComputeOrderInstance computeOrderInstance =
-                    new ComputeOrderInstance(
+            ComputeInstance computeInstance =
+                    new ComputeInstance(
                             id,
                             hostName,
                             -1,
@@ -447,45 +450,25 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
                             sshUserName,
                             sshExtraPorts);
 
-            return computeOrderInstance;
+            return computeInstance;
         } catch (JSONException e) {
             LOGGER.warn("There was an exception while getting instances from json", e);
             throw new RequestException();
         }
     }
 
-    /**
-     * This method will map Openstack instance status to Fogbow instance status.
-     *
-     * @param instanceStatus status from JSON.
-     * @return {@link InstanceState}
-     */
-    private InstanceState getInstanceState(String instanceStatus) {
-        switch (instanceStatus.toLowerCase()) {
-            case ACTIVE_STATUS:
-                return InstanceState.ACTIVE;
-
-            case BUILD_STATUS:
-                return InstanceState.INACTIVE;
-
-            default:
-                return InstanceState.FAILED;
-        }
-    }
-
-    // TODO: Is it necessary?
     @Override
-    public List<ComputeOrderInstance> getInstances(Token localToken) {
+    public List<ComputeInstance> getInstances(Token localToken) {
         return null;
     }
 
     @Override
-    public void deleteInstance(Token localToken, OrderInstance instance) throws RequestException {
-        if (instance.getId() == null) {
+    public void deleteInstance(Token localToken, String instanceId) throws RequestException {
+        if (instanceId == null) {
             throw new RequestException();
         }
         String endpoint =
-                getComputeEndpoint(getTenantId(localToken), SERVERS + "/" + instance.getId());
+                getComputeEndpoint(getTenantId(localToken), SERVERS + "/" + instanceId);
 
         doDeleteRequest(endpoint, localToken);
     }

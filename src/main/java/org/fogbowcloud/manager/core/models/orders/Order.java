@@ -1,8 +1,7 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import org.fogbowcloud.manager.core.models.orders.instances.OrderInstance;
-import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.models.token.Token.User;
+import org.fogbowcloud.manager.core.models.orders.instances.Instance;
+import org.fogbowcloud.manager.core.models.token.FederationUser;
 
 public abstract class Order {
 
@@ -10,13 +9,15 @@ public abstract class Order {
 
     private OrderState orderState;
 
-    private Token federationToken;
+    private FederationUser federationUser;
 
     private String requestingMember;
 
     private String providingMember;
 
-    private OrderInstance orderInstance;
+    private String instanceId;
+
+    private boolean notified;
 
     public Order(String id) {
         this.id = id;
@@ -24,9 +25,9 @@ public abstract class Order {
 
     /** Creating Order with predefined Id. */
     public Order(
-            String id, Token federationToken, String requestingMember, String providingMember) {
+            String id, FederationUser federationUser, String requestingMember, String providingMember) {
         this(id);
-        this.federationToken = federationToken;
+        this.federationUser = federationUser;
         this.requestingMember = requestingMember;
         this.providingMember = providingMember;
     }
@@ -47,12 +48,12 @@ public abstract class Order {
         this.orderState = state;
     }
 
-    public Token getFederationToken() {
-        return federationToken;
+    public FederationUser getFederationUser() {
+        return federationUser;
     }
 
-    public void setFederationToken(Token federationToken) {
-        this.federationToken = federationToken;
+    public void setFederationUser(FederationUser federationUser) {
+        this.federationUser = federationUser;
     }
 
     public String getRequestingMember() {
@@ -71,12 +72,12 @@ public abstract class Order {
         this.providingMember = providingMember;
     }
 
-    public synchronized OrderInstance getOrderInstance() {
-        return orderInstance;
+    public String getInstanceId() {
+        return instanceId;
     }
 
-    public synchronized void setOrderInstance(OrderInstance orderInstance) {
-        this.orderInstance = orderInstance;
+    public synchronized void setInstanceId(String instanceId) {
+        this.instanceId = instanceId;
     }
 
     public boolean isLocal(String localMemberId) {
@@ -85,10 +86,6 @@ public abstract class Order {
 
     public boolean isRemote(String localMemberId) {
         return !this.providingMember.equals(localMemberId);
-    }
-
-    public User getUser() {
-        return this.federationToken.getUser();
     }
 
     public abstract OrderType getType();
@@ -119,14 +116,14 @@ public abstract class Order {
                 + id
                 + ", orderState="
                 + orderState
-                + ", federationToken="
-                + federationToken
+                + ", federationUser="
+                + federationUser
                 + ", requestingMember="
                 + requestingMember
                 + ", providingMember="
                 + providingMember
-                + ", orderInstance="
-                + orderInstance
+                + ", instanceId="
+                + instanceId
                 + "]";
     }
 }

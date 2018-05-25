@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import org.apache.commons.codec.binary.Base64;
+import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.manager.plugins.PluginHelper;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.token.Token;
@@ -14,7 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class TestLdapIdentityPlugin {
+public class TestLdapLocalIdentityPlugin {
 
     private static final String IDENTITY_URL_KEY = "identity_url";
     private final String KEYSTONE_URL = "http://localhost:" + PluginHelper.PORT_ENDPOINT;
@@ -124,10 +125,9 @@ public class TestLdapIdentityPlugin {
                 .when(ldapStoneIdentity)
                 .ldapAuthenticate(Mockito.eq(name), Mockito.eq(password));
         try {
-
             ldapStoneIdentity.createToken(userCredentials);
             Assert.fail();
-        } catch (UnauthorizedException e) {
+        } catch (UnauthenticatedException e) {
             Assert.assertEquals("Couldn't load account summary from LDAP Server.", e.getMessage());
         }
     }

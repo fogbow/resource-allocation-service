@@ -4,15 +4,20 @@ import java.util.Properties;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
+import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
+import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
+import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.manager.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
-import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.utils.ComputeInstanceConnectivityUtils;
 import org.fogbowcloud.manager.utils.SshConnectivityUtil;
@@ -34,29 +39,31 @@ public class FulfilledProcessor implements Runnable {
 
     private ChainedList fulfilledOrdersList;
 
-    /** Attribute that represents the thread sleep time when there is no orders to be processed. */
+    /**
+     * Attribute that represents the thread sleep time when there is no orders to be processed.
+     */
     private Long sleepTime;
 
     public FulfilledProcessor(
-            InstanceProvider localInstanceProvider,
-            InstanceProvider remoteInstanceProvider,
-            TunnelingServiceUtil tunnelingService,
-            SshConnectivityUtil sshConnectivity,
-            Properties properties) {
+        InstanceProvider localInstanceProvider,
+        InstanceProvider remoteInstanceProvider,
+        TunnelingServiceUtil tunnelingService,
+        SshConnectivityUtil sshConnectivity,
+        Properties properties) {
         this.localInstanceProvider = localInstanceProvider;
         this.remoteInstanceProvider = remoteInstanceProvider;
         this.localMemberId = properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
 
         this.computeInstanceConnectivity =
-                new ComputeInstanceConnectivityUtils(tunnelingService, sshConnectivity);
+            new ComputeInstanceConnectivityUtils(tunnelingService, sshConnectivity);
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
 
         String sleepTimeStr =
-                properties.getProperty(
-                        ConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME_KEY,
-                        DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME);
+            properties.getProperty(
+                ConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME_KEY,
+                DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME);
         this.sleepTime = Long.valueOf(sleepTimeStr);
     }
 
@@ -81,9 +88,9 @@ public class FulfilledProcessor implements Runnable {
                 } else {
                     this.fulfilledOrdersList.resetPointer();
                     LOGGER.debug(
-                            "There is no fulfilled order to be processed, sleeping for "
-                                    + this.sleepTime
-                                    + " milliseconds");
+                        "There is no fulfilled order to be processed, sleeping for "
+                            + this.sleepTime
+                            + " milliseconds");
                     Thread.sleep(this.sleepTime);
                 }
             } catch (InterruptedException e) {
@@ -113,9 +120,9 @@ public class FulfilledProcessor implements Runnable {
                     processInstance(order);
                 } catch (OrderStateTransitionException e) {
                     LOGGER.error(
-                            "Transition ["
-                                    + order.getId()
-                                    + "] order state from fulfilled to failed");
+                        "Transition ["
+                            + order.getId()
+                            + "] order state from fulfilled to failed");
                 } catch (Exception e) {
                     LOGGER.error("Error while getting instance from the cloud.", e);
                     OrderStateTransitioner.transition(order, OrderState.FAILED);
@@ -130,7 +137,8 @@ public class FulfilledProcessor implements Runnable {
      *
      * @param order {@link Order}
      */
-    protected void processInstance(Order order) throws Exception {
+    protected void processInstance(Order order)
+        throws PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException, UnauthorizedException, OrderStateTransitionException {
         InstanceProvider instanceProvider = getInstanceProviderForOrder(order);
 
         OrderType orderType = order.getType();
@@ -140,17 +148,18 @@ public class FulfilledProcessor implements Runnable {
         if (instanceState.equals(InstanceState.FAILED)) {
             LOGGER.info("Instance state is failed for order [" + order.getId() + "]");
             OrderStateTransitioner.transition(order, OrderState.FAILED);
-        } else if (instanceState.equals(InstanceState.ACTIVE)
-                && orderType.equals(OrderType.COMPUTE)) {
+        } else if (instanceState.equals(InstanceState.READY)
+            && orderType.equals(OrderType.COMPUTE)) {
             LOGGER.info("Processing active compute instance for order [" + order.getId() + "]");
 
-            // TODO Need to get the tunnelling information
-            ComputeOrderInstance computeOrderInstance =
-                    (ComputeOrderInstance) order.getOrderInstance();
-            computeOrderInstance.setState(instanceState);
-
-            if (!this.computeInstanceConnectivity.isInstanceReachable(computeOrderInstance)) {
-                OrderStateTransitioner.transition(order, OrderState.FAILED);
+            SshTunnelConnectionData sshTunnelConnectionData = this.computeInstanceConnectivity
+                .getSshTunnelConnectionData(order.getId());
+            if (sshTunnelConnectionData != null) {
+                boolean instanceReachable = this.computeInstanceConnectivity
+                    .isInstanceReachable(sshTunnelConnectionData);
+                if (!instanceReachable) {
+                    OrderStateTransitioner.transition(order, OrderState.FAILED);
+                }
             }
         } else {
             LOGGER.debug("The instance was processed successfully");
@@ -173,12 +182,12 @@ public class FulfilledProcessor implements Runnable {
             instanceProvider = this.localInstanceProvider;
         } else {
             LOGGER.debug(
-                    "The open order ["
-                            + order.getId()
-                            + "] is remote for the "
-                            + "member ["
-                            + order.getProvidingMember()
-                            + "]");
+                "The open order ["
+                    + order.getId()
+                    + "] is remote for the "
+                    + "member ["
+                    + order.getProvidingMember()
+                    + "]");
 
             instanceProvider = this.remoteInstanceProvider;
         }

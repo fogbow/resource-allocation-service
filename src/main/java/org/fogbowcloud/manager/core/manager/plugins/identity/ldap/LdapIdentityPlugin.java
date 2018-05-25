@@ -24,13 +24,17 @@ import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import org.apache.commons.codec.binary.Base64;
-import org.fogbowcloud.manager.core.manager.plugins.IdentityPlugin;
+import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
+import org.fogbowcloud.manager.core.manager.plugins.FederationIdentityPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.LocalIdentityPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.InvalidCredentialsException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.InvalidTokenException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenValueCreationException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.util.RSAUtils;
 import org.fogbowcloud.manager.core.models.Credential;
+import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,7 +43,7 @@ import org.json.JSONObject;
  * FIXME: BY THE FACT THAT THIS CODE IS NATURALLY COMPLEX, IS NECESSARY TO WRITE A DOCUMENTATION FOR
  * THIS CODE.
  */
-public class LdapIdentityPlugin implements IdentityPlugin {
+public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
     private static final String ATT_EXPIRATION_DATE = "expirationDate";
     private static final String ATT_NAME = "name";
@@ -83,8 +87,13 @@ public class LdapIdentityPlugin implements IdentityPlugin {
     }
 
     @Override
+    public String createFederationTokenValue(Map<String, String> userCredentials)
+        throws UnauthenticatedException, TokenValueCreationException {
+        return createToken(userCredentials).getAccessId();
+    }
+
     public Token createToken(Map<String, String> userCredentials)
-            throws UnauthorizedException, TokenCreationException {
+        throws UnauthenticatedException, TokenValueCreationException {
 
         String userId = userCredentials.get(CRED_USERNAME);
         String password = userCredentials.get(CRED_PASSWORD);
@@ -112,17 +121,17 @@ public class LdapIdentityPlugin implements IdentityPlugin {
 
             String signature = createSignature(json);
 
-            String accessId = json.toString() + ACCESSID_SEPARATOR + signature;
+            String federationTokenValue = json.toString() + ACCESSID_SEPARATOR + signature;
 
-            accessId =
+            federationTokenValue =
                     new String(
                             Base64.encodeBase64(
-                                    accessId.getBytes(StandardCharsets.UTF_8), false, false),
+                                    federationTokenValue.getBytes(StandardCharsets.UTF_8), false, false),
                             StandardCharsets.UTF_8);
 
-            return new Token(accessId, new Token.User(userId, name), expirationDate, attributes);
+            return new Token(federationTokenValue, new Token.User(userId, name), expirationDate, attributes);
         } catch (IOException | GeneralSecurityException e) {
-            throw new TokenCreationException("Error while trying to sign the token.", e);
+            throw new TokenValueCreationException("Error while trying to sign the token.", e);
         }
     }
 
@@ -145,15 +154,16 @@ public class LdapIdentityPlugin implements IdentityPlugin {
     }
 
     @Override
-    public Token reIssueToken(Token token) {
-        return token;
+    public FederationUser getFederationUser(String federationTokenValue)
+        throws UnauthenticatedException {
+//        Token token = getToken(federationTokenValue);
+        return null;
     }
 
-    @Override
-    public Token getToken(String accessId) throws UnauthorizedException {
+    public Token getToken(String federationTokenValue) throws UnauthorizedException {
         try {
             String decodedAccessId =
-                    new String(Base64.decodeBase64(accessId), StandardCharsets.UTF_8);
+                    new String(Base64.decodeBase64(federationTokenValue), StandardCharsets.UTF_8);
 
             String split[] = decodedAccessId.split(ACCESSID_SEPARATOR);
             if (split == null || split.length < 2) {
@@ -173,7 +183,7 @@ public class LdapIdentityPlugin implements IdentityPlugin {
             String uuid = root.getString(ATT_LOGIN);
             String name = root.getString(ATT_NAME);
             return new Token(
-                    accessId,
+                    federationTokenValue,
                     new Token.User(uuid, name),
                     expirationDate,
                     new HashMap<String, String>());
@@ -334,13 +344,4 @@ public class LdapIdentityPlugin implements IdentityPlugin {
         };
     }
 
-    @Override
-    public String getAuthenticationURI() {
-        return null;
-    }
-
-    @Override
-    public Token getForwardableToken(Token originalToken) {
-        return originalToken;
-    }
 }

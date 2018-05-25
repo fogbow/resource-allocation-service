@@ -1,17 +1,26 @@
 package org.fogbowcloud.manager.core;
 
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.manager.constants.Operation;
-import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.OrderType;
-import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.services.AAAController;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
+import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
+import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
+import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
+import org.fogbowcloud.manager.core.manager.constants.Operation;
+import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
+import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.OrderType;
+import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
+import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
+import org.fogbowcloud.manager.core.models.orders.instances.Instance;
+import org.fogbowcloud.manager.core.models.orders.instances.NetworkInstance;
+import org.fogbowcloud.manager.core.models.orders.instances.VolumeInstance;
+import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.services.AAAController;
 
 public class ApplicationFacade {
 
@@ -20,7 +29,8 @@ public class ApplicationFacade {
     private AAAController aaaController;
     private OrderController orderController;
 
-    private ApplicationFacade() {}
+    private ApplicationFacade() {
+    }
 
     public static ApplicationFacade getInstance() {
         synchronized (ApplicationFacade.class) {
@@ -31,69 +41,91 @@ public class ApplicationFacade {
         }
     }
 
-    public void deleteCompute(String computeId, String federationTokenValue) throws Exception {
-        deleteOrder(computeId, federationTokenValue, OrderType.COMPUTE);
-    }
-
-    private void deleteOrder(String orderId, String federationTokenValue, OrderType orderType)
-            throws Exception {
-        this.aaaController.authenticate(federationTokenValue);
-
-        Token federationToken = this.aaaController.getFederationToken(federationTokenValue);
-        Order order = this.orderController.getOrder(orderId, federationToken.getUser(), orderType);
-        this.aaaController.authorize(federationToken, Operation.DELETE, order);
-
-        this.orderController.deleteOrder(order);
-    }
-
-    public List<ComputeOrder> getAllComputes(String federationTokenValue)
-            throws UnauthorizedException, UnauthenticatedException {
-        List<ComputeOrder> computeOrders = new ArrayList<ComputeOrder>();
-
-        // TODO is there a better way to do this?
-        List<Order> allOrders = getAllOrders(federationTokenValue, OrderType.COMPUTE);
-        for (Order order : allOrders) {
-            computeOrders.add((ComputeOrder) order);
-        }
-        return computeOrders;
-    }
-
-    private List<Order> getAllOrders(String federationTokenValue, OrderType orderType)
-            throws UnauthorizedException, UnauthenticatedException {
-        this.aaaController.authenticate(federationTokenValue);
-        Token federationToken = this.aaaController.getFederationToken(federationTokenValue);
-        this.aaaController.authorize(federationToken, Operation.GET_ALL, orderType);
-
-        return this.orderController.getAllOrders(federationToken.getUser(), orderType);
-    }
-
-    public ComputeOrder getCompute(String computeId, String federationTokenValue) throws Exception {
-        return (ComputeOrder) getOrder(computeId, federationTokenValue, OrderType.COMPUTE);
-    }
-
-    private Order getOrder(String id, String federationTokenValue, OrderType type)
-            throws Exception {
-        this.aaaController.authenticate(federationTokenValue);
-        Token federationToken = this.aaaController.getFederationToken(federationTokenValue);
-
-        Order order = this.orderController.getOrder(id, federationToken.getUser(), type);
-        this.aaaController.authorize(federationToken, Operation.GET, order);
-
-        return order;
-    }
-
     public void createCompute(ComputeOrder order, String federationTokenValue)
-            throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
+        throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
         activateOrder(order, federationTokenValue, OrderType.COMPUTE);
     }
 
-    private void activateOrder(Order order, String federationTokenValue, OrderType type)
-            throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
-        this.aaaController.authenticate(federationTokenValue);
-        Token federationToken = this.aaaController.getFederationToken(federationTokenValue);
-        this.aaaController.authorize(federationToken, Operation.CREATE, type);
+    public List<ComputeInstance> getAllComputes(String federationTokenValue)
+        throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+        List<ComputeInstance> computeInstances = new ArrayList<ComputeInstance>();
 
-        this.orderController.activateOrder(order, federationToken);
+        List<Order> allOrders = getAllOrders(federationTokenValue, OrderType.COMPUTE);
+        for (Order order : allOrders) {
+            ComputeInstance instance = (ComputeInstance) this.orderController
+                .getResourceInstance(order);
+            computeInstances.add(instance);
+        }
+        return computeInstances;
+    }
+
+    public ComputeInstance getCompute(String orderId, String federationTokenValue)
+        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException {
+        return (ComputeInstance) getResourceInstance(orderId, federationTokenValue,
+            OrderType.COMPUTE);
+    }
+
+    public void deleteCompute(String computeId, String federationTokenValue)
+        throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
+        deleteOrder(computeId, federationTokenValue, OrderType.COMPUTE);
+    }
+
+    public void createVolume(VolumeOrder volumeOrder, String federationTokenValue)
+        throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
+        activateOrder(volumeOrder, federationTokenValue, OrderType.VOLUME);
+    }
+
+    public List<VolumeInstance> getAllVolumes(String federationTokenValue)
+        throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+        List<VolumeInstance> volumeInstances = new ArrayList<VolumeInstance>();
+
+        List<Order> allOrders = getAllOrders(federationTokenValue, OrderType.VOLUME);
+        for (Order order : allOrders) {
+            VolumeInstance instance = (VolumeInstance) this.orderController
+                .getResourceInstance(order);
+            volumeInstances.add(instance);
+        }
+        return volumeInstances;
+    }
+
+    public VolumeInstance getVolume(String orderId, String federationTokenValue)
+        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException {
+        return (VolumeInstance) getResourceInstance(orderId, federationTokenValue,
+            OrderType.VOLUME);
+    }
+
+    public void deleteVolume(String orderId, String federationTokenValue)
+        throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
+        deleteOrder(orderId, federationTokenValue, OrderType.VOLUME);
+    }
+
+    public void createNetwork(NetworkOrder networkOrder, String federationTokenValue)
+        throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
+        activateOrder(networkOrder, federationTokenValue, OrderType.NETWORK);
+    }
+
+    public List<NetworkInstance> getAllNetworks(String federationTokenValue)
+        throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+        List<NetworkInstance> networkInstances = new ArrayList<NetworkInstance>();
+
+        List<Order> allOrders = getAllOrders(federationTokenValue, OrderType.NETWORK);
+        for (Order order : allOrders) {
+            NetworkInstance instance = (NetworkInstance) this.orderController
+                .getResourceInstance(order);
+            networkInstances.add(instance);
+        }
+        return networkInstances;
+    }
+
+    public NetworkInstance getNetwork(String orderId, String federationTokenValue)
+        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException {
+        return (NetworkInstance) getResourceInstance(orderId, federationTokenValue,
+            OrderType.NETWORK);
+    }
+
+    public void deleteNetwork(String orderId, String federationTokenValue)
+        throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
+        deleteOrder(orderId, federationTokenValue, OrderType.NETWORK);
     }
 
     public void setAAAController(AAAController aaaController) {
@@ -103,4 +135,46 @@ public class ApplicationFacade {
     public void setOrderController(OrderController orderController) {
         this.orderController = orderController;
     }
+
+    private void activateOrder(Order order, String federationTokenValue, OrderType type)
+        throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
+        this.aaaController.authenticate(federationTokenValue);
+        FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
+        this.aaaController.authorize(federationUser, Operation.CREATE, type);
+
+        this.orderController.activateOrder(order, federationUser);
+    }
+
+    private void deleteOrder(String orderId, String federationTokenValue, OrderType orderType)
+        throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
+        this.aaaController.authenticate(federationTokenValue);
+
+        FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
+        Order order = this.orderController.getOrder(orderId, federationUser, orderType);
+        this.aaaController.authorize(federationUser, Operation.DELETE, order);
+
+        this.orderController.deleteOrder(order);
+    }
+
+    private List<Order> getAllOrders(String federationTokenValue, OrderType orderType)
+        throws UnauthorizedException, UnauthenticatedException {
+        this.aaaController.authenticate(federationTokenValue);
+        FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
+        this.aaaController.authorize(federationUser, Operation.GET_ALL, orderType);
+
+        return this.orderController.getAllOrders(federationUser, orderType);
+    }
+
+    private Instance getResourceInstance(String orderId, String federationTokenValue,
+        OrderType type)
+        throws UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+        this.aaaController.authenticate(federationTokenValue);
+
+        FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
+        Order order = this.orderController.getOrder(orderId, federationUser, type);
+        this.aaaController.authorize(federationUser, Operation.GET, order);
+
+        return this.orderController.getResourceInstance(order);
+    }
+
 }

@@ -15,7 +15,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.manager.plugins.IdentityPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.LocalIdentityPlugin;
 import org.fogbowcloud.manager.core.models.Credential;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.services.AuthenticationControllerUtil;
@@ -24,7 +24,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class KeystoneV3IdentityPlugin implements IdentityPlugin {
+public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
 
     private static final Logger LOGGER = Logger.getLogger(KeystoneV3IdentityPlugin.class);
     private static final String IDENTITY_URL = "identity_url";

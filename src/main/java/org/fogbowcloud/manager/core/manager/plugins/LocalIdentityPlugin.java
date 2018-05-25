@@ -7,7 +7,8 @@ import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.Unauthor
 import org.fogbowcloud.manager.core.models.Credential;
 import org.fogbowcloud.manager.core.models.token.Token;
 
-public interface IdentityPlugin {
+public interface LocalIdentityPlugin {
+
     /**
      * Creates a token based on the user's credentials.
      *
@@ -16,6 +17,7 @@ public interface IdentityPlugin {
      * @throws UnauthorizedException
      * @throws TokenCreationException
      */
+    // TODO Change Unauthorized to Unauthenticated
     public Token createToken(Map<String, String> userCredentials)
             throws UnauthorizedException, TokenCreationException;
 

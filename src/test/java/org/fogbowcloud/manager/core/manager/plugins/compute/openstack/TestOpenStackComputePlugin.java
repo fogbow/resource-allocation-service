@@ -12,7 +12,7 @@ import org.fogbowcloud.manager.core.manager.plugins.compute.util.CloudInitUserDa
 import org.fogbowcloud.manager.core.models.Flavor;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.UserData;
-import org.fogbowcloud.manager.core.models.orders.instances.ComputeOrderInstance;
+import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.json.JSONArray;
@@ -256,11 +256,11 @@ public class TestOpenStackComputePlugin {
                 .when(novaV2ComputeOpenStack)
                 .doGetRequest(eq(FAKE_ENDPOINT), eq(localToken));
 
-        ComputeOrderInstance computeOrderInstance =
+        ComputeInstance computeInstance =
                 this.novaV2ComputeOpenStack.getInstance(this.localToken, FAKE_INSTANCE_ID);
 
-        assertEquals(computeOrderInstance.getId(), FAKE_INSTANCE_ID);
-        assertEquals(computeOrderInstance.getState(), InstanceState.ACTIVE);
+        assertEquals(computeInstance.getId(), FAKE_INSTANCE_ID);
+        assertEquals(computeInstance.getState(), InstanceState.READY);
     }
 
     @Test
@@ -273,11 +273,11 @@ public class TestOpenStackComputePlugin {
                 .when(novaV2ComputeOpenStack)
                 .doGetRequest(eq(FAKE_ENDPOINT), eq(localToken));
 
-        ComputeOrderInstance computeOrderInstance =
+        ComputeInstance computeInstance =
                 this.novaV2ComputeOpenStack.getInstance(this.localToken, FAKE_INSTANCE_ID);
 
-        assertEquals(computeOrderInstance.getId(), FAKE_INSTANCE_ID);
-        assertEquals(computeOrderInstance.getState(), InstanceState.FAILED);
+        assertEquals(computeInstance.getId(), FAKE_INSTANCE_ID);
+        assertEquals(computeInstance.getState(), InstanceState.FAILED);
     }
 
     @Test
@@ -290,11 +290,11 @@ public class TestOpenStackComputePlugin {
                 .when(novaV2ComputeOpenStack)
                 .doGetRequest(eq(FAKE_ENDPOINT), eq(localToken));
 
-        ComputeOrderInstance computeOrderInstance =
+        ComputeInstance computeInstance =
                 this.novaV2ComputeOpenStack.getInstance(this.localToken, FAKE_INSTANCE_ID);
 
-        assertEquals(computeOrderInstance.getId(), FAKE_INSTANCE_ID);
-        assertEquals(computeOrderInstance.getState(), InstanceState.INACTIVE);
+        assertEquals(computeInstance.getId(), FAKE_INSTANCE_ID);
+        assertEquals(computeInstance.getState(), InstanceState.INACTIVE);
     }
 
     @Test(expected = Exception.class)

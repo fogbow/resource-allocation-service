@@ -3,9 +3,16 @@ package org.fogbowcloud.manager.api.local.http;
 import java.util.List;
 import java.util.UUID;
 import org.fogbowcloud.manager.core.ApplicationFacade;
+import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
+import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
+import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
+import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
+import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -35,7 +42,7 @@ public class ComputeOrdersController {
     public ResponseEntity<Order> createCompute(
             @RequestBody ComputeOrder computeOrder,
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws UnauthenticatedException, Exception {
+        throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
         LOGGER.info("New compute order request received");
 
         // The applicationFacade is being loaded here, because the getInstance that was used in the
@@ -48,31 +55,31 @@ public class ComputeOrdersController {
     }
 
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<ComputeOrder>> getAllCompute(
+    public ResponseEntity<List<ComputeInstance>> getAllCompute(
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
+        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException {
         LOGGER.info("Get all compute orders request received");
-        List<ComputeOrder> orders = ApplicationFacade.getInstance().getAllComputes(federationTokenValue);
-        return new ResponseEntity<>(orders, HttpStatus.OK);
+        List<ComputeInstance> computes = ApplicationFacade.getInstance().getAllComputes(federationTokenValue);
+        return new ResponseEntity<>(computes, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseEntity<ComputeOrder> getCompute(
+    public ResponseEntity<ComputeInstance> getCompute(
             @PathVariable String computeId,
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
+        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException {
         LOGGER.info("Get request to compute order with id <" + computeId + "> received");
-        ComputeOrder order = ApplicationFacade.getInstance().getCompute(computeId, federationTokenValue);
-        return new ResponseEntity<ComputeOrder>(order, HttpStatus.OK);
+        ComputeInstance compute = ApplicationFacade.getInstance().getCompute(computeId, federationTokenValue);
+        return new ResponseEntity<ComputeInstance>(compute, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> deleteCompute(
-            @PathVariable String computeId,
+            @PathVariable String orderId,
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
+        throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
         LOGGER.info("Get compute order to id <%s> received");
-        ApplicationFacade.getInstance().deleteCompute(computeId, federationTokenValue);
-        return new ResponseEntity<Boolean>(HttpStatus.OK);
+        ApplicationFacade.getInstance().deleteCompute(orderId, federationTokenValue);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
