@@ -10,6 +10,7 @@ import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,37 +34,37 @@ public class AttachmentOrdersController {
     private ApplicationFacade applicationFacade;
     
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<Order> createVolumeAttachment(@RequestBody AttachmentOrder volumeAttachmentOrder,
+    public ResponseEntity<Order> createAttachment(@RequestBody AttachmentOrder attachmentOrder,
         @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
         LOGGER.info("New volume link request received.");
 
         this.applicationFacade = ApplicationFacade.getInstance();
-        this.applicationFacade.createVolumeAttachment(volumeAttachmentOrder, federationTokenValue);
+        this.applicationFacade.createAttachment(attachmentOrder, federationTokenValue);
         return new ResponseEntity<Order>(HttpStatus.CREATED);
     }
     
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<AttachmentOrder>> getAllVolumeAttachments(
+    public ResponseEntity<List<AttachmentInstance>> getAllAttachments(
         @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException {
-        List<AttachmentOrder> volumeAttachmentOrders = this.applicationFacade.getAllVolumeAttachments(federationTokenValue);
-        return new ResponseEntity<>(volumeAttachmentOrders, HttpStatus.OK);
+        List<AttachmentInstance> attachmentInstance = this.applicationFacade.getAllAttachments(federationTokenValue);
+        return new ResponseEntity<>(attachmentInstance, HttpStatus.OK);
     }
     
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseEntity<AttachmentOrder> getVolumeAttachment(@PathVariable String volumeAttachmentId,
+    public ResponseEntity<AttachmentInstance> getAttachment(@PathVariable String attachmentId,
         @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException {
-        AttachmentOrder volumeAttachmentOrder = this.applicationFacade.getVolumeAttachment(volumeAttachmentId, federationTokenValue);
-        return new ResponseEntity<>(volumeAttachmentOrder, HttpStatus.OK);
+        AttachmentInstance attachmentInstance = this.applicationFacade.getVolumeAttachment(attachmentId, federationTokenValue);
+        return new ResponseEntity<>(attachmentInstance, HttpStatus.OK);
     }
     
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public ResponseEntity<Boolean> deleteVolumeAttachment(@PathVariable String volumeAttachmentId,
+    public ResponseEntity<Boolean> deleteAttachment(@PathVariable String attachmentId,
         @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
-        this.applicationFacade.deleteVolumeAttachment(volumeAttachmentId, federationTokenValue);
+        this.applicationFacade.deleteVolumeAttachment(attachmentId, federationTokenValue);
         return new ResponseEntity<>(HttpStatus.OK);
     }
     
