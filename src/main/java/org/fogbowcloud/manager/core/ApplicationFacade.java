@@ -43,7 +43,7 @@ public class ApplicationFacade {
 
     public void createCompute(ComputeOrder order, String federationTokenValue)
         throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
-        activateOrder(order, federationTokenValue, OrderType.COMPUTE);
+        activateOrder(order, federationTokenValue);
     }
 
     public List<ComputeInstance> getAllComputes(String federationTokenValue)
@@ -72,7 +72,7 @@ public class ApplicationFacade {
 
     public void createVolume(VolumeOrder volumeOrder, String federationTokenValue)
         throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
-        activateOrder(volumeOrder, federationTokenValue, OrderType.VOLUME);
+        activateOrder(volumeOrder, federationTokenValue);
     }
 
     public List<VolumeInstance> getAllVolumes(String federationTokenValue)
@@ -101,7 +101,7 @@ public class ApplicationFacade {
 
     public void createNetwork(NetworkOrder networkOrder, String federationTokenValue)
         throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
-        activateOrder(networkOrder, federationTokenValue, OrderType.NETWORK);
+        activateOrder(networkOrder, federationTokenValue);
     }
 
     public List<NetworkInstance> getAllNetworks(String federationTokenValue)
@@ -136,11 +136,11 @@ public class ApplicationFacade {
         this.orderController = orderController;
     }
 
-    private void activateOrder(Order order, String federationTokenValue, OrderType type)
+    private void activateOrder(Order order, String federationTokenValue)
         throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
         this.aaaController.authenticate(federationTokenValue);
         FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
-        this.aaaController.authorize(federationUser, Operation.CREATE, type);
+        this.aaaController.authorize(federationUser, Operation.CREATE, order);
 
         this.orderController.activateOrder(order, federationUser);
     }
