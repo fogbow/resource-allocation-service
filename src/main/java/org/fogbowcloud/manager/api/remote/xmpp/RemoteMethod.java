@@ -1,0 +1,7 @@
+package org.fogbowcloud.manager.api.remote.xmpp;
+
+public enum RemoteMethod {
+
+    GET_REMOTE_INSTANCE, GET_REMOTE_USER_QUOTA, CREATE_REMOTE_ORDER, DELETE_REMOTE_ORDER, REMOTE_ORDER_FULFILLED, REMOTE_ORDER_FAILED
+
+}

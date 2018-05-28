@@ -120,6 +120,12 @@
 			<artifactId>json</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>org.jamppa</groupId>
+			<artifactId>jamppa</artifactId>
+			<version>0.1.3</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
