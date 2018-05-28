@@ -21,7 +21,7 @@ public class CreateRemoteOrder {
             throw new IllegalArgumentException("Packet sender not set.");
         }
         IQ iq = new IQ(IQ.Type.set);
-        iq.setTo("localtest.component");
+        iq.setTo("testfogbow.ufcg.edu.br");
         iq.setID("12345");
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.CREATE_REMOTE_ORDER.toString());
@@ -43,7 +43,7 @@ public class CreateRemoteOrder {
     
     public static void main(String[] args) {
         Order order = null;
-        XmppComponentManager xmppComponent = new XmppComponentManager("testfogbow.ufcg.edu.br", "password", "localhost", 5222, 20L);
+        XmppComponentManager xmppComponent = new XmppComponentManager("testfogbow.ufcg.edu.br", "password", "127.0.0.1", 5347, 20L);
         try {
             xmppComponent.connect();
         } catch (ComponentException e) {
