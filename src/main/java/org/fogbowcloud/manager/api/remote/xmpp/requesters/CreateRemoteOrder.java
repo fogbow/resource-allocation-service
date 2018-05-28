@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.api.remote.xmpp.requesters;
 
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
+import org.fogbowcloud.manager.api.remote.xmpp.IqElement;
 import org.fogbowcloud.manager.api.remote.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
@@ -18,9 +19,8 @@ public class CreateRemoteOrder {
             throw new IllegalArgumentException("Packet sender not set.");
         }
         IQ iq = new IQ(IQ.Type.set);
-        Element queryElement = iq.getElement().addElement("query", RemoteMethod.CREATE_REMOTE_ORDER.name());
-        Element orderElement = queryElement.addElement("order");
+        Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(), RemoteMethod.CREATE_REMOTE_ORDER.toString());
+        Element orderElement = queryElement.addElement(IqElement.ORDER.toString());
         return 404;
     }
-
 }
