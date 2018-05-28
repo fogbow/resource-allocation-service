@@ -14,6 +14,7 @@ import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
+import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.Instance;
@@ -175,6 +176,36 @@ public class ApplicationFacade {
         this.aaaController.authorize(federationUser, Operation.GET, order);
 
         return this.orderController.getResourceInstance(order);
+    }
+
+    public void createVolumeAttachment(AttachmentOrder volumeAttachmentOrder,
+            String federationTokenValue) throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
+        activateOrder(volumeAttachmentOrder, federationTokenValue, OrderType.VOLUME);
+    }
+
+    public List<AttachmentOrder> getAllVolumeAttachments(String federationTokenValue) throws UnauthenticatedException, UnauthorizedException {
+        this.aaaController.authenticate(federationTokenValue);
+        FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
+        this.aaaController.authorize(federationUser, Operation.GET_ALL, OrderType.VOLUME);
+        // TODO return getVolumeAttachmentsFromUser(federationUser);
+        return null;
+    }
+
+    public AttachmentOrder getVolumeAttachment(String volumeAttachmentId,
+            String federationTokenValue) throws UnauthenticatedException, UnauthorizedException {
+        this.aaaController.authenticate(federationTokenValue);
+        FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
+        this.aaaController.authorize(federationUser, Operation.GET, OrderType.VOLUME);
+        // TODO return getVolumeAttachment(volumeAttachmentId, federationUser);
+        return null;
+    }
+
+    public void deleteVolumeAttachment(String volumeAttachmentId, String federationTokenValue) throws UnauthenticatedException, UnauthorizedException {
+        this.aaaController.authenticate(federationTokenValue);
+        FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
+        this.aaaController.authorize(federationUser, Operation.DELETE, OrderType.VOLUME);        
+        // TODO getVolumeAttachment(volumeAttachmentId, federationUser);
+        // TODO deleteVolumeAttachment(volumeAttachmentOrder);        
     }
 
 }
