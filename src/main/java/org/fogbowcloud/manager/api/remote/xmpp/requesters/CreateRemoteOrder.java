@@ -3,17 +3,27 @@ package org.fogbowcloud.manager.api.remote.xmpp.requesters;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
+import org.fogbowcloud.manager.api.remote.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.api.remote.xmpp.IqElement;
 import org.fogbowcloud.manager.api.remote.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.jamppa.component.PacketSender;
 import org.xmpp.packet.IQ;
 
-public class CreateRemoteOrder {
+public class CreateRemoteOrder implements RemoteRequest {
 
     private static final Logger LOGGER = Logger.getLogger(CreateRemoteOrder.class);
 
-    public static void sendRequest(Order order, PacketSender packetSender) {
+    PacketSender packetSender;
+    Order order;
+
+    public CreateRemoteOrder(PacketSender packetSender, Order order) {
+        this.packetSender = packetSender;
+        this.order = order;
+    }
+
+    @Override
+    public void send() throws RemoteRequestException {
         if (packetSender == null) {
             LOGGER.warn("Packet sender not set.");
             throw new IllegalArgumentException("Packet sender not set.");
@@ -45,9 +55,7 @@ public class CreateRemoteOrder {
         Element orderElement = queryElement.addElement(IqElement.ORDER.toString());
 
         LOGGER.debug("Jsonifying Order");
-        Gson gson = new Gson();
-//        order.setId(null); ??
-        String orderJson = gson.toJson(order);
+        String orderJson = new Gson().toJson(order);
         orderElement.setText(orderJson);
         return iq;
     }

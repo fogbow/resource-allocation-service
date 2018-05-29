@@ -68,6 +68,12 @@ public class ComputeOrder extends Order {
                 publicKey);
     }
 
+    public static ComputeOrder from(ComputeOrder baseOrder) {
+        return new ComputeOrder(baseOrder.getFederationUser(), baseOrder.getRequestingMember(), baseOrder.getProvidingMember(),
+                baseOrder.getvCPU(), baseOrder.getMemory(), baseOrder.getDisk(), baseOrder.getImageName(),
+                baseOrder.getUserData(), baseOrder.getPublicKey());
+    }
+
     public int getvCPU() {
         return vCPU;
     }

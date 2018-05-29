@@ -13,6 +13,8 @@ import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
 
+import java.util.UUID;
+
 public class CreateRemoteOrderHandler extends AbstractQueryHandler {
 
     private static final Logger LOGGER = Logger.getLogger(CreateRemoteOrderHandler.class);
@@ -31,7 +33,7 @@ public class CreateRemoteOrderHandler extends AbstractQueryHandler {
         String orderStr = orderElement.getText();
 
         Gson gson = new Gson();
-        ComputeOrder order = gson.fromJson(orderStr, ComputeOrder.class);
+        ComputeOrder order = createOrderFromJson(orderStr, gson);
 
         IQ response = IQ.createResultIQ(iq);
 
@@ -48,5 +50,11 @@ public class CreateRemoteOrderHandler extends AbstractQueryHandler {
         response.getElement().addElement(IqElement.QUERY.toString(), RemoteMethod.CREATE_REMOTE_ORDER.toString());
 
         return response;
+    }
+
+    private ComputeOrder createOrderFromJson(String orderStr, Gson gson) {
+        ComputeOrder order = gson.fromJson(orderStr, ComputeOrder.class);
+        ComputeOrder newOrder = ComputeOrder.from(order);
+        return newOrder;
     }
 }
