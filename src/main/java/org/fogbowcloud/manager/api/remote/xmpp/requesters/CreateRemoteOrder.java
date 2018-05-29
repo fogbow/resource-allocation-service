@@ -15,21 +15,22 @@ public class CreateRemoteOrder {
 
     private static final Logger LOGGER = Logger.getLogger(CreateRemoteOrder.class);
 
-    public static void sendRequest(Order order, PacketSender packetSender) {
+    public static void sendRequest(Order order, PacketSender packetSender) throws InterruptedException {
         if (packetSender == null) {
             LOGGER.warn("Packet sender not set.");
             throw new IllegalArgumentException("Packet sender not set.");
         }
         IQ iq = new IQ(IQ.Type.set);
-        iq.setTo("testfogbow.ufcg.edu.br");
+        iq.setTo("test.fogbow.a");
         iq.setID("12345");
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.CREATE_REMOTE_ORDER.toString());
         Element orderElement = queryElement.addElement(IqElement.ORDER.toString());
         orderElement.addElement("newElement").setText("test");
 
-
         IQ response = (IQ) packetSender.syncSendPacket(iq);
+
+        System.out.println(response);
 
         if (response == null) {
             System.out.println("null response.");
@@ -38,18 +39,18 @@ public class CreateRemoteOrder {
             System.out.println(response.getError());
         }
 
-        System.out.println(response.getElement().element("response").getText());
+        System.out.println(response.getElement().element(IqElement.QUERY.toString()).element("response").getText());
     }
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         Order order = null;
-        XmppComponentManager xmppComponent = new XmppComponentManager("testfogbow.ufcg.edu.br", "password", "127.0.0.1", 5347, 20L);
+        XmppComponentManager xmppComponentA = new XmppComponentManager("test.fogbow.a", "password", "127.0.0.1", 5347, 5L);
         try {
-            xmppComponent.connect();
+            xmppComponentA.connect();
         } catch (ComponentException e) {
             System.err.println("Conflict in the initialization of xmpp component.");
             System.exit(128);
         }
-        sendRequest(order, xmppComponent);
+        sendRequest(order, xmppComponentA);
     }
 }

@@ -9,7 +9,7 @@ import org.xmpp.packet.IQ;
 public class CreateRemoteOrderHandler extends AbstractQueryHandler {
 
     public CreateRemoteOrderHandler() {
-        super(RemoteMethod.CREATE_REMOTE_ORDER.name());
+        super(RemoteMethod.CREATE_REMOTE_ORDER.toString());
     }
 
     @Override
@@ -30,6 +30,8 @@ public class CreateRemoteOrderHandler extends AbstractQueryHandler {
         } else {
             responseElement.setText("Wrong msg.");
         }
+
+//        System.out.println(response);
 
         return response;
     }
