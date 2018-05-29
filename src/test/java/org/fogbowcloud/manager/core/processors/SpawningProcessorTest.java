@@ -1,11 +1,34 @@
-package org.fogbowcloud.manager.core.processors;
-
-import static org.junit.Assert.assertNotNull;
-
-import org.fogbowcloud.manager.core.BaseUnitTests;
-
-public class SpawningProcessorTest extends BaseUnitTests {
-
+//package org.fogbowcloud.manager.core.processors;
+//
+//import static org.junit.Assert.assertNotNull;
+//
+//import java.util.Map;
+//import java.util.Properties;
+//
+//import org.fogbowcloud.manager.core.BaseUnitTests;
+//import org.fogbowcloud.manager.core.SharedOrderHolders;
+//import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
+//import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
+//import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
+//import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+//import org.fogbowcloud.manager.core.models.orders.Order;
+//import org.fogbowcloud.manager.core.models.orders.OrderState;
+//import org.fogbowcloud.manager.core.models.orders.UserData;
+//import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
+//import org.fogbowcloud.manager.core.models.orders.instances.Instance;
+//import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
+//import org.fogbowcloud.manager.core.models.token.FederationUser;
+//import org.fogbowcloud.manager.core.models.token.Token;
+//import org.fogbowcloud.manager.utils.SshConnectivityUtil;
+//import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
+//import org.junit.After;
+//import org.junit.Assert;
+//import org.junit.Before;
+//import org.junit.Test;
+//import org.mockito.Mockito;
+//
+//public class SpawningProcessorTest extends BaseUnitTests {
+//
 //    private Properties properties;
 //
 //    private InstanceProvider instanceProvider;
@@ -274,14 +297,14 @@ public class SpawningProcessorTest extends BaseUnitTests {
 //    }
 //
 //    private Order createOrder() {
-//        Token federationToken = Mockito.mock(Token.class);
+//        FederationUser federationUser = Mockito.mock(FederationUser.class);
 //        String requestingMember =
 //                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
 //        String providingMember =
 //                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
 //        UserData userData = Mockito.mock(UserData.class);
-//        Order order = new ComputeOrder(federationToken, requestingMember, providingMember, 8, 1024,
+//        Order order = new ComputeOrder(federationUser, requestingMember, providingMember, 8, 1024,
 //                30, "fake_image_name", userData, "fake_public_key");
 //        return order;
 //    }
-}
+//}
