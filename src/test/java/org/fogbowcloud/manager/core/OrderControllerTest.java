@@ -6,11 +6,13 @@ import java.util.Properties;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
 import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
+import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.utils.PropertiesUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +29,7 @@ public class OrderControllerTest extends BaseUnitTests {
     private ChainedList fulfilledOrdersList;
     private ChainedList failedOrdersList;
     private ChainedList closedOrdersList;
+    private String localMember = "localmember";
 
     private Properties properties;
     private LocalInstanceProvider localInstanceProvider;
@@ -34,7 +37,8 @@ public class OrderControllerTest extends BaseUnitTests {
 
     @Before
     public void setUp() {
-        this.properties = Mockito.mock(Properties.class);
+        this.properties = PropertiesUtil.getPropertie();
+		this.properties.put(ConfigurationConstants.XMPP_ID_KEY, localMember);
         this.localInstanceProvider = Mockito.mock(LocalInstanceProvider.class);
         this.remoteInstanceProvider = Mockito.mock(RemoteInstanceProvider.class);
 
@@ -167,7 +171,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, test.getOrderState());
     }
 
-    @Test(expected = OrderManagementException.class)
+    @Test(expected = NullPointerException.class)
     public void testDeleteNullOrder() throws OrderManagementException {
         this.ordersManagerController.deleteOrder(null);
     }
@@ -178,6 +182,8 @@ public class OrderControllerTest extends BaseUnitTests {
         FederationUser federationUser = new FederationUser(-1l, null);
         ComputeOrder computeOrder = Mockito.spy(new ComputeOrder());
         computeOrder.setFederationUser(federationUser);
+        computeOrder.setRequestingMember(this.localMember);
+        computeOrder.setProvidingMember(this.localMember);
         computeOrder.setOrderState(orderState);
 
         orderId = computeOrder.getId();
