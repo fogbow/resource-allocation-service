@@ -3,7 +3,10 @@ package org.fogbowcloud.manager.api.remote.xmpp;
 public enum IqElement {
 
     QUERY("query"),
-    ORDER("order");
+    ORDER("order"),
+    REMOTE_ORDER_ID("remoteOrderId"),
+    FEDERATION_USER("federationUser"),
+    INSTANCE("Instance");
 
     private final String element;
 
