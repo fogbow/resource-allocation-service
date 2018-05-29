@@ -29,7 +29,6 @@ public class CreateRemoteOrder {
         orderElement.addElement("newElement").setText("test");
 
         IQ response = (IQ) packetSender.syncSendPacket(iq);
-
         System.out.println(response);
 
         if (response == null) {
@@ -44,7 +43,7 @@ public class CreateRemoteOrder {
     
     public static void main(String[] args) throws InterruptedException {
         Order order = null;
-        XmppComponentManager xmppComponentA = new XmppComponentManager("test.fogbow.a", "password", "127.0.0.1", 5347, 5L);
+        XmppComponentManager xmppComponentA = new XmppComponentManager("test.fogbow.a", "password", "127.0.0.1", 5347, 5000L);
         try {
             xmppComponentA.connect();
         } catch (ComponentException e) {
