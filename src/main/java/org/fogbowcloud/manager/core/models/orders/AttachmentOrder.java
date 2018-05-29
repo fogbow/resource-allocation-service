@@ -4,9 +4,14 @@ import java.util.UUID;
 
 public class AttachmentOrder extends Order {
     
-    private String source;
-    private String target;
-    private String deviceId;
+    /** this attribute refers to the instance of the computer where the volume will be attached */
+    private String source; //computeSource
+    
+    /** this attribute refers to the instanceId of the target volume of the attachment */
+    private String target; //volumeTarget
+    
+    /** this attribute refers to the mount point of the volume device */
+    private String device; //mountPointDevice
     
     public AttachmentOrder() {
         super(UUID.randomUUID().toString());
@@ -24,8 +29,8 @@ public class AttachmentOrder extends Order {
         return this.target;
     }
 
-    public String getDeviceId() {
-        return this.deviceId;
+    public String getDevice() {
+        return this.device;
     }
 
     @Override
