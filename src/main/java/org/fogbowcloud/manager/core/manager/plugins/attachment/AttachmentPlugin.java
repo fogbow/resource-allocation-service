@@ -11,5 +11,5 @@ public interface AttachmentPlugin {
 
     public void detachVolume(Token localToken, String instanceId, String attachmentId) throws RequestException;
     
-    public VolumeAttachment getInstance(Token localToken, String instanceId) throws RequestException;
+    public VolumeAttachment getInstance(Token localToken, String instanceId, String attachmentId) throws RequestException;
 }
