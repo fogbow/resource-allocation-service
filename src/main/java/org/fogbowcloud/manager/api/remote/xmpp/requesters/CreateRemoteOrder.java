@@ -1,55 +1,60 @@
 package org.fogbowcloud.manager.api.remote.xmpp.requesters;
 
+import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.api.remote.xmpp.IqElement;
 import org.fogbowcloud.manager.api.remote.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.api.remote.xmpp.XmppComponentManager;
+import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.jamppa.component.PacketSender;
 import org.xmpp.component.ComponentException;
 import org.xmpp.packet.IQ;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class CreateRemoteOrder {
 
     private static final Logger LOGGER = Logger.getLogger(CreateRemoteOrder.class);
 
-    public static void sendRequest(Order order, PacketSender packetSender) throws InterruptedException {
+    public static void sendRequest(Order order, PacketSender packetSender) {
         if (packetSender == null) {
             LOGGER.warn("Packet sender not set.");
             throw new IllegalArgumentException("Packet sender not set.");
         }
+
+        IQ iq = createIq(order);
+        IQ response = (IQ) packetSender.syncSendPacket(iq);
+
+        if (response == null) {
+            LOGGER.error("Timed out or got no response.");
+            // TODO: Throw exception
+        }
+        if (response.getError() != null) {
+            LOGGER.error("Response returned error: " + response.getError().getText());
+            // TODO: Throw exception
+        }
+        LOGGER.debug("Request for order: " + order.getId() + " has been sent to " + order.getProvidingMember());
+    }
+
+    private static IQ createIq(Order order) {
+        LOGGER.debug("Creating IQ for order: " + order.getId());
+
         IQ iq = new IQ(IQ.Type.set);
-        iq.setTo("test.fogbow.a");
-        iq.setID("12345");
+        iq.setTo(order.getProvidingMember());
+        iq.setID(order.getId());
+
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.CREATE_REMOTE_ORDER.toString());
         Element orderElement = queryElement.addElement(IqElement.ORDER.toString());
-        orderElement.addElement("newElement").setText("test");
 
-        IQ response = (IQ) packetSender.syncSendPacket(iq);
-        System.out.println(response);
-
-        if (response == null) {
-            System.out.println("null response.");
-        }
-        if (response.getError() != null) {
-            System.out.println(response.getError());
-        }
-
-        System.out.println(response.getElement().element(IqElement.QUERY.toString()).element("response").getText());
-    }
-    
-    public static void main(String[] args) throws InterruptedException {
-        Order order = null;
-        XmppComponentManager xmppComponentA = new XmppComponentManager("test.fogbow.a", "password", "127.0.0.1", 5347, 5000L);
-        try {
-            xmppComponentA.connect();
-        } catch (ComponentException e) {
-            System.err.println("Conflict in the initialization of xmpp component.");
-            System.exit(128);
-        }
-        sendRequest(order, xmppComponentA);
+        LOGGER.debug("Jsonifying Order");
+        Gson gson = new Gson();
+        String orderJson = gson.toJson(order);
+        orderElement.setText(orderJson);
+        return iq;
     }
 }
