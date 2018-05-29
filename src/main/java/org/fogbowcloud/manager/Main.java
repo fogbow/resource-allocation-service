@@ -10,6 +10,7 @@ import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
 import org.fogbowcloud.manager.core.manager.plugins.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.FederationIdentityPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.LocalIdentityPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.attachment.AttachmentPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
@@ -43,6 +44,7 @@ public class Main implements ApplicationRunner {
         ComputePlugin computePlugin = this.instantiationInitService.getComputePlugin();
         NetworkPlugin networkPlugin = null;
         VolumePlugin volumePlugin = null;
+        AttachmentPlugin attachmentPlugin = null;
         LocalIdentityPlugin localIdentityPlugin = this.instantiationInitService.getLocalIdentityPlugin();
 
         FederationIdentityPlugin federationIdentityPlugin =
@@ -55,7 +57,7 @@ public class Main implements ApplicationRunner {
                 authorizationPlugin, this.properties);
 
         LocalInstanceProvider localInstanceProvider = new LocalInstanceProvider(computePlugin,
-                networkPlugin, volumePlugin, this.aaaController);
+                networkPlugin, volumePlugin, attachmentPlugin, this.aaaController);
         RemoteInstanceProvider remoteInstanceProvider = new RemoteInstanceProvider();
 
         this.processorController = new ProcessorController(this.properties, localInstanceProvider,
