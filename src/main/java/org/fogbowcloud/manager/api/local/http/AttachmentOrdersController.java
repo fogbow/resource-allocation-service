@@ -10,7 +10,7 @@ import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.instances.AttachmentInstance;
+import org.fogbowcloud.manager.core.models.orders.instances.VolumeAttachment;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,18 +45,18 @@ public class AttachmentOrdersController {
     }
     
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<AttachmentInstance>> getAllAttachments(
+    public ResponseEntity<List<VolumeAttachment>> getAllAttachments(
         @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException {
-        List<AttachmentInstance> attachmentInstance = this.applicationFacade.getAllAttachments(federationTokenValue);
+        List<VolumeAttachment> attachmentInstance = this.applicationFacade.getAllAttachments(federationTokenValue);
         return new ResponseEntity<>(attachmentInstance, HttpStatus.OK);
     }
     
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseEntity<AttachmentInstance> getAttachment(@PathVariable String attachmentId,
+    public ResponseEntity<VolumeAttachment> getAttachment(@PathVariable String attachmentId,
         @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException {
-        AttachmentInstance attachmentInstance = this.applicationFacade.getVolumeAttachment(attachmentId, federationTokenValue);
+        VolumeAttachment attachmentInstance = this.applicationFacade.getVolumeAttachment(attachmentId, federationTokenValue);
         return new ResponseEntity<>(attachmentInstance, HttpStatus.OK);
     }
     

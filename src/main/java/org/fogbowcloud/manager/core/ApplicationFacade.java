@@ -16,7 +16,7 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
-import org.fogbowcloud.manager.core.models.orders.instances.AttachmentInstance;
+import org.fogbowcloud.manager.core.models.orders.instances.VolumeAttachment;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.Instance;
 import org.fogbowcloud.manager.core.models.orders.instances.NetworkInstance;
@@ -184,21 +184,21 @@ public class ApplicationFacade {
         activateOrder(volumeAttachmentOrder, federationTokenValue, OrderType.ATTACHMENT);
     }
 
-    public List<AttachmentInstance> getAllAttachments(String federationTokenValue) throws UnauthenticatedException, UnauthorizedException, PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException {
-    	List<AttachmentInstance> attachmentInstances = new ArrayList<AttachmentInstance>();
+    public List<VolumeAttachment> getAllAttachments(String federationTokenValue) throws UnauthenticatedException, UnauthorizedException, PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException {
+    	List<VolumeAttachment> attachmentInstances = new ArrayList<VolumeAttachment>();
 
         List<Order> allOrders = getAllOrders(federationTokenValue, OrderType.ATTACHMENT);
         for (Order order : allOrders) {
-            AttachmentInstance instance = (AttachmentInstance) this.orderController
+            VolumeAttachment instance = (VolumeAttachment) this.orderController
                 .getResourceInstance(order);
             attachmentInstances.add(instance);
         }
         return attachmentInstances;
     }
 
-    public AttachmentInstance getVolumeAttachment(String orderId,
+    public VolumeAttachment getVolumeAttachment(String orderId,
             String federationTokenValue) throws UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
-    	return (AttachmentInstance) getResourceInstance(orderId, federationTokenValue,
+    	return (VolumeAttachment) getResourceInstance(orderId, federationTokenValue,
                 OrderType.ATTACHMENT);
     }
 
