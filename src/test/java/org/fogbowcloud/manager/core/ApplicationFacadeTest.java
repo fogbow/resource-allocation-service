@@ -1,34 +1,34 @@
-package org.fogbowcloud.manager.core;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
-
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
-import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
-import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
-import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
-import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.orders.OrderType;
-import org.fogbowcloud.manager.core.models.orders.UserData;
-import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
-import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.manager.constants.Operation;
-import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.services.AAAController;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mockito;
-
-public class ApplicationFacadeTest extends BaseUnitTests {
-
+//package org.fogbowcloud.manager.core;
+//
+//import java.util.Date;
+//import java.util.HashMap;
+//import java.util.List;
+//import java.util.Properties;
+//
+//import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
+//import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
+//import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
+//import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
+//import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+//import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
+//import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
+//import org.fogbowcloud.manager.core.models.orders.Order;
+//import org.fogbowcloud.manager.core.models.orders.OrderState;
+//import org.fogbowcloud.manager.core.models.orders.OrderType;
+//import org.fogbowcloud.manager.core.models.orders.UserData;
+//import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
+//import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
+//import org.fogbowcloud.manager.core.manager.constants.Operation;
+//import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
+//import org.fogbowcloud.manager.core.models.token.Token;
+//import org.fogbowcloud.manager.core.services.AAAController;
+//import org.junit.Assert;
+//import org.junit.Before;
+//import org.junit.Test;
+//import org.mockito.Mockito;
+//
+//public class ApplicationFacadeTest extends BaseUnitTests {
+//
 //	private ApplicationFacade application;
 //	private AAAController aaaController;
 //	private OrderController orderController;
@@ -1316,5 +1316,5 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 //        Token federationToken = new Token("fake-accessId", user, new Date(), new HashMap<String, String>());
 //	    return federationToken;
 //	}
-
-}
+//
+//}
