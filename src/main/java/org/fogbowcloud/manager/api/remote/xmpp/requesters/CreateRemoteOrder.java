@@ -5,16 +5,9 @@ import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.api.remote.xmpp.IqElement;
 import org.fogbowcloud.manager.api.remote.xmpp.RemoteMethod;
-import org.fogbowcloud.manager.api.remote.xmpp.XmppComponentManager;
-import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.jamppa.component.PacketSender;
-import org.xmpp.component.ComponentException;
 import org.xmpp.packet.IQ;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class CreateRemoteOrder {
 
@@ -53,6 +46,7 @@ public class CreateRemoteOrder {
 
         LOGGER.debug("Jsonifying Order");
         Gson gson = new Gson();
+//        order.setId(null); ??
         String orderJson = gson.toJson(order);
         orderElement.setText(orderJson);
         return iq;
