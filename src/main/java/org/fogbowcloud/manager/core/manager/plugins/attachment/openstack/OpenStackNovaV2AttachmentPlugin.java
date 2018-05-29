@@ -12,6 +12,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.manager.constants.OpenStackConfigurationConstants;
+import org.fogbowcloud.manager.core.manager.plugins.InstanceStateMapper;
 import org.fogbowcloud.manager.core.manager.plugins.attachment.AttachmentPlugin;
 import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
@@ -19,6 +20,7 @@ import org.fogbowcloud.manager.core.models.ResponseConstants;
 import org.fogbowcloud.manager.core.models.StatusResponse;
 import org.fogbowcloud.manager.core.models.StatusResponseMap;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
+import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.orders.instances.VolumeAttachment;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.json.JSONException;
@@ -29,14 +31,19 @@ import org.slf4j.LoggerFactory;
 public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
 
     private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
+	private static final String ID_JSON_FIELD = "id";
     private static final String OS_VOLUME_ATTACHMENTS = "/os-volume_attachments";
-    private static final String SERVERS = "/servers";
+    private static final String SEPARATOR = "/";
+    private static final String SERVERS = "/servers/";
+	private static final String SERVER_JSON_FIELD = "server";
+	private static final String STATUS_JSON_FIELD = "status";
     private static final String TENANT_ID = "tenantId";
     
     private final Logger LOGGER = LoggerFactory.getLogger(OpenStackNovaV2AttachmentPlugin.class);
     
     private Properties properties;
     private HttpClient client;
+	private InstanceStateMapper instanceStateMapper;
     
     public OpenStackNovaV2AttachmentPlugin(Properties properties) {
         this.properties = properties;
@@ -58,7 +65,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
             throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         }      
         
-        String endpoint = getPrefixEndpoint() + tenantId + SERVERS + "/" +  instanceId + OS_VOLUME_ATTACHMENTS;
+        String endpoint = getPrefixEndpoint(tenantId) + SERVERS + instanceId + OS_VOLUME_ATTACHMENTS;
         String responseStr = doPostRequest(endpoint, localToken.getAccessId(), jsonRequest);
         
         return getAttachmentIdJson(responseStr);
@@ -67,27 +74,43 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     @Override
     public void detachVolume(Token localToken, String instanceId, String attachmentId) throws RequestException {
         String tenantId = getTenantId(localToken);
-        String endpoint = getPrefixEndpoint() + tenantId + SERVERS + "/" + instanceId + OS_VOLUME_ATTACHMENTS + "/" + attachmentId;
+        String endpoint = getPrefixEndpoint(tenantId) + SERVERS + instanceId + OS_VOLUME_ATTACHMENTS + SEPARATOR + attachmentId;
         doDeleteRequest(endpoint, localToken.getAccessId());
     }
 
     @Override
-    public VolumeAttachment getInstance(Token localToken, String instanceId) throws RequestException {
-        LOGGER.info("Getting instance " + instanceId + " with token " + localToken);
+    public VolumeAttachment getInstance(Token localToken, String instanceId, String attachmentId) throws RequestException {
+    	LOGGER.info("Getting instance " + instanceId + " with token " + localToken);
         String tenantId = getTenantId(localToken);
         
-        String requestEndpoint = getComputeEndpoint(tenantId, SERVERS + "/" + instanceId);        
+        // ... /servers/{server_id}/os-volume_attachments/{volume_id}
+        String requestEndpoint = getPrefixEndpoint(tenantId) + SERVERS + instanceId + OS_VOLUME_ATTACHMENTS + SEPARATOR + attachmentId;
         String jsonResponse = doGetRequest(requestEndpoint, localToken);
         
         LOGGER.debug("Getting instance from json: " + jsonResponse);        
-        VolumeAttachment attachmentInstance = getInstanceFromJson(jsonResponse);
+        VolumeAttachment volumeAttachment = getInstanceFromJson(jsonResponse);
                
-        return attachmentInstance;
+        return volumeAttachment;
     }
     
-    private VolumeAttachment getInstanceFromJson(String jsonResponse) {
-        // TODO Auto-generated method stub
-        return null;
+    private VolumeAttachment getInstanceFromJson(String jsonResponse) throws RequestException {
+    	try {
+        	JSONObject rootServer = new JSONObject(jsonResponse);
+        	JSONObject serverJson = rootServer.getJSONObject(SERVER_JSON_FIELD);
+
+        	String id = serverJson.getString(ID_JSON_FIELD);
+        	InstanceState state = instanceStateMapper.getInstanceState(serverJson.getString(STATUS_JSON_FIELD));
+        	String serverId = "";
+        	String volumeId = "";
+        	String device = "";
+
+        	VolumeAttachment volumeAttachment = new VolumeAttachment(id, state, serverId, volumeId, device);
+        	return volumeAttachment;
+        	
+    	} catch (JSONException e) {
+    		LOGGER.warn("There was an exception while getting instances from json", e);
+        	throw new RequestException();
+    	}
     }
 
     private String doGetRequest(String endpoint, Token localToken) throws RequestException {
@@ -121,10 +144,6 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         checkStatusResponse(response, responseStr);
 
         return responseStr;
-    }
-
-    private String getComputeEndpoint(String tenantId, String suffix) {
-        return getPrefixEndpoint() + tenantId + suffix;
     }
 
     private String getAttachmentIdJson(String responseStr) {
@@ -202,8 +221,8 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         }
     }
     
-    private String getPrefixEndpoint() {
-        return this.properties.getProperty(OpenStackConfigurationConstants.COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT;
+    private String getPrefixEndpoint(String tenantId) {
+        return this.properties.getProperty(OpenStackConfigurationConstants.COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + tenantId;
     }
 
     private JSONObject generateJsonToAttach(String volume, String mountpoint) throws JSONException {

@@ -108,7 +108,7 @@ public class LocalInstanceProvider implements InstanceProvider {
             String instanceId = order.getInstanceId();
 
             if (instanceId != null) {
-                instance = getResourceInstance(instanceId, order.getType(), localToken);
+            	instance = getResourceInstance(order, order.getType(), localToken);
             } else {
                 // When there is no instance, an empty one is created with the appropriate state
                 instance = new Instance(null);
@@ -131,27 +131,34 @@ public class LocalInstanceProvider implements InstanceProvider {
         return instance;
     }
 
-    private Instance getResourceInstance(String instanceId, OrderType orderType, Token localToken)
-        throws RequestException {
-        Instance instance;
-        switch (orderType) {
-            case COMPUTE:
-                instance = this.computePlugin.getInstance(localToken, instanceId);
-                break;
+	private Instance getResourceInstance(Order order, OrderType orderType, Token localToken) throws RequestException {
+		Instance instance;
+		String attachmentId;
+		String instanceId = order.getInstanceId();
+		switch (orderType) {
+		case COMPUTE:
+			instance = this.computePlugin.getInstance(localToken, instanceId);
+			break;
 
-            case NETWORK:
-                instance = this.networkPlugin.getInstance(localToken, instanceId);
-                break;
+		case NETWORK:
+			instance = this.networkPlugin.getInstance(localToken, instanceId);
+			break;
 
-            case VOLUME:
-                instance = this.volumePlugin.getInstance(localToken, instanceId);
-                break;
+		case VOLUME:
+			instance = this.volumePlugin.getInstance(localToken, instanceId);
+			break;
 
-            case ATTACHMENT:
-                instance = this.attachmentPlugin.getInstance(localToken, instanceId);
-            default:
-                throw new UnsupportedOperationException("Not implemented yet.");
-        }
-        return instance;
-    }
+		case ATTACHMENT:
+			AttachmentOrder attachmentOrder = (AttachmentOrder) order;
+			instanceId = attachmentOrder.getSource();
+			attachmentId = attachmentOrder.getTarget();
+			instance = this.attachmentPlugin.getInstance(localToken, instanceId, attachmentId);
+			break;
+
+		default:
+			throw new UnsupportedOperationException("Not implemented yet.");
+		}
+		return instance;
+	}
+    
 }
