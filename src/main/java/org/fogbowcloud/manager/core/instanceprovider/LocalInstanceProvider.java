@@ -4,11 +4,13 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.manager.plugins.attachment.AttachmentPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.manager.plugins.network.NetworkPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.volume.VolumePlugin;
+import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -24,16 +26,18 @@ public class LocalInstanceProvider implements InstanceProvider {
     private final ComputePlugin computePlugin;
     private final NetworkPlugin networkPlugin;
     private final VolumePlugin volumePlugin;
+    private final AttachmentPlugin attachmentPlugin;
     private final AAAController aaaController;
 
     private static final Logger LOGGER = Logger.getLogger(LocalInstanceProvider.class);
 
     public LocalInstanceProvider(ComputePlugin computePlugin, NetworkPlugin networkPlugin,
-            VolumePlugin volumePlugin, AAAController aaaController) {
+            VolumePlugin volumePlugin, AttachmentPlugin attachmentPlugin, AAAController aaaController) {
         super();
         this.computePlugin = computePlugin;
         this.networkPlugin = networkPlugin;
         this.volumePlugin = volumePlugin;
+        this.attachmentPlugin = attachmentPlugin;
         this.aaaController = aaaController;
     }
 
@@ -59,6 +63,10 @@ public class LocalInstanceProvider implements InstanceProvider {
                 VolumeOrder volumeOrder = (VolumeOrder) order;
                 requestInstance = this.volumePlugin.requestInstance(volumeOrder, localToken);
                 break;
+                
+            case ATTACHMENT:
+                AttachmentOrder attachmentOrder = (AttachmentOrder) order;
+                requestInstance = this.attachmentPlugin.attachVolume(localToken, attachmentOrder);
         }
         if (requestInstance == null) {
             throw new UnsupportedOperationException("Not implemented yet.");
@@ -81,6 +89,9 @@ public class LocalInstanceProvider implements InstanceProvider {
             case NETWORK:
                 this.networkPlugin.deleteInstance(localToken, order.getInstanceId());
                 break;
+            case ATTACHMENT:
+                AttachmentOrder attachmentOrder = (AttachmentOrder) order;
+                this.attachmentPlugin.detachVolume(localToken, attachmentOrder.getSource(), attachmentOrder.getTarget());
             default:
                 LOGGER.error("Undefined type " + order.getType());
                 break;
@@ -136,6 +147,8 @@ public class LocalInstanceProvider implements InstanceProvider {
                 instance = this.volumePlugin.getInstance(localToken, instanceId);
                 break;
 
+            case ATTACHMENT:
+                instance = this.attachmentPlugin.getInstance(localToken, instanceId);
             default:
                 throw new UnsupportedOperationException("Not implemented yet.");
         }
