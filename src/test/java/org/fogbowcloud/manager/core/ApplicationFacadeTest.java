@@ -15,6 +15,7 @@ import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.manager.constants.Operation;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
@@ -23,6 +24,7 @@ import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
+import org.fogbowcloud.manager.core.models.orders.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.NetworkInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.VolumeInstance;
@@ -1339,11 +1341,424 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		ComputeOrder order = new ComputeOrder(federationUser, "fake-member-id", "fake-member-id", 2, 2, 30,
 				"fake-image-name", new UserData(), "fake-public-key");
 		
-		NetworkInstance computeInstanceExcepted = new NetworkInstance(order.getId());
+		ComputeInstance computeInstanceExcepted = new ComputeInstance(order.getId());
 		Mockito.doReturn(computeInstanceExcepted).when(this.orderController).getResourceInstance(Mockito.eq(order));
 		order.setInstanceId(computeInstanceExcepted.getId());
 		
 		return order;
 	}
+    
+    @Test
+    public void testCreateAttachmentOrderUnauthenticated() throws Exception {
+        AttachmentOrder order = createAttachmentOrder();
+
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        try {
+            this.application.createAttachment(order, "");
+            Assert.fail();
+        } catch (UnauthenticatedException e) {
+            Assert.assertNull(order.getOrderState());
+        }
+    }
+
+    @Test
+    public void testCreateAttachmentOrderTokenUnauthenticated() throws Exception {
+        AttachmentOrder order = createAttachmentOrder();
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController)
+                .getFederationUser(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        Assert.assertNull(order.getOrderState());
+
+        try {
+            this.application.createAttachment(order, "");
+            Assert.fail();
+        } catch (UnauthenticatedException e) {
+            Assert.assertNull(order.getOrderState());
+        }
+    }
+    
+    @Test
+    public void testCreateAttachmentOrderTokenUnauthorized() throws Exception {
+        AttachmentOrder order = createAttachmentOrder();
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        Assert.assertNull(order.getOrderState());
+
+        try {
+            this.application.createAttachment(order, "");
+            Assert.fail();
+        } catch (UnauthorizedException e) {
+            Assert.assertNull(order.getOrderState());
+        }
+    }
+    
+    @Test
+    public void testCreateAttachmentOrderUnauthorizedOperation() throws Exception {
+        AttachmentOrder order = createAttachmentOrder();
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(FederationUser.class),
+                Mockito.any(Operation.class), Mockito.any(OrderType.class));
+
+        Assert.assertNull(order.getOrderState());
+
+        try {
+            this.application.createAttachment(order, "");
+            Assert.fail();
+        } catch (UnauthorizedException e) {
+            Assert.assertNull(order.getOrderState());
+        }
+    }
+
+    @Test(expected = OrderManagementException.class)
+    public void testCreateNullAttachmentOrder() throws Exception {
+        AttachmentOrder order = createAttachmentOrder();
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        Assert.assertNull(order.getOrderState());
+
+        this.application.createNetwork(null, "");
+    }
+
+    @Ignore
+    @Test
+    public void testGetAttachmentOrder() throws Exception {
+        AttachmentOrder order = createAttachmentOrder();
+
+        this.orderController.activateOrder(order, order.getFederationUser());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
+
+        AttachmentInstance attachmentInstanceExcepted = new AttachmentInstance("");
+        Mockito.doReturn(attachmentInstanceExcepted).when(this.orderController).getResourceInstance(Mockito.eq(order));
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        NetworkInstance actualInstance = this.application.getNetwork(order.getId(), "");
+
+        Assert.assertSame(attachmentInstanceExcepted, actualInstance);
+    }
+
+    @Test(expected = UnauthenticatedException.class)
+    public void testGetAttachmentOrderUnauthenticated() throws Exception {
+        AttachmentOrder order = createAttachmentOrder();
+
+        this.orderController.activateOrder(order, order.getFederationUser());
+
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        this.application.getAttachment(order.getId(), "");
+    }
+    
+    @Test(expected = UnauthorizedException.class)
+    public void testGetAttachmentOrderTokenUnauthorized() throws Exception {
+        AttachmentOrder order = createAttachmentOrder();
+
+        this.orderController.activateOrder(order, order.getFederationUser());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        this.application.getAttachment(order.getId(), "");
+    }
+
+    @Test(expected = UnauthenticatedException.class)
+    public void testGetAttachmentOrderTokenUnauthenticated() throws Exception {
+        AttachmentOrder order = createAttachmentOrder();
+
+        this.orderController.activateOrder(order, order.getFederationUser());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController)
+                .getFederationUser(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        this.application.getAttachment(order.getId(), "");
+    }
+
+    @Test(expected = UnauthorizedException.class)
+    public void testGetAttachmentOrderUnauthorizedOperation() throws Exception {
+        AttachmentOrder order = createAttachmentOrder();
+
+        this.orderController.activateOrder(order, order.getFederationUser());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(FederationUser.class),
+                Mockito.any(Operation.class), Mockito.any(Order.class));
+
+        this.application.getAttachment(order.getId(), "");
+    }
+
+    @Test
+    public void testGetAllAttachments() throws OrderManagementException, UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+        AttachmentOrder order = createAttachmentOrder();
+
+        this.orderController.activateOrder(order, order.getFederationUser());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        List<AttachmentInstance> allAttachments = this.application.getAllAttachments("");
+
+        Assert.assertEquals(1, allAttachments.size());
+    }
+    
+    @Test
+    public void testGetAllAttachmentEmpty()
+            throws OrderManagementException, UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+        AttachmentOrder order = createAttachmentOrder();
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        List<AttachmentInstance> allAttachments = this.application.getAllAttachments("");
+
+        Assert.assertEquals(0, allAttachments.size());
+    }
+
+    @Test(expected = UnauthenticatedException.class)
+    public void testGetAllAttachmentTokenUnauthenticated()
+            throws OrderManagementException, UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+        AttachmentOrder order = createAttachmentOrder();
+
+        this.orderController.activateOrder(order, order.getFederationUser());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController)
+                .getFederationUser(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        this.application.getAllAttachments("");
+    }
+
+    @Test(expected = UnauthorizedException.class)
+    public void testGetAllAttachmentsTokenUnauthorized()
+            throws OrderManagementException, UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+        AttachmentOrder order = createAttachmentOrder();
+
+        this.orderController.activateOrder(order, order.getFederationUser());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        this.application.getAllAttachments("");
+    }
+
+    @Test(expected = UnauthorizedException.class)
+    public void testGetAllAttachmentOperationUnauthorized()
+            throws OrderManagementException, UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+        AttachmentOrder order = createAttachmentOrder();
+
+        this.orderController.activateOrder(order, order.getFederationUser());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
+                Mockito.any(OrderType.class));
+
+        this.application.getAllAttachments("");
+    }
+    
+    @Test
+    public void testDeleteAttachmentOrder() throws Exception {
+        AttachmentOrder order = createAttachmentOrder();
+
+        this.orderController.activateOrder(order, order.getFederationUser());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        this.application.deleteAttachment(order.getId(), "");
+
+        Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
+    }
+
+    @Test
+    public void testDeleteAttachmentOrderUnathenticated() throws Exception {
+        AttachmentOrder order = createAttachmentOrder();
+
+        this.orderController.activateOrder(order, order.getFederationUser());
+
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString(), Mockito.any(FederationUser.class),
+                Mockito.any(OrderType.class));
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        try {
+            this.application.deleteAttachment(order.getId(), "");
+            Assert.fail();
+        } catch (UnauthenticatedException e) {
+            Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+        }
+    }
+
+    @Test
+    public void testDeleteAttachmentOrderTokenUnathenticated() throws Exception {
+        AttachmentOrder order = createAttachmentOrder();
+
+        this.orderController.activateOrder(order, order.getFederationUser());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController)
+                .getFederationUser(Mockito.anyString());
+
+        try {
+            this.application.deleteAttachment(order.getId(), "");
+            Assert.fail();
+        } catch (UnauthenticatedException e) {
+            Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+        }
+    }
+
+    @Test
+    public void testDeleteAttachmentOrderTokenUnauthorized() throws Exception {
+        AttachmentOrder order = createAttachmentOrder();
+
+        this.orderController.activateOrder(order, order.getFederationUser());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
+
+        try {
+            this.application.deleteAttachment(order.getId(), "");
+            Assert.fail();
+        } catch (UnauthorizedException e) {
+            Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+        }
+    }
+
+    @Ignore
+    @Test(expected = OrderManagementException.class)
+    public void testDeleteAttachmentOrderNullGet() throws Exception {
+        AttachmentOrder order = createAttachmentOrder();
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(null).when(this.orderController).getOrder(Mockito.anyString(), Mockito.any(FederationUser.class),
+                Mockito.any(OrderType.class));
+
+        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
+
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
+                Mockito.any(Order.class));
+
+        this.application.deleteAttachment(order.getId(), "");
+    }
+
+    @Test
+    public void testDeleteAttachmentOrderUnauthorizedOperation() throws Exception {
+        AttachmentOrder order = createAttachmentOrder();
+
+        this.orderController.activateOrder(order, order.getFederationUser());
+
+        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+
+        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
+
+        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(FederationUser.class),
+                Mockito.any(Operation.class), Mockito.any(Order.class));
+
+        Mockito.doNothing().when(this.orderController).deleteOrder(Mockito.any(Order.class));
+
+        try {
+            this.application.deleteAttachment(order.getId(), "");
+            Assert.fail();
+        } catch (UnauthorizedException e) {
+            Assert.assertEquals(OrderState.OPEN, order.getOrderState());
+        }
+    }
+    
+    private AttachmentOrder createAttachmentOrder()
+            throws PropertyNotSpecifiedException, TokenCreationException, RequestException,
+            UnauthorizedException, InstanceNotFoundException {
+        FederationUser federationUser = new FederationUser(4l, new HashMap<>());
+
+        AttachmentOrder order = new AttachmentOrder(federationUser, "fake-member-id",
+                "fake-member-id", "fake-source-id", "fake-target-id", "fake-device-mount-point");
+
+        AttachmentInstance attachmentInstanceExcepted = new AttachmentInstance(order.getId());
+        
+        Mockito.doReturn(attachmentInstanceExcepted).when(this.orderController)
+                .getResourceInstance(Mockito.eq(order));
+        order.setInstanceId(attachmentInstanceExcepted.getId());
+
+        return order;
+    }
 
 }
