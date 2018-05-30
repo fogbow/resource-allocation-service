@@ -14,12 +14,12 @@ import org.jamppa.component.PacketSender;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
 
-public class CreateRemoteCompute implements RemoteRequest {
+public class CreateRemoteCompute implements RemoteRequest<Void> {
 
     private static final Logger LOGGER = Logger.getLogger(CreateRemoteCompute.class);
 
-    PacketSender packetSender;
-    Order order;
+    private PacketSender packetSender;
+    private Order order;
 
     public CreateRemoteCompute(PacketSender packetSender, Order order) {
         this.packetSender = packetSender;
@@ -27,13 +27,13 @@ public class CreateRemoteCompute implements RemoteRequest {
     }
 
     @Override
-    public void send() throws RemoteRequestException, OrderManagementException, UnauthorizedException {
+    public Void send() throws RemoteRequestException, OrderManagementException, UnauthorizedException {
         if (packetSender == null) {
             LOGGER.warn("Packet sender not set.");
             throw new IllegalArgumentException("Packet sender not set.");
         }
 
-        IQ iq = createIq(order);
+        IQ iq = createIq();
         IQ response = (IQ) packetSender.syncSendPacket(iq);
 
         if (response == null) {
@@ -50,9 +50,10 @@ public class CreateRemoteCompute implements RemoteRequest {
             }
         }
         LOGGER.debug("Request for order: " + order.getId() + " has been sent to " + order.getProvidingMember());
+        return null;
     }
 
-    private static IQ createIq(Order order) {
+    private IQ createIq() {
         LOGGER.debug("Creating IQ for order: " + order.getId());
 
         IQ iq = new IQ(IQ.Type.set);

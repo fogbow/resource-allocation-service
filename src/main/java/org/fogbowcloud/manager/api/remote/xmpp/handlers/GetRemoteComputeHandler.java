@@ -30,14 +30,14 @@ public class GetRemoteComputeHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
-        IQ response = IQ.createResultIQ(iq);
-
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
         Element remoteOrderIdElement = queryElement.element(IqElement.REMOTE_ORDER_ID.toString());
         String orderId = remoteOrderIdElement.getText();
 
         Element federationUserElement = iq.getElement().element(IqElement.FEDERATION_USER.toString());
         FederationUser federationUser = new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
+
+        IQ response = IQ.createResultIQ(iq);
 
         try {
             ComputeInstance compute;
@@ -50,9 +50,11 @@ public class GetRemoteComputeHandler extends AbstractQueryHandler {
             LOGGER.error("Unexpected error.");
             response.setError(PacketError.Condition.not_authorized);
         } catch (PropertyNotSpecifiedException e) {
-            LOGGER.error("", e);
+            // TODO: Switch this error for an appropriate one.
+            response.setError(PacketError.Condition.internal_server_error);
         } catch (RequestException e) {
-            LOGGER.error("", e);
+            // TODO: Switch this error for an appropriate one.
+            response.setError(PacketError.Condition.internal_server_error);
         } catch (InstanceNotFoundException e) {
             LOGGER.error("The instance does not exist.", e);
             response.setError(PacketError.Condition.item_not_found);

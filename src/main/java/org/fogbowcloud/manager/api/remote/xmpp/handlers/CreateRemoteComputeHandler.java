@@ -16,7 +16,7 @@ import org.xmpp.packet.PacketError;
 public class CreateRemoteComputeHandler extends AbstractQueryHandler {
 
     private static final Logger LOGGER = Logger.getLogger(CreateRemoteComputeHandler.class);
-    RemoteFacade remoteFacade;
+    private RemoteFacade remoteFacade;
 
     public CreateRemoteComputeHandler() {
         super(RemoteMethod.CREATE_REMOTE_ORDER.toString());

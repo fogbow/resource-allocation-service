@@ -40,6 +40,11 @@ public class RemoteFacade {
                 OrderType.COMPUTE);
     }
 
+    public void deleteCompute(String computeId, FederationUser federationUser)
+            throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
+        deleteOrder(computeId, federationUser, OrderType.COMPUTE);
+    }
+
     private void activateOrder(Order order) throws UnauthorizedException, OrderManagementException {
         this.aaaController.authorize(order.getFederationUser(), Operation.CREATE, order);
         this.orderController.activateOrder(order, order.getFederationUser());
@@ -53,6 +58,14 @@ public class RemoteFacade {
         this.aaaController.authorize(federationUser, Operation.GET, order);
 
         return this.orderController.getResourceInstance(order);
+    }
+
+    private void deleteOrder(String orderId, FederationUser federationUser, OrderType orderType)
+            throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
+        Order order = this.orderController.getOrder(orderId, federationUser, orderType);
+        this.aaaController.authorize(federationUser, Operation.DELETE, order);
+
+        this.orderController.deleteOrder(order);
     }
 
     public void setAAAController(AAAController aaaController) {
