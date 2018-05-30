@@ -15,7 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class TestDefaultLaunchCommandGenerator {
+public class DefaultLaunchCommandGeneratorTest {
 
     private Properties properties;
 

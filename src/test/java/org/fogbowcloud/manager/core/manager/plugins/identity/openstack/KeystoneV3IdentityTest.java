@@ -32,7 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class TestKeystoneV3Identity {
+public class KeystoneV3IdentityTest {
 
     private static final String IDENTITY_URL_KEY = "identity_url";
     private final String KEYSTONE_URL = "http://localhost:" + PluginHelper.PORT_ENDPOINT;
