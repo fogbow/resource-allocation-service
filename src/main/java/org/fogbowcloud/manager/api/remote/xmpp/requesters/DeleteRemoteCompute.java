@@ -8,6 +8,6 @@ public class DeleteRemoteCompute implements RemoteRequest {
 
     @Override
     public void send() throws RemoteRequestException, OrderManagementException, UnauthorizedException {
-        
+
     }
 }

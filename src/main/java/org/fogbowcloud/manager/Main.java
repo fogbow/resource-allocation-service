@@ -2,6 +2,8 @@ package org.fogbowcloud.manager;
 
 import java.util.Map;
 import java.util.Properties;
+
+import org.fogbowcloud.manager.api.remote.xmpp.XmppComponentManager;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.OrderController;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
@@ -37,7 +39,6 @@ public class Main implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-
         this.instantiationInitService = new InstantiationInitService();
         this.properties = this.instantiationInitService.getProperties();
 
@@ -58,7 +59,16 @@ public class Main implements ApplicationRunner {
 
         LocalInstanceProvider localInstanceProvider = new LocalInstanceProvider(computePlugin,
                 networkPlugin, volumePlugin, attachmentPlugin, this.aaaController);
-        RemoteInstanceProvider remoteInstanceProvider = new RemoteInstanceProvider();
+
+        // FIXME retrieve from conf file
+        String jid = "";
+        String password = "";
+        String xmppServerIp = "";
+        int xmppServerPort = -1;
+        long timeout = 5000L;
+        XmppComponentManager xmppComponentManager = new XmppComponentManager(jid,
+                password, xmppServerIp, xmppServerPort, timeout);
+        RemoteInstanceProvider remoteInstanceProvider = new RemoteInstanceProvider(xmppComponentManager);
 
         this.processorController = new ProcessorController(this.properties, localInstanceProvider,
                 remoteInstanceProvider, computePlugin, localIdentityPlugin,
