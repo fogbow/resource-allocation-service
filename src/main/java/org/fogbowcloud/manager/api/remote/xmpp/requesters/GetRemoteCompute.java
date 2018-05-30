@@ -7,11 +7,13 @@ import org.fogbowcloud.manager.api.remote.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.api.remote.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.api.remote.xmpp.IqElement;
 import org.fogbowcloud.manager.api.remote.xmpp.RemoteMethod;
+import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.jamppa.component.PacketSender;
 import org.xmpp.packet.IQ;
 
-public class GetRemoteCompute implements RemoteRequest {
+public class GetRemoteCompute implements RemoteRequest<ComputeInstance> {
 
     private static final Logger LOGGER = Logger.getLogger(GetRemoteCompute.class);
 
@@ -28,7 +30,7 @@ public class GetRemoteCompute implements RemoteRequest {
     }
 
     @Override
-    public void send() throws RemoteRequestException {
+    public ComputeInstance send() throws RemoteRequestException {
         if (this.packetSender == null) {
             throw new IllegalArgumentException("Packet sender not set.");
         }
@@ -44,6 +46,8 @@ public class GetRemoteCompute implements RemoteRequest {
             // TODO: Add errors treatment.
             throw new UnexpectedException(response.getError().toString());
         }
+        ComputeInstance computeInstance = getInstanceFromResponse(response);
+        return computeInstance;
     }
 
     private IQ createIq() {
@@ -58,5 +62,12 @@ public class GetRemoteCompute implements RemoteRequest {
         Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());
         userElement.setText(new Gson().toJson(this.user));
         return iq;
+    }
+
+    private ComputeInstance getInstanceFromResponse(IQ response) {
+        Element queryElement = response.getElement().element(IqElement.QUERY.toString());
+        String instanceStr = queryElement.element(IqElement.INSTANCE.toString()).getText();
+        ComputeInstance instance = new Gson().fromJson(instanceStr, ComputeInstance.class);
+        return instance;
     }
 }
