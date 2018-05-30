@@ -9,6 +9,7 @@ public class PropertiesUtil {
 
 	private static Properties properties = null;
 	
+	// TODO check problems with singleton in the tests
     public static Properties getPropertie() {
         synchronized (SharedOrderHolders.class) {
             if (properties == null) {
