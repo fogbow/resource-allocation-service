@@ -4,11 +4,13 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.manager.plugins.attachment.AttachmentPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.manager.plugins.network.NetworkPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.volume.VolumePlugin;
+import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -24,16 +26,18 @@ public class LocalInstanceProvider implements InstanceProvider {
     private final ComputePlugin computePlugin;
     private final NetworkPlugin networkPlugin;
     private final VolumePlugin volumePlugin;
+    private final AttachmentPlugin attachmentPlugin;
     private final AAAController aaaController;
 
     private static final Logger LOGGER = Logger.getLogger(LocalInstanceProvider.class);
 
     public LocalInstanceProvider(ComputePlugin computePlugin, NetworkPlugin networkPlugin,
-            VolumePlugin volumePlugin, AAAController aaaController) {
+            VolumePlugin volumePlugin, AttachmentPlugin attachmentPlugin, AAAController aaaController) {
         super();
         this.computePlugin = computePlugin;
         this.networkPlugin = networkPlugin;
         this.volumePlugin = volumePlugin;
+        this.attachmentPlugin = attachmentPlugin;
         this.aaaController = aaaController;
     }
 
@@ -45,9 +49,7 @@ public class LocalInstanceProvider implements InstanceProvider {
         switch (order.getType()) {
             case COMPUTE:
                 ComputeOrder computeOrder = (ComputeOrder) order;
-                String imageName = computeOrder.getImageName();
-                requestInstance =
-                        this.computePlugin.requestInstance(computeOrder, localToken, imageName);
+                requestInstance = this.computePlugin.requestInstance(computeOrder, localToken);
                 break;
 
             case NETWORK:
@@ -59,6 +61,10 @@ public class LocalInstanceProvider implements InstanceProvider {
                 VolumeOrder volumeOrder = (VolumeOrder) order;
                 requestInstance = this.volumePlugin.requestInstance(volumeOrder, localToken);
                 break;
+
+            case ATTACHMENT:
+                AttachmentOrder attachmentOrder = (AttachmentOrder) order;
+                requestInstance = this.attachmentPlugin.requestInstance(attachmentOrder, localToken);
         }
         if (requestInstance == null) {
             throw new UnsupportedOperationException("Not implemented yet.");
@@ -66,10 +72,9 @@ public class LocalInstanceProvider implements InstanceProvider {
         return requestInstance;
     }
 
-    // TODO check the possibility of changing the parameter 'instance' to 'order'
     @Override
-    public void deleteInstance(Order order)
-        throws RequestException, TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException {
+    public void deleteInstance(Order order) throws RequestException, TokenCreationException,
+            UnauthorizedException, PropertyNotSpecifiedException {
         Token localToken = this.aaaController.getLocalToken();
         switch (order.getType()) {
             case COMPUTE:
@@ -81,6 +86,8 @@ public class LocalInstanceProvider implements InstanceProvider {
             case NETWORK:
                 this.networkPlugin.deleteInstance(localToken, order.getInstanceId());
                 break;
+            case ATTACHMENT:
+                this.attachmentPlugin.deleteInstance(localToken, order.getInstanceId());
             default:
                 LOGGER.error("Undefined type " + order.getType());
                 break;
@@ -89,7 +96,7 @@ public class LocalInstanceProvider implements InstanceProvider {
 
     @Override
     public Instance getInstance(Order order) throws RequestException, TokenCreationException,
-        UnauthorizedException, PropertyNotSpecifiedException, InstanceNotFoundException {
+            UnauthorizedException, PropertyNotSpecifiedException, InstanceNotFoundException {
         Instance instance;
         Token localToken = this.aaaController.getLocalToken();
 
@@ -97,7 +104,7 @@ public class LocalInstanceProvider implements InstanceProvider {
             String instanceId = order.getInstanceId();
 
             if (instanceId != null) {
-                instance = getResourceInstance(instanceId, order.getType(), localToken);
+                instance = getResourceInstance(order, order.getType(), localToken);
             } else {
                 // When there is no instance, an empty one is created with the appropriate state
                 instance = new Instance(null);
@@ -120,9 +127,11 @@ public class LocalInstanceProvider implements InstanceProvider {
         return instance;
     }
 
-    private Instance getResourceInstance(String instanceId, OrderType orderType, Token localToken)
-        throws RequestException {
+    private Instance getResourceInstance(Order order, OrderType orderType, Token localToken)
+            throws RequestException {
         Instance instance;
+        String instanceId = order.getInstanceId();
+
         switch (orderType) {
             case COMPUTE:
                 instance = this.computePlugin.getInstance(localToken, instanceId);
@@ -136,9 +145,15 @@ public class LocalInstanceProvider implements InstanceProvider {
                 instance = this.volumePlugin.getInstance(localToken, instanceId);
                 break;
 
+            case ATTACHMENT:
+                instance = this.attachmentPlugin.getInstance(localToken, instanceId);
+                break;
+
             default:
                 throw new UnsupportedOperationException("Not implemented yet.");
         }
+
         return instance;
     }
+    
 }

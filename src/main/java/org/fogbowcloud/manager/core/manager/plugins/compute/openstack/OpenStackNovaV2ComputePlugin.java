@@ -18,6 +18,7 @@ import org.fogbowcloud.manager.core.manager.plugins.compute.DefaultLaunchCommand
 import org.fogbowcloud.manager.core.manager.plugins.compute.LaunchCommandGenerator;
 import org.fogbowcloud.manager.core.models.*;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.token.Token;
@@ -81,7 +82,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         this.initClient();
     }
 
-    public String requestInstance(ComputeOrder computeOrder, Token localToken, String imageId)
+    public String requestInstance(ComputeOrder computeOrder, Token localToken)
             throws RequestException {
         LOGGER.debug("Requesting instance with token=" + localToken);
 
@@ -91,6 +92,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         String tenantId = getTenantId(localToken);
 
         String networkId = getNetworkId();
+        
+        String imageId = computeOrder.getImageName();
 
         String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
 
@@ -477,12 +480,12 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     public void deleteInstances(Token localToken) {}
 
     @Override
-    public String attachVolume(Token localToken, VolumeLink volumeLink) {
+    public String attachVolume(Token localToken, AttachmentOrder volumeLink) {
         return null;
     }
 
     @Override
-    public String detachVolume(Token localToken, VolumeLink volumeLink) {
+    public String detachVolume(Token localToken, AttachmentOrder volumeLink) {
         return null;
     }
 

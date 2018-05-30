@@ -115,8 +115,8 @@ public class OpenStackComputePluginTest {
                 .when(this.novaV2ComputeOpenStack)
                 .doPostRequest(eq(FAKE_ENDPOINT), eq(localToken), eq(json));
 
-        String instanceId =
-        		this.novaV2ComputeOpenStack.requestInstance(this.computeOrder, this.localToken, FAKE_IMAGE_ID);
+        String instanceId = novaV2ComputeOpenStack.requestInstance(computeOrder, localToken);
+
         assertEquals(instanceId, FAKE_INSTANCE_ID);
     }
 
@@ -136,7 +136,7 @@ public class OpenStackComputePluginTest {
                 .when(novaV2ComputeOpenStack)
                 .doPostRequest(anyString(), any(Token.class), any(JSONObject.class));
 
-        novaV2ComputeOpenStack.requestInstance(computeOrder, localToken, FAKE_IMAGE_ID);
+        novaV2ComputeOpenStack.requestInstance(computeOrder, localToken);
     }
 
     @Test
