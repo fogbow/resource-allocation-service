@@ -181,7 +181,7 @@ public class ApplicationFacade {
 
     public void createAttachment(AttachmentOrder attachmentOrder,
             String federationTokenValue) throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
-        activateOrder(attachmentOrder, federationTokenValue, OrderType.ATTACHMENT);
+        activateOrder(attachmentOrder, federationTokenValue);
     }
 
     public List<AttachmentInstance> getAllAttachments(String federationTokenValue) throws UnauthenticatedException, UnauthorizedException, PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException {
