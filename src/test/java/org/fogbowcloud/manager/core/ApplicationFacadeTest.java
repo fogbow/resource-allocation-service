@@ -32,6 +32,7 @@ import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.services.AAAController;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
