@@ -4,11 +4,12 @@ import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
+import org.fogbowcloud.manager.utils.PropertiesUtil;
 
 public class OrderStateTransitioner {
 
     // TODO implement this
-    private static final String LOCAL_MEMBER_ID = "";
+    private static final String LOCAL_MEMBER_ID = PropertiesUtil.getLocalMemberId();
 
     public static void transition(Order order, OrderState newState)
         throws OrderStateTransitionException {

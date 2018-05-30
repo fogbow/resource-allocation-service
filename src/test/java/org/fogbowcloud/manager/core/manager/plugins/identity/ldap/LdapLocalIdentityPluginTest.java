@@ -4,10 +4,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
 import org.apache.commons.codec.binary.Base64;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.manager.plugins.PluginHelper;
-import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.json.JSONObject;
 import org.junit.Assert;
@@ -15,10 +14,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class TestLdapLocalIdentityPlugin {
+public class LdapLocalIdentityPluginTest {
 
     private static final String IDENTITY_URL_KEY = "identity_url";
-    private final String KEYSTONE_URL = "http://localhost:" + PluginHelper.PORT_ENDPOINT;
+    private final String KEYSTONE_URL = "http://localhost:0000";
 
     private final String MOCK_SIGNATURE = "mock_signature";
 
