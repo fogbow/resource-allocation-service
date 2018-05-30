@@ -1,12 +1,10 @@
 package org.fogbowcloud.manager.utils;
 
 import java.util.Map;
+
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.manager.constants.CommonConfigurationConstants;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
-import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
 import org.json.JSONObject;
 
 /** Class to check SSH connectivity with an compute instance. */

@@ -75,11 +75,11 @@ public class OrderController {
     }
 
     public void deleteOrder(Order order) throws OrderManagementException {
+    	if (order == null) {
+    		String message = "Cannot delete a null order";
+    		throw new OrderManagementException(message);
+    	}
         synchronized (order) {
-            if (order == null) {
-                String message = "Cannot delete a null order";
-                throw new OrderManagementException(message);
-            }
 
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.CLOSED)) {

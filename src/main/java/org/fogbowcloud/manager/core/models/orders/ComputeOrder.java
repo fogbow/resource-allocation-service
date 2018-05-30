@@ -1,8 +1,8 @@
 package org.fogbowcloud.manager.core.models.orders;
 
 import java.util.UUID;
+
 import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.models.token.Token;
 
 public class ComputeOrder extends Order {
 
