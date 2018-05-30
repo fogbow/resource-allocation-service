@@ -5,6 +5,8 @@ import org.fogbowcloud.manager.core.models.token.FederationUser;
 
 public class AttachmentOrder extends Order {
 
+    private static final String SEPARATOR_ID = "|";
+
     /** this attribute refers to the instance of the computer where the volume will be attached */
     private String source;
 
@@ -48,6 +50,11 @@ public class AttachmentOrder extends Order {
 
     public String getDevice() {
         return this.device;
+    }
+    
+    @Override
+    public String getInstanceId() {
+        return getSource()+ SEPARATOR_ID + getTarget();
     }
 
     @Override

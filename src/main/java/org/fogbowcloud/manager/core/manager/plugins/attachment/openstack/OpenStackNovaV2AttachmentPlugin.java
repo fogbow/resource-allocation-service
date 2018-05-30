@@ -20,7 +20,6 @@ import org.fogbowcloud.manager.core.models.ResponseConstants;
 import org.fogbowcloud.manager.core.models.StatusResponse;
 import org.fogbowcloud.manager.core.models.StatusResponseMap;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
-import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.orders.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
@@ -34,7 +33,8 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
 	private static final String ID_JSON_FIELD = "id";
     private static final String OS_VOLUME_ATTACHMENTS = "/os-volume_attachments";
-    private static final String SEPARATOR = "/";
+    private static final String SEPARATOR_ENPOINT = "/";
+    private static final String SEPARATOR_ID = "|";
     private static final String SERVERS = "/servers/";
 	private static final String SERVER_JSON_FIELD = "server";
 	private static final String STATUS_JSON_FIELD = "status";
@@ -51,7 +51,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     }
 
     @Override
-    public String attachVolume(Token localToken, AttachmentOrder attachmentOrder) throws RequestException {
+    public String requestInstance(AttachmentOrder attachmentOrder, Token localToken) throws RequestException {
         String tenantId = getTenantId(localToken);
         
         String serverId = attachmentOrder.getSource();
@@ -73,27 +73,32 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     }
     
     @Override
-    public void detachVolume(Token localToken, Order order) throws RequestException {
-        AttachmentOrder attachmentOrder = (AttachmentOrder) order;
+    public void deleteInstance(Token localToken, String instanceId) throws RequestException {
         String tenantId = getTenantId(localToken);
         
-        String serverId = attachmentOrder.getSource();
-        String volumeId = attachmentOrder.getTarget();
+        String[] separatorInstanceId = instanceId.split(SEPARATOR_ID);
         
-        String endpoint = getPrefixEndpoint(tenantId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + SEPARATOR + volumeId;
+        String serverId = separatorInstanceId[0];
+        String volumeId = separatorInstanceId[1];
+        
+        String endpoint = getPrefixEndpoint(tenantId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + SEPARATOR_ENPOINT + volumeId;
         doDeleteRequest(endpoint, localToken.getAccessId());
     }
 
     @Override
-    public AttachmentInstance getAttachment(Token localToken, Order order ) throws RequestException {
-    	LOGGER.info("Getting instance " + order.getInstanceId() + " with token " + localToken);
-    	AttachmentOrder attachmentOrder = (AttachmentOrder) order;
+    public AttachmentInstance getInstance(Token localToken, String instanceId) throws RequestException {
+        LOGGER.info("Getting instance " + instanceId + " with token " + localToken);
     	String tenantId = getTenantId(localToken);
+    	
+    	String[] separatorInstanceId = instanceId.split(SEPARATOR_ID);
+    	
+    	/** this variable refers to computeInstanceId received in the first part of the vector */
+    	String serverId = separatorInstanceId[0];
+    	
+    	/** this variable refers to volumeInstanceId received in the second part of the vector */
+    	String volumeId = separatorInstanceId[1];
         
-        String serverId = attachmentOrder.getSource();
-        String volumeId = attachmentOrder.getTarget();
-        
-        String requestEndpoint = getPrefixEndpoint(tenantId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + SEPARATOR + volumeId;
+        String requestEndpoint = getPrefixEndpoint(tenantId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + SEPARATOR_ENPOINT + volumeId;
         String jsonResponse = doGetRequest(requestEndpoint, localToken);
         
         LOGGER.debug("Getting instance from json: " + jsonResponse);        
@@ -107,7 +112,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         	JSONObject rootServer = new JSONObject(jsonResponse);
         	JSONObject serverJson = rootServer.getJSONObject(SERVER_JSON_FIELD);
             
-        	// TODO Implementation incomplete, get more information about the interface 'InstanceStateMapper' 
+        	// TODO Implementation incomplete, get more information about 'InstanceStateMapper' interface 
         	String id = serverJson.getString(ID_JSON_FIELD);
         	InstanceState state = instanceStateMapper.getInstanceState(serverJson.getString(STATUS_JSON_FIELD));
         	String serverId = "";

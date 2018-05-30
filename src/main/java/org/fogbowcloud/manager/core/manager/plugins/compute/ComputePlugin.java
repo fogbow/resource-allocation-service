@@ -16,10 +16,10 @@ public interface ComputePlugin {
      *
      * @param computeOrder {@link Order} for creating a virtual machine.
      * @param localToken
-     * @param imageId Instance image ID. @return Instance ID.
+     * @return Instance ID.
      * @throws RequestException {@link RequestException} When request fails.
      */
-    public String requestInstance(ComputeOrder computeOrder, Token localToken, String imageId)
+    public String requestInstance(ComputeOrder computeOrder, Token localToken)
             throws RequestException;
 
     public ComputeInstance getInstance(Token localToken, String instanceId)

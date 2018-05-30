@@ -82,7 +82,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         this.initClient();
     }
 
-    public String requestInstance(ComputeOrder computeOrder, Token localToken, String imageId)
+    public String requestInstance(ComputeOrder computeOrder, Token localToken)
             throws RequestException {
         LOGGER.debug("Requesting instance with token=" + localToken);
 
@@ -92,6 +92,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         String tenantId = getTenantId(localToken);
 
         String networkId = getNetworkId();
+        
+        String imageId = computeOrder.getImageName();
 
         String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
 

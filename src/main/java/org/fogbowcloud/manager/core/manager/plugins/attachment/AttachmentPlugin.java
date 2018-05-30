@@ -8,9 +8,9 @@ import org.fogbowcloud.manager.core.models.token.Token;
 
 public interface AttachmentPlugin {
 
-	public String attachVolume(Token localToken, AttachmentOrder attachmentOrder) throws RequestException;
+	public String requestInstance(AttachmentOrder attachmentOrder, Token localToken) throws RequestException;
 
-    public void detachVolume(Token localToken, Order order) throws RequestException;
+    public void deleteInstance(Token localToken, String instanceId) throws RequestException;
     
-    public AttachmentInstance getAttachment(Token localToken, Order order) throws RequestException;
+    public AttachmentInstance getInstance(Token localToken, String instanceId) throws RequestException;
 }

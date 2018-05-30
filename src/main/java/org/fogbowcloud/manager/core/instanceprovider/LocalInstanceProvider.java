@@ -49,9 +49,7 @@ public class LocalInstanceProvider implements InstanceProvider {
         switch (order.getType()) {
             case COMPUTE:
                 ComputeOrder computeOrder = (ComputeOrder) order;
-                String imageName = computeOrder.getImageName();
-                requestInstance =
-                        this.computePlugin.requestInstance(computeOrder, localToken, imageName);
+                requestInstance = this.computePlugin.requestInstance(computeOrder, localToken);
                 break;
 
             case NETWORK:
@@ -66,7 +64,7 @@ public class LocalInstanceProvider implements InstanceProvider {
 
             case ATTACHMENT:
                 AttachmentOrder attachmentOrder = (AttachmentOrder) order;
-                requestInstance = this.attachmentPlugin.attachVolume(localToken, attachmentOrder);
+                requestInstance = this.attachmentPlugin.requestInstance(attachmentOrder, localToken);
         }
         if (requestInstance == null) {
             throw new UnsupportedOperationException("Not implemented yet.");
@@ -74,7 +72,6 @@ public class LocalInstanceProvider implements InstanceProvider {
         return requestInstance;
     }
 
-    // TODO check the possibility of changing the parameter 'instance' to 'order'
     @Override
     public void deleteInstance(Order order) throws RequestException, TokenCreationException,
             UnauthorizedException, PropertyNotSpecifiedException {
@@ -90,7 +87,7 @@ public class LocalInstanceProvider implements InstanceProvider {
                 this.networkPlugin.deleteInstance(localToken, order.getInstanceId());
                 break;
             case ATTACHMENT:
-                this.attachmentPlugin.detachVolume(localToken, order);
+                this.attachmentPlugin.deleteInstance(localToken, order.getInstanceId());
             default:
                 LOGGER.error("Undefined type " + order.getType());
                 break;
@@ -149,7 +146,7 @@ public class LocalInstanceProvider implements InstanceProvider {
                 break;
 
             case ATTACHMENT:
-                instance = this.attachmentPlugin.getAttachment(localToken, order);
+                instance = this.attachmentPlugin.getInstance(localToken, instanceId);
                 break;
 
             default:
