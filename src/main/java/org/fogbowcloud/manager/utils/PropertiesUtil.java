@@ -18,7 +18,6 @@ public class PropertiesUtil {
         }
     }
 
-    // TODO implement tests
     public static String getLocalMemberId() {
     	Properties propertie = getPropertie();
     	return propertie.getProperty(ConfigurationConstants.XMPP_ID_KEY);

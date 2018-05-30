@@ -22,6 +22,7 @@ import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.Instance;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.utils.PropertiesUtil;
 import org.fogbowcloud.manager.utils.SshCommonUserUtil;
 import org.fogbowcloud.manager.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
@@ -57,8 +58,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         SshCommonUserUtil.setProperties(new Properties());
         this.sshConnectivity = Mockito.mock(SshConnectivityUtil.class);
 
-        this.properties = new Properties();
-        this.properties.put(ConfigurationConstants.XMPP_ID_KEY, "local-member");
+        this.properties = PropertiesUtil.getPropertie();
+        this.properties.put(ConfigurationConstants.XMPP_ID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 
         this.thread = null;
 

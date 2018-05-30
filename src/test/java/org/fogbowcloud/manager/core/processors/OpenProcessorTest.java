@@ -19,6 +19,7 @@ import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.utils.PropertiesUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,7 +41,7 @@ public class OpenProcessorTest extends BaseUnitTests {
 
     @Before
     public void setUp() {
-        this.properties = new Properties();
+        this.properties = PropertiesUtil.getPropertie();
         this.properties.setProperty(
                 ConfigurationConstants.XMPP_ID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 
@@ -219,7 +220,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         this.thread = new Thread(this.openProcessor);
         this.thread.start();
 
-        Thread.sleep(500);
+        Thread.sleep(500);        	
 
         assertEquals(OrderState.FAILED, remoteOrder.getOrderState());
 

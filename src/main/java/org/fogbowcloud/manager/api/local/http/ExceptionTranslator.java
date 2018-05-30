@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.api.local.http;
 
+import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 import org.springframework.http.HttpStatus;
@@ -11,8 +12,9 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice
 public class ExceptionTranslator extends ResponseEntityExceptionHandler {
 
-    @org.springframework.web.bind.annotation.ExceptionHandler(UnauthorizedException.class)
-    public final ResponseEntity<ExceptionResponse> handleUnauthorizedException(
+    @org.springframework.web.bind.annotation.ExceptionHandler(
+    		{UnauthorizedException.class, UnauthenticatedException.class})
+    public final ResponseEntity<ExceptionResponse> handleAAException(
             UnauthorizedException ex, WebRequest request) {
 
         ExceptionResponse errorDetails =
@@ -21,7 +23,7 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
 
         return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
     }
-
+	
     @org.springframework.web.bind.annotation.ExceptionHandler(TokenCreationException.class)
     public final ResponseEntity<ExceptionResponse> handleTokenCreationException(
             TokenCreationException ex, WebRequest request) {

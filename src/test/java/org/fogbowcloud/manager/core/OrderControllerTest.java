@@ -29,7 +29,7 @@ public class OrderControllerTest extends BaseUnitTests {
     private ChainedList fulfilledOrdersList;
     private ChainedList failedOrdersList;
     private ChainedList closedOrdersList;
-    private String localMember = "localmember";
+    private String localMember = BaseUnitTests.LOCAL_MEMBER_ID;
 
     private Properties properties;
     private LocalInstanceProvider localInstanceProvider;
@@ -38,7 +38,7 @@ public class OrderControllerTest extends BaseUnitTests {
     @Before
     public void setUp() {
         this.properties = PropertiesUtil.getPropertie();
-		this.properties.put(ConfigurationConstants.XMPP_ID_KEY, localMember);
+		this.properties.put(ConfigurationConstants.XMPP_ID_KEY, this.localMember);
         this.localInstanceProvider = Mockito.mock(LocalInstanceProvider.class);
         this.remoteInstanceProvider = Mockito.mock(RemoteInstanceProvider.class);
 
