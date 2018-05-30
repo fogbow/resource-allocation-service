@@ -53,7 +53,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         this.sshConnectivity = Mockito.mock(SshConnectivityUtil.class);
         this.instanceProvider = Mockito.mock(InstanceProvider.class);
         
-        this.properties = PropertiesUtil.getPropertie();
+        this.properties = PropertiesUtil.getProperties();
         this.properties.put(ConfigurationConstants.XMPP_ID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
         this.spawningProcessor = Mockito.spy(new SpawningProcessor(this.tunnelingService,
                 this.sshConnectivity, this.instanceProvider, this.properties));

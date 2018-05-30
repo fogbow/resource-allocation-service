@@ -58,7 +58,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         SshCommonUserUtil.setProperties(new Properties());
         this.sshConnectivity = Mockito.mock(SshConnectivityUtil.class);
 
-        this.properties = PropertiesUtil.getPropertie();
+        this.properties = PropertiesUtil.getProperties();
         this.properties.put(ConfigurationConstants.XMPP_ID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 
         this.thread = null;

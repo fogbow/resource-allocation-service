@@ -37,7 +37,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
     @Before
     public void setUp() {
-        this.properties = PropertiesUtil.getPropertie();
+        this.properties = PropertiesUtil.getProperties();
 		this.properties.put(ConfigurationConstants.XMPP_ID_KEY, this.localMember);
         this.localInstanceProvider = Mockito.mock(LocalInstanceProvider.class);
         this.remoteInstanceProvider = Mockito.mock(RemoteInstanceProvider.class);

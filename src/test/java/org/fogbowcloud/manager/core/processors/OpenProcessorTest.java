@@ -41,7 +41,7 @@ public class OpenProcessorTest extends BaseUnitTests {
 
     @Before
     public void setUp() {
-        this.properties = PropertiesUtil.getPropertie();
+        this.properties = PropertiesUtil.getProperties();
         this.properties.setProperty(
                 ConfigurationConstants.XMPP_ID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 
