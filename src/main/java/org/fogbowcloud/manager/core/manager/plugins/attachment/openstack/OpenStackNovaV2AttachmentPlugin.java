@@ -20,8 +20,9 @@ import org.fogbowcloud.manager.core.models.ResponseConstants;
 import org.fogbowcloud.manager.core.models.StatusResponse;
 import org.fogbowcloud.manager.core.models.StatusResponseMap;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
+import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.orders.instances.VolumeAttachment;
+import org.fogbowcloud.manager.core.models.orders.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,62 +51,71 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     }
 
     @Override
-    public String attachVolume(Token localToken, AttachmentOrder volumeAttachment) throws RequestException {
+    public String attachVolume(Token localToken, AttachmentOrder attachmentOrder) throws RequestException {
         String tenantId = getTenantId(localToken);
         
-        String volumeId = volumeAttachment.getTarget();
-        String instanceId = volumeAttachment.getSource();
-        String mountingPoint = volumeAttachment.getDevice();
+        String serverId = attachmentOrder.getSource();
+        String volumeId = attachmentOrder.getTarget();        
+        String mountPoint = attachmentOrder.getDevice();
         
         JSONObject jsonRequest = null;
         try {           
-            jsonRequest = generateJsonToAttach(volumeId, mountingPoint);
+            jsonRequest = generateJsonToAttach(volumeId, mountPoint);
         } catch (JSONException e) {
             LOGGER.error("An error occurred when generating json.", e);
             throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         }      
         
-        String endpoint = getPrefixEndpoint(tenantId) + SERVERS + instanceId + OS_VOLUME_ATTACHMENTS;
+        String endpoint = getPrefixEndpoint(tenantId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS;
         String responseStr = doPostRequest(endpoint, localToken.getAccessId(), jsonRequest);
         
         return getAttachmentIdJson(responseStr);
     }
     
     @Override
-    public void detachVolume(Token localToken, String instanceId, String attachmentId) throws RequestException {
+    public void detachVolume(Token localToken, Order order) throws RequestException {
+        AttachmentOrder attachmentOrder = (AttachmentOrder) order;
         String tenantId = getTenantId(localToken);
-        String endpoint = getPrefixEndpoint(tenantId) + SERVERS + instanceId + OS_VOLUME_ATTACHMENTS + SEPARATOR + attachmentId;
+        
+        String serverId = attachmentOrder.getSource();
+        String volumeId = attachmentOrder.getTarget();
+        
+        String endpoint = getPrefixEndpoint(tenantId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + SEPARATOR + volumeId;
         doDeleteRequest(endpoint, localToken.getAccessId());
     }
 
     @Override
-    public VolumeAttachment getInstance(Token localToken, String instanceId, String attachmentId) throws RequestException {
-    	LOGGER.info("Getting instance " + instanceId + " with token " + localToken);
-        String tenantId = getTenantId(localToken);
+    public AttachmentInstance getAttachment(Token localToken, Order order ) throws RequestException {
+    	LOGGER.info("Getting instance " + order.getInstanceId() + " with token " + localToken);
+    	AttachmentOrder attachmentOrder = (AttachmentOrder) order;
+    	String tenantId = getTenantId(localToken);
         
-        // ... /servers/{server_id}/os-volume_attachments/{volume_id}
-        String requestEndpoint = getPrefixEndpoint(tenantId) + SERVERS + instanceId + OS_VOLUME_ATTACHMENTS + SEPARATOR + attachmentId;
+        String serverId = attachmentOrder.getSource();
+        String volumeId = attachmentOrder.getTarget();
+        
+        String requestEndpoint = getPrefixEndpoint(tenantId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + SEPARATOR + volumeId;
         String jsonResponse = doGetRequest(requestEndpoint, localToken);
         
         LOGGER.debug("Getting instance from json: " + jsonResponse);        
-        VolumeAttachment volumeAttachment = getInstanceFromJson(jsonResponse);
+        AttachmentInstance attachmentInstance = getInstanceFromJson(jsonResponse);
                
-        return volumeAttachment;
+        return attachmentInstance;
     }
     
-    private VolumeAttachment getInstanceFromJson(String jsonResponse) throws RequestException {
+    private AttachmentInstance getInstanceFromJson(String jsonResponse) throws RequestException {
     	try {
         	JSONObject rootServer = new JSONObject(jsonResponse);
         	JSONObject serverJson = rootServer.getJSONObject(SERVER_JSON_FIELD);
-
+            
+        	// TODO Implementation incomplete, get more information about the interface 'InstanceStateMapper' 
         	String id = serverJson.getString(ID_JSON_FIELD);
         	InstanceState state = instanceStateMapper.getInstanceState(serverJson.getString(STATUS_JSON_FIELD));
         	String serverId = "";
         	String volumeId = "";
         	String device = "";
 
-        	VolumeAttachment volumeAttachment = new VolumeAttachment(id, state, serverId, volumeId, device);
-        	return volumeAttachment;
+        	AttachmentInstance attachmentInstance = new AttachmentInstance(id, state, serverId, volumeId, device);
+        	return attachmentInstance;
         	
     	} catch (JSONException e) {
     		LOGGER.warn("There was an exception while getting instances from json", e);
@@ -225,7 +235,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         return this.properties.getProperty(OpenStackConfigurationConstants.COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + tenantId;
     }
 
-    private JSONObject generateJsonToAttach(String volume, String mountpoint) throws JSONException {
+    protected JSONObject generateJsonToAttach(String volume, String mountpoint) throws JSONException {
         JSONObject osAttachContent = new JSONObject();
         osAttachContent.put("volumeId", volume);
 
