@@ -43,7 +43,7 @@ public class CreateRemoteOrderHandler extends AbstractQueryHandler {
             LOGGER.error("The user is not authorized to create order: " + order.getId());
             response.setError(PacketError.Condition.forbidden);
         } catch (OrderManagementException e) {
-            LOGGER.error("The id duplicated.");
+            LOGGER.error("The id is duplicated.");
             response.setError(PacketError.Condition.bad_request);
         }
 

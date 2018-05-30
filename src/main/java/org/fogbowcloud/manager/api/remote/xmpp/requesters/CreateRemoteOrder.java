@@ -4,11 +4,15 @@ import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.api.remote.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.api.remote.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.api.remote.xmpp.IqElement;
 import org.fogbowcloud.manager.api.remote.xmpp.RemoteMethod;
+import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
+import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.jamppa.component.PacketSender;
 import org.xmpp.packet.IQ;
+import org.xmpp.packet.PacketError;
 
 public class CreateRemoteOrder implements RemoteRequest {
 
@@ -23,7 +27,7 @@ public class CreateRemoteOrder implements RemoteRequest {
     }
 
     @Override
-    public void send() throws RemoteRequestException {
+    public void send() throws RemoteRequestException, OrderManagementException, UnauthorizedException {
         if (packetSender == null) {
             LOGGER.warn("Packet sender not set.");
             throw new IllegalArgumentException("Packet sender not set.");
@@ -33,12 +37,17 @@ public class CreateRemoteOrder implements RemoteRequest {
         IQ response = (IQ) packetSender.syncSendPacket(iq);
 
         if (response == null) {
-            LOGGER.error("Timed out or got no response.");
-            // TODO: Throw exception
+            String message = "Unable to retrieve the response from providing member: " + order.getProvidingMember();
+            throw new UnexpectedException(message);
         }
         if (response.getError() != null) {
-            LOGGER.error("Response returned error: " + response.getError().getText());
-            // TODO: Throw exception
+            if (response.getError().getCondition() == PacketError.Condition.forbidden){
+                String message = "The order was not authorized for: " + order.getId();
+                throw new UnauthorizedException(message);
+            } else if (response.getError().getCondition() == PacketError.Condition.bad_request){
+                String message = "The order was duplicated on providing member: " + order.getProvidingMember();
+                throw new OrderManagementException(message);
+            }
         }
         LOGGER.debug("Request for order: " + order.getId() + " has been sent to " + order.getProvidingMember());
     }

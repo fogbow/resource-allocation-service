@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.api.remote.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.api.remote.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.api.remote.xmpp.IqElement;
 import org.fogbowcloud.manager.api.remote.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
@@ -36,9 +37,12 @@ public class GetRemoteCompute implements RemoteRequest {
 
         IQ response = (IQ) packetSender.syncSendPacket(iq);
         if (response == null) {
-            LOGGER.error("Unable to retrieve the response from " + this.targetMember + ". IQ is " + iq.toString());
+            String message = "Unable to retrieve the response from providing member: " + this.targetMember;
+            throw new UnexpectedException(message);
         } else if (response.getError() != null) {
             LOGGER.error(response.getError().toString());
+            // TODO: Add errors treatment.
+            throw new UnexpectedException(response.getError().toString());
         }
     }
 

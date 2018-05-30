@@ -16,6 +16,7 @@ import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
+import org.xmpp.packet.PacketError;
 
 public class GetRemoteComputeHandler extends AbstractQueryHandler {
 
@@ -38,25 +39,29 @@ public class GetRemoteComputeHandler extends AbstractQueryHandler {
         Element federationUserElement = iq.getElement().element(IqElement.FEDERATION_USER.toString());
         FederationUser federationUser = new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
 
-        ComputeInstance compute = null;
         try {
+            ComputeInstance compute;
             compute = RemoteFacade.getInstance().getCompute(orderId, federationUser);
 
             Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), GET_REMOTE_INSTANCE);
             Element instanceElement = queryEl.addElement(IqElement.INSTANCE.toString());
             instanceElement.setText(new Gson().toJson(compute));
         } catch (UnauthenticatedException e) {
-            LOGGER.error("", e);
+            LOGGER.error("Unexpected error.");
+            response.setError(PacketError.Condition.not_authorized);
         } catch (PropertyNotSpecifiedException e) {
             LOGGER.error("", e);
         } catch (RequestException e) {
             LOGGER.error("", e);
         } catch (InstanceNotFoundException e) {
-            LOGGER.error("", e);
+            LOGGER.error("The instance does not exist.", e);
+            response.setError(PacketError.Condition.item_not_found);
         } catch (TokenCreationException e) {
-            LOGGER.error("", e);
+            LOGGER.error("Error while creating token", e);
+            response.setError(PacketError.Condition.service_unavailable);
         } catch (UnauthorizedException e) {
-            LOGGER.error("", e);
+            LOGGER.error("The user is not authorized to get the instance.", e);
+            response.setError(PacketError.Condition.forbidden);
         } finally {
             return response;
         }
