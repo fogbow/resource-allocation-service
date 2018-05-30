@@ -14,14 +14,14 @@ import org.jamppa.component.PacketSender;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
 
-public class CreateRemoteOrder implements RemoteRequest {
+public class CreateRemoteCompute implements RemoteRequest {
 
-    private static final Logger LOGGER = Logger.getLogger(CreateRemoteOrder.class);
+    private static final Logger LOGGER = Logger.getLogger(CreateRemoteCompute.class);
 
     PacketSender packetSender;
     Order order;
 
-    public CreateRemoteOrder(PacketSender packetSender, Order order) {
+    public CreateRemoteCompute(PacketSender packetSender, Order order) {
         this.packetSender = packetSender;
         this.order = order;
     }

@@ -13,14 +13,12 @@ import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
 
-import java.util.UUID;
+public class CreateRemoteComputeHandler extends AbstractQueryHandler {
 
-public class CreateRemoteOrderHandler extends AbstractQueryHandler {
-
-    private static final Logger LOGGER = Logger.getLogger(CreateRemoteOrderHandler.class);
+    private static final Logger LOGGER = Logger.getLogger(CreateRemoteComputeHandler.class);
     RemoteFacade remoteFacade;
 
-    public CreateRemoteOrderHandler() {
+    public CreateRemoteComputeHandler() {
         super(RemoteMethod.CREATE_REMOTE_ORDER.toString());
         remoteFacade = RemoteFacade.getInstance();
     }
