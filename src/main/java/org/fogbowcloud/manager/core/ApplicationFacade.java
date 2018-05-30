@@ -19,8 +19,10 @@ import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.Instance;
 import org.fogbowcloud.manager.core.models.orders.instances.NetworkInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.VolumeInstance;
+import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.services.AAAController;
+import org.fogbowcloud.manager.core.statisticsprovider.StatisticsProvider;
 
 public class ApplicationFacade {
 
@@ -28,7 +30,8 @@ public class ApplicationFacade {
 
     private AAAController aaaController;
     private OrderController orderController;
-
+    private StatisticsProvider statisticsController;
+    
     private ApplicationFacade() {
     }
 
@@ -127,7 +130,23 @@ public class ApplicationFacade {
         throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
         deleteOrder(orderId, federationTokenValue, OrderType.NETWORK);
     }
+    
+    public ComputeQuota getSharedQuota(String memberId, String federationTokenValue) throws UnauthenticatedException {
+    	this.aaaController.authenticate(federationTokenValue);
+    	return this.statisticsController.getSharedQuota(memberId);
+    }
 
+    public ComputeQuota getUsedQuota(String memberId, String federationTokenValue) throws UnauthenticatedException {
+    	this.aaaController.authenticate(federationTokenValue);
+    	return this.statisticsController.getUsedQuota(memberId);
+    }
+    
+    public ComputeQuota getInUseQuota(String memberId, String federationTokenValue) throws UnauthenticatedException {
+    	this.aaaController.authenticate(federationTokenValue);
+    	FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
+    	
+    }
+    
     public void setAAAController(AAAController aaaController) {
         this.aaaController = aaaController;
     }
@@ -135,7 +154,11 @@ public class ApplicationFacade {
     public void setOrderController(OrderController orderController) {
         this.orderController = orderController;
     }
-
+    
+    public void setStatisticsController(StatisticsProvider statisticsController) {
+    	this.statisticsController = statisticsController;
+    }
+    
     private void activateOrder(Order order, String federationTokenValue, OrderType type)
         throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
         this.aaaController.authenticate(federationTokenValue);
