@@ -1,14 +1,29 @@
 package org.fogbowcloud.manager.core.manager.plugins.volume.openstack;
 
-import com.google.common.base.Charsets;
-import org.apache.http.*;
-import org.apache.http.client.methods.*;
+import java.io.IOException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+import org.apache.http.Header;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpResponseFactory;
+import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.DefaultHttpResponseFactory;
+import org.apache.http.message.BasicStatusLine;
 import org.apache.http.util.EntityUtils;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.manager.constants.OpenStackConstants;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
-import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.orders.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.json.JSONException;
@@ -17,17 +32,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.DefaultHttpResponseFactory;
-import org.apache.http.message.BasicStatusLine;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 
-import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import com.google.common.base.Charsets;
 
 public class OpenStackV2VolumePluginTest {
 
@@ -72,8 +80,6 @@ public class OpenStackV2VolumePluginTest {
                 .generateJsonEntityToCreateInstance(FAKE_SIZE).toString());
 
         String id = "fake-id";
-        String name = "fake-name";
-        InstanceState state = InstanceState.READY;
         int size = 2;
         VolumeOrder order = new VolumeOrder(id, null, "", "", size);
         try {

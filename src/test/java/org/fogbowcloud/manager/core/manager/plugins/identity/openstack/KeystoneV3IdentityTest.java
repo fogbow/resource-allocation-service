@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -21,7 +22,6 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicStatusLine;
-import org.fogbowcloud.manager.core.manager.plugins.PluginHelper;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.services.AuthenticationControllerUtil;
 import org.json.JSONArray;
@@ -32,10 +32,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class TestKeystoneV3Identity {
+public class KeystoneV3IdentityTest {
 
     private static final String IDENTITY_URL_KEY = "identity_url";
-    private final String KEYSTONE_URL = "http://localhost:" + PluginHelper.PORT_ENDPOINT;
+    private final String KEYSTONE_URL = "http://localhost:0000";
     private KeystoneV3IdentityPlugin keystoneV3Identity;
     private HttpClient client;
 

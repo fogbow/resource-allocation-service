@@ -1,10 +1,6 @@
 package org.fogbowcloud.manager.core.models.orders.instances;
 
-import java.util.Map;
-import org.fogbowcloud.manager.core.manager.constants.CommonConfigurationConstants;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
-import org.fogbowcloud.manager.utils.SshCommonUserUtil;
-import org.json.JSONObject;
 
 // TODO: We need to discuss about these attributes
 public class ComputeInstance extends Instance {

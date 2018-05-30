@@ -432,7 +432,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 //          int vCPU = serverJson.getJSONObject(FLAVOR_JSON_OBJECT).getInt(VCPU_JSON_FIELD);
 //          int memory = serverJson.getJSONObject(FLAVOR_JSON_OBJECT).getInt(MEMORY_JSON_FIELD);
 
-            InstanceState state = instanceStateMapper.getInstanceState(serverJson.getString(STATUS_JSON_FIELD));
+            InstanceState state = this.instanceStateMapper.getInstanceState(serverJson.getString(STATUS_JSON_FIELD));
 
             // TODO: Why should I pass all this attributes for computeInstance if they are
             // all related to tunneling? We don't have it on the cloud provider JSON response.
