@@ -10,6 +10,10 @@ public class VolumeInstance extends Instance {
         this.name = name;
         this.size = size;
     }
+    
+    public VolumeInstance(String id) {
+    	super(id);
+	}
 
     public String getName() {
         return name;
