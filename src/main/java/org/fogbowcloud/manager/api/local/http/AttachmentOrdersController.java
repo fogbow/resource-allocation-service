@@ -56,7 +56,7 @@ public class AttachmentOrdersController {
     public ResponseEntity<AttachmentInstance> getAttachment(@PathVariable String attachmentId,
         @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException {
-        AttachmentInstance attachmentInstance = this.applicationFacade.getVolumeAttachment(attachmentId, federationTokenValue);
+        AttachmentInstance attachmentInstance = this.applicationFacade.getAttachment(attachmentId, federationTokenValue);
         return new ResponseEntity<>(attachmentInstance, HttpStatus.OK);
     }
     
@@ -64,7 +64,7 @@ public class AttachmentOrdersController {
     public ResponseEntity<Boolean> deleteAttachment(@PathVariable String attachmentId,
         @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
-        this.applicationFacade.deleteVolumeAttachment(attachmentId, federationTokenValue);
+        this.applicationFacade.deleteAttachment(attachmentId, federationTokenValue);
         return new ResponseEntity<>(HttpStatus.OK);
     }
     

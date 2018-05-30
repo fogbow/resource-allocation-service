@@ -196,13 +196,13 @@ public class ApplicationFacade {
         return attachmentInstances;
     }
 
-    public AttachmentInstance getVolumeAttachment(String orderId,
+    public AttachmentInstance getAttachment(String orderId,
             String federationTokenValue) throws UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
     	return (AttachmentInstance) getResourceInstance(orderId, federationTokenValue,
                 OrderType.ATTACHMENT);
     }
 
-    public void deleteVolumeAttachment(String orderId, String federationTokenValue) throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
+    public void deleteAttachment(String orderId, String federationTokenValue) throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
     	deleteOrder(orderId, federationTokenValue, OrderType.ATTACHMENT);        
     }
 
