@@ -13,6 +13,10 @@ public class AttachmentInstance extends Instance{
 		this.device = device;
 	}
 
+    public AttachmentInstance(String id) {
+        super(id);
+    }
+
     public String getServerId() {
         return this.serverId;
     }
