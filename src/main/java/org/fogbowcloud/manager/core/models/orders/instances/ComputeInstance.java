@@ -58,6 +58,10 @@ public class ComputeInstance extends Instance {
     public void setMemory(int memory) {
         this.memory = memory;
     }
+    
+    public String getLocalIpAddress() {
+		return localIpAddress;
+	}
 
     public SshTunnelConnectionData getSshTunnelConnectionData() {
         return sshTunnelConnectionData;

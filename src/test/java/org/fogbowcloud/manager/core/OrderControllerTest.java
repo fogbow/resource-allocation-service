@@ -171,7 +171,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, test.getOrderState());
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test(expected = OrderManagementException.class)
     public void testDeleteNullOrder() throws OrderManagementException {
         this.ordersManagerController.deleteOrder(null);
     }
