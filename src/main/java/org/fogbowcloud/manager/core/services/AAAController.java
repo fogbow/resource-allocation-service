@@ -6,11 +6,12 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.manager.constants.Operation;
-import org.fogbowcloud.manager.core.manager.plugins.AuthorizationPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.FederationIdentityPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.LocalIdentityPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.manager.plugins.behavior.authorization.AuthorizationPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.behavior.federation.FederationIdentityPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.behavior.mapper.LocalUserCredentialsMapperPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.cloud.local.LocalIdentityPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
@@ -24,6 +25,7 @@ public class AAAController {
     private FederationIdentityPlugin federationIdentityPlugin;
     private LocalIdentityPlugin localIdentityPlugin;
     private AuthorizationPlugin authorizationPlugin;
+    private LocalUserCredentialsMapperPlugin mapperPlugin;
     private Properties properties;
 
     public AAAController(
@@ -52,6 +54,7 @@ public class AAAController {
     public Token getLocalToken()
             throws PropertyNotSpecifiedException, UnauthorizedException, TokenCreationException {
         Map<String, String> userCredentials = getDefaultUserCredentials();
+//        this.mapperPlugin.getCredentials(federationUser);
         return this.localIdentityPlugin.createToken(userCredentials);
     }
 

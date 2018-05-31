@@ -2,8 +2,8 @@ package org.fogbowcloud.manager.core.instanceprovider;
 
 import org.fogbowcloud.manager.api.remote.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.manager.plugins.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.instances.Instance;
 

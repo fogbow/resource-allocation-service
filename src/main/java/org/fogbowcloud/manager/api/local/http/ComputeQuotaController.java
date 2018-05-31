@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.api.local.http;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.exceptions.QuotaException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

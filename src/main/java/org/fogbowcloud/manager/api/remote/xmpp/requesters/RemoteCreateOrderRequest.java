@@ -8,7 +8,7 @@ import org.fogbowcloud.manager.api.remote.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.api.remote.xmpp.IqElement;
 import org.fogbowcloud.manager.api.remote.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.jamppa.component.PacketSender;
 import org.xmpp.packet.IQ;

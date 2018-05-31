@@ -1,8 +1,8 @@
 package org.fogbowcloud.manager.api.local.http;
 
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.manager.plugins.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;

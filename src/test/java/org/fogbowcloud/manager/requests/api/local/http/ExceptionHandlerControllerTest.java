@@ -5,9 +5,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import org.fogbowcloud.manager.api.local.http.ComputeOrdersController;
 import org.fogbowcloud.manager.api.local.http.ExceptionTranslator;
-import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.InvalidCredentialsException;
-import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.InvalidTokenException;
-import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.manager.plugins.exceptions.InvalidCredentialsException;
+import org.fogbowcloud.manager.core.manager.plugins.exceptions.InvalidTokenException;
+import org.fogbowcloud.manager.core.manager.plugins.exceptions.TokenCreationException;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Ignore;

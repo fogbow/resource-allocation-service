@@ -9,11 +9,11 @@ import java.util.Properties;
 import java.util.logging.Logger;
 import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.manager.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.manager.core.manager.plugins.AuthorizationPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.FederationIdentityPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.LocalIdentityPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.PluginFactory;
-import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
+import org.fogbowcloud.manager.core.manager.plugins.behavior.authorization.AuthorizationPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.behavior.federation.FederationIdentityPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.cloud.compute.ComputePlugin;
+import org.fogbowcloud.manager.core.manager.plugins.cloud.local.LocalIdentityPlugin;
 
 // TODO: search if it is possible locate *.properties in another path
 public class InstantiationInitService {
