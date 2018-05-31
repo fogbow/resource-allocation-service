@@ -2,6 +2,8 @@ package org.fogbowcloud.manager.api.local.http;
 
 import java.util.List;
 import java.util.UUID;
+
+import org.fogbowcloud.manager.api.remote.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
@@ -57,7 +59,7 @@ public class ComputeOrdersController {
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<ComputeInstance>> getAllCompute(
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException {
+        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         LOGGER.info("Get all compute orders request received");
         List<ComputeInstance> computes = ApplicationFacade.getInstance().getAllComputes(federationTokenValue);
         return new ResponseEntity<>(computes, HttpStatus.OK);
@@ -67,7 +69,7 @@ public class ComputeOrdersController {
     public ResponseEntity<ComputeInstance> getCompute(
             @PathVariable String computeId,
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException {
+        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         LOGGER.info("Get request to compute order with id <" + computeId + "> received");
         ComputeInstance compute = ApplicationFacade.getInstance().getCompute(computeId, federationTokenValue);
         return new ResponseEntity<ComputeInstance>(compute, HttpStatus.OK);

@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.processors;
 
 import java.util.Properties;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.api.remote.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
@@ -137,9 +138,10 @@ public class FulfilledProcessor implements Runnable {
      * connectivity if instance state is active and the order type is compute.
      *
      * @param order {@link Order}
+     * @throws RemoteRequestException 
      */
     protected void processInstance(Order order)
-        throws PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException, UnauthorizedException, OrderStateTransitionException {
+        throws PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException, UnauthorizedException, OrderStateTransitionException, RemoteRequestException {
         InstanceProvider instanceProvider = getInstanceProviderForOrder(order);
 
         OrderType orderType = order.getType();

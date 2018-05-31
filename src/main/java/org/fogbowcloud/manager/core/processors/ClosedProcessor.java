@@ -1,9 +1,12 @@
 package org.fogbowcloud.manager.core.processors;
 
 import java.util.Properties;
+
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.api.remote.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.OrderController;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
+import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
@@ -26,8 +29,6 @@ public class ClosedProcessor implements Runnable {
     private InstanceProvider localInstanceProvider;
     private InstanceProvider remoteInstanceProvider;
     private OrderController orderController;
-
-    private SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 
     public ClosedProcessor(
             InstanceProvider localInstanceProvider,
@@ -76,13 +77,13 @@ public class ClosedProcessor implements Runnable {
     }
 
     private void processClosedOrder(Order order)
-        throws PropertyNotSpecifiedException, TokenCreationException, RequestException, UnauthorizedException {
+    		throws PropertyNotSpecifiedException, TokenCreationException, RequestException, UnauthorizedException, RemoteRequestException, OrderManagementException {
         synchronized (order) {
             InstanceProvider provider = getInstanceProviderForOrder(order);
             provider.deleteInstance(order);
 
             this.closedOrders.removeItem(order);
-            orderController.removeOrderFromActiveOrdersMap(order);
+            this.orderController.removeOrderFromActiveOrdersMap(order);
         }
     }
 

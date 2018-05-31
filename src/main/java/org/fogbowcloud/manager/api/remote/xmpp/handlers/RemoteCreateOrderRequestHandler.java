@@ -1,6 +1,8 @@
 package org.fogbowcloud.manager.api.remote.xmpp.handlers;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.api.remote.RemoteFacade;
@@ -9,16 +11,18 @@ import org.fogbowcloud.manager.api.remote.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
 
-public class CreateRemoteComputeHandler extends AbstractQueryHandler {
+public class RemoteCreateOrderRequestHandler extends AbstractQueryHandler {
 
-    private static final Logger LOGGER = Logger.getLogger(CreateRemoteComputeHandler.class);
+    private static final Logger LOGGER = Logger.getLogger(RemoteCreateOrderRequestHandler.class);
     private RemoteFacade remoteFacade;
 
-    public CreateRemoteComputeHandler() {
+    public RemoteCreateOrderRequestHandler() {
         super(RemoteMethod.CREATE_REMOTE_ORDER.toString());
         remoteFacade = RemoteFacade.getInstance();
     }
@@ -28,31 +32,34 @@ public class CreateRemoteComputeHandler extends AbstractQueryHandler {
         LOGGER.info("Received request for order: " + iq.getID());
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
         Element orderElement = queryElement.element(IqElement.ORDER.toString());
-        String orderStr = orderElement.getText();
+        String orderJsonStr = orderElement.getText();
 
-        Gson gson = new Gson();
-        ComputeOrder order = createOrderFromJson(orderStr, gson);
-
+        Element orderClassNameElement = queryElement.element(IqElement.ORDER_CLASS_NAME.toString());
+        String className = orderClassNameElement.getText();
+        
         IQ response = IQ.createResultIQ(iq);
+        
+        Gson gson = new Gson();
+        Order order = null;
+		try {
+			order = (Order) gson.fromJson(orderJsonStr, Class.forName(className));
+		} catch (Exception e) {
+			LOGGER.error(e.getMessage(), e);
+			response.setError(PacketError.Condition.bad_request);
+			return response;
+		}
 
         try {
-            remoteFacade.createCompute(order);
+            this.remoteFacade.activateOrder(order);
         } catch (UnauthorizedException e) {
-            LOGGER.error("The user is not authorized to create order: " + order.getId());
+            LOGGER.error("The user is not authorized to create order: " + order.getId(), e);
             response.setError(PacketError.Condition.forbidden);
         } catch (OrderManagementException e) {
-            LOGGER.error("The id is duplicated.");
+            LOGGER.error("The id is duplicated.", e);
             response.setError(PacketError.Condition.bad_request);
         }
-
-        response.getElement().addElement(IqElement.QUERY.toString(), RemoteMethod.CREATE_REMOTE_ORDER.toString());
 
         return response;
     }
 
-    private ComputeOrder createOrderFromJson(String orderStr, Gson gson) {
-        ComputeOrder order = gson.fromJson(orderStr, ComputeOrder.class);
-        ComputeOrder newOrder = ComputeOrder.from(order);
-        return newOrder;
-    }
 }

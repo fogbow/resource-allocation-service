@@ -1,6 +1,8 @@
 package org.fogbowcloud.manager.api.local.http;
 
 import java.util.List;
+
+import org.fogbowcloud.manager.api.remote.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
@@ -47,7 +49,7 @@ public class VolumeOrdersController {
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<VolumeInstance>> getAllVolumes(
         @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException {
+        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         List<VolumeInstance> volumes = this.applicationFacade.getAllVolumes(federationTokenValue);
         return new ResponseEntity<>(volumes, HttpStatus.OK);
     }
@@ -55,7 +57,7 @@ public class VolumeOrdersController {
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public ResponseEntity<VolumeInstance> getVolume(@PathVariable String orderId,
         @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException {
+        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         VolumeInstance volume = this.applicationFacade.getVolume(orderId, federationTokenValue);
         return new ResponseEntity<>(volume, HttpStatus.OK);
     }

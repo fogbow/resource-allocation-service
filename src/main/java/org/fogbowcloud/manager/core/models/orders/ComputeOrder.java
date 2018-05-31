@@ -69,7 +69,7 @@ public class ComputeOrder extends Order {
     }
 
     public static ComputeOrder from(ComputeOrder baseOrder) {
-        return new ComputeOrder(baseOrder.getFederationUser(), baseOrder.getRequestingMember(), baseOrder.getProvidingMember(),
+        return new ComputeOrder(baseOrder.getId(), baseOrder.getFederationUser(), baseOrder.getRequestingMember(), baseOrder.getProvidingMember(),
                 baseOrder.getvCPU(), baseOrder.getMemory(), baseOrder.getDisk(), baseOrder.getImageName(),
                 baseOrder.getUserData(), baseOrder.getPublicKey());
     }

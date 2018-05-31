@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.processors;
 
 import java.util.Properties;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.api.remote.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
@@ -99,9 +100,10 @@ public class SpawningProcessor implements Runnable {
     /**
      * This method does not synchronize the order object because it is private and can only be
      * called by the processSpawningOrder method.
+     * @throws RemoteRequestException 
      */
     private void processInstance(Order order)
-        throws PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException, UnauthorizedException, OrderStateTransitionException {
+        throws PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException, UnauthorizedException, OrderStateTransitionException, RemoteRequestException {
         Instance instance = this.localInstanceProvider.getInstance(order);
         OrderType orderType = order.getType();
 

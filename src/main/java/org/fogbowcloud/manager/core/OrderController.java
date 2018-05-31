@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
 import org.fogbowcloud.manager.api.local.http.ComputeOrdersController;
+import org.fogbowcloud.manager.api.remote.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
@@ -101,14 +102,13 @@ public class OrderController {
         }
     }
 
-    public void activateOrder(Order order, FederationUser federationUser)
+    public void activateOrder(Order order)
         throws OrderManagementException {
         if (order == null) {
             String message = "Can't process new order request. Order reference is null.";
             throw new OrderManagementException(message);
         }
 
-        order.setFederationUser(federationUser);
         addOrderInActiveOrdersMap(order);
     }
 
@@ -178,7 +178,7 @@ public class OrderController {
     }
 
     public Instance getResourceInstance(Order order)
-        throws PropertyNotSpecifiedException, TokenCreationException, RequestException, UnauthorizedException, InstanceNotFoundException {
+        throws PropertyNotSpecifiedException, TokenCreationException, RequestException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         synchronized (order) {
             InstanceProvider instanceProvider = getInstanceProviderForOrder(order);
             return instanceProvider.getInstance(order);

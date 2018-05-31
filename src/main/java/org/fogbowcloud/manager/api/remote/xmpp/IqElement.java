@@ -4,9 +4,12 @@ public enum IqElement {
 
     QUERY("query"),
     ORDER("order"),
-    REMOTE_ORDER_ID("remoteOrderId"),
+    ORDER_ID("orderId"),
     FEDERATION_USER("federationUser"),
-    INSTANCE("Instance");
+    INSTANCE("instance"), 
+    ORDER_TYPE("orderType"),
+    ORDER_CLASS_NAME("orderClassName"), 
+    INSTANCE_CLASS_NAME("instaceClasName");
 
     private final String element;
 

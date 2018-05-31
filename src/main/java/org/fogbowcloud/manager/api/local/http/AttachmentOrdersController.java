@@ -1,6 +1,8 @@
 package org.fogbowcloud.manager.api.local.http;
 
 import java.util.List;
+
+import org.fogbowcloud.manager.api.remote.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
@@ -47,7 +49,7 @@ public class AttachmentOrdersController {
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<AttachmentInstance>> getAllAttachments(
         @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException {
+        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         List<AttachmentInstance> attachmentInstance = this.applicationFacade.getAllAttachments(federationTokenValue);
         return new ResponseEntity<>(attachmentInstance, HttpStatus.OK);
     }
@@ -55,7 +57,7 @@ public class AttachmentOrdersController {
     @RequestMapping(value = "/{id}", method = RequestMethod.GET)
     public ResponseEntity<AttachmentInstance> getAttachment(@PathVariable String attachmentId,
         @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException {
+        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         AttachmentInstance attachmentInstance = this.applicationFacade.getAttachment(attachmentId, federationTokenValue);
         return new ResponseEntity<>(attachmentInstance, HttpStatus.OK);
     }

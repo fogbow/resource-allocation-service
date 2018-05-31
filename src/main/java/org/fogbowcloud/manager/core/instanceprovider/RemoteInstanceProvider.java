@@ -2,8 +2,9 @@ package org.fogbowcloud.manager.core.instanceprovider;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.api.remote.exceptions.RemoteRequestException;
-import org.fogbowcloud.manager.api.remote.xmpp.requesters.CreateRemoteCompute;
-import org.fogbowcloud.manager.api.remote.xmpp.requesters.RemoteRequest;
+import org.fogbowcloud.manager.api.remote.xmpp.requesters.RemoteCreateOrderRequest;
+import org.fogbowcloud.manager.api.remote.xmpp.requesters.RemoteDeleteOrderRequest;
+import org.fogbowcloud.manager.api.remote.xmpp.requesters.RemoteGetOrderRequest;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
@@ -26,30 +27,23 @@ public class RemoteInstanceProvider implements InstanceProvider {
     @Override
     public String requestInstance(Order order) throws PropertyNotSpecifiedException,
             UnauthorizedException, TokenCreationException, RequestException, RemoteRequestException, OrderManagementException {
-        switch (order.getType()) {
-            case COMPUTE:
-                CreateRemoteCompute request = new CreateRemoteCompute(this.packetSender, order);
-                request.send();
-                break;
-            case VOLUME:
-                break;
-            case NETWORK:
-                break;
-            case ATTACHMENT:
-                break;
-            default:
-                throw new IllegalArgumentException("Not implemented");
-        }
+        RemoteCreateOrderRequest request = new RemoteCreateOrderRequest(this.packetSender, order);
+        // TODO Understand the semantics of send. What are the guarantees after send returns. What are the possible return values (specially in case of failure).
+        request.send();
+        
         return null;
     }
 
     @Override
-    public void deleteInstance(Order order) throws RequestException, TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException {
-
+    public void deleteInstance(Order order) throws RequestException, TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException, RemoteRequestException, OrderManagementException {
+    	RemoteDeleteOrderRequest request = new RemoteDeleteOrderRequest(this.packetSender, order);
+		request.send();
     }
 
     @Override
-    public Instance getInstance(Order order) throws RequestException, TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException {
-        return null;
+    public Instance getInstance(Order order) throws RequestException, TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException, RemoteRequestException {
+    	RemoteGetOrderRequest request = new RemoteGetOrderRequest(this.packetSender, order);
+    	Instance instance = request.send();
+        return instance;
     }
 }

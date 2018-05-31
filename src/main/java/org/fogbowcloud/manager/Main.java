@@ -1,12 +1,10 @@
 package org.fogbowcloud.manager;
 
-import java.util.Map;
 import java.util.Properties;
 
 import org.fogbowcloud.manager.api.remote.xmpp.XmppComponentManager;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.OrderController;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
 import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
 import org.fogbowcloud.manager.core.manager.plugins.AuthorizationPlugin;
@@ -14,10 +12,6 @@ import org.fogbowcloud.manager.core.manager.plugins.FederationIdentityPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.LocalIdentityPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.attachment.AttachmentPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
-import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.models.Credential;
-import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.manager.plugins.network.NetworkPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.volume.VolumePlugin;
 import org.fogbowcloud.manager.core.services.AAAController;

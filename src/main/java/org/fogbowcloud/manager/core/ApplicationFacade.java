@@ -2,6 +2,8 @@ package org.fogbowcloud.manager.core;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.fogbowcloud.manager.api.remote.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
@@ -52,7 +54,7 @@ public class ApplicationFacade {
     }
 
     public List<ComputeInstance> getAllComputes(String federationTokenValue)
-        throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+        throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
         List<ComputeInstance> computeInstances = new ArrayList<ComputeInstance>();
 
         List<Order> allOrders = getAllOrders(federationTokenValue, OrderType.COMPUTE);
@@ -65,7 +67,7 @@ public class ApplicationFacade {
     }
 
     public ComputeInstance getCompute(String orderId, String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException {
+        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         return (ComputeInstance) getResourceInstance(orderId, federationTokenValue,
             OrderType.COMPUTE);
     }
@@ -81,7 +83,7 @@ public class ApplicationFacade {
     }
 
     public List<VolumeInstance> getAllVolumes(String federationTokenValue)
-        throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+        throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
         List<VolumeInstance> volumeInstances = new ArrayList<VolumeInstance>();
 
         List<Order> allOrders = getAllOrders(federationTokenValue, OrderType.VOLUME);
@@ -94,7 +96,7 @@ public class ApplicationFacade {
     }
 
     public VolumeInstance getVolume(String orderId, String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException {
+        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         return (VolumeInstance) getResourceInstance(orderId, federationTokenValue,
             OrderType.VOLUME);
     }
@@ -110,7 +112,7 @@ public class ApplicationFacade {
     }
 
     public List<NetworkInstance> getAllNetworks(String federationTokenValue)
-        throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+        throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
         List<NetworkInstance> networkInstances = new ArrayList<NetworkInstance>();
 
         List<Order> allOrders = getAllOrders(federationTokenValue, OrderType.NETWORK);
@@ -123,7 +125,7 @@ public class ApplicationFacade {
     }
 
     public NetworkInstance getNetwork(String orderId, String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException {
+        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         return (NetworkInstance) getResourceInstance(orderId, federationTokenValue,
             OrderType.NETWORK);
     }
@@ -168,16 +170,17 @@ public class ApplicationFacade {
     }
 
     private void activateOrder(Order order, String federationTokenValue)
-        throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
+    			throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
         this.aaaController.authenticate(federationTokenValue);
         FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
         this.aaaController.authorize(federationUser, Operation.CREATE, order);
 
-        this.orderController.activateOrder(order, federationUser);
+        order.setFederationUser(federationUser);
+        this.orderController.activateOrder(order);
     }
 
     private void deleteOrder(String orderId, String federationTokenValue, OrderType orderType)
-        throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
+    			throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
         this.aaaController.authenticate(federationTokenValue);
 
         FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
@@ -188,7 +191,7 @@ public class ApplicationFacade {
     }
 
     private List<Order> getAllOrders(String federationTokenValue, OrderType orderType)
-        throws UnauthorizedException, UnauthenticatedException {
+    			throws UnauthorizedException, UnauthenticatedException {
         this.aaaController.authenticate(federationTokenValue);
         FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
         this.aaaController.authorize(federationUser, Operation.GET_ALL, orderType);
@@ -198,7 +201,7 @@ public class ApplicationFacade {
 
     private Instance getResourceInstance(String orderId, String federationTokenValue,
         OrderType type)
-        throws UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+        throws UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
         this.aaaController.authenticate(federationTokenValue);
 
         FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
@@ -213,7 +216,7 @@ public class ApplicationFacade {
         activateOrder(attachmentOrder, federationTokenValue);
     }
 
-    public List<AttachmentInstance> getAllAttachments(String federationTokenValue) throws UnauthenticatedException, UnauthorizedException, PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException {
+    public List<AttachmentInstance> getAllAttachments(String federationTokenValue) throws UnauthenticatedException, UnauthorizedException, PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException, RemoteRequestException {
     	List<AttachmentInstance> attachmentInstances = new ArrayList<AttachmentInstance>();
 
         List<Order> allOrders = getAllOrders(federationTokenValue, OrderType.ATTACHMENT);
@@ -226,7 +229,7 @@ public class ApplicationFacade {
     }
 
     public AttachmentInstance getAttachment(String orderId,
-            String federationTokenValue) throws UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+            String federationTokenValue) throws UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
     	return (AttachmentInstance) getResourceInstance(orderId, federationTokenValue,
                 OrderType.ATTACHMENT);
     }

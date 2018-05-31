@@ -24,11 +24,12 @@ public interface InstanceProvider {
      * @throws Exception if a failure occurred when requesting the deletion of an instance
      */
     public void deleteInstance(Order order)
-        throws RequestException, TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException;
+        throws RequestException, TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException, RemoteRequestException, OrderManagementException;
 
     /**
      * Gets the instance currently associated for the provided order.
+     * @throws RemoteRequestException 
      */
     public Instance getInstance(Order order) throws RequestException, TokenCreationException,
-        UnauthorizedException, PropertyNotSpecifiedException, InstanceNotFoundException;
+        UnauthorizedException, PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException;
 }
