@@ -4,5 +4,7 @@ public enum Operation {
     GET,
     CREATE,
     DELETE,
-    GET_ALL
+    GET_ALL, 
+    GET_QUOTA, 
+    GET_ALLOCATION
 }

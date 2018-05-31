@@ -1,12 +1,12 @@
 package org.fogbowcloud.manager.core.models.quotas;
 
-public class ComputeQuotaInfo {
+public class ComputeAllocation {
 
 	private int vCPU;
 	private int ram;
 	private int instances;
 	
-	public ComputeQuotaInfo(int vCPU, int ram, int instances) {
+	public ComputeAllocation(int vCPU, int ram, int instances) {
 		this.vCPU = vCPU;
 		this.ram = ram;
 		this.instances = instances;

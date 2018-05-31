@@ -1,16 +1,34 @@
-package org.fogbowcloud.manager.core.services;
+package org.fogbowcloud.manager.core.manager.plugins.behavior.mapper;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.models.token.FederationUser;
 
-// TODO change the name. Follow AAAController's name
-public class AuthenticationControllerUtil {
-
-    public static String LOCAL_TOKEN_CREDENTIALS_PREFIX = "local_token_credentials_";
-
+public class DefaultLocalUserCredentialsMapper implements LocalUserCredentialsMapperPlugin {
+	
+    private static String LOCAL_TOKEN_CREDENTIALS_PREFIX = "local_token_credentials_";
+	private static final String DEFAULT_MAPPER_CONF = "default_mapper.conf";	
+	private Properties properties;
+	
+	public DefaultLocalUserCredentialsMapper() throws IOException {
+        this.properties = new Properties();
+        FileInputStream fileInputStream;
+		fileInputStream = new FileInputStream(ConfigurationConstants.FOGBOW_HOME + File.separator + DEFAULT_MAPPER_CONF);
+        this.properties.load(fileInputStream);
+	}
+	
+	@Override
+	public Map<String, String> getCredentials(FederationUser federationUser) throws PropertyNotSpecifiedException {
+		return getDefaultLocalTokenCredentials(this.properties);
+	}
+	
     /**
      * Gets credentials with prefix in the properties (LOCAL_TOKEN_CREDENTIALS_PREFIX).
      *
@@ -18,7 +36,7 @@ public class AuthenticationControllerUtil {
      * @return
      * @throws PropertyNotSpecifiedException
      */
-    public static Map<String, String> getDefaultLocalTokenCredentials(Properties properties)
+    public Map<String, String> getDefaultLocalTokenCredentials(Properties properties)
             throws PropertyNotSpecifiedException {
         Map<String, String> localDefaultTokenCredentials = new HashMap<String, String>();
         if (properties == null) {
@@ -44,15 +62,6 @@ public class AuthenticationControllerUtil {
 
     private static String normalizeKeyProperties(String keyPropertiesStr) {
         return keyPropertiesStr.replace(LOCAL_TOKEN_CREDENTIALS_PREFIX, "");
-    }
+    }	
 
-    // TODO change to other class util
-    public static boolean isOrderProvidingLocally(
-            String orderProvadingMember, Properties properties) {
-        String localMember = properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
-        if (orderProvadingMember == null || orderProvadingMember.equals(localMember)) {
-            return true;
-        }
-        return false;
-    }
 }

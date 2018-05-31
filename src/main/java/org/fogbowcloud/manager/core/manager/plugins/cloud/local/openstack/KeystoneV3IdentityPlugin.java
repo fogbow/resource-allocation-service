@@ -18,7 +18,6 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.manager.plugins.cloud.local.LocalIdentityPlugin;
 import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.services.AuthenticationControllerUtil;
 import org.fogbowcloud.manager.utils.HttpRequestUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,6 +26,7 @@ import org.json.JSONObject;
 public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
 
     private static final Logger LOGGER = Logger.getLogger(KeystoneV3IdentityPlugin.class);
+    // TODO: check all required configurations variables in all plugins. The IDENTITY_URL is one example!
     private static final String IDENTITY_URL = "identity_url";
     private static final String X_SUBJECT_TOKEN = "X-Subject-Token";
     private static final String PASSWORD_PROP = "password";
@@ -58,11 +58,12 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
 
     protected KeystoneV3IdentityPlugin(Properties properties, HttpClient client)
         throws PropertyNotSpecifiedException {
-        Map<String, String> defaultCredentials = AuthenticationControllerUtil
-            .getDefaultLocalTokenCredentials(properties);
 
         String identityUrl = properties.getProperty(IDENTITY_URL);
-        this.keystoneUrl = identityUrl != null ? identityUrl : defaultCredentials.get(AUTH_URL);
+        if (identityUrl == null || identityUrl.trim().isEmpty()) {
+        	throw new PropertyNotSpecifiedException(IDENTITY_URL);
+        }
+        this.keystoneUrl = identityUrl;
 
         this.v3TokensEndpoint = keystoneUrl + V3_TOKENS_ENDPOINT_PATH;
         this.client = client != null ? client : HttpRequestUtil.createHttpClient();

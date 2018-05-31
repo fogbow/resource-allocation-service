@@ -45,7 +45,7 @@ public class LocalInstanceProvider implements InstanceProvider {
     public String requestInstance(Order order) throws PropertyNotSpecifiedException,
             UnauthorizedException, TokenCreationException, RequestException {
         String requestInstance = null;
-        Token localToken = this.aaaController.getLocalToken();
+        Token localToken = this.aaaController.getLocalToken(order.getFederationUser());
         switch (order.getType()) {
             case COMPUTE:
                 ComputeOrder computeOrder = (ComputeOrder) order;
@@ -75,7 +75,7 @@ public class LocalInstanceProvider implements InstanceProvider {
     @Override
     public void deleteInstance(Order order) throws RequestException, TokenCreationException,
             UnauthorizedException, PropertyNotSpecifiedException {
-        Token localToken = this.aaaController.getLocalToken();
+        Token localToken = this.aaaController.getLocalToken(order.getFederationUser());
         switch (order.getType()) {
             case COMPUTE:
                 this.computePlugin.deleteInstance(order.getInstanceId(), localToken);
@@ -98,7 +98,7 @@ public class LocalInstanceProvider implements InstanceProvider {
     public Instance getInstance(Order order) throws RequestException, TokenCreationException,
             UnauthorizedException, PropertyNotSpecifiedException, InstanceNotFoundException {
         Instance instance;
-        Token localToken = this.aaaController.getLocalToken();
+        Token localToken = this.aaaController.getLocalToken(order.getFederationUser());
 
         synchronized (order) {
             String instanceId = order.getInstanceId();

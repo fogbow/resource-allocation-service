@@ -2,6 +2,8 @@ package org.fogbowcloud.manager.core.manager.constants;
 
 public class ConfigurationConstants {
 
+	public static final String FOGBOW_HOME = ".fogbow";
+	
     // XMPP
     public static final String XMPP_ID_KEY = "xmpp_jid";
 
@@ -28,14 +30,21 @@ public class ConfigurationConstants {
     public static final String REVERSE_TUNNEL_HTTP_PORT_KEY = "reverse_tunnel_http_port";
 
     // PLUGINS CLASSES
-    public static final String COMPUTE_CLASS_KEY = "compute_class";
+    public static final String LOCAL_IDENTITY_PLUGIN_CLASS_KEY = "local_identity_plugin_class";
 
-    public static final String IDENTITY_CLASS_KEY = "identity_class";
+    public static final String FEDERATION_IDENTITY_PLUGIN_CLASS_KEY = "federation_identity_plugin_class";
+    
+    public static final String COMPUTE_PLUGIN_CLASS_KEY = "compute_plugin_class";
+    
+    public static final String VOLUME_PLUGIN_CLASS_KEY = "volume_plugin_class";
+    
+    public static final String NETWORK_PLUGIN_CLASS_KEY = "network_plugin_class";
+    
+    public static final String ATTACHMENT_PLUGIN_CLASS_KEY = "attachment_plugin_class";
 
-    public static final String AUTHORIZATION_CLASS_KEY = "authorization_class";
+    public static final String AUTHORIZATION_PLUGIN_CLASS_KEY = "authorization_plugin_class";
 
-    // PREFIXES
-    public static final String LOCAL_PREFIX = "local_";
+	public static final String COMPUTE_QUOTA_PLUGIN_CLASS_KEY = "compute_quota_plugin_class";
 
-    public static final String FEDERATION_PREFIX = "federation_";
+
 }

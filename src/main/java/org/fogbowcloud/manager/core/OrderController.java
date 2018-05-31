@@ -5,12 +5,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Collectors;
+
 import org.fogbowcloud.manager.api.local.http.ComputeOrdersController;
 import org.fogbowcloud.manager.api.remote.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
+import org.fogbowcloud.manager.core.exceptions.QuotaException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
 import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
@@ -22,7 +24,9 @@ import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedLi
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
+import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.Instance;
+import org.fogbowcloud.manager.core.models.quotas.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -184,4 +188,27 @@ public class OrderController {
             return instanceProvider.getInstance(order);
         }
     }
+    
+	public ComputeAllocation getComputeAllocation(FederationUser federationUser) throws QuotaException, RemoteRequestException, RequestException, TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException, InstanceNotFoundException {
+		Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
+        
+		List<Order> computeOrders = orders.stream()
+				.filter(order -> order.getType().equals(OrderType.COMPUTE))
+				.filter(order -> order.getOrderState().equals(OrderState.FULFILLED))
+				.filter(order -> order.isProviderLocal(this.localMemberId))
+				.filter(order -> order.getFederationUser().equals(federationUser))
+				.collect(Collectors.toList());
+		
+		int vCPU = 0, ram = 0, instances = 0;
+		
+		for (Order order : computeOrders) {
+			ComputeInstance computeInstance = (ComputeInstance) this.localInstanceProvider.getInstance(order);
+			vCPU += computeInstance.getvCPU();
+			ram += computeInstance.getMemory();
+			instances++;
+		}
+		
+		return new ComputeAllocation(vCPU, ram, instances);
+	}
+    
 }

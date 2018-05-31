@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.services;
 
 import java.util.Map;
 import java.util.Properties;
+
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
@@ -47,14 +48,9 @@ public class AAAController {
         return this.federationIdentityPlugin.getFederationUser(federationTokenValue);
     }
 
-    private Map<String, String> getDefaultUserCredentials() throws PropertyNotSpecifiedException {
-        return AuthenticationControllerUtil.getDefaultLocalTokenCredentials(this.properties);
-    }
-
-    public Token getLocalToken()
+    public Token getLocalToken(FederationUser federationUser)
             throws PropertyNotSpecifiedException, UnauthorizedException, TokenCreationException {
-        Map<String, String> userCredentials = getDefaultUserCredentials();
-//        this.mapperPlugin.getCredentials(federationUser);
+    	Map<String, String> userCredentials = this.mapperPlugin.getCredentials(federationUser);
         return this.localIdentityPlugin.createToken(userCredentials);
     }
 
@@ -70,6 +66,13 @@ public class AAAController {
             throw new UnauthorizedException();
         }
     }
+    
+    public void authorize(FederationUser federationUser, Operation operation)
+            throws UnauthorizedException {
+        if (!this.authorizationPlugin.isAuthorized(federationUser, operation)) {
+            throw new UnauthorizedException();
+        }
+    }    
 
     public void authorize(FederationUser federationUser, Operation operation, Order order)
             throws UnauthorizedException {

@@ -7,15 +7,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
+
 import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.manager.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.manager.plugins.PluginFactory;
 import org.fogbowcloud.manager.core.manager.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.behavior.federation.FederationIdentityPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.cloud.attachment.AttachmentPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.cloud.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.manager.plugins.cloud.local.LocalIdentityPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.cloud.network.NetworkPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.cloud.quota.ComputeQuotaPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.cloud.volume.VolumePlugin;
 
-// TODO: search if it is possible locate *.properties in another path
 public class InstantiationInitService {
 
     private PluginFactory pluginFactory;
@@ -57,30 +61,47 @@ public class InstantiationInitService {
     }
 
     public ComputePlugin getComputePlugin() {
-        String className = this.getPropertyValue(ConfigurationConstants.COMPUTE_CLASS_KEY);
+        String className = this.getPropertyValue(ConfigurationConstants.COMPUTE_PLUGIN_CLASS_KEY);
         return (ComputePlugin) this.pluginFactory.createPluginInstance(className, this.properties);
     }
+    
+    public VolumePlugin getVolumePlugin() {
+        String className = this.getPropertyValue(ConfigurationConstants.VOLUME_PLUGIN_CLASS_KEY);
+        return (VolumePlugin) this.pluginFactory.createPluginInstance(className, this.properties);
+    }
+    
+    public NetworkPlugin getNetworkPlugin() {
+        String className = this.getPropertyValue(ConfigurationConstants.NETWORK_PLUGIN_CLASS_KEY);
+        return (NetworkPlugin) this.pluginFactory.createPluginInstance(className, this.properties);
+    }
+    
+    public AttachmentPlugin getAttachmentPlugin() {
+        String className = this.getPropertyValue(ConfigurationConstants.ATTACHMENT_PLUGIN_CLASS_KEY);
+        return (AttachmentPlugin) this.pluginFactory.createPluginInstance(className, this.properties);
+    }       
 
     public LocalIdentityPlugin getLocalIdentityPlugin() {
-        return this.getIdentityPlugin(ConfigurationConstants.LOCAL_PREFIX);
-    }
-
-    public FederationIdentityPlugin getFederationIdentityPlugin() {
-        // TODO implement this
-        return null;
-    }
-
-    public AuthorizationPlugin getAuthorizationPlugin() {
-        String className = this.getPropertyValue(ConfigurationConstants.AUTHORIZATION_CLASS_KEY);
-        return (AuthorizationPlugin)
+        String className = this.getPropertyValue(ConfigurationConstants.LOCAL_IDENTITY_PLUGIN_CLASS_KEY);
+        return (LocalIdentityPlugin)
                 this.pluginFactory.createPluginInstance(className, this.properties);
     }
 
-    private LocalIdentityPlugin getIdentityPlugin(String prefix) {
-        String className =
-                this.getPropertyValue(prefix + ConfigurationConstants.IDENTITY_CLASS_KEY);
-        return (LocalIdentityPlugin)
-                this.pluginFactory.getIdentityPluginByPrefix(prefix, className, this.properties);
+    public FederationIdentityPlugin getFederationIdentityPlugin() {
+        String className = this.getPropertyValue(ConfigurationConstants.FEDERATION_IDENTITY_PLUGIN_CLASS_KEY);
+        return (FederationIdentityPlugin)
+                this.pluginFactory.createPluginInstance(className, this.properties);
+    }
+
+    public ComputeQuotaPlugin getComputeQuotaPlugin() {
+        String className = this.getPropertyValue(ConfigurationConstants.COMPUTE_QUOTA_PLUGIN_CLASS_KEY);
+        return (ComputeQuotaPlugin)
+                this.pluginFactory.createPluginInstance(className, this.properties);
+    }
+    
+    public AuthorizationPlugin getAuthorizationPlugin() {
+        String className = this.getPropertyValue(ConfigurationConstants.AUTHORIZATION_PLUGIN_CLASS_KEY);
+        return (AuthorizationPlugin)
+                this.pluginFactory.createPluginInstance(className, this.properties);
     }
 
     public String getPropertyValue(String propertyId) {
