@@ -1,8 +1,8 @@
 package org.fogbowcloud.manager.core.models.orders;
 
 import java.util.UUID;
+
 import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.models.token.Token;
 
 public class ComputeOrder extends Order {
 
@@ -66,6 +66,12 @@ public class ComputeOrder extends Order {
                 imageName,
                 userData,
                 publicKey);
+    }
+
+    public static ComputeOrder from(ComputeOrder baseOrder) {
+        return new ComputeOrder(baseOrder.getFederationUser(), baseOrder.getRequestingMember(), baseOrder.getProvidingMember(),
+                baseOrder.getvCPU(), baseOrder.getMemory(), baseOrder.getDisk(), baseOrder.getImageName(),
+                baseOrder.getUserData(), baseOrder.getPublicKey());
     }
 
     public int getvCPU() {

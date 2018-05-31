@@ -34,6 +34,10 @@ public class NetworkInstance extends Instance {
         this.MACInterface = MACInterface;
         this.interfaceState = interfaceState;
     }
+    
+    public NetworkInstance(String id) {
+		super(id);
+	}
 
     public String getLabel() {
         return label;

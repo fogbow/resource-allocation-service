@@ -3,7 +3,8 @@ package org.fogbowcloud.manager.core.models.orders;
 public enum OrderType {
     COMPUTE("compute"),
     NETWORK("network"),
-    VOLUME("volume");
+    VOLUME("volume"),
+    ATTACHMENT("attachment");
 
     private String value;
 

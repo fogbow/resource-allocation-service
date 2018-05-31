@@ -18,6 +18,7 @@ import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
+import org.fogbowcloud.manager.core.models.orders.instances.Instance;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.utils.ComputeInstanceConnectivityUtils;
 import org.fogbowcloud.manager.utils.SshConnectivityUtil;
@@ -143,7 +144,8 @@ public class FulfilledProcessor implements Runnable {
 
         OrderType orderType = order.getType();
 
-        InstanceState instanceState = instanceProvider.getInstance(order).getState();
+        Instance instance = instanceProvider.getInstance(order);
+		InstanceState instanceState = instance.getState();
 
         if (instanceState.equals(InstanceState.FAILED)) {
             LOGGER.info("Instance state is failed for order [" + order.getId() + "]");
