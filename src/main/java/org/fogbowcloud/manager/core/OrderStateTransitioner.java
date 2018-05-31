@@ -14,13 +14,12 @@ import org.fogbowcloud.manager.utils.PropertiesUtil;
 
 public class OrderStateTransitioner {
 
-    // TODO implement this
     private static final String LOCAL_MEMBER_ID = PropertiesUtil.getLocalMemberId();
     private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
 
-
     public static void transition(Order order, OrderState newState)
-        throws OrderStateTransitionException {
+            throws OrderStateTransitionException {
+
         if (order.isRequesterRemote(LOCAL_MEMBER_ID)) {
             switch (newState) {
                 case FAILED:
@@ -29,14 +28,6 @@ public class OrderStateTransitioner {
                     break;
                 case FULFILLED:
                     notifyRequester(order, Event.INSTANCE_FULFILLED);
-                    break;
-            }
-        }
-
-        if (!order.isProviderLocal(LOCAL_MEMBER_ID)) {
-            switch (newState) {
-                case CLOSED:
-                    // send xmpp message to provider
                     break;
             }
         }
