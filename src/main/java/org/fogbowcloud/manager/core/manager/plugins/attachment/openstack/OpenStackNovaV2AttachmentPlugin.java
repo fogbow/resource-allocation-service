@@ -73,7 +73,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     }
     
     @Override
-    public void deleteInstance(Token localToken, String instanceId) throws RequestException {
+    public void deleteInstance(String instanceId, Token localToken) throws RequestException {
         String tenantId = getTenantId(localToken);
         
         String[] separatorInstanceId = instanceId.split(SEPARATOR_ID);
@@ -86,7 +86,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     }
 
     @Override
-    public AttachmentInstance getInstance(Token localToken, String instanceId) throws RequestException {
+    public AttachmentInstance getInstance(String instanceId, Token localToken) throws RequestException {
         LOGGER.info("Getting instance " + instanceId + " with token " + localToken);
     	String tenantId = getTenantId(localToken);
     	

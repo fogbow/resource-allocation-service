@@ -14,7 +14,7 @@ public class ComputeOrder extends Order {
     /** Disk attribute, must be set in GB. */
     private int disk;
 
-    private String imageName;
+    private String imageId;
 
     private UserData userData;
 
@@ -40,7 +40,7 @@ public class ComputeOrder extends Order {
         this.vCPU = vCPU;
         this.memory = memory;
         this.disk = disk;
-        this.imageName = imageName;
+        this.imageId = imageName;
         this.userData = userData;
         this.publicKey = publicKey;
     }
@@ -70,7 +70,7 @@ public class ComputeOrder extends Order {
 
     public static ComputeOrder from(ComputeOrder baseOrder) {
         return new ComputeOrder(baseOrder.getId(), baseOrder.getFederationUser(), baseOrder.getRequestingMember(), baseOrder.getProvidingMember(),
-                baseOrder.getvCPU(), baseOrder.getMemory(), baseOrder.getDisk(), baseOrder.getImageName(),
+                baseOrder.getvCPU(), baseOrder.getMemory(), baseOrder.getDisk(), baseOrder.getImageId(),
                 baseOrder.getUserData(), baseOrder.getPublicKey());
     }
 
@@ -86,8 +86,8 @@ public class ComputeOrder extends Order {
         return disk;
     }
 
-    public String getImageName() {
-        return imageName;
+    public String getImageId() {
+        return imageId;
     }
 
     public UserData getUserData() {

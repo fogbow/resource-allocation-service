@@ -78,16 +78,16 @@ public class LocalInstanceProvider implements InstanceProvider {
         Token localToken = this.aaaController.getLocalToken();
         switch (order.getType()) {
             case COMPUTE:
-                this.computePlugin.deleteInstance(localToken, order.getInstanceId());
+                this.computePlugin.deleteInstance(order.getInstanceId(), localToken);
                 break;
             case VOLUME:
-                this.volumePlugin.deleteInstance(localToken, order.getInstanceId());
+                this.volumePlugin.deleteInstance(order.getInstanceId(), localToken);
                 break;
             case NETWORK:
-                this.networkPlugin.deleteInstance(localToken, order.getInstanceId());
+                this.networkPlugin.deleteInstance(order.getInstanceId(), localToken);
                 break;
             case ATTACHMENT:
-                this.attachmentPlugin.deleteInstance(localToken, order.getInstanceId());
+                this.attachmentPlugin.deleteInstance(order.getInstanceId(), localToken);
             default:
                 LOGGER.error("Undefined type " + order.getType());
                 break;
@@ -134,19 +134,19 @@ public class LocalInstanceProvider implements InstanceProvider {
 
         switch (orderType) {
             case COMPUTE:
-                instance = this.computePlugin.getInstance(localToken, instanceId);
+                instance = this.computePlugin.getInstance(instanceId, localToken);
                 break;
 
             case NETWORK:
-                instance = this.networkPlugin.getInstance(localToken, instanceId);
+                instance = this.networkPlugin.getInstance(instanceId, localToken);
                 break;
 
             case VOLUME:
-                instance = this.volumePlugin.getInstance(localToken, instanceId);
+                instance = this.volumePlugin.getInstance(instanceId, localToken);
                 break;
 
             case ATTACHMENT:
-                instance = this.attachmentPlugin.getInstance(localToken, instanceId);
+                instance = this.attachmentPlugin.getInstance(instanceId, localToken);
                 break;
 
             default:

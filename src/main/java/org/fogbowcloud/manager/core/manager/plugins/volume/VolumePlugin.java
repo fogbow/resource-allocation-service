@@ -7,13 +7,13 @@ import org.fogbowcloud.manager.core.models.token.Token;
 
 public interface VolumePlugin {
 
-	public String requestInstance(VolumeOrder order, Token localToken)
+	public String requestInstance(VolumeOrder volumeOrder, Token localToken)
 			throws RequestException;
 
-	public VolumeInstance getInstance(Token token, String storageOrderInstanceId)
+	public VolumeInstance getInstance(String volumeInstanceId, Token localToken)
 			throws RequestException;
 
-	public void deleteInstance(Token token, String storageOrderInstanceId)
+	public void deleteInstance(String volumeInstanceId, Token localToken)
 			throws RequestException;
 	
 }

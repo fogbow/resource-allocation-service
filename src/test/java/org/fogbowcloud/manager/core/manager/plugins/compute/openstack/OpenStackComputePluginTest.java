@@ -263,7 +263,7 @@ public class OpenStackComputePluginTest {
                 .doGetRequest(eq(FAKE_ENDPOINT), eq(localToken));
 
         ComputeInstance computeInstance =
-                this.novaV2ComputeOpenStack.getInstance(this.localToken, FAKE_INSTANCE_ID);
+                this.novaV2ComputeOpenStack.getInstance(FAKE_INSTANCE_ID, this.localToken);
 
         assertEquals(computeInstance.getId(), FAKE_INSTANCE_ID);
         assertEquals(computeInstance.getState(), InstanceState.READY);
@@ -280,7 +280,7 @@ public class OpenStackComputePluginTest {
                 .doGetRequest(eq(FAKE_ENDPOINT), eq(localToken));
 
         ComputeInstance computeInstance =
-                this.novaV2ComputeOpenStack.getInstance(this.localToken, FAKE_INSTANCE_ID);
+                this.novaV2ComputeOpenStack.getInstance(FAKE_INSTANCE_ID, this.localToken);
 
         assertEquals(computeInstance.getId(), FAKE_INSTANCE_ID);
         assertEquals(computeInstance.getState(), InstanceState.FAILED);
@@ -297,7 +297,7 @@ public class OpenStackComputePluginTest {
                 .doGetRequest(eq(FAKE_ENDPOINT), eq(this.localToken));
 
         ComputeInstance computeInstance =
-                this.novaV2ComputeOpenStack.getInstance(this.localToken, FAKE_INSTANCE_ID);
+                this.novaV2ComputeOpenStack.getInstance(FAKE_INSTANCE_ID, this.localToken);
 
         assertEquals(computeInstance.getId(), FAKE_INSTANCE_ID);
         assertEquals(computeInstance.getState(), InstanceState.SPAWNING);
@@ -309,6 +309,6 @@ public class OpenStackComputePluginTest {
                 .when(this.novaV2ComputeOpenStack)
                 .doGetRequest(anyString(), any(Token.class));
 
-        this.novaV2ComputeOpenStack.getInstance(this.localToken, FAKE_INSTANCE_ID);
+        this.novaV2ComputeOpenStack.getInstance(FAKE_INSTANCE_ID, this.localToken);
     }
 }

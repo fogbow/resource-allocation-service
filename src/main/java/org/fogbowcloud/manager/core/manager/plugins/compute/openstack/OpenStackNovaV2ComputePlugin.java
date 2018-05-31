@@ -1,7 +1,13 @@
 package org.fogbowcloud.manager.core.manager.plugins.compute.openstack;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TreeSet;
+import java.util.UUID;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
@@ -16,9 +22,13 @@ import org.fogbowcloud.manager.core.manager.plugins.InstanceStateMapper;
 import org.fogbowcloud.manager.core.manager.plugins.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.manager.plugins.compute.DefaultLaunchCommandGenerator;
 import org.fogbowcloud.manager.core.manager.plugins.compute.LaunchCommandGenerator;
-import org.fogbowcloud.manager.core.models.*;
+import org.fogbowcloud.manager.core.models.ErrorType;
+import org.fogbowcloud.manager.core.models.Flavor;
+import org.fogbowcloud.manager.core.models.RequestHeaders;
+import org.fogbowcloud.manager.core.models.ResponseConstants;
+import org.fogbowcloud.manager.core.models.StatusResponse;
+import org.fogbowcloud.manager.core.models.StatusResponseMap;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.token.Token;
@@ -93,7 +103,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
         String networkId = getNetworkId();
         
-        String imageId = computeOrder.getImageName();
+        String imageId = computeOrder.getImageId();
 
         String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
 
@@ -405,7 +415,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     @Override
-    public ComputeInstance getInstance(Token localToken, String instanceId)
+    public ComputeInstance getInstance(String instanceId, Token localToken)
             throws RequestException {
         LOGGER.info("Getting instance " + instanceId + " with token " + localToken);
 
@@ -461,12 +471,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     @Override
-    public List<ComputeInstance> getInstances(Token localToken) {
-        return null;
-    }
-
-    @Override
-    public void deleteInstance(Token localToken, String instanceId) throws RequestException {
+    public void deleteInstance(String instanceId, Token localToken) throws RequestException {
         if (instanceId == null) {
             throw new RequestException();
         }
@@ -476,21 +481,4 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         doDeleteRequest(endpoint, localToken);
     }
 
-    @Override
-    public void deleteInstances(Token localToken) {}
-
-    @Override
-    public String attachVolume(Token localToken, AttachmentOrder volumeLink) {
-        return null;
-    }
-
-    @Override
-    public String detachVolume(Token localToken, AttachmentOrder volumeLink) {
-        return null;
-    }
-
-    @Override
-    public String getImageId(Token localToken, String imageName) {
-        return null;
-    }
 }

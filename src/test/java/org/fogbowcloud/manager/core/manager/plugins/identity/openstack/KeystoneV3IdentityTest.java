@@ -223,26 +223,26 @@ public class KeystoneV3IdentityTest {
         assertNull(token);
     }
 
-    @Test
-    public void testForwardableToken() {
-
-        String accessId = "access_ID";
-        Token.User user = new Token.User("user_ID", "user_name");
-        Date expirationTime = new Date();
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put("propA", "propriety_name");
-
-        Token token = new Token(accessId, user, expirationTime, attributes);
-
-        Token tokenReturned = this.keystoneV3Identity.getForwardableToken(token);
-
-        assertNotNull(tokenReturned);
-        assertEquals(token, tokenReturned);
-        assertEquals(accessId, tokenReturned.getAccessId());
-        assertEquals(user, tokenReturned.getUser());
-        assertEquals(expirationTime, tokenReturned.getExpirationDate());
-        assertEquals(attributes, tokenReturned.getAttributes());
-    }
+//    @Test
+//    public void testForwardableToken() {
+//
+//        String accessId = "access_ID";
+//        Token.User user = new Token.User("user_ID", "user_name");
+//        Date expirationTime = new Date();
+//        Map<String, String> attributes = new HashMap<String, String>();
+//        attributes.put("propA", "propriety_name");
+//
+//        Token token = new Token(accessId, user, expirationTime, attributes);
+//
+//        Token tokenReturned = this.keystoneV3Identity.getForwardableToken(token);
+//
+//        assertNotNull(tokenReturned);
+//        assertEquals(token, tokenReturned);
+//        assertEquals(accessId, tokenReturned.getAccessId());
+//        assertEquals(user, tokenReturned.getUser());
+//        assertEquals(expirationTime, tokenReturned.getExpirationDate());
+//        assertEquals(attributes, tokenReturned.getAttributes());
+//    }
 
     private JSONObject createJsonResponse(
             String method,

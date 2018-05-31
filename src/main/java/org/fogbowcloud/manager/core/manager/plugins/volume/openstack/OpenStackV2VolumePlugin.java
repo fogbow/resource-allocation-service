@@ -101,7 +101,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	}
 
 	@Override
-	public VolumeInstance getInstance(Token localToken, String storageOrderInstanceId) throws RequestException {
+	public VolumeInstance getInstance(String storageOrderInstanceId, Token localToken) throws RequestException {
 		String tenantId = localToken.getAttributes().get(OpenStackConstants.TENANT_ID);
 		if (tenantId == null) {
 			throw new RequestException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);
@@ -114,7 +114,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	}
 
 	@Override
-	public void deleteInstance(Token localToken, String storageOrderInstanceId) throws RequestException {
+	public void deleteInstance(String storageOrderInstanceId, Token localToken) throws RequestException {
 		String tenantId = localToken.getAttributes().get(OpenStackConstants.TENANT_ID);
 		if (tenantId == null) {
 			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);

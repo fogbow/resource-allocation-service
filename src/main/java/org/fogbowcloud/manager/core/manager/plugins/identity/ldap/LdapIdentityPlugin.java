@@ -16,6 +16,7 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+
 import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -23,17 +24,15 @@ import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
+
 import org.apache.commons.codec.binary.Base64;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.manager.plugins.FederationIdentityPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.LocalIdentityPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.InvalidCredentialsException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.InvalidTokenException;
-import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenValueCreationException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.util.RSAUtils;
-import org.fogbowcloud.manager.core.models.Credential;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.json.JSONException;
@@ -329,19 +328,6 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
         if (credPublicKeyPath != null && !credPublicKeyPath.isEmpty()) {
             publicKeyPath = credPublicKeyPath;
         }
-    }
-
-    @Override
-    public Credential[] getCredentials() {
-        return new Credential[] {
-            new Credential(CRED_USERNAME, true, null),
-            new Credential(CRED_PASSWORD, true, null),
-            new Credential(CRED_AUTH_URL, true, null),
-            new Credential(CRED_LDAP_BASE, true, null),
-            new Credential(CRED_LDAP_ENCRYPT, false, null),
-            new Credential(CRED_PRIVATE_KEY, true, null),
-            new Credential(CRED_PUBLIC_KEY, false, null)
-        };
     }
 
 }

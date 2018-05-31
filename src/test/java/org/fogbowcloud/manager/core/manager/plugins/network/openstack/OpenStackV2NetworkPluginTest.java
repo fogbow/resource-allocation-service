@@ -265,7 +265,7 @@ public class OpenStackV2NetworkPluginTest {
 		Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponseGetNetwork,
 				httpResponseGetSubnet);
 
-		NetworkInstance instance = this.openStackV2NetworkPlugin.getInstance(this.defaultToken, "instanceId00");
+		NetworkInstance instance = this.openStackV2NetworkPlugin.getInstance("instanceId00", this.defaultToken);
 
 		Assert.assertEquals(networkId, instance.getId());
 		Assert.assertEquals(networkName, instance.getLabel());
@@ -306,7 +306,7 @@ public class OpenStackV2NetworkPluginTest {
 		Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponseGetPorts,
 				httpResponsePutRemoveInterface, httpResponseDeleteRouter, httpResponseDeleteNetwork);
 
-		this.openStackV2NetworkPlugin.deleteInstance(this.defaultToken, networkId);
+		this.openStackV2NetworkPlugin.deleteInstance(networkId, this.defaultToken);
 
 		Mockito.verify(this.client, Mockito.times(4)).execute(Mockito.any(HttpUriRequest.class));
 	}
@@ -331,7 +331,7 @@ public class OpenStackV2NetworkPluginTest {
 		Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponseGetPorts);
 
 		try {
-			this.openStackV2NetworkPlugin.deleteInstance(this.defaultToken, networkId);
+			this.openStackV2NetworkPlugin.deleteInstance(networkId, this.defaultToken);
 			Assert.fail();
 		} catch (RequestException e) {
 			String errorMessage = e.getMessage();
@@ -374,7 +374,7 @@ public class OpenStackV2NetworkPluginTest {
 				httpResponseDeleteRouter, httpResponseDeleteNetwork);
 
 		try {
-			this.openStackV2NetworkPlugin.deleteInstance(this.defaultToken, networkId);
+			this.openStackV2NetworkPlugin.deleteInstance(networkId, this.defaultToken);
 			Assert.fail();
 		} catch (RequestException e) {
 			String errorMessage = e.getMessage();
@@ -416,7 +416,7 @@ public class OpenStackV2NetworkPluginTest {
 				httpResponseDeleteRouter, httpResponseDeleteNetwork);
 
 		try {
-			this.openStackV2NetworkPlugin.deleteInstance(this.defaultToken, networkId);
+			this.openStackV2NetworkPlugin.deleteInstance(networkId, this.defaultToken);
 			Assert.fail();
 		} catch (RequestException e) {
 			String errorMessage = e.getMessage();
@@ -459,7 +459,7 @@ public class OpenStackV2NetworkPluginTest {
 				httpResponseDeleteRouter);
 
 		try {
-			this.openStackV2NetworkPlugin.deleteInstance(this.defaultToken, networkId);
+			this.openStackV2NetworkPlugin.deleteInstance(networkId, this.defaultToken);
 			Assert.fail();
 		} catch (RequestException e) {
 			String errorMessage = e.getMessage();
@@ -482,7 +482,7 @@ public class OpenStackV2NetworkPluginTest {
 		Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponseGetPorts,
 				httpResponsePutRequest, httpResponseDeleteRouter, httpResponseDeleteNetwork);
 
-		this.openStackV2NetworkPlugin.deleteInstance(this.defaultToken, networkId);
+		this.openStackV2NetworkPlugin.deleteInstance(networkId, this.defaultToken);
 
 		// check
 		Mockito.verify(this.openStackV2NetworkPlugin, Mockito.times(1)).removeRouter(Mockito.any(Token.class),

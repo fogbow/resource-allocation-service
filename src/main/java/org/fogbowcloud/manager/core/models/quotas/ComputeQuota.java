@@ -1,27 +1,36 @@
 package org.fogbowcloud.manager.core.models.quotas;
 
 public class ComputeQuota {
+
+	private ComputeQuotaInfo totalQuota;
+	private ComputeQuotaInfo usedQuota;
 	
-	private int vCPU;
-	private int ram;
-	private int instances;
-	
-	public ComputeQuota(int vCPU, int ram, int instances) {
-		this.vCPU = vCPU;
-		this.ram = ram;
-		this.instances = instances;
+	public ComputeQuota(ComputeQuotaInfo totalQuota, ComputeQuotaInfo usedQuota) {
+		this.totalQuota = totalQuota;
+		this.usedQuota = usedQuota;
 	}
 	
-	public int getvCPU() {
-		return vCPU;
+	public ComputeQuotaInfo getTotalQuota() {
+		return this.totalQuota;
 	}
-
-	public int getRam() {
-		return ram;
+	
+	public ComputeQuotaInfo getUsedQuota() {
+		return this.usedQuota;
 	}
-
-	public int getInstances() {
-		return instances;
+	
+	public void setTotalQuota(ComputeQuotaInfo totalQuota) {
+		this.totalQuota = totalQuota;
 	}
-
+	
+	public void setUsedQuota(ComputeQuotaInfo usedQuota) {
+		this.usedQuota = usedQuota;
+	}
+	
+	public ComputeQuotaInfo getAvailableQuota() {
+		int availableVCpu = this.totalQuota.getvCPU() - this.usedQuota.getvCPU();
+		int availableRam = this.totalQuota.getRam() - this.usedQuota.getRam();
+		int availableInstance = this.totalQuota.getInstances() - this.usedQuota.getInstances();
+		return new ComputeQuotaInfo(availableVCpu, availableRam, availableInstance);
+	}
+	
 }

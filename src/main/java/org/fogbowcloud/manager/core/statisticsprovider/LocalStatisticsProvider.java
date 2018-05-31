@@ -46,7 +46,7 @@ public class LocalStatisticsProvider implements StatisticsProvider {
 	@Override
 	public ComputeQuota getSharedQuota() throws QuotaException {
 		try {
-			return this.computeQuotaPlugin.getMaxQuota(this.aaaController.getLocalToken());
+			return this.computeQuotaPlugin.getComputeQuota(this.aaaController.getLocalToken());
 		} catch (QuotaException | PropertyNotSpecifiedException | UnauthorizedException | TokenCreationException e) {
 			throw new QuotaException("Error while getting shared quota", e);
 		}
@@ -55,7 +55,7 @@ public class LocalStatisticsProvider implements StatisticsProvider {
 	@Override
 	public ComputeQuota getUsedQuota() throws QuotaException {
 		try {
-			return this.computeQuotaPlugin.getQuotaUsed(this.aaaController.getLocalToken());
+			return this.computeQuotaPlugin.getComputeQuota(this.aaaController.getLocalToken());
 		} catch (PropertyNotSpecifiedException | UnauthorizedException | TokenCreationException e) {
 			throw new QuotaException("Error while getting used quota", e);
 		}
@@ -85,7 +85,8 @@ public class LocalStatisticsProvider implements StatisticsProvider {
 			}
 		}
 		
-		return new ComputeQuota(vCPU, ram, instances);
+//		return new ComputeQuota(vCPU, ram, instances);
+		return null;
 	}
 	
 }

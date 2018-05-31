@@ -189,7 +189,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     }
 
     @Override
-    public NetworkInstance getInstance(Token token, String instanceId)
+    public NetworkInstance getInstance(String instanceId, Token token)
             throws RequestException {
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK + "/" + instanceId;
         String responseStr = doGetRequest(endpoint, token.getAccessId());
@@ -198,7 +198,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     }
 
     @Override
-    public void deleteInstance(Token token, String instanceId) throws RequestException {
+    public void deleteInstance(String instanceId, Token token) throws RequestException {
         // TODO: ensure that all the necessary token attributes are set.
         String tenantId = token.getAttributes().get(TENANT_ID);
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_PORTS + "?" + KEY_TENANT_ID

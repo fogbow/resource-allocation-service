@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -16,7 +17,6 @@ import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.manager.plugins.LocalIdentityPlugin;
-import org.fogbowcloud.manager.core.models.Credential;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.services.AuthenticationControllerUtil;
 import org.fogbowcloud.manager.utils.HttpRequestUtil;
@@ -104,46 +104,9 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
     }
 
     @Override
-    public Token reIssueToken(Token token) {
-        return token;
-    }
-
-    @Override
     public Token getToken(String accessId) {
         // TODO Implement this method?
         return null;
-    }
-
-    @Override
-    public boolean isValid(String accessId) {
-        // TODO Implement this method?
-        return true;
-    }
-
-    @Override
-    public Credential[] getCredentials() {
-        return new Credential[] {
-            new Credential(PROJECT_ID, true, null),
-            new Credential(PASSWORD, true, null),
-            new Credential(USER_ID, true, null),
-            new Credential(AUTH_URL, true, null)
-        };
-    }
-
-    @Override
-    public String getAuthenticationURI() {
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("Keystone uri='");
-        sb.append(keystoneUrl);
-        sb.append("'");
-
-        return sb.toString();
-    }
-
-    @Override
-    public Token getForwardableToken(Token originalToken) {
-        return originalToken;
     }
 
     private Response doPostRequest(String endpoint, JSONObject json) {

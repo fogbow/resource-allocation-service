@@ -9,7 +9,7 @@ public enum IqElement {
     INSTANCE("instance"), 
     ORDER_TYPE("orderType"),
     ORDER_CLASS_NAME("orderClassName"), 
-    INSTANCE_CLASS_NAME("instaceClasName");
+    INSTANCE_CLASS_NAME("instanceClassName");
 
     private final String element;
 

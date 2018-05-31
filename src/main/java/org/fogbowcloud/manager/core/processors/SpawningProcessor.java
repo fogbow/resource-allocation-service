@@ -103,7 +103,7 @@ public class SpawningProcessor implements Runnable {
      * @throws RemoteRequestException 
      */
     private void processInstance(Order order)
-        throws PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException, UnauthorizedException, OrderStateTransitionException, RemoteRequestException {
+    		throws PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException, UnauthorizedException, OrderStateTransitionException, RemoteRequestException {
         Instance instance = this.localInstanceProvider.getInstance(order);
         OrderType orderType = order.getType();
 

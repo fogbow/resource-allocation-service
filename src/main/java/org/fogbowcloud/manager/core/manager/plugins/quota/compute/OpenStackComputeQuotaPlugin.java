@@ -48,26 +48,17 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 	}
 	
 	@Override
-	public ComputeQuota getQuotaUsed(Token localToken) throws QuotaException {
+	public ComputeQuota getComputeQuota(Token localToken) throws QuotaException {
 		
 		String jsonLimits = getLimitsJson(localToken);
 		
-		return new ComputeQuota(
-				getAttFromLimitsJson(TOTAL_CORES_USED, jsonLimits), 
-				getAttFromLimitsJson(TOTAL_RAM_USED, jsonLimits),
-				getAttFromLimitsJson(TOTAL_INSTANCES_USED, jsonLimits));
+//		new ComputeQuotaInfo(
+//				getAttFromLimitsJson(TOTAL_CORES_USED, jsonLimits), 
+//				getAttFromLimitsJson(TOTAL_RAM_USED, jsonLimits),
+//				getAttFromLimitsJson(TOTAL_INSTANCES_USED, jsonLimits));
+		return null; 
 	}
 
-	@Override
-	public ComputeQuota getMaxQuota(Token localToken) throws QuotaException {
-		String jsonLimits = getLimitsJson(localToken);
-		
-		return new ComputeQuota(
-				getAttFromLimitsJson(MAX_TOTAL_CORES, jsonLimits), 
-				getAttFromLimitsJson(MAX_TOTAL_RAM_SIZE, jsonLimits),
-				getAttFromLimitsJson(MAX_TOTAL_INSTANCES, jsonLimits));
-	}
-	
 	String getLimitsJson(Token localToken) throws QuotaException {
 		String endpoint = 
 				this.properties.getProperty(OpenStackConfigurationConstants.COMPUTE_NOVAV2_URL_KEY)

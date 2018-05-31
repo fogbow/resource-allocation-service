@@ -121,7 +121,7 @@ public class OpenStackV2VolumePluginTest {
         this.expectedRequest = new HttpUriRequestMatcher(request, null);
 
         try {
-            this.openStackV2VolumePlugin.getInstance(this.tokenDefault, FAKE_INSTANCE_ID);
+            this.openStackV2VolumePlugin.getInstance(FAKE_INSTANCE_ID, this.tokenDefault);
         } catch (Exception e) {
         }
 
@@ -131,7 +131,7 @@ public class OpenStackV2VolumePluginTest {
     @Test(expected=RequestException.class)
     public void testGetInstancesWithoutTenantId() throws Exception {
         this.tokenDefault.getAttributes().clear();
-        this.openStackV2VolumePlugin.getInstance(this.tokenDefault, FAKE_ACCESS_ID);
+        this.openStackV2VolumePlugin.getInstance(FAKE_ACCESS_ID, this.tokenDefault);
     }
 
     @Test
@@ -144,7 +144,7 @@ public class OpenStackV2VolumePluginTest {
         this.expectedRequest = new HttpUriRequestMatcher(request, null);
 
         try {
-            this.openStackV2VolumePlugin.deleteInstance(this.tokenDefault, FAKE_INSTANCE_ID);
+            this.openStackV2VolumePlugin.deleteInstance(FAKE_INSTANCE_ID, this.tokenDefault);
         } catch (Exception e) {
         }
 
@@ -154,7 +154,7 @@ public class OpenStackV2VolumePluginTest {
     @Test(expected=RequestException.class)
     public void testRemoveInstanceWithoutTenantId() throws Exception {
         this.tokenDefault.getAttributes().clear();
-        this.openStackV2VolumePlugin.deleteInstance(tokenDefault, FAKE_INSTANCE_ID);
+        this.openStackV2VolumePlugin.deleteInstance(FAKE_INSTANCE_ID, tokenDefault);
     }
 
     @Ignore

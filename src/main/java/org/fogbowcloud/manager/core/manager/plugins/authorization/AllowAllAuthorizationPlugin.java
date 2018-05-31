@@ -1,12 +1,12 @@
 package org.fogbowcloud.manager.core.manager.plugins.authorization;
 
 import java.util.Properties;
+
 import org.fogbowcloud.manager.core.manager.constants.Operation;
 import org.fogbowcloud.manager.core.manager.plugins.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.models.token.Token;
 
 public class AllowAllAuthorizationPlugin implements AuthorizationPlugin {
 
@@ -21,4 +21,10 @@ public class AllowAllAuthorizationPlugin implements AuthorizationPlugin {
     public boolean isAuthorized(FederationUser federationUser, Operation operation, OrderType type) {
         return true;
     }
+
+	@Override
+	public boolean isAuthorized(FederationUser federationUser, Operation operation) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

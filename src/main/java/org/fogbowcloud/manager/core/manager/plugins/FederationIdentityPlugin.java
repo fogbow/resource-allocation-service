@@ -1,13 +1,10 @@
 package org.fogbowcloud.manager.core.manager.plugins;
 
 import java.util.Map;
+
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenValueCreationException;
-import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.models.Credential;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.models.token.Token;
 
 public interface FederationIdentityPlugin {
 
@@ -38,8 +35,5 @@ public interface FederationIdentityPlugin {
      * @return a boolean stating whether the token value is valid or not.
      */
     public boolean isValid(String federationTokenValue);
-
-    /** @return an array of the required and optional fields for token creation. */
-    public Credential[] getCredentials();
 
 }

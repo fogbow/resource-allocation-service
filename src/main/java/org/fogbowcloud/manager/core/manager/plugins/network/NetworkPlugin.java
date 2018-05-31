@@ -7,10 +7,10 @@ import org.fogbowcloud.manager.core.models.token.Token;
 
 public interface NetworkPlugin {
 
-	public String requestInstance(NetworkOrder order, Token localToken) throws RequestException;
+	public String requestInstance(NetworkOrder networkOrder, Token localToken) throws RequestException;
 
-	public NetworkInstance getInstance(Token token, String instanceId) throws RequestException;
+	public NetworkInstance getInstance(String networkInstanceId, Token localToken) throws RequestException;
 
-	public void deleteInstance(Token token, String instanceId) throws RequestException;
+	public void deleteInstance(String networkInstanceId, Token localToken) throws RequestException;
 	
 }
