@@ -5,6 +5,7 @@ import java.util.List;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
+import org.fogbowcloud.manager.core.exceptions.QuotaException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.manager.constants.Operation;
@@ -22,7 +23,6 @@ import org.fogbowcloud.manager.core.models.orders.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.services.AAAController;
-import org.fogbowcloud.manager.core.statisticsprovider.StatisticsProvider;
 
 public class ApplicationFacade {
 
@@ -30,7 +30,7 @@ public class ApplicationFacade {
 
     private AAAController aaaController;
     private OrderController orderController;
-    private StatisticsProvider statisticsController;
+    private StatisticsController statisticsController;
     
     private ApplicationFacade() {
     }
@@ -131,22 +131,28 @@ public class ApplicationFacade {
         deleteOrder(orderId, federationTokenValue, OrderType.NETWORK);
     }
     
-    public ComputeQuota getSharedQuota(String memberId, String federationTokenValue) throws UnauthenticatedException {
-    	this.aaaController.authenticate(federationTokenValue);
-    	return this.statisticsController.getSharedQuota(memberId);
-    }
+	public ComputeQuota getSharedQuota(String memberId, String federationTokenValue)
+			throws UnauthenticatedException, QuotaException {
+		
+		this.aaaController.authenticate(federationTokenValue);
+		return this.statisticsController.getStatisticsProvider(memberId).getSharedQuota();
+	}
 
-    public ComputeQuota getUsedQuota(String memberId, String federationTokenValue) throws UnauthenticatedException {
-    	this.aaaController.authenticate(federationTokenValue);
-    	return this.statisticsController.getUsedQuota(memberId);
-    }
-    
-    public ComputeQuota getInUseQuota(String memberId, String federationTokenValue) throws UnauthenticatedException {
-    	this.aaaController.authenticate(federationTokenValue);
-    	FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
-    	
-    }
-    
+	public ComputeQuota getUsedQuota(String memberId, String federationTokenValue)
+			throws UnauthenticatedException, QuotaException {
+		
+		this.aaaController.authenticate(federationTokenValue);
+		return this.statisticsController.getStatisticsProvider(memberId).getUsedQuota();
+	}
+
+	public ComputeQuota getInUseQuota(String memberId, String federationTokenValue)
+			throws UnauthenticatedException, QuotaException, UnauthorizedException {
+		
+		this.aaaController.authenticate(federationTokenValue);
+		FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
+		return this.statisticsController.getStatisticsProvider(memberId).getInUseQuota(federationUser);
+	}
+
     public void setAAAController(AAAController aaaController) {
         this.aaaController = aaaController;
     }
@@ -155,7 +161,7 @@ public class ApplicationFacade {
         this.orderController = orderController;
     }
     
-    public void setStatisticsController(StatisticsProvider statisticsController) {
+    public void setStatisticsController(StatisticsController statisticsController) {
     	this.statisticsController = statisticsController;
     }
     

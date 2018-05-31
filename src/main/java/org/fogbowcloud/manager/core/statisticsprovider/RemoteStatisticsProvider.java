@@ -1,6 +1,7 @@
 package org.fogbowcloud.manager.core.statisticsprovider;
 
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
+import org.fogbowcloud.manager.core.models.token.FederationUser;
 
 public class RemoteStatisticsProvider implements StatisticsProvider {
 
@@ -15,7 +16,7 @@ public class RemoteStatisticsProvider implements StatisticsProvider {
 	}
 
 	@Override
-	public ComputeQuota getInUseQuota() {
+	public ComputeQuota getInUseQuota(FederationUser federationUser) {
 		return null;
 	}
 

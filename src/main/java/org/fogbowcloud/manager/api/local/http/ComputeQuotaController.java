@@ -1,7 +1,9 @@
 package org.fogbowcloud.manager.api.local.http;
 
 import org.fogbowcloud.manager.core.ApplicationFacade;
+import org.fogbowcloud.manager.core.exceptions.QuotaException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
+import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +29,7 @@ public class ComputeQuotaController {
 	@RequestMapping(value = "/shared/{id}", method = RequestMethod.GET)
 	public ResponseEntity<ComputeQuota> getSharedQuota(@PathVariable String memberId,
 			@RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-			throws UnauthenticatedException {
+			throws UnauthenticatedException, QuotaException {
 
 		LOGGER.info("Shared quota information request received.");
 
@@ -38,7 +40,7 @@ public class ComputeQuotaController {
 	@RequestMapping(value = "/used/{id}", method = RequestMethod.GET)
 	public ResponseEntity<ComputeQuota> getUsedQuota(@PathVariable String memberId,
 			@RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-			throws UnauthenticatedException {
+			throws UnauthenticatedException, QuotaException {
 
 		LOGGER.info("Used quota information request received.");
 
@@ -49,7 +51,7 @@ public class ComputeQuotaController {
 	@RequestMapping(value = "/my/{id}", method = RequestMethod.GET)
 	public ResponseEntity<ComputeQuota> getInUseByMeQuota(@PathVariable String memberId,
 			@RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-			throws UnauthenticatedException {
+			throws UnauthenticatedException, QuotaException, UnauthorizedException {
 
 		LOGGER.info("In use quota information request received.");
 
