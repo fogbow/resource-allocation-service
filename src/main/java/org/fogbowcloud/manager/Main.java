@@ -60,8 +60,10 @@ public class Main implements ApplicationRunner {
         String xmppServerIp = "";
         int xmppServerPort = -1;
         long timeout = 5000L;
+        OrderController orderController = new OrderController(this.properties);
+
         XmppComponentManager xmppComponentManager = new XmppComponentManager(jid,
-                password, xmppServerIp, xmppServerPort, timeout);
+                password, xmppServerIp, xmppServerPort, timeout, orderController);
         RemoteInstanceProvider remoteInstanceProvider = new RemoteInstanceProvider(xmppComponentManager);
 
         this.processorController = new ProcessorController(this.properties, localInstanceProvider,
@@ -69,8 +71,7 @@ public class Main implements ApplicationRunner {
                 federationIdentityPlugin);
 
         this.facade.setAAAController(this.aaaController);
-        this.facade.setOrderController(new OrderController(this.properties, localInstanceProvider,
-                remoteInstanceProvider));
+        this.facade.setOrderController(orderController);
     }
 
 }

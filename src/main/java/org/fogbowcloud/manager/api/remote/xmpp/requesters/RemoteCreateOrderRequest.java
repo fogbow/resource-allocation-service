@@ -61,7 +61,7 @@ public class RemoteCreateOrderRequest implements RemoteRequest<Void> {
         iq.setID(this.order.getId());
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
-                RemoteMethod.CREATE_REMOTE_ORDER.toString());
+                RemoteMethod.REMOTE_CREATE_ORDER.toString());
         Element orderElement = queryElement.addElement(IqElement.ORDER.toString());
 
         Element orderClassNameElement = queryElement.addElement(IqElement.ORDER_CLASS_NAME.toString());

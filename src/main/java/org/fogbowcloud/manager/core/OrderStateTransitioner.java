@@ -1,6 +1,12 @@
 package org.fogbowcloud.manager.core;
 
+import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.api.remote.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.api.remote.xmpp.Event;
+import org.fogbowcloud.manager.api.remote.xmpp.requesters.RemoteNotifyEventRequest;
+import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
+import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -10,17 +16,19 @@ public class OrderStateTransitioner {
 
     // TODO implement this
     private static final String LOCAL_MEMBER_ID = PropertiesUtil.getLocalMemberId();
+    private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
+
 
     public static void transition(Order order, OrderState newState)
         throws OrderStateTransitionException {
         if (order.isRequesterRemote(LOCAL_MEMBER_ID)) {
             switch (newState) {
                 case FAILED:
-                    // send xmpp message to requester
+                    notifyRequester(order, Event.INSTANCE_FAILED);
                     newState = OrderState.CLOSED;
                     break;
                 case FULFILLED:
-                    // send xmpp message to requester
+                    notifyRequester(order, Event.INSTANCE_FULFILLED);
                     break;
             }
         }
@@ -78,6 +86,19 @@ public class OrderStateTransitioner {
                 String message = String.format(template, order.getId(), currentState.toString());
                 throw new OrderStateTransitionException(message);
             }
+        }
+    }
+
+    private static void notifyRequester(Order order, Event instanceFailed) {
+        RemoteNotifyEventRequest remoteNotifyEventRequest = new RemoteNotifyEventRequest(order, instanceFailed);
+        try {
+            remoteNotifyEventRequest.send();
+        } catch (RemoteRequestException e) {
+            LOGGER.error(e.getMessage(), e);
+        } catch (OrderManagementException e) {
+            LOGGER.error(e.getMessage(), e);
+        } catch (UnauthorizedException e) {
+            LOGGER.error(e.getMessage(), e);
         }
     }
 

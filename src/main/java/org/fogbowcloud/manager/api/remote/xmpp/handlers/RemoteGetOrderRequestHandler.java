@@ -23,10 +23,10 @@ public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
 
     private static final Logger LOGGER = Logger.getLogger(RemoteGetOrderRequestHandler.class);
 
-    public static final String GET_REMOTE_INSTANCE = RemoteMethod.GET_REMOTE_INSTANCE.toString();
+    public static final String REMOTE_GET_INSTANCE = RemoteMethod.REMOTE_GET_INSTANCE.toString();
 
     public RemoteGetOrderRequestHandler() {
-        super(GET_REMOTE_INSTANCE);
+        super(REMOTE_GET_INSTANCE);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
         try {
             Instance instance = RemoteFacade.getInstance().getResourceInstance(orderId, federationUser, orderType);
             
-            Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), GET_REMOTE_INSTANCE);
+            Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_INSTANCE);
             Element instanceElement = queryEl.addElement(IqElement.INSTANCE.toString());
             
             Element instanceClassNameElement = queryElement.addElement(IqElement.INSTANCE_CLASS_NAME.toString());

@@ -63,7 +63,7 @@ public class RemoteDeleteOrderRequest implements RemoteRequest<Void> {
         iq.setID(this.order.getId());
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
-                RemoteMethod.DELETE_REMOTE_ORDER.toString());
+                RemoteMethod.REMOTE_DELETE_ORDER.toString());
         Element orderIdElement = queryElement.addElement(IqElement.ORDER_ID.toString());
         orderIdElement.setText(this.order.getId());
         
