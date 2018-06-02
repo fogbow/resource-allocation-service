@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.api.remote.xmpp.handlers;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
@@ -10,9 +9,7 @@ import org.fogbowcloud.manager.api.remote.xmpp.IqElement;
 import org.fogbowcloud.manager.api.remote.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
@@ -23,7 +20,7 @@ public class RemoteCreateOrderRequestHandler extends AbstractQueryHandler {
     private RemoteFacade remoteFacade;
 
     public RemoteCreateOrderRequestHandler() {
-        super(RemoteMethod.CREATE_REMOTE_ORDER.toString());
+        super(RemoteMethod.REMOTE_CREATE_ORDER.toString());
         remoteFacade = RemoteFacade.getInstance();
     }
 

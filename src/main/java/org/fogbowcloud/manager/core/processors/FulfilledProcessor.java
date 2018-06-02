@@ -115,6 +115,10 @@ public class FulfilledProcessor implements Runnable {
         synchronized (order) {
             OrderState orderState = order.getOrderState();
 
+            if (!order.isProviderLocal(localMemberId)) {
+                return;
+            }
+
             if (orderState.equals(OrderState.FULFILLED)) {
                 LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
 

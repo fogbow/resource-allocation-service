@@ -19,7 +19,7 @@ public class RemoteDeleteOrderRequestHandler extends AbstractQueryHandler {
     private RemoteFacade remoteFacade;
 
     public RemoteDeleteOrderRequestHandler() {
-        super(RemoteMethod.DELETE_REMOTE_ORDER.toString());
+        super(RemoteMethod.REMOTE_DELETE_ORDER.toString());
         remoteFacade = RemoteFacade.getInstance();
     }
 

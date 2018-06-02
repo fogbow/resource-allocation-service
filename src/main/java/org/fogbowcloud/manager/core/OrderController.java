@@ -15,6 +15,7 @@ import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.QuotaException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
+import org.fogbowcloud.manager.core.instanceprovider.InstanceProviderSelector;
 import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
 import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
 import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
@@ -34,18 +35,11 @@ import org.slf4j.LoggerFactory;
 public class OrderController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ComputeOrdersController.class);
-    private final InstanceProvider localInstanceProvider;
-    private final InstanceProvider remoteInstanceProvider;
     private final String localMemberId;
     private SharedOrderHolders orderHolders;
 
-    public OrderController(
-        Properties properties,
-        LocalInstanceProvider localInstanceProvider,
-        RemoteInstanceProvider remoteInstanceProvider) {
+    public OrderController(Properties properties) {
         this.localMemberId = properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
-        this.localInstanceProvider = localInstanceProvider;
-        this.remoteInstanceProvider = remoteInstanceProvider;
         this.orderHolders = SharedOrderHolders.getInstance();
     }
 
@@ -157,34 +151,11 @@ public class OrderController {
         }
     }
 
-    private InstanceProvider getInstanceProviderForOrder(Order order) {
-        InstanceProvider instanceProvider;
-
-        synchronized (order) {
-            if (order.isProviderLocal(this.localMemberId)) {
-                LOGGER.debug("The order [" + order.getId() + "] is local");
-
-                instanceProvider = this.localInstanceProvider;
-            } else {
-                LOGGER.debug(
-                    "The open order ["
-                        + order.getId()
-                        + "] is remote for the "
-                        + "member ["
-                        + order.getProvidingMember()
-                        + "]");
-
-                instanceProvider = this.remoteInstanceProvider;
-            }
-        }
-
-        return instanceProvider;
-    }
-
     public Instance getResourceInstance(Order order)
         throws PropertyNotSpecifiedException, TokenCreationException, RequestException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         synchronized (order) {
-            InstanceProvider instanceProvider = getInstanceProviderForOrder(order);
+            InstanceProviderSelector instanceProviderSelector = InstanceProviderSelector.getInstance();
+            InstanceProvider instanceProvider = instanceProviderSelector.getInstanceProvider(order);
             return instanceProvider.getInstance(order);
         }
     }
@@ -198,11 +169,14 @@ public class OrderController {
 				.filter(order -> order.isProviderLocal(this.localMemberId))
 				.filter(order -> order.getFederationUser().equals(federationUser))
 				.collect(Collectors.toList());
-		
+
+        InstanceProviderSelector instanceProviderSelector = InstanceProviderSelector.getInstance();
+        LocalInstanceProvider localInstanceProvider = instanceProviderSelector.getLocalInstanceProvider();
+
 		int vCPU = 0, ram = 0, instances = 0;
 		
 		for (Order order : computeOrders) {
-			ComputeInstance computeInstance = (ComputeInstance) this.localInstanceProvider.getInstance(order);
+			ComputeInstance computeInstance = (ComputeInstance) localInstanceProvider.getInstance(order);
 			vCPU += computeInstance.getvCPU();
 			ram += computeInstance.getMemory();
 			instances++;

@@ -51,7 +51,7 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
         iq.setTo(this.order.getProvidingMember());
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
-                RemoteMethod.GET_REMOTE_INSTANCE.toString());
+                RemoteMethod.REMOTE_GET_INSTANCE.toString());
         Element orderIdElement = queryElement.addElement(IqElement.ORDER_ID.toString());
         orderIdElement.setText(this.order.getId());
 
