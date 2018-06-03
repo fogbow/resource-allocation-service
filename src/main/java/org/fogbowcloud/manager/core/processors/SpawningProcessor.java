@@ -10,8 +10,8 @@ import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorSelector;
-import org.fogbowcloud.manager.core.manager.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -42,7 +42,7 @@ public class SpawningProcessor implements Runnable {
         this.computeInstanceConnectivity =
             new ComputeInstanceConnectivityUtil(tunnelingService, sshConnectivity);
 
-        this.localCloudConnector = CloudConnectorSelector.getInstance().getLocalInstanceProvider();
+        this.localCloudConnector = CloudConnectorSelector.getInstance().getLocalCloudConnector();
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();

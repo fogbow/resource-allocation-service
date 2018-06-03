@@ -11,8 +11,8 @@ import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.QuotaException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.manager.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
@@ -61,7 +61,8 @@ public class ComputeOrdersController {
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<ComputeInstance>> getAllCompute(
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
+        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException,
+            UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         LOGGER.info("Get all compute orders request received");
         List<ComputeInstance> computes = ApplicationFacade.getInstance().getAllComputes(federationTokenValue);
         return new ResponseEntity<>(computes, HttpStatus.OK);
@@ -71,7 +72,8 @@ public class ComputeOrdersController {
     public ResponseEntity<ComputeInstance> getCompute(
             @PathVariable String computeId,
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
+        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException,
+            UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         LOGGER.info("Get request to compute order with id <" + computeId + "> received");
         ComputeInstance compute = ApplicationFacade.getInstance().getCompute(computeId, federationTokenValue);
         return new ResponseEntity<ComputeInstance>(compute, HttpStatus.OK);
@@ -88,22 +90,24 @@ public class ComputeOrdersController {
     }
     
 	@RequestMapping(value = "/quota/{id}", method = RequestMethod.GET)
-	public ResponseEntity<ComputeQuota> getSharedQuota(@PathVariable String memberId,
+	public ResponseEntity<ComputeQuota> getUserQuota(@PathVariable String memberId,
 			@RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-			throws UnauthenticatedException, QuotaException, UnauthorizedException {
+            throws UnauthenticatedException, QuotaException, UnauthorizedException, PropertyNotSpecifiedException,
+            RemoteRequestException, TokenCreationException {
 
-		LOGGER.info("Shared quota information request received.");
+		LOGGER.info("User quota information request received.");
 
 		ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(memberId, federationTokenValue);
 		return new ResponseEntity<>(quotaInstance, HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/allocation/{id}", method = RequestMethod.GET)
-	public ResponseEntity<ComputeAllocation> getInUseByMeQuota(@PathVariable String memberId,
+	public ResponseEntity<ComputeAllocation> getUserAllocation(@PathVariable String memberId,
 			@RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-			throws UnauthenticatedException, QuotaException, UnauthorizedException, RemoteRequestException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+			throws UnauthenticatedException, QuotaException, UnauthorizedException, RemoteRequestException,
+            RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
 
-		LOGGER.info("In use quota information request received.");
+		LOGGER.info("User allocation information request received.");
 
 		ComputeAllocation computeAllocation = ApplicationFacade.getInstance().getComputeAllocation(memberId, federationTokenValue);
 		return new ResponseEntity<>(computeAllocation, HttpStatus.OK);

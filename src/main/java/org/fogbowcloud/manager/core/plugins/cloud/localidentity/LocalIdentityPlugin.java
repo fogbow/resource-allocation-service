@@ -3,8 +3,8 @@ package org.fogbowcloud.manager.core.plugins.cloud.localidentity;
 import java.util.Map;
 
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.manager.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;

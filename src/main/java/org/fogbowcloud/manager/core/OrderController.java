@@ -16,8 +16,8 @@ import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorSelector;
 import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
-import org.fogbowcloud.manager.core.manager.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -152,7 +152,7 @@ public class OrderController {
         throws PropertyNotSpecifiedException, TokenCreationException, RequestException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         synchronized (order) {
             CloudConnectorSelector cloudConnectorSelector = CloudConnectorSelector.getInstance();
-            CloudConnector cloudConnector = cloudConnectorSelector.getInstanceProvider(order);
+            CloudConnector cloudConnector = cloudConnectorSelector.getCloudConnector(order);
             return cloudConnector.getInstance(order);
         }
     }
@@ -168,12 +168,12 @@ public class OrderController {
 				.collect(Collectors.toList());
 
         CloudConnectorSelector cloudConnectorSelector = CloudConnectorSelector.getInstance();
-        LocalCloudConnector localInstanceProvider = cloudConnectorSelector.getLocalInstanceProvider();
+        LocalCloudConnector localCloudConnector = cloudConnectorSelector.getLocalCloudConnector();
 
 		int vCPU = 0, ram = 0, instances = 0;
 		
 		for (Order order : computeOrders) {
-			ComputeInstance computeInstance = (ComputeInstance) localInstanceProvider.getInstance(order);
+			ComputeInstance computeInstance = (ComputeInstance) localCloudConnector.getInstance(order);
 			vCPU += computeInstance.getvCPU();
 			ram += computeInstance.getMemory();
 			instances++;

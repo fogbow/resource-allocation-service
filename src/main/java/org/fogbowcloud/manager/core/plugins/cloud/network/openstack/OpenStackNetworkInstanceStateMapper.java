@@ -1,6 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.cloud.network.openstack;
 
-import org.fogbowcloud.manager.core.manager.plugins.cloud.InstanceStateMapper;
+import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 
 public class OpenStackNetworkInstanceStateMapper implements InstanceStateMapper {

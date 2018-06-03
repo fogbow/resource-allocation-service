@@ -52,7 +52,7 @@ public class FulfilledProcessor implements Runnable {
 
         this.localMemberId = cloudConnectorSelector.getLocalMemberId();
 
-        this.localInstanceProvider = cloudConnectorSelector.getLocalInstanceProvider();
+        this.localInstanceProvider = cloudConnectorSelector.getLocalCloudConnector();
 
         this.computeInstanceConnectivity =
             new ComputeInstanceConnectivityUtil(tunnelingService, sshConnectivity);

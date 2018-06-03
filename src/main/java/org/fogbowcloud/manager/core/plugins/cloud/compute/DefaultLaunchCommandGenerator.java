@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.compute.util;
+package org.fogbowcloud.manager.core.plugins.cloud.compute;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,6 +15,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.plugins.cloud.compute.util.CloudInitUserDataBuilder;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 
@@ -104,8 +105,8 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
         if (extraUserDataFileContent != null) {
             normalizedExtraUserData = new String(Base64.decodeBase64(extraUserDataFileContent));
         }
-        CloudInitUserDataBuilder.FileType extraUserDataFileType =
-                userData.getExtraUserDataFileType();
+
+        CloudInitUserDataBuilder.FileType extraUserDataFileType = userData.getExtraUserDataFileType();
 
         addExtraUserData(cloudInitUserDataBuilder, normalizedExtraUserData, extraUserDataFileType);
 

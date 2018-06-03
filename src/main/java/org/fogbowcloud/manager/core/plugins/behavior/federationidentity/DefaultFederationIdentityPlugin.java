@@ -1,9 +1,8 @@
 package org.fogbowcloud.manager.core.plugins.behavior.federationidentity;
 
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.manager.plugins.exceptions.TokenValueCreationException;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenValueCreationException;
+import org.fogbowcloud.manager.core.models.token.FederationUser;
 
 import java.util.HashMap;
 import java.util.Map;

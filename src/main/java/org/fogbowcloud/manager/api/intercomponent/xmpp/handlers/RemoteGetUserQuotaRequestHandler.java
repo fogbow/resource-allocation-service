@@ -8,10 +8,9 @@ import org.fogbowcloud.manager.api.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.models.orders.OrderType;
-import org.fogbowcloud.manager.core.models.orders.instances.Instance;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
@@ -19,54 +18,43 @@ import org.xmpp.packet.PacketError;
 
 import com.google.gson.Gson;
 
-public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
+public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
 
-    private static final Logger LOGGER = Logger.getLogger(RemoteGetOrderRequestHandler.class);
+    private static final Logger LOGGER = Logger.getLogger(RemoteGetUserQuotaRequestHandler.class);
 
-    public static final String REMOTE_GET_INSTANCE = RemoteMethod.REMOTE_GET_INSTANCE.toString();
+    public static final String REMOTE_GET_USER_QUOTA = RemoteMethod.REMOTE_GET_USER_QUOTA.toString();
 
-    public RemoteGetOrderRequestHandler() {
-        super(REMOTE_GET_INSTANCE);
+    public RemoteGetUserQuotaRequestHandler() {
+        super(REMOTE_GET_USER_QUOTA);
     }
 
     @Override
     public IQ handle(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
-        Element orderIdElement = queryElement.element(IqElement.ORDER_ID.toString());
-        String orderId = orderIdElement.getText();
 
-        Element orderTypeElementRequest = queryElement.element(IqElement.ORDER_TYPE.toString());
-        OrderType orderType = new Gson().fromJson(orderTypeElementRequest.getText(), OrderType.class);
-        
         Element federationUserElement = iq.getElement().element(IqElement.FEDERATION_USER.toString());
         FederationUser federationUser = new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
 
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            Instance instance = RemoteFacade.getInstance().getResourceInstance(orderId, federationUser, orderType);
-            
-            Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_INSTANCE);
-            Element instanceElement = queryEl.addElement(IqElement.INSTANCE.toString());
-            
-            Element instanceClassNameElement = queryElement.addElement(IqElement.INSTANCE_CLASS_NAME.toString());
-            instanceClassNameElement.setText(instance.getClass().getName());
-            
-            instanceElement.setText(new Gson().toJson(instance));
+            Quota userQuota = RemoteFacade.getInstance().getUserQuota(federationUser);
+
+            Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_USER_QUOTA);
+            Element instanceElement = queryEl.addElement(IqElement.USER_QUOTA.toString());
+
+            Element instanceClassNameElement = queryElement.addElement(IqElement.USER_QUOTA_CLASS_NAME.toString());
+            instanceClassNameElement.setText(userQuota.getClass().getName());
+
+            instanceElement.setText(new Gson().toJson(userQuota));
         } catch (PropertyNotSpecifiedException e) {
             // TODO: Switch this error for an appropriate one.
             response.setError(PacketError.Condition.internal_server_error);
-        } catch (RequestException e) {
-            // TODO: Switch this error for an appropriate one.
-            response.setError(PacketError.Condition.internal_server_error);
-        } catch (InstanceNotFoundException e) {
-            LOGGER.error("The instance does not exist.", e);
-            response.setError(PacketError.Condition.item_not_found);
         } catch (TokenCreationException e) {
             LOGGER.error("Error while creating token", e);
             response.setError(PacketError.Condition.service_unavailable);
         } catch (UnauthorizedException e) {
-            LOGGER.error("The user is not authorized to get the instance.", e);
+            LOGGER.error("The user is not authorized to get quota.", e);
             response.setError(PacketError.Condition.forbidden);
         } finally {
             return response;

@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager;
 
+import org.fogbowcloud.manager.api.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.XmppComponentManager;
 import org.fogbowcloud.manager.core.*;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorSelector;
@@ -22,7 +23,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class Main implements ApplicationRunner {
 
-    private ApplicationFacade facade = ApplicationFacade.getInstance();
+    private ApplicationFacade applicationFacade = ApplicationFacade.getInstance();
+    private RemoteFacade remoteFacade = RemoteFacade.getInstance();
 
     @Override
     public void run(ApplicationArguments args) {
@@ -41,7 +43,7 @@ public class Main implements ApplicationRunner {
         AaController aaController =
                 new AaController(cloudPluginsHolder.getLocalIdentityPlugin(), behaviorPluginsHolder);
 
-        LocalCloudConnector localInstanceProvider = new LocalCloudConnector(aaController, cloudPluginsHolder);
+        LocalCloudConnector localCloudConnector = new LocalCloudConnector(aaController, cloudPluginsHolder);
 
         String localMemberId = instantiationInitService.getPropertyValue(ConfigurationConstants.XMPP_JID_KEY);
         String xmppPassword = instantiationInitService.getPropertyValue(ConfigurationConstants.XMPP_PASSWORD_KEY);
@@ -56,19 +58,21 @@ public class Main implements ApplicationRunner {
         XmppComponentManager xmppComponentManager = new XmppComponentManager(localMemberId,
                 xmppPassword, xmppServerIp, xmppServerPort, xmppTimeout, orderController);
 
-        RemoteCloudConnector remoteInstanceProvider = new RemoteCloudConnector(xmppComponentManager);
+        RemoteCloudConnector remoteCloudConnector = new RemoteCloudConnector(xmppComponentManager);
 
         CloudConnectorSelector cloudConnectorSelector = CloudConnectorSelector.getInstance();
         cloudConnectorSelector.setLocalMemberId(localMemberId);
-        cloudConnectorSelector.setLocalInstanceProvider(localInstanceProvider);
-        cloudConnectorSelector.setRemoteInstanceProvider(remoteInstanceProvider);
+        cloudConnectorSelector.setLocalCloudConnector(localCloudConnector);
+        cloudConnectorSelector.setRemoteCloudConnector(remoteCloudConnector);
 
-        // Setting facade controllers
+        // Setting applicationFacade controllers
 
-        this.facade.setAaController(aaController);
-        this.facade.setOrderController(orderController);
+        this.applicationFacade.setAaController(aaController);
+        this.applicationFacade.setOrderController(orderController);
+        this.remoteFacade.setAaController(aaController);
+        this.remoteFacade.setOrderController(orderController);
 
-        // Starting threads
+        // Setting order processors and starting threads
 
         String openOrdersProcSleepTimeStr =
                 instantiationInitService.getPropertyValue(ConfigurationConstants.OPEN_ORDERS_SLEEP_TIME_KEY);
@@ -98,7 +102,7 @@ public class Main implements ApplicationRunner {
 
         ClosedProcessor closedProcessor = new ClosedProcessor(orderController, closedOrdersProcSleepTimeStr);
 
-        ProcessorsController processorsController = new ProcessorsController(openProcessor, spawningProcessor,
+        ProcessorsThreadController processorsThreadController = new ProcessorsThreadController(openProcessor, spawningProcessor,
                 fulfilledProcessor, closedProcessor);
 
     }

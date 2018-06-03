@@ -1,10 +1,7 @@
 package org.fogbowcloud.manager.api.intercomponent.xmpp;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.handlers.RemoteCreateOrderRequestHandler;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.handlers.RemoteDeleteOrderRequestHandler;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.handlers.RemoteGetOrderRequestHandler;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.handlers.RemoteNotifyEventHandler;
+import org.fogbowcloud.manager.api.intercomponent.xmpp.handlers.*;
 import org.fogbowcloud.manager.core.OrderController;
 import org.jamppa.component.XMPPComponent;
 
@@ -20,6 +17,7 @@ public class XmppComponentManager extends XMPPComponent {
         addSetHandler(new RemoteDeleteOrderRequestHandler());
         addSetHandler(new RemoteNotifyEventHandler(orderController));
         addGetHandler(new RemoteGetOrderRequestHandler());
+        addGetHandler(new RemoteGetUserQuotaRequestHandler());
     }
 
 }

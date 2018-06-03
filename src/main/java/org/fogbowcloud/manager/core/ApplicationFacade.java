@@ -12,8 +12,8 @@ import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorSelector;
 import org.fogbowcloud.manager.core.constants.Operation;
-import org.fogbowcloud.manager.core.manager.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -80,6 +80,28 @@ public class ApplicationFacade {
         deleteOrder(computeId, federationTokenValue, OrderType.COMPUTE);
     }
 
+    public ComputeQuota getComputeQuota(String memberId, String federationTokenValue)
+            throws UnauthenticatedException, QuotaException, UnauthorizedException, PropertyNotSpecifiedException,
+            TokenCreationException, RemoteRequestException {
+
+        this.aaController.authenticate(federationTokenValue);
+        FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
+        this.aaController.authorize(federationUser, Operation.GET_USER_QUOTA);
+
+        return CloudConnectorSelector.getInstance().getCloudConnector(memberId).getComputeQuota(memberId, federationUser);
+    }
+
+    public ComputeAllocation getComputeAllocation(String memberId, String federationTokenValue)
+            throws UnauthenticatedException, QuotaException, UnauthorizedException, RemoteRequestException,
+            RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+
+        this.aaController.authenticate(federationTokenValue);
+        FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
+        this.aaController.authorize(federationUser, Operation.GET_USER_ALLOCATION);
+
+        return this.orderController.getComputeAllocation(federationUser);
+    }
+
     public void createVolume(VolumeOrder volumeOrder, String federationTokenValue)
         throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
         activateOrder(volumeOrder, federationTokenValue);
@@ -141,28 +163,46 @@ public class ApplicationFacade {
         throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
         deleteOrder(orderId, federationTokenValue, OrderType.NETWORK);
     }
-    
-	public ComputeQuota getComputeQuota(String memberId, String federationTokenValue)
-            throws UnauthenticatedException, QuotaException, UnauthorizedException, PropertyNotSpecifiedException,
-            TokenCreationException {
-		
-		this.aaController.authenticate(federationTokenValue);
-		FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
-		this.aaController.authorize(federationUser, Operation.GET_QUOTA);
-		
-		return CloudConnectorSelector.getInstance().getInstanceProvider(memberId).getComputeQuota(federationUser);
-	}
 
-	public ComputeAllocation getComputeAllocation(String memberId, String federationTokenValue)
-			throws UnauthenticatedException, QuotaException, UnauthorizedException, RemoteRequestException,
-            RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
-		
-		this.aaController.authenticate(federationTokenValue);
-		FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
-		this.aaController.authorize(federationUser, Operation.GET_ALLOCATION);
-		
-		return this.orderController.getComputeAllocation(federationUser);
-	}
+    public void createAttachment(AttachmentOrder attachmentOrder,
+                                 String federationTokenValue) throws OrderManagementException, UnauthorizedException,
+            UnauthenticatedException {
+        activateOrder(attachmentOrder, federationTokenValue);
+    }
+
+    public List<AttachmentInstance> getAllAttachments(String federationTokenValue) throws UnauthenticatedException,
+            UnauthorizedException, PropertyNotSpecifiedException, TokenCreationException, RequestException,
+            InstanceNotFoundException, RemoteRequestException {
+        List<AttachmentInstance> attachmentInstances = new ArrayList<AttachmentInstance>();
+
+        List<Order> allOrders = getAllOrders(federationTokenValue, OrderType.ATTACHMENT);
+        for (Order order : allOrders) {
+            AttachmentInstance instance = (AttachmentInstance) this.orderController
+                    .getResourceInstance(order);
+            attachmentInstances.add(instance);
+        }
+        return attachmentInstances;
+    }
+
+    public AttachmentInstance getAttachment(String orderId,
+                                            String federationTokenValue) throws UnauthenticatedException, UnauthorizedException, RequestException,
+            TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
+        return (AttachmentInstance) getResourceInstance(orderId, federationTokenValue,
+                OrderType.ATTACHMENT);
+    }
+
+    public void deleteAttachment(String orderId, String federationTokenValue) throws UnauthenticatedException,
+            UnauthorizedException, OrderManagementException {
+        deleteOrder(orderId, federationTokenValue, OrderType.ATTACHMENT);
+    }
+
+    public void setAaController(AaController aaController) {
+        this.aaController = aaController;
+    }
+
+    public void setOrderController(OrderController orderController) {
+        this.orderController = orderController;
+    }
 
     private void activateOrder(Order order, String federationTokenValue)
     			throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
@@ -206,40 +246,4 @@ public class ApplicationFacade {
 
         return this.orderController.getResourceInstance(order);
     }
-
-    public void createAttachment(AttachmentOrder attachmentOrder,
-            String federationTokenValue) throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
-        activateOrder(attachmentOrder, federationTokenValue);
-    }
-
-    public List<AttachmentInstance> getAllAttachments(String federationTokenValue) throws UnauthenticatedException, UnauthorizedException, PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException, RemoteRequestException {
-    	List<AttachmentInstance> attachmentInstances = new ArrayList<AttachmentInstance>();
-
-        List<Order> allOrders = getAllOrders(federationTokenValue, OrderType.ATTACHMENT);
-        for (Order order : allOrders) {
-            AttachmentInstance instance = (AttachmentInstance) this.orderController
-                .getResourceInstance(order);
-            attachmentInstances.add(instance);
-        }
-        return attachmentInstances;
-    }
-
-    public AttachmentInstance getAttachment(String orderId,
-            String federationTokenValue) throws UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
-    	return (AttachmentInstance) getResourceInstance(orderId, federationTokenValue,
-                OrderType.ATTACHMENT);
-    }
-
-    public void deleteAttachment(String orderId, String federationTokenValue) throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
-    	deleteOrder(orderId, federationTokenValue, OrderType.ATTACHMENT);        
-    }
-
-    public void setAaController(AaController aaController) {
-        this.aaController = aaController;
-    }
-
-    public void setOrderController(OrderController orderController) {
-        this.orderController = orderController;
-    }
-
 }

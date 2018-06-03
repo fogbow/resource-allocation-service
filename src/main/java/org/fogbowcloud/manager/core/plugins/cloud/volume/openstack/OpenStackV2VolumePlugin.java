@@ -14,7 +14,7 @@ import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.constants.OpenStackConstants;
-import org.fogbowcloud.manager.core.manager.plugins.cloud.volume.VolumePlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.volume.VolumePlugin;
 import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
 import org.fogbowcloud.manager.core.models.ResponseConstants;

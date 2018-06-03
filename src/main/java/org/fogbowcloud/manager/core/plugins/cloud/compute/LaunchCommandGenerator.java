@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.compute.util;
+package org.fogbowcloud.manager.core.plugins.cloud.compute;
 
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 

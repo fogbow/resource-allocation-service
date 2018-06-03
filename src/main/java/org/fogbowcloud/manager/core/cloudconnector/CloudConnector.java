@@ -45,6 +45,6 @@ public interface CloudConnector {
      * Gets the quota of the federationidentity user.
      * @throws TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException, QuotaException
      */
-    public ComputeQuota getComputeQuota(FederationUser federationUser) throws TokenCreationException,
-            UnauthorizedException, PropertyNotSpecifiedException, QuotaException;
+    public ComputeQuota getComputeQuota(String memberId, FederationUser federationUser) throws TokenCreationException,
+            UnauthorizedException, PropertyNotSpecifiedException, QuotaException, RemoteRequestException;
 }

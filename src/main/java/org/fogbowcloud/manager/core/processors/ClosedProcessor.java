@@ -9,8 +9,8 @@ import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorSelector;
-import org.fogbowcloud.manager.core.manager.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 
@@ -61,7 +61,7 @@ public class ClosedProcessor implements Runnable {
     private void processClosedOrder(Order order)
     		throws PropertyNotSpecifiedException, TokenCreationException, RequestException, UnauthorizedException, RemoteRequestException, OrderManagementException {
         synchronized (order) {
-            CloudConnector provider = CloudConnectorSelector.getInstance().getInstanceProvider(order);
+            CloudConnector provider = CloudConnectorSelector.getInstance().getCloudConnector(order);
             provider.deleteInstance(order);
 
             this.closedOrders.removeItem(order);

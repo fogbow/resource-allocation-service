@@ -10,8 +10,8 @@ public class CloudConnectorSelector {
     private static CloudConnectorSelector instance;
 
     private String localMemberId;
-    private LocalCloudConnector localInstanceProvider;
-    private RemoteCloudConnector remoteInstanceProvider;
+    private LocalCloudConnector localCloudConnector;
+    private RemoteCloudConnector remoteCloudConnector;
 
     public static synchronized CloudConnectorSelector getInstance() {
         if (instance == null) {
@@ -20,40 +20,40 @@ public class CloudConnectorSelector {
         return instance;
     }
 
-    public CloudConnector getInstanceProvider(Order order) {
+    public CloudConnector getCloudConnector(Order order) {
         CloudConnector cloudConnector;
-        // Check if localInstanceProvider, remoteInstanceProvider null
+        // Check if localCloudConnector, remoteCloudConnector null
 
         synchronized (order) {
             if (order.isProviderLocal(this.localMemberId)) {
-                cloudConnector = this.localInstanceProvider;
+                cloudConnector = this.localCloudConnector;
             } else {
-                cloudConnector = this.remoteInstanceProvider;
+                cloudConnector = this.remoteCloudConnector;
             }
         }
 
         return cloudConnector;
     }
 
-    public CloudConnector getInstanceProvider(String memberId) {
+    public CloudConnector getCloudConnector(String memberId) {
         CloudConnector cloudConnector;
-        // Check if localInstanceProvider, remoteInstanceProvider null
+        // Check if localCloudConnector, remoteCloudConnector null
 
         if (memberId.equals(this.localMemberId)) {
-            cloudConnector = this.localInstanceProvider;
+            cloudConnector = this.localCloudConnector;
         } else {
-            cloudConnector = this.remoteInstanceProvider;
+            cloudConnector = this.remoteCloudConnector;
         }
 
         return cloudConnector;
     }
 
-    public void setLocalInstanceProvider(LocalCloudConnector localInstanceProvider) {
-        this.localInstanceProvider = localInstanceProvider;
+    public void setLocalCloudConnector(LocalCloudConnector localCloudConnector) {
+        this.localCloudConnector = localCloudConnector;
     }
 
-    public void setRemoteInstanceProvider(RemoteCloudConnector remoteInstanceProvider) {
-        this.remoteInstanceProvider = remoteInstanceProvider;
+    public void setRemoteCloudConnector(RemoteCloudConnector remoteCloudConnector) {
+        this.remoteCloudConnector = remoteCloudConnector;
     }
 
     public void setLocalMemberId(String localMemberId) {
@@ -64,7 +64,7 @@ public class CloudConnectorSelector {
         return localMemberId;
     }
 
-    public LocalCloudConnector getLocalInstanceProvider() {
-        return this.localInstanceProvider;
+    public LocalCloudConnector getLocalCloudConnector() {
+        return this.localCloudConnector;
     }
 }

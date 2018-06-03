@@ -11,7 +11,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.QuotaException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.constants.OpenStackConfigurationConstants;
-import org.fogbowcloud.manager.core.manager.plugins.cloud.quota.ComputeQuotaPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.quota.ComputeQuotaPlugin;
 import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
 import org.fogbowcloud.manager.core.models.ResponseConstants;

@@ -2,14 +2,13 @@ package org.fogbowcloud.manager.api.intercomponent;
 
 import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.OrderController;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorSelector;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.constants.Operation;
-import org.fogbowcloud.manager.core.manager.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.models.quotas.Quota;
+import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
+import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.orders.instances.Instance;
@@ -20,7 +19,7 @@ public class RemoteFacade {
 
     private static RemoteFacade instance;
 
-    private AaController AaController;
+    private AaController aaController;
     private OrderController orderController;
 
     public static RemoteFacade getInstance() {
@@ -31,39 +30,52 @@ public class RemoteFacade {
             return instance;
         }
     }
-    
-//    public ComputeInstance getCompute(String orderId, FederationUser federationUser) throws UnauthenticatedException,
-//            PropertyNotSpecifiedException, RequestException, InstanceNotFoundException, TokenCreationException, UnauthorizedException, RemoteRequestException {
-//
-//        return (ComputeInstance) getResourceInstance(orderId, federationUser,
-//                OrderType.COMPUTE);
-//    }
 
     public void activateOrder(Order order) throws UnauthorizedException, OrderManagementException {
-        this.AaController.authorize(order.getFederationUser(), Operation.CREATE, order);
+        this.aaController.authorize(order.getFederationUser(), Operation.CREATE, order);
         this.orderController.activateOrder(order);
     }
 
-    public Instance getResourceInstance(String orderId, FederationUser federationUser,
-                                         OrderType type) throws UnauthorizedException, PropertyNotSpecifiedException,
+    public Instance getResourceInstance(String orderId, FederationUser federationUser, OrderType orderType) throws
+            UnauthorizedException, PropertyNotSpecifiedException,
             TokenCreationException, RequestException, InstanceNotFoundException, RemoteRequestException {
 
-        Order order = this.orderController.getOrder(orderId, federationUser, type);
-        this.AaController.authorize(federationUser, Operation.GET, order);
+        Order order = this.orderController.getOrder(orderId, federationUser, orderType);
+        this.aaController.authorize(federationUser, Operation.GET, order);
 
         return this.orderController.getResourceInstance(order);
     }
 
     public void deleteOrder(String orderId, FederationUser federationUser, OrderType orderType)
-            throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
+            throws UnauthorizedException, OrderManagementException {
+
         Order order = this.orderController.getOrder(orderId, federationUser, orderType);
-        this.AaController.authorize(federationUser, Operation.DELETE, order);
+        this.aaController.authorize(federationUser, Operation.DELETE, order);
 
         this.orderController.deleteOrder(order);
     }
 
-    public void setAAAController(AaController AaController) {
-        this.AaController = AaController;
+    public Quota getUserQuota(FederationUser federationUser) throws UnauthorizedException, QuotaException,
+            TokenCreationException, PropertyNotSpecifiedException {
+
+        this.aaController.authorize(federationUser, Operation.GET_USER_QUOTA);
+
+        CloudConnectorSelector selector = CloudConnectorSelector.getInstance();
+
+        return (Quota) selector.getLocalCloudConnector().getComputeQuota(selector.getLocalMemberId(), federationUser);
+    }
+
+    public Allocation getUserAllocation(FederationUser federationUser) throws InstanceNotFoundException,
+            RequestException, QuotaException, PropertyNotSpecifiedException, RemoteRequestException,
+            TokenCreationException, UnauthorizedException {
+
+        this.aaController.authorize(federationUser, Operation.GET_USER_ALLOCATION);
+
+        return (Allocation) this.orderController.getComputeAllocation(federationUser);
+    }
+
+    public void setAaController(AaController AaController) {
+        this.aaController = AaController;
     }
 
     public void setOrderController(OrderController orderController) {

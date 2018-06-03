@@ -6,17 +6,17 @@ import org.fogbowcloud.manager.core.processors.FulfilledProcessor;
 import org.fogbowcloud.manager.core.processors.OpenProcessor;
 import org.fogbowcloud.manager.core.processors.SpawningProcessor;
 
-public class ProcessorsController {
+public class ProcessorsThreadController {
 
     private Thread openProcessorThread;
     private Thread spawningProcessorThread;
     private Thread fulfilledProcessorThread;
     private Thread closedProcessorThread;
 
-    private static final Logger LOGGER = Logger.getLogger(ProcessorsController.class);
+    private static final Logger LOGGER = Logger.getLogger(ProcessorsThreadController.class);
 
-    public ProcessorsController(OpenProcessor openProcessor, SpawningProcessor spawningProcessor,
-                                FulfilledProcessor fulfilledProcessor, ClosedProcessor closedProcessor) {
+    public ProcessorsThreadController(OpenProcessor openProcessor, SpawningProcessor spawningProcessor,
+                                      FulfilledProcessor fulfilledProcessor, ClosedProcessor closedProcessor) {
 
         this.openProcessorThread = new Thread(openProcessor);
         this.spawningProcessorThread = new Thread(spawningProcessor);

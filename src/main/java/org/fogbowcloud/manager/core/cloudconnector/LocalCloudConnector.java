@@ -22,6 +22,8 @@ import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.services.AaController;
 
 public class LocalCloudConnector implements CloudConnector {
@@ -46,7 +48,8 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public String requestInstance(Order order) throws PropertyNotSpecifiedException, RequestException {
+    public String requestInstance(Order order) throws PropertyNotSpecifiedException, RequestException,
+            UnauthorizedException, TokenCreationException {
         String requestInstance = null;
         Token localToken = this.AaController.getLocalToken(order.getFederationUser());
         switch (order.getType()) {
@@ -76,7 +79,8 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public void deleteInstance(Order order) throws RequestException, PropertyNotSpecifiedException {
+    public void deleteInstance(Order order) throws RequestException, PropertyNotSpecifiedException,
+            UnauthorizedException, TokenCreationException {
         Token localToken = this.AaController.getLocalToken(order.getFederationUser());
         switch (order.getType()) {
             case COMPUTE:
@@ -98,7 +102,7 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public Instance getInstance(Order order) throws RequestException, PropertyNotSpecifiedException,
-            InstanceNotFoundException {
+            InstanceNotFoundException, UnauthorizedException, TokenCreationException {
         Instance instance;
         Token localToken = this.AaController.getLocalToken(order.getFederationUser());
 
@@ -130,8 +134,8 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public ComputeQuota getComputeQuota(FederationUser federationUser) throws PropertyNotSpecifiedException,
-            QuotaException {
+    public ComputeQuota getComputeQuota(String localMemberId, FederationUser federationUser) throws PropertyNotSpecifiedException,
+            QuotaException, UnauthorizedException, TokenCreationException {
 
         Token localToken = this.AaController.getLocalToken(federationUser);
 

@@ -17,7 +17,7 @@ public class PropertiesUtil {
 
     public static String getLocalMemberId() {
     	Properties properties = getProperties();
-    	return properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
+    	return properties.getProperty(ConfigurationConstants.XMPP_JID_KEY);
     }
 	
 }

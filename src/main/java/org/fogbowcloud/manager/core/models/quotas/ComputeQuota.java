@@ -20,14 +20,6 @@ public class ComputeQuota implements Quota {
 		return this.usedQuota;
 	}
 	
-	public void setTotalQuota(ComputeAllocation totalQuota) {
-		this.totalQuota = totalQuota;
-	}
-	
-	public void setUsedQuota(ComputeAllocation usedQuota) {
-		this.usedQuota = usedQuota;
-	}
-	
 	public ComputeAllocation getAvailableQuota() {
 		int availableVCpu = this.totalQuota.getvCPU() - this.usedQuota.getvCPU();
 		int availableRam = this.totalQuota.getRam() - this.usedQuota.getRam();

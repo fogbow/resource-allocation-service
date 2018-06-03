@@ -80,7 +80,7 @@ public class OpenProcessor implements Runnable {
                 LOGGER.debug("Trying to get an instance for order [" + order.getId() + "]");
 
                 try {
-                    CloudConnector cloudConnector = CloudConnectorSelector.getInstance().getInstanceProvider(order);
+                    CloudConnector cloudConnector = CloudConnectorSelector.getInstance().getCloudConnector(order);
 
                     LOGGER.debug("Processing order [" + order.getId() + "]");
                     String orderInstanceId = cloudConnector.requestInstance(order);
