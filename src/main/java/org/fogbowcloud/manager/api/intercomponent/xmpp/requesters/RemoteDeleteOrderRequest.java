@@ -67,7 +67,7 @@ public class RemoteDeleteOrderRequest implements RemoteRequest<Void> {
         Element orderIdElement = queryElement.addElement(IqElement.ORDER_ID.toString());
         orderIdElement.setText(this.order.getId());
         
-        Element orderTypeElement = queryElement.addElement(IqElement.ORDER_TYPE.toString());
+        Element orderTypeElement = queryElement.addElement(IqElement.INSTANCE_TYPE.toString());
         orderTypeElement.setText(this.order.getType().toString());
 
         LOGGER.debug("Jsonifying federationidentity user.");

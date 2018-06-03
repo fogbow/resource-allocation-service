@@ -7,7 +7,7 @@ import org.fogbowcloud.manager.api.intercomponent.exceptions.UnexpectedException
 import org.fogbowcloud.manager.api.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.instances.Instance;
+import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.jamppa.component.PacketSender;
 import org.xmpp.packet.IQ;
 
@@ -55,7 +55,7 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
         Element orderIdElement = queryElement.addElement(IqElement.ORDER_ID.toString());
         orderIdElement.setText(this.order.getId());
 
-        Element orderTypeElement = queryElement.addElement(IqElement.ORDER_TYPE.toString());
+        Element orderTypeElement = queryElement.addElement(IqElement.INSTANCE_TYPE.toString());
         orderTypeElement.setText(this.order.getType().toString());
         
         Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());

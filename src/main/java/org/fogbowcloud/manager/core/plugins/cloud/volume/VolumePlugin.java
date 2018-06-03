@@ -2,7 +2,7 @@ package org.fogbowcloud.manager.core.plugins.cloud.volume;
 
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
-import org.fogbowcloud.manager.core.models.orders.instances.VolumeInstance;
+import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 
 public interface VolumePlugin {

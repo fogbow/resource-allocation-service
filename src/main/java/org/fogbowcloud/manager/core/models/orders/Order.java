@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.models.orders;
 
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 
 public abstract class Order {
@@ -87,7 +88,7 @@ public abstract class Order {
         return !this.requestingMember.equals(localMemberId);
     }
 
-    public abstract OrderType getType();
+    public abstract InstanceType getType();
 
     @Override
     public int hashCode() {

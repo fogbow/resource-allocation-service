@@ -1,34 +1,41 @@
 package org.fogbowcloud.manager.core.cloudconnector;
 
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.CloudPluginsHolder;
+import org.fogbowcloud.manager.core.OrderController;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.QuotaException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
+import org.fogbowcloud.manager.core.models.orders.*;
+import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.plugins.cloud.attachment.AttachmentPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.network.NetworkPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.quota.ComputeQuotaPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.volume.VolumePlugin;
-import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
-import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
-import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.OrderType;
-import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
-import org.fogbowcloud.manager.core.models.orders.instances.Instance;
-import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.instances.Instance;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.services.AaController;
+import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class LocalCloudConnector implements CloudConnector {
 
-    private final AaController AaController;
+    private final String memberId;
+    private final AaController aaController;
+    private final OrderController orderController;
     private final AttachmentPlugin attachmentPlugin;
     private final ComputePlugin computePlugin;
     private final ComputeQuotaPlugin computeQuotaPlugin;
@@ -37,9 +44,12 @@ public class LocalCloudConnector implements CloudConnector {
 
     private static final Logger LOGGER = Logger.getLogger(LocalCloudConnector.class);
 
-    public LocalCloudConnector(AaController AaController, CloudPluginsHolder cloudPluginsHolder) {
+    public LocalCloudConnector(String memberId, AaController aaController, OrderController orderController,
+                               CloudPluginsHolder cloudPluginsHolder) {
         super();
-        this.AaController = AaController;
+        this.memberId = memberId;
+        this.aaController = aaController;
+        this.orderController = orderController;
         this.attachmentPlugin = cloudPluginsHolder.getAttachmentPlugin();
         this.computePlugin = cloudPluginsHolder.getComputePlugin();
         this.computeQuotaPlugin = cloudPluginsHolder.getComputeQuotaPlugin();
@@ -51,7 +61,7 @@ public class LocalCloudConnector implements CloudConnector {
     public String requestInstance(Order order) throws PropertyNotSpecifiedException, RequestException,
             UnauthorizedException, TokenCreationException {
         String requestInstance = null;
-        Token localToken = this.AaController.getLocalToken(order.getFederationUser());
+        Token localToken = this.aaController.getLocalToken(order.getFederationUser());
         switch (order.getType()) {
             case COMPUTE:
                 ComputeOrder computeOrder = (ComputeOrder) order;
@@ -81,22 +91,26 @@ public class LocalCloudConnector implements CloudConnector {
     @Override
     public void deleteInstance(Order order) throws RequestException, PropertyNotSpecifiedException,
             UnauthorizedException, TokenCreationException {
-        Token localToken = this.AaController.getLocalToken(order.getFederationUser());
-        switch (order.getType()) {
-            case COMPUTE:
-                this.computePlugin.deleteInstance(order.getInstanceId(), localToken);
-                break;
-            case VOLUME:
-                this.volumePlugin.deleteInstance(order.getInstanceId(), localToken);
-                break;
-            case NETWORK:
-                this.networkPlugin.deleteInstance(order.getInstanceId(), localToken);
-                break;
-            case ATTACHMENT:
-                this.attachmentPlugin.deleteInstance(order.getInstanceId(), localToken);
-            default:
-                LOGGER.error("Undefined type " + order.getType());
-                break;
+
+        if (order.getInstanceId() != null) {
+            Token localToken = this.aaController.getLocalToken(order.getFederationUser());
+            switch (order.getType()) {
+                case COMPUTE:
+                    this.computePlugin.deleteInstance(order.getInstanceId(), localToken);
+                    break;
+                case VOLUME:
+                    this.volumePlugin.deleteInstance(order.getInstanceId(), localToken);
+                    break;
+                case NETWORK:
+                    this.networkPlugin.deleteInstance(order.getInstanceId(), localToken);
+                    break;
+                case ATTACHMENT:
+                    this.attachmentPlugin.deleteInstance(order.getInstanceId(), localToken);
+                    break;
+                default:
+                    LOGGER.error("Undefined type " + order.getType());
+                    break;
+            }
         }
     }
 
@@ -104,7 +118,7 @@ public class LocalCloudConnector implements CloudConnector {
     public Instance getInstance(Order order) throws RequestException, PropertyNotSpecifiedException,
             InstanceNotFoundException, UnauthorizedException, TokenCreationException {
         Instance instance;
-        Token localToken = this.AaController.getLocalToken(order.getFederationUser());
+        Token localToken = this.aaController.getLocalToken(order.getFederationUser());
 
         synchronized (order) {
             String instanceId = order.getInstanceId();
@@ -134,20 +148,54 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public ComputeQuota getComputeQuota(String localMemberId, FederationUser federationUser) throws PropertyNotSpecifiedException,
-            QuotaException, UnauthorizedException, TokenCreationException {
+    public Quota getUserQuota(FederationUser federationUser, InstanceType instanceType) throws
+            PropertyNotSpecifiedException, QuotaException, UnauthorizedException, TokenCreationException {
 
-        Token localToken = this.AaController.getLocalToken(federationUser);
+        Token localToken = this.aaController.getLocalToken(federationUser);
 
-        return this.computeQuotaPlugin.getComputeQuota(localToken);
+        switch (instanceType) {
+            case COMPUTE:
+                return this.computeQuotaPlugin.getUserQuota(localToken);
+            default:
+                throw new UnsupportedOperationException("Not yet implemented.");
+        }
     }
 
-    private Instance getResourceInstance(Order order, OrderType orderType, Token localToken)
+    @Override
+    public Allocation getUserAllocation(Collection<Order> orders, InstanceType instanceType)
+            throws RemoteRequestException, InstanceNotFoundException, RequestException, QuotaException,
+            TokenCreationException, PropertyNotSpecifiedException, UnauthorizedException {
+
+        switch (instanceType) {
+            case COMPUTE:
+                return (Allocation) getUserComputeAllocation(orders);
+            default:
+                throw new UnsupportedOperationException("Not yet implemented.");
+        }
+    }
+
+    private ComputeAllocation getUserComputeAllocation(Collection<Order> computeOrders) throws
+            QuotaException, RemoteRequestException, RequestException, TokenCreationException,
+            UnauthorizedException, PropertyNotSpecifiedException, InstanceNotFoundException {
+
+        int vCPU = 0, ram = 0, instances = 0;
+
+        for (Order order : computeOrders) {
+            ComputeInstance computeInstance = (ComputeInstance) this.getInstance(order);
+            vCPU += computeInstance.getvCPU();
+            ram += computeInstance.getMemory();
+            instances++;
+        }
+
+        return new ComputeAllocation(vCPU, ram, instances);
+    }
+
+    private Instance getResourceInstance(Order order, InstanceType instanceType, Token localToken)
             throws RequestException {
         Instance instance;
         String instanceId = order.getInstanceId();
 
-        switch (orderType) {
+        switch (instanceType) {
             case COMPUTE:
                 instance = this.computePlugin.getInstance(instanceId, localToken);
                 break;

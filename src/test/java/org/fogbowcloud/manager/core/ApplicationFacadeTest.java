@@ -21,13 +21,13 @@
 //import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 //import org.fogbowcloud.manager.core.models.orders.Order;
 //import org.fogbowcloud.manager.core.models.orders.OrderState;
-//import org.fogbowcloud.manager.core.models.orders.OrderType;
+//import org.fogbowcloud.manager.core.models.instances.InstanceType;
 //import org.fogbowcloud.manager.core.models.orders.UserData;
 //import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
-//import org.fogbowcloud.manager.core.models.orders.instances.AttachmentInstance;
-//import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
-//import org.fogbowcloud.manager.core.models.orders.instances.NetworkInstance;
-//import org.fogbowcloud.manager.core.models.orders.instances.VolumeInstance;
+//import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
+//import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
+//import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
+//import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 //import org.fogbowcloud.manager.core.models.token.FederationUser;
 //import org.fogbowcloud.manager.core.services.AaController;
 //import org.junit.Assert;
@@ -80,7 +80,7 @@
 //		this.orderController.activateOrder(order, order.getFederationUser());
 //
 //		Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString(), Mockito.any(FederationUser.class),
-//				Mockito.any(OrderType.class));
+//				Mockito.any(InstanceType.class));
 //
 //		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
 //				Mockito.any(Order.class));
@@ -144,7 +144,7 @@
 //
 //		Order order = createComputeOrder();
 //		Mockito.doReturn(null).when(this.orderController).getOrder(Mockito.anyString(), Mockito.any(FederationUser.class),
-//				Mockito.any(OrderType.class));
+//				Mockito.any(InstanceType.class));
 //
 //		Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
@@ -269,7 +269,7 @@
 //		Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //		Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(FederationUser.class),
-//				Mockito.any(Operation.class), Mockito.any(OrderType.class));
+//				Mockito.any(Operation.class), Mockito.any(InstanceType.class));
 //
 //		Assert.assertNull(order.getOrderState());
 //
@@ -291,7 +291,7 @@
 //		Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//				Mockito.any(OrderType.class));
+//				Mockito.any(InstanceType.class));
 //
 //		Assert.assertNull(order.getOrderState());
 //
@@ -311,7 +311,7 @@
 //		Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//				Mockito.any(OrderType.class));
+//				Mockito.any(InstanceType.class));
 //
 //		ComputeInstance computeInstanceExcepted = new ComputeInstance("");
 //		Mockito.doReturn(computeInstanceExcepted).when(this.orderController).getResourceInstance(Mockito.eq(order));
@@ -401,7 +401,7 @@
 //		Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//				Mockito.any(OrderType.class));
+//				Mockito.any(InstanceType.class));
 //		
 //		List<ComputeInstance> allComputesInstances = this.application.getAllComputes("");
 //
@@ -420,7 +420,7 @@
 //		Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//				Mockito.any(OrderType.class));
+//				Mockito.any(InstanceType.class));
 //
 //		List<ComputeInstance> allComputesInstances = this.application.getAllComputes(Mockito.anyString());
 //
@@ -439,7 +439,7 @@
 //		Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//				Mockito.any(OrderType.class));
+//				Mockito.any(InstanceType.class));
 //
 //		this.application.getAllComputes(Mockito.anyString());
 //	}
@@ -457,7 +457,7 @@
 //				.getFederationUser(Mockito.anyString());
 //
 //		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//				Mockito.any(OrderType.class));
+//				Mockito.any(InstanceType.class));
 //
 //		this.application.getAllComputes(Mockito.anyString());
 //	}
@@ -474,7 +474,7 @@
 //		Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//				Mockito.any(OrderType.class));
+//				Mockito.any(InstanceType.class));
 //
 //		this.application.getAllComputes(Mockito.anyString());
 //	}
@@ -491,7 +491,7 @@
 //		Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //		Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//				Mockito.any(OrderType.class));
+//				Mockito.any(InstanceType.class));
 //
 //		this.application.getAllComputes(Mockito.anyString());
 //	}
@@ -589,7 +589,7 @@
 //        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(FederationUser.class),
-//                Mockito.any(Operation.class), Mockito.any(OrderType.class));
+//                Mockito.any(Operation.class), Mockito.any(InstanceType.class));
 //
 //        Assert.assertNull(order.getOrderState());
 //
@@ -611,7 +611,7 @@
 //        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        Assert.assertNull(order.getOrderState());
 //
@@ -631,7 +631,7 @@
 //        Mockito.doReturn(volumeOrder.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        VolumeInstance volumeInstance = this.application.getVolume(volumeOrder.getId(), "");
 //
@@ -718,7 +718,7 @@
 //        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        String federationTokenValue = "";
 //        List<VolumeInstance> volumeInstances = this.application.getAllVolumes(federationTokenValue);
@@ -738,7 +738,7 @@
 //        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        String federationTokenValue = "";
 //        List<VolumeInstance> allVolumes = this.application.getAllVolumes(federationTokenValue);
@@ -759,7 +759,7 @@
 //                .getFederationUser(Mockito.anyString());
 //
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        String federationTokenValue = "";
 //        this.application.getAllVolumes(federationTokenValue);
@@ -777,7 +777,7 @@
 //        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        this.application.getAllVolumes("");
 //    }
@@ -794,7 +794,7 @@
 //        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        String federationTokenValue = "";
 //        this.application.getAllVolumes(federationTokenValue);
@@ -828,7 +828,7 @@
 //        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).authenticate(Mockito.anyString());
 //
 //        Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString(), Mockito.any(FederationUser.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
 //                Mockito.any(Order.class));
@@ -895,7 +895,7 @@
 //	    Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 //
 //        Mockito.doReturn(null).when(this.orderController).getOrder(Mockito.anyString(), Mockito.any(FederationUser.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
@@ -1023,7 +1023,7 @@
 //        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(FederationUser.class),
-//                Mockito.any(Operation.class), Mockito.any(OrderType.class));
+//                Mockito.any(Operation.class), Mockito.any(InstanceType.class));
 //
 //        Assert.assertNull(order.getOrderState());
 //
@@ -1045,7 +1045,7 @@
 //        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        Assert.assertNull(order.getOrderState());
 //
@@ -1067,7 +1067,7 @@
 //		NetworkInstance networkInstanceExcepted = new NetworkInstance("");
 //		Mockito.doReturn(networkInstanceExcepted).when(this.orderController).getResourceInstance(Mockito.eq(order));
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        String federationTokenValue = "";
 //        NetworkInstance actualInstance = this.application.getNetwork(order.getId(), federationTokenValue);
@@ -1155,7 +1155,7 @@
 //        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        List<NetworkInstance> allNetworks = this.application.getAllNetworks("");
 //
@@ -1174,7 +1174,7 @@
 //        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        String federationTokenValue = "";
 //        List<NetworkInstance> allNetworks = this.application.getAllNetworks(federationTokenValue);
@@ -1195,7 +1195,7 @@
 //                .getFederationUser(Mockito.anyString());
 //
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        String federationTokenValue = "";
 //        this.application.getAllNetworks(federationTokenValue);
@@ -1213,7 +1213,7 @@
 //        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        String federationTokenValue = "";
 //        this.application.getAllNetworks(federationTokenValue);
@@ -1231,7 +1231,7 @@
 //        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        String federationTokenValue = "";
 //        this.application.getAllNetworks(federationTokenValue);
@@ -1265,7 +1265,7 @@
 //        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).authenticate(Mockito.anyString());
 //
 //        Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString(), Mockito.any(FederationUser.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
 //                Mockito.any(Order.class));
@@ -1331,7 +1331,7 @@
 //        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 //
 //        Mockito.doReturn(null).when(this.orderController).getOrder(Mockito.anyString(), Mockito.any(FederationUser.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
@@ -1472,7 +1472,7 @@
 //        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(FederationUser.class),
-//                Mockito.any(Operation.class), Mockito.any(OrderType.class));
+//                Mockito.any(Operation.class), Mockito.any(InstanceType.class));
 //
 //        Assert.assertNull(order.getOrderState());
 //
@@ -1493,7 +1493,7 @@
 //        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        Assert.assertNull(order.getOrderState());
 //
@@ -1514,7 +1514,7 @@
 //        AttachmentInstance attachmentInstanceExcepted = new AttachmentInstance("");
 //        Mockito.doReturn(attachmentInstanceExcepted).when(this.orderController).getResourceInstance(Mockito.eq(order));
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        NetworkInstance actualInstance = this.application.getNetwork(order.getId(), "");
 //
@@ -1597,7 +1597,7 @@
 //        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        List<AttachmentInstance> allAttachments = this.application.getAllAttachments("");
 //
@@ -1614,7 +1614,7 @@
 //        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        List<AttachmentInstance> allAttachments = this.application.getAllAttachments("");
 //
@@ -1634,7 +1634,7 @@
 //                .getFederationUser(Mockito.anyString());
 //
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        this.application.getAllAttachments("");
 //    }
@@ -1651,7 +1651,7 @@
 //        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        this.application.getAllAttachments("");
 //    }
@@ -1668,7 +1668,7 @@
 //        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //
 //        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        this.application.getAllAttachments("");
 //    }
@@ -1700,7 +1700,7 @@
 //        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).authenticate(Mockito.anyString());
 //
 //        Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString(), Mockito.any(FederationUser.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
 //                Mockito.any(Order.class));
@@ -1764,7 +1764,7 @@
 //        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 //
 //        Mockito.doReturn(null).when(this.orderController).getOrder(Mockito.anyString(), Mockito.any(FederationUser.class),
-//                Mockito.any(OrderType.class));
+//                Mockito.any(InstanceType.class));
 //
 //        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 //

@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.models.orders.instances;
+package org.fogbowcloud.manager.core.models.instances;
 
 public class Instance {
 

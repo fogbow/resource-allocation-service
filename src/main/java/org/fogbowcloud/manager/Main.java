@@ -3,9 +3,7 @@ package org.fogbowcloud.manager;
 import org.fogbowcloud.manager.api.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.XmppComponentManager;
 import org.fogbowcloud.manager.core.*;
-import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorSelector;
-import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
-import org.fogbowcloud.manager.core.cloudconnector.RemoteCloudConnector;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.processors.ClosedProcessor;
 import org.fogbowcloud.manager.core.processors.FulfilledProcessor;
@@ -30,22 +28,30 @@ public class Main implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         InstantiationInitService instantiationInitService = new InstantiationInitService();
 
-        // Setting cloud plugins
+        // Setting up cloud plugins
 
         CloudPluginsHolder cloudPluginsHolder = new CloudPluginsHolder(instantiationInitService);
 
-        // Setting behavior plugins
+        // Setting up behavior plugins
 
         BehaviorPluginsHolder behaviorPluginsHolder = new BehaviorPluginsHolder(instantiationInitService);
 
-        // Setting instance and quota providers
+        // Setting up controllers and application facade
+
+        String localMemberId = instantiationInitService.getPropertyValue(ConfigurationConstants.XMPP_JID_KEY);
 
         AaController aaController =
                 new AaController(cloudPluginsHolder.getLocalIdentityPlugin(), behaviorPluginsHolder);
+        OrderController orderController = new OrderController(localMemberId);
+        UserQuotaController userQuotaController = new UserQuotaController();
 
-        LocalCloudConnector localCloudConnector = new LocalCloudConnector(aaController, cloudPluginsHolder);
+        this.applicationFacade.setAaController(aaController);
+        this.applicationFacade.setOrderController(orderController);
+        this.remoteFacade.setAaController(aaController);
+        this.remoteFacade.setOrderController(orderController);
 
-        String localMemberId = instantiationInitService.getPropertyValue(ConfigurationConstants.XMPP_JID_KEY);
+        // Setting up cloud connector's factory
+
         String xmppPassword = instantiationInitService.getPropertyValue(ConfigurationConstants.XMPP_PASSWORD_KEY);
         String xmppServerIp = instantiationInitService.getPropertyValue(ConfigurationConstants.XMPP_SERVER_IP_KEY);
         int xmppServerPort =
@@ -53,26 +59,18 @@ public class Main implements ApplicationRunner {
         long xmppTimeout =
                 Long.parseLong(instantiationInitService.getPropertyValue(ConfigurationConstants.XMPP_TIMEOUT_KEY));
 
-        OrderController orderController = new OrderController(localMemberId);
 
         XmppComponentManager xmppComponentManager = new XmppComponentManager(localMemberId,
                 xmppPassword, xmppServerIp, xmppServerPort, xmppTimeout, orderController);
 
-        RemoteCloudConnector remoteCloudConnector = new RemoteCloudConnector(xmppComponentManager);
+        CloudConnectorFactory cloudConnectorFactory = CloudConnectorFactory.getInstance();
+        cloudConnectorFactory.setLocalMemberId(localMemberId);
+        cloudConnectorFactory.setAaController(aaController);
+        cloudConnectorFactory.setOrderController(orderController);
+        cloudConnectorFactory.setCloudPluginsHolder(cloudPluginsHolder);
+        cloudConnectorFactory.setPacketSender(xmppComponentManager);
 
-        CloudConnectorSelector cloudConnectorSelector = CloudConnectorSelector.getInstance();
-        cloudConnectorSelector.setLocalMemberId(localMemberId);
-        cloudConnectorSelector.setLocalCloudConnector(localCloudConnector);
-        cloudConnectorSelector.setRemoteCloudConnector(remoteCloudConnector);
-
-        // Setting applicationFacade controllers
-
-        this.applicationFacade.setAaController(aaController);
-        this.applicationFacade.setOrderController(orderController);
-        this.remoteFacade.setAaController(aaController);
-        this.remoteFacade.setOrderController(orderController);
-
-        // Setting order processors and starting threads
+        // Setting up order processors and starting threads
 
         String openOrdersProcSleepTimeStr =
                 instantiationInitService.getPropertyValue(ConfigurationConstants.OPEN_ORDERS_SLEEP_TIME_KEY);
@@ -89,21 +87,23 @@ public class Main implements ApplicationRunner {
         SshConnectivityUtil.setProperties(instantiationInitService.getProperties());
 
         SpawningProcessor spawningProcessor =
-                new SpawningProcessor(tunnelingServiceUtil, sshConnectivityUtil, spawningOrdersProcSleepTimeStr);
+                new SpawningProcessor(localMemberId, tunnelingServiceUtil,
+                        sshConnectivityUtil, spawningOrdersProcSleepTimeStr);
 
         String fulfilledOrdersProcSleepTimeStr =
                 instantiationInitService.getPropertyValue(ConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME_KEY);
 
         FulfilledProcessor fulfilledProcessor =
-                new FulfilledProcessor(tunnelingServiceUtil, sshConnectivityUtil, fulfilledOrdersProcSleepTimeStr);
+                new FulfilledProcessor(localMemberId, tunnelingServiceUtil,
+                        sshConnectivityUtil, fulfilledOrdersProcSleepTimeStr);
 
         String closedOrdersProcSleepTimeStr =
                 instantiationInitService.getPropertyValue(ConfigurationConstants.CLOSED_ORDERS_SLEEP_TIME_KEY);
 
         ClosedProcessor closedProcessor = new ClosedProcessor(orderController, closedOrdersProcSleepTimeStr);
 
-        ProcessorsThreadController processorsThreadController = new ProcessorsThreadController(openProcessor, spawningProcessor,
-                fulfilledProcessor, closedProcessor);
+        ProcessorsThreadController processorsThreadController = new ProcessorsThreadController(openProcessor,
+                spawningProcessor, fulfilledProcessor, closedProcessor);
 
     }
 

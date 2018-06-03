@@ -25,7 +25,7 @@
 //import org.fogbowcloud.manager.core.manager.plugins.cloud.volume.openstack.OpenStackV2VolumePlugin;
 //import org.fogbowcloud.manager.core.models.RequestHeaders;
 //import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
-//import org.fogbowcloud.manager.core.models.orders.instances.VolumeInstance;
+//import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 //import org.fogbowcloud.manager.core.models.token.Token;
 //import org.json.JSONException;
 //import org.json.JSONObject;

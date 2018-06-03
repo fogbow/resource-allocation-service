@@ -7,6 +7,7 @@ import org.fogbowcloud.manager.core.BehaviorPluginsHolder;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.constants.Operation;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.LocalUserCredentialsMapperPlugin;
@@ -14,7 +15,6 @@ import org.fogbowcloud.manager.core.plugins.cloud.localidentity.LocalIdentityPlu
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.models.token.Token;
 
@@ -55,7 +55,7 @@ public class AaController {
         }
     }
 
-    public void authorize(FederationUser federationUser, Operation operation, OrderType type)
+    public void authorize(FederationUser federationUser, Operation operation, InstanceType type)
             throws UnauthorizedException {
         if (!this.authorizationPlugin.isAuthorized(federationUser, operation, type)) {
             throw new UnauthorizedException();

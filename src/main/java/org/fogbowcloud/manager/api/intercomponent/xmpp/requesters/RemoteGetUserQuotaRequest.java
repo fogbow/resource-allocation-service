@@ -6,6 +6,7 @@ import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestExcept
 import org.fogbowcloud.manager.api.intercomponent.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.RemoteMethod;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.jamppa.component.PacketSender;
@@ -20,11 +21,14 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
     private PacketSender packetSender;
     private String federationMemberId;
     private FederationUser federationUser;
+    private InstanceType instanceType;
 
-    public RemoteGetUserQuotaRequest(PacketSender packetSender, String federationMemberId, FederationUser federationUser) {
+    public RemoteGetUserQuotaRequest(PacketSender packetSender, String federationMemberId,
+                                     FederationUser federationUser, InstanceType instanceType) {
         this.packetSender = packetSender;
         this.federationMemberId = federationMemberId;
         this.federationUser = federationUser;
+        this.instanceType = instanceType;
     }
 
     @Override
@@ -55,8 +59,14 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_USER_QUOTA.toString());
 
+        Element memberIdElement = iq.getElement().addElement(IqElement.MEMBER_ID.toString());
+        memberIdElement.setText(new Gson().toJson(this.federationMemberId));
+
         Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());
         userElement.setText(new Gson().toJson(this.federationUser));
+
+        Element orderTypeElement = queryElement.addElement(IqElement.INSTANCE_TYPE.toString());
+        orderTypeElement.setText(this.instanceType.toString());
 
         return iq;
     }

@@ -3,10 +3,10 @@ package org.fogbowcloud.manager.core.processors;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.exceptions.RemoteConnectionException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
-import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorSelector;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -80,7 +80,8 @@ public class OpenProcessor implements Runnable {
                 LOGGER.debug("Trying to get an instance for order [" + order.getId() + "]");
 
                 try {
-                    CloudConnector cloudConnector = CloudConnectorSelector.getInstance().getCloudConnector(order);
+                    CloudConnector cloudConnector =
+                            CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
 
                     LOGGER.debug("Processing order [" + order.getId() + "]");
                     String orderInstanceId = cloudConnector.requestInstance(order);

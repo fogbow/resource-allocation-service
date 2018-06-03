@@ -2,7 +2,7 @@ package org.fogbowcloud.manager.core.plugins.cloud.attachment;
 
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
-import org.fogbowcloud.manager.core.models.orders.instances.AttachmentInstance;
+import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 
 public interface AttachmentPlugin {

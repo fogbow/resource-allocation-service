@@ -2,16 +2,15 @@ package org.fogbowcloud.manager.api.intercomponent;
 
 import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.OrderController;
-import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorSelector;
+import org.fogbowcloud.manager.core.UserQuotaController;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.constants.Operation;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
-import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.OrderType;
-import org.fogbowcloud.manager.core.models.orders.instances.Instance;
+import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.services.AaController;
 
@@ -21,6 +20,7 @@ public class RemoteFacade {
 
     private AaController aaController;
     private OrderController orderController;
+    private UserQuotaController userQuotaController;
 
     public static RemoteFacade getInstance() {
         synchronized (RemoteFacade.class) {
@@ -36,42 +36,32 @@ public class RemoteFacade {
         this.orderController.activateOrder(order);
     }
 
-    public Instance getResourceInstance(String orderId, FederationUser federationUser, OrderType orderType) throws
+    public Instance getResourceInstance(String orderId, FederationUser federationUser, InstanceType instanceType) throws
             UnauthorizedException, PropertyNotSpecifiedException,
             TokenCreationException, RequestException, InstanceNotFoundException, RemoteRequestException {
 
-        Order order = this.orderController.getOrder(orderId, federationUser, orderType);
+        Order order = this.orderController.getOrder(orderId, federationUser, instanceType);
         this.aaController.authorize(federationUser, Operation.GET, order);
 
         return this.orderController.getResourceInstance(order);
     }
 
-    public void deleteOrder(String orderId, FederationUser federationUser, OrderType orderType)
+    public void deleteOrder(String orderId, FederationUser federationUser, InstanceType instanceType)
             throws UnauthorizedException, OrderManagementException {
 
-        Order order = this.orderController.getOrder(orderId, federationUser, orderType);
+        Order order = this.orderController.getOrder(orderId, federationUser, instanceType);
         this.aaController.authorize(federationUser, Operation.DELETE, order);
 
         this.orderController.deleteOrder(order);
     }
 
-    public Quota getUserQuota(FederationUser federationUser) throws UnauthorizedException, QuotaException,
-            TokenCreationException, PropertyNotSpecifiedException {
+    public Quota getUserQuota(String memberId, FederationUser federationUser, InstanceType instanceType) throws
+            UnauthorizedException, QuotaException, TokenCreationException,
+            PropertyNotSpecifiedException, RemoteRequestException {
 
-        this.aaController.authorize(federationUser, Operation.GET_USER_QUOTA);
+        this.aaController.authorize(federationUser, Operation.GET_USER_QUOTA, instanceType);
 
-        CloudConnectorSelector selector = CloudConnectorSelector.getInstance();
-
-        return (Quota) selector.getLocalCloudConnector().getComputeQuota(selector.getLocalMemberId(), federationUser);
-    }
-
-    public Allocation getUserAllocation(FederationUser federationUser) throws InstanceNotFoundException,
-            RequestException, QuotaException, PropertyNotSpecifiedException, RemoteRequestException,
-            TokenCreationException, UnauthorizedException {
-
-        this.aaController.authorize(federationUser, Operation.GET_USER_ALLOCATION);
-
-        return (Allocation) this.orderController.getComputeAllocation(federationUser);
+        return this.userQuotaController.getUserQuota(memberId, federationUser, instanceType);
     }
 
     public void setAaController(AaController AaController) {

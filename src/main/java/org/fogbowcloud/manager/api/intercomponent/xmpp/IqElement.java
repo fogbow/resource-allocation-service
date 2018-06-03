@@ -7,13 +7,12 @@ public enum IqElement {
     ORDER_ID("orderId"),
     FEDERATION_USER("federationUser"),
     INSTANCE("instance"), 
-    ORDER_TYPE("orderType"),
+    INSTANCE_TYPE("instanceType"),
     ORDER_CLASS_NAME("orderClassName"), 
     INSTANCE_CLASS_NAME("instanceClassName"),
     USER_QUOTA("userQuota"),
     USER_QUOTA_CLASS_NAME("userQuotaClassName"),
-    USER_ALLOCATION("userAllocation"),
-    USER_ALLOCATION_CLASS_NAME("userAllocationClassName");
+    MEMBER_ID("memberId");
 
     private final String element;
 

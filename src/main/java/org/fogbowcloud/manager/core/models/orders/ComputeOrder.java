@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.models.orders;
 
 import java.util.UUID;
 
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 
 public class ComputeOrder extends Order {
@@ -33,14 +34,14 @@ public class ComputeOrder extends Order {
             int vCPU,
             int memory,
             int disk,
-            String imageName,
+            String imageId,
             UserData userData,
             String publicKey) {
         super(id, federationUser, requestingMember, providingMember);
         this.vCPU = vCPU;
         this.memory = memory;
         this.disk = disk;
-        this.imageId = imageName;
+        this.imageId = imageId;
         this.userData = userData;
         this.publicKey = publicKey;
     }
@@ -52,7 +53,7 @@ public class ComputeOrder extends Order {
             int vCPU,
             int memory,
             int disk,
-            String imageName,
+            String imageId,
             UserData userData,
             String publicKey) {
         this(
@@ -63,15 +64,15 @@ public class ComputeOrder extends Order {
                 vCPU,
                 memory,
                 disk,
-                imageName,
+                imageId,
                 userData,
                 publicKey);
     }
 
     public static ComputeOrder from(ComputeOrder baseOrder) {
-        return new ComputeOrder(baseOrder.getId(), baseOrder.getFederationUser(), baseOrder.getRequestingMember(), baseOrder.getProvidingMember(),
-                baseOrder.getvCPU(), baseOrder.getMemory(), baseOrder.getDisk(), baseOrder.getImageId(),
-                baseOrder.getUserData(), baseOrder.getPublicKey());
+        return new ComputeOrder(baseOrder.getId(), baseOrder.getFederationUser(), baseOrder.getRequestingMember(),
+                baseOrder.getProvidingMember(), baseOrder.getvCPU(), baseOrder.getMemory(), baseOrder.getDisk(),
+                baseOrder.getImageId(), baseOrder.getUserData(), baseOrder.getPublicKey());
     }
 
     public int getvCPU() {
@@ -95,8 +96,8 @@ public class ComputeOrder extends Order {
     }
 
     @Override
-    public OrderType getType() {
-        return OrderType.COMPUTE;
+    public InstanceType getType() {
+        return InstanceType.COMPUTE;
     }
 
     public String getPublicKey() {

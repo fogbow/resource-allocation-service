@@ -1,8 +1,9 @@
 package org.fogbowcloud.manager.core.models.orders;
 
 import java.util.UUID;
+
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.models.token.Token;
 
 public class VolumeOrder extends Order {
 
@@ -45,7 +46,7 @@ public class VolumeOrder extends Order {
     }
 
     @Override
-    public OrderType getType() {
-        return OrderType.VOLUME;
+    public InstanceType getType() {
+        return InstanceType.VOLUME;
     }
 }

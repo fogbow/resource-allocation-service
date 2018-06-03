@@ -25,8 +25,8 @@
 //import org.fogbowcloud.manager.core.models.ResponseConstants;
 //import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
 //import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
-//import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
-//import org.fogbowcloud.manager.core.models.orders.instances.NetworkInstance;
+//import org.fogbowcloud.manager.core.models.instances.InstanceState;
+//import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
 //import org.fogbowcloud.manager.core.models.token.FederationUser;
 //import org.fogbowcloud.manager.core.models.token.Token;
 //import org.json.JSONArray;

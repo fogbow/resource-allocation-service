@@ -48,7 +48,7 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 	}
 	
 	@Override
-	public ComputeQuota getComputeQuota(Token localToken) throws QuotaException {
+	public ComputeQuota getUserQuota(Token localToken) throws QuotaException {
 		
 		String jsonLimits = getLimitsJson(localToken);
 		

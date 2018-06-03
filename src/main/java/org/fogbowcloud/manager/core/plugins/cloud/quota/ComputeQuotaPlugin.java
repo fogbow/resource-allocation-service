@@ -6,6 +6,6 @@ import org.fogbowcloud.manager.core.models.token.Token;
 
 public interface ComputeQuotaPlugin {
 	
-	public ComputeQuota getComputeQuota(Token localToken) throws QuotaException;
+	public ComputeQuota getUserQuota(Token localToken) throws QuotaException;
 
 }

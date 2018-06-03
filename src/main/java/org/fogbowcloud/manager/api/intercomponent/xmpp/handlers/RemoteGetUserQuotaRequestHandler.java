@@ -5,9 +5,8 @@ import org.dom4j.Element;
 import org.fogbowcloud.manager.api.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.RemoteMethod;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
@@ -32,13 +31,19 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
     public IQ handle(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
 
+        Element memberIdElement = iq.getElement().element(IqElement.MEMBER_ID.toString());
+        String memberId = new Gson().fromJson(memberIdElement.getText(), String.class);
+
         Element federationUserElement = iq.getElement().element(IqElement.FEDERATION_USER.toString());
         FederationUser federationUser = new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
+
+        Element instanceTypeElementRequest = queryElement.element(IqElement.INSTANCE_TYPE.toString());
+        InstanceType instanceType = new Gson().fromJson(instanceTypeElementRequest.getText(), InstanceType.class);
 
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            Quota userQuota = RemoteFacade.getInstance().getUserQuota(federationUser);
+            Quota userQuota = RemoteFacade.getInstance().getUserQuota(memberId, federationUser, instanceType);
 
             Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_USER_QUOTA);
             Element instanceElement = queryEl.addElement(IqElement.USER_QUOTA.toString());

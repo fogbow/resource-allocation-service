@@ -19,8 +19,8 @@
 //import org.fogbowcloud.manager.core.models.Flavor;
 //import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 //import org.fogbowcloud.manager.core.models.orders.UserData;
-//import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
-//import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
+//import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
+//import org.fogbowcloud.manager.core.models.instances.InstanceState;
 //import org.fogbowcloud.manager.core.models.token.Token;
 //import org.json.JSONArray;
 //import org.json.JSONException;

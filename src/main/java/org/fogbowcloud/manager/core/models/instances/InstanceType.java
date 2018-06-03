@@ -1,6 +1,6 @@
-package org.fogbowcloud.manager.core.models.orders;
+package org.fogbowcloud.manager.core.models.instances;
 
-public enum OrderType {
+public enum InstanceType {
     COMPUTE("compute"),
     NETWORK("network"),
     VOLUME("volume"),
@@ -8,7 +8,7 @@ public enum OrderType {
 
     private String value;
 
-    private OrderType(String value) {
+    private InstanceType(String value) {
         this.value = value;
     }
 

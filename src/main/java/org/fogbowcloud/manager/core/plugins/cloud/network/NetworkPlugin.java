@@ -2,7 +2,7 @@ package org.fogbowcloud.manager.core.plugins.cloud.network;
 
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
-import org.fogbowcloud.manager.core.models.orders.instances.NetworkInstance;
+import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 
 public interface NetworkPlugin {

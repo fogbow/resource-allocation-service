@@ -4,21 +4,21 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
-import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorSelector;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.orders.OrderType;
-import org.fogbowcloud.manager.core.models.orders.instances.Instance;
-import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.instances.Instance;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.utils.ComputeInstanceConnectivityUtil;
 import org.fogbowcloud.manager.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
@@ -35,6 +35,7 @@ public class SpawningProcessor implements Runnable {
     private CloudConnector localCloudConnector;
 
     public SpawningProcessor(
+            String memberId,
             TunnelingServiceUtil tunnelingService,
             SshConnectivityUtil sshConnectivity,
             String sleepTimeStr) {
@@ -42,7 +43,7 @@ public class SpawningProcessor implements Runnable {
         this.computeInstanceConnectivity =
             new ComputeInstanceConnectivityUtil(tunnelingService, sshConnectivity);
 
-        this.localCloudConnector = CloudConnectorSelector.getInstance().getLocalCloudConnector();
+        this.localCloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();
@@ -99,7 +100,7 @@ public class SpawningProcessor implements Runnable {
     private void processInstance(Order order)
     		throws PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException, UnauthorizedException, OrderStateTransitionException, RemoteRequestException {
         Instance instance = this.localCloudConnector.getInstance(order);
-        OrderType orderType = order.getType();
+        InstanceType instanceType = order.getType();
 
         InstanceState instanceState = instance.getState();
 
@@ -112,7 +113,7 @@ public class SpawningProcessor implements Runnable {
             LOGGER
                 .debug("Processing active compute instance for order [" + order.getId() + "]");
 
-            if (orderType.equals(OrderType.COMPUTE)) {
+            if (instanceType.equals(InstanceType.COMPUTE)) {
                 SshTunnelConnectionData sshTunnelConnectionData = this.computeInstanceConnectivity
                     .getSshTunnelConnectionData(order.getId());
                 if (sshTunnelConnectionData != null) {

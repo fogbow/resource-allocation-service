@@ -1,6 +1,8 @@
 package org.fogbowcloud.manager.core.models.orders;
 
 import java.util.UUID;
+
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 
 public class AttachmentOrder extends Order {
@@ -58,8 +60,8 @@ public class AttachmentOrder extends Order {
     }
 
     @Override
-    public OrderType getType() {
-        return OrderType.ATTACHMENT;
+    public InstanceType getType() {
+        return InstanceType.ATTACHMENT;
     }
 
 }

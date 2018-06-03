@@ -1,6 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.cloud;
 
-import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
 
 public interface InstanceStateMapper {
     /**

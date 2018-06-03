@@ -8,10 +8,10 @@ import org.fogbowcloud.manager.api.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.models.orders.OrderType;
-import org.fogbowcloud.manager.core.models.orders.instances.Instance;
+import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
@@ -35,8 +35,8 @@ public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
         Element orderIdElement = queryElement.element(IqElement.ORDER_ID.toString());
         String orderId = orderIdElement.getText();
 
-        Element orderTypeElementRequest = queryElement.element(IqElement.ORDER_TYPE.toString());
-        OrderType orderType = new Gson().fromJson(orderTypeElementRequest.getText(), OrderType.class);
+        Element orderTypeElementRequest = queryElement.element(IqElement.INSTANCE_TYPE.toString());
+        InstanceType instanceType = new Gson().fromJson(orderTypeElementRequest.getText(), InstanceType.class);
         
         Element federationUserElement = iq.getElement().element(IqElement.FEDERATION_USER.toString());
         FederationUser federationUser = new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
@@ -44,7 +44,7 @@ public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            Instance instance = RemoteFacade.getInstance().getResourceInstance(orderId, federationUser, orderType);
+            Instance instance = RemoteFacade.getInstance().getResourceInstance(orderId, federationUser, instanceType);
             
             Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_INSTANCE);
             Element instanceElement = queryEl.addElement(IqElement.INSTANCE.toString());

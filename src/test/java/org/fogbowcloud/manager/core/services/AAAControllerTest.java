@@ -14,7 +14,7 @@
 //import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
 //import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 //import org.fogbowcloud.manager.core.models.orders.Order;
-//import org.fogbowcloud.manager.core.models.orders.OrderType;
+//import org.fogbowcloud.manager.core.models.instances.InstanceType;
 //import org.fogbowcloud.manager.core.models.token.FederationUser;
 //import org.fogbowcloud.manager.core.models.token.Token;
 //import org.junit.Assert;
@@ -66,11 +66,11 @@
 //    	public void testAuthorizePassingOrderTypeParam() {
 //				FederationUser federationUser = new FederationUser(-1L, null);
 //    		Mockito.doReturn(true).when(this.authorizationPlugin).isAuthorized(Mockito.eq(federationUser),
-//                    Mockito.any(Operation.class), Mockito.any(OrderType.class));
+//                    Mockito.any(Operation.class), Mockito.any(InstanceType.class));
 //
 //    		try {
 //    		    Operation operation = Operation.GET;
-//    		    OrderType orderType = OrderType.COMPUTE;
+//    		    InstanceType orderType = InstanceType.COMPUTE;
 //    			this.AaController.authorize(federationUser, operation, orderType);
 //    		} catch (Exception e) {
 //    			Assert.fail();

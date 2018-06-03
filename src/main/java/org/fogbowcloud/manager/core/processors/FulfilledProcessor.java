@@ -4,11 +4,11 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorSelector;
 import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
@@ -16,9 +16,9 @@ import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.orders.OrderType;
-import org.fogbowcloud.manager.core.models.orders.instances.Instance;
-import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.instances.Instance;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.utils.ComputeInstanceConnectivityUtil;
 import org.fogbowcloud.manager.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
@@ -33,7 +33,7 @@ public class FulfilledProcessor implements Runnable {
 
     private String localMemberId;
 
-    private LocalCloudConnector localInstanceProvider;
+    private LocalCloudConnector localCloudConnector;
 
     private ComputeInstanceConnectivityUtil computeInstanceConnectivity;
 
@@ -45,14 +45,15 @@ public class FulfilledProcessor implements Runnable {
     private Long sleepTime;
 
     public FulfilledProcessor(
+            String localMemberId,
             TunnelingServiceUtil tunnelingService,
             SshConnectivityUtil sshConnectivity, String sleepTimeStr) {
 
-        CloudConnectorSelector cloudConnectorSelector = CloudConnectorSelector.getInstance();
+        CloudConnectorFactory cloudConnectorFactory = CloudConnectorFactory.getInstance();
 
-        this.localMemberId = cloudConnectorSelector.getLocalMemberId();
+        this.localMemberId = localMemberId;
 
-        this.localInstanceProvider = cloudConnectorSelector.getLocalCloudConnector();
+        this.localCloudConnector = (LocalCloudConnector) cloudConnectorFactory.getCloudConnector(localMemberId);
 
         this.computeInstanceConnectivity =
             new ComputeInstanceConnectivityUtil(tunnelingService, sshConnectivity);
@@ -141,16 +142,16 @@ public class FulfilledProcessor implements Runnable {
     protected void processInstance(Order order)
         throws PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException, UnauthorizedException, OrderStateTransitionException, RemoteRequestException {
 
-        OrderType orderType = order.getType();
+        InstanceType instanceType = order.getType();
 
-        Instance instance = this.localInstanceProvider.getInstance(order);
+        Instance instance = this.localCloudConnector.getInstance(order);
 		InstanceState instanceState = instance.getState();
 
         if (instanceState.equals(InstanceState.FAILED)) {
             LOGGER.info("Instance state is failed for order [" + order.getId() + "]");
             OrderStateTransitioner.transition(order, OrderState.FAILED);
         } else if (instanceState.equals(InstanceState.READY)
-            && orderType.equals(OrderType.COMPUTE)) {
+            && instanceType.equals(InstanceType.COMPUTE)) {
             LOGGER.info("Processing active compute instance for order [" + order.getId() + "]");
 
             SshTunnelConnectionData sshTunnelConnectionData = this.computeInstanceConnectivity
