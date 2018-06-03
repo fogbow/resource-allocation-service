@@ -14,7 +14,7 @@ import org.mockito.Mockito;
 
 public class BaseUnitTests {
 
-    public static final String LOCAL_MEMBER_ID = "fake-local-member";
+    public static final String LOCAL_MEMBER_ID = "fake-localidentity-member";
 
     @After
     public void tearDown() {
@@ -54,7 +54,7 @@ public class BaseUnitTests {
     }
 
     protected Order createRemoteOrder(String requestingMember) {
-        String providingMember = "fake-remote-member";
+        String providingMember = "fake-intercomponent-member";
         return createOrder(requestingMember, providingMember);
     }
 

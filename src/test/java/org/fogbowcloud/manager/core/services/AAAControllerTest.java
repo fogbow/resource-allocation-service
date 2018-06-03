@@ -6,10 +6,10 @@
 //
 //import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 //import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-//import org.fogbowcloud.manager.core.manager.constants.Operation;
+//import org.fogbowcloud.manager.core.constants.Operation;
 //import org.fogbowcloud.manager.core.manager.plugins.behavior.authorization.AuthorizationPlugin;
-//import org.fogbowcloud.manager.core.manager.plugins.behavior.federation.FederationIdentityPlugin;
-//import org.fogbowcloud.manager.core.manager.plugins.cloud.local.LocalIdentityPlugin;
+//import org.fogbowcloud.manager.core.manager.plugins.behavior.federationidentity.FederationIdentityPlugin;
+//import org.fogbowcloud.manager.core.manager.plugins.cloud.localidentity.LocalIdentityPlugin;
 //import org.fogbowcloud.manager.core.manager.plugins.exceptions.TokenCreationException;
 //import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
 //import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -30,7 +30,7 @@
 //@PrepareForTest({AuthenticationControllerUtil.class})
 //public class AAAControllerTest {
 //
-//    	private AAAController AAAController;
+//    	private AaController AaController;
 //    	private AuthorizationPlugin authorizationPlugin;
 //    	private FederationIdentityPlugin federationIdentityPlugin;
 //    	private LocalIdentityPlugin localIdentityPlugin;
@@ -42,7 +42,7 @@
 //    		this.federationIdentityPlugin = Mockito.mock(FederationIdentityPlugin.class);
 //    		this.localIdentityPlugin = Mockito.mock(LocalIdentityPlugin.class);
 //    		this.authorizationPlugin = Mockito.mock(AuthorizationPlugin.class);
-//    		this.AAAController = Mockito.spy(new AAAController(this.federationIdentityPlugin,
+//    		this.AaController = Mockito.spy(new AaController(this.federationIdentityPlugin,
 //    				this.localIdentityPlugin, this.authorizationPlugin, this.properties));
 //    		PowerMockito.mockStatic(AuthenticationControllerUtil.class);
 //    	}
@@ -52,14 +52,14 @@
 //    		boolean isAuthenticated = true;
 //
 //    	    Mockito.doReturn(isAuthenticated).when(this.federationIdentityPlugin).isValid(Mockito.anyString());
-//    		this.AAAController.authenticate(Mockito.anyString());
+//    		this.AaController.authenticate(Mockito.anyString());
 //    	}
 //
 //    	@Test(expected=UnauthorizedException.class)
 //    	public void testAuthenticationFail() throws UnauthenticatedException {
 //    		Mockito.doThrow(UnauthorizedException.class).when(
 //    				this.federationIdentityPlugin).isValid(Mockito.anyString());
-//    		this.AAAController.authenticate(Mockito.anyString());
+//    		this.AaController.authenticate(Mockito.anyString());
 //    	}
 //
 //    	@Test
@@ -71,7 +71,7 @@
 //    		try {
 //    		    Operation operation = Operation.GET;
 //    		    OrderType orderType = OrderType.COMPUTE;
-//    			this.AAAController.authorize(federationUser, operation, orderType);
+//    			this.AaController.authorize(federationUser, operation, orderType);
 //    		} catch (Exception e) {
 //    			Assert.fail();
 //    		}
@@ -86,7 +86,7 @@
 //
 //            try {
 //                Operation operation = Operation.GET;
-//                this.AAAController.authorize(federationUser, operation, order);
+//                this.AaController.authorize(federationUser, operation, order);
 //            } catch (Exception e) {
 //                Assert.fail();
 //            }
@@ -97,7 +97,7 @@
 //        public void testGetLocalToken() throws UnauthorizedException, TokenCreationException, PropertyNotSpecifiedException {
 //            Token localToken = Mockito.mock(Token.class);
 //            Mockito.doReturn(localToken).when(this.localIdentityPlugin).createToken(Mockito.anyMap());
-//            Token tokenGenarated = this.AAAController.getLocalToken();
+//            Token tokenGenarated = this.AaController.getLocalToken();
 //            Assert.assertEquals(localToken, tokenGenarated);
 //        }
 //
@@ -110,7 +110,7 @@
 //            PowerMockito.mockStatic(AuthenticationControllerUtil.class);
 //            given(AuthenticationControllerUtil.getDefaultLocalTokenCredentials(emptyProperties))
 //                    .willThrow(PropertyNotSpecifiedException.class);
-//            this.AAAController.getLocalToken();
+//            this.AaController.getLocalToken();
 //        }
 //
 //}

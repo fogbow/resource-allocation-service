@@ -1,25 +1,20 @@
 package org.fogbowcloud.manager;
 
-import java.util.Properties;
-
-import org.fogbowcloud.manager.api.remote.xmpp.XmppComponentManager;
-import org.fogbowcloud.manager.core.ApplicationFacade;
-import org.fogbowcloud.manager.core.OrderController;
-import org.fogbowcloud.manager.core.QuotaProviderController;
-import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
-import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
-import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.manager.plugins.behavior.authorization.AuthorizationPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.behavior.federation.FederationIdentityPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.cloud.attachment.AttachmentPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.cloud.compute.ComputePlugin;
-import org.fogbowcloud.manager.core.manager.plugins.cloud.local.LocalIdentityPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.cloud.network.NetworkPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.cloud.quota.ComputeQuotaPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.cloud.volume.VolumePlugin;
-import org.fogbowcloud.manager.core.services.AAAController;
+import org.fogbowcloud.manager.api.intercomponent.xmpp.XmppComponentManager;
+import org.fogbowcloud.manager.core.*;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorSelector;
+import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
+import org.fogbowcloud.manager.core.cloudconnector.RemoteCloudConnector;
+import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.processors.ClosedProcessor;
+import org.fogbowcloud.manager.core.processors.FulfilledProcessor;
+import org.fogbowcloud.manager.core.processors.OpenProcessor;
+import org.fogbowcloud.manager.core.processors.SpawningProcessor;
+import org.fogbowcloud.manager.core.services.AaController;
 import org.fogbowcloud.manager.core.services.InstantiationInitService;
-import org.fogbowcloud.manager.core.statisticsprovider.LocalQuotaProvider;
+import org.fogbowcloud.manager.utils.SshCommonUserUtil;
+import org.fogbowcloud.manager.utils.SshConnectivityUtil;
+import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -27,60 +22,85 @@ import org.springframework.stereotype.Component;
 @Component
 public class Main implements ApplicationRunner {
 
-    private InstantiationInitService instantiationInitService;
-
-    private Properties properties;
-
     private ApplicationFacade facade = ApplicationFacade.getInstance();
-    private ProcessorController processorController;
-    private AAAController aaaController;
 
     @Override
     public void run(ApplicationArguments args) {
-        this.instantiationInitService = new InstantiationInitService();
-        this.properties = this.instantiationInitService.getProperties();
+        InstantiationInitService instantiationInitService = new InstantiationInitService();
 
-        LocalIdentityPlugin localIdentityPlugin = this.instantiationInitService.getLocalIdentityPlugin();
-        FederationIdentityPlugin federationIdentityPlugin =
-        		this.instantiationInitService.getFederationIdentityPlugin();
-        ComputePlugin computePlugin = this.instantiationInitService.getComputePlugin();
-        NetworkPlugin networkPlugin = this.instantiationInitService.getNetworkPlugin();
-        VolumePlugin volumePlugin = this.instantiationInitService.getVolumePlugin();
-        AttachmentPlugin attachmentPlugin = this.instantiationInitService.getAttachmentPlugin();
-        AuthorizationPlugin authorizationPlugin = this.instantiationInitService.getAuthorizationPlugin();
-        ComputeQuotaPlugin computeQuotaPlugin = this.instantiationInitService.getComputeQuotaPlugin();
+        // Setting cloud plugins
 
-        String localMemberId = this.instantiationInitService.getPropertyValue(ConfigurationConstants.XMPP_ID_KEY);        
+        CloudPluginsHolder cloudPluginsHolder = new CloudPluginsHolder(instantiationInitService);
 
-        this.aaaController = new AAAController(federationIdentityPlugin, localIdentityPlugin,
-                authorizationPlugin, this.properties);
+        // Setting behavior plugins
 
-        LocalInstanceProvider localInstanceProvider = new LocalInstanceProvider(computePlugin,
-                networkPlugin, volumePlugin, attachmentPlugin, this.aaaController);
+        BehaviorPluginsHolder behaviorPluginsHolder = new BehaviorPluginsHolder(instantiationInitService);
 
-        // FIXME retrieve from conf file
-        String jid = "";
-        String password = "";
-        String xmppServerIp = "";
-        int xmppServerPort = -1;
-        long timeout = 5000L;
-        OrderController orderController = new OrderController(this.properties);
+        // Setting instance and quota providers
 
-        XmppComponentManager xmppComponentManager = new XmppComponentManager(jid,
-                password, xmppServerIp, xmppServerPort, timeout, orderController);
-        RemoteInstanceProvider remoteInstanceProvider = new RemoteInstanceProvider(xmppComponentManager);
-        
-        this.processorController = new ProcessorController(this.properties, localInstanceProvider,
-                remoteInstanceProvider, computePlugin, localIdentityPlugin,
-                federationIdentityPlugin);
+        AaController aaController =
+                new AaController(cloudPluginsHolder.getLocalIdentityPlugin(), behaviorPluginsHolder);
 
-        
-		LocalQuotaProvider localQuotaProvider = new LocalQuotaProvider(computeQuotaPlugin, this.aaaController);
-        QuotaProviderController quotaProviderController = new QuotaProviderController(localQuotaProvider, localMemberId);
-        
-        this.facade.setAAAController(this.aaaController);
-        this.facade.setQuotaProviderController(quotaProviderController);
+        LocalCloudConnector localInstanceProvider = new LocalCloudConnector(aaController, cloudPluginsHolder);
+
+        String localMemberId = instantiationInitService.getPropertyValue(ConfigurationConstants.XMPP_JID_KEY);
+        String xmppPassword = instantiationInitService.getPropertyValue(ConfigurationConstants.XMPP_PASSWORD_KEY);
+        String xmppServerIp = instantiationInitService.getPropertyValue(ConfigurationConstants.XMPP_SERVER_IP_KEY);
+        int xmppServerPort =
+                Integer.parseInt(instantiationInitService.getPropertyValue(ConfigurationConstants.XMPP_SERVER_PORT_KEY));
+        long xmppTimeout =
+                Long.parseLong(instantiationInitService.getPropertyValue(ConfigurationConstants.XMPP_TIMEOUT_KEY));
+
+        OrderController orderController = new OrderController(localMemberId);
+
+        XmppComponentManager xmppComponentManager = new XmppComponentManager(localMemberId,
+                xmppPassword, xmppServerIp, xmppServerPort, xmppTimeout, orderController);
+
+        RemoteCloudConnector remoteInstanceProvider = new RemoteCloudConnector(xmppComponentManager);
+
+        CloudConnectorSelector cloudConnectorSelector = CloudConnectorSelector.getInstance();
+        cloudConnectorSelector.setLocalMemberId(localMemberId);
+        cloudConnectorSelector.setLocalInstanceProvider(localInstanceProvider);
+        cloudConnectorSelector.setRemoteInstanceProvider(remoteInstanceProvider);
+
+        // Setting facade controllers
+
+        this.facade.setAaController(aaController);
         this.facade.setOrderController(orderController);
+
+        // Starting threads
+
+        String openOrdersProcSleepTimeStr =
+                instantiationInitService.getPropertyValue(ConfigurationConstants.OPEN_ORDERS_SLEEP_TIME_KEY);
+
+        OpenProcessor openProcessor = new OpenProcessor(localMemberId, openOrdersProcSleepTimeStr);
+
+        String spawningOrdersProcSleepTimeStr =
+                instantiationInitService.getPropertyValue(ConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME_KEY);
+
+        TunnelingServiceUtil tunnelingServiceUtil = TunnelingServiceUtil.getInstance();
+        SshConnectivityUtil sshConnectivityUtil = SshConnectivityUtil.getInstance();
+        tunnelingServiceUtil.setProperties(instantiationInitService.getProperties());
+        SshCommonUserUtil.setProperties(instantiationInitService.getProperties());
+        SshConnectivityUtil.setProperties(instantiationInitService.getProperties());
+
+        SpawningProcessor spawningProcessor =
+                new SpawningProcessor(tunnelingServiceUtil, sshConnectivityUtil, spawningOrdersProcSleepTimeStr);
+
+        String fulfilledOrdersProcSleepTimeStr =
+                instantiationInitService.getPropertyValue(ConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME_KEY);
+
+        FulfilledProcessor fulfilledProcessor =
+                new FulfilledProcessor(tunnelingServiceUtil, sshConnectivityUtil, fulfilledOrdersProcSleepTimeStr);
+
+        String closedOrdersProcSleepTimeStr =
+                instantiationInitService.getPropertyValue(ConfigurationConstants.CLOSED_ORDERS_SLEEP_TIME_KEY);
+
+        ClosedProcessor closedProcessor = new ClosedProcessor(orderController, closedOrdersProcSleepTimeStr);
+
+        ProcessorsController processorsController = new ProcessorsController(openProcessor, spawningProcessor,
+                fulfilledProcessor, closedProcessor);
+
     }
 
 }

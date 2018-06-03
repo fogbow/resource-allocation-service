@@ -12,9 +12,9 @@
 //import org.fogbowcloud.manager.core.SharedOrderHolders;
 //import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 //import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
-//import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
-//import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
-//import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
+//import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
+//import org.fogbowcloud.manager.core.cloudconnector.RemoteCloudConnector;
+//import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 //import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 //import org.fogbowcloud.manager.core.models.orders.Order;
 //import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -31,8 +31,8 @@
 //
 //    private OpenProcessor openProcessor;
 //
-//    private LocalInstanceProvider localInstanceProvider;
-//    private RemoteInstanceProvider remoteInstanceProvider;
+//    private LocalCloudConnector localInstanceProvider;
+//    private RemoteCloudConnector remoteInstanceProvider;
 //    private OrderController orderController;
 //
 //    private Properties properties;
@@ -45,8 +45,8 @@
 //        this.properties.setProperty(
 //                ConfigurationConstants.XMPP_ID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 //
-//        this.localInstanceProvider = Mockito.mock(LocalInstanceProvider.class);
-//        this.remoteInstanceProvider = Mockito.mock(RemoteInstanceProvider.class);
+//        this.localInstanceProvider = Mockito.mock(LocalCloudConnector.class);
+//        this.remoteInstanceProvider = Mockito.mock(RemoteCloudConnector.class);
 //
 //        this.thread = null;
 //
@@ -69,7 +69,7 @@
 //    }
 //
 //    /**
-//     * Test if the open processor is setting to spawning an open local order when the request
+//     * Test if the open processor is setting to spawning an open localidentity order when the request
 //     * instance method of instance provider returns an instance.
 //     *
 //     * @throws Exception
@@ -103,7 +103,7 @@
 //    }
 //
 //    /**
-//     * Test if the open processor is setting to failed an open local order when the request instance
+//     * Test if the open processor is setting to failed an open localidentity order when the request instance
 //     * method of instance provider returns a null instance.
 //     *
 //     * @throws Exception
@@ -136,7 +136,7 @@
 //    }
 //
 //    /**
-//     * Test if the open processor is setting to failed an open local order when the request instance
+//     * Test if the open processor is setting to failed an open localidentity order when the request instance
 //     * method of instance provider throw an exception.
 //     *
 //     * @throws Exception
@@ -169,7 +169,7 @@
 //    }
 //
 //    /**
-//     * Test if the open processor is setting to pending an open remote order.
+//     * Test if the open processor is setting to pending an open intercomponent order.
 //     *
 //     * @throws Exception
 //     */
@@ -201,8 +201,8 @@
 //    }
 //
 //    /**
-//     * Test if the open processor is setting to fail an open remote order when the request instance
-//     * method of remote instance provider throw an exception.
+//     * Test if the open processor is setting to fail an open intercomponent order when the request instance
+//     * method of intercomponent instance provider throw an exception.
 //     *
 //     * @throws Exception
 //     */

@@ -1,6 +1,8 @@
 package org.fogbowcloud.manager.core.models.quotas;
 
-public class ComputeQuota {
+import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
+
+public class ComputeQuota implements Quota {
 
 	private ComputeAllocation totalQuota;
 	private ComputeAllocation usedQuota;

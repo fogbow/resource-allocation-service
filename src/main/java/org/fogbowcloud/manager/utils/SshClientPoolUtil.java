@@ -11,7 +11,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.transport.verification.HostKeyVerifier;
-import org.fogbowcloud.manager.core.manager.constants.CommonConfigurationConstants;
+import org.fogbowcloud.manager.core.constants.CommonConfigurationConstants;
 
 public class SshClientPoolUtil {
 

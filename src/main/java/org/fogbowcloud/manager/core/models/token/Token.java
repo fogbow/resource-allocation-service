@@ -4,7 +4,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import org.fogbowcloud.manager.utils.DateUtils;
-import org.fogbowcloud.manager.utils.JSONHelper;
+import org.fogbowcloud.manager.utils.JSONUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -114,7 +114,7 @@ public class Token {
                 !accessId.isEmpty() ? accessId : null,
                 userJson != null ? User.fromJSON(userJson.toString()) : null,
                 null,
-                JSONHelper.toMap(jsonObject.optString("attributes")));
+                JSONUtil.toMap(jsonObject.optString("attributes")));
     }
 
     public static class User {

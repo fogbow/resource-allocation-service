@@ -10,9 +10,9 @@
 //import org.fogbowcloud.manager.core.OrderController;
 //import org.fogbowcloud.manager.core.OrderStateTransitioner;
 //import org.fogbowcloud.manager.core.SharedOrderHolders;
-//import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
-//import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
-//import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
+//import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
+//import org.fogbowcloud.manager.core.cloudconnector.RemoteCloudConnector;
+//import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 //import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 //import org.fogbowcloud.manager.core.models.orders.Order;
 //import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -25,8 +25,8 @@
 //
 //    private ClosedProcessor closedProcessor;
 //
-//    private RemoteInstanceProvider remoteInstanceProvider;
-//    private LocalInstanceProvider localInstanceProvider;
+//    private RemoteCloudConnector remoteInstanceProvider;
+//    private LocalCloudConnector localInstanceProvider;
 //
 //    private Properties properties;
 //
@@ -41,8 +41,8 @@
 //
 //        this.orderController = new OrderController(properties, localInstanceProvider, remoteInstanceProvider);
 //
-//        this.localInstanceProvider = Mockito.mock(LocalInstanceProvider.class);
-//        this.remoteInstanceProvider = Mockito.mock(RemoteInstanceProvider.class);
+//        this.localInstanceProvider = Mockito.mock(LocalCloudConnector.class);
+//        this.remoteInstanceProvider = Mockito.mock(RemoteCloudConnector.class);
 //
 //        this.closedProcessor =
 //                Mockito.spy(

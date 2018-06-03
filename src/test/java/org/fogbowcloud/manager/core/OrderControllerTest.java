@@ -4,9 +4,9 @@
 //import java.util.Properties;
 //
 //import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-//import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
-//import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
-//import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
+//import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
+//import org.fogbowcloud.manager.core.cloudconnector.RemoteCloudConnector;
+//import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 //import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 //import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 //import org.fogbowcloud.manager.core.models.orders.Order;
@@ -32,15 +32,15 @@
 //    private String localMember = BaseUnitTests.LOCAL_MEMBER_ID;
 //
 //    private Properties properties;
-//    private LocalInstanceProvider localInstanceProvider;
-//    private RemoteInstanceProvider remoteInstanceProvider;
+//    private LocalCloudConnector localInstanceProvider;
+//    private RemoteCloudConnector remoteInstanceProvider;
 //
 //    @Before
 //    public void setUp() {
 //        this.properties = PropertiesUtil.getProperties();
 //		this.properties.put(ConfigurationConstants.XMPP_ID_KEY, this.localMember);
-//        this.localInstanceProvider = Mockito.mock(LocalInstanceProvider.class);
-//        this.remoteInstanceProvider = Mockito.mock(RemoteInstanceProvider.class);
+//        this.localInstanceProvider = Mockito.mock(LocalCloudConnector.class);
+//        this.remoteInstanceProvider = Mockito.mock(RemoteCloudConnector.class);
 //
 //        this.ordersManagerController =
 //                new OrderController(

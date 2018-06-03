@@ -3,22 +3,19 @@ package org.fogbowcloud.manager.core;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
-import org.fogbowcloud.manager.api.local.http.ComputeOrdersController;
-import org.fogbowcloud.manager.api.remote.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.api.http.ComputeOrdersController;
+import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.QuotaException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
-import org.fogbowcloud.manager.core.instanceprovider.InstanceProviderSelector;
-import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
-import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
-import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorSelector;
+import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.manager.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
@@ -27,7 +24,7 @@ import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.Instance;
-import org.fogbowcloud.manager.core.models.quotas.ComputeAllocation;
+import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,8 +35,8 @@ public class OrderController {
     private final String localMemberId;
     private SharedOrderHolders orderHolders;
 
-    public OrderController(Properties properties) {
-        this.localMemberId = properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
+    public OrderController(String localMemberId) {
+        this.localMemberId = localMemberId;
         this.orderHolders = SharedOrderHolders.getInstance();
     }
 
@@ -122,8 +119,8 @@ public class OrderController {
                 throw new OrderManagementException(message);
             }
 
-            // when the order is local, the requestingMember field is null
-            // otherwise, it has already been set by the remote member
+            // when the order is localidentity, the requestingMember field is null
+            // otherwise, it has already been set by the intercomponent member
             if (order.getRequestingMember() == null) {
                 order.setRequestingMember(this.localMemberId);
             }
@@ -154,9 +151,9 @@ public class OrderController {
     public Instance getResourceInstance(Order order)
         throws PropertyNotSpecifiedException, TokenCreationException, RequestException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         synchronized (order) {
-            InstanceProviderSelector instanceProviderSelector = InstanceProviderSelector.getInstance();
-            InstanceProvider instanceProvider = instanceProviderSelector.getInstanceProvider(order);
-            return instanceProvider.getInstance(order);
+            CloudConnectorSelector cloudConnectorSelector = CloudConnectorSelector.getInstance();
+            CloudConnector cloudConnector = cloudConnectorSelector.getInstanceProvider(order);
+            return cloudConnector.getInstance(order);
         }
     }
     
@@ -170,8 +167,8 @@ public class OrderController {
 				.filter(order -> order.getFederationUser().equals(federationUser))
 				.collect(Collectors.toList());
 
-        InstanceProviderSelector instanceProviderSelector = InstanceProviderSelector.getInstance();
-        LocalInstanceProvider localInstanceProvider = instanceProviderSelector.getLocalInstanceProvider();
+        CloudConnectorSelector cloudConnectorSelector = CloudConnectorSelector.getInstance();
+        LocalCloudConnector localInstanceProvider = cloudConnectorSelector.getLocalInstanceProvider();
 
 		int vCPU = 0, ram = 0, instances = 0;
 		

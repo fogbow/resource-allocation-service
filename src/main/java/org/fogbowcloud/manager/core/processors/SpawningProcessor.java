@@ -1,17 +1,15 @@
 package org.fogbowcloud.manager.core.processors;
 
-import java.util.Properties;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.api.remote.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
-import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.manager.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorSelector;
 import org.fogbowcloud.manager.core.manager.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
@@ -21,7 +19,7 @@ import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.orders.instances.Instance;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
-import org.fogbowcloud.manager.utils.ComputeInstanceConnectivityUtils;
+import org.fogbowcloud.manager.utils.ComputeInstanceConnectivityUtil;
 import org.fogbowcloud.manager.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
 
@@ -30,29 +28,25 @@ public class SpawningProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(SpawningProcessor.class);
 
     private ChainedList spawningOrderList;
-    private ComputeInstanceConnectivityUtils computeInstanceConnectivity;
+    private ComputeInstanceConnectivityUtil computeInstanceConnectivity;
 
     private Long sleepTime;
 
-    private InstanceProvider localInstanceProvider;
+    private CloudConnector localCloudConnector;
 
     public SpawningProcessor(
-        TunnelingServiceUtil tunnelingService,
-        SshConnectivityUtil sshConnectivity,
-        InstanceProvider localInstanceProvider,
-        Properties properties) {
-        this.computeInstanceConnectivity =
-            new ComputeInstanceConnectivityUtils(tunnelingService, sshConnectivity);
+            TunnelingServiceUtil tunnelingService,
+            SshConnectivityUtil sshConnectivity,
+            String sleepTimeStr) {
 
-        this.localInstanceProvider = localInstanceProvider;
+        this.computeInstanceConnectivity =
+            new ComputeInstanceConnectivityUtil(tunnelingService, sshConnectivity);
+
+        this.localCloudConnector = CloudConnectorSelector.getInstance().getLocalInstanceProvider();
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();
 
-        String sleepTimeStr =
-            properties.getProperty(
-                ConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME_KEY,
-                DefaultConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME);
         this.sleepTime = Long.valueOf(sleepTimeStr);
     }
 
@@ -104,7 +98,7 @@ public class SpawningProcessor implements Runnable {
      */
     private void processInstance(Order order)
     		throws PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException, UnauthorizedException, OrderStateTransitionException, RemoteRequestException {
-        Instance instance = this.localInstanceProvider.getInstance(order);
+        Instance instance = this.localCloudConnector.getInstance(order);
         OrderType orderType = order.getType();
 
         InstanceState instanceState = instance.getState();

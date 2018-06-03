@@ -9,8 +9,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.manager.constants.CommonConfigurationConstants;
-import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.constants.CommonConfigurationConstants;
+import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.processors.SpawningProcessor;
 import org.json.JSONObject;
 

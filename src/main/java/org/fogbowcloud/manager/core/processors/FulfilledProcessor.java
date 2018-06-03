@@ -1,19 +1,17 @@
 package org.fogbowcloud.manager.core.processors;
 
-import java.util.Properties;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.api.remote.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
-import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.manager.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.manager.core.manager.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorSelector;
+import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
+import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -21,7 +19,7 @@ import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.OrderType;
 import org.fogbowcloud.manager.core.models.orders.instances.Instance;
 import org.fogbowcloud.manager.core.models.orders.instances.InstanceState;
-import org.fogbowcloud.manager.utils.ComputeInstanceConnectivityUtils;
+import org.fogbowcloud.manager.utils.ComputeInstanceConnectivityUtil;
 import org.fogbowcloud.manager.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
 
@@ -33,11 +31,11 @@ public class FulfilledProcessor implements Runnable {
 
     private static final Logger LOGGER = Logger.getLogger(FulfilledProcessor.class);
 
-    private InstanceProvider localInstanceProvider;
-    private InstanceProvider remoteInstanceProvider;
     private String localMemberId;
 
-    private ComputeInstanceConnectivityUtils computeInstanceConnectivity;
+    private LocalCloudConnector localInstanceProvider;
+
+    private ComputeInstanceConnectivityUtil computeInstanceConnectivity;
 
     private ChainedList fulfilledOrdersList;
 
@@ -47,25 +45,21 @@ public class FulfilledProcessor implements Runnable {
     private Long sleepTime;
 
     public FulfilledProcessor(
-        InstanceProvider localInstanceProvider,
-        InstanceProvider remoteInstanceProvider,
-        TunnelingServiceUtil tunnelingService,
-        SshConnectivityUtil sshConnectivity,
-        Properties properties) {
-        this.localInstanceProvider = localInstanceProvider;
-        this.remoteInstanceProvider = remoteInstanceProvider;
-        this.localMemberId = properties.getProperty(ConfigurationConstants.XMPP_ID_KEY);
+            TunnelingServiceUtil tunnelingService,
+            SshConnectivityUtil sshConnectivity, String sleepTimeStr) {
+
+        CloudConnectorSelector cloudConnectorSelector = CloudConnectorSelector.getInstance();
+
+        this.localMemberId = cloudConnectorSelector.getLocalMemberId();
+
+        this.localInstanceProvider = cloudConnectorSelector.getLocalInstanceProvider();
 
         this.computeInstanceConnectivity =
-            new ComputeInstanceConnectivityUtils(tunnelingService, sshConnectivity);
+            new ComputeInstanceConnectivityUtil(tunnelingService, sshConnectivity);
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
 
-        String sleepTimeStr =
-            properties.getProperty(
-                ConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME_KEY,
-                DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME);
         this.sleepTime = Long.valueOf(sleepTimeStr);
     }
 
@@ -115,7 +109,7 @@ public class FulfilledProcessor implements Runnable {
         synchronized (order) {
             OrderState orderState = order.getOrderState();
 
-            if (!order.isProviderLocal(localMemberId)) {
+            if (!order.isProviderLocal(this.localMemberId)) {
                 return;
             }
 
@@ -146,11 +140,10 @@ public class FulfilledProcessor implements Runnable {
      */
     protected void processInstance(Order order)
         throws PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException, UnauthorizedException, OrderStateTransitionException, RemoteRequestException {
-        InstanceProvider instanceProvider = getInstanceProviderForOrder(order);
 
         OrderType orderType = order.getType();
 
-        Instance instance = instanceProvider.getInstance(order);
+        Instance instance = this.localInstanceProvider.getInstance(order);
 		InstanceState instanceState = instance.getState();
 
         if (instanceState.equals(InstanceState.FAILED)) {
@@ -172,34 +165,5 @@ public class FulfilledProcessor implements Runnable {
         } else {
             LOGGER.debug("The instance was processed successfully");
         }
-    }
-
-    /**
-     * Get an instance provider from an order, if order is local, the returned instance provider is
-     * the local, otherwise, it is the remote.
-     *
-     * @param order {@link Order}
-     * @return corresponding instance provider.
-     */
-    private InstanceProvider getInstanceProviderForOrder(Order order) {
-        InstanceProvider instanceProvider;
-
-        if (order.isProviderLocal(this.localMemberId)) {
-            LOGGER.debug("The open order [" + order.getId() + "] is local");
-
-            instanceProvider = this.localInstanceProvider;
-        } else {
-            LOGGER.debug(
-                "The open order ["
-                    + order.getId()
-                    + "] is remote for the "
-                    + "member ["
-                    + order.getProvidingMember()
-                    + "]");
-
-            instanceProvider = this.remoteInstanceProvider;
-        }
-
-        return instanceProvider;
     }
 }

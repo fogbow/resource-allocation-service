@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.fogbowcloud.manager.api.local.http.VolumeOrdersController;
+import org.fogbowcloud.manager.api.http.VolumeOrdersController;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;

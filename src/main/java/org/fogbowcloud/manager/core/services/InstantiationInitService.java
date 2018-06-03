@@ -8,17 +8,18 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.Logger;
 
-import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.manager.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.manager.core.manager.plugins.PluginFactory;
-import org.fogbowcloud.manager.core.manager.plugins.behavior.authorization.AuthorizationPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.behavior.federation.FederationIdentityPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.cloud.attachment.AttachmentPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.cloud.compute.ComputePlugin;
-import org.fogbowcloud.manager.core.manager.plugins.cloud.local.LocalIdentityPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.cloud.network.NetworkPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.cloud.quota.ComputeQuotaPlugin;
-import org.fogbowcloud.manager.core.manager.plugins.cloud.volume.VolumePlugin;
+import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.plugins.PluginFactory;
+import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
+import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
+import org.fogbowcloud.manager.core.plugins.behavior.mapper.LocalUserCredentialsMapperPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.attachment.AttachmentPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.compute.ComputePlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.localidentity.LocalIdentityPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.network.NetworkPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.quota.ComputeQuotaPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.volume.VolumePlugin;
 
 public class InstantiationInitService {
 
@@ -60,29 +61,41 @@ public class InstantiationInitService {
         }
     }
 
+    public AttachmentPlugin getAttachmentPlugin() {
+        String className = this.getPropertyValue(ConfigurationConstants.ATTACHMENT_PLUGIN_CLASS_KEY);
+        return (AttachmentPlugin) this.pluginFactory.createPluginInstance(className, this.properties);
+    }
+
     public ComputePlugin getComputePlugin() {
         String className = this.getPropertyValue(ConfigurationConstants.COMPUTE_PLUGIN_CLASS_KEY);
         return (ComputePlugin) this.pluginFactory.createPluginInstance(className, this.properties);
     }
-    
-    public VolumePlugin getVolumePlugin() {
-        String className = this.getPropertyValue(ConfigurationConstants.VOLUME_PLUGIN_CLASS_KEY);
-        return (VolumePlugin) this.pluginFactory.createPluginInstance(className, this.properties);
+
+    public ComputeQuotaPlugin getComputeQuotaPlugin() {
+        String className = this.getPropertyValue(ConfigurationConstants.COMPUTE_QUOTA_PLUGIN_CLASS_KEY);
+        return (ComputeQuotaPlugin)
+                this.pluginFactory.createPluginInstance(className, this.properties);
     }
-    
-    public NetworkPlugin getNetworkPlugin() {
-        String className = this.getPropertyValue(ConfigurationConstants.NETWORK_PLUGIN_CLASS_KEY);
-        return (NetworkPlugin) this.pluginFactory.createPluginInstance(className, this.properties);
-    }
-    
-    public AttachmentPlugin getAttachmentPlugin() {
-        String className = this.getPropertyValue(ConfigurationConstants.ATTACHMENT_PLUGIN_CLASS_KEY);
-        return (AttachmentPlugin) this.pluginFactory.createPluginInstance(className, this.properties);
-    }       
 
     public LocalIdentityPlugin getLocalIdentityPlugin() {
         String className = this.getPropertyValue(ConfigurationConstants.LOCAL_IDENTITY_PLUGIN_CLASS_KEY);
         return (LocalIdentityPlugin)
+                this.pluginFactory.createPluginInstance(className, this.properties);
+    }
+
+    public NetworkPlugin getNetworkPlugin() {
+        String className = this.getPropertyValue(ConfigurationConstants.NETWORK_PLUGIN_CLASS_KEY);
+        return (NetworkPlugin) this.pluginFactory.createPluginInstance(className, this.properties);
+    }
+
+    public VolumePlugin getVolumePlugin() {
+        String className = this.getPropertyValue(ConfigurationConstants.VOLUME_PLUGIN_CLASS_KEY);
+        return (VolumePlugin) this.pluginFactory.createPluginInstance(className, this.properties);
+    }
+
+    public AuthorizationPlugin getAuthorizationPlugin() {
+        String className = this.getPropertyValue(ConfigurationConstants.AUTHORIZATION_PLUGIN_CLASS_KEY);
+        return (AuthorizationPlugin)
                 this.pluginFactory.createPluginInstance(className, this.properties);
     }
 
@@ -92,15 +105,9 @@ public class InstantiationInitService {
                 this.pluginFactory.createPluginInstance(className, this.properties);
     }
 
-    public ComputeQuotaPlugin getComputeQuotaPlugin() {
-        String className = this.getPropertyValue(ConfigurationConstants.COMPUTE_QUOTA_PLUGIN_CLASS_KEY);
-        return (ComputeQuotaPlugin)
-                this.pluginFactory.createPluginInstance(className, this.properties);
-    }
-    
-    public AuthorizationPlugin getAuthorizationPlugin() {
-        String className = this.getPropertyValue(ConfigurationConstants.AUTHORIZATION_PLUGIN_CLASS_KEY);
-        return (AuthorizationPlugin)
+    public LocalUserCredentialsMapperPlugin getLocalUserCredentialsMapperPlugin() {
+        String className = this.getPropertyValue(ConfigurationConstants.LOCAL_USER_CREDENTIALS_MAPPER_PLUGIN_CLASS_KEY);
+        return (LocalUserCredentialsMapperPlugin)
                 this.pluginFactory.createPluginInstance(className, this.properties);
     }
 

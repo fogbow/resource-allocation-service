@@ -1,8 +1,8 @@
 package org.fogbowcloud.manager.utils;
 
 import java.util.Properties;
-import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.manager.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 
 public class SshCommonUserUtil {
 

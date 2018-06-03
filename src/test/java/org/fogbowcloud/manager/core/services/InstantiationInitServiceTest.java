@@ -2,10 +2,10 @@ package org.fogbowcloud.manager.core.services;
 
 import java.io.FileInputStream;
 import java.util.Properties;
-import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.manager.plugins.behavior.federation.FederationIdentityPlugin;
+import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.manager.plugins.behavior.federationidentity.FederationIdentityPlugin;
 import org.fogbowcloud.manager.core.manager.plugins.cloud.compute.ComputePlugin;
-import org.fogbowcloud.manager.core.manager.plugins.cloud.local.LocalIdentityPlugin;
+import org.fogbowcloud.manager.core.manager.plugins.cloud.localidentity.LocalIdentityPlugin;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;

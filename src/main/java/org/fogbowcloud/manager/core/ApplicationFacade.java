@@ -3,14 +3,15 @@ package org.fogbowcloud.manager.core;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.fogbowcloud.manager.api.remote.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.QuotaException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.manager.constants.Operation;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorSelector;
+import org.fogbowcloud.manager.core.constants.Operation;
 import org.fogbowcloud.manager.core.manager.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -24,19 +25,18 @@ import org.fogbowcloud.manager.core.models.orders.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.Instance;
 import org.fogbowcloud.manager.core.models.orders.instances.NetworkInstance;
 import org.fogbowcloud.manager.core.models.orders.instances.VolumeInstance;
-import org.fogbowcloud.manager.core.models.quotas.ComputeAllocation;
+import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.services.AAAController;
+import org.fogbowcloud.manager.core.services.AaController;
 
 public class ApplicationFacade {
 
     private static ApplicationFacade instance;
 
-    private AAAController aaaController;
+    private AaController aaController;
     private OrderController orderController;
-    private QuotaProviderController quotaProviderController;
-    
+
     private ApplicationFacade() {
     }
 
@@ -55,7 +55,8 @@ public class ApplicationFacade {
     }
 
     public List<ComputeInstance> getAllComputes(String federationTokenValue)
-        throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
+        throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException,
+            PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
         List<ComputeInstance> computeInstances = new ArrayList<ComputeInstance>();
 
         List<Order> allOrders = getAllOrders(federationTokenValue, OrderType.COMPUTE);
@@ -68,7 +69,8 @@ public class ApplicationFacade {
     }
 
     public ComputeInstance getCompute(String orderId, String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
+        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException,
+            UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         return (ComputeInstance) getResourceInstance(orderId, federationTokenValue,
             OrderType.COMPUTE);
     }
@@ -84,7 +86,8 @@ public class ApplicationFacade {
     }
 
     public List<VolumeInstance> getAllVolumes(String federationTokenValue)
-        throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
+        throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException,
+            PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
         List<VolumeInstance> volumeInstances = new ArrayList<VolumeInstance>();
 
         List<Order> allOrders = getAllOrders(federationTokenValue, OrderType.VOLUME);
@@ -97,7 +100,8 @@ public class ApplicationFacade {
     }
 
     public VolumeInstance getVolume(String orderId, String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
+        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException,
+            UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         return (VolumeInstance) getResourceInstance(orderId, federationTokenValue,
             OrderType.VOLUME);
     }
@@ -113,7 +117,8 @@ public class ApplicationFacade {
     }
 
     public List<NetworkInstance> getAllNetworks(String federationTokenValue)
-        throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
+        throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException,
+            PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
         List<NetworkInstance> networkInstances = new ArrayList<NetworkInstance>();
 
         List<Order> allOrders = getAllOrders(federationTokenValue, OrderType.NETWORK);
@@ -126,7 +131,8 @@ public class ApplicationFacade {
     }
 
     public NetworkInstance getNetwork(String orderId, String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
+        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException,
+            UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         return (NetworkInstance) getResourceInstance(orderId, federationTokenValue,
             OrderType.NETWORK);
     }
@@ -137,30 +143,32 @@ public class ApplicationFacade {
     }
     
 	public ComputeQuota getComputeQuota(String memberId, String federationTokenValue)
-			throws UnauthenticatedException, QuotaException, UnauthorizedException {
+            throws UnauthenticatedException, QuotaException, UnauthorizedException, PropertyNotSpecifiedException,
+            TokenCreationException {
 		
-		this.aaaController.authenticate(federationTokenValue);
-		FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
-		this.aaaController.authorize(federationUser, Operation.GET_QUOTA);
+		this.aaController.authenticate(federationTokenValue);
+		FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
+		this.aaController.authorize(federationUser, Operation.GET_QUOTA);
 		
-		return this.quotaProviderController.getQuotaProvider(memberId).getComputeQuota(federationUser);
+		return CloudConnectorSelector.getInstance().getInstanceProvider(memberId).getComputeQuota(federationUser);
 	}
 
 	public ComputeAllocation getComputeAllocation(String memberId, String federationTokenValue)
-			throws UnauthenticatedException, QuotaException, UnauthorizedException, RemoteRequestException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+			throws UnauthenticatedException, QuotaException, UnauthorizedException, RemoteRequestException,
+            RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
 		
-		this.aaaController.authenticate(federationTokenValue);
-		FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
-		this.aaaController.authorize(federationUser, Operation.GET_ALLOCATION);
+		this.aaController.authenticate(federationTokenValue);
+		FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
+		this.aaController.authorize(federationUser, Operation.GET_ALLOCATION);
 		
 		return this.orderController.getComputeAllocation(federationUser);
 	}
 
     private void activateOrder(Order order, String federationTokenValue)
     			throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
-        this.aaaController.authenticate(federationTokenValue);
-        FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
-        this.aaaController.authorize(federationUser, Operation.CREATE, order);
+        this.aaController.authenticate(federationTokenValue);
+        FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
+        this.aaController.authorize(federationUser, Operation.CREATE, order);
 
         order.setFederationUser(federationUser);
         this.orderController.activateOrder(order);
@@ -168,32 +176,33 @@ public class ApplicationFacade {
 
     private void deleteOrder(String orderId, String federationTokenValue, OrderType orderType)
     			throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
-        this.aaaController.authenticate(federationTokenValue);
+        this.aaController.authenticate(federationTokenValue);
 
-        FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
+        FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
         Order order = this.orderController.getOrder(orderId, federationUser, orderType);
-        this.aaaController.authorize(federationUser, Operation.DELETE, order);
+        this.aaController.authorize(federationUser, Operation.DELETE, order);
 
         this.orderController.deleteOrder(order);
     }
 
     private List<Order> getAllOrders(String federationTokenValue, OrderType orderType)
     			throws UnauthorizedException, UnauthenticatedException {
-        this.aaaController.authenticate(federationTokenValue);
-        FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
-        this.aaaController.authorize(federationUser, Operation.GET_ALL, orderType);
+        this.aaController.authenticate(federationTokenValue);
+        FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
+        this.aaController.authorize(federationUser, Operation.GET_ALL, orderType);
 
         return this.orderController.getAllOrders(federationUser, orderType);
     }
 
     private Instance getResourceInstance(String orderId, String federationTokenValue,
         OrderType type)
-        throws UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
-        this.aaaController.authenticate(federationTokenValue);
+        throws UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException,
+            PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
+        this.aaController.authenticate(federationTokenValue);
 
-        FederationUser federationUser = this.aaaController.getFederationUser(federationTokenValue);
+        FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
         Order order = this.orderController.getOrder(orderId, federationUser, type);
-        this.aaaController.authorize(federationUser, Operation.GET, order);
+        this.aaController.authorize(federationUser, Operation.GET, order);
 
         return this.orderController.getResourceInstance(order);
     }
@@ -225,16 +234,12 @@ public class ApplicationFacade {
     	deleteOrder(orderId, federationTokenValue, OrderType.ATTACHMENT);        
     }
 
-    public void setAAAController(AAAController aaaController) {
-        this.aaaController = aaaController;
+    public void setAaController(AaController aaController) {
+        this.aaController = aaController;
     }
 
     public void setOrderController(OrderController orderController) {
         this.orderController = orderController;
     }
-    
-    public void setQuotaProviderController(QuotaProviderController quotaProviderController) {
-    	this.quotaProviderController = quotaProviderController;
-    }
-    
+
 }

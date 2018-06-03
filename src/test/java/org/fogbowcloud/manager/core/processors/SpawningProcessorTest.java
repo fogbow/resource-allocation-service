@@ -7,8 +7,8 @@ import java.util.Properties;
 
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
-import org.fogbowcloud.manager.core.instanceprovider.InstanceProvider;
-import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
+import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -32,7 +32,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
     private Properties properties;
 
-    private InstanceProvider instanceProvider;
+    private CloudConnector cloudConnector;
 
     private TunnelingServiceUtil tunnelingService;
     private SshConnectivityUtil sshConnectivity;
@@ -51,12 +51,12 @@ public class SpawningProcessorTest extends BaseUnitTests {
     public void setUp() {
         this.tunnelingService = Mockito.mock(TunnelingServiceUtil.class);
         this.sshConnectivity = Mockito.mock(SshConnectivityUtil.class);
-        this.instanceProvider = Mockito.mock(InstanceProvider.class);
+        this.cloudConnector = Mockito.mock(CloudConnector.class);
         
         this.properties = PropertiesUtil.getProperties();
         this.properties.put(ConfigurationConstants.XMPP_ID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
         this.spawningProcessor = Mockito.spy(new SpawningProcessor(this.tunnelingService,
-                this.sshConnectivity, this.instanceProvider, this.properties));
+                this.sshConnectivity, ));
         this.thread = null;
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
@@ -104,7 +104,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         orderInstance.setState(InstanceState.READY);
         order.setInstanceId(instanceId);
 
-        Mockito.doReturn(orderInstance).when(this.instanceProvider)
+        Mockito.doReturn(orderInstance).when(this.cloudConnector)
                 .getInstance(Mockito.any(Order.class));
 
         Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.eq(order.getId())))
@@ -159,10 +159,10 @@ public class SpawningProcessorTest extends BaseUnitTests {
         orderInstance.setState(InstanceState.FAILED);
         order.setInstanceId(instanceId);
 
-        Mockito.doReturn(orderInstance).when(this.instanceProvider)
+        Mockito.doReturn(orderInstance).when(this.cloudConnector)
                 .getInstance(Mockito.any(Order.class));
 
-        Mockito.doReturn(orderInstance).when(this.instanceProvider)
+        Mockito.doReturn(orderInstance).when(this.cloudConnector)
         		.getInstance(Mockito.any(Order.class));
 
         Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.eq(order.getId())))

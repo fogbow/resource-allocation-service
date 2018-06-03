@@ -3,8 +3,8 @@ package org.fogbowcloud.manager.requests.api.local.http;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
-import org.fogbowcloud.manager.api.local.http.ComputeOrdersController;
-import org.fogbowcloud.manager.api.local.http.ExceptionTranslator;
+import org.fogbowcloud.manager.api.http.ComputeOrdersController;
+import org.fogbowcloud.manager.api.http.ExceptionTranslator;
 import org.fogbowcloud.manager.core.manager.plugins.exceptions.InvalidCredentialsException;
 import org.fogbowcloud.manager.core.manager.plugins.exceptions.InvalidTokenException;
 import org.fogbowcloud.manager.core.manager.plugins.exceptions.TokenCreationException;

@@ -9,10 +9,10 @@
 //import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 //import org.fogbowcloud.manager.core.exceptions.RequestException;
 //import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-//import org.fogbowcloud.manager.core.instanceprovider.LocalInstanceProvider;
-//import org.fogbowcloud.manager.core.instanceprovider.RemoteInstanceProvider;
-//import org.fogbowcloud.manager.core.manager.constants.ConfigurationConstants;
-//import org.fogbowcloud.manager.core.manager.constants.Operation;
+//import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
+//import org.fogbowcloud.manager.core.cloudconnector.RemoteCloudConnector;
+//import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+//import org.fogbowcloud.manager.core.constants.Operation;
 //import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
 //import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 //import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
@@ -29,7 +29,7 @@
 //import org.fogbowcloud.manager.core.models.orders.instances.NetworkInstance;
 //import org.fogbowcloud.manager.core.models.orders.instances.VolumeInstance;
 //import org.fogbowcloud.manager.core.models.token.FederationUser;
-//import org.fogbowcloud.manager.core.services.AAAController;
+//import org.fogbowcloud.manager.core.services.AaController;
 //import org.junit.Assert;
 //import org.junit.Before;
 //import org.junit.Ignore;
@@ -39,16 +39,16 @@
 //public class ApplicationFacadeTest extends BaseUnitTests {
 //
 //	private ApplicationFacade application;
-//	private AAAController aaaController;
+//	private AaController aaaController;
 //	private OrderController orderController;
 //
 //	@Before
 //	public void setUp() throws UnauthorizedException {
-//		this.aaaController = Mockito.mock(AAAController.class);
+//		this.aaaController = Mockito.mock(AaController.class);
 //		Properties properties = new Properties();
 //		properties.setProperty(ConfigurationConstants.XMPP_ID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
-//		this.orderController = Mockito.spy(new OrderController(properties, Mockito.mock(LocalInstanceProvider.class),
-//				Mockito.mock(RemoteInstanceProvider.class)));
+//		this.orderController = Mockito.spy(new OrderController(properties, Mockito.mock(LocalCloudConnector.class),
+//				Mockito.mock(RemoteCloudConnector.class)));
 //		this.application = Mockito.spy(ApplicationFacade.getInstance());
 //		this.application.setAAAController(this.aaaController);
 //		this.application.setOrderController(this.orderController);
