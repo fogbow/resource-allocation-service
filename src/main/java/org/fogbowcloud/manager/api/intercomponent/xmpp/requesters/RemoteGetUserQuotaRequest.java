@@ -5,6 +5,7 @@ import org.dom4j.Element;
 import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.api.intercomponent.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.IqElement;
+import org.fogbowcloud.manager.api.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
@@ -18,14 +19,12 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
 
     private static final Logger LOGGER = Logger.getLogger(RemoteGetUserQuotaRequest.class);
 
-    private PacketSender packetSender;
     private String federationMemberId;
     private FederationUser federationUser;
     private InstanceType instanceType;
 
-    public RemoteGetUserQuotaRequest(PacketSender packetSender, String federationMemberId,
+    public RemoteGetUserQuotaRequest(String federationMemberId,
                                      FederationUser federationUser, InstanceType instanceType) {
-        this.packetSender = packetSender;
         this.federationMemberId = federationMemberId;
         this.federationUser = federationUser;
         this.instanceType = instanceType;
@@ -33,12 +32,8 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
 
     @Override
     public Quota send() throws RemoteRequestException {
-        if (this.packetSender == null) {
-            throw new IllegalArgumentException("Packet sender not set.");
-        }
-
         IQ iq = createIq();
-        IQ response = (IQ) this.packetSender.syncSendPacket(iq);
+        IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         if (response == null) {
             String message = "Unable to retrieve the quota for: " + this.federationUser;

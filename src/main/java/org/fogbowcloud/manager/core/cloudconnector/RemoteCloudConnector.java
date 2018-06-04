@@ -22,23 +22,17 @@ public class RemoteCloudConnector implements CloudConnector {
 
     private static final Logger LOGGER = Logger.getLogger(RemoteCloudConnector.class);
 
-    PacketSender packetSender;
-    String destinationMember;
+    private String destinationMember;
 
-    public RemoteCloudConnector(PacketSender packetSender) {
-        this.packetSender = packetSender;
-    }
-
-    public RemoteCloudConnector(String memberId, PacketSender packetSender) {
+    public RemoteCloudConnector(String memberId) {
         this.destinationMember = memberId;
-        this.packetSender = packetSender;
     }
 
     @Override
     public String requestInstance(Order order) throws PropertyNotSpecifiedException,
             UnauthorizedException, TokenCreationException, RequestException, RemoteRequestException,
             OrderManagementException {
-        RemoteCreateOrderRequest remoteCreateOrderRequest = new RemoteCreateOrderRequest(this.packetSender, order);
+        RemoteCreateOrderRequest remoteCreateOrderRequest = new RemoteCreateOrderRequest(order);
         remoteCreateOrderRequest.send();
         
         return null;
@@ -47,15 +41,15 @@ public class RemoteCloudConnector implements CloudConnector {
     @Override
     public void deleteInstance(Order order) throws RequestException, TokenCreationException, UnauthorizedException,
             PropertyNotSpecifiedException, RemoteRequestException, OrderManagementException {
-    	RemoteDeleteOrderRequest remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(this.packetSender, order);
+        RemoteDeleteOrderRequest remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(order);
 		remoteDeleteOrderRequest.send();
     }
 
     @Override
     public Instance getInstance(Order order) throws RequestException, TokenCreationException, UnauthorizedException,
             PropertyNotSpecifiedException, RemoteRequestException {
-    	RemoteGetOrderRequest remoteGetOrderRequest = new RemoteGetOrderRequest(this.packetSender, order);
-    	Instance instance = remoteGetOrderRequest.send();
+        RemoteGetOrderRequest remoteGetOrderRequest = new RemoteGetOrderRequest(order);
+        Instance instance = remoteGetOrderRequest.send();
         return instance;
     }
 
@@ -64,8 +58,7 @@ public class RemoteCloudConnector implements CloudConnector {
             PropertyNotSpecifiedException,  QuotaException, UnauthorizedException, TokenCreationException,
             RemoteRequestException {
 
-        RemoteGetUserQuotaRequest remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.packetSender,
-                this.destinationMember, federationUser, instanceType);
+        RemoteGetUserQuotaRequest remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.destinationMember, federationUser, instanceType);
         Quota quota = remoteGetUserQuotaRequest.send();
         return quota;
     }

@@ -1,6 +1,7 @@
 package org.fogbowcloud.manager;
 
 import org.fogbowcloud.manager.api.intercomponent.RemoteFacade;
+import org.fogbowcloud.manager.api.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.XmppComponentManager;
 import org.fogbowcloud.manager.core.*;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
@@ -14,6 +15,7 @@ import org.fogbowcloud.manager.core.services.InstantiationInitService;
 import org.fogbowcloud.manager.utils.SshCommonUserUtil;
 import org.fogbowcloud.manager.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
+import org.jamppa.component.PacketSender;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -29,15 +31,12 @@ public class Main implements ApplicationRunner {
         InstantiationInitService instantiationInitService = new InstantiationInitService();
 
         // Setting up cloud plugins
-
         CloudPluginsHolder cloudPluginsHolder = new CloudPluginsHolder(instantiationInitService);
 
         // Setting up behavior plugins
-
         BehaviorPluginsHolder behaviorPluginsHolder = new BehaviorPluginsHolder(instantiationInitService);
 
         // Setting up controllers and application facade
-
         String localMemberId = instantiationInitService.getPropertyValue(ConfigurationConstants.XMPP_JID_KEY);
 
         AaController aaController =
@@ -53,7 +52,6 @@ public class Main implements ApplicationRunner {
         this.remoteFacade.setUserQuotaController(userQuotaController);
 
         // Setting up cloud connector's factory
-
         String xmppPassword = instantiationInitService.getPropertyValue(ConfigurationConstants.XMPP_PASSWORD_KEY);
         String xmppServerIp = instantiationInitService.getPropertyValue(ConfigurationConstants.XMPP_SERVER_IP_KEY);
         int xmppServerPort =
@@ -61,7 +59,7 @@ public class Main implements ApplicationRunner {
         long xmppTimeout =
                 Long.parseLong(instantiationInitService.getPropertyValue(ConfigurationConstants.XMPP_TIMEOUT_KEY));
 
-        XmppComponentManager xmppComponentManager = new XmppComponentManager(localMemberId,
+        PacketSenderHolder.init(localMemberId,
                 xmppPassword, xmppServerIp, xmppServerPort, xmppTimeout, orderController);
 
         CloudConnectorFactory cloudConnectorFactory = CloudConnectorFactory.getInstance();
@@ -69,10 +67,8 @@ public class Main implements ApplicationRunner {
         cloudConnectorFactory.setAaController(aaController);
         cloudConnectorFactory.setOrderController(orderController);
         cloudConnectorFactory.setCloudPluginsHolder(cloudPluginsHolder);
-        cloudConnectorFactory.setPacketSender(xmppComponentManager);
 
         // Setting up order processors and starting threads
-
         String openOrdersProcSleepTimeStr =
                 instantiationInitService.getPropertyValue(ConfigurationConstants.OPEN_ORDERS_SLEEP_TIME_KEY);
 

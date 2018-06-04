@@ -13,7 +13,6 @@ public class CloudConnectorFactory {
     private static CloudConnectorFactory instance;
 
     private String localMemberId;
-    private PacketSender packetSender;
     private AaController aaController;
     private OrderController orderController;
     private CloudPluginsHolder cloudPluginsHolder;
@@ -32,14 +31,10 @@ public class CloudConnectorFactory {
                 cloudConnector = new LocalCloudConnector(this.localMemberId, this.aaController, this.orderController,
                         this.cloudPluginsHolder);
         } else {
-                cloudConnector = new RemoteCloudConnector(memberId, this.packetSender);
+                cloudConnector = new RemoteCloudConnector(memberId);
         }
 
         return cloudConnector;
-    }
-
-    public void setPacketSender(PacketSender packetSender) {
-        this.packetSender = packetSender;
     }
 
     public void setAaController(AaController aaController) {

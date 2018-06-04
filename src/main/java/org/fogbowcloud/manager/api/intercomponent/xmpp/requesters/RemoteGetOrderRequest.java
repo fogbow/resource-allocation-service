@@ -5,6 +5,7 @@ import org.dom4j.Element;
 import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.api.intercomponent.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.IqElement;
+import org.fogbowcloud.manager.api.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.Instance;
@@ -17,23 +18,17 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
 
     private static final Logger LOGGER = Logger.getLogger(RemoteGetOrderRequest.class);
 
-    private PacketSender packetSender;
     private Order order;
 
-    public RemoteGetOrderRequest(PacketSender packetSender, Order order) {
-        this.packetSender = packetSender;
+    public RemoteGetOrderRequest(Order order) {
         this.order = order;
     }
 
     @Override
     public Instance send() throws RemoteRequestException {
-        if (this.packetSender == null) {
-            throw new IllegalArgumentException("Packet sender not set.");
-        }
-
         IQ iq = createIq();
-        IQ response = (IQ) this.packetSender.syncSendPacket(iq);
-        
+        IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
+
         if (response == null) {
             String message = "Unable to retrieve the response from providing member: " + this.order.getProvidingMember();
             throw new UnexpectedException(message);
