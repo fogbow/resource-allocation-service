@@ -24,12 +24,10 @@ import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.services.AaController;
+import org.fogbowcloud.manager.core.AaController;
 import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class LocalCloudConnector implements CloudConnector {
 

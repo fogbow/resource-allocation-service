@@ -25,7 +25,6 @@ import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.services.AaController;
 
 public class ApplicationFacade {
 
@@ -183,6 +182,10 @@ public class ApplicationFacade {
 
     public void setOrderController(OrderController orderController) {
         this.orderController = orderController;
+    }
+
+    public void setUserQuotaController(UserQuotaController userQuotaController) {
+        this.userQuotaController = userQuotaController;
     }
 
     private void activateOrder(Order order, String federationTokenValue)

@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.core.cloudconnector;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.CloudPluginsHolder;
 import org.fogbowcloud.manager.core.OrderController;
-import org.fogbowcloud.manager.core.services.AaController;
+import org.fogbowcloud.manager.core.AaController;
 import org.jamppa.component.PacketSender;
 
 public class CloudConnectorFactory {

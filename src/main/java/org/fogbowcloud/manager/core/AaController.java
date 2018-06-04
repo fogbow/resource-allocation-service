@@ -1,9 +1,8 @@
-package org.fogbowcloud.manager.core.services;
+package org.fogbowcloud.manager.core;
 
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.BehaviorPluginsHolder;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.constants.Operation;

@@ -12,7 +12,7 @@ import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.services.AaController;
+import org.fogbowcloud.manager.core.AaController;
 
 public class RemoteFacade {
 
@@ -71,5 +71,10 @@ public class RemoteFacade {
     public void setOrderController(OrderController orderController) {
         this.orderController = orderController;
     }
+
+    public void setUserQuotaController(UserQuotaController userQuotaController) {
+        this.userQuotaController = userQuotaController;
+    }
+
 
 }

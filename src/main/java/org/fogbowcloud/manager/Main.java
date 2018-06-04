@@ -9,7 +9,7 @@ import org.fogbowcloud.manager.core.processors.ClosedProcessor;
 import org.fogbowcloud.manager.core.processors.FulfilledProcessor;
 import org.fogbowcloud.manager.core.processors.OpenProcessor;
 import org.fogbowcloud.manager.core.processors.SpawningProcessor;
-import org.fogbowcloud.manager.core.services.AaController;
+import org.fogbowcloud.manager.core.AaController;
 import org.fogbowcloud.manager.core.services.InstantiationInitService;
 import org.fogbowcloud.manager.utils.SshCommonUserUtil;
 import org.fogbowcloud.manager.utils.SshConnectivityUtil;
@@ -47,8 +47,10 @@ public class Main implements ApplicationRunner {
 
         this.applicationFacade.setAaController(aaController);
         this.applicationFacade.setOrderController(orderController);
+        this.applicationFacade.setUserQuotaController(userQuotaController);
         this.remoteFacade.setAaController(aaController);
         this.remoteFacade.setOrderController(orderController);
+        this.remoteFacade.setUserQuotaController(userQuotaController);
 
         // Setting up cloud connector's factory
 
@@ -58,7 +60,6 @@ public class Main implements ApplicationRunner {
                 Integer.parseInt(instantiationInitService.getPropertyValue(ConfigurationConstants.XMPP_SERVER_PORT_KEY));
         long xmppTimeout =
                 Long.parseLong(instantiationInitService.getPropertyValue(ConfigurationConstants.XMPP_TIMEOUT_KEY));
-
 
         XmppComponentManager xmppComponentManager = new XmppComponentManager(localMemberId,
                 xmppPassword, xmppServerIp, xmppServerPort, xmppTimeout, orderController);
