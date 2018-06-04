@@ -24,7 +24,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicStatusLine;
 import org.fogbowcloud.manager.core.plugins.cloud.localidentity.openstack.KeystoneV3IdentityPlugin;
 import org.fogbowcloud.manager.core.models.token.Token;
-//import org.fogbowcloud.manager.core.services.AuthenticationControllerUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

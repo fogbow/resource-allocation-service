@@ -9,12 +9,8 @@ import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
-import org.fogbowcloud.manager.core.cloudconnector.RemoteCloudConnector;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.Operation;
-//import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.TokenCreationException;
-//import org.fogbowcloud.manager.core.manager.plugins.identity.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
@@ -35,7 +31,6 @@ import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestExcept
 import org.fogbowcloud.manager.core.AaController;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -298,7 +293,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Assert.assertNull(order.getOrderState());
 
 		String federationTokenValue = "";
-		this.application.createCompute(null, federationTokenValue);
+		this.application.createCompute(order, federationTokenValue);
 	}
 
 	
@@ -618,7 +613,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Assert.assertNull(order.getOrderState());
 
         String federationTokenValue = "";
-        this.application.createVolume(null, federationTokenValue);
+        this.application.createVolume(order, federationTokenValue);
     }
 
 	
@@ -1052,7 +1047,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Assert.assertNull(order.getOrderState());
 
         String federationTokenValue = "";
-        this.application.createNetwork(null, federationTokenValue);
+        this.application.createNetwork(order, federationTokenValue);
     }
 
     
@@ -1499,10 +1494,9 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Assert.assertNull(order.getOrderState());
 
-        this.application.createNetwork(null, "");
+        this.application.createAttachment(order, "");
     }
 
-    @Ignore
     @Test
     public void testGetAttachmentOrder() throws Exception {
         AttachmentOrder order = createAttachmentOrder();
@@ -1512,15 +1506,13 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 
         Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
-
-        AttachmentInstance attachmentInstanceExcepted = new AttachmentInstance("");
-        Mockito.doReturn(attachmentInstanceExcepted).when(this.orderController).getResourceInstance(Mockito.eq(order));
+        
         Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
                 Mockito.any(InstanceType.class));
 
-        NetworkInstance actualInstance = this.application.getNetwork(order.getId(), "");
-
-        Assert.assertSame(attachmentInstanceExcepted, actualInstance);
+        AttachmentInstance actualInstance = this.application.getAttachment(order.getId(), "");
+        
+        Assert.assertNotNull(actualInstance);
     }
 
     @Test(expected = UnauthenticatedException.class)
@@ -1758,22 +1750,24 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         }
     }
 
-    @Ignore
+    
     @Test(expected = OrderManagementException.class)
     public void testDeleteAttachmentOrderNullGet() throws Exception {
         AttachmentOrder order = createAttachmentOrder();
 
         Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 
-        Mockito.doReturn(null).when(this.orderController).getOrder(Mockito.anyString(), Mockito.any(FederationUser.class),
-                Mockito.any(InstanceType.class));
+        Mockito.doReturn(null).when(this.orderController).getOrder(Mockito.anyString(),
+                Mockito.any(FederationUser.class), Mockito.any(InstanceType.class));
 
-        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
+        Mockito.doReturn(order.getFederationUser()).when(this.aaaController)
+                .getFederationUser(Mockito.anyString());
 
-        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-                Mockito.any(Order.class));
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class),
+                Mockito.any(Operation.class), Mockito.any(Order.class));
 
-        this.application.deleteAttachment(order.getId(), "");
+        String federationTokenValue = "";
+        this.application.deleteAttachment(order.getId(), federationTokenValue);
     }
 
     @Test
