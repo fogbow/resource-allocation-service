@@ -59,16 +59,15 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.sshConnectivity = Mockito.mock(SshConnectivityUtil.class);
 
         this.properties = PropertiesUtil.getProperties();
-        this.properties.put(ConfigurationConstants.XMPP_ID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
+        this.properties.put(ConfigurationConstants.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 
         this.thread = null;
 
         this.fulfilledProcessor =
                 Mockito.spy(
-                        new FulfilledProcessor(
+                        new FulfilledProcessor("",
                                 this.tunnelingService,
-                                this.sshConnectivity, ,
-                                this.properties));
+                                this.sshConnectivity, ""));
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrderList = sharedOrderHolders.getFulfilledOrdersList();
@@ -389,9 +388,9 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         UserData userData = Mockito.mock(UserData.class);
         String imageName = "fake-image-name";
         String requestingMember =
-                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
+                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
         String providingMember =
-                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
+                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
         String publicKey = "fake-public-key";
 
         Order localOrder =
@@ -413,7 +412,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         UserData userData = Mockito.mock(UserData.class);
         String imageName = "fake-image-name";
         String requestingMember =
-                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
+                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
         String providingMember = "fake-intercomponent-member";
         String publicKey = "fake-public-key";
 

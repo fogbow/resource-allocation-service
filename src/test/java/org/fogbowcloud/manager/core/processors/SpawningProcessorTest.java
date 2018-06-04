@@ -54,9 +54,9 @@ public class SpawningProcessorTest extends BaseUnitTests {
         this.cloudConnector = Mockito.mock(CloudConnector.class);
         
         this.properties = PropertiesUtil.getProperties();
-        this.properties.put(ConfigurationConstants.XMPP_ID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
-        this.spawningProcessor = Mockito.spy(new SpawningProcessor(this.tunnelingService,
-                this.sshConnectivity, ));
+        this.properties.put(ConfigurationConstants.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
+        this.spawningProcessor = Mockito.spy(new SpawningProcessor("", this.tunnelingService,
+                this.sshConnectivity, "" ));
         this.thread = null;
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
@@ -306,9 +306,9 @@ public class SpawningProcessorTest extends BaseUnitTests {
     private Order createOrder() {
         FederationUser federationUser = Mockito.mock(FederationUser.class);
         String requestingMember =
-                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
+                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
         String providingMember =
-                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_ID_KEY));
+                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
         UserData userData = Mockito.mock(UserData.class);
         Order order = new ComputeOrder(federationUser, requestingMember, providingMember, 8, 1024,
                 30, "fake_image_name", userData, "fake_public_key");

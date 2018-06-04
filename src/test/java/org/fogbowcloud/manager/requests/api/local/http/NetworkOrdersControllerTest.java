@@ -16,7 +16,6 @@ import org.fogbowcloud.manager.api.http.NetworkOrdersController;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.manager.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -59,7 +58,7 @@ public class NetworkOrdersControllerTest {
     private MockMvc mockMvc;
 
     @Before
-    public void setUp() throws UnauthorizedException, OrderManagementException {
+    public void setUp() throws OrderManagementException {
         this.facade = spy(ApplicationFacade.class);
     }
 
