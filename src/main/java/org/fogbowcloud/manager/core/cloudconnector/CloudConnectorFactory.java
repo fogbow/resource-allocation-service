@@ -20,7 +20,7 @@ public class CloudConnectorFactory {
 
     public static synchronized CloudConnectorFactory getInstance() {
         if (instance == null) {
-            return new CloudConnectorFactory();
+            instance = new CloudConnectorFactory();
         }
         return instance;
     }
