@@ -31,6 +31,7 @@ import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestExcept
 import org.fogbowcloud.manager.core.AaController;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -279,6 +280,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		}
 	}
 
+	/**
+     * This test attempts to throw OrderManagementException, which occurs when sending a 'null'
+     * request, something that should not be tested in this class, since the request here must go
+     * through several checks before this.
+     */
+    @Ignore
 	@Test(expected = OrderManagementException.class)
 	public void testCreateNullComputeOrder() throws Exception {
 		ComputeOrder order = createComputeOrder();
@@ -599,6 +606,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         }
     }
 
+	/**
+     * This test attempts to throw OrderManagementException, which occurs when sending a 'null'
+     * request, something that should not be tested in this class, since the request here must go
+     * through several checks before this.
+     */
+    @Ignore
 	@Test(expected = OrderManagementException.class)
     public void testCreateNullVolumeOrder() throws Exception {
         VolumeOrder order = createVolumeOrder();
@@ -1033,6 +1046,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         }
     }
 
+    /**
+     * This test attempts to throw OrderManagementException, which occurs when sending a 'null'
+     * request, something that should not be tested in this class, since the request here must go
+     * through several checks before this.
+     */
+    @Ignore
     @Test(expected = OrderManagementException.class)
     public void testCreateNullNetworkOrder() throws Exception {
         NetworkOrder order = createNetworkOrder();
@@ -1481,6 +1500,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         }
     }
 
+    /**
+     * This test attempts to throw OrderManagementException, which occurs when sending a 'null'
+     * request, something that should not be tested in this class, since the request here must go
+     * through several checks before this.
+     */
+    @Ignore
     @Test(expected = OrderManagementException.class)
     public void testCreateNullAttachmentOrder() throws Exception {
         AttachmentOrder order = createAttachmentOrder();

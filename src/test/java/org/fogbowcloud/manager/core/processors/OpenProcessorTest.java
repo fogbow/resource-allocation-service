@@ -15,6 +15,7 @@ import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.RemoteCloudConnector;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -42,15 +43,16 @@ public class OpenProcessorTest extends BaseUnitTests {
     @Before
     public void setUp() {
         this.properties = PropertiesUtil.getProperties();
-        this.properties.setProperty(
-                ConfigurationConstants.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
+        this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY,
+                BaseUnitTests.LOCAL_MEMBER_ID);
 
         this.localInstanceProvider = Mockito.mock(LocalCloudConnector.class);
         this.remoteInstanceProvider = Mockito.mock(RemoteCloudConnector.class);
 
         this.thread = null;
 
-        this.openProcessor = Mockito.spy(new OpenProcessor("", ""));
+        this.openProcessor = Mockito.spy(new OpenProcessor("fake-member-id",
+                DefaultConfigurationConstants.OPEN_ORDERS_SLEEP_TIME));
 
         this.orderController = new OrderController("");
     }

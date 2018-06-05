@@ -9,6 +9,7 @@ import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -52,11 +53,12 @@ public class SpawningProcessorTest extends BaseUnitTests {
         this.tunnelingService = Mockito.mock(TunnelingServiceUtil.class);
         this.sshConnectivity = Mockito.mock(SshConnectivityUtil.class);
         this.cloudConnector = Mockito.mock(CloudConnector.class);
-        
+
         this.properties = PropertiesUtil.getProperties();
         this.properties.put(ConfigurationConstants.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
-        this.spawningProcessor = Mockito.spy(new SpawningProcessor("", this.tunnelingService,
-                this.sshConnectivity, "" ));
+        this.spawningProcessor = Mockito.spy(
+                new SpawningProcessor("fake-member-id", this.tunnelingService, this.sshConnectivity,
+                        DefaultConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME));
         this.thread = null;
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();

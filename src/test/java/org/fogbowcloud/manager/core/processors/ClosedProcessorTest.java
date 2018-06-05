@@ -7,9 +7,11 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.fogbowcloud.manager.core.BaseUnitTests;
+import org.fogbowcloud.manager.core.CloudPluginsHolder;
 import org.fogbowcloud.manager.core.OrderController;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.RemoteCloudConnector;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
@@ -17,7 +19,9 @@ import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.services.InstantiationInitService;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -38,13 +42,22 @@ public class ClosedProcessorTest extends BaseUnitTests {
         this.properties = new Properties();
         this.properties.setProperty(
                 ConfigurationConstants.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
-
+        
+//        initServiceConfig();
+        
         this.orderController = new OrderController("");
 
         this.localInstanceProvider = Mockito.mock(LocalCloudConnector.class);
         this.remoteInstanceProvider = Mockito.mock(RemoteCloudConnector.class);
 
         this.closedProcessor = Mockito.spy(new ClosedProcessor(this.orderController, ""));
+    }
+
+    private void initServiceConfig() {
+        InstantiationInitService instantiationInitService = new InstantiationInitService();
+        CloudPluginsHolder cloudPluginsHolder = new CloudPluginsHolder(instantiationInitService);
+        CloudConnectorFactory.getInstance().setCloudPluginsHolder(cloudPluginsHolder);
+        CloudConnectorFactory.getInstance().setLocalMemberId(getLocalMemberId());
     }
 
     @Override
@@ -62,7 +75,6 @@ public class ClosedProcessorTest extends BaseUnitTests {
         Order localOrder = createLocalOrder(getLocalMemberId());
         localOrder.setInstanceId(instanceId);
 
-        FederationUser federationUser = new FederationUser(0l, null);
         this.orderController.activateOrder(localOrder);
 
         OrderStateTransitioner.transition(localOrder, OrderState.CLOSED);
@@ -71,6 +83,8 @@ public class ClosedProcessorTest extends BaseUnitTests {
                 .when(this.localInstanceProvider)
                 .deleteInstance(Mockito.any(Order.class));
 
+//        this.closedProcessor.processClosedOrder(localOrder);
+        
         this.thread = new Thread(this.closedProcessor);
         this.thread.start();
 

@@ -46,18 +46,6 @@ public class KeystoneV3IdentityTest {
         Properties properties = new Properties();
         properties.put(IDENTITY_URL_KEY, KEYSTONE_URL);
 
-//        String prefix = AuthenticationControllerUtil.LOCAL_TOKEN_CREDENTIALS_PREFIX;
-//
-//        String userIdKey = prefix + KeystoneV3IdentityPlugin.USER_ID;
-//        String passwordKey = prefix + KeystoneV3IdentityPlugin.PASSWORD;
-//        String projectIdKey = prefix + KeystoneV3IdentityPlugin.PROJECT_ID;
-//        String authUrlKey = prefix + KeystoneV3IdentityPlugin.AUTH_URL;
-//
-//        properties.put(userIdKey, "fakeUserId");
-//        properties.put(passwordKey, "fakePassword");
-//        properties.put(projectIdKey, "fakeProjectId");
-//        properties.put(authUrlKey, "fakeAuthUrl");
-
         client = Mockito.mock(HttpClient.class);
 
         this.keystoneV3Identity = Mockito.spy(new KeystoneV3IdentityPlugin(properties, client));
@@ -222,27 +210,6 @@ public class KeystoneV3IdentityTest {
 
         assertNull(token);
     }
-
-//    @Test
-//    public void testForwardableToken() {
-//
-//        String accessId = "access_ID";
-//        Token.User user = new Token.User("user_ID", "user_name");
-//        Date expirationTime = new Date();
-//        Map<String, String> attributes = new HashMap<String, String>();
-//        attributes.put("propA", "propriety_name");
-//
-//        Token token = new Token(accessId, user, expirationTime, attributes);
-//
-//        Token tokenReturned = this.keystoneV3Identity.getForwardableToken(token);
-//
-//        assertNotNull(tokenReturned);
-//        assertEquals(token, tokenReturned);
-//        assertEquals(accessId, tokenReturned.getAccessId());
-//        assertEquals(user, tokenReturned.getUser());
-//        assertEquals(expirationTime, tokenReturned.getExpirationDate());
-//        assertEquals(attributes, tokenReturned.getAttributes());
-//    }
 
     private JSONObject createJsonResponse(
             String method,
