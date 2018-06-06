@@ -58,7 +58,7 @@ public class ClosedProcessor implements Runnable {
         }
     }
 
-    private void processClosedOrder(Order order)
+    protected void processClosedOrder(Order order)
     		throws PropertyNotSpecifiedException, TokenCreationException, RequestException, UnauthorizedException, RemoteRequestException, OrderManagementException {
         synchronized (order) {
             CloudConnector provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());

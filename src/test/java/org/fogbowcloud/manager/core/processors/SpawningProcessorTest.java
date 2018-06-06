@@ -59,6 +59,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         this.spawningProcessor = Mockito.spy(
                 new SpawningProcessor("fake-member-id", this.tunnelingService, this.sshConnectivity,
                         DefaultConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME));
+        
         this.thread = null;
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
@@ -75,7 +76,6 @@ public class SpawningProcessorTest extends BaseUnitTests {
         if (this.thread != null) {
             this.thread.interrupt();
         }
-
         super.tearDown();
     }
 
@@ -164,17 +164,16 @@ public class SpawningProcessorTest extends BaseUnitTests {
         Mockito.doReturn(orderInstance).when(this.cloudConnector)
                 .getInstance(Mockito.any(Order.class));
 
-        Mockito.doReturn(orderInstance).when(this.cloudConnector)
-        		.getInstance(Mockito.any(Order.class));
-
         Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.eq(order.getId())))
 				.thenReturn(new HashMap<>());
 
         Assert.assertNull(this.failedOrderList.getNext());
+        
+        this.spawningProcessor.processSpawningOrder(order);
 
-        this.thread = new Thread(this.spawningProcessor);
-        this.thread.start();
-        Thread.sleep(500);
+//        this.thread = new Thread(this.spawningProcessor);
+//        this.thread.start();
+//        Thread.sleep(500);
 
         Assert.assertNull(this.spawningOrderList.getNext());
 
