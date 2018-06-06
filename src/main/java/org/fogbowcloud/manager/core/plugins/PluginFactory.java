@@ -13,27 +13,28 @@ public class PluginFactory {
 
         Object pluginInstance = null;
 
+        Class<?> classpath;
+        Constructor<?> constructor;
+
         try {
-            Class mClass = Class.forName(pluginClassName);
-            Constructor constructor = mClass.getConstructor(Properties.class);
+            classpath = Class.forName(pluginClassName);
+            constructor = classpath.getConstructor(Properties.class);
             pluginInstance = constructor.newInstance(properties);
         } catch (ClassNotFoundException e) {
-            String msg =
-                    "No "
-                            + pluginClassName
-                            + " class under this repository. Please inform a valid class.";
+            String msg = "No " + pluginClassName
+                    + " class under this repository. Please inform a valid class.";
             LOGGER.severe(msg);
             System.exit(EXIT_ERROR_CODE);
         } catch (Exception e) {
-            LOGGER.severe(e.getMessage());
+             LOGGER.severe(e.getMessage());
             System.exit(EXIT_ERROR_CODE);
         }
 
         return pluginInstance;
     }
 
-    public Object getIdentityPluginByPrefix(
-            String prefix, String className, Properties properties) {
+    public Object getIdentityPluginByPrefix(String prefix, String className,
+            Properties properties) {
 
         Properties pluginProperties = new Properties();
 

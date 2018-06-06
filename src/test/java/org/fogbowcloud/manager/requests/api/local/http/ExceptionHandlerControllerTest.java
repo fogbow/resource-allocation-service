@@ -5,9 +5,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import org.fogbowcloud.manager.api.http.ComputeOrdersController;
 import org.fogbowcloud.manager.api.http.ExceptionTranslator;
-//import org.fogbowcloud.manager.core.manager.plugins.exceptions.InvalidCredentialsException;
-//import org.fogbowcloud.manager.core.manager.plugins.exceptions.InvalidTokenException;
-//import org.fogbowcloud.manager.core.manager.plugins.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.plugins.exceptions.InvalidCredentialsException;
+import org.fogbowcloud.manager.core.plugins.exceptions.InvalidTokenException;
+import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -39,8 +39,8 @@ public class ExceptionHandlerControllerTest {
     @Ignore
     @Test
     public void testInvalidCredentialsException() throws Exception {
-//        Mockito.when(this.computeOrdersController.getAllCompute(Mockito.anyString()))
-//                .thenThrow(new InvalidCredentialsException());
+        Mockito.when(this.computeOrdersController.getAllCompute(Mockito.anyString()))
+                .thenThrow(new InvalidCredentialsException());
 
         MockHttpServletResponse response =
         		this.mockMvc.perform(
@@ -60,8 +60,8 @@ public class ExceptionHandlerControllerTest {
 
     @Test
     public void testInvalidTokenException() throws Exception {
-//        Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString()))
-//                .thenThrow(new InvalidTokenException());
+        Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString()))
+                .thenThrow(new InvalidTokenException());
 
         MockHttpServletResponse response =
                 mockMvc.perform(
@@ -81,8 +81,8 @@ public class ExceptionHandlerControllerTest {
 
     @Test
     public void testTokenCreationException() throws Exception {
-//        Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString()))
-//                .thenThrow(new TokenCreationException());
+        Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString()))
+                .thenThrow(new TokenCreationException());
 
         MockHttpServletResponse response =
                 mockMvc.perform(

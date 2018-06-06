@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.cloud.compute.openstack;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.constants.OpenStackConfigurationConstants;
 import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
@@ -65,8 +67,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
     private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
 
-    private static final String ACTIVE_STATUS = "active";
-    private static final String BUILD_STATUS = "build";
+//    private static final String ACTIVE_STATUS = "active";
+//    private static final String BUILD_STATUS = "build";
 
     private static final Logger LOGGER = Logger.getLogger(OpenStackNovaV2ComputePlugin.class);
 
@@ -76,18 +78,29 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private LaunchCommandGenerator launchCommandGenerator;
     private InstanceStateMapper instanceStateMapper;
 
-    public OpenStackNovaV2ComputePlugin(Properties properties) throws Exception {
-        this(properties, new DefaultLaunchCommandGenerator(properties));
+    public OpenStackNovaV2ComputePlugin(Properties properties) {
+        this.properties = properties;
+        LOGGER.debug("Creating OpenStackNovaV2ComputePlugin with properties=" + properties.toString());
+        try {
+            this.launchCommandGenerator = new DefaultLaunchCommandGenerator(this.properties);
+        } catch (PropertyNotSpecifiedException e) {
+            LOGGER.error("failed to instantiate class with properties = " + this.properties.toString(), e);
+        } catch (IOException e) {
+            LOGGER.error("failed to instantiate class with properties = " + this.properties.toString(), e);
+        }
+        instantiateAnotherAttributes();        
     }
-
-    protected OpenStackNovaV2ComputePlugin(
-            Properties properties, LaunchCommandGenerator launchCommandGenerator) throws Exception {
-        LOGGER.debug(
-                "Creating OpenStackNovaV2ComputePlugin with properties=" + properties.toString());
-
-        this.flavors = new TreeSet<>();
+    
+    /** Constructor used for testing only */
+    protected OpenStackNovaV2ComputePlugin(Properties properties, LaunchCommandGenerator launchCommandGenerator) {
+        LOGGER.debug("Creating OpenStackNovaV2ComputePlugin with properties=" + properties.toString());
         this.properties = properties;
         this.launchCommandGenerator = launchCommandGenerator;
+        instantiateAnotherAttributes();
+    }
+    
+    private void instantiateAnotherAttributes() {
+        this.flavors = new TreeSet<Flavor>();
         this.instanceStateMapper = new OpenStackComputeInstanceStateMapper();
         this.initClient();
     }
@@ -213,7 +226,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             }
         }
 
-        // delete message does not have message
+        /** Delete message does not have message */
         checkStatusResponse(response, "");
     }
 
@@ -438,7 +451,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             String id = serverJson.getString(ID_JSON_FIELD);
             String hostName = serverJson.getString(NAME_JSON_FIELD);
 
-            //          FIXME We need to GET the flavor details in order to fill vcpus and ram
+            // FIXME We need to GET the flavor details in order to fill vcpus and ram
 //          int vCPU = serverJson.getJSONObject(FLAVOR_JSON_OBJECT).getInt(VCPU_JSON_FIELD);
 //          int memory = serverJson.getJSONObject(FLAVOR_JSON_OBJECT).getInt(MEMORY_JSON_FIELD);
 

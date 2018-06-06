@@ -56,26 +56,40 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
     private String v3TokensEndpoint;
     private HttpClient client;
 
+    public KeystoneV3IdentityPlugin(Properties properties) {
+        String identityUrl = properties.getProperty(IDENTITY_URL);
+        try {
+            if (isUrlValid(identityUrl)) {
+                this.keystoneUrl = identityUrl;
+                this.v3TokensEndpoint = keystoneUrl + V3_TOKENS_ENDPOINT_PATH; 
+            }
+        } catch (PropertyNotSpecifiedException e) {
+            LOGGER.error("Identity url not found!", e);
+        }        
+        this.client = HttpRequestUtil.createHttpClient();
+    }
+
+    /**
+     * Constructor used for testing only
+     * @param properties
+     * @param client
+     * @throws PropertyNotSpecifiedException if a required property was not set
+     */
     protected KeystoneV3IdentityPlugin(Properties properties, HttpClient client)
-        throws PropertyNotSpecifiedException {
+            throws PropertyNotSpecifiedException {
 
         String identityUrl = properties.getProperty(IDENTITY_URL);
-        if (identityUrl == null || identityUrl.trim().isEmpty()) {
-        	throw new PropertyNotSpecifiedException(IDENTITY_URL);
-        }
+        isUrlValid(identityUrl);
         this.keystoneUrl = identityUrl;
-
         this.v3TokensEndpoint = keystoneUrl + V3_TOKENS_ENDPOINT_PATH;
         this.client = client != null ? client : HttpRequestUtil.createHttpClient();
     }
 
-    /**
-     *
-     * @param properties
-     * @throws PropertyNotSpecifiedException if a required property was not set
-     */
-    public KeystoneV3IdentityPlugin(Properties properties) throws PropertyNotSpecifiedException {
-        this(properties, null);
+    private boolean isUrlValid(String url) throws PropertyNotSpecifiedException {
+        if (url == null || url.trim().isEmpty()) {
+            throw new PropertyNotSpecifiedException(IDENTITY_URL);
+        }
+        return true;
     }
 
     @Override

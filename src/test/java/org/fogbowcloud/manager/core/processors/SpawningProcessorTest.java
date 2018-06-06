@@ -9,6 +9,7 @@ import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -30,8 +31,6 @@ import org.mockito.Mockito;
 
 public class SpawningProcessorTest extends BaseUnitTests {
 
-    private Properties properties;
-
     private CloudConnector cloudConnector;
 
     private TunnelingServiceUtil tunnelingService;
@@ -52,11 +51,11 @@ public class SpawningProcessorTest extends BaseUnitTests {
         this.tunnelingService = Mockito.mock(TunnelingServiceUtil.class);
         this.sshConnectivity = Mockito.mock(SshConnectivityUtil.class);
         this.cloudConnector = Mockito.mock(CloudConnector.class);
+
+        this.spawningProcessor = Mockito.spy(
+                new SpawningProcessor("fake-member-id", this.tunnelingService, this.sshConnectivity,
+                        DefaultConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME));
         
-        this.properties = PropertiesUtil.getInstance();
-        this.properties.put(ConfigurationConstants.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
-        this.spawningProcessor = Mockito.spy(new SpawningProcessor("", this.tunnelingService,
-                this.sshConnectivity, "" ));
         this.thread = null;
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
@@ -73,7 +72,6 @@ public class SpawningProcessorTest extends BaseUnitTests {
         if (this.thread != null) {
             this.thread.interrupt();
         }
-
         super.tearDown();
     }
 
@@ -162,17 +160,16 @@ public class SpawningProcessorTest extends BaseUnitTests {
         Mockito.doReturn(orderInstance).when(this.cloudConnector)
                 .getInstance(Mockito.any(Order.class));
 
-        Mockito.doReturn(orderInstance).when(this.cloudConnector)
-        		.getInstance(Mockito.any(Order.class));
-
         Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.eq(order.getId())))
 				.thenReturn(new HashMap<>());
 
         Assert.assertNull(this.failedOrderList.getNext());
+        
+        this.spawningProcessor.processSpawningOrder(order);
 
-        this.thread = new Thread(this.spawningProcessor);
-        this.thread.start();
-        Thread.sleep(500);
+//        this.thread = new Thread(this.spawningProcessor);
+//        this.thread.start();
+//        Thread.sleep(500);
 
         Assert.assertNull(this.spawningOrderList.getNext());
 
@@ -305,10 +302,8 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
     private Order createOrder() {
         FederationUser federationUser = Mockito.mock(FederationUser.class);
-        String requestingMember =
-                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
-        String providingMember =
-                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
+        String requestingMember = BaseUnitTests.LOCAL_MEMBER_ID;
+        String providingMember = BaseUnitTests.LOCAL_MEMBER_ID;
         UserData userData = Mockito.mock(UserData.class);
         Order order = new ComputeOrder(federationUser, requestingMember, providingMember, 8, 1024,
                 30, "fake_image_name", userData, "fake_public_key");

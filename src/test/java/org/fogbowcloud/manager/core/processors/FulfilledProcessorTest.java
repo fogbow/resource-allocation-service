@@ -12,6 +12,7 @@ import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -63,11 +64,9 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         this.thread = null;
 
-        this.fulfilledProcessor =
-                Mockito.spy(
-                        new FulfilledProcessor("",
-                                this.tunnelingService,
-                                this.sshConnectivity, ""));
+        this.fulfilledProcessor = Mockito.spy(new FulfilledProcessor("fake-member-id",
+                this.tunnelingService, this.sshConnectivity,
+                DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME));
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrderList = sharedOrderHolders.getFulfilledOrdersList();

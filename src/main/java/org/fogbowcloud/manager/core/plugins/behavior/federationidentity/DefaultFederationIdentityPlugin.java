@@ -4,9 +4,16 @@ import org.fogbowcloud.manager.core.models.token.FederationUser;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 public class DefaultFederationIdentityPlugin implements FederationIdentityPlugin {
 
+    private Properties properties;
+    
+    public DefaultFederationIdentityPlugin(Properties properties) {
+        this.properties = properties;
+    }
+    
     @Override
     public String createFederationTokenValue(Map<String, String> userCredentials) {
         return null;
