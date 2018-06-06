@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.plugins.behavior.mapper;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,13 +16,22 @@ public class DefaultLocalUserCredentialsMapper implements LocalUserCredentialsMa
 	
     private static String LOCAL_TOKEN_CREDENTIALS_PREFIX = "local_token_credentials_";
 	private static final String DEFAULT_MAPPER_CONF = "default_mapper.conf";	
+	
 	private Properties properties;
 	
-	public DefaultLocalUserCredentialsMapper() throws IOException {
-        this.properties = new Properties();
+	public DefaultLocalUserCredentialsMapper(Properties properties) {
+        this.properties = properties;
         FileInputStream fileInputStream;
-		fileInputStream = new FileInputStream(ConfigurationConstants.FOGBOW_HOME + File.separator + DEFAULT_MAPPER_CONF);
-        this.properties.load(fileInputStream);
+		try {
+            fileInputStream = new FileInputStream(ConfigurationConstants.FOGBOW_HOME + File.separator + DEFAULT_MAPPER_CONF);
+            this.properties.load(fileInputStream);
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 	}
 	
 	@Override
