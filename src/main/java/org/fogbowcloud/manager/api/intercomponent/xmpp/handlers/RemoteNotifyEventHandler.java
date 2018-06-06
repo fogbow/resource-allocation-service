@@ -7,13 +7,7 @@ import org.fogbowcloud.manager.api.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.Event;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.RemoteMethod;
-import org.fogbowcloud.manager.core.OrderController;
-import org.fogbowcloud.manager.core.OrderStateTransitioner;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
@@ -24,11 +18,8 @@ public class RemoteNotifyEventHandler extends AbstractQueryHandler {
 
     public static final String REMOTE_NOTIFY_EVENT = RemoteMethod.REMOTE_NOTIFY_EVENT.toString();
 
-    private OrderController orderController;
-
-    public RemoteNotifyEventHandler(OrderController orderController) {
+    public RemoteNotifyEventHandler() {
         super(REMOTE_NOTIFY_EVENT);
-        this.orderController = orderController;
     }
 
     @Override
@@ -56,25 +47,9 @@ public class RemoteNotifyEventHandler extends AbstractQueryHandler {
         Element eventElement = iq.getElement();
         Event event = gson.fromJson(eventElement.getText(), Event.class);
 
-        // order is a java object that represents the order passed in the message
-        // actualOrder is the java object that represents this order inside the current manager
-        Order actualOrder = orderController.getOrder(order.getId(), order.getFederationUser(), order.getType());
-        switch (event) {
-            case INSTANCE_FULFILLED:
-                try {
-                    OrderStateTransitioner.transition(actualOrder, OrderState.FULFILLED);
-                } catch (OrderStateTransitionException e) {
-                    LOGGER.error(e.getMessage(), e);
-                }
-                break;
-            case INSTANCE_FAILED:
-                try {
-                    OrderStateTransitioner.transition(actualOrder, OrderState.FAILED);
-                } catch (OrderStateTransitionException e) {
-                    LOGGER.error(e.getMessage(), e);
-                }
-                break;
-        }
+        RemoteFacade.getInstance().handleRemoteEvent(event, order);
+
         return null;
+
     }
 }

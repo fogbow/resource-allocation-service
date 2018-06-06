@@ -41,7 +41,7 @@
 //
 //    @Before
 //    public void setUp() {
-//        this.properties = PropertiesUtil.getProperties();
+//        this.properties = PropertiesUtil.getInstance();
 //        this.properties.setProperty(
 //                ConfigurationConstants.XMPP_ID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 //

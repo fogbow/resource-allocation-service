@@ -37,7 +37,7 @@
 //
 //    @Before
 //    public void setUp() {
-//        this.properties = PropertiesUtil.getProperties();
+//        this.properties = PropertiesUtil.getInstance();
 //		this.properties.put(ConfigurationConstants.XMPP_ID_KEY, this.localMember);
 //        this.localInstanceProvider = Mockito.mock(LocalCloudConnector.class);
 //        this.remoteInstanceProvider = Mockito.mock(RemoteCloudConnector.class);

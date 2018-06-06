@@ -4,35 +4,84 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.Event;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
+import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
+import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
+import org.fogbowcloud.manager.core.services.InstantiationInitService;
 import org.fogbowcloud.manager.utils.PropertiesUtil;
+
+import java.util.Map;
 
 public class OrderStateTransitioner {
 
-    private static final String LOCAL_MEMBER_ID = PropertiesUtil.getLocalMemberId();
     private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
+
+    public static void activateOrder(Order order) throws OrderManagementException {
+        synchronized (order) {
+            if (order == null) {
+                String message = "Can't process new order request. Order reference is null.";
+                throw new OrderManagementException(message);
+            }
+
+            SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+            Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
+            ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
+
+            String orderId = order.getId();
+
+            if (activeOrdersMap.containsKey(orderId)) {
+                String message = String.format("Order with id %s is already in active orders map.", orderId);
+                throw new OrderManagementException(message);
+            }
+
+            order.setOrderState(OrderState.OPEN);
+            activeOrdersMap.put(orderId, order);
+            openOrdersList.addItem(order);
+        }
+    }
 
     public static void transition(Order order, OrderState newState)
             throws OrderStateTransitionException {
 
-        if (order.isRequesterRemote(LOCAL_MEMBER_ID)) {
-            switch (newState) {
-                case FAILED:
-                    notifyRequester(order, Event.INSTANCE_FAILED);
-                    newState = OrderState.CLOSED;
-                    break;
-                case FULFILLED:
-                    notifyRequester(order, Event.INSTANCE_FULFILLED);
-                    break;
+        String localMemberId = PropertiesUtil.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        synchronized (order) {
+            if (order.isRequesterRemote(localMemberId)) {
+                switch (newState) {
+                    case FAILED:
+                        notifyRequester(order, Event.INSTANCE_FAILED);
+                        newState = OrderState.CLOSED;
+                        break;
+                    case FULFILLED:
+                        notifyRequester(order, Event.INSTANCE_FULFILLED);
+                        break;
+                }
             }
-        }
 
-        doTransition(order, newState);
+            doTransition(order, newState);
+        }
+    }
+
+    public static void deactivateOrder(Order order) {
+
+        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+        Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
+        ChainedList closedOrders = sharedOrderHolders.getClosedOrdersList();
+
+        synchronized (order) {
+            if (activeOrdersMap.containsKey(order.getId())) {
+                activeOrdersMap.remove(order.getId());
+            } else {
+                String message =
+                        "Tried to remove order %s from the active orders but it was not active";
+                LOGGER.error(String.format(message, order.getId()));
+            }
+            closedOrders.removeItem(order);
+        }
     }
 
     /**

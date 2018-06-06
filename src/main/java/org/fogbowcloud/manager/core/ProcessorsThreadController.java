@@ -1,10 +1,15 @@
 package org.fogbowcloud.manager.core;
 
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.processors.ClosedProcessor;
 import org.fogbowcloud.manager.core.processors.FulfilledProcessor;
 import org.fogbowcloud.manager.core.processors.OpenProcessor;
 import org.fogbowcloud.manager.core.processors.SpawningProcessor;
+import org.fogbowcloud.manager.utils.PropertiesUtil;
+import org.fogbowcloud.manager.utils.SshConnectivityUtil;
+import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
 
 public class ProcessorsThreadController {
 
@@ -15,8 +20,39 @@ public class ProcessorsThreadController {
 
     private static final Logger LOGGER = Logger.getLogger(ProcessorsThreadController.class);
 
-    public ProcessorsThreadController(OpenProcessor openProcessor, SpawningProcessor spawningProcessor,
-                                      FulfilledProcessor fulfilledProcessor, ClosedProcessor closedProcessor) {
+    public ProcessorsThreadController(String localMemberId) {
+
+
+        String openOrdersProcSleepTimeStr = PropertiesUtil.getInstance().
+                getProperty(ConfigurationConstants.OPEN_ORDERS_SLEEP_TIME_KEY,
+                        DefaultConfigurationConstants.OPEN_ORDERS_SLEEP_TIME);
+
+        OpenProcessor openProcessor = new OpenProcessor(localMemberId, openOrdersProcSleepTimeStr);
+
+        String spawningOrdersProcSleepTimeStr = PropertiesUtil.getInstance().
+                getProperty(ConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME_KEY,
+                        DefaultConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME);
+
+        TunnelingServiceUtil tunnelingServiceUtil = TunnelingServiceUtil.getInstance();
+        SshConnectivityUtil sshConnectivityUtil = SshConnectivityUtil.getInstance();
+
+        SpawningProcessor spawningProcessor =
+                new SpawningProcessor(localMemberId, tunnelingServiceUtil,
+                        sshConnectivityUtil, spawningOrdersProcSleepTimeStr);
+
+        String fulfilledOrdersProcSleepTimeStr = PropertiesUtil.getInstance().
+                getProperty(ConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME_KEY,
+                        DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME);
+
+        FulfilledProcessor fulfilledProcessor =
+                new FulfilledProcessor(localMemberId, tunnelingServiceUtil,
+                        sshConnectivityUtil, fulfilledOrdersProcSleepTimeStr);
+
+        String closedOrdersProcSleepTimeStr = PropertiesUtil.getInstance().
+                getProperty(ConfigurationConstants.CLOSED_ORDERS_SLEEP_TIME_KEY,
+                        DefaultConfigurationConstants.CLOSED_ORDERS_SLEEP_TIME);
+
+        ClosedProcessor closedProcessor = new ClosedProcessor(closedOrdersProcSleepTimeStr);
 
         this.openProcessorThread = new Thread(openProcessor);
         this.spawningProcessorThread = new Thread(spawningProcessor);

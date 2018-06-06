@@ -2,7 +2,7 @@ package org.fogbowcloud.manager.core.processors;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
-import org.fogbowcloud.manager.core.OrderController;
+import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
@@ -14,6 +14,8 @@ import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 
+import java.util.Map;
+
 public class ClosedProcessor implements Runnable {
 
     private static final Logger LOGGER = Logger.getLogger(ClosedProcessor.class);
@@ -22,15 +24,11 @@ public class ClosedProcessor implements Runnable {
 
     private Long sleepTime;
 
-    private OrderController orderController;
-
-    public ClosedProcessor(OrderController orderController, String sleepTimeStr) {
+    public ClosedProcessor(String sleepTimeStr) {
         SharedOrderHolders sharedOrdersHolder = SharedOrderHolders.getInstance();
         this.closedOrders = sharedOrdersHolder.getClosedOrdersList();
 
         this.sleepTime = Long.valueOf(sleepTimeStr);
-
-        this.orderController = orderController;
     }
 
     @Override
@@ -64,8 +62,7 @@ public class ClosedProcessor implements Runnable {
             CloudConnector provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
             provider.deleteInstance(order);
 
-            this.closedOrders.removeItem(order);
-            this.orderController.removeOrderFromActiveOrdersMap(order);
+            OrderStateTransitioner.deactivateOrder(order);
         }
     }
 }

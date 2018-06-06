@@ -3,9 +3,11 @@ package org.fogbowcloud.manager.core.constants;
 public class ConfigurationConstants {
 
 	public static final String FOGBOW_HOME = ".fogbow";
+
+	public static final String LOCAL_MEMBER_ID = "xmpp_jid";
 	
     // XMPP
-    public static final String XMPP_JID_KEY = "xmpp_jid";
+    public static final String XMPP_JID_KEY = LOCAL_MEMBER_ID;
     public static final String XMPP_PASSWORD_KEY = "xmpp_password";
     public static final String XMPP_SERVER_IP_KEY = "xmpp_server_ip";
     public static final String XMPP_SERVER_PORT_KEY = "xmpp_server_port";

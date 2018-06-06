@@ -17,8 +17,6 @@ public class SshConnectivityUtil {
 
     private static final Logger LOGGER = Logger.getLogger(SpawningProcessor.class);
 
-    private static Properties properties;
-
     private SshClientPoolUtil sshClientPool = new SshClientPoolUtil();
 
     private static SshConnectivityUtil instance;
@@ -62,15 +60,11 @@ public class SshConnectivityUtil {
     }
 
     private String getManagerSSHPrivateKey() {
-        String privateKey =
-                properties.getProperty(ConfigurationConstants.MANAGER_SSH_PRIVATE_KEY_PATH);
+        String privateKey = PropertiesUtil.getInstance().
+                getProperty(ConfigurationConstants.MANAGER_SSH_PRIVATE_KEY_PATH);
         if (privateKey == null || privateKey.isEmpty()) {
             return null;
         }
         return privateKey;
-    }
-
-    public static void setProperties(Properties properties) {
-        SshConnectivityUtil.properties = properties;
     }
 }
