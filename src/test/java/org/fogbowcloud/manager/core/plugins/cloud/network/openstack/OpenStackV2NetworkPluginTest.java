@@ -53,7 +53,7 @@ public class OpenStackV2NetworkPluginTest {
 		Properties properties = new Properties();
 		properties.put(OpenStackV2NetworkPlugin.KEY_EXTERNAL_GATEWAY_INFO, DEFAULT_GATEWAY_INFO);
 		properties.put(OpenStackConfigurationConstants.NETWORK_NOVAV2_URL_KEY, DEFAULT_NETWORK_URL);
-		this.openStackV2NetworkPlugin = Mockito.spy(new OpenStackV2NetworkPlugin(properties));
+		this.openStackV2NetworkPlugin = Mockito.spy(new OpenStackV2NetworkPlugin());
 
 		this.client = Mockito.mock(HttpClient.class);
 		this.openStackV2NetworkPlugin.setClient(this.client);
@@ -99,7 +99,7 @@ public class OpenStackV2NetworkPluginTest {
 		String dnsOne = "one";
 		String dnsTwo = "Two";
 		properties.put(OpenStackV2NetworkPlugin.KEY_DNS_NAMESERVERS, dnsOne + "," + dnsTwo);
-		this.openStackV2NetworkPlugin = new OpenStackV2NetworkPlugin(properties);
+		this.openStackV2NetworkPlugin = new OpenStackV2NetworkPlugin();
 		Assert.assertEquals(2, this.openStackV2NetworkPlugin.getDnsList().length);
 		Assert.assertEquals(dnsOne, this.openStackV2NetworkPlugin.getDnsList()[0]);
 		Assert.assertEquals(dnsTwo, this.openStackV2NetworkPlugin.getDnsList()[1]);
@@ -111,7 +111,7 @@ public class OpenStackV2NetworkPluginTest {
 		String dnsOne = "one";
 		String dnsTwo = "Two";
 		properties.put(OpenStackV2NetworkPlugin.KEY_DNS_NAMESERVERS, dnsOne + "," + dnsTwo);
-		this.openStackV2NetworkPlugin = new OpenStackV2NetworkPlugin(properties);
+		this.openStackV2NetworkPlugin = new OpenStackV2NetworkPlugin();
 
 		String networkId = "networkId";
 		String address = "10.10.10.10/24";

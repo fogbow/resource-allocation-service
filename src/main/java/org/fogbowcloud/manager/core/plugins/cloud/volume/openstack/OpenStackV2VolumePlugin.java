@@ -69,8 +69,10 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenStackV2VolumePlugin.class);
 
-	public OpenStackV2VolumePlugin(Properties properties) {
-		this.volumeV2APIEndpoint = properties.getProperty(VOLUME_NOVAV2_URL_KEY)
+	public OpenStackV2VolumePlugin() {
+	    // TODO Fix properties...
+        Properties properties = new Properties();
+	    this.volumeV2APIEndpoint = properties.getProperty(VOLUME_NOVAV2_URL_KEY)
 				+ OpenStackConstants.V2_API_ENDPOINT;
 
 		initClient();
