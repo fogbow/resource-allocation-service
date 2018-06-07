@@ -4,19 +4,17 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.requesters.*;
 import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
+import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
-import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
-import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.jamppa.component.PacketSender;
 
-import java.util.Collection;
+import java.util.HashMap;
 
 public class RemoteCloudConnector implements CloudConnector {
 
@@ -58,8 +56,26 @@ public class RemoteCloudConnector implements CloudConnector {
             PropertyNotSpecifiedException,  QuotaException, UnauthorizedException, TokenCreationException,
             RemoteRequestException {
 
-        RemoteGetUserQuotaRequest remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.destinationMember, federationUser, instanceType);
+        RemoteGetUserQuotaRequest remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.destinationMember,
+                federationUser, instanceType);
         Quota quota = remoteGetUserQuotaRequest.send();
         return quota;
     }
+
+    @Override
+    public HashMap<String, String> getAllImages(FederationUser federationUser) throws RemoteRequestException {
+
+        RemoteGetAllImagesRequest remoteGetAllImagesRequest = new RemoteGetAllImagesRequest(this.destinationMember,
+                federationUser);
+        HashMap<String, String> imagesMap = remoteGetAllImagesRequest.send();
+        return imagesMap;
+    }
+
+    @Override
+    public Image getImage(String imageId, FederationUser federationUser) throws RemoteRequestException {
+
+        RemoteGetImageRequest remoteGetImageRequest = new RemoteGetImageRequest(this.destinationMember, imageId,
+                federationUser);
+        Image image = remoteGetImageRequest.send();
+        return image;    }
 }

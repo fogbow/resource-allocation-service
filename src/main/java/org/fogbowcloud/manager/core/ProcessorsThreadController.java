@@ -7,7 +7,6 @@ import org.fogbowcloud.manager.core.processors.ClosedProcessor;
 import org.fogbowcloud.manager.core.processors.FulfilledProcessor;
 import org.fogbowcloud.manager.core.processors.OpenProcessor;
 import org.fogbowcloud.manager.core.processors.SpawningProcessor;
-import org.fogbowcloud.manager.utils.PropertiesUtil;
 import org.fogbowcloud.manager.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
 
@@ -23,7 +22,7 @@ public class ProcessorsThreadController {
     public ProcessorsThreadController(String localMemberId) {
 
 
-        String openOrdersProcSleepTimeStr = PropertiesUtil.getInstance().
+        String openOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
                 getProperty(ConfigurationConstants.OPEN_ORDERS_SLEEP_TIME_KEY,
                         DefaultConfigurationConstants.OPEN_ORDERS_SLEEP_TIME);
 

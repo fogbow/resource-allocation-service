@@ -7,7 +7,9 @@ public enum RemoteMethod {
     REMOTE_GET_USER_ALLOCATION("remoteGetUserAllocation"),
     REMOTE_CREATE_ORDER("remoteCreateOrder"),
     REMOTE_DELETE_ORDER("remoteDeleteOrder"),
-    REMOTE_NOTIFY_EVENT("remoteNotifyEvent");
+    REMOTE_NOTIFY_EVENT("remoteNotifyEvent"),
+    REMOTE_GET_IMAGE("remoteImage"),
+    REMOTE_GET_ALL_IMAGES("remoteGetAllImages");
 
     private final String method;
 

@@ -6,5 +6,7 @@ public enum Operation {
     DELETE,
     GET_ALL,
     GET_USER_QUOTA,
-    GET_USER_ALLOCATION
+    GET_USER_ALLOCATION,
+    GET_IMAGE,
+    GET_ALL_IMAGES
 }

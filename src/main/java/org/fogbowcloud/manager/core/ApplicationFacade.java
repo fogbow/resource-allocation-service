@@ -1,9 +1,10 @@
 package org.fogbowcloud.manager.core;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
@@ -12,17 +13,13 @@ import org.fogbowcloud.manager.core.exceptions.QuotaException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.constants.Operation;
+import org.fogbowcloud.manager.core.models.images.Image;
+import org.fogbowcloud.manager.core.models.instances.*;
 import org.fogbowcloud.manager.core.models.orders.*;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
-import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
-import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
-import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
-import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
@@ -33,7 +30,6 @@ public class ApplicationFacade {
 
     private AaController aaController;
     private OrderController orderController;
-    private UserQuotaController userQuotaController;
 
     private ApplicationFacade() {
     }
@@ -47,9 +43,9 @@ public class ApplicationFacade {
         }
     }
 
-    public void createCompute(ComputeOrder order, String federationTokenValue)
+    public String createCompute(ComputeOrder order, String federationTokenValue)
         throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
-        activateOrder(order, federationTokenValue);
+        return activateOrder(order, federationTokenValue);
     }
 
     public List<ComputeInstance> getAllComputes(String federationTokenValue)
@@ -90,9 +86,9 @@ public class ApplicationFacade {
             return (ComputeQuota) getUserQuota(memberId, federationTokenValue, InstanceType.COMPUTE);
     }
 
-    public void createVolume(VolumeOrder volumeOrder, String federationTokenValue)
+    public String createVolume(VolumeOrder volumeOrder, String federationTokenValue)
         throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
-        activateOrder(volumeOrder, federationTokenValue);
+        return activateOrder(volumeOrder, federationTokenValue);
     }
 
     public List<VolumeInstance> getAllVolumes(String federationTokenValue)
@@ -119,9 +115,9 @@ public class ApplicationFacade {
         deleteOrder(orderId, federationTokenValue, InstanceType.VOLUME);
     }
 
-    public void createNetwork(NetworkOrder networkOrder, String federationTokenValue)
+    public String createNetwork(NetworkOrder networkOrder, String federationTokenValue)
         throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
-        activateOrder(networkOrder, federationTokenValue);
+        return activateOrder(networkOrder, federationTokenValue);
     }
 
     public List<NetworkInstance> getAllNetworks(String federationTokenValue)
@@ -148,9 +144,9 @@ public class ApplicationFacade {
         deleteOrder(orderId, federationTokenValue, InstanceType.NETWORK);
     }
 
-    public void createAttachment(AttachmentOrder attachmentOrder, String federationTokenValue) throws
+    public String createAttachment(AttachmentOrder attachmentOrder, String federationTokenValue) throws
             OrderManagementException, UnauthorizedException, UnauthenticatedException {
-        activateOrder(attachmentOrder, federationTokenValue);
+        return activateOrder(attachmentOrder, federationTokenValue);
     }
 
     public List<AttachmentInstance> getAllAttachments(String federationTokenValue) throws UnauthenticatedException,
@@ -177,6 +173,40 @@ public class ApplicationFacade {
         deleteOrder(orderId, federationTokenValue, InstanceType.ATTACHMENT);
     }
 
+    public HashMap<String, String> getAllImages(String memberId, String federationTokenValue) throws
+            UnauthenticatedException, UnauthorizedException, PropertyNotSpecifiedException, TokenCreationException,
+            RemoteRequestException {
+
+        this.aaController.authenticate(federationTokenValue);
+
+        if(memberId == null) {
+            memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        }
+
+        FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
+        this.aaController.authorize(federationUser, Operation.GET_ALL_IMAGES);
+
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
+        return cloudConnector.getAllImages(federationUser);
+    }
+
+    public Image getImage(String memberId, String imageId, String federationTokenValue) throws
+            UnauthenticatedException, UnauthorizedException, RemoteRequestException, TokenCreationException,
+            PropertyNotSpecifiedException {
+
+        this.aaController.authenticate(federationTokenValue);
+
+        if(memberId == null) {
+            memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        }
+
+        FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
+        this.aaController.authorize(federationUser, Operation.GET_IMAGE);
+
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
+        return (Image) cloudConnector.getImage(imageId, federationUser);
+    }
+
     public void setAaController(AaController aaController) {
         this.aaController = aaController;
     }
@@ -185,17 +215,14 @@ public class ApplicationFacade {
         this.orderController = orderController;
     }
 
-    public void setUserQuotaController(UserQuotaController userQuotaController) {
-        this.userQuotaController = userQuotaController;
-    }
-
-    private void activateOrder(Order order, String federationTokenValue)
+    private String activateOrder(Order order, String federationTokenValue)
     			throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
 
         this.aaController.authenticate(federationTokenValue);
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
         this.aaController.authorize(federationUser, Operation.CREATE, order);
 
+        order.setId(UUID.randomUUID().toString());
         order.setFederationUser(federationUser);
 
         String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
@@ -205,6 +232,7 @@ public class ApplicationFacade {
             order.setProvidingMember(localMemberId);
         }
         OrderStateTransitioner.activateOrder(order);
+        return order.getId();
     }
 
     private void deleteOrder(String orderId, String federationTokenValue, InstanceType instanceType)
@@ -258,6 +286,7 @@ public class ApplicationFacade {
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
         this.aaController.authorize(federationUser, Operation.GET_USER_QUOTA, instanceType);
 
-        return this.userQuotaController.getUserQuota(memberId, federationUser, instanceType);
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
+        return cloudConnector.getUserQuota(federationUser, instanceType);
     }
 }

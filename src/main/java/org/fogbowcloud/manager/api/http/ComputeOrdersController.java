@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.api.http;
 
 import java.util.List;
-import java.util.UUID;
 
 import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.ApplicationFacade;
@@ -14,7 +13,6 @@ import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
@@ -34,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = ComputeOrdersController.COMPUTE_ENDPOINT)
 public class ComputeOrdersController {
 
-    public static final String COMPUTE_ENDPOINT = "compute";
+    public static final String COMPUTE_ENDPOINT = "computes";
 
     private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
@@ -42,19 +40,14 @@ public class ComputeOrdersController {
 
     // ExceptionTranslator handles the possible problems in request
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<Order> createCompute(
+    public ResponseEntity<String> createCompute(
             @RequestBody ComputeOrder computeOrder,
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
         LOGGER.info("New compute order request received");
 
-        // The applicationFacade is being loaded here, because the getInstance that was used in the
-        // variable declaration
-        // disallows a static mock on this method.
-
-        computeOrder.setId(UUID.randomUUID().toString()); // FIXME Find a better location for this
-        ApplicationFacade.getInstance().createCompute(computeOrder, federationTokenValue);
-        return new ResponseEntity<Order>(HttpStatus.CREATED);
+        String computeId = ApplicationFacade.getInstance().createCompute(computeOrder, federationTokenValue);
+        return new ResponseEntity<String>(computeId, HttpStatus.CREATED);
     }
 
     @RequestMapping(method = RequestMethod.GET)
