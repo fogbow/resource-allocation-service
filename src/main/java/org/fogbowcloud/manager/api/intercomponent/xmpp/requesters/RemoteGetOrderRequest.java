@@ -9,7 +9,6 @@ import org.fogbowcloud.manager.api.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.jamppa.component.PacketSender;
 import org.xmpp.packet.IQ;
 
 import com.google.gson.Gson;

@@ -10,7 +10,6 @@ import org.fogbowcloud.manager.api.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.jamppa.component.PacketSender;
 import org.xmpp.packet.IQ;
 
 import com.google.gson.Gson;

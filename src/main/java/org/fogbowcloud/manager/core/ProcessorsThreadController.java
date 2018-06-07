@@ -29,7 +29,7 @@ public class ProcessorsThreadController {
 
         OpenProcessor openProcessor = new OpenProcessor(localMemberId, openOrdersProcSleepTimeStr);
 
-        String spawningOrdersProcSleepTimeStr = PropertiesUtil.getInstance().
+        String spawningOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
                 getProperty(ConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME_KEY,
                         DefaultConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME);
 
@@ -40,7 +40,7 @@ public class ProcessorsThreadController {
                 new SpawningProcessor(localMemberId, tunnelingServiceUtil,
                         sshConnectivityUtil, spawningOrdersProcSleepTimeStr);
 
-        String fulfilledOrdersProcSleepTimeStr = PropertiesUtil.getInstance().
+        String fulfilledOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
                 getProperty(ConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME_KEY,
                         DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME);
 
@@ -48,7 +48,7 @@ public class ProcessorsThreadController {
                 new FulfilledProcessor(localMemberId, tunnelingServiceUtil,
                         sshConnectivityUtil, fulfilledOrdersProcSleepTimeStr);
 
-        String closedOrdersProcSleepTimeStr = PropertiesUtil.getInstance().
+        String closedOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
                 getProperty(ConfigurationConstants.CLOSED_ORDERS_SLEEP_TIME_KEY,
                         DefaultConfigurationConstants.CLOSED_ORDERS_SLEEP_TIME);
 

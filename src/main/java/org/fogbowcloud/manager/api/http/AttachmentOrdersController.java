@@ -14,8 +14,7 @@ import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,7 +31,7 @@ public class AttachmentOrdersController {
     public static final String VOLUME_LINK_ENDPOINT = "volumelink";
 
     private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
-    private final Logger LOGGER = LoggerFactory.getLogger(VolumeOrdersController.class);
+    private final Logger LOGGER = Logger.getLogger(VolumeOrdersController.class);
     private ApplicationFacade applicationFacade;
     
     @RequestMapping(method = RequestMethod.POST)

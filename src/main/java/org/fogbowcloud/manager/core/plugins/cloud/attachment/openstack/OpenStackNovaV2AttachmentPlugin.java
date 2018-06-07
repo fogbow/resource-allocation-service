@@ -25,8 +25,7 @@ import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
 
@@ -40,7 +39,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
 	private static final String STATUS_JSON_FIELD = "status";
     private static final String TENANT_ID = "tenantId";
     
-    private final Logger LOGGER = LoggerFactory.getLogger(OpenStackNovaV2AttachmentPlugin.class);
+    private final Logger LOGGER = Logger.getLogger(OpenStackNovaV2AttachmentPlugin.class);
     
     private Properties properties;
     private HttpClient client;

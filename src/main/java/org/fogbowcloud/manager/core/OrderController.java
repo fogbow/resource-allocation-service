@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,8 +14,11 @@ import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.QuotaException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
+import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
+import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -39,10 +43,10 @@ public class OrderController {
         Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
 
         List<Order> requestedOrders =
-            orders.stream()
-                .filter(order -> order.getType().equals(instanceType))
-                .filter(order -> order.getFederationUser().equals(federationUser))
-                .collect(Collectors.toList());
+                orders.stream()
+                        .filter(order -> order.getType().equals(instanceType))
+                        .filter(order -> order.getFederationUser().equals(federationUser))
+                        .collect(Collectors.toList());
 
         return requestedOrders;
     }
@@ -67,10 +71,10 @@ public class OrderController {
     }
 
     public void deleteOrder(Order order) throws OrderManagementException {
-    	if (order == null) {
-    		String message = "Cannot delete a null order";
-    		throw new OrderManagementException(message);
-    	}
+        if (order == null) {
+            String message = "Cannot delete a null order";
+            throw new OrderManagementException(message);
+        }
         synchronized (order) {
 
             OrderState orderState = order.getOrderState();
@@ -79,12 +83,12 @@ public class OrderController {
                     OrderStateTransitioner.transition(order, OrderState.CLOSED);
                 } catch (OrderStateTransitionException e) {
                     LOGGER.error(
-                        "This should never happen. Error trying to change the status from"
-                            + order.getOrderState()
-                            + " to closed for order ["
-                            + order.getId()
-                            + "]",
-                        e);
+                            "This should never happen. Error trying to change the status from"
+                                    + order.getOrderState()
+                                    + " to closed for order ["
+                                    + order.getId()
+                                    + "]",
+                            e);
                 }
             } else {
                 String message = "Order [" + order.getId() + "] is already in the closed state";
@@ -94,7 +98,7 @@ public class OrderController {
     }
 
     public Instance getResourceInstance(Order order)
-        throws PropertyNotSpecifiedException, TokenCreationException, RequestException, UnauthorizedException,
+            throws PropertyNotSpecifiedException, TokenCreationException, RequestException, UnauthorizedException,
             InstanceNotFoundException, RemoteRequestException {
         synchronized (order) {
 
@@ -103,20 +107,40 @@ public class OrderController {
         }
     }
 
-    public Allocation getUserAllocation(String memberId, FederationUser federationUser, InstanceType instanceType)
-            throws UnauthorizedException, InstanceNotFoundException, QuotaException, PropertyNotSpecifiedException,
-            RemoteRequestException, TokenCreationException, RequestException {
+    public Allocation getUserAllocation(String memberId, FederationUser federationUser, InstanceType instanceType) {
 
         Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
 
-        List<Order> computeOrders = orders.stream()
+        List<Order> filteredOrders = orders.stream()
                 .filter(order -> order.getType().equals(instanceType))
                 .filter(order -> order.getOrderState().equals(OrderState.FULFILLED))
                 .filter(order -> order.isProviderLocal(memberId))
                 .filter(order -> order.getFederationUser().equals(federationUser))
                 .collect(Collectors.toList());
 
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
-        return cloudConnector.getUserAllocation(orders, instanceType);
+        switch (instanceType) {
+            case COMPUTE:
+                List<ComputeOrder> computeOrders = new ArrayList<ComputeOrder>();
+                for (Order order : filteredOrders) {
+                    computeOrders.add((ComputeOrder) order);
+                }
+                return (Allocation) getUserComputeAllocation(computeOrders);
+            default:
+                throw new UnsupportedOperationException("Not yet implemented.");
+        }
+    }
+
+    private ComputeAllocation getUserComputeAllocation(Collection<ComputeOrder> computeOrders) {
+
+        int vCPU = 0, ram = 0, instances = 0;
+
+        for (ComputeOrder order : computeOrders) {
+            ComputeAllocation actualAllocation = order.getActualAllocation();
+            vCPU += actualAllocation.getvCPU();
+            ram += actualAllocation.getRam();
+            instances++;
+        }
+        return new ComputeAllocation(vCPU, ram, instances);
     }
 }
+

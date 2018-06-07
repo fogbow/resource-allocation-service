@@ -6,20 +6,21 @@ import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.localidentity.LocalIdentityPlugin;
+import org.fogbowcloud.manager.utils.PropertiesUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-public class InstantiationInitServiceTest {
+public class PluginInstantiationServiceTest {
 
-    private InstantiationInitService service;
+    private PluginInstantiationService service;
 
     private static final String TEST_CONF_FILE_FULL_PATH = "src/main/resources/test.properties";
 
     @Before
     public void setUp() throws Exception {
-        this.service = new InstantiationInitService();
+        this.service = PluginInstantiationService.getInstance();
         Properties mProperties = new Properties();
         FileInputStream mInput = new FileInputStream(TEST_CONF_FILE_FULL_PATH);
         mProperties.load(mInput);
@@ -33,7 +34,7 @@ public class InstantiationInitServiceTest {
         String expected_xmpp_jid_value = "my-manager.internal.mydomain";
 
         Assert.assertEquals(
-                this.service.getProperties().getProperty(ConfigurationConstants.XMPP_JID_KEY),
+                PropertiesUtil.getInstance().getProperty(ConfigurationConstants.XMPP_JID_KEY),
                 expected_xmpp_jid_value);
     }
 

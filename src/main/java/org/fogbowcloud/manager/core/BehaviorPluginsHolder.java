@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.core;
 import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.LocalUserCredentialsMapperPlugin;
-import org.fogbowcloud.manager.core.services.InstantiationInitService;
+import org.fogbowcloud.manager.core.services.PluginInstantiationService;
 
 public class BehaviorPluginsHolder {
 
@@ -11,7 +11,7 @@ public class BehaviorPluginsHolder {
     private FederationIdentityPlugin federationIdentityPlugin;
     private LocalUserCredentialsMapperPlugin localUserCredentialsMapperPlugin;
 
-    public BehaviorPluginsHolder(InstantiationInitService instantiationInitService) {
+    public BehaviorPluginsHolder(PluginInstantiationService instantiationInitService) {
         this.authorizationPlugin = instantiationInitService.getAuthorizationPlugin();
         this.federationIdentityPlugin = instantiationInitService.getFederationIdentityPlugin();
         this.localUserCredentialsMapperPlugin = instantiationInitService.getLocalUserCredentialsMapperPlugin();

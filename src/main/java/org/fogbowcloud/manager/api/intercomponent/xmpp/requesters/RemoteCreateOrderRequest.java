@@ -11,7 +11,6 @@ import org.fogbowcloud.manager.api.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.jamppa.component.PacketSender;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
 

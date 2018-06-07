@@ -52,12 +52,4 @@ public interface CloudConnector {
     public Quota getUserQuota(FederationUser federationUser, InstanceType instanceType) throws
             TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException, QuotaException,
             RemoteRequestException;
-
-    /**
-     * Gets the allocation of the federation user.
-     * @throws TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException, QuotaException
-     */
-    public Allocation getUserAllocation(Collection<Order> orders, InstanceType instanceType) throws
-            RemoteRequestException, InstanceNotFoundException, RequestException, QuotaException,
-            TokenCreationException, PropertyNotSpecifiedException, UnauthorizedException;
 }

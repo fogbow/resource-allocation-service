@@ -12,7 +12,6 @@ import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.services.InstantiationInitService;
 import org.fogbowcloud.manager.utils.PropertiesUtil;
 
 import java.util.Map;
@@ -48,7 +47,7 @@ public class OrderStateTransitioner {
     public static void transition(Order order, OrderState newState)
             throws OrderStateTransitionException {
 
-        String localMemberId = PropertiesUtil.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         synchronized (order) {
             if (order.isRequesterRemote(localMemberId)) {
                 switch (newState) {

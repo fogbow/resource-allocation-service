@@ -1,15 +1,14 @@
 package org.fogbowcloud.manager.core.plugins;
 
 import java.lang.reflect.Constructor;
-import java.util.Properties;
-import java.util.logging.Logger;
+import org.apache.log4j.Logger;
 
 public class PluginFactory {
 
     private static final Logger LOGGER = Logger.getLogger(PluginFactory.class.getName());
     private static final int EXIT_ERROR_CODE = 128;
 
-    public Object createPluginInstance(String pluginClassName, Properties properties) {
+    public Object createPluginInstance(String pluginClassName) {
 
         Object pluginInstance = null;
 
@@ -18,35 +17,18 @@ public class PluginFactory {
 
         try {
             classpath = Class.forName(pluginClassName);
-            constructor = classpath.getConstructor(Properties.class);
-            pluginInstance = constructor.newInstance(properties);
+            constructor = classpath.getConstructor();
+            pluginInstance = constructor.newInstance();
         } catch (ClassNotFoundException e) {
             String msg = "No " + pluginClassName
                     + " class under this repository. Please inform a valid class.";
-            LOGGER.severe(msg);
+            LOGGER.fatal(msg);
             System.exit(EXIT_ERROR_CODE);
         } catch (Exception e) {
-             LOGGER.severe(e.getMessage());
+             LOGGER.fatal(e.getMessage());
             System.exit(EXIT_ERROR_CODE);
         }
 
         return pluginInstance;
-    }
-
-    public Object getIdentityPluginByPrefix(String prefix, String className,
-            Properties properties) {
-
-        Properties pluginProperties = new Properties();
-
-        for (Object keyObj : properties.keySet()) {
-            String key = keyObj.toString();
-            pluginProperties.put(key, properties.get(key));
-            if (key.startsWith(prefix)) {
-                String newKey = key.replace(prefix, "");
-                pluginProperties.put(newKey, properties.get(key));
-            }
-        }
-
-        return createPluginInstance(className, pluginProperties);
     }
 }

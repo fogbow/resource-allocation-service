@@ -3,6 +3,7 @@ package org.fogbowcloud.manager.core.models.orders;
 import java.util.UUID;
 
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 
 public class ComputeOrder extends Order {
@@ -20,6 +21,8 @@ public class ComputeOrder extends Order {
     private UserData userData;
 
     private String publicKey;
+
+    private ComputeAllocation actualAllocation;
 
     public ComputeOrder() {
         super(UUID.randomUUID().toString());
@@ -73,6 +76,14 @@ public class ComputeOrder extends Order {
         return new ComputeOrder(baseOrder.getId(), baseOrder.getFederationUser(), baseOrder.getRequestingMember(),
                 baseOrder.getProvidingMember(), baseOrder.getvCPU(), baseOrder.getMemory(), baseOrder.getDisk(),
                 baseOrder.getImageId(), baseOrder.getUserData(), baseOrder.getPublicKey());
+    }
+
+    public ComputeAllocation getActualAllocation() {
+        return actualAllocation;
+    }
+
+    public void setActualAllocation(ComputeAllocation actualAllocation) {
+        this.actualAllocation = actualAllocation;
     }
 
     public int getvCPU() {

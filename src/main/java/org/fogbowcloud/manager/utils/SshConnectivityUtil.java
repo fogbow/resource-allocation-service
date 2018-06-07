@@ -1,10 +1,10 @@
 package org.fogbowcloud.manager.utils;
 
-import java.util.Properties;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.connection.channel.direct.Session;
 import net.schmizz.sshj.connection.channel.direct.Session.Command;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.processors.SpawningProcessor;
@@ -60,7 +60,7 @@ public class SshConnectivityUtil {
     }
 
     private String getManagerSSHPrivateKey() {
-        String privateKey = PropertiesUtil.getInstance().
+        String privateKey = PropertiesHolder.getInstance().
                 getProperty(ConfigurationConstants.MANAGER_SSH_PRIVATE_KEY_PATH);
         if (privateKey == null || privateKey.isEmpty()) {
             return null;

@@ -18,8 +18,7 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -39,7 +38,7 @@ public class ComputeOrdersController {
 
     private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
-    private final Logger LOGGER = LoggerFactory.getLogger(ComputeOrdersController.class);
+    private final Logger LOGGER = Logger.getLogger(ComputeOrdersController.class);
 
     // ExceptionTranslator handles the possible problems in request
     @RequestMapping(method = RequestMethod.POST)

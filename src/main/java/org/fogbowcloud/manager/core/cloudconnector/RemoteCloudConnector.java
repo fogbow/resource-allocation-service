@@ -62,33 +62,4 @@ public class RemoteCloudConnector implements CloudConnector {
         Quota quota = remoteGetUserQuotaRequest.send();
         return quota;
     }
-
-    @Override
-    public Allocation getUserAllocation(Collection<Order> orders, InstanceType instanceType)
-            throws RemoteRequestException, InstanceNotFoundException, RequestException, QuotaException,
-            TokenCreationException, PropertyNotSpecifiedException, UnauthorizedException {
-
-        switch (instanceType) {
-            case COMPUTE:
-                return (Allocation) getUserComputeAllocation(orders);
-            default:
-                throw new UnsupportedOperationException("Not yet implemented.");
-        }
-    }
-
-    private ComputeAllocation getUserComputeAllocation(Collection<Order> computeOrders) throws
-            QuotaException, RemoteRequestException, RequestException, TokenCreationException,
-            UnauthorizedException, PropertyNotSpecifiedException, InstanceNotFoundException {
-
-        int vCPU = 0, ram = 0, instances = 0;
-
-        for (Order order : computeOrders) {
-            ComputeInstance computeInstance = (ComputeInstance) this.getInstance(order);
-            vCPU += computeInstance.getvCPU();
-            ram += computeInstance.getMemory();
-            instances++;
-        }
-
-        return new ComputeAllocation(vCPU, ram, instances);
-    }
 }

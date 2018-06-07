@@ -26,7 +26,6 @@ import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.utils.PropertiesUtil;
 
 public class ApplicationFacade {
 
@@ -199,7 +198,7 @@ public class ApplicationFacade {
 
         order.setFederationUser(federationUser);
 
-        String localMemberId = PropertiesUtil.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
         order.setRequestingMember(localMemberId);
         if (order.getProvidingMember() == null) {

@@ -13,7 +13,6 @@ import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.xmpp.packet.IQ;
-import org.xmpp.packet.PacketError;
 
 public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
 

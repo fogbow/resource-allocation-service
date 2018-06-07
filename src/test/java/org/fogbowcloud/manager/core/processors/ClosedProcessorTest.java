@@ -22,7 +22,7 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.plugins.cloud.localidentity.LocalIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.localidentity.openstack.KeystoneV3IdentityPlugin;
-import org.fogbowcloud.manager.core.services.InstantiationInitService;
+import org.fogbowcloud.manager.core.services.PluginInstantiationService;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -59,12 +59,12 @@ public class ClosedProcessorTest extends BaseUnitTests {
 
         this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
         this.remoteCloudConnector = Mockito.mock(RemoteCloudConnector.class);
-        this.closedProcessor = Mockito.spy(new ClosedProcessor(this.orderController,
+        this.closedProcessor = Mockito.spy(new ClosedProcessor(
                 DefaultConfigurationConstants.CLOSED_ORDERS_SLEEP_TIME));
     }
 
     private void initServiceConfig() {
-        InstantiationInitService instantiationInitService = new InstantiationInitService();
+        PluginInstantiationService instantiationInitService = PluginInstantiationService.getInstance();
 
         this.behaviorPluginsHolder = new BehaviorPluginsHolder(instantiationInitService);
         this.behaviorPluginsHolder.getLocalUserCredentialsMapperPlugin();
@@ -95,7 +95,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
 		Order localOrder = createLocalOrder(getLocalMemberId());
 		localOrder.setInstanceId(instanceId);
 
-		this.orderController.activateOrder(localOrder);
+        OrderStateTransitioner.activateOrder(localOrder);
 
 		OrderStateTransitioner.transition(localOrder, OrderState.CLOSED);
 
@@ -122,7 +122,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
         Order localOrder = createLocalOrder(getLocalMemberId());
         localOrder.setInstanceId(instanceId);
 
-        this.orderController.activateOrder(localOrder);
+        OrderStateTransitioner.activateOrder(localOrder);
 
         OrderStateTransitioner.transition(localOrder, OrderState.CLOSED);
 

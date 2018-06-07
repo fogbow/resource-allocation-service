@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 
 public class PropertiesUtil {
@@ -19,7 +18,11 @@ public class PropertiesUtil {
 	private static Properties properties = null;
 
 	private PropertiesUtil() {
-	    this.setUpProperties();
+        List<String> configFilesNames = new ArrayList<>();
+        configFilesNames.add(DefaultConfigurationConstants.MANAGER_CONF_FILE_FULL_PATH);
+        configFilesNames.add(DefaultConfigurationConstants.INTERCOMPONENT_CONF_FILE_FULL_PATH);
+        configFilesNames.add(DefaultConfigurationConstants.REVERSE_TUNNEL_CONF_FILE_FULL_PATH);
+        this.properties = readProperties(configFilesNames);
     }
 
     public static synchronized Properties getInstance() {
@@ -29,25 +32,24 @@ public class PropertiesUtil {
         return properties;
     }
 
-    public String getProperty(String propertyName) {
-        return properties.getProperty(propertyName);
-    }
+//    public String getProperty(String propertyName) {
+//        return properties.getProperty(propertyName);
+//    }
+//
+//    public String getProperty(String propertyName, String defaultPropertyValue) {
+//        return properties.getProperty(propertyName, defaultPropertyValue);
+//    }
 
-    public String getProperty(String propertyName, String defaultPropertyValue) {
-        return properties.getProperty(propertyName, defaultPropertyValue);
-    }
+    public static Properties readProperties(List<String> configFilesNames) {
 
-    private void setUpProperties() {
-        List<String> configFilesNames = new ArrayList<>();
-        configFilesNames.add(DefaultConfigurationConstants.CLOUD_CONF_FILE_FULL_PATH);
-        configFilesNames.add(DefaultConfigurationConstants.BEHAVIOR_CONF_FILE_FULL_PATH);
+        Properties properties = new Properties();
 
         try {
             for (String fileName : configFilesNames) {
                 Properties mProperties = new Properties();
                 FileInputStream mInput = new FileInputStream(fileName);
                 mProperties.load(mInput);
-                this.properties.putAll(mProperties);
+                properties.putAll(mProperties);
             }
         } catch (FileNotFoundException e) {
             String[] msgSplitted = e.getMessage().split(" ");
@@ -59,6 +61,8 @@ public class PropertiesUtil {
         } catch (IOException e) {
             LOGGER.fatal(e.getMessage());
         }
+
+        return properties;
     }
 }
 

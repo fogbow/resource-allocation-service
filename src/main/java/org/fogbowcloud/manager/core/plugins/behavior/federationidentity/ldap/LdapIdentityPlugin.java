@@ -10,11 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import javax.naming.Context;
@@ -35,7 +31,7 @@ import org.fogbowcloud.manager.core.plugins.exceptions.InvalidTokenException;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenValueCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.utils.PropertiesUtil;
 import org.fogbowcloud.manager.utils.RSAUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -47,6 +43,8 @@ import org.json.JSONObject;
 public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
     private static final Logger LOGGER = Logger.getLogger(LdapIdentityPlugin.class);
+
+    private static final String PLUGIN_CONF_FILE_FULL_PATH = "ldap-identity-plugin.conf";
 
     private static final String ATT_EXPIRATION_DATE = "expirationDate";
     private static final String ATT_NAME = "name";
@@ -80,7 +78,11 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
     private String privateKeyPath;
     private String publicKeyPath;
 
-    public LdapIdentityPlugin(Properties properties) {
+    public LdapIdentityPlugin() {
+        List<String> configFilesNames = new ArrayList<>();
+        configFilesNames.add(PLUGIN_CONF_FILE_FULL_PATH);
+        Properties properties = new Properties();
+        properties = PropertiesUtil.readProperties(configFilesNames);
         this.ldapBase = properties.getProperty(PROP_LDAP_BASE);
         this.ldapUrl = properties.getProperty(PROP_LDAP_URL);
         this.encryptType = properties.getProperty(PROP_LDAP_ENCRYPT_TYPE);
