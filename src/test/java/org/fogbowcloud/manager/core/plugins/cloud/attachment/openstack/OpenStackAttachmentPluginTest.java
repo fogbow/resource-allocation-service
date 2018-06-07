@@ -36,7 +36,7 @@ public class OpenStackAttachmentPluginTest {
         
         this.attachmentOrder = new AttachmentOrder(null, null, null, FAKE_SERVER_ID, FAKE_VOLUME_ID, MOUNT_POINT);
         
-        this.openStackAttachmentPlugin = Mockito.spy(new OpenStackNovaV2AttachmentPlugin(properties));
+        this.openStackAttachmentPlugin = Mockito.spy(new OpenStackNovaV2AttachmentPlugin());
     }
     
     @Test

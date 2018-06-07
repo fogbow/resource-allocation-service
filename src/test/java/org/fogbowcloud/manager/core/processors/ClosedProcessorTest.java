@@ -53,7 +53,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY,
                 BaseUnitTests.LOCAL_MEMBER_ID);
 
-        this.localIdentityPlugin = new KeystoneV3IdentityPlugin(this.properties);
+        this.localIdentityPlugin = new KeystoneV3IdentityPlugin();
 
         initServiceConfig();
 

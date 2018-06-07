@@ -54,7 +54,7 @@ public class OpenStackV2VolumePluginTest {
     public void setUp() throws Exception {
         Properties properties = new Properties();
         properties.put(OpenStackV2VolumePlugin.VOLUME_NOVAV2_URL_KEY, FAKE_STORAGE_URL);
-        this.openStackV2VolumePlugin = new OpenStackV2VolumePlugin(properties);
+        this.openStackV2VolumePlugin = new OpenStackV2VolumePlugin();
 
         this.client = Mockito.mock(HttpClient.class);
         HttpResponseFactory factory = new DefaultHttpResponseFactory();
