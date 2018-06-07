@@ -7,7 +7,6 @@ import org.fogbowcloud.manager.core.*;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.services.PluginInstantiationService;
-import org.fogbowcloud.manager.utils.PropertiesUtil;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -27,7 +26,7 @@ public class Main implements ApplicationRunner {
         BehaviorPluginsHolder behaviorPluginsHolder = new BehaviorPluginsHolder(instantiationInitService);
 
         // Setting up controllers, application and remote facades
-        String localMemberId = PropertiesUtil.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
         AaController aaController =
                 new AaController(cloudPluginsHolder.getLocalIdentityPlugin(), behaviorPluginsHolder);
