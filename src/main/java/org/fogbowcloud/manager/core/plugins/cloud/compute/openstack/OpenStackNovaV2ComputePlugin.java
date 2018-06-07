@@ -78,8 +78,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private LaunchCommandGenerator launchCommandGenerator;
     private InstanceStateMapper instanceStateMapper;
 
-    public OpenStackNovaV2ComputePlugin(Properties properties) {
-        this.properties = properties;
+    public OpenStackNovaV2ComputePlugin() {
+        // TODO Fix properties...
+        this.properties = new Properties();
         LOGGER.debug("Creating OpenStackNovaV2ComputePlugin with properties=" + properties.toString());
         try {
             this.launchCommandGenerator = new DefaultLaunchCommandGenerator(this.properties);

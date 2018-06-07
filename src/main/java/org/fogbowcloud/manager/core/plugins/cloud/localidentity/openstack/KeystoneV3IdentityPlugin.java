@@ -56,7 +56,9 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
     private String v3TokensEndpoint;
     private HttpClient client;
 
-    public KeystoneV3IdentityPlugin(Properties properties) {
+    public KeystoneV3IdentityPlugin() {
+        // TODO Fix properties...
+        Properties properties = new Properties();
         String identityUrl = properties.getProperty(IDENTITY_URL);
         try {
             if (isUrlValid(identityUrl)) {

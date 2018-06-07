@@ -45,8 +45,9 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     private HttpClient client;
 	private InstanceStateMapper instanceStateMapper;
     
-    public OpenStackNovaV2AttachmentPlugin(Properties properties) {
-        this.properties = properties;
+    public OpenStackNovaV2AttachmentPlugin() {
+        // TODO Fix properties...
+        this.properties = new Properties();
     }
 
     @Override

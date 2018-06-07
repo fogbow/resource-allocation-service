@@ -42,8 +42,9 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 	
 	private Properties properties;
 	
-	public OpenStackComputeQuotaPlugin(Properties properties) {
-		this.properties = properties;
+	public OpenStackComputeQuotaPlugin() {
+	    // TODO Fix properties...
+	    this.properties = new Properties();
 		initClient();
 	}
 	
