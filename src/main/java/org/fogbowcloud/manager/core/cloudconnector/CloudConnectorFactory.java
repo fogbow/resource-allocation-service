@@ -4,7 +4,6 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.CloudPluginsHolder;
 import org.fogbowcloud.manager.core.OrderController;
 import org.fogbowcloud.manager.core.AaController;
-import org.jamppa.component.PacketSender;
 
 public class CloudConnectorFactory {
 
@@ -13,7 +12,6 @@ public class CloudConnectorFactory {
     private static CloudConnectorFactory instance;
 
     private String localMemberId;
-    private PacketSender packetSender;
     private AaController aaController;
     private OrderController orderController;
     private CloudPluginsHolder cloudPluginsHolder;
@@ -32,14 +30,10 @@ public class CloudConnectorFactory {
                 cloudConnector = new LocalCloudConnector(this.localMemberId, this.aaController, this.orderController,
                         this.cloudPluginsHolder);
         } else {
-                cloudConnector = new RemoteCloudConnector(memberId, this.packetSender);
+                cloudConnector = new RemoteCloudConnector(memberId);
         }
 
         return cloudConnector;
-    }
-
-    public void setPacketSender(PacketSender packetSender) {
-        this.packetSender = packetSender;
     }
 
     public void setAaController(AaController aaController) {

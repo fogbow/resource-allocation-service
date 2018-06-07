@@ -9,6 +9,7 @@ import java.util.Properties;
 
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.OrderController;
+import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
@@ -36,16 +37,10 @@ public class OpenProcessorTest extends BaseUnitTests {
     private RemoteCloudConnector remoteInstanceProvider;
     private OrderController orderController;
 
-    private Properties properties;
-
     private Thread thread;
 
     @Before
     public void setUp() {
-        this.properties = PropertiesUtil.getProperties();
-        this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY,
-                BaseUnitTests.LOCAL_MEMBER_ID);
-
         this.localInstanceProvider = Mockito.mock(LocalCloudConnector.class);
         this.remoteInstanceProvider = Mockito.mock(RemoteCloudConnector.class);
 
@@ -76,7 +71,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
         FederationUser federationUser = null;
-        this.orderController.activateOrder(localOrder);
+        OrderStateTransitioner.activateOrder(localOrder);
 
         String id = "fake-id";
         Mockito.doReturn(id)
@@ -110,7 +105,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
         FederationUser federationUser = null;
-        this.orderController.activateOrder(localOrder);
+        OrderStateTransitioner.activateOrder(localOrder);
 
         Mockito.doReturn(null)
                 .when(this.localInstanceProvider)
@@ -143,7 +138,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
         FederationUser federationUser = null;
-        this.orderController.activateOrder(localOrder);
+        OrderStateTransitioner.activateOrder(localOrder);
 
         Mockito.doThrow(new RuntimeException("Any Exception"))
                 .when(this.localInstanceProvider)
@@ -175,7 +170,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         Order remoteOrder = this.createRemoteOrder(getLocalMemberId());
 
         FederationUser federationUser = null;
-        this.orderController.activateOrder(remoteOrder);
+        OrderStateTransitioner.activateOrder(remoteOrder);
 
         Mockito.doReturn(null)
                 .when(this.remoteInstanceProvider)
@@ -208,7 +203,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         Order remoteOrder = this.createRemoteOrder(getLocalMemberId());
 
         FederationUser federationUser = null;
-        this.orderController.activateOrder(remoteOrder);
+        OrderStateTransitioner.activateOrder(remoteOrder);
 
         Mockito.doThrow(new RuntimeException("Any Exception"))
                 .when(this.remoteInstanceProvider)
@@ -240,7 +235,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         Order order = this.createLocalOrder(getLocalMemberId());
 
         FederationUser federationUser = null;
-        this.orderController.activateOrder(order);
+        OrderStateTransitioner.activateOrder(order);
 
         order.setOrderState(OrderState.PENDING);
 
@@ -281,7 +276,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         Order order = this.createLocalOrder(getLocalMemberId());
 
         FederationUser federationUser = null;
-        this.orderController.activateOrder(order);
+        OrderStateTransitioner.activateOrder(order);
 
         Mockito.doThrow(OrderStateTransitionException.class)
                 .when(this.openProcessor)
@@ -311,7 +306,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         Order order = this.createLocalOrder(getLocalMemberId());
 
         FederationUser federationUser = null;
-        this.orderController.activateOrder(order);
+        OrderStateTransitioner.activateOrder(order);
 
         Mockito.doThrow(Exception.class)
                 .when(this.openProcessor)
@@ -339,7 +334,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
         FederationUser federationUser = null;
-        this.orderController.activateOrder(localOrder);
+        OrderStateTransitioner.activateOrder(localOrder);
 
         String id = "fake-id";
         Mockito.doReturn(id)
@@ -370,7 +365,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
         FederationUser federationUser = null;
-        this.orderController.activateOrder(localOrder);
+        OrderStateTransitioner.activateOrder(localOrder);
 
         synchronized (localOrder) {
             this.thread = new Thread(this.openProcessor);
@@ -397,7 +392,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
         FederationUser federationUser = null;
-        this.orderController.activateOrder(localOrder);
+        OrderStateTransitioner.activateOrder(localOrder);
 
         String id = "fake-id";
 

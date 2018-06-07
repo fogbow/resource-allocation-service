@@ -30,7 +30,7 @@ public class LdapLocalIdentityPluginTest {
         Properties properties = new Properties();
         properties.put(IDENTITY_URL_KEY, KEYSTONE_URL);
 
-        this.ldapStoneIdentity = Mockito.spy(new LdapIdentityPlugin(properties));
+        this.ldapStoneIdentity = Mockito.spy(new LdapIdentityPlugin());
         Mockito.doReturn(MOCK_SIGNATURE)
                 .when(ldapStoneIdentity)
                 .createSignature(Mockito.any(JSONObject.class));
@@ -56,54 +56,12 @@ public class LdapLocalIdentityPluginTest {
                 .when(ldapStoneIdentity)
                 .ldapAuthenticate(Mockito.eq(name), Mockito.eq(password));
 
-        Token token = ldapStoneIdentity.createToken(userCredentials);
-
-        String decodedAccessId = decodeAccessId(token.getAccessId());
+        String federationTokenValue = ldapStoneIdentity.createFederationTokenValue(userCredentials);
+        String decodedAccessId = decodeAccessId(federationTokenValue);
 
         Assert.assertTrue(decodedAccessId.contains(name));
         Assert.assertTrue(decodedAccessId.contains(userName));
         Assert.assertTrue(decodedAccessId.contains(MOCK_SIGNATURE));
-    }
-
-    @Test
-    public void testGetToken() throws Exception {
-
-        String login = "ldapUser";
-        String password = "ldapUserPass";
-        String userName = "User Full Name";
-
-        Map<String, String> userCredentials = new HashMap<String, String>();
-        userCredentials.put(LdapIdentityPlugin.CRED_USERNAME, login);
-        userCredentials.put(LdapIdentityPlugin.CRED_PASSWORD, password);
-        userCredentials.put(LdapIdentityPlugin.CRED_AUTH_URL, "ldapUrl");
-        userCredentials.put(LdapIdentityPlugin.CRED_LDAP_BASE, "ldapBase");
-        userCredentials.put(LdapIdentityPlugin.CRED_LDAP_ENCRYPT, "");
-        userCredentials.put(LdapIdentityPlugin.CRED_PRIVATE_KEY, "private_key_path");
-        userCredentials.put(LdapIdentityPlugin.CRED_PUBLIC_KEY, "public_key_path");
-
-        Mockito.doReturn(userName)
-                .when(ldapStoneIdentity)
-                .ldapAuthenticate(Mockito.eq(login), Mockito.eq(password));
-
-        Token tokenA = ldapStoneIdentity.createToken(userCredentials);
-
-        String decodedAccessId = decodeAccessId(tokenA.getAccessId());
-
-        String split[] = decodedAccessId.split(LdapIdentityPlugin.ACCESSID_SEPARATOR);
-        String tokenMessage = split[0];
-        String signature = split[1];
-
-        Mockito.doReturn(true)
-                .when(ldapStoneIdentity)
-                .verifySign(Mockito.eq(tokenMessage), Mockito.eq(signature));
-        Token tokenB = ldapStoneIdentity.getToken(tokenA.getAccessId());
-
-        Assert.assertEquals(tokenA.getAccessId(), tokenB.getAccessId());
-        Assert.assertEquals(login, tokenA.getUser().getId());
-        Assert.assertEquals(userName, tokenA.getUser().getName());
-        Assert.assertEquals(login, tokenB.getUser().getId());
-        Assert.assertEquals(userName, tokenB.getUser().getName());
-        Assert.assertEquals(tokenA.getExpirationDate(), tokenB.getExpirationDate());
     }
 
     @Test
@@ -125,7 +83,7 @@ public class LdapLocalIdentityPluginTest {
                 .when(ldapStoneIdentity)
                 .ldapAuthenticate(Mockito.eq(name), Mockito.eq(password));
         try {
-            ldapStoneIdentity.createToken(userCredentials);
+            ldapStoneIdentity.createFederationTokenValue(userCredentials);
             Assert.fail();
         } catch (UnauthenticatedException e) {
             Assert.assertEquals("Couldn't load account summary from LDAP Server.", e.getMessage());
@@ -152,9 +110,9 @@ public class LdapLocalIdentityPluginTest {
                 .when(ldapStoneIdentity)
                 .ldapAuthenticate(Mockito.eq(name), Mockito.eq(password));
 
-        Token tokenA = ldapStoneIdentity.createToken(userCredentials);
+        String tokenValueA = ldapStoneIdentity.createFederationTokenValue(userCredentials);
 
-        String decodedAccessId = decodeAccessId(tokenA.getAccessId());
+        String decodedAccessId = decodeAccessId(tokenValueA);
 
         String split[] = decodedAccessId.split(LdapIdentityPlugin.ACCESSID_SEPARATOR);
         String tokenMessage = split[0];
@@ -178,7 +136,7 @@ public class LdapLocalIdentityPluginTest {
                 .when(ldapStoneIdentity)
                 .verifySign(Mockito.eq(newAccessId), Mockito.eq(signature));
 
-        ldapStoneIdentity.getToken(newAccessId);
+        ldapStoneIdentity.isValid(newAccessId);
     }
 
     public String decodeAccessId(String accessId) {

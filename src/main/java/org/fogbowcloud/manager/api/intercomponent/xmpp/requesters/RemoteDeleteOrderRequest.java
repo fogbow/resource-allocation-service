@@ -5,11 +5,11 @@ import org.dom4j.Element;
 import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.api.intercomponent.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.IqElement;
+import org.fogbowcloud.manager.api.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.api.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.jamppa.component.PacketSender;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
 
@@ -19,24 +19,16 @@ public class RemoteDeleteOrderRequest implements RemoteRequest<Void> {
 
     private static final Logger LOGGER = Logger.getLogger(RemoteDeleteOrderRequest.class);
 
-    private PacketSender packetSender;
-    
     private Order order;
 
-    public RemoteDeleteOrderRequest(PacketSender packetSender, Order order) {
-        this.packetSender = packetSender;
+    public RemoteDeleteOrderRequest(Order order) {
         this.order = order;
     }
 
     @Override
     public Void send() throws RemoteRequestException, OrderManagementException, UnauthorizedException {
-        if (this.packetSender == null) {
-            LOGGER.warn("Packet sender not set.");
-            throw new IllegalArgumentException("Packet sender not set.");
-        }
-
         IQ iq = createIq();
-        IQ response = (IQ) this.packetSender.syncSendPacket(iq);
+        IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         if (response == null) {
             String message = "Unable to retrieve the response from providing member: " + this.order.getProvidingMember();

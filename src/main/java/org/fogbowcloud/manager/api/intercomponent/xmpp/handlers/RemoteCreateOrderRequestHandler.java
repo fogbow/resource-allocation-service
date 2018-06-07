@@ -17,11 +17,9 @@ import org.xmpp.packet.PacketError;
 public class RemoteCreateOrderRequestHandler extends AbstractQueryHandler {
 
     private static final Logger LOGGER = Logger.getLogger(RemoteCreateOrderRequestHandler.class);
-    private RemoteFacade remoteFacade;
 
     public RemoteCreateOrderRequestHandler() {
         super(RemoteMethod.REMOTE_CREATE_ORDER.toString());
-        remoteFacade = RemoteFacade.getInstance();
     }
 
     @Override
@@ -47,7 +45,7 @@ public class RemoteCreateOrderRequestHandler extends AbstractQueryHandler {
 		}
 
         try {
-            this.remoteFacade.activateOrder(order);
+            RemoteFacade.getInstance().activateOrder(order);
         } catch (UnauthorizedException e) {
             LOGGER.error("The user is not authorized to create order: " + order.getId(), e);
             response.setError(PacketError.Condition.forbidden);

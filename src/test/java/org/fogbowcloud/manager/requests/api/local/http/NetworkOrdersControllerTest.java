@@ -169,7 +169,7 @@ public class NetworkOrdersControllerTest {
     }
 
     private NetworkOrder createNetworkOrder() {
-    	FederationUser federationUser = new FederationUser(-1l, null);
+    	FederationUser federationUser = new FederationUser("fake-user", null);
 
         NetworkOrder networkOrder = Mockito.spy(new NetworkOrder());
         networkOrder.setFederationUser(federationUser);

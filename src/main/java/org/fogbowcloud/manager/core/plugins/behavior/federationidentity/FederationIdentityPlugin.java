@@ -3,8 +3,8 @@ package org.fogbowcloud.manager.core.plugins.behavior.federationidentity;
 import java.util.Map;
 
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenValueCreationException;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.plugins.exceptions.TokenValueCreationException;
 
 public interface FederationIdentityPlugin {
 
@@ -17,13 +17,13 @@ public interface FederationIdentityPlugin {
      * @throws TokenValueCreationException
      */
     public String createFederationTokenValue(Map<String, String> userCredentials)
-        throws UnauthenticatedException, TokenValueCreationException, TokenValueCreationException;
+            throws UnauthenticatedException, TokenValueCreationException;
 
     /**
      * Based on an access id recreates a Token containing the corresponding access id plus the user
      * name and some arbitrary information regarding the token.
      *
-     * @return a Token for the corresponding accessId.
+     * @return a FederationUser for the corresponding federationTokenValue.
      * @throws UnauthenticatedException
      */
     public FederationUser getFederationUser(String federationTokenValue) throws UnauthenticatedException;

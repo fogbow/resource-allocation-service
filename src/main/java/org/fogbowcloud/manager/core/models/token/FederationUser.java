@@ -4,20 +4,20 @@ import java.util.Map;
 
 public class FederationUser {
 
-    private Long id;
+    private String id;
 
     private Map<String, String> attributes;
 
-    public FederationUser(Long id, Map<String, String> attributes) {
+    public FederationUser(String id, Map<String, String> attributes) {
         this.id = id;
         this.attributes = attributes;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

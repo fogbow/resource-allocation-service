@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
@@ -196,7 +197,14 @@ public class ApplicationFacade {
         this.aaController.authorize(federationUser, Operation.CREATE, order);
 
         order.setFederationUser(federationUser);
-        this.orderController.activateOrder(order);
+
+        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+
+        order.setRequestingMember(localMemberId);
+        if (order.getProvidingMember() == null) {
+            order.setProvidingMember(localMemberId);
+        }
+        OrderStateTransitioner.activateOrder(order);
     }
 
     private void deleteOrder(String orderId, String federationTokenValue, InstanceType instanceType)

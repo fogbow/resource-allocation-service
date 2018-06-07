@@ -1,10 +1,10 @@
 package org.fogbowcloud.manager.utils;
 
-import java.util.Properties;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.connection.channel.direct.Session;
 import net.schmizz.sshj.connection.channel.direct.Session.Command;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.processors.SpawningProcessor;
@@ -16,8 +16,6 @@ public class SshConnectivityUtil {
     private static final String MESSAGE_ECHO_SEND = "echo HelloWorld";
 
     private static final Logger LOGGER = Logger.getLogger(SpawningProcessor.class);
-
-    private static Properties properties;
 
     private SshClientPoolUtil sshClientPool = new SshClientPoolUtil();
 
@@ -62,15 +60,11 @@ public class SshConnectivityUtil {
     }
 
     private String getManagerSSHPrivateKey() {
-        String privateKey =
-                properties.getProperty(ConfigurationConstants.MANAGER_SSH_PRIVATE_KEY_PATH);
+        String privateKey = PropertiesHolder.getInstance().
+                getProperty(ConfigurationConstants.MANAGER_SSH_PRIVATE_KEY_PATH);
         if (privateKey == null || privateKey.isEmpty()) {
             return null;
         }
         return privateKey;
-    }
-
-    public static void setProperties(Properties properties) {
-        SshConnectivityUtil.properties = properties;
     }
 }

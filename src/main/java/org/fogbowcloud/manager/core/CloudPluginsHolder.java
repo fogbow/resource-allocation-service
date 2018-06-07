@@ -6,7 +6,7 @@ import org.fogbowcloud.manager.core.plugins.cloud.localidentity.LocalIdentityPlu
 import org.fogbowcloud.manager.core.plugins.cloud.network.NetworkPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.quota.ComputeQuotaPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.volume.VolumePlugin;
-import org.fogbowcloud.manager.core.services.InstantiationInitService;
+import org.fogbowcloud.manager.core.services.PluginInstantiationService;
 
 public class CloudPluginsHolder {
 
@@ -17,7 +17,7 @@ public class CloudPluginsHolder {
     private NetworkPlugin networkPlugin;
     private VolumePlugin volumePlugin;
 
-    public CloudPluginsHolder(InstantiationInitService instantiationInitService) {
+    public CloudPluginsHolder(PluginInstantiationService instantiationInitService) {
 
         this.attachmentPlugin = instantiationInitService.getAttachmentPlugin();
         this.computePlugin = instantiationInitService.getComputePlugin();

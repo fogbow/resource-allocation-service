@@ -7,10 +7,14 @@ public class DefaultConfigurationConstants {
     // CONFIGURATION FILES PATHS
     public static final String MANAGER_CONF_FILE_FULL_PATH =
             "src/main/resources/manager.properties";
-    public static final String INFRA_CONF_FILE_FULL_PATH =
-            "src/main/resources/infrastructure.properties";
-    public static final String FEDERATION_CONF_FILE_FULL_PATH =
-            "src/main/resources/federationidentity.properties";
+    public static final String REVERSE_TUNNEL_CONF_FILE_FULL_PATH =
+            "src/main/resources/reverse-tunnel.properties";
+    public static final String INTERCOMPONENT_CONF_FILE_FULL_PATH =
+            "src/main/resources/intercomponent.properties";
+    public static final String CLOUD_CONF_FILE_FULL_PATH =
+            "src/main/resources/cloud.properties";
+    public static final String BEHAVIOR_CONF_FILE_FULL_PATH =
+            "src/main/resources/behavior.properties";
 
     // SCHEDULER PERIODS
     public static final String OPEN_ORDERS_SLEEP_TIME =

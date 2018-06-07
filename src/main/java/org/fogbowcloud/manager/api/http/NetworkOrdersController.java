@@ -14,8 +14,7 @@ import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,7 +33,7 @@ public class NetworkOrdersController {
     private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
     private ApplicationFacade applicationFacade;
-    private final Logger LOGGER = LoggerFactory.getLogger(NetworkOrdersController.class);
+    private final Logger LOGGER = Logger.getLogger(NetworkOrdersController.class);
     
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<Order> createNetwork(@RequestBody NetworkOrder networkOrder,

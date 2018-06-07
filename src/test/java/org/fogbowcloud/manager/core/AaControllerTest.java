@@ -69,7 +69,7 @@ public class AaControllerTest {
 
     	@Test
     	public void testAuthorizePassingOrderTypeParam() {
-				FederationUser federationUser = new FederationUser(-1L, null);
+				FederationUser federationUser = new FederationUser("fake-user", null);
     		Mockito.doReturn(true).when(this.authorizationPlugin).isAuthorized(Mockito.eq(federationUser),
                     Mockito.any(Operation.class), Mockito.any(InstanceType.class));
 
@@ -84,7 +84,7 @@ public class AaControllerTest {
 
         @Test
         public void testAuthorizePassingOrderParam() {
-            FederationUser federationUser = new FederationUser(-1L, null);
+            FederationUser federationUser = new FederationUser("fake-user", null);
             Order order = new ComputeOrder();
             Mockito.doReturn(true).when(this.authorizationPlugin).isAuthorized(Mockito.eq(federationUser),
                     Mockito.any(Operation.class), Mockito.eq(order));

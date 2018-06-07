@@ -9,6 +9,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.CommonConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.processors.SpawningProcessor;
@@ -19,7 +20,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Properties;
 
 public class TunnelingServiceUtil {
 
@@ -29,7 +29,6 @@ public class TunnelingServiceUtil {
     public static final String TOKEN_POINT = "/token/";
     public static final String END_POINT_ALL = "/all";
 
-    private Properties properties;
     private PoolingHttpClientConnectionManager connectionManager;
 
     private HttpClient reverseTunnelHttpClient = createReverseTunnelHttpClient();
@@ -46,25 +45,19 @@ public class TunnelingServiceUtil {
         return instance;
     }
 
-    public void setProperties(Properties properties) {
-        this.properties = properties;
-    }
-
     public Map<String, String> getExternalServiceAddresses(String orderId) {
         if (orderId == null || orderId.isEmpty()) {
             return null;
         }
-        String hostAddr =
-                this.properties.getProperty(
+        String hostAddr = PropertiesHolder.getInstance().getProperty(
                         ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY);
         if (hostAddr == null) {
             return null;
         }
         HttpResponse response = null;
         try {
-            String httpHostPort =
-                    this.properties.getProperty(
-                            ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY);
+            String httpHostPort = PropertiesHolder.getInstance().getProperty(
+                    ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY);
             HttpGet httpGet =
                     new HttpGet(
                             HTTP_PROTOCOL
@@ -87,8 +80,7 @@ public class TunnelingServiceUtil {
                 @SuppressWarnings("unchecked")
                 Iterator<String> serviceIterator = jsonPorts.keys();
                 Map<String, String> servicePerAddress = new HashMap<String, String>();
-                String sshPublicHostIP =
-                        this.properties.getProperty(
+                String sshPublicHostIP = PropertiesHolder.getInstance().getProperty(
                                 ConfigurationConstants.REVERSE_TUNNEL_PUBLIC_ADDRESS_KEY);
                 while (serviceIterator.hasNext()) {
                     String service = serviceIterator.next();

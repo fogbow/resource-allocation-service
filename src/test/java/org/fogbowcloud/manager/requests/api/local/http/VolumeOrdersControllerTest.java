@@ -168,7 +168,7 @@ public class VolumeOrdersControllerTest {
     }
 
     private VolumeOrder createVolumeOrder() {
-    	FederationUser federationUser = new FederationUser(-1l, null);
+    	FederationUser federationUser = new FederationUser("fake-user", null);
 
         VolumeOrder volumeOrder = Mockito.spy(new VolumeOrder());
         volumeOrder.setFederationUser(federationUser);

@@ -1,7 +1,5 @@
 package org.fogbowcloud.manager.core.plugins.behavior.federationidentity;
 
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenValueCreationException;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 
 import java.util.HashMap;
@@ -9,7 +7,7 @@ import java.util.Map;
 import java.util.Properties;
 
 public class DefaultFederationIdentityPlugin implements FederationIdentityPlugin {
-    
+
     private Properties properties;
     
     public DefaultFederationIdentityPlugin(Properties properties) {
@@ -17,17 +15,17 @@ public class DefaultFederationIdentityPlugin implements FederationIdentityPlugin
     }
     
     @Override
-    public String createFederationTokenValue(Map<String, String> userCredentials) throws UnauthenticatedException, TokenValueCreationException {
+    public String createFederationTokenValue(Map<String, String> userCredentials) {
         return null;
     }
 
     @Override
-    public FederationUser getFederationUser(String federationTokenValue) throws UnauthenticatedException {
-        Map<String, String> attributes = new HashMap<String, String>();
+    public FederationUser getFederationUser(String federationTokenValue) {
+        Map<String, String> attributes = new HashMap();
 
-        attributes.put("user_name", "default_user");
+        attributes.put("name", "default");
 
-        return new FederationUser(0L, attributes);
+        return new FederationUser("default", attributes);
     }
 
     @Override

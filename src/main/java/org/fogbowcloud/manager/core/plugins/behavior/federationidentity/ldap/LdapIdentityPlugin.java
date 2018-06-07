@@ -10,11 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import javax.naming.Context;
@@ -25,7 +21,9 @@ import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
+import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.exceptions.InvalidCredentialsException;
@@ -33,7 +31,7 @@ import org.fogbowcloud.manager.core.plugins.exceptions.InvalidTokenException;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenValueCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.utils.PropertiesUtil;
 import org.fogbowcloud.manager.utils.RSAUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -44,12 +42,15 @@ import org.json.JSONObject;
  */
 public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
+    private static final Logger LOGGER = Logger.getLogger(LdapIdentityPlugin.class);
+
+    private static final String PLUGIN_CONF_FILE_FULL_PATH = "ldap-identity-plugin.conf";
+
     private static final String ATT_EXPIRATION_DATE = "expirationDate";
     private static final String ATT_NAME = "name";
-    private static final String ATT_LOGIN = "lognin";
+    private static final String ATT_LOGIN = "login";
 
-    private static final long EXPIRATION_INTERVAL = TimeUnit.DAYS.toMillis(365); // One
-    // year
+    private static final long EXPIRATION_INTERVAL = TimeUnit.DAYS.toMillis(365); // One year
 
     private static final String PROP_LDAP_BASE = "ldap_base";
     private static final String PROP_LDAP_URL = "ldap_identity_url";
@@ -77,7 +78,11 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
     private String privateKeyPath;
     private String publicKeyPath;
 
-    public LdapIdentityPlugin(Properties properties) {
+    public LdapIdentityPlugin() {
+        List<String> configFilesNames = new ArrayList<>();
+        configFilesNames.add(PLUGIN_CONF_FILE_FULL_PATH);
+        Properties properties = new Properties();
+        properties = PropertiesUtil.readProperties(configFilesNames);
         this.ldapBase = properties.getProperty(PROP_LDAP_BASE);
         this.ldapUrl = properties.getProperty(PROP_LDAP_URL);
         this.encryptType = properties.getProperty(PROP_LDAP_ENCRYPT_TYPE);
@@ -87,11 +92,6 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
     @Override
     public String createFederationTokenValue(Map<String, String> userCredentials)
-        throws UnauthenticatedException, TokenValueCreationException {
-        return createToken(userCredentials).getAccessId();
-    }
-
-    public Token createToken(Map<String, String> userCredentials)
         throws UnauthenticatedException, TokenValueCreationException {
 
         String userId = userCredentials.get(CRED_USERNAME);
@@ -123,12 +123,10 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
             String federationTokenValue = json.toString() + ACCESSID_SEPARATOR + signature;
 
             federationTokenValue =
-                    new String(
-                            Base64.encodeBase64(
-                                    federationTokenValue.getBytes(StandardCharsets.UTF_8), false, false),
-                            StandardCharsets.UTF_8);
+                    new String(Base64.encodeBase64(federationTokenValue.getBytes(StandardCharsets.UTF_8),
+                            false, false), StandardCharsets.UTF_8);
 
-            return new Token(federationTokenValue, new Token.User(userId, name), expirationDate, attributes);
+            return federationTokenValue;
         } catch (IOException | GeneralSecurityException e) {
             throw new TokenValueCreationException("Error while trying to sign the token.", e);
         }
@@ -153,13 +151,54 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
     }
 
     @Override
-    public FederationUser getFederationUser(String federationTokenValue)
-        throws UnauthenticatedException {
-//        Token token = getToken(federationTokenValue);
-        return null;
+    public FederationUser getFederationUser(String federationTokenValue) throws UnauthenticatedException {
+
+        try {
+
+            String decodedFederationTokenValue = new String(Base64.decodeBase64(federationTokenValue), Charsets.UTF_8);
+
+            String split[] = decodedFederationTokenValue.split(ACCESSID_SEPARATOR);
+            if(split == null || split.length < 2){
+                LOGGER.error("Invalid accessID: " + decodedFederationTokenValue);
+                throw new UnauthenticatedException();
+            }
+
+            String tokenValue = split[0];
+            String signature = split[1];
+
+            JSONObject root = new JSONObject(tokenValue);
+            Date expirationDate = new Date(root.getLong(ATT_EXPIRATION_DATE));
+
+            if(!verifySign(tokenValue, signature)){
+                LOGGER.error("Invalid accessID: " + decodedFederationTokenValue);
+                throw new UnauthenticatedException();
+            }
+
+            String uuid = root.getString(ATT_LOGIN);
+            String name = root.getString(ATT_NAME);
+
+            HashMap<String, String> attributes = new HashMap<String, String>();
+            attributes.put("user_id", uuid);
+            attributes.put("user_name", name);
+
+            return new FederationUser(uuid, attributes);
+        } catch (JSONException e) {
+            LOGGER.error("Exception while getting token from json.", e);
+            throw new UnauthenticatedException();
+        }
     }
 
-    public Token getToken(String federationTokenValue) throws UnauthorizedException {
+    @Override
+    public boolean isValid(String federationTokenValue) {
+        try {
+            checkTokenValue(federationTokenValue);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void checkTokenValue(String federationTokenValue) throws UnauthorizedException {
         try {
             String decodedAccessId =
                     new String(Base64.decodeBase64(federationTokenValue), StandardCharsets.UTF_8);
@@ -178,14 +217,6 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
             if (!verifySign(tokenMessage, signature)) {
                 throw new UnauthorizedException("Invalid accessID: " + decodedAccessId);
             }
-
-            String uuid = root.getString(ATT_LOGIN);
-            String name = root.getString(ATT_NAME);
-            return new Token(
-                    federationTokenValue,
-                    new Token.User(uuid, name),
-                    expirationDate,
-                    new HashMap<String, String>());
         } catch (JSONException e) {
             throw new InvalidTokenException("Exception while getting token from json.", e);
         }
@@ -274,16 +305,6 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
         return PASSWORD_ENCRYPTED
                 .replaceAll(ENCRYPT_TYPE, this.encryptType)
                 .replaceAll(ENCRYPT_PASS, hexString.toString());
-    }
-
-    @Override
-    public boolean isValid(String accessId) {
-        try {
-            getToken(accessId);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
     }
 
     protected String createSignature(JSONObject json)

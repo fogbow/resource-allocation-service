@@ -10,12 +10,11 @@ import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.log4j.Logger;
 
 public class UserQuotaController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserQuotaController.class);
+    private static final Logger LOGGER = Logger.getLogger(UserQuotaController.class);
 
     public UserQuotaController() { }
 

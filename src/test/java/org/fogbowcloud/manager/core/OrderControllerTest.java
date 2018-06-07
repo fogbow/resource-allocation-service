@@ -31,14 +31,11 @@ public class OrderControllerTest extends BaseUnitTests {
     private ChainedList closedOrdersList;
     private String localMember = BaseUnitTests.LOCAL_MEMBER_ID;
 
-    private Properties properties;
     private LocalCloudConnector localInstanceProvider;
     private RemoteCloudConnector remoteInstanceProvider;
 
     @Before
     public void setUp() {
-        this.properties = PropertiesUtil.getProperties();
-		this.properties.put(ConfigurationConstants.XMPP_JID_KEY, this.localMember);
         this.localInstanceProvider = Mockito.mock(LocalCloudConnector.class);
         this.remoteInstanceProvider = Mockito.mock(RemoteCloudConnector.class);
 
@@ -58,10 +55,9 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test
     public void testNewOrderRequest() {
         try {
-            OrderController ordersManagerController = new OrderController("");
             ComputeOrder computeOrder = new ComputeOrder();
-            FederationUser federationUser = new FederationUser(-1l, null);
-            ordersManagerController.activateOrder(computeOrder);
+            FederationUser federationUser = new FederationUser("fake-id", null);
+            OrderStateTransitioner.activateOrder(computeOrder);
         } catch (OrderManagementException e) {
             Assert.fail();
         }
@@ -71,8 +67,8 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testFailedNewOrderRequestOrderIsNull() {
         try {
             ComputeOrder computeOrder = null;
-            FederationUser federationUser = new FederationUser(-1l, null);
-            this.ordersManagerController.activateOrder(computeOrder);
+            FederationUser federationUser = new FederationUser("fake-id", null);
+            OrderStateTransitioner.activateOrder(computeOrder);
         } catch (OrderManagementException e) {
             String expectedErrorMessage =
                     "Can't process new order request. Order reference is null.";
@@ -173,7 +169,7 @@ public class OrderControllerTest extends BaseUnitTests {
     private String getComputeOrderCreationId(OrderState orderState) {
         String orderId = null;
 
-        FederationUser federationUser = new FederationUser(-1l, null);
+        FederationUser federationUser = new FederationUser("fake-id", null);
         ComputeOrder computeOrder = Mockito.spy(new ComputeOrder());
         computeOrder.setFederationUser(federationUser);
         computeOrder.setRequestingMember(this.localMember);

@@ -24,7 +24,6 @@ import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.utils.PropertiesUtil;
-import org.fogbowcloud.manager.utils.SshCommonUserUtil;
 import org.fogbowcloud.manager.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
 import org.junit.After;
@@ -56,10 +55,9 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         this.tunnelingService = Mockito.mock(TunnelingServiceUtil.class);
         // TODO review !
-        SshCommonUserUtil.setProperties(new Properties());
         this.sshConnectivity = Mockito.mock(SshConnectivityUtil.class);
 
-        this.properties = PropertiesUtil.getProperties();
+        this.properties = new Properties();
         this.properties.put(ConfigurationConstants.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 
         this.thread = null;
