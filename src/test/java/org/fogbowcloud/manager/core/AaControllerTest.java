@@ -17,8 +17,10 @@ import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.Federati
 import org.fogbowcloud.manager.core.plugins.cloud.localidentity.LocalIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.services.InstantiationInitService;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -27,7 +29,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-//@PrepareForTest({AuthenticationControllerUtil.class})
 public class AaControllerTest {
 
     	private AaController AaController;
@@ -35,21 +36,26 @@ public class AaControllerTest {
     	private FederationIdentityPlugin federationIdentityPlugin;
     	private LocalIdentityPlugin localIdentityPlugin;
     	private Properties properties;
+    	
+    	private InstantiationInitService instantiationInitService;
+    	private BehaviorPluginsHolder behaviorPluginsHolder;
 
     	@Before
     	public void setUp() {
     		this.properties = new Properties();
-    		this.federationIdentityPlugin = Mockito.mock(FederationIdentityPlugin.class);
     		this.localIdentityPlugin = Mockito.mock(LocalIdentityPlugin.class);
     		this.authorizationPlugin = Mockito.mock(AuthorizationPlugin.class);
-    		this.AaController = Mockito.spy(new AaController(this.localIdentityPlugin, null));
-//    		PowerMockito.mockStatic(AuthenticationControllerUtil.class);
+
+    		this.instantiationInitService = Mockito.spy(new InstantiationInitService());
+            this.behaviorPluginsHolder = Mockito.spy(new BehaviorPluginsHolder(instantiationInitService));
+            this.federationIdentityPlugin = Mockito.spy(this.behaviorPluginsHolder.getFederationIdentityPlugin());
+//            Mockito.doReturn(this.federationIdentityPlugin).when(this.behaviorPluginsHolder).getFederationIdentityPlugin();
+    		this.AaController = Mockito.spy(new AaController(this.localIdentityPlugin, this.behaviorPluginsHolder));
     	}
 
     	@Test
     	public void testAuthenticate() throws UnauthenticatedException {
     		boolean isAuthenticated = true;
-
     	    Mockito.doReturn(isAuthenticated).when(this.federationIdentityPlugin).isValid(Mockito.anyString());
     		this.AaController.authenticate(Mockito.anyString());
     	}
@@ -101,7 +107,7 @@ public class AaControllerTest {
         }
 
         @SuppressWarnings("unchecked")
-		@Test(expected=PropertyNotSpecifiedException.class)
+        @Test(expected=PropertyNotSpecifiedException.class)
         public void testGetLocalTokenWithNoCredentials() throws PropertyNotSpecifiedException, UnauthorizedException,
                 TokenCreationException {
             // Mocking authentication controller util
