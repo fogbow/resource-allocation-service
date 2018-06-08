@@ -17,3 +17,6 @@
 5. PropertiesUtil
 	- na linha 42 temos um log fatal mas não temos um System.exit
 	- o bloco de código executado no catch (FileNotFoundException e) é mais complicado do que o necessário. sugiro colocar um TODO para refatoramos de maneira que tenhamos um outro método que faz o parse de um filename por vez. Com isso, não será necessário fazer parse da mensagem da exception. Isso é ruim primeiro pq o código está díficil de entender, segundo, porque a mensagem de exceção não é um contrato, pode mudar a qualquer momento.
+
+6. AaController
+	- UnauthorizedException não é mais lançada no método getFederationUser
