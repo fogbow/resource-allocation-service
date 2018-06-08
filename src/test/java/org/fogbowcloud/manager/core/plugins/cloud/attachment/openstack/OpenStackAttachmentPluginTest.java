@@ -22,8 +22,11 @@ public class OpenStackAttachmentPluginTest {
     private static final String FAKE_VOLUME_ID = "fake-volume-id";
     private static final String MOUNT_POINT = "/dev/vdd";
     
+    @SuppressWarnings("unused")
     private AttachmentOrder attachmentOrder;
     private OpenStackNovaV2AttachmentPlugin openStackAttachmentPlugin;
+    
+    @SuppressWarnings("unused")
     private Token localToken;
 
     @Before
@@ -40,20 +43,14 @@ public class OpenStackAttachmentPluginTest {
     }
     
     @Test
-    public void test() {
-        
-    }
-    
-    @Test
     public void generateJsonToAttachTest() {
         VolumeOrder volumeOrder = Mockito.spy(new VolumeOrder());
         String volumeId = volumeOrder.getId();
         
-        JSONObject json = this.openStackAttachmentPlugin.generateJsonToAttach(volumeId, MOUNT_POINT);
+        JSONObject json = this.openStackAttachmentPlugin.generateJsonToAttach(volumeId);
         
         String expected = "{\"volumeAttachment\":{\"volumeId\":\"" + volumeId + "\"}}";
         Assert.assertNotNull(json);
-        System.out.println(json);
         Assert.assertEquals(expected, json.toString());        
     }
 }

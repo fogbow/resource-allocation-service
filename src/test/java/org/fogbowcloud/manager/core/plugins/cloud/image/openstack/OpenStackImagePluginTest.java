@@ -3,9 +3,7 @@ package org.fogbowcloud.manager.core.plugins.cloud.image.openstack;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
-import org.fogbowcloud.manager.core.constants.OpenStackConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.ImageException;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.token.Token;
@@ -20,10 +18,10 @@ public class OpenStackImagePluginTest {
 	@Test
 	public void testGetAllImages() throws ImageException  {
 		
-		Properties properties = new Properties();
+		//Properties properties = new Properties();
 		
-		properties.put(OpenStackConfigurationConstants.COMPUTE_NOVAV2_URL_KEY, "https://cloud.lsd.ufcg.edu.br:9292");
-		OpenStackImagePlugin plugin = new OpenStackImagePlugin(properties);
+//		properties.put(OpenStackConfigurationConstants.COMPUTE_NOVAV2_URL_KEY, "https://cloud.lsd.ufcg.edu.br:9292");
+		OpenStackImagePlugin plugin = new OpenStackImagePlugin();
 		
 		Token token = new Token();
 		

@@ -7,10 +7,16 @@ import static org.junit.Assert.assertNull;
 import java.util.HashMap;
 import java.util.Properties;
 
+import org.fogbowcloud.manager.core.AaController;
 import org.fogbowcloud.manager.core.BaseUnitTests;
+import org.fogbowcloud.manager.core.BehaviorPluginsHolder;
+import org.fogbowcloud.manager.core.CloudPluginsHolder;
+import org.fogbowcloud.manager.core.OrderController;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
-import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
+import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
+import org.fogbowcloud.manager.core.cloudconnector.RemoteCloudConnector;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
@@ -23,7 +29,8 @@ import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.utils.PropertiesUtil;
+import org.fogbowcloud.manager.core.plugins.cloud.localidentity.LocalIdentityPlugin;
+import org.fogbowcloud.manager.core.services.PluginInstantiationService;
 import org.fogbowcloud.manager.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
 import org.junit.After;
@@ -34,25 +41,26 @@ import org.mockito.Mockito;
 public class FulfilledProcessorTest extends BaseUnitTests {
 
     private FulfilledProcessor fulfilledProcessor;
-
-    private CloudConnector localCloudConnector;
-    private CloudConnector remoteCloudConnector;
-
+    private AaController aaController;
+    private RemoteCloudConnector remoteCloudConnector;
+    private LocalCloudConnector localCloudConnector;
+    private LocalIdentityPlugin localIdentityPlugin;
+    private BehaviorPluginsHolder behaviorPluginsHolder;
+    private OrderController orderController;
     private Properties properties;
-
     private TunnelingServiceUtil tunnelingService;
     private SshConnectivityUtil sshConnectivity;
-
     private Thread thread;
-
     private ChainedList fulfilledOrderList;
     private ChainedList failedOrderList;
 
     @Before
     public void setUp() {
-        this.localCloudConnector = Mockito.mock(CloudConnector.class);
-        this.remoteCloudConnector = Mockito.mock(CloudConnector.class);
-
+    	initServiceConfig();
+    	
+        this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
+        this.remoteCloudConnector = Mockito.mock(RemoteCloudConnector.class);
+    	
         this.tunnelingService = Mockito.mock(TunnelingServiceUtil.class);
         // TODO review !
         this.sshConnectivity = Mockito.mock(SshConnectivityUtil.class);
@@ -69,6 +77,23 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrderList = sharedOrderHolders.getFulfilledOrdersList();
         this.failedOrderList = sharedOrderHolders.getFailedOrdersList();
+    }
+    
+    private void initServiceConfig() {
+        PluginInstantiationService instantiationInitService = PluginInstantiationService.getInstance();
+
+        this.behaviorPluginsHolder = new BehaviorPluginsHolder(instantiationInitService);
+        this.behaviorPluginsHolder.getLocalUserCredentialsMapperPlugin();
+
+        this.aaController = new AaController(this.localIdentityPlugin, this.behaviorPluginsHolder);
+        this.orderController = new OrderController(getLocalMemberId());
+
+        CloudPluginsHolder cloudPluginsHolder = new CloudPluginsHolder(instantiationInitService);
+        CloudConnectorFactory.getInstance().setCloudPluginsHolder(cloudPluginsHolder);
+        CloudConnectorFactory.getInstance().setLocalMemberId(getLocalMemberId());
+        CloudConnectorFactory.getInstance().setAaController(this.aaController);
+        CloudConnectorFactory.getInstance().setOrderController(this.orderController);
+//        CloudConnectorFactory.getInstance().setPacketSender(xmppComponentManager);
     }
 
     @After

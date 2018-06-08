@@ -4,12 +4,12 @@ public class ComputeAllocation extends Allocation {
 
 	private int vCPU;
 	private int ram;
-	private int disk;
+	private int instances;
 	
-	public ComputeAllocation(int vCPU, int ram, int disk) {
+	public ComputeAllocation(int vCPU, int ram, int instances) {
 		this.vCPU = vCPU;
 		this.ram = ram;
-		this.disk = disk;
+		this.instances = instances;
 	}
 	
 	public int getvCPU() {
@@ -20,12 +20,8 @@ public class ComputeAllocation extends Allocation {
 		return this.ram;
 	}
 
-	public int getDisk() {
-		return this.disk;
-	}
-
 	public int getInstances() {
-		return this.disk;
+		return this.instances;
 	}	
 	
 }

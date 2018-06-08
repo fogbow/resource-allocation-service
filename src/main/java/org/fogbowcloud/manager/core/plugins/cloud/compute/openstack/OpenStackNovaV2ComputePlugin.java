@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.cloud.compute.openstack;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -17,9 +18,9 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.constants.OpenStackConfigurationConstants;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.compute.ComputePlugin;
@@ -36,11 +37,17 @@ import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.utils.HttpRequestUtil;
+import org.fogbowcloud.manager.utils.PropertiesUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
+
+    private static final String NOVAV2_PLUGIN_CONF_FILE = "openstack-nova-compute-plugin.conf";
+
+    private static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
+    private static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
 
     private static final String ID_JSON_FIELD = "id";
     private static final String NAME_JSON_FIELD = "name";
@@ -61,15 +68,11 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private static final String UUID_JSON_FIELD = "uuid";
     private static final String FOGBOW_INSTANCE_NAME = "fogbow-instance-";
     private static final String TENANT_ID = "tenantId";
-    private static final String COMPUTE_NOVAV2_NETWORK_KEY = "compute_novav2_network_id";
 
     private static final String SERVERS = "/servers";
     private static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
     private static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
     private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
-
-//    private static final String ACTIVE_STATUS = "active";
-//    private static final String BUILD_STATUS = "build";
 
     private static final Logger LOGGER = Logger.getLogger(OpenStackNovaV2ComputePlugin.class);
 
@@ -80,17 +83,17 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private InstanceStateMapper instanceStateMapper;
 
     public OpenStackNovaV2ComputePlugin() {
-        // TODO Fix properties...
-        this.properties = new Properties();
-        LOGGER.debug("Creating OpenStackNovaV2ComputePlugin with properties=" + properties.toString());
+        HomeDir homeDir = HomeDir.getInstance();
+        this.properties = PropertiesUtil.
+                readProperties(homeDir.getPath() + File.separator + NOVAV2_PLUGIN_CONF_FILE);
         try {
-            this.launchCommandGenerator = new DefaultLaunchCommandGenerator(this.properties);
+            this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
         } catch (PropertyNotSpecifiedException e) {
             LOGGER.error("failed to instantiate class with properties = " + this.properties.toString(), e);
         } catch (IOException e) {
             LOGGER.error("failed to instantiate class with properties = " + this.properties.toString(), e);
         }
-        instantiateAnotherAttributes();        
+        instantiateOtherAttributes();
     }
     
     /** Constructor used for testing only */
@@ -98,10 +101,10 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         LOGGER.debug("Creating OpenStackNovaV2ComputePlugin with properties=" + properties.toString());
         this.properties = properties;
         this.launchCommandGenerator = launchCommandGenerator;
-        instantiateAnotherAttributes();
+        instantiateOtherAttributes();
     }
     
-    private void instantiateAnotherAttributes() {
+    private void instantiateOtherAttributes() {
         this.flavors = new TreeSet<Flavor>();
         this.instanceStateMapper = new OpenStackComputeInstanceStateMapper();
         this.initClient();
@@ -133,8 +136,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             String instanceId = getAttFromJson(ID_JSON_FIELD, jsonResponse);
 
             synchronized (computeOrder) {
-                ComputeAllocation actualAllocation = new ComputeAllocation(flavor.getCpu(), flavor.getRam(),
-                        flavor.getDisk());
+                ComputeAllocation actualAllocation = new ComputeAllocation(flavor.getCpu(), flavor.getRam(), 1);
                 computeOrder.setActualAllocation(actualAllocation);
             }
             return instanceId;
@@ -153,7 +155,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     private void initClient() {
-        HttpRequestUtil.init(this.properties);
+        HttpRequestUtil.init();
         this.client = HttpRequestUtil.createHttpClient();
     }
 
@@ -163,7 +165,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     protected String getNetworkId() {
-        return this.properties.getProperty(COMPUTE_NOVAV2_NETWORK_KEY);
+        return this.properties.getProperty(NETWORK_NEUTRONV2_URL_KEY);
     }
 
     protected String getKeyName(String tenantId, Token localToken, String publicKey)
@@ -193,7 +195,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     protected String getComputeEndpoint(String tenantId, String suffix) {
-        return this.properties.getProperty(OpenStackConfigurationConstants.COMPUTE_NOVAV2_URL_KEY)
+        return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY)
                 + COMPUTE_V2_API_ENDPOINT
                 + tenantId
                 + suffix;

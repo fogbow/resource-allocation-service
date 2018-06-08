@@ -21,13 +21,4 @@ public interface LocalIdentityPlugin {
     public Token createToken(Map<String, String> userCredentials)
             throws UnauthorizedException, TokenCreationException;
 
-    /**
-     * Based on an access id recreates a Token containing the corresponding access id plus the user
-     * name and some arbitrary information regarding the token.
-     *
-     * @param tokenValue
-     * @return a Token for the corresponding accessId.
-     */
-    public Token getToken(String tokenValue) throws UnauthenticatedException, UnauthorizedException;
-
 }

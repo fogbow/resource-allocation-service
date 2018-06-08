@@ -23,7 +23,10 @@ public interface FederationIdentityPlugin {
      * Based on an access id recreates a Token containing the corresponding access id plus the user
      * name and some arbitrary information regarding the token.
      *
-     * @return a FederationUser for the corresponding federationTokenValue.
+     * @return a FederationUser for the corresponding federationTokenValue. A federationUser is
+     * composed of a unique id (String) and a Map<String, String> of attributes.
+     * Any implementation of this plugin MUST include at least the following attribute:
+     * "user-name", which is the name of the user (ex. used in the Dashboard after authentication).
      * @throws UnauthenticatedException
      */
     public FederationUser getFederationUser(String federationTokenValue) throws UnauthenticatedException;

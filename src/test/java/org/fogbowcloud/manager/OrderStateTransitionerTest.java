@@ -1,16 +1,27 @@
 package org.fogbowcloud.manager;
 
-import static org.junit.Assert.*;
-import static org.mockito.BDDMockito.*;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
+import java.util.Properties;
+import org.fogbowcloud.manager.core.AaController;
+import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.BaseUnitTests;
+import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.OrderController;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
+import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
+import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -29,6 +40,11 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         Order order = createLocalOrder(getLocalMemberId());
         order.setOrderState(orderState);
         return order;
+    }
+    
+    @Before
+    public void setUp() {
+        HomeDir.getInstance().setPath("src/main/resources");
     }
 
     @After

@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.cloud.network.openstack;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -18,8 +19,8 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.constants.OpenStackConfigurationConstants;
 import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.network.NetworkPlugin;
 import org.fogbowcloud.manager.core.models.ErrorType;
@@ -31,11 +32,16 @@ import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.utils.HttpRequestUtil;
+import org.fogbowcloud.manager.utils.PropertiesUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class OpenStackV2NetworkPlugin implements NetworkPlugin {
+
+    private static final String NEUTRON_PLUGIN_CONF_FILE = "openstack-neutron-network-plugin.conf";
+    private static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
+
     private static final String MSG_LOG_ERROR_MANIPULATE_JSON =
             "An error occurred when manipulate json.";
     protected static final String MSG_LOG_THERE_IS_INSTANCE_ASSOCIATED =
@@ -93,11 +99,13 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     private static final Logger LOGGER = Logger.getLogger(OpenStackV2NetworkPlugin.class);
 
     public OpenStackV2NetworkPlugin() {
-        // TODO Fix properties...
-        Properties properties = new Properties();
+        HomeDir homeDir = HomeDir.getInstance();
+        Properties properties = PropertiesUtil.
+                readProperties(homeDir.getPath() + File.separator + NEUTRON_PLUGIN_CONF_FILE);
+
         this.externalNetworkId = properties.getProperty(KEY_EXTERNAL_GATEWAY_INFO);
         this.networkV2APIEndpoint =
-                properties.getProperty(OpenStackConfigurationConstants.NETWORK_NOVAV2_URL_KEY)
+                properties.getProperty(NETWORK_NEUTRONV2_URL_KEY)
                         + V2_API_ENDPOINT;
         this.instanceStateMapper = new OpenStackNetworkInstanceStateMapper();
         setDNSList(properties);

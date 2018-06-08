@@ -11,7 +11,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.transport.verification.HostKeyVerifier;
-import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 
 public class SshClientPoolUtil {
 
@@ -32,7 +32,7 @@ public class SshClientPoolUtil {
     public SshClientPoolUtil(DateUtils dateUtils) {
         this.sshConnectionSchedulerTimer =
                 new ManagerTimerUtil(Executors.newScheduledThreadPool(1));
-        this.semaphore = new Semaphore(ConfigurationConstants.DEFAULT_MAX_POOL);
+        this.semaphore = new Semaphore(DefaultConfigurationConstants.DEFAULT_MAX_POOL);
         this.dateUtils = dateUtils;
     }
 

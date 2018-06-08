@@ -1,9 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.behavior.mapper;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -11,7 +8,6 @@ import java.util.Properties;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.utils.PropertiesUtil;
 
@@ -20,15 +16,15 @@ public class DefaultLocalUserCredentialsMapper implements LocalUserCredentialsMa
     private static final Logger LOGGER = Logger.getLogger(DefaultLocalUserCredentialsMapper.class);
     
     private static String LOCAL_TOKEN_CREDENTIALS_PREFIX = "local_token_credentials_";
-	private static final String DEFAULT_MAPPER_CONF = "default_mapper.conf";	
+	private static final String DEFAULT_MAPPER_CONF = "default_mapper.conf";
 	
 	private Properties properties;
 	
 	public DefaultLocalUserCredentialsMapper() {
 	    this.properties = new Properties();
         HomeDir homeDir = HomeDir.getInstance();
-        this.properties = PropertiesUtil.readProperties(homeDir.getPath()+
-                File.pathSeparator+DEFAULT_MAPPER_CONF);
+        this.properties = PropertiesUtil.readProperties(homeDir.getPath() +
+                File.separator + DEFAULT_MAPPER_CONF);
     }
 	
 	@Override
@@ -47,7 +43,7 @@ public class DefaultLocalUserCredentialsMapper implements LocalUserCredentialsMa
             throws PropertyNotSpecifiedException {
         Map<String, String> localDefaultTokenCredentials = new HashMap<String, String>();
         if (properties == null) {
-            throw new PropertyNotSpecifiedException("Empty property map");
+            throw new PropertyNotSpecifiedException("Empty property map.");
         }
 
         for (Object keyProperties : properties.keySet()) {
@@ -61,7 +57,7 @@ public class DefaultLocalUserCredentialsMapper implements LocalUserCredentialsMa
         }
 
         if (localDefaultTokenCredentials.isEmpty()) {
-            throw new PropertyNotSpecifiedException("Default localidentity token credentials not found");
+            throw new PropertyNotSpecifiedException("Default localidentity token credentials not found.");
         } else {
             return localDefaultTokenCredentials;
         }

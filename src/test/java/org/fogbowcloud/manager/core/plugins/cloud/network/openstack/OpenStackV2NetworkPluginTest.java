@@ -18,7 +18,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.message.BasicStatusLine;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.constants.OpenStackConfigurationConstants;
 import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.ResponseConstants;
 import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
@@ -37,7 +36,9 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 public class OpenStackV2NetworkPluginTest {
-	
+
+	private static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
+
 	private static final String NETWORK_HA_ROUTER_REPLICATED_INTERFACE = "network:ha_router_replicated_interface";
 	private static final String UTF_8 = "UTF-8";
 	private static final String DEFAULT_GATEWAY_INFO = "000000-gateway_info";
@@ -52,7 +53,7 @@ public class OpenStackV2NetworkPluginTest {
 	public void setUp() {
 		Properties properties = new Properties();
 		properties.put(OpenStackV2NetworkPlugin.KEY_EXTERNAL_GATEWAY_INFO, DEFAULT_GATEWAY_INFO);
-		properties.put(OpenStackConfigurationConstants.NETWORK_NOVAV2_URL_KEY, DEFAULT_NETWORK_URL);
+		properties.put(NETWORK_NEUTRONV2_URL_KEY, DEFAULT_NETWORK_URL);
 		this.openStackV2NetworkPlugin = Mockito.spy(new OpenStackV2NetworkPlugin());
 
 		this.client = Mockito.mock(HttpClient.class);

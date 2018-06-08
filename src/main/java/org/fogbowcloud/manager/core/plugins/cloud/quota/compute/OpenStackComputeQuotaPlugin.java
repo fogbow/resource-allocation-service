@@ -1,8 +1,9 @@
 package org.fogbowcloud.manager.core.plugins.cloud.quota.compute;
 
+import java.io.File;
 import java.util.Properties;
 
-import org.fogbowcloud.manager.core.constants.OpenStackConfigurationConstants;
+import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.QuotaException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
@@ -11,11 +12,15 @@ import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.quota.ComputeQuotaPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.utils.HttpRequestClientUtil;
 import org.fogbowcloud.manager.utils.JSONUtil;
+import org.fogbowcloud.manager.utils.PropertiesUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
-	
+
+	private static final String NOVAV2_PLUGIN_CONF_FILE = "openstack-nova-quota-plugin.conf";
+	private static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
+
 	private static final String SUFFIX = "limits";
 	private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
 	
@@ -30,9 +35,12 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 	private HttpRequestClientUtil client;
 	
 
-	public OpenStackComputeQuotaPlugin(Properties properties) {
-		this.properties = properties;
-	    this.client = new HttpRequestClientUtil(null);
+	public OpenStackComputeQuotaPlugin() {
+		HomeDir homeDir = HomeDir.getInstance();
+		this.properties = PropertiesUtil.
+				readProperties(homeDir.getPath() + File.separator + NOVAV2_PLUGIN_CONF_FILE);
+
+		this.client = new HttpRequestClientUtil();
 	}
 	
 	@Override
@@ -43,7 +51,7 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 
 	private String getJson(Token localToken) throws QuotaException {
 		String endpoint = 
-				this.properties.getProperty(OpenStackConfigurationConstants.COMPUTE_NOVAV2_URL_KEY)
+				this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY)
                 + COMPUTE_V2_API_ENDPOINT	
                 + SUFFIX;
 		try {
@@ -59,12 +67,12 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 			JSONObject jsonObject = (JSONObject) JSONUtil.getValue(jsonStr, "limits", "absolute");
 			ComputeAllocation totalQuota = new ComputeAllocation(
 					jsonObject.getInt(MAX_TOTAL_CORES_JSON), 
-					jsonObject.getInt(MAX_TOTAL_RAM_SIZE_JSON), 
-					0); // TODO is it really disk?
+					jsonObject.getInt(MAX_TOTAL_RAM_SIZE_JSON),
+					jsonObject.getInt(MAX_TOTAL_INSTANCES_JSON));
 			ComputeAllocation usedQuota = new ComputeAllocation(
 					jsonObject.getInt(TOTAL_CORES_USED_JSON), 
 					jsonObject.getInt(TOTAL_RAM_USED_JSON),
-					0); // TODO is it really disk?
+					jsonObject.getInt(TOTAL_INSTANCES_USED_JSON));
 			ComputeQuota computeQuota =	new ComputeQuota(
 					totalQuota, 
 					usedQuota);

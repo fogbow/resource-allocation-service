@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.cloud.localidentity.openstack;
 
+import java.io.File;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -15,10 +16,12 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.plugins.cloud.localidentity.LocalIdentityPlugin;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.utils.HttpRequestUtil;
+import org.fogbowcloud.manager.utils.PropertiesUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -26,8 +29,10 @@ import org.json.JSONObject;
 public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
 
     private static final Logger LOGGER = Logger.getLogger(KeystoneV3IdentityPlugin.class);
-    // TODO: check all required configurations variables in all plugins. The IDENTITY_URL is one example!
-    private static final String IDENTITY_URL = "identity_url";
+
+    private static final String KEYSTONEV3_PLUGIN_CONF_FILE = "openstack-keystone-identity-plugin.conf";
+
+    private static final String OPENSTACK_KEYSTONE_V3_URL = "openstack_keystone_v3_url";
     private static final String X_SUBJECT_TOKEN = "X-Subject-Token";
     private static final String PASSWORD_PROP = "password";
     private static final String IDENTITY_PROP = "identity";
@@ -57,9 +62,11 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
     private HttpClient client;
 
     public KeystoneV3IdentityPlugin() {
-        // TODO Fix properties...
-        Properties properties = new Properties();
-        String identityUrl = properties.getProperty(IDENTITY_URL);
+        HomeDir homeDir = HomeDir.getInstance();
+        Properties properties = PropertiesUtil.
+                readProperties(homeDir.getPath() + File.separator + KEYSTONEV3_PLUGIN_CONF_FILE);
+
+        String identityUrl = properties.getProperty(OPENSTACK_KEYSTONE_V3_URL);
         try {
             if (isUrlValid(identityUrl)) {
                 this.keystoneUrl = identityUrl;
@@ -80,7 +87,7 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
     protected KeystoneV3IdentityPlugin(Properties properties, HttpClient client)
             throws PropertyNotSpecifiedException {
 
-        String identityUrl = properties.getProperty(IDENTITY_URL);
+        String identityUrl = properties.getProperty(OPENSTACK_KEYSTONE_V3_URL);
         isUrlValid(identityUrl);
         this.keystoneUrl = identityUrl;
         this.v3TokensEndpoint = keystoneUrl + V3_TOKENS_ENDPOINT_PATH;
@@ -89,7 +96,7 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
 
     private boolean isUrlValid(String url) throws PropertyNotSpecifiedException {
         if (url == null || url.trim().isEmpty()) {
-            throw new PropertyNotSpecifiedException(IDENTITY_URL);
+            throw new PropertyNotSpecifiedException(OPENSTACK_KEYSTONE_V3_URL);
         }
         return true;
     }
@@ -118,12 +125,6 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
         Token token = getTokenFromJson(response);
 
         return token;
-    }
-
-    @Override
-    public Token getToken(String accessId) {
-        // TODO Implement this method?
-        return null;
     }
 
     private Response doPostRequest(String endpoint, JSONObject json) {

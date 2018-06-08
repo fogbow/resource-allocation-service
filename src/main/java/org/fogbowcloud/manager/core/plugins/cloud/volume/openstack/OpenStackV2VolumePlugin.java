@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.cloud.volume.openstack;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
@@ -12,7 +13,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.constants.OpenStackConfigurationConstants;
+import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.plugins.cloud.volume.VolumePlugin;
 import org.fogbowcloud.manager.core.models.ErrorType;
@@ -23,13 +24,20 @@ import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.utils.HttpRequestUtil;
+import org.fogbowcloud.manager.utils.PropertiesUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class OpenStackV2VolumePlugin implements VolumePlugin {
-	
+
+	private static final String CINDER_PLUGIN_CONF_FILE = "openstack-cinder-volume-plugin.conf";
+	public static final String VOLUME_NOVAV2_URL_KEY = "openstack_cinder_url";
+
 	private final String COULD_NOT_CONSUME_ENTITY_ERROR = "Could not consume entity";
 	private final String TENANT_ID_IS_NOT_SPECIFIED_ERROR = "Tenant id is not specified.";
+
+	private final String TENANT_ID = "openstack_tenantId";
+	private final String V2_API_ENDPOINT = "/v2/";
 	
 	protected static final String KEY_JSON_INSTANCE_UUID = "instance_uuid";
 	protected static final String KEY_JSON_MOUNTPOINT = "mountpoint";
@@ -60,8 +68,6 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	private static final String VALUE_RETYPING_STATUS = "retyping";
 	private static final String VALUE_EXTENDING_STATUS = "extending";
 
-	// TODO put in the properties examples
-	public static final String VOLUME_NOVAV2_URL_KEY = "volume_v2_url";
 	protected static final String SUFIX_ENDPOINT_VOLUMES = "/volumes";
 
 	private HttpClient client;
@@ -70,17 +76,17 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	private static final Logger LOGGER = Logger.getLogger(OpenStackV2VolumePlugin.class);
 
 	public OpenStackV2VolumePlugin() {
-	    // TODO Fix properties...
-        Properties properties = new Properties();
-	    this.volumeV2APIEndpoint = properties.getProperty(VOLUME_NOVAV2_URL_KEY)
-				+ OpenStackConfigurationConstants.V2_API_ENDPOINT;
+		HomeDir homeDir = HomeDir.getInstance();
+		Properties properties = PropertiesUtil.
+				readProperties(homeDir.getPath() + File.separator + CINDER_PLUGIN_CONF_FILE);
+		this.volumeV2APIEndpoint = properties.getProperty(VOLUME_NOVAV2_URL_KEY) + V2_API_ENDPOINT;
 
 		initClient();
 	}
 	
 	@Override
 	public String requestInstance(VolumeOrder order, Token localToken) throws RequestException {
-		String tenantId = localToken.getAttributes().get(OpenStackConfigurationConstants.TENANT_ID);
+		String tenantId = localToken.getAttributes().get(TENANT_ID);
 		if (tenantId == null) {
 			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 			throw new RequestException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);
@@ -104,7 +110,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 	@Override
 	public VolumeInstance getInstance(String storageOrderInstanceId, Token localToken) throws RequestException {
-		String tenantId = localToken.getAttributes().get(OpenStackConfigurationConstants.TENANT_ID);
+		String tenantId = localToken.getAttributes().get(TENANT_ID);
 		if (tenantId == null) {
 			throw new RequestException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 		}		
@@ -117,7 +123,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 	@Override
 	public void deleteInstance(String storageOrderInstanceId, Token localToken) throws RequestException {
-		String tenantId = localToken.getAttributes().get(OpenStackConfigurationConstants.TENANT_ID);
+		String tenantId = localToken.getAttributes().get(TENANT_ID);
 		if (tenantId == null) {
 			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 			throw new RequestException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);

@@ -2,9 +2,7 @@ package org.fogbowcloud.manager.core.plugins.cloud.quota.compute;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
-import org.fogbowcloud.manager.core.constants.OpenStackConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.QuotaException;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.token.Token;
@@ -16,10 +14,10 @@ public class OpenStackComputeQuotaPluginTest {
 	
 	@Test
 	public void testGetUserQuota() throws QuotaException {
-		Properties properties = new Properties();
+		//Properties properties = new Properties();
 		
-		properties.put(OpenStackConfigurationConstants.COMPUTE_NOVAV2_URL_KEY, "https://cloud.lsd.ufcg.edu.br:8774");
-		OpenStackComputeQuotaPlugin plugin = new OpenStackComputeQuotaPlugin(properties);
+		//properties.put(OpenStackConfigurationConstants.COMPUTE_NOVAV2_URL_KEY, "https://cloud.lsd.ufcg.edu.br:8774");
+		OpenStackComputeQuotaPlugin plugin = new OpenStackComputeQuotaPlugin();
 		
 		Token token = new Token();
 		

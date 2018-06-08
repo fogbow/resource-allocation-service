@@ -61,7 +61,7 @@ public class SshConnectivityUtil {
 
     private String getManagerSSHPrivateKey() {
         String privateKey = PropertiesHolder.getInstance().
-                getProperty(ConfigurationConstants.MANAGER_SSH_PRIVATE_KEY_PATH);
+                getProperty(ConfigurationConstants.MANAGER_SSH_PRIVATE_KEY_FILE_PATH);
         if (privateKey == null || privateKey.isEmpty()) {
             return null;
         }

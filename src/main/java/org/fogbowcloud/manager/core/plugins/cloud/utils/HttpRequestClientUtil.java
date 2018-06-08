@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.cloud.utils;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Properties;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -22,8 +21,8 @@ public class HttpRequestClientUtil {
 	private static final Logger LOGGER = Logger.getLogger(HttpRequestClientUtil.class);
 	private HttpClient client;
 	
-	public HttpRequestClientUtil(Properties properties) {
-        HttpRequestUtil.init(properties);
+	public HttpRequestClientUtil() {
+        HttpRequestUtil.init();
         this.client = HttpRequestUtil.createHttpClient();
 	}
 	
