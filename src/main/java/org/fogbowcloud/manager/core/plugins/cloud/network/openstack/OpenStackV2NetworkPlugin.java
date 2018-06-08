@@ -92,7 +92,9 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
 
     private static final Logger LOGGER = Logger.getLogger(OpenStackV2NetworkPlugin.class);
 
-    public OpenStackV2NetworkPlugin(Properties properties) {
+    public OpenStackV2NetworkPlugin() {
+        // TODO Fix properties...
+        Properties properties = new Properties();
         this.externalNetworkId = properties.getProperty(KEY_EXTERNAL_GATEWAY_INFO);
         this.networkV2APIEndpoint =
                 properties.getProperty(OpenStackConfigurationConstants.NETWORK_NOVAV2_URL_KEY)

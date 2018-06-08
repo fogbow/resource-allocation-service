@@ -20,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.constants.OpenStackConfigurationConstants;
+import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.compute.DefaultLaunchCommandGenerator;
@@ -78,8 +79,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private LaunchCommandGenerator launchCommandGenerator;
     private InstanceStateMapper instanceStateMapper;
 
-    public OpenStackNovaV2ComputePlugin(Properties properties) {
-        this.properties = properties;
+    public OpenStackNovaV2ComputePlugin() {
+        // TODO Fix properties...
+        this.properties = new Properties();
         LOGGER.debug("Creating OpenStackNovaV2ComputePlugin with properties=" + properties.toString());
         try {
             this.launchCommandGenerator = new DefaultLaunchCommandGenerator(this.properties);
@@ -129,6 +131,12 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             String jsonResponse = doPostRequest(endpoint, localToken, json);
 
             String instanceId = getAttFromJson(ID_JSON_FIELD, jsonResponse);
+
+            synchronized (computeOrder) {
+                ComputeAllocation actualAllocation = new ComputeAllocation(flavor.getCpu(), flavor.getRam(),
+                        flavor.getDisk());
+                computeOrder.setActualAllocation(actualAllocation);
+            }
             return instanceId;
         } catch (JSONException e) {
             LOGGER.error("Invalid JSON key: " + e);

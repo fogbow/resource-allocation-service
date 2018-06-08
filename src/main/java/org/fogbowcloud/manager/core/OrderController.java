@@ -5,16 +5,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.QuotaException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
-import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
@@ -132,12 +130,13 @@ public class OrderController {
 
     private ComputeAllocation getUserComputeAllocation(Collection<ComputeOrder> computeOrders) {
 
-        int vCPU = 0, ram = 0, instances = 0;
+        int vCPU = 0, ram = 0, disk = 0, instances = 0;
 
         for (ComputeOrder order : computeOrders) {
             ComputeAllocation actualAllocation = order.getActualAllocation();
             vCPU += actualAllocation.getvCPU();
             ram += actualAllocation.getRam();
+            disk += actualAllocation.getDisk();
             instances++;
         }
         return new ComputeAllocation(vCPU, ram, instances);

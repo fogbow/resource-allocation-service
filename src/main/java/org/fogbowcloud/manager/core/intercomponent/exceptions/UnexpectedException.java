@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.api.intercomponent.exceptions;
+package org.fogbowcloud.manager.core.intercomponent.exceptions;
 
 public class UnexpectedException extends RemoteRequestException {
 

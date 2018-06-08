@@ -1,12 +1,12 @@
-package org.fogbowcloud.manager.api.intercomponent.xmpp;
+package org.fogbowcloud.manager.core.intercomponent.xmpp;
 
 public enum RemoteMethod {
-
-    REMOTE_GET_INSTANCE("remoteGetInstance"),
-    REMOTE_GET_USER_QUOTA("remoteGetUserQuota"),
-    REMOTE_GET_USER_ALLOCATION("remoteGetUserAllocation"),
     REMOTE_CREATE_ORDER("remoteCreateOrder"),
     REMOTE_DELETE_ORDER("remoteDeleteOrder"),
+    REMOTE_GET_ALL_IMAGES("remoteGetAllImages"),
+    REMOTE_GET_IMAGE("remoteImage"),
+    REMOTE_GET_ORDER("remoteGetOrder"),
+    REMOTE_GET_USER_QUOTA("remoteGetUserQuota"),
     REMOTE_NOTIFY_EVENT("remoteNotifyEvent");
 
     private final String method;

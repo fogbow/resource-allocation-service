@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.api.intercomponent.xmpp;
+package org.fogbowcloud.manager.core.intercomponent.xmpp;
 
 import org.jamppa.component.PacketSender;
 

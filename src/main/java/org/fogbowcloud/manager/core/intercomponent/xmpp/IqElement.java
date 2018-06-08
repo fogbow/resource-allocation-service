@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.api.intercomponent.xmpp;
+package org.fogbowcloud.manager.core.intercomponent.xmpp;
 
 public enum IqElement {
 
@@ -13,7 +13,12 @@ public enum IqElement {
     USER_QUOTA("userQuota"),
     USER_QUOTA_CLASS_NAME("userQuotaClassName"),
     MEMBER_ID("memberId"),
-    EVENT("event");
+    EVENT("event"),
+    IMAGE_CLASS_NAME("imageClassName"),
+    IMAGE_ID("imageId"),
+    IMAGE("image"),
+    IMAGES_MAP("imagesMap"),
+    IMAGES_MAP_CLASS_NAME("imagesMapClassName");
 
     private final String element;
 

@@ -9,28 +9,32 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
+import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.utils.PropertiesUtil;
 
 public class DefaultLocalUserCredentialsMapper implements LocalUserCredentialsMapperPlugin {
 	
+    private static final Logger LOGGER = Logger.getLogger(DefaultLocalUserCredentialsMapper.class);
+    
     private static String LOCAL_TOKEN_CREDENTIALS_PREFIX = "local_token_credentials_";
 	private static final String DEFAULT_MAPPER_CONF = "default_mapper.conf";	
 	
 	private Properties properties;
 	
-	public DefaultLocalUserCredentialsMapper(Properties properties) {
-        this.properties = properties;
+	public DefaultLocalUserCredentialsMapper() {
+        // TODO Fix properties...
+	    this.properties = new Properties();
         FileInputStream fileInputStream;
 		try {
-            fileInputStream = new FileInputStream(ConfigurationConstants.FOGBOW_HOME + File.separator + DEFAULT_MAPPER_CONF);
+//		    this.properties = PropertiesUtil.readProperties(configFilesNames);
+		    fileInputStream = new FileInputStream(ConfigurationConstants.FOGBOW_HOME + File.separator + DEFAULT_MAPPER_CONF);
             this.properties.load(fileInputStream);
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOGGER.error("Url not found!", e);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOGGER.error("Properties not load file!", e);
         }
 	}
 	

@@ -2,11 +2,12 @@ package org.fogbowcloud.manager.core.services;
 
 import java.io.FileInputStream;
 import java.util.Properties;
+
+import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.localidentity.LocalIdentityPlugin;
-import org.fogbowcloud.manager.utils.PropertiesUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -34,7 +35,7 @@ public class PluginInstantiationServiceTest {
         String expected_xmpp_jid_value = "my-manager.internal.mydomain";
 
         Assert.assertEquals(
-                PropertiesUtil.getInstance().getProperty(ConfigurationConstants.XMPP_JID_KEY),
+                PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_JID_KEY),
                 expected_xmpp_jid_value);
     }
 

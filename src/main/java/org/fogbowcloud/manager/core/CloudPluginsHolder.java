@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core;
 
 import org.fogbowcloud.manager.core.plugins.cloud.attachment.AttachmentPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.compute.ComputePlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.image.ImagePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.localidentity.LocalIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.network.NetworkPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.quota.ComputeQuotaPlugin;
@@ -16,6 +17,7 @@ public class CloudPluginsHolder {
     private LocalIdentityPlugin localIdentityPlugin;
     private NetworkPlugin networkPlugin;
     private VolumePlugin volumePlugin;
+    private ImagePlugin imagePlugin;
 
     public CloudPluginsHolder(PluginInstantiationService instantiationInitService) {
 
@@ -25,29 +27,34 @@ public class CloudPluginsHolder {
         this.localIdentityPlugin = instantiationInitService.getLocalIdentityPlugin();
         this.networkPlugin = instantiationInitService.getNetworkPlugin();
         this.volumePlugin = instantiationInitService.getVolumePlugin();
+        this.imagePlugin = imagePlugin;
     }
 
     public AttachmentPlugin getAttachmentPlugin() {
-        return attachmentPlugin;
+        return this.attachmentPlugin;
     }
 
     public ComputePlugin getComputePlugin() {
-        return computePlugin;
+        return this.computePlugin;
     }
 
     public ComputeQuotaPlugin getComputeQuotaPlugin() {
-        return computeQuotaPlugin;
+        return this.computeQuotaPlugin;
     }
 
     public LocalIdentityPlugin getLocalIdentityPlugin() {
-        return localIdentityPlugin;
+        return this.localIdentityPlugin;
     }
 
     public NetworkPlugin getNetworkPlugin() {
-        return networkPlugin;
+        return this.networkPlugin;
     }
 
     public VolumePlugin getVolumePlugin() {
-        return volumePlugin;
+        return this.volumePlugin;
+    }
+
+    public ImagePlugin getImagePlugin() {
+        return this.imagePlugin;
     }
 }

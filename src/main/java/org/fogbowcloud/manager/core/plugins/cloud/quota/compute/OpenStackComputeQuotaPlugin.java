@@ -6,6 +6,7 @@ import org.fogbowcloud.manager.core.constants.OpenStackConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.QuotaException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
+import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.quota.ComputeQuotaPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.utils.HttpRequestClientUtil;
@@ -29,9 +30,9 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 	private Properties properties;
 	private HttpRequestClientUtil client;
 	
-	public OpenStackComputeQuotaPlugin(Properties properties) {
-		this.properties = properties;
-		this.client = new HttpRequestClientUtil(this.properties);
+
+	public OpenStackComputeQuotaPlugin() {
+	    this.client = new HttpRequestClientUtil(null);
 	}
 	
 	@Override
@@ -57,14 +58,22 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 	private ComputeQuota processJson(String jsonStr) throws QuotaException {
 		try {
 			JSONObject jsonObject = (JSONObject) JSONUtil.getValue(jsonStr, "limits", "absolute");
-	//		new ComputeQuotaInformation(
-	//				JSONUtil.getValue(jsonObject, TOTAL_CORES_USED), 
-	//				JSONUtil.getValue(jsonObject, TOTAL_RAM_USED),
-	//				JSONUtil.getValue(jsonObject, TOTAL_INSTANCES_USED));
+			ComputeAllocation totalQuota = new ComputeAllocation(
+					jsonObject.getInt(MAX_TOTAL_CORES_JSON), 
+					jsonObject.getInt(MAX_TOTAL_RAM_SIZE_JSON), 
+					0); // TODO is it really disk?
+			ComputeAllocation usedQuota = new ComputeAllocation(
+					jsonObject.getInt(TOTAL_CORES_USED_JSON), 
+					jsonObject.getInt(TOTAL_RAM_USED_JSON),
+					0); // TODO is it really disk?
+			ComputeQuota computeQuota =	new ComputeQuota(
+					totalQuota, 
+					usedQuota);
+			
+			return computeQuota;
 		} catch (JSONException e) {
 			throw new QuotaException(e.getMessage(), e);
 		}
-		return null;
 	}
 	
 }

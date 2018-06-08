@@ -42,7 +42,7 @@ public class ConfigurationConstants {
     public static final String LOCAL_IDENTITY_PLUGIN_CLASS_KEY = "local_identity_plugin_class";
     public static final String NETWORK_PLUGIN_CLASS_KEY = "network_plugin_class";
     public static final String VOLUME_PLUGIN_CLASS_KEY = "volume_plugin_class";
-
+    public static final String IMAGE_PLUGIN_CLASS_KEY = "image_plugin_class";
 
     public static final String AUTHORIZATION_PLUGIN_CLASS_KEY = "authorization_plugin_class";
     public static final String FEDERATION_IDENTITY_PLUGIN_CLASS_KEY = "federation_identity_plugin_class";

@@ -1,12 +1,12 @@
-package org.fogbowcloud.manager.api.intercomponent.xmpp.handlers;
+package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
-import org.fogbowcloud.manager.api.intercomponent.RemoteFacade;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.Event;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.IqElement;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.RemoteMethod;
+import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.Event;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;

@@ -27,6 +27,7 @@ public class DefaultConfigurationConstants {
             Long.toString(TimeUnit.SECONDS.toMillis(10)); // reference value is 10 seconds
     public static final String FULFILLED_ORDERS_SLEEP_TIME =
             Long.toString(TimeUnit.SECONDS.toMillis(1)); // 1 second
+
     // DEFAULT VALUE
     public static final String SSH_COMMON_USER = "fogbow";
 }

@@ -2,7 +2,7 @@ package org.fogbowcloud.manager.api.http;
 
 import java.util.List;
 
-import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
@@ -11,7 +11,6 @@ import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.apache.log4j.Logger;
@@ -28,28 +27,27 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(value = VolumeOrdersController.VOLUME_ENDPOINT)
 public class VolumeOrdersController {
 
-    public static final String VOLUME_ENDPOINT = "volume";
+    public static final String VOLUME_ENDPOINT = "volumes";
 
     private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
+
     private final Logger LOGGER = Logger.getLogger(VolumeOrdersController.class);
-    private ApplicationFacade applicationFacade;
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<Order> createVolume(@RequestBody VolumeOrder volumeOrder,
+    public ResponseEntity<String> createVolume(@RequestBody VolumeOrder volumeOrder,
         @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
         LOGGER.info("New volume order request received.");
 
-        this.applicationFacade = ApplicationFacade.getInstance();
-        this.applicationFacade.createVolume(volumeOrder, federationTokenValue);
-        return new ResponseEntity<Order>(HttpStatus.CREATED);
+        String volumeId = ApplicationFacade.getInstance().createVolume(volumeOrder, federationTokenValue);
+        return new ResponseEntity<String>(volumeId, HttpStatus.CREATED);
     }
 
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<VolumeInstance>> getAllVolumes(
         @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
-        List<VolumeInstance> volumes = this.applicationFacade.getAllVolumes(federationTokenValue);
+        List<VolumeInstance> volumes = ApplicationFacade.getInstance().getAllVolumes(federationTokenValue);
         return new ResponseEntity<>(volumes, HttpStatus.OK);
     }
 
@@ -57,7 +55,7 @@ public class VolumeOrdersController {
     public ResponseEntity<VolumeInstance> getVolume(@PathVariable String orderId,
         @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
-        VolumeInstance volume = this.applicationFacade.getVolume(orderId, federationTokenValue);
+        VolumeInstance volume = ApplicationFacade.getInstance().getVolume(orderId, federationTokenValue);
         return new ResponseEntity<>(volume, HttpStatus.OK);
     }
 
@@ -65,7 +63,7 @@ public class VolumeOrdersController {
     public ResponseEntity<Boolean> deleteVolume(@PathVariable String orderId,
         @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
-        this.applicationFacade.deleteVolume(orderId, federationTokenValue);
+        ApplicationFacade.getInstance().deleteVolume(orderId, federationTokenValue);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

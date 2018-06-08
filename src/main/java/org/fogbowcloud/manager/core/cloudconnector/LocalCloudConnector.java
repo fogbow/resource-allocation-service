@@ -1,18 +1,18 @@
 package org.fogbowcloud.manager.core.cloudconnector;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.CloudPluginsHolder;
 import org.fogbowcloud.manager.core.OrderController;
+import org.fogbowcloud.manager.core.exceptions.ImageException;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.QuotaException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
+import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.orders.*;
-import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.plugins.cloud.attachment.AttachmentPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.compute.ComputePlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.image.ImagePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.network.NetworkPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.quota.ComputeQuotaPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.volume.VolumePlugin;
@@ -25,9 +25,8 @@ import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.AaController;
-import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
 
-import java.util.Collection;
+import java.util.HashMap;
 
 public class LocalCloudConnector implements CloudConnector {
 
@@ -39,6 +38,7 @@ public class LocalCloudConnector implements CloudConnector {
     private final ComputeQuotaPlugin computeQuotaPlugin;
     private final NetworkPlugin networkPlugin;
     private final VolumePlugin volumePlugin;
+    private final ImagePlugin imagePlugin;
 
     private static final Logger LOGGER = Logger.getLogger(LocalCloudConnector.class);
 
@@ -53,6 +53,7 @@ public class LocalCloudConnector implements CloudConnector {
         this.computeQuotaPlugin = cloudPluginsHolder.getComputeQuotaPlugin();
         this.networkPlugin = cloudPluginsHolder.getNetworkPlugin();
         this.volumePlugin = cloudPluginsHolder.getVolumePlugin();
+        this.imagePlugin = cloudPluginsHolder.getImagePlugin();
     }
 
     @Override
@@ -64,7 +65,6 @@ public class LocalCloudConnector implements CloudConnector {
             case COMPUTE:
                 ComputeOrder computeOrder = (ComputeOrder) order;
                 requestInstance = this.computePlugin.requestInstance(computeOrder, localToken);
-                // TODO Add code to set ComputeOrder actual allocation of vCPU and RAM
                 break;
 
             case NETWORK:
@@ -80,6 +80,7 @@ public class LocalCloudConnector implements CloudConnector {
             case ATTACHMENT:
                 AttachmentOrder attachmentOrder = (AttachmentOrder) order;
                 requestInstance = this.attachmentPlugin.requestInstance(attachmentOrder, localToken);
+                break;
         }
         if (requestInstance == null) {
             throw new UnsupportedOperationException("Not implemented yet.");
@@ -158,6 +159,20 @@ public class LocalCloudConnector implements CloudConnector {
             default:
                 throw new UnsupportedOperationException("Not yet implemented.");
         }
+    }
+
+    @Override
+    public HashMap<String, String> getAllImages(FederationUser federationUser) throws TokenCreationException,
+            UnauthorizedException, PropertyNotSpecifiedException, ImageException {
+        Token localToken = this.aaController.getLocalToken(federationUser);
+        return (HashMap<String, String>) this.imagePlugin.getAllImages(localToken);
+    }
+
+    @Override
+    public Image getImage(String imageId, FederationUser federationUser) throws TokenCreationException,
+            UnauthorizedException, PropertyNotSpecifiedException, ImageException {
+        Token localToken = this.aaController.getLocalToken(federationUser);
+        return this.imagePlugin.getImage(imageId, localToken);
     }
 
     private Instance getResourceInstance(Order order, InstanceType instanceType, Token localToken)

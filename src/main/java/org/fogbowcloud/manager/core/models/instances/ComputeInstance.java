@@ -8,7 +8,7 @@ public class ComputeInstance extends Instance {
     private String hostName;
     private int vCPU;
     /** Memory attribute, must be set in MB. */
-    private int memory;
+    private int ram;
 
     private String localIpAddress;
 
@@ -18,7 +18,7 @@ public class ComputeInstance extends Instance {
             String id,
             String hostName,
             int vCPU,
-            int memory,
+            int ram,
             InstanceState state,
             String localIpAddress,
             String sshPublicAddress,
@@ -27,7 +27,7 @@ public class ComputeInstance extends Instance {
         super(id, state);
         this.hostName = hostName;
         this.vCPU = vCPU;
-        this.memory = memory;
+        this.ram = ram;
         this.localIpAddress = localIpAddress;
     }
 
@@ -51,12 +51,12 @@ public class ComputeInstance extends Instance {
         this.vCPU = vCPU;
     }
 
-    public int getMemory() {
-        return memory;
+    public int getRam() {
+        return ram;
     }
 
-    public void setMemory(int memory) {
-        this.memory = memory;
+    public void setRam(int ram) {
+        this.ram = ram;
     }
     
     public String getLocalIpAddress() {

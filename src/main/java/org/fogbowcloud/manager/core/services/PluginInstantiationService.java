@@ -1,8 +1,5 @@
 package org.fogbowcloud.manager.core.services;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -16,6 +13,7 @@ import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.Federati
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.LocalUserCredentialsMapperPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.attachment.AttachmentPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.compute.ComputePlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.image.ImagePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.localidentity.LocalIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.network.NetworkPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.quota.ComputeQuotaPlugin;
@@ -76,6 +74,11 @@ public class PluginInstantiationService {
     public VolumePlugin getVolumePlugin() {
         String className = this.properties.getProperty(ConfigurationConstants.VOLUME_PLUGIN_CLASS_KEY);
         return (VolumePlugin) this.pluginFactory.createPluginInstance(className);
+    }
+
+    public ImagePlugin getImagePlugin() {
+        String className = this.properties.getProperty(ConfigurationConstants.IMAGE_PLUGIN_CLASS_KEY);
+        return (ImagePlugin) this.pluginFactory.createPluginInstance(className);
     }
 
     public AuthorizationPlugin getAuthorizationPlugin() {

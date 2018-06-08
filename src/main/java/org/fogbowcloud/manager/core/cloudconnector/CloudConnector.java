@@ -1,7 +1,8 @@
 package org.fogbowcloud.manager.core.cloudconnector;
 
-import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
@@ -9,9 +10,8 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
 
-import java.util.Collection;
+import java.util.HashMap;
 
 public interface CloudConnector {
 
@@ -52,4 +52,24 @@ public interface CloudConnector {
     public Quota getUserQuota(FederationUser federationUser, InstanceType instanceType) throws
             TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException, QuotaException,
             RemoteRequestException;
+
+    /**
+     * Gets the list of images that the federation user can see in the target cloud.
+     * @param federationUser
+     * @return a map where each element is a pair (image name, image id).
+     * @throws ImageException 
+     */
+    public HashMap<String, String> getAllImages(FederationUser federationUser) throws TokenCreationException,
+            UnauthorizedException, PropertyNotSpecifiedException, RemoteRequestException, ImageException;
+
+    /**
+     *
+     * Gets the information about a given image.
+     * @param imageId
+     * @param federationUser
+     * @return
+     * @throws ImageException 
+     */
+    public Image getImage(String imageId, FederationUser federationUser) throws TokenCreationException,
+            UnauthorizedException, PropertyNotSpecifiedException, RemoteRequestException, ImageException;
 }

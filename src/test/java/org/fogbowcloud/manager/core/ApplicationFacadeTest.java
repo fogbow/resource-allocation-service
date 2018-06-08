@@ -27,7 +27,7 @@ import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.AaController;
 import org.junit.Assert;
 import org.junit.Before;
@@ -61,8 +61,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
-		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-				Mockito.any(Order.class));
+		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class),
+				Mockito.any(Operation.class), Mockito.any(Order.class));
 
 		String federationTokenValue = "";
 		this.application.deleteCompute(order.getId(), federationTokenValue);
@@ -77,11 +77,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Order order = createComputeOrder();
 		OrderStateTransitioner.activateOrder(order);
 
-		Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString(), Mockito.any(FederationUser.class),
-				Mockito.any(InstanceType.class));
+		Mockito.doReturn(order).when(this.orderController).getOrder(Mockito.anyString(),
+				Mockito.any(FederationUser.class), Mockito.any(InstanceType.class));
 
-		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-				Mockito.any(Order.class));
+		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class),
+				Mockito.any(Operation.class), Mockito.any(Order.class));
 
 		try {
 			String federationTokenValue = "";
@@ -102,8 +102,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		OrderStateTransitioner.activateOrder(order);
 
-		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-				Mockito.any(Order.class));
+		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class),
+				Mockito.any(Operation.class), Mockito.any(Order.class));
 
 		try {
 			String federationTokenValue = "";
@@ -123,8 +123,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		OrderStateTransitioner.activateOrder(order);
 
-		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-				Mockito.any(Order.class));
+		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class),
+				Mockito.any(Operation.class), Mockito.any(Order.class));
 
 		try {
 			String federationTokenValue = "";
@@ -141,13 +141,13 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 
 		Order order = createComputeOrder();
-		Mockito.doReturn(null).when(this.orderController).getOrder(Mockito.anyString(), Mockito.any(FederationUser.class),
-				Mockito.any(InstanceType.class));
+		Mockito.doReturn(null).when(this.orderController).getOrder(Mockito.anyString(),
+				Mockito.any(FederationUser.class), Mockito.any(InstanceType.class));
 
 		Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
-		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-				Mockito.any(Order.class));
+		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class),
+				Mockito.any(Operation.class), Mockito.any(Order.class));
 
 		String federationTokenValue = "";
 		this.application.deleteCompute(order.getId(), federationTokenValue);
@@ -162,8 +162,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
-		Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(Mockito.any(FederationUser.class),
-				Mockito.any(Operation.class), Mockito.any(Order.class));
+		Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).authorize(
+				Mockito.any(FederationUser.class), Mockito.any(Operation.class), Mockito.any(Order.class));
 
 		Mockito.doNothing().when(this.orderController).deleteOrder(Mockito.any(Order.class));
 
@@ -183,8 +183,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
-		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-				Mockito.any(Order.class));
+		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class),
+				Mockito.any(Operation.class), Mockito.any(Order.class));
 
 		Assert.assertNull(order.getOrderState());
 

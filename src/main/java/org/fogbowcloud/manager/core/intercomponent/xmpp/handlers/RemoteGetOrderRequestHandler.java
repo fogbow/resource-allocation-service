@@ -1,10 +1,10 @@
-package org.fogbowcloud.manager.api.intercomponent.xmpp.handlers;
+package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
-import org.fogbowcloud.manager.api.intercomponent.RemoteFacade;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.IqElement;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.RemoteMethod;
+import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
@@ -23,7 +23,7 @@ public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
 
     private static final Logger LOGGER = Logger.getLogger(RemoteGetOrderRequestHandler.class);
 
-    public static final String REMOTE_GET_INSTANCE = RemoteMethod.REMOTE_GET_INSTANCE.toString();
+    public static final String REMOTE_GET_INSTANCE = RemoteMethod.REMOTE_GET_ORDER.toString();
 
     public RemoteGetOrderRequestHandler() {
         super(REMOTE_GET_INSTANCE);

@@ -37,7 +37,7 @@ public class SynchronizedDoublyLinkedList implements ChainedList {
             this.tail.setNext(newItem);
             this.tail = newItem;
             /**
-             * This check below is useful when current pointer just passed by all the list and was
+             * The check below is useful when current pointer just passed by all the list and was
              * pointing to null, and a new order was inserted at the end of this list. So, current
              * should point to the new inserted order (new tail), instead of null.
              */
