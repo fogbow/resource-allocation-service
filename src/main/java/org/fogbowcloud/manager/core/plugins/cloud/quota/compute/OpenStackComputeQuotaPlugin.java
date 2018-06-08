@@ -17,7 +17,6 @@ import org.json.JSONObject;
 public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 	
 	private static final String SUFFIX = "limits";
-	private static final String TENANT_ID = "tenantId";
 	private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
 	
 	private static final String MAX_TOTAL_CORES_JSON = "maxTotalCores";
@@ -31,7 +30,8 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 	private HttpRequestClientUtil client;
 	
 
-	public OpenStackComputeQuotaPlugin() {
+	public OpenStackComputeQuotaPlugin(Properties properties) {
+		this.properties = properties;
 	    this.client = new HttpRequestClientUtil(null);
 	}
 	
@@ -41,11 +41,10 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 		return processJson(jsonResponse);
 	}
 
-	String getJson(Token localToken) throws QuotaException {
+	private String getJson(Token localToken) throws QuotaException {
 		String endpoint = 
 				this.properties.getProperty(OpenStackConfigurationConstants.COMPUTE_NOVAV2_URL_KEY)
-                + COMPUTE_V2_API_ENDPOINT
-                + localToken.getAttributes().get(TENANT_ID)
+                + COMPUTE_V2_API_ENDPOINT	
                 + SUFFIX;
 		try {
 			String jsonResponse = this.client.doGetRequest(endpoint, localToken);

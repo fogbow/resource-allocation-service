@@ -51,9 +51,9 @@ public class OpenStackImagePlugin implements ImagePlugin {
 		Image image = new Image(
 				imageJsonObject.getString(ID_JSON),
 				imageJsonObject.getString(NAME_JSON),
-				imageJsonObject.getInt(SIZE_JSON),
-				imageJsonObject.getInt(MIN_DISK_JSON),
-				imageJsonObject.getInt(MIN_RAM_JSON),
+				imageJsonObject.getLong(SIZE_JSON),
+				imageJsonObject.getLong(MIN_DISK_JSON),
+				imageJsonObject.getLong(MIN_RAM_JSON),
 				imageJsonObject.getString(STATUS)
 				);
 		return image;
@@ -64,7 +64,7 @@ public class OpenStackImagePlugin implements ImagePlugin {
 				this.properties.getProperty(OpenStackConfigurationConstants.COMPUTE_NOVAV2_URL_KEY)
                 + COMPUTE_V2_API_ENDPOINT
                 + SUFFIX
-                + "?id="
+                + "/"
                 + imageId;
 		try {
 			String jsonResponse = this.client.doGetRequest(endpoint, localToken);
@@ -97,9 +97,6 @@ public class OpenStackImagePlugin implements ImagePlugin {
 			String next = jsonObject.getString("next");
 			String endpoint = 
 					this.properties.getProperty(OpenStackConfigurationConstants.COMPUTE_NOVAV2_URL_KEY)
-	                + COMPUTE_V2_API_ENDPOINT
-	                + SUFFIX
-	                + "?marker="
 	                + next;
 			String jsonResponse = this.client.doGetRequest(endpoint, localToken);
 			imagesJson.addAll(getImagesFromJson(jsonResponse));
@@ -145,7 +142,7 @@ public class OpenStackImagePlugin implements ImagePlugin {
 		filteredImages.addAll(getPublicImages(allImages));
 		filteredImages.addAll(getPrivateImagesByTenantId(allImages, tenantId));
 		for (JSONObject image: filteredImages) {
-			imageNameIdMap.put(image.getString("name"), image.getString("id")); 
+			imageNameIdMap.put(image.getString("id"), image.getString("name")); 
 		}
 		return imageNameIdMap;
 	}
