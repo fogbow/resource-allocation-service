@@ -3,6 +3,7 @@ package org.fogbowcloud.manager.core.cloudconnector;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.CloudPluginsHolder;
 import org.fogbowcloud.manager.core.OrderController;
+import org.fogbowcloud.manager.core.exceptions.ImageException;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.QuotaException;
@@ -162,14 +163,14 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public HashMap<String, String> getAllImages(FederationUser federationUser) throws TokenCreationException,
-            UnauthorizedException, PropertyNotSpecifiedException {
+            UnauthorizedException, PropertyNotSpecifiedException, ImageException {
         Token localToken = this.aaController.getLocalToken(federationUser);
-        return this.imagePlugin.getAllImages(localToken);
+        return (HashMap<String, String>) this.imagePlugin.getAllImages(localToken);
     }
 
     @Override
     public Image getImage(String imageId, FederationUser federationUser) throws TokenCreationException,
-            UnauthorizedException, PropertyNotSpecifiedException {
+            UnauthorizedException, PropertyNotSpecifiedException, ImageException {
         Token localToken = this.aaController.getLocalToken(federationUser);
         return this.imagePlugin.getImage(imageId, localToken);
     }

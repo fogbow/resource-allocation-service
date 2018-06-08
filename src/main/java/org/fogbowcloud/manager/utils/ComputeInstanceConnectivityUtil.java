@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.utils;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.constants.CommonConfigurationConstants;
+import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
 import org.json.JSONObject;
 
@@ -32,7 +32,7 @@ public class ComputeInstanceConnectivityUtil {
                 this.tunnelingService.getExternalServiceAddresses(orderId);
 
             String sshPublicAddress =
-                serviceAddresses.get(CommonConfigurationConstants.SSH_SERVICE_NAME);
+                serviceAddresses.get(ConfigurationConstants.SSH_SERVICE_NAME);
             String sshUserName = SshCommonUserUtil.getSshCommonUser();
             String sshExtraPorts = new JSONObject(serviceAddresses).toString();
 

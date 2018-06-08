@@ -3,6 +3,7 @@ package org.fogbowcloud.manager.utils;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import org.apache.log4j.Logger;
@@ -11,6 +12,13 @@ public class PropertiesUtil {
 
     private static final Logger LOGGER = Logger.getLogger(PropertiesUtil.class.getName());
     private static final int EXIT_ERROR_CODE = 128;
+
+    public static Properties readProperties(String configFileName) {
+        List<String> configFilesNames = new ArrayList<>();
+        configFilesNames.add(configFileName);
+        return readProperties(configFilesNames);
+
+    }
 
     public static Properties readProperties(List<String> configFilesNames) {
 

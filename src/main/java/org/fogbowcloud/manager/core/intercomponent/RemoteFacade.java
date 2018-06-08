@@ -76,7 +76,7 @@ public class RemoteFacade {
 
     public Image getImage(String memberId, String imageId, FederationUser federationUser) throws
             UnauthorizedException, TokenCreationException,
-            PropertyNotSpecifiedException, RemoteRequestException {
+            PropertyNotSpecifiedException, RemoteRequestException, ImageException {
 
         this.aaController.authorize(federationUser, Operation.GET_IMAGE);
 
@@ -86,7 +86,7 @@ public class RemoteFacade {
 
     public HashMap<String, String> getAllImages(String memberId, FederationUser federationUser) throws
             UnauthorizedException, TokenCreationException,
-            PropertyNotSpecifiedException, RemoteRequestException {
+            PropertyNotSpecifiedException, RemoteRequestException, ImageException {
 
         this.aaController.authorize(federationUser, Operation.GET_ALL_IMAGES);
 

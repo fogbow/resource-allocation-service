@@ -1,138 +1,78 @@
 package org.fogbowcloud.manager.core.plugins.cloud.quota.compute;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.util.EntityUtils;
-import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.constants.OpenStackConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.QuotaException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.constants.OpenStackConfigurationConstants;
-import org.fogbowcloud.manager.core.plugins.cloud.quota.ComputeQuotaPlugin;
-import org.fogbowcloud.manager.core.models.ErrorType;
-import org.fogbowcloud.manager.core.models.RequestHeaders;
-import org.fogbowcloud.manager.core.models.ResponseConstants;
-import org.fogbowcloud.manager.core.models.StatusResponse;
-import org.fogbowcloud.manager.core.models.StatusResponseMap;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
+import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.utils.HttpRequestUtil;
+import org.fogbowcloud.manager.core.plugins.cloud.quota.ComputeQuotaPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.utils.HttpRequestClientUtil;
+import org.fogbowcloud.manager.utils.JSONUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 	
-	public static final String MAX_TOTAL_CORES = "maxTotalCores";
-	public static final String TOTAL_CORES_USED = "totalCoresUsed";
-	public static final String MAX_TOTAL_RAM_SIZE = "maxTotalRAMSize";
-	public static final String TOTAL_RAM_USED = "totalRAMUsed";
-	public static final String MAX_TOTAL_INSTANCES = "maxTotalInstances";
-	public static final String TOTAL_INSTANCES_USED = "totalInstancesUsed";
-	
 	private static final String SUFFIX = "limits";
 	private static final String TENANT_ID = "tenantId";
 	private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
 	
-	private static final Logger LOGGER = Logger.getLogger(OpenStackComputeQuotaPlugin.class);
-	
-	private HttpClient client;
+	private static final String MAX_TOTAL_CORES_JSON = "maxTotalCores";
+	private static final String TOTAL_CORES_USED_JSON = "totalCoresUsed";
+	private static final String MAX_TOTAL_RAM_SIZE_JSON = "maxTotalRAMSize";
+	private static final String TOTAL_RAM_USED_JSON = "totalRAMUsed";
+	private static final String MAX_TOTAL_INSTANCES_JSON = "maxTotalInstances";
+	private static final String TOTAL_INSTANCES_USED_JSON = "totalInstancesUsed";
 	
 	private Properties properties;
+	private HttpRequestClientUtil client;
 	
+
 	public OpenStackComputeQuotaPlugin() {
-	    // TODO Fix properties...
-	    this.properties = new Properties();
-		initClient();
+	    this.client = new HttpRequestClientUtil(null);
 	}
 	
 	@Override
 	public ComputeQuota getUserQuota(Token localToken) throws QuotaException {
-		
-		String jsonLimits = getLimitsJson(localToken);
-		
-//		new ComputeQuotaInfo(
-//				getAttFromLimitsJson(TOTAL_CORES_USED, jsonLimits), 
-//				getAttFromLimitsJson(TOTAL_RAM_USED, jsonLimits),
-//				getAttFromLimitsJson(TOTAL_INSTANCES_USED, jsonLimits));
-		return null; 
+		String jsonResponse = getJson(localToken);
+		return processJson(jsonResponse);
 	}
 
-	String getLimitsJson(Token localToken) throws QuotaException {
+	String getJson(Token localToken) throws QuotaException {
 		String endpoint = 
 				this.properties.getProperty(OpenStackConfigurationConstants.COMPUTE_NOVAV2_URL_KEY)
                 + COMPUTE_V2_API_ENDPOINT
                 + localToken.getAttributes().get(TENANT_ID)
                 + SUFFIX;
 		try {
-			String jsonResponse = doGetRequest(endpoint, localToken);
+			String jsonResponse = this.client.doGetRequest(endpoint, localToken);
 			return jsonResponse;
 		} catch (RequestException e) {
 			throw new QuotaException("Could not make GET request.", e);
 		}
 	}
 	
-    protected String doGetRequest(String endpoint, Token localToken) throws RequestException {
-        LOGGER.debug("Doing GET request to OpenStack on endpoint <" + endpoint + ">");
-
-        HttpResponse response = null;
-        String responseStr;
-
-        try {
-            HttpGet request = new HttpGet(endpoint);
-            request.addHeader(
-                    RequestHeaders.CONTENT_TYPE.getValue(),
-                    RequestHeaders.JSON_CONTENT_TYPE.getValue());
-            request.addHeader(
-                    RequestHeaders.ACCEPT.getValue(), RequestHeaders.JSON_CONTENT_TYPE.getValue());
-            request.addHeader(RequestHeaders.X_AUTH_TOKEN.getValue(), localToken.getAccessId());
-
-            response = this.client.execute(request);
-            responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            LOGGER.error("Could not make GET request.", e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
-        } finally {
-            try {
-                EntityUtils.consume(response.getEntity());
-            } catch (Throwable t) {
-                LOGGER.error("Error while consuming the response: " + t);
-            }
-        }
-
-        checkStatusResponse(response, responseStr);
-
-        return responseStr;
-    }
-    
-    private void checkStatusResponse(HttpResponse response, String message)
-            throws RequestException {
-        LOGGER.debug("Checking status response...");
-
-        StatusResponseMap statusResponseMap = new StatusResponseMap(response, message);
-        Integer statusCode = response.getStatusLine().getStatusCode();
-        StatusResponse statusResponse = statusResponseMap.getStatusResponse(statusCode);
-
-        if (statusResponse != null) {
-            throw new RequestException(
-                    statusResponse.getErrorType(), statusResponse.getResponseConstants());
-        }
-    }
-    
-    private void initClient() {
-        HttpRequestUtil.init(this.properties);
-        this.client = HttpRequestUtil.createHttpClient();
-    }
-    
-	private int getAttFromLimitsJson(String attName, String responseStr) 
-			throws QuotaException {
+	private ComputeQuota processJson(String jsonStr) throws QuotaException {
 		try {
-			JSONObject jsonObject = new JSONObject(responseStr);
-			return jsonObject.getJSONObject("limits").getJSONObject("absolute").getInt(attName);
+			JSONObject jsonObject = (JSONObject) JSONUtil.getValue(jsonStr, "limits", "absolute");
+			ComputeAllocation totalQuota = new ComputeAllocation(
+					jsonObject.getInt(MAX_TOTAL_CORES_JSON), 
+					jsonObject.getInt(MAX_TOTAL_RAM_SIZE_JSON), 
+					0); // TODO is it really disk?
+			ComputeAllocation usedQuota = new ComputeAllocation(
+					jsonObject.getInt(TOTAL_CORES_USED_JSON), 
+					jsonObject.getInt(TOTAL_RAM_USED_JSON),
+					0); // TODO is it really disk?
+			ComputeQuota computeQuota =	new ComputeQuota(
+					totalQuota, 
+					usedQuota);
+			
+			return computeQuota;
 		} catch (JSONException e) {
-			throw new QuotaException("Error while reading Json", e);
+			throw new QuotaException(e.getMessage(), e);
 		}
 	}
 	

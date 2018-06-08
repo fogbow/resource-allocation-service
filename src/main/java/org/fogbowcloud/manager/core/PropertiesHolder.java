@@ -5,6 +5,7 @@ import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.services.PluginInstantiationService;
 import org.fogbowcloud.manager.utils.PropertiesUtil;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -19,10 +20,12 @@ public class PropertiesHolder {
     private static final int EXIT_ERROR_CODE = 128;
 
     private PropertiesHolder() {
+        HomeDir homeDir = HomeDir.getInstance();
+        String path = homeDir.getPath() + File.pathSeparator;
         List<String> configFilesNames = new ArrayList<>();
-        configFilesNames.add(DefaultConfigurationConstants.MANAGER_CONF_FILE_FULL_PATH);
-        configFilesNames.add(DefaultConfigurationConstants.INTERCOMPONENT_CONF_FILE_FULL_PATH);
-        configFilesNames.add(DefaultConfigurationConstants.REVERSE_TUNNEL_CONF_FILE_FULL_PATH);
+        configFilesNames.add(path+DefaultConfigurationConstants.MANAGER_CONF_FILE_NAME);
+        configFilesNames.add(path+DefaultConfigurationConstants.INTERCOMPONENT_CONF_FILE_NAME);
+        configFilesNames.add(path+DefaultConfigurationConstants.REVERSE_TUNNEL_CONF_FILE_NAME);
         this.properties = PropertiesUtil.readProperties(configFilesNames);    }
 
     public static synchronized PropertiesHolder getInstance() {

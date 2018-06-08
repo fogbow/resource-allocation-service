@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.ApplicationFacade;
+import org.fogbowcloud.manager.core.exceptions.ImageException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.models.images.Image;
@@ -36,7 +37,7 @@ public class ImageRequestController {
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
             @RequestHeader(value = MEMBER_ID_HEADER_KEY) String memberId)
             throws UnauthenticatedException, UnauthorizedException, PropertyNotSpecifiedException,
-            TokenCreationException, RemoteRequestException {
+            TokenCreationException, RemoteRequestException, ImageException {
         HashMap<String, String> imagesMap = ApplicationFacade.getInstance().getAllImages(memberId, federationTokenValue);
         return new ResponseEntity<>(imagesMap, HttpStatus.OK);
     }
@@ -47,7 +48,7 @@ public class ImageRequestController {
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
             @RequestHeader(value = MEMBER_ID_HEADER_KEY) String memberId)
             throws UnauthenticatedException, UnauthorizedException, RemoteRequestException, TokenCreationException,
-            PropertyNotSpecifiedException {
+            PropertyNotSpecifiedException, ImageException {
         Image image = ApplicationFacade.getInstance().getImage(memberId, imageId, federationTokenValue);
         return new ResponseEntity<>(image, HttpStatus.OK);
     }

@@ -6,6 +6,7 @@ import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestExcep
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.exceptions.ImageException;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
@@ -175,7 +176,7 @@ public class ApplicationFacade {
 
     public HashMap<String, String> getAllImages(String memberId, String federationTokenValue) throws
             UnauthenticatedException, UnauthorizedException, PropertyNotSpecifiedException, TokenCreationException,
-            RemoteRequestException {
+            RemoteRequestException, ImageException {
 
         this.aaController.authenticate(federationTokenValue);
 
@@ -192,7 +193,7 @@ public class ApplicationFacade {
 
     public Image getImage(String memberId, String imageId, String federationTokenValue) throws
             UnauthenticatedException, UnauthorizedException, RemoteRequestException, TokenCreationException,
-            PropertyNotSpecifiedException {
+            PropertyNotSpecifiedException, ImageException {
 
         this.aaController.authenticate(federationTokenValue);
 

@@ -10,7 +10,6 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.PropertiesHolder;
-import org.fogbowcloud.manager.core.constants.CommonConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.processors.SpawningProcessor;
 import org.json.JSONObject;
@@ -74,7 +73,7 @@ public class TunnelingServiceUtil {
                 LOGGER.debug(
                         "Getting addresses (IP and Port) for order [" + orderId + "]");
                 JSONObject jsonPorts = new JSONObject(EntityUtils.toString(response.getEntity()));
-                if (jsonPorts.isNull(CommonConfigurationConstants.SSH_SERVICE_NAME)) {
+                if (jsonPorts.isNull(ConfigurationConstants.SSH_SERVICE_NAME)) {
                     return null;
                 }
                 @SuppressWarnings("unchecked")
@@ -113,8 +112,8 @@ public class TunnelingServiceUtil {
 
     private CloseableHttpClient createReverseTunnelHttpClient() {
         this.connectionManager = new PoolingHttpClientConnectionManager();
-        this.connectionManager.setMaxTotal(CommonConfigurationConstants.DEFAULT_MAX_POOL);
-        this.connectionManager.setDefaultMaxPerRoute(CommonConfigurationConstants.DEFAULT_MAX_POOL);
+        this.connectionManager.setMaxTotal(ConfigurationConstants.DEFAULT_MAX_POOL);
+        this.connectionManager.setDefaultMaxPerRoute(ConfigurationConstants.DEFAULT_MAX_POOL);
         return HttpRequestUtil.createHttpClient(this.connectionManager);
     }
 }

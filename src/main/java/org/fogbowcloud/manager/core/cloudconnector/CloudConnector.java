@@ -57,9 +57,10 @@ public interface CloudConnector {
      * Gets the list of images that the federation user can see in the target cloud.
      * @param federationUser
      * @return a map where each element is a pair (image name, image id).
+     * @throws ImageException 
      */
     public HashMap<String, String> getAllImages(FederationUser federationUser) throws TokenCreationException,
-            UnauthorizedException, PropertyNotSpecifiedException, RemoteRequestException;
+            UnauthorizedException, PropertyNotSpecifiedException, RemoteRequestException, ImageException;
 
     /**
      *
@@ -67,7 +68,8 @@ public interface CloudConnector {
      * @param imageId
      * @param federationUser
      * @return
+     * @throws ImageException 
      */
     public Image getImage(String imageId, FederationUser federationUser) throws TokenCreationException,
-            UnauthorizedException, PropertyNotSpecifiedException, RemoteRequestException;
+            UnauthorizedException, PropertyNotSpecifiedException, RemoteRequestException, ImageException;
 }

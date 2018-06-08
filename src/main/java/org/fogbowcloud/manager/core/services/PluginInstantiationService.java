@@ -1,10 +1,12 @@
 package org.fogbowcloud.manager.core.services;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.plugins.PluginFactory;
@@ -30,9 +32,11 @@ public class PluginInstantiationService {
     private static final int EXIT_ERROR_CODE = 128;
 
     private PluginInstantiationService() {
+        HomeDir homeDir = HomeDir.getInstance();
+        String path = homeDir.getPath() + File.pathSeparator;
         List<String> configFilesNames = new ArrayList<>();
-        configFilesNames.add(DefaultConfigurationConstants.CLOUD_CONF_FILE_FULL_PATH);
-        configFilesNames.add(DefaultConfigurationConstants.BEHAVIOR_CONF_FILE_FULL_PATH);
+        configFilesNames.add(path+DefaultConfigurationConstants.CLOUD_CONF_FILE_NAME);
+        configFilesNames.add(path+DefaultConfigurationConstants.BEHAVIOR_CONF_FILE_NAME);
         this.properties = PropertiesUtil.readProperties(configFilesNames);
         this.pluginFactory = new PluginFactory();
     }
