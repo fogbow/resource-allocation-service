@@ -21,6 +21,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 public class ExceptionHandlerControllerTest {
 
+    private final String COMPUTE_ENDPOINT = "/" + ComputeOrdersController.COMPUTE_ENDPOINT + "/";
+    private final String URI_COMPUTE_ENDPOINT = "uri=/" + ComputeOrdersController.COMPUTE_ENDPOINT + "/";
 	private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
     private MockMvc mockMvc;
@@ -44,7 +46,7 @@ public class ExceptionHandlerControllerTest {
 
         MockHttpServletResponse response =
         		this.mockMvc.perform(
-                                get("/compute/")
+                                get(COMPUTE_ENDPOINT)
                                         .accept(MediaType.APPLICATION_JSON)
                                         .header(FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
                         .andReturn()
@@ -52,7 +54,7 @@ public class ExceptionHandlerControllerTest {
 
         JSONObject jsonObject = new JSONObject(response.getContentAsString());
 
-        assertEquals(jsonObject.get("details"), "uri=/compute/");
+        assertEquals(jsonObject.get("details"), URI_COMPUTE_ENDPOINT);
         assertEquals(jsonObject.get("message"), "Invalid Credentials");
         assertEquals(jsonObject.get("statusCode"), HttpStatus.UNAUTHORIZED.name());
         assertEquals(Integer.toString(response.getStatus()), HttpStatus.UNAUTHORIZED.toString());
@@ -65,15 +67,14 @@ public class ExceptionHandlerControllerTest {
 
         MockHttpServletResponse response =
                 mockMvc.perform(
-                                get("/compute/")
+                                get(COMPUTE_ENDPOINT)
                                         .accept(MediaType.APPLICATION_JSON)
                                         .header(FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
                         .andReturn()
                         .getResponse();
-
         JSONObject jsonObject = new JSONObject(response.getContentAsString());
 
-        assertEquals(jsonObject.get("details"), "uri=/compute/");
+        assertEquals(jsonObject.get("details"), URI_COMPUTE_ENDPOINT);
         assertEquals(jsonObject.get("message"), "Invalid token");
         assertEquals(jsonObject.get("statusCode"), HttpStatus.UNAUTHORIZED.name());
         assertEquals(Integer.toString(response.getStatus()), HttpStatus.UNAUTHORIZED.toString());
@@ -86,7 +87,7 @@ public class ExceptionHandlerControllerTest {
 
         MockHttpServletResponse response =
                 mockMvc.perform(
-                                get("/compute/")
+                                get(COMPUTE_ENDPOINT)
                                         .accept(MediaType.APPLICATION_JSON)
                                         .header(FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
                         .andReturn()
@@ -94,7 +95,7 @@ public class ExceptionHandlerControllerTest {
 
         JSONObject jsonObject = new JSONObject(response.getContentAsString());
 
-        assertEquals(jsonObject.get("details"), "uri=/compute/");
+        assertEquals(jsonObject.get("details"), URI_COMPUTE_ENDPOINT);
         assertEquals(jsonObject.get("message"), "Token Creation Exception");
         assertEquals(jsonObject.get("statusCode"), HttpStatus.BAD_REQUEST.name());
         assertEquals(Integer.toString(response.getStatus()), HttpStatus.BAD_REQUEST.toString());
@@ -107,14 +108,14 @@ public class ExceptionHandlerControllerTest {
 
         MockHttpServletResponse response =
                 mockMvc.perform(
-                                get("/compute/")
+                                get(COMPUTE_ENDPOINT)
                                         .accept(MediaType.APPLICATION_JSON)
                                         .header(FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
                         .andReturn()
                         .getResponse();
 
         JSONObject jsonObject = new JSONObject(response.getContentAsString());
-        assertEquals(jsonObject.get("details"), "uri=/compute/");
+        assertEquals(jsonObject.get("details"), URI_COMPUTE_ENDPOINT);
         assertEquals(jsonObject.get("statusCode"), HttpStatus.BAD_REQUEST.name());
 
         assertEquals(Integer.toString(response.getStatus()), HttpStatus.BAD_REQUEST.toString());

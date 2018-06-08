@@ -17,7 +17,6 @@ import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.RemoteCloudConnector;
-import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -32,21 +31,17 @@ import org.mockito.Mockito;
 public class ClosedProcessorTest extends BaseUnitTests {
 
     private ClosedProcessor closedProcessor;
-    
     private AaController aaController;
     
+    @SuppressWarnings("unused")
     private RemoteCloudConnector remoteCloudConnector;
-    
     private LocalCloudConnector localCloudConnector;
 
+    @SuppressWarnings("unused")
     private Properties properties;
-    
     private LocalIdentityPlugin localIdentityPlugin;
-    
     private BehaviorPluginsHolder behaviorPluginsHolder;
-
     private Thread thread;
-    
     private OrderController orderController;
 
     @Before
