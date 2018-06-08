@@ -36,14 +36,14 @@ public class DefaultLaunchCommandGeneratorTest {
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
 
         this.properties.setProperty(
-                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH, this.managerPublicKeyFilePath);
+                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, this.managerPublicKeyFilePath);
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
                 this.reverseTunnelPrivateIp);
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, this.reverseTunnelHttpPort);
 
-        this.launchCommandGenerator = new DefaultLaunchCommandGenerator(this.properties);
+        this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
     }
 
     @Test
@@ -159,7 +159,7 @@ public class DefaultLaunchCommandGeneratorTest {
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, this.reverseTunnelHttpPort);
 
-        new DefaultLaunchCommandGenerator(this.properties);
+        new DefaultLaunchCommandGenerator();
     }
 
     @Test(expected = PropertyNotSpecifiedException.class)
@@ -169,11 +169,11 @@ public class DefaultLaunchCommandGeneratorTest {
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
 
         this.properties.setProperty(
-                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH, this.managerPublicKeyFilePath);
+                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, this.managerPublicKeyFilePath);
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, this.reverseTunnelHttpPort);
 
-        new DefaultLaunchCommandGenerator(this.properties);
+        new DefaultLaunchCommandGenerator();
     }
 
     @Test(expected = PropertyNotSpecifiedException.class)
@@ -183,12 +183,12 @@ public class DefaultLaunchCommandGeneratorTest {
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
 
         this.properties.setProperty(
-                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH, this.managerPublicKeyFilePath);
+                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, this.managerPublicKeyFilePath);
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
                 this.reverseTunnelPrivateIp);
 
-        new DefaultLaunchCommandGenerator(this.properties);
+        new DefaultLaunchCommandGenerator();
     }
 
     @Test(expected = PropertyNotSpecifiedException.class)
@@ -198,14 +198,14 @@ public class DefaultLaunchCommandGeneratorTest {
 
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
 
-        this.properties.setProperty(ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH, "");
+        this.properties.setProperty(ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, "");
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
                 this.reverseTunnelPrivateIp);
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, this.reverseTunnelHttpPort);
 
-        new DefaultLaunchCommandGenerator(this.properties);
+        new DefaultLaunchCommandGenerator();
     }
 
     @Test(expected = PropertyNotSpecifiedException.class)
@@ -216,14 +216,14 @@ public class DefaultLaunchCommandGeneratorTest {
 
         String emptyManagerPublicKeyFilePath = "src/test/resources/fake-empty-manager-public-key";
         this.properties.setProperty(
-                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH, emptyManagerPublicKeyFilePath);
+                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, emptyManagerPublicKeyFilePath);
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
                 this.reverseTunnelPrivateIp);
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, this.reverseTunnelHttpPort);
 
-        new DefaultLaunchCommandGenerator(this.properties);
+        new DefaultLaunchCommandGenerator();
     }
 
     @Test(expected = PropertyNotSpecifiedException.class)
@@ -234,12 +234,12 @@ public class DefaultLaunchCommandGeneratorTest {
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
 
         this.properties.setProperty(
-                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH, this.managerPublicKeyFilePath);
+                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, this.managerPublicKeyFilePath);
         this.properties.setProperty(ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY, "");
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, this.reverseTunnelHttpPort);
 
-        new DefaultLaunchCommandGenerator(this.properties);
+        new DefaultLaunchCommandGenerator();
     }
 
     @Test(expected = PropertyNotSpecifiedException.class)
@@ -249,13 +249,13 @@ public class DefaultLaunchCommandGeneratorTest {
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
 
         this.properties.setProperty(
-                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH, this.managerPublicKeyFilePath);
+                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, this.managerPublicKeyFilePath);
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
                 this.reverseTunnelPrivateIp);
         this.properties.setProperty(ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, "");
 
-        new DefaultLaunchCommandGenerator(this.properties);
+        new DefaultLaunchCommandGenerator();
     }
 
     private ComputeOrder createComputeOrder() {

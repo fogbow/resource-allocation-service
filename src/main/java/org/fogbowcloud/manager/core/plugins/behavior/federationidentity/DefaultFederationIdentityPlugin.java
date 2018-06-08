@@ -2,6 +2,8 @@ package org.fogbowcloud.manager.core.plugins.behavior.federationidentity;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
+
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 
 public class DefaultFederationIdentityPlugin implements FederationIdentityPlugin {
@@ -10,16 +12,16 @@ public class DefaultFederationIdentityPlugin implements FederationIdentityPlugin
     
     @Override
     public String createFederationTokenValue(Map<String, String> userCredentials) {
-        return null;
+        return "fake-token";
     }
 
     @Override
     public FederationUser getFederationUser(String federationTokenValue) {
         Map<String, String> attributes = new HashMap<String, String>();
 
-        attributes.put("name", "default");
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "default");
 
-        return new FederationUser("default", attributes);
+        return new FederationUser("default-id", attributes);
     }
 
     @Override

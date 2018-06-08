@@ -23,7 +23,6 @@ public class PropertiesHolder {
         HomeDir homeDir = HomeDir.getInstance();
         String path = homeDir.getPath() + File.separator;
         List<String> configFilesNames = new ArrayList<>();
-        LOGGER.info("Filename " + path+DefaultConfigurationConstants.MANAGER_CONF_FILE_NAME);
         configFilesNames.add(path+DefaultConfigurationConstants.MANAGER_CONF_FILE_NAME);
         configFilesNames.add(path+DefaultConfigurationConstants.INTERCOMPONENT_CONF_FILE_NAME);
         configFilesNames.add(path+DefaultConfigurationConstants.REVERSE_TUNNEL_CONF_FILE_NAME);

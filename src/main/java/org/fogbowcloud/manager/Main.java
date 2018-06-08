@@ -67,7 +67,7 @@ public class Main implements ApplicationRunner {
     }
 
     private String setHomeDirectory(ApplicationArguments args) {
-        String homeDir = args.getSourceArgs()[1];
+        String homeDir = args.getSourceArgs()[0];
         return (homeDir == null ? DefaultConfigurationConstants.FOGBOW_HOME : homeDir);
     }
 

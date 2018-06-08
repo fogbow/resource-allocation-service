@@ -49,7 +49,7 @@ public class OpenStackAttachmentPluginTest {
         VolumeOrder volumeOrder = Mockito.spy(new VolumeOrder());
         String volumeId = volumeOrder.getId();
         
-        JSONObject json = this.openStackAttachmentPlugin.generateJsonToAttach(volumeId, MOUNT_POINT);
+        JSONObject json = this.openStackAttachmentPlugin.generateJsonToAttach(volumeId);
         
         String expected = "{\"volumeAttachment\":{\"volumeId\":\"" + volumeId + "\"}}";
         Assert.assertNotNull(json);

@@ -8,10 +8,11 @@ import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
@@ -48,39 +49,39 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
     private static final Logger LOGGER = Logger.getLogger(DefaultLaunchCommandGenerator.class);
 
-    public DefaultLaunchCommandGenerator(Properties properties)
+    public DefaultLaunchCommandGenerator()
             throws PropertyNotSpecifiedException, IOException {
         this.cloudConfigFile = new FileReader(new File(this.CLOUD_CONFIG_FILE_PATH));
 
         this.sshCommonUser =
-                properties.getProperty(
+                PropertiesHolder.getInstance().getProperty(
                         ConfigurationConstants.SSH_COMMON_USER_KEY,
                         DefaultConfigurationConstants.SSH_COMMON_USER);
 
         String managerSshPublicKeyFilePath =
-                properties.getProperty(ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH);
+                PropertiesHolder.getInstance().getProperty(ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH);
         checkPropertyNotEmpty(
-                managerSshPublicKeyFilePath, ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH);
+                managerSshPublicKeyFilePath, ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH);
 
         this.managerSshPublicKey =
                 IOUtils.toString(new FileInputStream(new File(managerSshPublicKeyFilePath)));
         checkPropertyNotEmpty(
-                this.managerSshPublicKey, ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_PATH);
+                this.managerSshPublicKey, ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH);
 
         this.sshReverseTunnelScript = new FileReader(this.SSH_REVERSE_TUNNEL_SCRIPT_PATH);
 
         this.reverseTunnelPrivateIP =
-                properties.getProperty(ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY);
+                PropertiesHolder.getInstance().getProperty(ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY);
         checkPropertyNotEmpty(
                 this.reverseTunnelPrivateIP,
                 ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY);
 
         this.reverseTunnelSshPort =
-                properties.getProperty(
+                PropertiesHolder.getInstance().getProperty(
                         ConfigurationConstants.REVERSE_TUNNEL_PORT_KEY, DEFAULT_SSH_HOST_PORT);
 
         this.reverseTunnelHttpPort =
-                properties.getProperty(ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY);
+                PropertiesHolder.getInstance().getProperty(ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY);
         checkPropertyNotEmpty(
                 this.reverseTunnelHttpPort, ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY);
     }

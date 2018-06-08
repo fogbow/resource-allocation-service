@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.cloud.attachment.openstack;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Properties;
@@ -10,8 +11,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
+import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.constants.OpenStackConfigurationConstants;
 import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.attachment.AttachmentPlugin;
 import org.fogbowcloud.manager.core.models.ErrorType;
@@ -23,11 +24,16 @@ import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.utils.PropertiesUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.apache.log4j.Logger;
 
 public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
+
+    private static final String OPENSTACK_NOVAV2_ATTACHMENT_PLUGIN_CONF = "openstack-nova-attachment-plugin.conf";
+
+    private static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
 
     private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
 	private static final String ID_JSON_FIELD = "id";
@@ -46,8 +52,11 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
 	private InstanceStateMapper instanceStateMapper;
     
     public OpenStackNovaV2AttachmentPlugin() {
-        // TODO Fix properties...
         this.properties = new Properties();
+        HomeDir homeDir = HomeDir.getInstance();
+        this.properties = PropertiesUtil.readProperties(homeDir.getPath() +
+                File.separator + OPENSTACK_NOVAV2_ATTACHMENT_PLUGIN_CONF);
+
     }
 
     @Override
@@ -56,11 +65,10 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         
         String serverId = attachmentOrder.getSource();
         String volumeId = attachmentOrder.getTarget();        
-        String mountPoint = attachmentOrder.getDevice();
-        
+
         JSONObject jsonRequest = null;
-        try {           
-            jsonRequest = generateJsonToAttach(volumeId, mountPoint);
+        try {
+            jsonRequest = generateJsonToAttach(volumeId);
         } catch (JSONException e) {
             LOGGER.error("An error occurred when generating json.", e);
             throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
@@ -237,10 +245,10 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     }
     
     private String getPrefixEndpoint(String tenantId) {
-        return this.properties.getProperty(OpenStackConfigurationConstants.COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + tenantId;
+        return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + tenantId;
     }
 
-    protected JSONObject generateJsonToAttach(String volume, String mountpoint) throws JSONException {
+    protected JSONObject generateJsonToAttach(String volume) throws JSONException {
         JSONObject osAttachContent = new JSONObject();
         osAttachContent.put("volumeId", volume);
 

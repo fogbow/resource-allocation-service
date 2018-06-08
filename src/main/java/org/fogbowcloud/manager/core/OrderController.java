@@ -136,7 +136,6 @@ public class OrderController {
             ComputeAllocation actualAllocation = order.getActualAllocation();
             vCPU += actualAllocation.getvCPU();
             ram += actualAllocation.getRam();
-            disk += actualAllocation.getDisk();
             instances++;
         }
         return new ComputeAllocation(vCPU, ram, instances);

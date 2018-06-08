@@ -28,10 +28,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
-import org.fogbowcloud.manager.core.plugins.exceptions.InvalidCredentialsException;
-import org.fogbowcloud.manager.core.plugins.exceptions.InvalidTokenException;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenValueCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.plugins.exceptions.*;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.utils.PropertiesUtil;
 import org.fogbowcloud.manager.utils.RSAUtils;
@@ -81,9 +78,9 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
     private String publicKeyPath;
 
     public LdapIdentityPlugin() {
-        Properties properties = new Properties();
         HomeDir homeDir = HomeDir.getInstance();
-        properties = PropertiesUtil.readProperties(homeDir.getPath()+File.separator+LDAP_PLUGIN_CONF_FILE);
+        Properties properties = PropertiesUtil.
+                readProperties(homeDir.getPath() + File.separator + LDAP_PLUGIN_CONF_FILE);
         this.ldapBase = properties.getProperty(PROP_LDAP_BASE);
         this.ldapUrl = properties.getProperty(PROP_LDAP_URL);
         this.encryptType = properties.getProperty(PROP_LDAP_ENCRYPT_TYPE);
@@ -168,7 +165,6 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
             String signature = split[1];
 
             JSONObject root = new JSONObject(tokenValue);
-            Date expirationDate = new Date(root.getLong(ATT_EXPIRATION_DATE));
 
             if(!verifySign(tokenValue, signature)){
                 LOGGER.error("Invalid accessID: " + decodedFederationTokenValue);
@@ -179,8 +175,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
             String name = root.getString(ATT_NAME);
 
             HashMap<String, String> attributes = new HashMap<String, String>();
-            attributes.put("user_id", uuid);
-            attributes.put("user_name", name);
+            attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, name);
 
             return new FederationUser(uuid, attributes);
         } catch (JSONException e) {
@@ -199,7 +194,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
         }
     }
 
-    private void checkTokenValue(String federationTokenValue) throws UnauthorizedException {
+    private void checkTokenValue(String federationTokenValue) throws UnauthorizedException, ExpiredTokenException {
         try {
             String decodedAccessId =
                     new String(Base64.decodeBase64(federationTokenValue), StandardCharsets.UTF_8);
@@ -214,6 +209,11 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
             JSONObject root = new JSONObject(tokenMessage);
             Date expirationDate = new Date(root.getLong(ATT_EXPIRATION_DATE));
+            Date currentDate = new Date(System.currentTimeMillis());
+
+            if (expirationDate.after(currentDate)) {
+                throw new ExpiredTokenException("Expiration date: " + expirationDate);
+            }
 
             if (!verifySign(tokenMessage, signature)) {
                 throw new UnauthorizedException("Invalid accessID: " + decodedAccessId);

@@ -1,6 +1,5 @@
 package org.fogbowcloud.manager.utils;
 
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.conn.HttpClientConnectionManager;
@@ -8,6 +7,9 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.PropertiesHolder;
+import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 
 public class HttpRequestUtil {
 
@@ -15,25 +17,20 @@ public class HttpRequestUtil {
     public static final String ACCEPT_KEY = "Accept";
     public static final String JSON_CONTENT_TYPE_KEY = "application/json";
 
-    private static final String TIMEOUT_HTTP_REQUEST = "timeout_http_request";
     private static final Logger LOGGER = Logger.getLogger(HttpRequestUtil.class);
-    private static final int DEFAULT_TIMEOUT_REQUEST = (int) TimeUnit.MINUTES.toMillis(1);
     private static Integer timeoutHttpRequest;
 
-    public static void init(Properties properties) {
+    public static void init() {
         try {
-            if (properties == null) {
-                timeoutHttpRequest = DEFAULT_TIMEOUT_REQUEST;
-            }
-
-            String timeoutRequestStr = properties.getProperty(TIMEOUT_HTTP_REQUEST);
+            String timeoutRequestStr =
+                    PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT);
             timeoutHttpRequest = Integer.parseInt(timeoutRequestStr);
         } catch (NullPointerException | NumberFormatException e) {
             LOGGER.info(
                     "Setting HttpRequestUtil timeout with default: "
-                            + DEFAULT_TIMEOUT_REQUEST
+                            + DefaultConfigurationConstants.HTTP_REQUEST_TIMEOUT
                             + " ms.");
-            timeoutHttpRequest = DEFAULT_TIMEOUT_REQUEST;
+            timeoutHttpRequest = Integer.valueOf(DefaultConfigurationConstants.HTTP_REQUEST_TIMEOUT);
         } catch (Exception e) {
             LOGGER.error("It is not possible to initialize HttpRequestUtil.", e);
             throw e;
@@ -58,7 +55,7 @@ public class HttpRequestUtil {
             SSLConnectionSocketFactory sslsf,
             HttpClientConnectionManager connManager) {
         if (timeoutHttpRequest == null) {
-            init(null); // Set to default timeout.
+            init(); // Set to default timeout.
         }
         HttpClientBuilder builder = HttpClientBuilder.create();
         setDefaultResquestConfig(timeout, builder);
@@ -94,11 +91,11 @@ public class HttpRequestUtil {
         }
     }
 
-    protected static int getTimeoutHttpRequest() {
+    protected static int getHttpRequestTimeout() {
         return timeoutHttpRequest;
     }
 
-    protected static void setTimeoutHttpRequest(Integer timeoutHttpRequest) {
-        HttpRequestUtil.timeoutHttpRequest = timeoutHttpRequest;
+    protected static void setHttpRequestTimeout(Integer httpRequestTimeout) {
+        HttpRequestUtil.timeoutHttpRequest = httpRequestTimeout;
     }
 }

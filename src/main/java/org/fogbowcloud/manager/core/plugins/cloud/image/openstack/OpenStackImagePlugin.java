@@ -1,23 +1,28 @@
 package org.fogbowcloud.manager.core.plugins.cloud.image.openstack;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.fogbowcloud.manager.core.constants.OpenStackConfigurationConstants;
+import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.ImageException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.image.ImagePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.utils.HttpRequestClientUtil;
+import org.fogbowcloud.manager.utils.PropertiesUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class OpenStackImagePlugin implements ImagePlugin {
-	
+
+	private static final String IMAGE_GLANCEV2_URL_KEY = "openstack_glance_v2_url";
+	private static final String GLANCE_PLUGIN_CONF_FILE = "openstack-glance-image-plugin.conf";
+
 	private static final String SUFFIX = "images";
 	private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
 	private static final String TENANT_ID = "tenantId";
@@ -32,9 +37,11 @@ public class OpenStackImagePlugin implements ImagePlugin {
 	private Properties properties;
 	private HttpRequestClientUtil client;
 	
-	public OpenStackImagePlugin(Properties properties) {
-		this.properties = properties;
-		this.client = new HttpRequestClientUtil(this.properties);
+	public OpenStackImagePlugin() {
+		HomeDir homeDir = HomeDir.getInstance();
+		this.properties = PropertiesUtil.
+				readProperties(homeDir.getPath() + File.separator + GLANCE_PLUGIN_CONF_FILE);
+		this.client = new HttpRequestClientUtil();
 	}
 	
 	@Override
@@ -61,7 +68,7 @@ public class OpenStackImagePlugin implements ImagePlugin {
 	
 	private JSONObject getJsonObjectImage(String imageId, Token localToken) throws ImageException {
 		String endpoint = 
-				this.properties.getProperty(OpenStackConfigurationConstants.COMPUTE_NOVAV2_URL_KEY)
+				this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
                 + COMPUTE_V2_API_ENDPOINT
                 + SUFFIX
                 + "?id="
@@ -77,7 +84,7 @@ public class OpenStackImagePlugin implements ImagePlugin {
 	
 	private List<JSONObject> getAllImagesJson(Token localToken) throws ImageException  {
 		String endpoint = 
-				this.properties.getProperty(OpenStackConfigurationConstants.COMPUTE_NOVAV2_URL_KEY)
+				this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
                 + COMPUTE_V2_API_ENDPOINT
                 + SUFFIX;
 		try {
@@ -96,7 +103,7 @@ public class OpenStackImagePlugin implements ImagePlugin {
 		if (jsonObject.has("next")) {
 			String next = jsonObject.getString("next");
 			String endpoint = 
-					this.properties.getProperty(OpenStackConfigurationConstants.COMPUTE_NOVAV2_URL_KEY)
+					this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
 	                + COMPUTE_V2_API_ENDPOINT
 	                + SUFFIX
 	                + "?marker="
