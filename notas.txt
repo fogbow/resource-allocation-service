@@ -47,3 +47,17 @@
 
 13. SynchronizedDoublyLinkedList
 	- acredito que o design da lista não deve permitir expor o objeto Node. nesse caso, o método public synchronized Node getCurrent() não deveria ser public
+
+14. CloudConnector
+	- getAllImages deveria retornar a interface Map ao invés da classe HashMap
+	- estilo: remover o modificador public da declaração da interface, nao é necessario
+
+15. LocalCloudConnector
+	- em void deleteInstance(Order order), caso a order não tem instanceID, o método não faz nada nem indica que não fez. deveria ser assim mesmo?
+	- mantivemos o parametro memberId para nos proteger de possiveis necessidades futuras ou podemos tirar de la?
+
+16. RemoteCloudConnector
+	- muitas exceções estão declaradas mas não podem ser lançadas
+
+16. ImageException
+	- estilo: não declarar public nas interfaces
