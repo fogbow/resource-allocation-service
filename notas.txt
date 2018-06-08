@@ -35,3 +35,12 @@
 
 10. PacketSenderHolder
 	- no método init, temos os mesmos problemas de visibilidade que os demais singletons
+	- na verdade, não se se é um singleton. Parece a primeira vista mas pode nao ser
+
+11. CloudConnectorFactory
+	- problema de visibilidade nos métodos set, caso a classe seja usada por múltiplas threads.
+
+12. ProcessorsThreadController
+	- seria bom dar nomes para as threads durante sua criação [56, 59], ajuda muito o debug (por inspeção do log)
+	- desconfio que não teremos esse problema agora, mas, geralmente evita-se iniciar a execução de threads no construtor (o problema acontece se alguma dessas threads usar o próprio objeto que está sendo construído)
+
