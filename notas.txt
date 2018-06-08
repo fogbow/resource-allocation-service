@@ -27,6 +27,11 @@
 
 8. ApplicationFacade
 	- Tal como em HomeDir, temos um problema de concorrência. Os métodos setAaController e setOrderController deveriam ser sincronizados (ou a variavel marcada como volatile)
+	- muitas exçecões desnecessárias em getUserAllocation
 
 9. OrderStateTransitioner
 	- o bloco de código [25-28] de activateOrder(Order order) nunca vai ser executado. uma vez que, se for null, lançará uma exceção na linha acima. Se quiser manter a semântica desejada, mover o teste para fora do bloco synch. Ou então, não fazer o teste, como parecer ser o modelo adotado na classe (ou seja, o cliente deve ter testado).
+	- estilo: o três blocos catch notifyRequester podem ser colapsados pra uma coisa unica (RemoteRequestException | UnauthorizedException | OrderManagementException e). Isso deve ajudar a ler o codigo e a refatorar as exceptions
+
+10. PacketSenderHolder
+	- no método init, temos os mesmos problemas de visibilidade que os demais singletons
