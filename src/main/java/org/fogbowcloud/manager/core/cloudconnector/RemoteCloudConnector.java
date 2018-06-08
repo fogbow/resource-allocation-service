@@ -1,8 +1,8 @@
 package org.fogbowcloud.manager.core.cloudconnector;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.requesters.*;
+import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.requesters.*;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;

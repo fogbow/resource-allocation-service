@@ -1,10 +1,10 @@
-package org.fogbowcloud.manager.api.intercomponent.xmpp.handlers;
+package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 
 import com.google.gson.Gson;
 import org.dom4j.Element;
-import org.fogbowcloud.manager.api.intercomponent.RemoteFacade;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.IqElement;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.RemoteMethod;
+import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;

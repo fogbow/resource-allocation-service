@@ -1,9 +1,9 @@
 package org.fogbowcloud.manager.core;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.Event;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
+import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.Event;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;

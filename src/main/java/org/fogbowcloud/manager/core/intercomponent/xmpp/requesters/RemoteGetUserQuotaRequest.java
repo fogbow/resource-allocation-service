@@ -1,12 +1,12 @@
-package org.fogbowcloud.manager.api.intercomponent.xmpp.requesters;
+package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
-import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
-import org.fogbowcloud.manager.api.intercomponent.exceptions.UnexpectedException;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.IqElement;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.PacketSenderHolder;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.RemoteMethod;
+import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.intercomponent.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.token.FederationUser;

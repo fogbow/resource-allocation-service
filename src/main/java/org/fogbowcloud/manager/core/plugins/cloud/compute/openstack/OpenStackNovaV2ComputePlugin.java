@@ -133,7 +133,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             String instanceId = getAttFromJson(ID_JSON_FIELD, jsonResponse);
 
             synchronized (computeOrder) {
-                ComputeAllocation actualAllocation = new ComputeAllocation(flavor.getCpu(), flavor.getMem(),
+                ComputeAllocation actualAllocation = new ComputeAllocation(flavor.getCpu(), flavor.getRam(),
                         flavor.getDisk());
                 computeOrder.setActualAllocation(actualAllocation);
             }

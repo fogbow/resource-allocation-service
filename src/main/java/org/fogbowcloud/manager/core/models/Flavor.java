@@ -12,22 +12,22 @@ public class Flavor implements Comparable<Flavor> {
     private int cpu;
 
     /** RAM memory in MB. */
-    private int memInMB;
+    private int ram;
 
     /** Disk in GB. */
     private int disk;
 
-    public Flavor(String name, int cpu, int memInMB, int disk) {
+    public Flavor(String name, int cpu, int ram, int disk) {
         this.setName(name);
         this.setCpu(cpu);
-        this.setMem(memInMB);
+        this.setRam(ram);
         this.setDisk(disk);
     }
 
-    public Flavor(String name, String id, int cpu, int memInMB, int disk) {
+    public Flavor(String name, String id, int cpu, int ram, int disk) {
         this.setName(name);
         this.setCpu(cpu);
-        this.setMem(memInMB);
+        this.setRam(ram);
         this.setDisk(disk);
         this.setId(id);
     }
@@ -56,12 +56,12 @@ public class Flavor implements Comparable<Flavor> {
         this.cpu = cpu;
     }
 
-    public int getMem() {
-        return memInMB;
+    public int getRam() {
+        return ram;
     }
 
-    public void setMem(int memInMB) {
-        this.memInMB = memInMB;
+    public void setRam(int ram) {
+        this.ram = ram;
     }
 
     public int getDisk() {
@@ -89,7 +89,7 @@ public class Flavor implements Comparable<Flavor> {
 
     @Override
     public String toString() {
-        return "Name: " + getName() + ", cpu: " + cpu + ", mem: " + memInMB + ", disk: " + disk;
+        return "Name: " + getName() + ", cpu: " + cpu + ", mem: " + ram + ", disk: " + disk;
     }
 
     @Override
@@ -109,8 +109,8 @@ public class Flavor implements Comparable<Flavor> {
     private double calculateRelevance(Flavor flavorOne, Flavor flavorTwo) {
         int cpuOne = flavorOne.getCpu();
         int cpuTwo = flavorTwo.getCpu();
-        int memOne = flavorOne.getMem();
-        int memTwo = flavorTwo.getMem();
+        int memOne = flavorOne.getRam();
+        int memTwo = flavorTwo.getRam();
 
         return ((cpuOne / cpuTwo) / VCPU_VALUE_RELEVANCE)
                 + ((memOne / memTwo) / MEM_VALUE_RELEVANCE);

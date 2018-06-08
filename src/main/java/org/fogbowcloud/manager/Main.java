@@ -1,8 +1,8 @@
 package org.fogbowcloud.manager;
 
-import org.fogbowcloud.manager.api.intercomponent.RemoteFacade;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.PacketSenderHolder;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.XmppComponentManager;
+import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppComponentManager;
 import org.fogbowcloud.manager.core.*;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;

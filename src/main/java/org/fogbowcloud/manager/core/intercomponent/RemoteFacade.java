@@ -1,8 +1,8 @@
-package org.fogbowcloud.manager.api.intercomponent;
+package org.fogbowcloud.manager.core.intercomponent;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.Event;
+import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.Event;
 import org.fogbowcloud.manager.core.OrderController;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;

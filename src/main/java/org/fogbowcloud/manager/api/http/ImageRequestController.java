@@ -2,7 +2,7 @@ package org.fogbowcloud.manager.api.http;
 
 import java.util.HashMap;
 
-import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;

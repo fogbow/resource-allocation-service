@@ -1,12 +1,12 @@
-package org.fogbowcloud.manager.api.intercomponent.xmpp.requesters;
+package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
-import org.fogbowcloud.manager.api.intercomponent.exceptions.RemoteRequestException;
-import org.fogbowcloud.manager.api.intercomponent.exceptions.UnexpectedException;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.IqElement;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.PacketSenderHolder;
-import org.fogbowcloud.manager.api.intercomponent.xmpp.RemoteMethod;
+import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.intercomponent.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.xmpp.packet.IQ;
@@ -45,7 +45,7 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
         iq.setTo(this.order.getProvidingMember());
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
-                RemoteMethod.REMOTE_GET_INSTANCE.toString());
+                RemoteMethod.REMOTE_GET_ORDER.toString());
         Element orderIdElement = queryElement.addElement(IqElement.ORDER_ID.toString());
         orderIdElement.setText(this.order.getId());
 
