@@ -4,12 +4,12 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
@@ -33,7 +33,7 @@ public class FulfilledProcessor implements Runnable {
 
     private String localMemberId;
 
-    private LocalCloudConnector localCloudConnector;
+    private CloudConnector localCloudConnector;
 
     private ComputeInstanceConnectivityUtil computeInstanceConnectivity;
 
@@ -53,7 +53,7 @@ public class FulfilledProcessor implements Runnable {
 
         this.localMemberId = localMemberId;
 
-        this.localCloudConnector = (LocalCloudConnector) cloudConnectorFactory.getCloudConnector(localMemberId);
+        this.localCloudConnector = cloudConnectorFactory.getCloudConnector(localMemberId);
 
         this.computeInstanceConnectivity =
             new ComputeInstanceConnectivityUtil(tunnelingService, sshConnectivity);
