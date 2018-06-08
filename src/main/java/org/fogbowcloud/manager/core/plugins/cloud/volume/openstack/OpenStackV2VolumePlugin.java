@@ -12,8 +12,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.constants.OpenStackConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.constants.OpenStackConstants;
 import org.fogbowcloud.manager.core.plugins.cloud.volume.VolumePlugin;
 import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
@@ -73,14 +73,14 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	    // TODO Fix properties...
         Properties properties = new Properties();
 	    this.volumeV2APIEndpoint = properties.getProperty(VOLUME_NOVAV2_URL_KEY)
-				+ OpenStackConstants.V2_API_ENDPOINT;
+				+ OpenStackConfigurationConstants.V2_API_ENDPOINT;
 
 		initClient();
 	}
 	
 	@Override
 	public String requestInstance(VolumeOrder order, Token localToken) throws RequestException {
-		String tenantId = localToken.getAttributes().get(OpenStackConstants.TENANT_ID);
+		String tenantId = localToken.getAttributes().get(OpenStackConfigurationConstants.TENANT_ID);
 		if (tenantId == null) {
 			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 			throw new RequestException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);
@@ -104,7 +104,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 	@Override
 	public VolumeInstance getInstance(String storageOrderInstanceId, Token localToken) throws RequestException {
-		String tenantId = localToken.getAttributes().get(OpenStackConstants.TENANT_ID);
+		String tenantId = localToken.getAttributes().get(OpenStackConfigurationConstants.TENANT_ID);
 		if (tenantId == null) {
 			throw new RequestException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 		}		
@@ -117,7 +117,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 	@Override
 	public void deleteInstance(String storageOrderInstanceId, Token localToken) throws RequestException {
-		String tenantId = localToken.getAttributes().get(OpenStackConstants.TENANT_ID);
+		String tenantId = localToken.getAttributes().get(OpenStackConfigurationConstants.TENANT_ID);
 		if (tenantId == null) {
 			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 			throw new RequestException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);

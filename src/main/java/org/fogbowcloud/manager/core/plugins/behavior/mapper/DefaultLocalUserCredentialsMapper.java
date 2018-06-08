@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
@@ -24,19 +25,11 @@ public class DefaultLocalUserCredentialsMapper implements LocalUserCredentialsMa
 	private Properties properties;
 	
 	public DefaultLocalUserCredentialsMapper() {
-        // TODO Fix properties...
 	    this.properties = new Properties();
-        FileInputStream fileInputStream;
-		try {
-//		    this.properties = PropertiesUtil.readProperties(configFilesNames);
-		    fileInputStream = new FileInputStream(ConfigurationConstants.FOGBOW_HOME + File.separator + DEFAULT_MAPPER_CONF);
-            this.properties.load(fileInputStream);
-        } catch (FileNotFoundException e) {
-            LOGGER.error("Url not found!", e);
-        } catch (IOException e) {
-            LOGGER.error("Properties not load file!", e);
-        }
-	}
+        HomeDir homeDir = HomeDir.getInstance();
+        this.properties = PropertiesUtil.readProperties(homeDir.getPath()+
+                File.pathSeparator+DEFAULT_MAPPER_CONF);
+    }
 	
 	@Override
 	public Map<String, String> getCredentials(FederationUser federationUser) throws PropertyNotSpecifiedException {

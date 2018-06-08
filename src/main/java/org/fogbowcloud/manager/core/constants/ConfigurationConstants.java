@@ -2,8 +2,6 @@ package org.fogbowcloud.manager.core.constants;
 
 public class ConfigurationConstants {
 
-	public static final String FOGBOW_HOME = ".fogbow";
-
 	public static final String LOCAL_MEMBER_ID = "xmpp_jid";
 	
     // XMPP
@@ -20,8 +18,11 @@ public class ConfigurationConstants {
     public static final String FULFILLED_ORDERS_SLEEP_TIME_KEY = "fulfilled_orders_sleep_time";
     public static final String CLOSED_ORDERS_SLEEP_TIME_KEY = "closed_orders_scheduler_period";
 
-    // USER SSH KEY
+    // SSH KEYS
     public static final String SSH_COMMON_USER_KEY = "ssh_common_user";
+    public static final String SSH_SERVICE_NAME = "ssh";
+    public static final int DEFAULT_MAX_POOL = 200;
+
 
     // MANAGER KEYS
     public static final String MANAGER_SSH_PRIVATE_KEY_PATH = "manager_ssh_private_key_file_path";

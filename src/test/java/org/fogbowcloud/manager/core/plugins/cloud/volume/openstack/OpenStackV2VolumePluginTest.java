@@ -21,7 +21,7 @@ import org.apache.http.impl.DefaultHttpResponseFactory;
 import org.apache.http.message.BasicStatusLine;
 import org.apache.http.util.EntityUtils;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.constants.OpenStackConstants;
+import org.fogbowcloud.manager.core.constants.OpenStackConfigurationConstants;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
@@ -64,14 +64,14 @@ public class OpenStackV2VolumePluginTest {
         this.openStackV2VolumePlugin.setClient(this.client);
 
         Map<String, String> attributes = new HashMap<>();
-        attributes.put(OpenStackConstants.TENANT_ID, FAKE_TENANT_ID);
+        attributes.put(OpenStackConfigurationConstants.TENANT_ID, FAKE_TENANT_ID);
         Token.User tokenUser = new Token.User("user", "user");
         this.tokenDefault = new Token(FAKE_ACCESS_ID, tokenUser, new Date(), attributes);
     }
 
     @Test
     public void testRequestInstance() throws IOException, RequestException {
-        String url = FAKE_STORAGE_URL + OpenStackConstants.V2_API_ENDPOINT + FAKE_TENANT_ID
+        String url = FAKE_STORAGE_URL + OpenStackConfigurationConstants.V2_API_ENDPOINT + FAKE_TENANT_ID
                 + OpenStackV2VolumePlugin.SUFIX_ENDPOINT_VOLUMES;
         HttpUriRequest request = new HttpPost(url);
         addHeaders(request);
@@ -113,7 +113,7 @@ public class OpenStackV2VolumePluginTest {
 
     @Test
     public void testGetInstance() throws IOException {
-        String url = FAKE_STORAGE_URL + OpenStackConstants.V2_API_ENDPOINT + FAKE_TENANT_ID
+        String url = FAKE_STORAGE_URL + OpenStackConfigurationConstants.V2_API_ENDPOINT + FAKE_TENANT_ID
                 + OpenStackV2VolumePlugin.SUFIX_ENDPOINT_VOLUMES + "/" + FAKE_INSTANCE_ID;
         HttpUriRequest request = new HttpGet(url);
         addHeaders(request);
@@ -136,7 +136,7 @@ public class OpenStackV2VolumePluginTest {
 
     @Test
     public void removeInstance() throws IOException {
-        String url = FAKE_STORAGE_URL + OpenStackConstants.V2_API_ENDPOINT + FAKE_TENANT_ID
+        String url = FAKE_STORAGE_URL + OpenStackConfigurationConstants.V2_API_ENDPOINT + FAKE_TENANT_ID
                 + OpenStackV2VolumePlugin.SUFIX_ENDPOINT_VOLUMES + "/" + FAKE_INSTANCE_ID;
         HttpUriRequest request = new HttpDelete(url);
         addHeaders(request);

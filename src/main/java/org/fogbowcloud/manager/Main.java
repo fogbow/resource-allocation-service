@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager;
 
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppComponentManager;
@@ -16,6 +17,7 @@ public class Main implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
+        HomeDir.getInstance().setPath(setHomeDirectory(args));
 
         PluginInstantiationService instantiationInitService = PluginInstantiationService.getInstance();
 
@@ -62,6 +64,11 @@ public class Main implements ApplicationRunner {
         // Setting up order processors and starting threads
         ProcessorsThreadController processorsThreadController = new ProcessorsThreadController(localMemberId);
 
+    }
+
+    private String setHomeDirectory(ApplicationArguments args) {
+        String homeDir = args.getSourceArgs()[1];
+        return (homeDir == null ? DefaultConfigurationConstants.FOGBOW_HOME : homeDir);
     }
 
 }

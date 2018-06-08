@@ -3,18 +3,15 @@ package org.fogbowcloud.manager.core.constants;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultConfigurationConstants {
+    // Default Working Directory
+    public static final String FOGBOW_HOME = "src/main/resources";
 
     // CONFIGURATION FILES PATHS
-    public static final String MANAGER_CONF_FILE_FULL_PATH =
-            "src/main/resources/manager.properties";
-    public static final String REVERSE_TUNNEL_CONF_FILE_FULL_PATH =
-            "src/main/resources/reverse-tunnel.properties";
-    public static final String INTERCOMPONENT_CONF_FILE_FULL_PATH =
-            "src/main/resources/intercomponent.properties";
-    public static final String CLOUD_CONF_FILE_FULL_PATH =
-            "src/main/resources/cloud.properties";
-    public static final String BEHAVIOR_CONF_FILE_FULL_PATH =
-            "src/main/resources/behavior.properties";
+    public static final String MANAGER_CONF_FILE_NAME = "manager.properties";
+    public static final String REVERSE_TUNNEL_CONF_FILE_NAME = "reverse-tunnel.properties";
+    public static final String INTERCOMPONENT_CONF_FILE_NAME = "intercomponent.properties";
+    public static final String CLOUD_CONF_FILE_NAME = "cloud.properties";
+    public static final String BEHAVIOR_CONF_FILE_NAME = "behavior.properties";
 
     // SCHEDULER PERIODS
     public static final String OPEN_ORDERS_SLEEP_TIME =
