@@ -1,0 +1,6 @@
+1. HomeDir
+	- não é thread-safe. Não há garantias que uma chamada para setPath feita por uma thread t0 seja visto por uma thread t1, mesmo que t1 faça seu trabalho após a execução de setPath por t0.
+	- Uma opção é syncronizar os métodos associados. Ou então ter a variável path declarada como volalite. Uma terceira opção é não ter um método setPath, e ao invés disso, ter dois métodos getInstance, um com args e outro sem (que pode parecer estranho)
+
+2. PluginInstantiationService
+	- na linha String path = homeDir.getPath() + File.pathSeparator, acredito que deveria ser usado o File.separator
