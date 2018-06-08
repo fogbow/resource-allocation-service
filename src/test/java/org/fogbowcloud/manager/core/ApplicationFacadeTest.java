@@ -45,7 +45,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	public void setUp() throws UnauthorizedException {
 		this.aaaController = Mockito.mock(AaController.class);
 		Properties properties = new Properties();
-		properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
+		
+		HomeDir.getInstance().setPath("src/main/resources");
+		PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
+		properties = propertiesHolder.getProperties();
+		
+//		properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 		this.orderController = Mockito.spy(new OrderController(""));
 		this.application = Mockito.spy(ApplicationFacade.getInstance());
 		this.application.setAaController(this.aaaController);

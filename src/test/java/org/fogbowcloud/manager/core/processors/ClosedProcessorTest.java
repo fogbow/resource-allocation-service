@@ -9,8 +9,10 @@ import org.fogbowcloud.manager.core.AaController;
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.BehaviorPluginsHolder;
 import org.fogbowcloud.manager.core.CloudPluginsHolder;
+import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.OrderController;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
+import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
@@ -50,9 +52,11 @@ public class ClosedProcessorTest extends BaseUnitTests {
     @Before
     public void setUp() {
         this.properties = new Properties();
-        this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY,
-                BaseUnitTests.LOCAL_MEMBER_ID);
-
+        
+        HomeDir.getInstance().setPath("src/main/resources");
+        PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
+        properties = propertiesHolder.getProperties();
+        
         this.localIdentityPlugin = new KeystoneV3IdentityPlugin();
 
         initServiceConfig();

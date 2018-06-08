@@ -28,7 +28,7 @@ public class DefaultLocalUserCredentialsMapper implements LocalUserCredentialsMa
 	    this.properties = new Properties();
         HomeDir homeDir = HomeDir.getInstance();
         this.properties = PropertiesUtil.readProperties(homeDir.getPath()+
-                File.pathSeparator+DEFAULT_MAPPER_CONF);
+                File.separator+DEFAULT_MAPPER_CONF);
     }
 	
 	@Override

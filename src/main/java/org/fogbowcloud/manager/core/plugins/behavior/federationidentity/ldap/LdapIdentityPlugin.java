@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.behavior.federationidentity.ldap;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
@@ -24,6 +25,7 @@ import javax.naming.directory.SearchResult;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.exceptions.InvalidCredentialsException;
@@ -44,7 +46,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
     private static final Logger LOGGER = Logger.getLogger(LdapIdentityPlugin.class);
 
-    private static final String PLUGIN_CONF_FILE_FULL_PATH = "ldap-identity-plugin.conf";
+    private static final String LDAP_PLUGIN_CONF_FILE = "ldap-identity-plugin.conf";
 
     private static final String ATT_EXPIRATION_DATE = "expirationDate";
     private static final String ATT_NAME = "name";
@@ -79,10 +81,9 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
     private String publicKeyPath;
 
     public LdapIdentityPlugin() {
-        List<String> configFilesNames = new ArrayList<>();
-        configFilesNames.add(PLUGIN_CONF_FILE_FULL_PATH);
         Properties properties = new Properties();
-        properties = PropertiesUtil.readProperties(configFilesNames);
+        HomeDir homeDir = HomeDir.getInstance();
+        properties = PropertiesUtil.readProperties(homeDir.getPath()+File.separator+LDAP_PLUGIN_CONF_FILE);
         this.ldapBase = properties.getProperty(PROP_LDAP_BASE);
         this.ldapUrl = properties.getProperty(PROP_LDAP_URL);
         this.encryptType = properties.getProperty(PROP_LDAP_ENCRYPT_TYPE);

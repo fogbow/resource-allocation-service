@@ -16,13 +16,14 @@ public class PropertiesHolder {
 
     private static PropertiesHolder instance;
 
-    private static final Logger LOGGER = Logger.getLogger(PluginInstantiationService.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(PropertiesHolder.class.getName());
     private static final int EXIT_ERROR_CODE = 128;
 
     private PropertiesHolder() {
         HomeDir homeDir = HomeDir.getInstance();
-        String path = homeDir.getPath() + File.pathSeparator;
+        String path = homeDir.getPath() + File.separator;
         List<String> configFilesNames = new ArrayList<>();
+        LOGGER.info("Filename " + path+DefaultConfigurationConstants.MANAGER_CONF_FILE_NAME);
         configFilesNames.add(path+DefaultConfigurationConstants.MANAGER_CONF_FILE_NAME);
         configFilesNames.add(path+DefaultConfigurationConstants.INTERCOMPONENT_CONF_FILE_NAME);
         configFilesNames.add(path+DefaultConfigurationConstants.REVERSE_TUNNEL_CONF_FILE_NAME);
@@ -41,5 +42,9 @@ public class PropertiesHolder {
 
     public String getProperty(String propertyName, String defaultPropertyValue) {
         return properties.getProperty(propertyName, defaultPropertyValue);
+    }
+    
+    public Properties getProperties() {
+        return this.properties;
     }
 }
