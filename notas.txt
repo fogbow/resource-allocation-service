@@ -4,3 +4,12 @@
 
 2. PluginInstantiationService
 	- na linha String path = homeDir.getPath() + File.pathSeparator, acredito que deveria ser usado o File.separator
+	- codigo e vars não usadas
+
+3. CloudPluginsHolder
+	- a linha "this.imagePlugin = imagePlugin;" é inefetiva. acredito que é um TODO
+	- tanto a classe CloudPluginsHolder quanto BehaviorPluginsHolder não são thread-safe. Eu acredito que elas não serão usadas diretamente por múltiplas threads. Mas, caso seja, temos problemas. Acredito que as variáveis de instância deveria ser declaradas final (essa é uma boa prática, quando possível seguir)
+
+4. PropertiesHolder
+	- me parece que deveriamos usar "File.separator" ao invés pathSeparator em "String path = homeDir.getPath() + File.pathSeparator;"
+	- código não usado
