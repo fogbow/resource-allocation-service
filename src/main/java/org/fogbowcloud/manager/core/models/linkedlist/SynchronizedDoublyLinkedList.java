@@ -12,7 +12,7 @@ public class SynchronizedDoublyLinkedList implements ChainedList {
         this.head = this.tail = this.current = null;
     }
 
-    public synchronized Node getCurrent() {
+    protected synchronized Node getCurrent() {
         return this.current;
     }
 
