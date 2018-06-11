@@ -27,7 +27,7 @@ public class CloudPluginsHolder {
         this.localIdentityPlugin = instantiationInitService.getLocalIdentityPlugin();
         this.networkPlugin = instantiationInitService.getNetworkPlugin();
         this.volumePlugin = instantiationInitService.getVolumePlugin();
-        this.imagePlugin = imagePlugin;
+        this.imagePlugin = instantiationInitService.getImagePlugin();
     }
 
     public AttachmentPlugin getAttachmentPlugin() {
