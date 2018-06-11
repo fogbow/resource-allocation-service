@@ -11,7 +11,9 @@ import org.fogbowcloud.manager.core.AaController;
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.BehaviorPluginsHolder;
 import org.fogbowcloud.manager.core.CloudPluginsHolder;
+import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.OrderController;
+import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
@@ -56,7 +58,13 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
     @Before
     public void setUp() {
-    	initServiceConfig();
+        HomeDir.getInstance().setPath("src/test/resources/private");
+
+        PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
+        this.properties = propertiesHolder.getProperties();
+        this.properties.put(ConfigurationConstants.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
+        
+        initServiceConfig();
     	
         this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
         this.remoteCloudConnector = Mockito.mock(RemoteCloudConnector.class);
@@ -64,9 +72,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.tunnelingService = Mockito.mock(TunnelingServiceUtil.class);
         // TODO review !
         this.sshConnectivity = Mockito.mock(SshConnectivityUtil.class);
-
-        this.properties = new Properties();
-        this.properties.put(ConfigurationConstants.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 
         this.thread = null;
 

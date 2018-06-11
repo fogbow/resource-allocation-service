@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
+import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -31,10 +33,10 @@ public class DefaultLaunchCommandGeneratorTest {
 
     @Before
     public void setUp() throws Exception {
-        this.properties = new Properties();
-
+        HomeDir.getInstance().setPath("src/test/resources/private");
+        PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
+        this.properties = propertiesHolder.getProperties();
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
-
         this.properties.setProperty(
                 ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, this.managerPublicKeyFilePath);
         this.properties.setProperty(
@@ -42,7 +44,6 @@ public class DefaultLaunchCommandGeneratorTest {
                 this.reverseTunnelPrivateIp);
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, this.reverseTunnelHttpPort);
-
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
     }
 
@@ -149,71 +150,52 @@ public class DefaultLaunchCommandGeneratorTest {
 
     @Test(expected = PropertyNotSpecifiedException.class)
     public void testPropertiesWithoutManagerSshPublicKeyFilePath() throws Exception {
-        this.properties = new Properties();
-
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
-
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
                 this.reverseTunnelPrivateIp);
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, this.reverseTunnelHttpPort);
-
         new DefaultLaunchCommandGenerator();
     }
 
     @Test(expected = PropertyNotSpecifiedException.class)
     public void testPropertiesWithoutReverseTunnelPrivateAddress() throws Exception {
-        this.properties = new Properties();
-
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
-
         this.properties.setProperty(
                 ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, this.managerPublicKeyFilePath);
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, this.reverseTunnelHttpPort);
-
         new DefaultLaunchCommandGenerator();
     }
 
     @Test(expected = PropertyNotSpecifiedException.class)
     public void testPropertiesWithoutReverseTunnelHttpPort() throws Exception {
-        this.properties = new Properties();
-
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
-
         this.properties.setProperty(
                 ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, this.managerPublicKeyFilePath);
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
                 this.reverseTunnelPrivateIp);
-
         new DefaultLaunchCommandGenerator();
     }
 
     @Test(expected = PropertyNotSpecifiedException.class)
     public void testManagerSshPublicKeyPathEmpty()
             throws PropertyNotSpecifiedException, IOException {
-        this.properties = new Properties();
-
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
-
         this.properties.setProperty(ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, "");
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
                 this.reverseTunnelPrivateIp);
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, this.reverseTunnelHttpPort);
-
         new DefaultLaunchCommandGenerator();
     }
 
     @Test(expected = PropertyNotSpecifiedException.class)
     public void testManagerSshPublicKeyEmpty() throws PropertyNotSpecifiedException, IOException {
-        this.properties = new Properties();
-
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
-
         String emptyManagerPublicKeyFilePath = "src/test/resources/fake-empty-manager-public-key";
         this.properties.setProperty(
                 ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, emptyManagerPublicKeyFilePath);
@@ -222,39 +204,30 @@ public class DefaultLaunchCommandGeneratorTest {
                 this.reverseTunnelPrivateIp);
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, this.reverseTunnelHttpPort);
-
         new DefaultLaunchCommandGenerator();
     }
 
     @Test(expected = PropertyNotSpecifiedException.class)
     public void testReverseTunnelPrivateIpEmpty()
             throws PropertyNotSpecifiedException, IOException {
-        this.properties = new Properties();
-
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
-
         this.properties.setProperty(
                 ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, this.managerPublicKeyFilePath);
         this.properties.setProperty(ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY, "");
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, this.reverseTunnelHttpPort);
-
         new DefaultLaunchCommandGenerator();
     }
 
     @Test(expected = PropertyNotSpecifiedException.class)
     public void testReverseHttpPortIpEmpty() throws PropertyNotSpecifiedException, IOException {
-        this.properties = new Properties();
-
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
-
         this.properties.setProperty(
                 ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, this.managerPublicKeyFilePath);
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
                 this.reverseTunnelPrivateIp);
         this.properties.setProperty(ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, "");
-
         new DefaultLaunchCommandGenerator();
     }
 

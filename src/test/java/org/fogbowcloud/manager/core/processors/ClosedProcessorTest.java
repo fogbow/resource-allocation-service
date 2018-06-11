@@ -48,7 +48,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
     public void setUp() {
         this.properties = new Properties();
         
-        HomeDir.getInstance().setPath("src/main/resources");
+        HomeDir.getInstance().setPath("src/test/resources/private");
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         properties = propertiesHolder.getProperties();
         
@@ -88,14 +88,18 @@ public class ClosedProcessorTest extends BaseUnitTests {
         super.tearDown();
     }
 
+    /**
+     * Error localDefaultTokenCredentials.isEmpty
+     * @throws Exception
+     */
 	@Test
 	public void testProcessClosedLocalOrder() throws Exception {
 		String instanceId = "fake-id";
+		
 		Order localOrder = createLocalOrder(getLocalMemberId());
 		localOrder.setInstanceId(instanceId);
 
         OrderStateTransitioner.activateOrder(localOrder);
-
 		OrderStateTransitioner.transition(localOrder, OrderState.CLOSED);
 
 		Mockito.doNothing().when(this.localCloudConnector).deleteInstance(Mockito.any(Order.class));

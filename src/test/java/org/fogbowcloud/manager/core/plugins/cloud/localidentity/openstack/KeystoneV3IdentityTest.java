@@ -11,8 +11,6 @@ import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
-
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -23,6 +21,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicStatusLine;
 import org.fogbowcloud.manager.core.plugins.cloud.localidentity.openstack.KeystoneV3IdentityPlugin;
+import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,7 +33,7 @@ import org.mockito.Mockito;
 
 public class KeystoneV3IdentityTest {
 
-    private static final String IDENTITY_URL_KEY = "identity_url";
+    @SuppressWarnings("unused")
     private final String KEYSTONE_URL = "http://localhost:0000";
     private KeystoneV3IdentityPlugin keystoneV3Identity;
     private HttpClient client;
@@ -43,12 +42,9 @@ public class KeystoneV3IdentityTest {
 
     @Before
     public void setUp() throws Exception {
-        Properties properties = new Properties();
-        properties.put(IDENTITY_URL_KEY, KEYSTONE_URL);
-
+        HomeDir.getInstance().setPath("src/test/resources/private");
         client = Mockito.mock(HttpClient.class);
-
-        this.keystoneV3Identity = Mockito.spy(new KeystoneV3IdentityPlugin(properties, client));
+        this.keystoneV3Identity = Mockito.spy(new KeystoneV3IdentityPlugin(client));
     }
 
     @Test

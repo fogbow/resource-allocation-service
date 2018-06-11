@@ -53,7 +53,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
     @Before
     public void setUp() {
-        HomeDir.getInstance().setPath("src/main/resources");
+        HomeDir.getInstance().setPath("src/test/resources/private");
         
         initServiceConfig();
         

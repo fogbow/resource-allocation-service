@@ -47,7 +47,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		@SuppressWarnings("unused")
         Properties properties = new Properties();
 		
-		HomeDir.getInstance().setPath("src/main/resources");
+		HomeDir.getInstance().setPath("src/test/resources/private");
 		PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
 		properties = propertiesHolder.getProperties();
 		
