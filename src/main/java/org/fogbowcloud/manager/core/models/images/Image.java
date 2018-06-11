@@ -4,12 +4,12 @@ public class Image {
 
     private String id;
     private String name;
-    private int size; // in bytes
-    private int minDisk; // in GB
-    private int minRam; // in MB
+    private long size; // in bytes
+    private long minDisk; // in GB
+    private long minRam; // in MB
     private String status;
 
-    public Image(String id, String name, int size, int minDisk, int minRam, String status) {
+    public Image(String id, String name, long size, long minDisk, long minRam, String status) {
         this.id = id;
         this.name = name;
         this.size = size;
@@ -26,15 +26,15 @@ public class Image {
         return this.name;
     }
 
-    public int getSize() {
+    public long getSize() {
         return this.size;
     }
 
-    public int getMinDisk() {
+    public long getMinDisk() {
         return this.minDisk;
     }
 
-    public int getMinRam() {
+    public long getMinRam() {
         return this.minRam;
     }
 
