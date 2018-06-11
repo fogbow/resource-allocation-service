@@ -20,7 +20,7 @@ import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.AaController;
 
-import java.util.HashMap;
+import java.util.Map;
 
 public class RemoteFacade {
 
@@ -84,7 +84,7 @@ public class RemoteFacade {
         return cloudConnector.getImage(imageId, federationUser);
     }
 
-    public HashMap<String, String> getAllImages(String memberId, FederationUser federationUser) throws
+    public Map<String, String> getAllImages(String memberId, FederationUser federationUser) throws
             UnauthorizedException, TokenCreationException,
             PropertyNotSpecifiedException, RemoteRequestException, ImageException {
 

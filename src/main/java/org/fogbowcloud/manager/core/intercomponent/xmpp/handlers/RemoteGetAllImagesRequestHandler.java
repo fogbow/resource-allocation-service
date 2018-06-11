@@ -15,7 +15,7 @@ import org.xmpp.packet.PacketError;
 
 import com.google.gson.Gson;
 
-import java.util.HashMap;
+import java.util.Map;
 
 public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
 
@@ -40,7 +40,7 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            HashMap<String, String> imagesMap = RemoteFacade.getInstance().getAllImages(memberId, federationUser);
+            Map<String, String> imagesMap = RemoteFacade.getInstance().getAllImages(memberId, federationUser);
 
             Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_ALL_IMAGES);
             Element imagesMapElement = queryEl.addElement(IqElement.IMAGES_MAP.toString());

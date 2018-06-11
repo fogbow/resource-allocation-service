@@ -174,7 +174,7 @@ public class ApplicationFacade {
         deleteOrder(orderId, federationTokenValue, InstanceType.ATTACHMENT);
     }
 
-    public HashMap<String, String> getAllImages(String memberId, String federationTokenValue) throws
+    public Map<String, String> getAllImages(String memberId, String federationTokenValue) throws
             UnauthenticatedException, UnauthorizedException, PropertyNotSpecifiedException, TokenCreationException,
             RemoteRequestException, ImageException {
 

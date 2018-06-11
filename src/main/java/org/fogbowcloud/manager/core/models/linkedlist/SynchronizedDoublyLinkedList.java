@@ -12,15 +12,15 @@ public class SynchronizedDoublyLinkedList implements ChainedList {
         this.head = this.tail = this.current = null;
     }
 
-    protected synchronized Node getCurrent() {
+    public synchronized Node getCurrent() {
         return this.current;
     }
 
-    protected synchronized Node getHead() {
+    public synchronized Node getHead() {
         return this.head;
     }
 
-    protected synchronized Node getTail() {
+    public synchronized Node getTail() {
         return this.tail;
     }
 
