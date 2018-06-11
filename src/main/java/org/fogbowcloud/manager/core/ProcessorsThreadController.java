@@ -12,15 +12,14 @@ import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
 
 public class ProcessorsThreadController {
 
-    private Thread openProcessorThread;
-    private Thread spawningProcessorThread;
-    private Thread fulfilledProcessorThread;
-    private Thread closedProcessorThread;
+    private final Thread openProcessorThread;
+    private final Thread spawningProcessorThread;
+    private final Thread fulfilledProcessorThread;
+    private final Thread closedProcessorThread;
 
     private static final Logger LOGGER = Logger.getLogger(ProcessorsThreadController.class);
 
     public ProcessorsThreadController(String localMemberId) {
-
 
         String openOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
                 getProperty(ConfigurationConstants.OPEN_ORDERS_SLEEP_TIME_KEY,
@@ -53,20 +52,18 @@ public class ProcessorsThreadController {
 
         ClosedProcessor closedProcessor = new ClosedProcessor(closedOrdersProcSleepTimeStr);
 
-        this.openProcessorThread = new Thread(openProcessor);
-        this.spawningProcessorThread = new Thread(spawningProcessor);
-        this.fulfilledProcessorThread = new Thread(fulfilledProcessor);
-        this.closedProcessorThread = new Thread(closedProcessor);
-
-        this.startManagerThreads();
+        this.openProcessorThread = new Thread(openProcessor, "OpenProcessor-thread");
+        this.spawningProcessorThread = new Thread(spawningProcessor, "SpawningProcessor-thread");
+        this.fulfilledProcessorThread = new Thread(fulfilledProcessor, "FulfilledProcessor-thread");
+        this.closedProcessorThread = new Thread(closedProcessor, "ClosedProcessor-thread");
     }
 
     /**
      * This method starts all manager processors, if you defined a new manager operation and this
      * operation require a new thread to run, you should start this thread at this method.
      */
-    private void startManagerThreads() {
-        LOGGER.info("Starting all processor threads");
+    public void startManagerThreads() {
+        LOGGER.info("Starting processor threads");
         this.openProcessorThread.start();
         this.spawningProcessorThread.start();
         this.fulfilledProcessorThread.start();
