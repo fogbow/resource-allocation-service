@@ -1,8 +1,6 @@
 package org.fogbowcloud.manager.core;
 
-import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.manager.core.services.PluginInstantiationService;
 import org.fogbowcloud.manager.utils.PropertiesUtil;
 
 import java.io.File;
@@ -15,9 +13,6 @@ public class PropertiesHolder {
     private Properties properties;
 
     private static PropertiesHolder instance;
-
-    private static final Logger LOGGER = Logger.getLogger(PropertiesHolder.class.getName());
-    private static final int EXIT_ERROR_CODE = 128;
 
     private PropertiesHolder() {
         HomeDir homeDir = HomeDir.getInstance();
