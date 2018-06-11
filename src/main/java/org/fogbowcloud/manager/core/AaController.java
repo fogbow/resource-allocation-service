@@ -35,8 +35,7 @@ public class AaController {
         this.authorizationPlugin = behaviorPluginsHolder.getAuthorizationPlugin();
     }
 
-    public FederationUser getFederationUser(String federationTokenValue)
-            throws UnauthenticatedException, UnauthorizedException {
+    public FederationUser getFederationUser(String federationTokenValue) throws UnauthenticatedException {
         LOGGER.debug(
                 "Trying to get the federationidentity token by federationidentity token id: " + federationTokenValue);
         return this.federationIdentityPlugin.getFederationUser(federationTokenValue);

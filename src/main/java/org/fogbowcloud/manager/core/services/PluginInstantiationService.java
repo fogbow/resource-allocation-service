@@ -29,7 +29,6 @@ public class PluginInstantiationService {
     private static PluginInstantiationService instance;
 
     private static final Logger LOGGER = Logger.getLogger(PluginInstantiationService.class.getName());
-    private static final int EXIT_ERROR_CODE = 128;
 
     private PluginInstantiationService() {
         HomeDir homeDir = HomeDir.getInstance();

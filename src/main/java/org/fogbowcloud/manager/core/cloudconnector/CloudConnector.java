@@ -1,17 +1,17 @@
 package org.fogbowcloud.manager.core.cloudconnector;
 
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.models.images.Image;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.Instance;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 
-import java.util.HashMap;
+import java.util.Map;
 
 public interface CloudConnector {
 
@@ -23,7 +23,7 @@ public interface CloudConnector {
      *             UnauthorizedException, TokenCreationException, RequestException, RemoteConnectionException,
      *             RemoteRequestException, OrderManagementException
      */
-    public String requestInstance(Order order) throws PropertyNotSpecifiedException,
+    String requestInstance(Order order) throws PropertyNotSpecifiedException,
             UnauthorizedException, TokenCreationException, RequestException, RemoteConnectionException,
             RemoteRequestException, OrderManagementException;
 
@@ -33,7 +33,7 @@ public interface CloudConnector {
      * @throws RequestException, TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException,
      * RemoteRequestException, OrderManagementException
      */
-    public void deleteInstance(Order order)
+     void deleteInstance(Order order)
         throws RequestException, TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException,
             RemoteRequestException, OrderManagementException;
 
@@ -42,14 +42,14 @@ public interface CloudConnector {
      * @throws RequestException, TokenCreationException,
      *         UnauthorizedException, PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException
      */
-    public Instance getInstance(Order order) throws RequestException, TokenCreationException,
+     Instance getInstance(Order order) throws RequestException, TokenCreationException,
         UnauthorizedException, PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException;
 
     /**
      * Gets the quota of the federation user.
      * @throws TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException, QuotaException
      */
-    public Quota getUserQuota(FederationUser federationUser, InstanceType instanceType) throws
+     Quota getUserQuota(FederationUser federationUser, InstanceType instanceType) throws
             TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException, QuotaException,
             RemoteRequestException;
 
@@ -59,7 +59,7 @@ public interface CloudConnector {
      * @return a map where each element is a pair (image name, image id).
      * @throws ImageException 
      */
-    public HashMap<String, String> getAllImages(FederationUser federationUser) throws TokenCreationException,
+     Map<String, String> getAllImages(FederationUser federationUser) throws TokenCreationException,
             UnauthorizedException, PropertyNotSpecifiedException, RemoteRequestException, ImageException;
 
     /**
@@ -70,6 +70,6 @@ public interface CloudConnector {
      * @return
      * @throws ImageException 
      */
-    public Image getImage(String imageId, FederationUser federationUser) throws TokenCreationException,
+     Image getImage(String imageId, FederationUser federationUser) throws TokenCreationException,
             UnauthorizedException, PropertyNotSpecifiedException, RemoteRequestException, ImageException;
 }

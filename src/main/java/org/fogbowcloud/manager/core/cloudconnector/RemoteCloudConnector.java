@@ -1,18 +1,16 @@
 package org.fogbowcloud.manager.core.cloudconnector;
 
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.requesters.*;
-import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.images.Image;
+import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.instances.Instance;
 
 import java.util.HashMap;
 
@@ -27,8 +25,7 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public String requestInstance(Order order) throws PropertyNotSpecifiedException,
-            UnauthorizedException, TokenCreationException, RequestException, RemoteRequestException,
+    public String requestInstance(Order order) throws UnauthorizedException,  RemoteRequestException,
             OrderManagementException {
         RemoteCreateOrderRequest remoteCreateOrderRequest = new RemoteCreateOrderRequest(order);
         remoteCreateOrderRequest.send();
@@ -37,24 +34,21 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public void deleteInstance(Order order) throws RequestException, TokenCreationException, UnauthorizedException,
-            PropertyNotSpecifiedException, RemoteRequestException, OrderManagementException {
+    public void deleteInstance(Order order) throws UnauthorizedException, RemoteRequestException,
+            OrderManagementException {
         RemoteDeleteOrderRequest remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(order);
 		remoteDeleteOrderRequest.send();
     }
 
     @Override
-    public Instance getInstance(Order order) throws RequestException, TokenCreationException, UnauthorizedException,
-            PropertyNotSpecifiedException, RemoteRequestException {
+    public Instance getInstance(Order order) throws RemoteRequestException {
         RemoteGetOrderRequest remoteGetOrderRequest = new RemoteGetOrderRequest(order);
         Instance instance = remoteGetOrderRequest.send();
         return instance;
     }
 
     @Override
-    public Quota getUserQuota(FederationUser federationUser, InstanceType instanceType) throws
-            PropertyNotSpecifiedException,  QuotaException, UnauthorizedException, TokenCreationException,
-            RemoteRequestException {
+    public Quota getUserQuota(FederationUser federationUser, InstanceType instanceType) throws RemoteRequestException {
 
         RemoteGetUserQuotaRequest remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.destinationMember,
                 federationUser, instanceType);

@@ -63,7 +63,7 @@ public class Main implements ApplicationRunner {
 
         // Setting up order processors and starting threads
         ProcessorsThreadController processorsThreadController = new ProcessorsThreadController(localMemberId);
-
+        processorsThreadController.startManagerThreads();
     }
 
     private String setHomeDirectory(ApplicationArguments args) {
