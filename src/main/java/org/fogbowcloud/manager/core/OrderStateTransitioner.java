@@ -1,18 +1,17 @@
 package org.fogbowcloud.manager.core;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
-import org.fogbowcloud.manager.core.intercomponent.xmpp.Event;
-import org.fogbowcloud.manager.core.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
+import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.Event;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.utils.PropertiesUtil;
+import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 
 import java.util.Map;
 
@@ -21,12 +20,16 @@ public class OrderStateTransitioner {
     private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
 
     public static void activateOrder(Order order) throws OrderManagementException {
-        synchronized (order) {
-            if (order == null) {
-                String message = "Can't process new order request. Order reference is null.";
-                throw new OrderManagementException(message);
-            }
 
+        //FIXME: I moved this condition to outside of the synchronized block because it is unreachable in the old code
+        //Anyway, it is possible the best solution is to remove the condition completely, since the other methods do not check this
+        //I'll keep the fixme instead of removing because I'm not sure about this piece of architecture
+        if (order == null) {
+            String message = "Can't process new order request. Order reference is null.";
+            throw new OrderManagementException(message);
+        }
+
+        synchronized (order) {
             SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
             Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
             ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
@@ -132,11 +135,7 @@ public class OrderStateTransitioner {
         RemoteNotifyEventRequest remoteNotifyEventRequest = new RemoteNotifyEventRequest(order, instanceFailed);
         try {
             remoteNotifyEventRequest.send();
-        } catch (RemoteRequestException e) {
-            LOGGER.error(e.getMessage(), e);
-        } catch (OrderManagementException e) {
-            LOGGER.error(e.getMessage(), e);
-        } catch (UnauthorizedException e) {
+        } catch (RemoteRequestException | OrderManagementException | UnauthorizedException e) {
             LOGGER.error(e.getMessage(), e);
         }
     }
