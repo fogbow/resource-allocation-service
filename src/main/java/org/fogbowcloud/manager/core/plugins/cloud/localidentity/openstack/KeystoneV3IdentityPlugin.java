@@ -80,13 +80,16 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
 
     /**
      * Constructor used for testing only
-     * @param properties
      * @param client
      * @throws PropertyNotSpecifiedException if a required property was not set
      */
-    protected KeystoneV3IdentityPlugin(Properties properties, HttpClient client)
+    protected KeystoneV3IdentityPlugin(HttpClient client)
             throws PropertyNotSpecifiedException {
 
+        HomeDir homeDir = HomeDir.getInstance();
+        Properties properties = PropertiesUtil.
+                readProperties(homeDir.getPath() + File.separator + KEYSTONEV3_PLUGIN_CONF_FILE);
+        
         String identityUrl = properties.getProperty(OPENSTACK_KEYSTONE_V3_URL);
         isUrlValid(identityUrl);
         this.keystoneUrl = identityUrl;
