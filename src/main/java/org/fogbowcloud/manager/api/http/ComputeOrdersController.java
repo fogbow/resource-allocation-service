@@ -19,13 +19,7 @@ import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin
 @RestController
@@ -57,10 +51,10 @@ public class ComputeOrdersController {
             UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         LOGGER.info("Get all compute orders request received");
         List<ComputeInstance> computes = ApplicationFacade.getInstance().getAllComputes(federationTokenValue);
-        return new ResponseEntity<>(computes, HttpStatus.OK);
+	    return ResponseEntity.ok(computes);
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    @RequestMapping(value = "/{computeId}", method = RequestMethod.GET)
     public ResponseEntity<ComputeInstance> getCompute(
             @PathVariable String computeId,
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
@@ -71,17 +65,17 @@ public class ComputeOrdersController {
         return new ResponseEntity<ComputeInstance>(compute, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/{computeId}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> deleteCompute(
-            @PathVariable String orderId,
+            @PathVariable String computeId,
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
         LOGGER.info("Get compute order to id <%s> received");
-        ApplicationFacade.getInstance().deleteCompute(orderId, federationTokenValue);
-        return new ResponseEntity<>(HttpStatus.OK);
+        ApplicationFacade.getInstance().deleteCompute(computeId, federationTokenValue);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
     
-	@RequestMapping(value = "/quota/{id}", method = RequestMethod.GET)
+	@RequestMapping(value = "/quota/{memberId}", method = RequestMethod.GET)
 	public ResponseEntity<ComputeQuota> getUserQuota(@PathVariable String memberId,
 			@RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws UnauthenticatedException, QuotaException, UnauthorizedException, PropertyNotSpecifiedException,
@@ -93,7 +87,7 @@ public class ComputeOrdersController {
 		return new ResponseEntity<>(quotaInstance, HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "/allocation/{id}", method = RequestMethod.GET)
+	@RequestMapping(value = "/allocation/{memberId}", method = RequestMethod.GET)
 	public ResponseEntity<ComputeAllocation> getUserAllocation(@PathVariable String memberId,
 			@RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
 			throws UnauthenticatedException, QuotaException, UnauthorizedException, RemoteRequestException,
