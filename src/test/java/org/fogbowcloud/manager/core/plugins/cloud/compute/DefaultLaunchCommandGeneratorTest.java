@@ -152,6 +152,8 @@ public class DefaultLaunchCommandGeneratorTest {
     public void testPropertiesWithoutManagerSshPublicKeyFilePath() throws Exception {
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
         this.properties.setProperty(
+                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, "");
+        this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
                 this.reverseTunnelPrivateIp);
         this.properties.setProperty(
@@ -165,6 +167,8 @@ public class DefaultLaunchCommandGeneratorTest {
         this.properties.setProperty(
                 ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, this.managerPublicKeyFilePath);
         this.properties.setProperty(
+                ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY, "");
+        this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, this.reverseTunnelHttpPort);
         new DefaultLaunchCommandGenerator();
     }
@@ -177,6 +181,8 @@ public class DefaultLaunchCommandGeneratorTest {
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
                 this.reverseTunnelPrivateIp);
+        this.properties.setProperty(
+                ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, "");
         new DefaultLaunchCommandGenerator();
     }
 
