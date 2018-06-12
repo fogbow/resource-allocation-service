@@ -40,7 +40,7 @@ public class LocalCloudConnector implements CloudConnector {
 
     public LocalCloudConnector(String memberId, AaController aaController, OrderController orderController,
                                CloudPluginsHolder cloudPluginsHolder) {
-        super();
+        //FIXME: is this memberId variable still necessary?
         this.memberId = memberId;
         this.aaController = aaController;
         this.orderController = orderController;
@@ -88,6 +88,8 @@ public class LocalCloudConnector implements CloudConnector {
     public void deleteInstance(Order order) throws RequestException, PropertyNotSpecifiedException,
             UnauthorizedException, TokenCreationException {
 
+        //FIXME: This code does nothing (do not throw an exception nor a flag, e.g false, in case the order
+        //does not have an instanceId yet. Is it ok?
         if (order.getInstanceId() != null) {
             Token localToken = this.aaController.getLocalToken(order.getFederationUser());
             switch (order.getType()) {
