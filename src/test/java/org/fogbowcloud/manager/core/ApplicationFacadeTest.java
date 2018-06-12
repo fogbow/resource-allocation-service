@@ -120,11 +120,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	}
 
 	@Test
-	public void testDeleteComputeOrderTokenUnauthorized() throws Exception {
+	public void testDeleteComputeOrderWithFederationUserUnauthenticated() throws Exception {
 		Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 
 		Order order = createComputeOrder();
-		Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
+		Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
 		OrderStateTransitioner.activateOrder(order);
 
@@ -135,7 +135,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 			String federationTokenValue = "";
 			this.application.deleteCompute(order.getId(), federationTokenValue);
 			Assert.fail();
-		} catch (UnauthorizedException e) {
+		} catch (UnauthenticatedException e) {
 			Assert.assertEquals(OrderState.OPEN, order.getOrderState());
 		}
 	}
@@ -242,12 +242,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	}
 
 	@Test
-	public void testCreateComputeOrderTokenUnauthorized() throws Exception {
+	public void testCreateComputeOrderWithFederationUserUnauthenticated() throws Exception {
 		ComputeOrder order = createComputeOrder();
 
 		Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 
-		Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
+		Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
 		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
 				Mockito.any(Order.class));
@@ -258,7 +258,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 			String federationTokenValue = "";
 			this.application.createCompute(order, federationTokenValue);
 			Assert.fail();
-		} catch (UnauthorizedException e) {
+		} catch (UnauthenticatedException e) {
 			Assert.assertNull(order.getOrderState());
 		}
 	}
@@ -353,15 +353,15 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.application.getCompute(order.getId(), "");
 	}
 
-	@Test(expected = UnauthorizedException.class)
-	public void testGetComputeOrderTokenUnauthorized() throws Exception {
+	@Test(expected = UnauthenticatedException.class)
+	public void testGetComputeOrderWithFederationUserUnauthenticated() throws Exception {
 		ComputeOrder order = createComputeOrder();
 
 		OrderStateTransitioner.activateOrder(order);
 
 		Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 
-		Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
+		Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
 		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
 				Mockito.any(Order.class));
@@ -477,8 +477,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.application.getAllComputes(Mockito.anyString());
 	}
 
-	@Test(expected = UnauthorizedException.class)
-	public void testGetAllComputesTokenUnauthorized()
+	@Test(expected = UnauthenticatedException.class)
+	public void testGetAllComputesWithFederationUserUnauthenticated()
 			throws OrderManagementException, UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
 		ComputeOrder order = createComputeOrder();
 
@@ -486,7 +486,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 		Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 
-		Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
+		Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
 		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
 				Mockito.any(InstanceType.class));
@@ -574,12 +574,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
 	@Test
-    public void testCreateVolumeOrderTokenUnauthorized() throws Exception {
+    public void testCreateVolumeOrderWithFederationUserUnauthenticated() throws Exception {
         VolumeOrder order = createVolumeOrder();
 
         Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 
-        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
         Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
                 Mockito.any(Order.class));
@@ -590,7 +590,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         	String federationTokenValue = "";
             this.application.createVolume(order, federationTokenValue);
             Assert.fail();
-        } catch (UnauthorizedException e) {
+        } catch (UnauthenticatedException e) {
             Assert.assertNull(order.getOrderState());
         }
     }
@@ -682,15 +682,15 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         this.application.getVolume(order.getId(), federationTokenValue);
     }
 
-	@Test(expected = UnauthorizedException.class)
-    public void testGetVolumeOrderTokenUnauthorized() throws Exception {
+	@Test(expected = UnauthenticatedException.class)
+    public void testGetVolumeOrderWithFederationUserUnauthenticated() throws Exception {
         VolumeOrder order = createVolumeOrder();
 
 		OrderStateTransitioner.activateOrder(order);
 
         Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 
-        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
         Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
                 Mockito.any(Order.class));
@@ -792,8 +792,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         this.application.getAllVolumes(federationTokenValue);
     }
 
-	@Test(expected = UnauthorizedException.class)
-    public void testGetAllVolumesTokenUnauthorized()
+	@Test(expected = UnauthenticatedException.class)
+    public void testGetAllVolumesFederationUserUnauthenticated()
             throws OrderManagementException, UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
         VolumeOrder order = createVolumeOrder();
 
@@ -801,7 +801,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 
-        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
         Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
                 Mockito.any(InstanceType.class));
@@ -893,7 +893,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
 	@Test
-    public void testDeleteVolumeOrderTokenUnauthorized() throws Exception {
+    public void testDeleteVolumeOrderWithFederationUserUnauthenticated() throws Exception {
         VolumeOrder order = createVolumeOrder();
 
         OrderStateTransitioner.activateOrder(order);
@@ -903,13 +903,13 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
                 Mockito.any(Order.class));
 
-        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
         try {
         	String federationTokenValue = "";
             this.application.deleteVolume(order.getId(), federationTokenValue);
             Assert.fail();
-        } catch (UnauthorizedException e) {
+        } catch (UnauthenticatedException e) {
             Assert.assertEquals(OrderState.OPEN, order.getOrderState());
         }
     }
@@ -1020,12 +1020,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     @Test
-    public void testCreateNetworkOrderTokenUnauthorized() throws Exception {
+    public void testCreateNetworkOrderWithFederationUserUnauthenticated() throws Exception {
         NetworkOrder order = createNetworkOrder();
 
         Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 
-        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
         Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
                 Mockito.any(Order.class));
@@ -1036,7 +1036,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         	String federationTokenValue = "";
             this.application.createNetwork(order, federationTokenValue);
             Assert.fail();
-        } catch (UnauthorizedException e) {
+        } catch (UnauthenticatedException e) {
             Assert.assertNull(order.getOrderState());
         }
     }
@@ -1131,15 +1131,15 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         this.application.getNetwork(order.getId(), federationTokenValue);
     }
 
-    @Test(expected = UnauthorizedException.class)
-    public void testGetNetworkOrderTokenUnauthorized() throws Exception {
+    @Test(expected = UnauthenticatedException.class)
+    public void testGetNetworkOrderWithFederationUserUnauthenticatedException() throws Exception {
         NetworkOrder order = createNetworkOrder();
 
         OrderStateTransitioner.activateOrder(order);
 
         Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 
-        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
         Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
                 Mockito.any(Order.class));
@@ -1240,8 +1240,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         this.application.getAllNetworks(federationTokenValue);
     }
 
-    @Test(expected = UnauthorizedException.class)
-    public void testGetAllNetworksTokenUnauthorized()
+    @Test(expected = UnauthenticatedException.class)
+    public void testGetAllNetworksWithFederationUserUnauthenticated()
             throws OrderManagementException, UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
         NetworkOrder order = createNetworkOrder();
 
@@ -1249,7 +1249,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 
-        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
         Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
                 Mockito.any(InstanceType.class));
@@ -1342,7 +1342,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     @Test
-    public void testDeleteNetworkOrderTokenUnauthorized() throws Exception {
+    public void testDeleteNetworkOrderWithFederationUserUnauthenticated() throws Exception {
         NetworkOrder order = createNetworkOrder();
 
         OrderStateTransitioner.activateOrder(order);
@@ -1352,13 +1352,13 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
                 Mockito.any(Order.class));
 
-        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
         try {
         	String federationTokenValue = "";
             this.application.deleteNetwork(order.getId(), federationTokenValue);
             Assert.fail();
-        } catch (UnauthorizedException e) {
+        } catch (UnauthenticatedException e) {
             Assert.assertEquals(OrderState.OPEN, order.getOrderState());
         }
     }
@@ -1482,12 +1482,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
     
     @Test
-    public void testCreateAttachmentOrderTokenUnauthorized() throws Exception {
+    public void testCreateAttachmentOrderWithFederationUserUnauthenticated() throws Exception {
         AttachmentOrder order = createAttachmentOrder();
 
         Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 
-        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
         Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
                 Mockito.any(Order.class));
@@ -1497,7 +1497,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         try {
             this.application.createAttachment(order, "");
             Assert.fail();
-        } catch (UnauthorizedException e) {
+        } catch (UnauthenticatedException e) {
             Assert.assertNull(order.getOrderState());
         }
     }
@@ -1585,15 +1585,15 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         this.application.getAttachment(order.getId(), "");
     }
     
-    @Test(expected = UnauthorizedException.class)
-    public void testGetAttachmentOrderTokenUnauthorized() throws Exception {
+    @Test(expected = UnauthenticatedException.class)
+    public void testGetAttachmentOrderWithFederationUserUnauthenticated() throws Exception {
         AttachmentOrder order = createAttachmentOrder();
 
         OrderStateTransitioner.activateOrder(order);
 
         Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 
-        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
         Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
                 Mockito.any(Order.class));
@@ -1687,8 +1687,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         this.application.getAllAttachments("");
     }
 
-    @Test(expected = UnauthorizedException.class)
-    public void testGetAllAttachmentsTokenUnauthorized()
+    @Test(expected = UnauthenticatedException.class)
+    public void testGetAllAttachmentsFederationUserUnauthenticated()
             throws OrderManagementException, UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
         AttachmentOrder order = createAttachmentOrder();
 
@@ -1696,7 +1696,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 
-        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
         Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
                 Mockito.any(InstanceType.class));
@@ -1784,7 +1784,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     @Test
-    public void testDeleteAttachmentOrderTokenUnauthorized() throws Exception {
+    public void testDeleteAttachmentOrderFederationUserUnauthenticated() throws Exception {
         AttachmentOrder order = createAttachmentOrder();
 
         OrderStateTransitioner.activateOrder(order);
@@ -1794,12 +1794,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
                 Mockito.any(Order.class));
 
-        Mockito.doThrow(new UnauthorizedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
+        Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
         try {
             this.application.deleteAttachment(order.getId(), "");
             Assert.fail();
-        } catch (UnauthorizedException e) {
+        } catch (UnauthenticatedException e) {
             Assert.assertEquals(OrderState.OPEN, order.getOrderState());
         }
     }
