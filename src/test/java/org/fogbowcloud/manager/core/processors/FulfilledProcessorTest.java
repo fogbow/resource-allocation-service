@@ -75,7 +75,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         this.thread = null;
 
-        this.fulfilledProcessor = Mockito.spy(new FulfilledProcessor("fake-member-id",
+        this.fulfilledProcessor = Mockito.spy(new FulfilledProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
                 this.tunnelingService, this.sshConnectivity,
                 DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME));
 
@@ -132,18 +132,19 @@ public class FulfilledProcessorTest extends BaseUnitTests {
                 .when(this.localCloudConnector)
                 .getInstance(Mockito.any(Order.class));
 
-        Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.eq(order.getId())))
-        		.thenReturn(new HashMap<>());
+//        Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.eq(order.getId())))
+//        		.thenReturn(new HashMap<>());
         
         Mockito.when(this.sshConnectivity.checkSSHConnectivity(Mockito.any(
         		SshTunnelConnectionData.class))).thenReturn(true);
 
         assertNull(this.failedOrderList.getNext());
 
-        this.thread = new Thread(this.fulfilledProcessor);
-        this.thread.start();
-
-        Thread.sleep(500);
+        this.fulfilledProcessor.processFulfilledOrder(order);
+        
+//        this.thread = new Thread(this.fulfilledProcessor);
+//        this.thread.start();
+//        Thread.sleep(500);
 
         assertNotNull(this.fulfilledOrderList.getNext());
         assertNull(this.failedOrderList.getNext());
