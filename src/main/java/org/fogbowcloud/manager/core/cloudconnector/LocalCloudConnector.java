@@ -1,32 +1,28 @@
 package org.fogbowcloud.manager.core.cloudconnector;
 
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.AaController;
 import org.fogbowcloud.manager.core.CloudPluginsHolder;
 import org.fogbowcloud.manager.core.OrderController;
-import org.fogbowcloud.manager.core.exceptions.ImageException;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.QuotaException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.images.Image;
+import org.fogbowcloud.manager.core.models.instances.Instance;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.*;
+import org.fogbowcloud.manager.core.models.quotas.Quota;
+import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.attachment.AttachmentPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.compute.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.image.ImagePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.network.NetworkPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.quota.ComputeQuotaPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.volume.VolumePlugin;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
-import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.quotas.Quota;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.AaController;
 
-import java.util.HashMap;
+import java.util.Map;
 
 public class LocalCloudConnector implements CloudConnector {
 
@@ -162,10 +158,10 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public HashMap<String, String> getAllImages(FederationUser federationUser) throws TokenCreationException,
+    public Map<String, String> getAllImages(FederationUser federationUser) throws TokenCreationException,
             UnauthorizedException, PropertyNotSpecifiedException, ImageException {
         Token localToken = this.aaController.getLocalToken(federationUser);
-        return (HashMap<String, String>) this.imagePlugin.getAllImages(localToken);
+        return this.imagePlugin.getAllImages(localToken);
     }
 
     @Override

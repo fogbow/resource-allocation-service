@@ -23,7 +23,7 @@ public class OrderStateTransitioner {
 
         //FIXME: I moved this condition to outside of the synchronized block because it is unreachable in the old code
         //Anyway, it is possible the best solution is to remove the condition completely, since the other methods do not check this
-        //I'll keep the fixme instead of removing because I'm not sure about this piece of architecture
+        //I'll keep the FIXME instead of removing because I'm not sure about this piece of architecture
         if (order == null) {
             String message = "Can't process new order request. Order reference is null.";
             throw new OrderManagementException(message);
