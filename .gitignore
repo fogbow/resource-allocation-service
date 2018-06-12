@@ -24,6 +24,3 @@ log4j.properties
 /dist/
 /nbdist/
 /.nb-gradle/
-
-### test configuration files ###
-src/test/resources/private/
