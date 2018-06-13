@@ -20,6 +20,8 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.DefaultHttpResponseFactory;
 import org.apache.http.message.BasicStatusLine;
 import org.apache.http.util.EntityUtils;
+import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
@@ -54,10 +56,12 @@ public class OpenStackV2VolumePluginTest {
 
     @Before
     public void setUp() throws Exception {
-        Properties properties = new Properties();
+        HomeDir.getInstance().setPath("src/test/resources/private");
+        PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
+        Properties properties = propertiesHolder.getProperties();
         properties.put(OpenStackV2VolumePlugin.VOLUME_NOVAV2_URL_KEY, FAKE_STORAGE_URL);
-        this.openStackV2VolumePlugin = new OpenStackV2VolumePlugin();
 
+        this.openStackV2VolumePlugin = new OpenStackV2VolumePlugin();
         this.client = Mockito.mock(HttpClient.class);
         HttpResponseFactory factory = new DefaultHttpResponseFactory();
         HttpResponse response = factory.newHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_1,
