@@ -2,7 +2,8 @@ package org.fogbowcloud.manager.core.plugins.cloud.attachment.openstack;
 
 import static org.mockito.Mockito.mock;
 import java.util.Properties;
-
+import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.token.Token;
@@ -31,7 +32,9 @@ public class OpenStackAttachmentPluginTest {
 
     @Before
     public void setUp() {
-        Properties properties = new Properties();
+        HomeDir.getInstance().setPath("src/test/resources/private");
+        PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
+        Properties properties = propertiesHolder.getProperties();
         properties.put(COMPUTE_NOVAV2_URL_KEY, FAKE_ENDPOINT);
         properties.put(COMPUTE_NOVAV2_NETWORK_KEY, FAKE_NET_ID);
         
