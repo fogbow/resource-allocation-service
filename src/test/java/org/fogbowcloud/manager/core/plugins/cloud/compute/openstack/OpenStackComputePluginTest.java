@@ -11,7 +11,8 @@ import static org.mockito.Mockito.spy;
 
 import java.io.IOException;
 import java.util.Properties;
-
+import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.plugins.cloud.compute.util.CloudInitUserDataBuilder;
 import org.fogbowcloud.manager.core.models.Flavor;
@@ -58,7 +59,9 @@ public class OpenStackComputePluginTest {
 
     @Before
     public void setUp() throws Exception {
-        Properties properties = new Properties();
+        HomeDir.getInstance().setPath("src/test/resources/private");
+        PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
+        Properties properties = propertiesHolder.getProperties();
         properties.put(COMPUTE_NOVAV2_URL_KEY, FAKE_ENDPOINT);
         properties.put(COMPUTE_NOVAV2_NETWORK_KEY, FAKE_NET_ID);
 

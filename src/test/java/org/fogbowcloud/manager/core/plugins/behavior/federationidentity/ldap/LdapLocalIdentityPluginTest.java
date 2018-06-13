@@ -6,12 +6,13 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.codec.binary.Base64;
+import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.ldap.LdapIdentityPlugin;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -27,7 +28,9 @@ public class LdapLocalIdentityPluginTest {
     @Before
     public void setUp() throws Exception {
 
-        Properties properties = new Properties();
+        HomeDir.getInstance().setPath("src/test/resources/private");
+        PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
+        Properties properties = propertiesHolder.getProperties();
         properties.put(IDENTITY_URL_KEY, KEYSTONE_URL);
 
         this.ldapStoneIdentity = Mockito.spy(new LdapIdentityPlugin());
@@ -36,11 +39,6 @@ public class LdapLocalIdentityPluginTest {
                 .createSignature(Mockito.any(JSONObject.class));
     }
 
-    /**
-     * ERROR org.fogbowcloud.manager.utils.PropertiesUtil
-     * No ldap-identity-plugin.conf file was found at resources 
-     */
-    @Ignore
     @Test
     public void testCreateToken() throws Exception {
 
@@ -69,11 +67,6 @@ public class LdapLocalIdentityPluginTest {
         Assert.assertTrue(decodedAccessId.contains(MOCK_SIGNATURE));
     }
 
-    /**
-     * ERROR org.fogbowcloud.manager.utils.PropertiesUtil
-     * No ldap-identity-plugin.conf file was found at resources.
-     */
-    @Ignore
     @Test
     public void testCreateTokenFail() throws Exception {
 
@@ -100,12 +93,7 @@ public class LdapLocalIdentityPluginTest {
         }
     }
 
-    /**
-     * ERROR org.fogbowcloud.manager.utils.PropertiesUtil
-     * No ldap-identity-plugin.conf file was found at resources.
-     */
-    @Ignore
-    @Test(expected = Exception.class)
+    @Test
     public void testGetTokenInvalidAccessId() throws Exception {
 
         String name = "ldapUser";
@@ -122,10 +110,10 @@ public class LdapLocalIdentityPluginTest {
         userCredentials.put(LdapIdentityPlugin.CRED_PUBLIC_KEY, "public_key_path");
 
         Mockito.doReturn(userName)
-                .when(ldapStoneIdentity)
+                .when(this.ldapStoneIdentity)
                 .ldapAuthenticate(Mockito.eq(name), Mockito.eq(password));
 
-        String tokenValueA = ldapStoneIdentity.createFederationTokenValue(userCredentials);
+        String tokenValueA = this.ldapStoneIdentity.createFederationTokenValue(userCredentials);
 
         String decodedAccessId = decodeAccessId(tokenValueA);
 
@@ -145,13 +133,13 @@ public class LdapLocalIdentityPluginTest {
                         StandardCharsets.UTF_8);
 
         Mockito.doReturn(true)
-                .when(ldapStoneIdentity)
+                .when(this.ldapStoneIdentity)
                 .verifySign(Mockito.eq(tokenMessage), Mockito.eq(signature));
         Mockito.doReturn(false)
-                .when(ldapStoneIdentity)
+                .when(this.ldapStoneIdentity)
                 .verifySign(Mockito.eq(newAccessId), Mockito.eq(signature));
 
-        ldapStoneIdentity.isValid(newAccessId);
+        Assert.assertFalse(this.ldapStoneIdentity.isValid(newAccessId));
     }
 
     public String decodeAccessId(String accessId) {

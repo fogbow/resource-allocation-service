@@ -17,6 +17,8 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.message.BasicStatusLine;
+import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.ResponseConstants;
@@ -51,7 +53,9 @@ public class OpenStackV2NetworkPluginTest {
 
 	@Before
 	public void setUp() {
-		Properties properties = new Properties();
+	    HomeDir.getInstance().setPath("src/test/resources/private");
+        PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
+        Properties properties = propertiesHolder.getProperties();
 		properties.put(OpenStackV2NetworkPlugin.KEY_EXTERNAL_GATEWAY_INFO, DEFAULT_GATEWAY_INFO);
 		properties.put(NETWORK_NEUTRONV2_URL_KEY, DEFAULT_NETWORK_URL);
 		this.openStackV2NetworkPlugin = Mockito.spy(new OpenStackV2NetworkPlugin());
