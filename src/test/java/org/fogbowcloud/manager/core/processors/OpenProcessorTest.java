@@ -4,24 +4,26 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-
-import java.util.Properties;
-
+import org.fogbowcloud.manager.core.AaController;
 import org.fogbowcloud.manager.core.BaseUnitTests;
+import org.fogbowcloud.manager.core.BehaviorPluginsHolder;
+import org.fogbowcloud.manager.core.CloudPluginsHolder;
+import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.OrderController;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.RemoteCloudConnector;
-import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.utils.PropertiesUtil;
+import org.fogbowcloud.manager.core.plugins.cloud.localidentity.LocalIdentityPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.localidentity.openstack.KeystoneV3IdentityPlugin;
+import org.fogbowcloud.manager.core.services.PluginInstantiationService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,24 +34,43 @@ import org.mockito.stubbing.Answer;
 public class OpenProcessorTest extends BaseUnitTests {
 
     private OpenProcessor openProcessor;
-
-    private LocalCloudConnector localInstanceProvider;
-    private RemoteCloudConnector remoteInstanceProvider;
+    
+    private BehaviorPluginsHolder behaviorPluginsHolder;
+    private LocalIdentityPlugin localIdentityPlugin;
+    private AaController aaController;
     private OrderController orderController;
-
+    private CloudPluginsHolder cloudPluginsHolder;
+    
+    private LocalCloudConnector localCloudConnector;
+    private RemoteCloudConnector remoteCloudConnector;
     private Thread thread;
-
+    
     @Before
     public void setUp() {
-        this.localInstanceProvider = Mockito.mock(LocalCloudConnector.class);
-        this.remoteInstanceProvider = Mockito.mock(RemoteCloudConnector.class);
-
+        HomeDir.getInstance().setPath("src/test/resources/private");
+        initServiceConfig();
+        this.localCloudConnector = Mockito.spy(new LocalCloudConnector(BaseUnitTests.LOCAL_MEMBER_ID, this.aaController, this.orderController, this.cloudPluginsHolder));
+        this.remoteCloudConnector = Mockito.mock(RemoteCloudConnector.class);
         this.thread = null;
-
-        this.openProcessor = Mockito.spy(new OpenProcessor("fake-member-id",
+        this.openProcessor = Mockito.spy(new OpenProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
                 DefaultConfigurationConstants.OPEN_ORDERS_SLEEP_TIME));
+    }
+    
+    private void initServiceConfig() {
+        PluginInstantiationService instantiationInitService = PluginInstantiationService.getInstance();
 
-        this.orderController = new OrderController("");
+        this.behaviorPluginsHolder = new BehaviorPluginsHolder(instantiationInitService);
+        this.behaviorPluginsHolder.getLocalUserCredentialsMapperPlugin();
+        this.localIdentityPlugin = new KeystoneV3IdentityPlugin();
+        this.aaController = new AaController(this.localIdentityPlugin, this.behaviorPluginsHolder);
+        this.orderController = new OrderController(getLocalMemberId());
+
+        this.cloudPluginsHolder = new CloudPluginsHolder(instantiationInitService);
+        CloudConnectorFactory.getInstance().setCloudPluginsHolder(cloudPluginsHolder);
+        CloudConnectorFactory.getInstance().setLocalMemberId(getLocalMemberId());
+        CloudConnectorFactory.getInstance().setAaController(this.aaController);
+        CloudConnectorFactory.getInstance().setOrderController(this.orderController);
+//        CloudConnectorFactory.getInstance().setPacketSender(xmppComponentManager);
     }
 
     @After
@@ -70,12 +91,11 @@ public class OpenProcessorTest extends BaseUnitTests {
     public void testProcessOpenLocalOrder() throws Exception {
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
-        FederationUser federationUser = null;
         OrderStateTransitioner.activateOrder(localOrder);
 
         String id = "fake-id";
         Mockito.doReturn(id)
-                .when(this.localInstanceProvider)
+                .when(this.localCloudConnector)
                 .requestInstance(Mockito.any(Order.class));
 
         this.thread = new Thread(this.openProcessor);
@@ -85,8 +105,8 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
 
-        // test if the open order list is empty and the spawningList is with the
-        // localOrder
+        // test if the open order list is empty and 
+        // the spawningList is with the localOrder
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
         ChainedList spawningOrdersList = sharedOrderHolders.getSpawningOrdersList();
@@ -104,17 +124,17 @@ public class OpenProcessorTest extends BaseUnitTests {
     public void testProcessOpenLocalOrderWithNullInstance() throws Exception {
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
-        FederationUser federationUser = null;
         OrderStateTransitioner.activateOrder(localOrder);
 
         Mockito.doReturn(null)
-                .when(this.localInstanceProvider)
+                .when(this.localCloudConnector)
                 .requestInstance(Mockito.any(Order.class));
 
-        this.thread = new Thread(this.openProcessor);
-        this.thread.start();
-
-        Thread.sleep(500);
+        this.openProcessor.processOpenOrder(localOrder);
+        
+//        this.thread = new Thread(this.openProcessor);
+//        this.thread.start();
+//        Thread.sleep(500);
 
         assertEquals(OrderState.FAILED, localOrder.getOrderState());
 
@@ -137,11 +157,10 @@ public class OpenProcessorTest extends BaseUnitTests {
     public void testProcessLocalOpenOrderRequestingException() throws Exception {
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
-        FederationUser federationUser = null;
         OrderStateTransitioner.activateOrder(localOrder);
 
         Mockito.doThrow(new RuntimeException("Any Exception"))
-                .when(this.localInstanceProvider)
+                .when(this.localCloudConnector)
                 .requestInstance(Mockito.any(Order.class));
 
         this.thread = new Thread(this.openProcessor);
@@ -151,8 +170,8 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         assertEquals(OrderState.FAILED, localOrder.getOrderState());
 
-        // test if the open order list is empty and the failedList is with the
-        // localOrder
+        // test if the open order list is empty and 
+        // the failedList is with the localOrder
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
         ChainedList failedOrdersList = sharedOrderHolders.getFailedOrdersList();
@@ -169,11 +188,10 @@ public class OpenProcessorTest extends BaseUnitTests {
     public void testProcessOpenRemoteOrder() throws Exception {
         Order remoteOrder = this.createRemoteOrder(getLocalMemberId());
 
-        FederationUser federationUser = null;
         OrderStateTransitioner.activateOrder(remoteOrder);
 
         Mockito.doReturn(null)
-                .when(this.remoteInstanceProvider)
+                .when(this.remoteCloudConnector)
                 .requestInstance(Mockito.any(Order.class));
 
         this.thread = new Thread(this.openProcessor);
@@ -183,8 +201,8 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         assertEquals(OrderState.PENDING, remoteOrder.getOrderState());
 
-        // test if the open order list is empty and the failedList is with the
-        // localOrder
+        // test if the open order list is empty and
+        // the failedList is with the localOrder
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
         ChainedList pendingOrdersList = sharedOrderHolders.getPendingOrdersList();
@@ -202,11 +220,10 @@ public class OpenProcessorTest extends BaseUnitTests {
     public void testProcessRemoteOpenOrderRequestingException() throws Exception {
         Order remoteOrder = this.createRemoteOrder(getLocalMemberId());
 
-        FederationUser federationUser = null;
         OrderStateTransitioner.activateOrder(remoteOrder);
 
         Mockito.doThrow(new RuntimeException("Any Exception"))
-                .when(this.remoteInstanceProvider)
+                .when(this.remoteCloudConnector)
                 .requestInstance(Mockito.any(Order.class));
 
         this.thread = new Thread(this.openProcessor);
@@ -216,8 +233,8 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         assertEquals(OrderState.FAILED, remoteOrder.getOrderState());
 
-        // test if the open order list is empty and the failedList is with the
-        // localOrder
+        // test if the open order list is empty and
+        // the failedList is with the localOrder
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
         ChainedList failedOrdersList = sharedOrderHolders.getFailedOrdersList();
@@ -234,7 +251,6 @@ public class OpenProcessorTest extends BaseUnitTests {
     public void testProcessNotOpenOrder() throws InterruptedException, OrderManagementException {
         Order order = this.createLocalOrder(getLocalMemberId());
 
-        FederationUser federationUser = null;
         OrderStateTransitioner.activateOrder(order);
 
         order.setOrderState(OrderState.PENDING);
@@ -275,7 +291,6 @@ public class OpenProcessorTest extends BaseUnitTests {
             throws Exception {
         Order order = this.createLocalOrder(getLocalMemberId());
 
-        FederationUser federationUser = null;
         OrderStateTransitioner.activateOrder(order);
 
         Mockito.doThrow(OrderStateTransitionException.class)
@@ -305,7 +320,6 @@ public class OpenProcessorTest extends BaseUnitTests {
             throws Exception {
         Order order = this.createLocalOrder(getLocalMemberId());
 
-        FederationUser federationUser = null;
         OrderStateTransitioner.activateOrder(order);
 
         Mockito.doThrow(Exception.class)
@@ -333,12 +347,11 @@ public class OpenProcessorTest extends BaseUnitTests {
     public void testRaceConditionWithThisThreadPriority() throws Exception {
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
-        FederationUser federationUser = null;
         OrderStateTransitioner.activateOrder(localOrder);
 
         String id = "fake-id";
         Mockito.doReturn(id)
-                .when(this.localInstanceProvider)
+                .when(this.localCloudConnector)
                 .requestInstance(Mockito.any(Order.class));
 
         synchronized (localOrder) {
@@ -364,7 +377,6 @@ public class OpenProcessorTest extends BaseUnitTests {
             throws Exception {
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
-        FederationUser federationUser = null;
         OrderStateTransitioner.activateOrder(localOrder);
 
         synchronized (localOrder) {
@@ -391,12 +403,13 @@ public class OpenProcessorTest extends BaseUnitTests {
     public void testRaceConditionWithOpenProcessorThreadPriority() throws Exception {
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
-        FederationUser federationUser = null;
         OrderStateTransitioner.activateOrder(localOrder);
 
         String id = "fake-id";
 
-        Mockito.when(this.localInstanceProvider.requestInstance(Mockito.any(Order.class)))
+        this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
+        
+        Mockito.when(this.localCloudConnector.requestInstance(Mockito.any(Order.class)))
                 .thenAnswer(
                         new Answer<String>() {
                             @Override
