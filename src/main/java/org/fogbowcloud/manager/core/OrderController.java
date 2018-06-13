@@ -33,6 +33,7 @@ public class OrderController {
     private final SharedOrderHolders orderHolders;
 
     public OrderController(String localMemberId) {
+        //FIXME: is localMemberId really necessary? Maybe it was put here to support future plans. I do not know
         this.localMemberId = localMemberId;
         this.orderHolders = SharedOrderHolders.getInstance();
     }
