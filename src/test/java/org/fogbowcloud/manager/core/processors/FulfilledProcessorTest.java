@@ -3,6 +3,11 @@ package org.fogbowcloud.manager.core.processors;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Properties;
@@ -37,9 +42,16 @@ import org.fogbowcloud.manager.utils.SshConnectivityUtil;
 import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(CloudConnectorFactory.class)
 public class FulfilledProcessorTest extends BaseUnitTests {
 
     private FulfilledProcessor fulfilledProcessor;
@@ -63,12 +75,10 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         this.properties = propertiesHolder.getProperties();
         this.properties.put(ConfigurationConstants.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
-        
-        initServiceConfig();
-    	
+
         this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
         this.remoteCloudConnector = Mockito.mock(RemoteCloudConnector.class);
-    	
+
         this.tunnelingService = Mockito.mock(TunnelingServiceUtil.class);
         // TODO review !
         this.sshConnectivity = Mockito.mock(SshConnectivityUtil.class);
@@ -82,23 +92,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrderList = sharedOrderHolders.getFulfilledOrdersList();
         this.failedOrderList = sharedOrderHolders.getFailedOrdersList();
-    }
-    
-    private void initServiceConfig() {
-        PluginInstantiationService instantiationInitService = PluginInstantiationService.getInstance();
-
-        this.behaviorPluginsHolder = new BehaviorPluginsHolder(instantiationInitService);
-        this.behaviorPluginsHolder.getLocalUserCredentialsMapperPlugin();
-
-        this.aaController = new AaController(this.localIdentityPlugin, this.behaviorPluginsHolder);
-        this.orderController = new OrderController(getLocalMemberId());
-
-        CloudPluginsHolder cloudPluginsHolder = new CloudPluginsHolder(instantiationInitService);
-        CloudConnectorFactory.getInstance().setCloudPluginsHolder(cloudPluginsHolder);
-        CloudConnectorFactory.getInstance().setLocalMemberId(getLocalMemberId());
-        CloudConnectorFactory.getInstance().setAaController(this.aaController);
-        CloudConnectorFactory.getInstance().setOrderController(this.orderController);
-//        CloudConnectorFactory.getInstance().setPacketSender(xmppComponentManager);
     }
 
     @After
@@ -118,33 +111,38 @@ public class FulfilledProcessorTest extends BaseUnitTests {
      */
     @Test
     public void testRunProcessLocalComputeOrderInstanceReachable() throws Exception {
-        Order order = this.createLocalOrder();        
+        Order order = this.createLocalOrder();
         order.setOrderState(OrderState.FULFILLED);
 
         this.fulfilledOrderList.addItem(order);
 
-        String instanceId = "instanceid"; 
+        String instanceId = "instanceid";
         Instance orderInstance = Mockito.spy(new ComputeInstance(instanceId));
         orderInstance.setState(InstanceState.READY);
         order.setInstanceId(instanceId);
 
-        Mockito.doReturn(orderInstance)
-                .when(this.localCloudConnector)
-                .getInstance(Mockito.any(Order.class));
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        when(cloudConnectorFactory.getCloudConnector(anyString())).thenReturn(localCloudConnector);
 
-//        Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.eq(order.getId())))
-//        		.thenReturn(new HashMap<>());
-        
+        doReturn(orderInstance).when(this.localCloudConnector).getInstance(Mockito.any(Order.class));
+
+        PowerMockito.mockStatic(CloudConnectorFactory.class);
+        given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
+
+        this.fulfilledProcessor = Mockito.spy(new FulfilledProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
+                this.tunnelingService, this.sshConnectivity,
+                DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME));
+
         Mockito.when(this.sshConnectivity.checkSSHConnectivity(Mockito.any(
-        		SshTunnelConnectionData.class))).thenReturn(true);
+                SshTunnelConnectionData.class))).thenReturn(true);
 
         assertNull(this.failedOrderList.getNext());
 
-        this.fulfilledProcessor.processFulfilledOrder(order);
-        
-//        this.thread = new Thread(this.fulfilledProcessor);
-//        this.thread.start();
-//        Thread.sleep(500);
+//        this.fulfilledProcessor.processFulfilledOrder(order);
+
+        this.thread = new Thread(this.fulfilledProcessor);
+        this.thread.start();
+        Thread.sleep(500);
 
         assertNotNull(this.fulfilledOrderList.getNext());
         assertNull(this.failedOrderList.getNext());
@@ -156,6 +154,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
      *
      * @throws InterruptedException
      */
+    // FIXME: Maybe we want to remove this test, because Fulfilled Processor must treat only local orders
+    @Ignore
     @Test
     public void testRunProcessRemoteComputeOrderInstanceReachable() throws Exception {
         Order order = this.createRemoteOrder();
@@ -173,7 +173,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
                 .getInstance(Mockito.any(Order.class));
 
         Mockito.when(this.sshConnectivity.checkSSHConnectivity(Mockito.any(
-        		SshTunnelConnectionData.class))).thenReturn(true);
+                SshTunnelConnectionData.class))).thenReturn(true);
 
         assertNull(this.failedOrderList.getNext());
 
@@ -209,10 +209,10 @@ public class FulfilledProcessorTest extends BaseUnitTests {
                 .getInstance(Mockito.any(Order.class));
 
         Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.eq(order.getId())))
-				.thenReturn(new HashMap<>());
-        
+                .thenReturn(new HashMap<>());
+
         Mockito.when(this.sshConnectivity.checkSSHConnectivity(Mockito.any(
-        		SshTunnelConnectionData.class))).thenReturn(false);
+                SshTunnelConnectionData.class))).thenReturn(false);
 
         assertNull(this.failedOrderList.getNext());
 
@@ -235,6 +235,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
      *
      * @throws InterruptedException
      */
+    // FIXME: Maybe we want to remove this test, because Fulfilled Processor must treat only local orders
+    @Ignore
     @Test
     public void testRunProcessRemoteComputeOrderInstanceNotReachable() throws Exception {
         Order order = this.createRemoteOrder();
@@ -252,10 +254,10 @@ public class FulfilledProcessorTest extends BaseUnitTests {
                 .getInstance(Mockito.any(Order.class));
 
         Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.eq(order.getId())))
-				.thenReturn(new HashMap<>());
-        
+                .thenReturn(new HashMap<>());
+
         Mockito.when(this.sshConnectivity.checkSSHConnectivity(Mockito.any(
-        		SshTunnelConnectionData.class))).thenReturn(false);
+                SshTunnelConnectionData.class))).thenReturn(false);
 
         assertNull(this.failedOrderList.getNext());
 
@@ -294,8 +296,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
                 .getInstance(Mockito.any(Order.class));
 
         Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.eq(order.getId())))
-				.thenReturn(new HashMap<>());
-        
+                .thenReturn(new HashMap<>());
+
         assertNull(this.failedOrderList.getNext());
 
         this.thread = new Thread(this.fulfilledProcessor);
@@ -317,6 +319,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
      *
      * @throws InterruptedException
      */
+    // FIXME: Maybe we want to remove this test, because Fulfilled Processor must treat only local orders
+    @Ignore
     @Test
     public void testRunProcessRemoteComputeOrderInstanceFailed() throws Exception {
         Order order = this.createRemoteOrder();
@@ -333,10 +337,10 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Mockito.doReturn(orderInstance)
                 .when(this.remoteCloudConnector)
                 .getInstance(Mockito.any(Order.class));
-        
+
         Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.eq(order.getId())))
-				.thenReturn(new HashMap<>());
-        
+                .thenReturn(new HashMap<>());
+
         assertNull(this.failedOrderList.getNext());
 
         this.thread = new Thread(this.fulfilledProcessor);
@@ -423,7 +427,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         Order localOrder =
                 new ComputeOrder(
-                		federationUser,
+                        federationUser,
                         requestingMember,
                         providingMember,
                         8,
@@ -436,7 +440,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     private Order createRemoteOrder() {
-    	FederationUser federationUser = Mockito.mock(FederationUser.class);
+        FederationUser federationUser = Mockito.mock(FederationUser.class);
         UserData userData = Mockito.mock(UserData.class);
         String imageName = "fake-image-name";
         String requestingMember =
@@ -446,7 +450,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         Order remoteOrder =
                 new ComputeOrder(
-                		federationUser,
+                        federationUser,
                         requestingMember,
                         providingMember,
                         8,
@@ -457,5 +461,5 @@ public class FulfilledProcessorTest extends BaseUnitTests {
                         publicKey);
         return remoteOrder;
     }
-    
+
 }
