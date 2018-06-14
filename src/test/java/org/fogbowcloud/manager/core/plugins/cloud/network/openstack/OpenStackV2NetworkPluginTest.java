@@ -50,14 +50,15 @@ public class OpenStackV2NetworkPluginTest {
 	private OpenStackV2NetworkPlugin openStackV2NetworkPlugin;
 	private Token defaultToken;
 	private HttpClient client;
+	private Properties properties;
 
 	@Before
 	public void setUp() {
 	    HomeDir.getInstance().setPath("src/test/resources/private");
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
-        Properties properties = propertiesHolder.getProperties();
-		properties.put(OpenStackV2NetworkPlugin.KEY_EXTERNAL_GATEWAY_INFO, DEFAULT_GATEWAY_INFO);
-		properties.put(NETWORK_NEUTRONV2_URL_KEY, DEFAULT_NETWORK_URL);
+        this.properties = propertiesHolder.getProperties();
+        this.properties.put(OpenStackV2NetworkPlugin.KEY_EXTERNAL_GATEWAY_INFO, DEFAULT_GATEWAY_INFO);
+        this.properties.put(NETWORK_NEUTRONV2_URL_KEY, DEFAULT_NETWORK_URL);
 		this.openStackV2NetworkPlugin = Mockito.spy(new OpenStackV2NetworkPlugin());
 
 		this.client = Mockito.mock(HttpClient.class);
@@ -79,9 +80,11 @@ public class OpenStackV2NetworkPluginTest {
 
 		JSONObject routerJsonObject = generateJsonEntityToCreateRouter
 				.optJSONObject(OpenStackV2NetworkPlugin.KEY_JSON_ROUTER);
+		
 		Assert.assertEquals(DEFAULT_GATEWAY_INFO,
 				routerJsonObject.optJSONObject(OpenStackV2NetworkPlugin.KEY_EXTERNAL_GATEWAY_INFO)
 						.optString(OpenStackV2NetworkPlugin.KEY_NETWORK_ID));
+		
 		Assert.assertTrue(routerJsonObject.optString(OpenStackV2NetworkPlugin.KEY_NAME)
 				.contains(OpenStackV2NetworkPlugin.DEFAULT_ROUTER_NAME));
 	}
@@ -100,11 +103,12 @@ public class OpenStackV2NetworkPluginTest {
 
 	@Test
 	public void testSetDnsList() {
-		Properties properties = new Properties();
 		String dnsOne = "one";
 		String dnsTwo = "Two";
-		properties.put(OpenStackV2NetworkPlugin.KEY_DNS_NAMESERVERS, dnsOne + "," + dnsTwo);
-		this.openStackV2NetworkPlugin = new OpenStackV2NetworkPlugin();
+
+		this.properties.put(OpenStackV2NetworkPlugin.KEY_DNS_NAMESERVERS, dnsOne + "," + dnsTwo);
+		this.openStackV2NetworkPlugin.setDNSList(this.properties);
+		
 		Assert.assertEquals(2, this.openStackV2NetworkPlugin.getDnsList().length);
 		Assert.assertEquals(dnsOne, this.openStackV2NetworkPlugin.getDnsList()[0]);
 		Assert.assertEquals(dnsTwo, this.openStackV2NetworkPlugin.getDnsList()[1]);
@@ -112,11 +116,10 @@ public class OpenStackV2NetworkPluginTest {
 
 	@Test
 	public void testGenerateJsonEntityToCreateSubnet() throws JSONException {
-		Properties properties = new Properties();
 		String dnsOne = "one";
 		String dnsTwo = "Two";
-		properties.put(OpenStackV2NetworkPlugin.KEY_DNS_NAMESERVERS, dnsOne + "," + dnsTwo);
-		this.openStackV2NetworkPlugin = new OpenStackV2NetworkPlugin();
+		this.properties.put(OpenStackV2NetworkPlugin.KEY_DNS_NAMESERVERS, dnsOne + "," + dnsTwo);
+		this.openStackV2NetworkPlugin.setDNSList(this.properties);
 
 		String networkId = "networkId";
 		String address = "10.10.10.10/24";
