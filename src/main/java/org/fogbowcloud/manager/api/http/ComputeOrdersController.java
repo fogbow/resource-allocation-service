@@ -28,7 +28,7 @@ public class ComputeOrdersController {
 
     public static final String COMPUTE_ENDPOINT = "computes";
 
-    private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
+    public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
     private final Logger LOGGER = Logger.getLogger(ComputeOrdersController.class);
 

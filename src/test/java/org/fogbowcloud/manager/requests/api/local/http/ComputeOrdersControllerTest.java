@@ -5,13 +5,9 @@ import com.google.gson.reflect.TypeToken;
 import org.fogbowcloud.manager.api.http.ComputeOrdersController;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -40,7 +36,6 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
-// TODO review this tests
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
 @WebMvcTest(value = ComputeOrdersController.class, secure = false)
@@ -59,9 +54,7 @@ public class ComputeOrdersControllerTest {
 
     private ApplicationFacade facade;
 
-    private final String computesEndpoint = "/" + ComputeOrdersController.COMPUTE_ENDPOINT;
-
-    private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
+    private final String COMPUTE_ENDPOINT = "/" + ComputeOrdersController.COMPUTE_ENDPOINT;
 
     @Before
     public void setUp() throws OrderManagementException {
@@ -77,7 +70,7 @@ public class ComputeOrdersControllerTest {
         doReturn(orderId).when(this.facade).createCompute(any(ComputeOrder.class), anyString());
 
         // Need to make a method to create a body based on parameters, also change the mock above
-        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.POST, computesEndpoint, getHttpHeaders(), CORRECT_BODY);
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.POST, COMPUTE_ENDPOINT, getHttpHeaders(), CORRECT_BODY);
 
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
@@ -91,7 +84,7 @@ public class ComputeOrdersControllerTest {
     @Test
     public void wrongBodyToPostComputeTest() throws Exception {
         // Need to make a method to create a body based on parameters, also change the mock above
-        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.POST, computesEndpoint, getHttpHeaders(), WRONG_BODY);
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.POST, COMPUTE_ENDPOINT, getHttpHeaders(), WRONG_BODY);
 
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
@@ -104,7 +97,7 @@ public class ComputeOrdersControllerTest {
         List<ComputeInstance> computeInstanceList = new ArrayList<>();
         doReturn(computeInstanceList).when(this.facade).getAllComputes(anyString());
 
-        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, computesEndpoint, getHttpHeaders(), "");
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, COMPUTE_ENDPOINT, getHttpHeaders(), "");
 
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
@@ -121,7 +114,7 @@ public class ComputeOrdersControllerTest {
         List<ComputeInstance> computeInstanceList = Arrays.asList(new ComputeInstance[] {computeInstance1, computeInstance2, computeInstance3});
         doReturn(computeInstanceList).when(this.facade).getAllComputes(anyString());
 
-        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, computesEndpoint, getHttpHeaders(), "");
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, COMPUTE_ENDPOINT, getHttpHeaders(), "");
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
         int expectedStatus = HttpStatus.OK.value();
@@ -135,7 +128,7 @@ public class ComputeOrdersControllerTest {
     @Test
     public void getComputeById() throws Exception {
         final String fakeId = "fake-Id-1";
-        String computeIdEndpoint = computesEndpoint + "/" + fakeId;
+        String computeIdEndpoint = COMPUTE_ENDPOINT + "/" + fakeId;
         ComputeInstance computeInstance = new ComputeInstance(fakeId);
         doReturn(computeInstance).when(this.facade).getCompute(anyString(), anyString());
 
@@ -153,7 +146,7 @@ public class ComputeOrdersControllerTest {
     @Test
     public void getNotFoundComputeById() throws Exception {
         final String fakeId = "fake-Id-1";
-        String computeIdEndpoint = computesEndpoint + "/" + fakeId;
+        String computeIdEndpoint = COMPUTE_ENDPOINT + "/" + fakeId;
         doThrow(new InstanceNotFoundException()).when(this.facade).getCompute(anyString(), anyString());
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, computeIdEndpoint, getHttpHeaders(), "");
 
@@ -166,7 +159,7 @@ public class ComputeOrdersControllerTest {
     @Test
     public void deleteExistingCompute() throws Exception {
         final String fakeId = "fake-Id-1";
-        String computeIdEndpoint = computesEndpoint + "/" + fakeId;
+        String computeIdEndpoint = COMPUTE_ENDPOINT + "/" + fakeId;
         doNothing().when(this.facade).deleteCompute(anyString(), anyString());
 
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.DELETE, computeIdEndpoint, getHttpHeaders(), "");
@@ -197,14 +190,16 @@ public class ComputeOrdersControllerTest {
                         .accept(MediaType.APPLICATION_JSON)
                         .content(body)
                         .contentType(MediaType.APPLICATION_JSON);
+            default:
+                return null;
         }
-        return null;
+        
     }
 
     private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         String fakeFederationTokenValue = "fake-access-id";
-        headers.set(FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
+        headers.set(ComputeOrdersController.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
         return headers;
     }
 }

@@ -24,7 +24,7 @@ public class ImageRequestController {
 
     public static final String IMAGE_ENDPOINT = "images";
 
-    private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
+    public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
     private final String MEMBER_ID_HEADER_KEY = "memberId";
 

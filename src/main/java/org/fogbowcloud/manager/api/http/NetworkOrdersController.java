@@ -29,7 +29,7 @@ public class NetworkOrdersController {
 
     public static final String NETWORK_ENDPOINT = "networks";
     
-    private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
+    public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
     private final Logger LOGGER = Logger.getLogger(NetworkOrdersController.class);
     

@@ -29,7 +29,7 @@ public class AttachmentOrdersController {
 
     public static final String ATTACHMENT_ENDPOINT = "attachments";
 
-    private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
+    public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
     private final Logger LOGGER = Logger.getLogger(AttachmentOrdersController.class);
 
