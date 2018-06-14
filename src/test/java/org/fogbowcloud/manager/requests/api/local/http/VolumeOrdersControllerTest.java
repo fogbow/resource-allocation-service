@@ -10,18 +10,15 @@ import static org.mockito.Mockito.spy;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.fogbowcloud.manager.api.http.VolumeOrdersController;
 import org.fogbowcloud.manager.core.ApplicationFacade;
-import org.fogbowcloud.manager.core.SharedOrderHolders;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
-import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -45,12 +42,10 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @PrepareForTest(ApplicationFacade.class)
 public class VolumeOrdersControllerTest {
 
-    public static final String CORRECT_BODY =
-            "{\"federationToken\": null, \"requestingMember\":\"req-member\", \"providingMember\":\"prov-member\", \"volumeSize\": 1, \"type\":\"volume\"}";
+    private static final String CORRECT_BODY =
+            "{\"federationToken\": null, \"requestingMember\":\"req-member\", \"providingMember\":\"prov-member\", \"volumeSize\": 1}";
 
-    public static final String VOLUME_END_POINT = "/volume";
-
-    private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
+    private static final String VOLUME_END_POINT = "/" + VolumeOrdersController.VOLUME_ENDPOINT;
 
     private ApplicationFacade facade;
 
@@ -58,16 +53,17 @@ public class VolumeOrdersControllerTest {
     private MockMvc mockMvc;
 
     @Before
-    public void setUp() throws OrderManagementException {
+    public void setUp() {
         this.facade = spy(ApplicationFacade.class);
     }
 
-    @Ignore
     @Test
     public void createdVolumeTest() throws Exception {
+        VolumeOrder order = createVolumeOrder();
+
         PowerMockito.mockStatic(ApplicationFacade.class);
         given(ApplicationFacade.getInstance()).willReturn(this.facade);
-        doNothing().when(this.facade).createVolume(any(VolumeOrder.class), anyString());
+        doReturn(order.getId()).when(this.facade).createVolume(any(VolumeOrder.class), anyString());
 
         HttpHeaders headers = getHttpHeaders();
 
@@ -79,24 +75,21 @@ public class VolumeOrdersControllerTest {
 
         int expectedStatus = HttpStatus.CREATED.value();
 
+        String resultVolumeId = result.getResponse().getContentAsString();
+
+        assertEquals(order.getId(), resultVolumeId);
         assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 
-    @Ignore
     @Test
     public void getAllVolumesTest() throws Exception {
-        String federationTokenValue = "federationTokenValue";
-
-        Map<String, Order> activeOrdersMap = SharedOrderHolders.getInstance().getActiveOrdersMap();
-        List<VolumeOrder> volumeOrders = new ArrayList<VolumeOrder>();
-
-        for (Order order : activeOrdersMap.values()) {
-            volumeOrders.add((VolumeOrder) order);
-        }
+        List<VolumeInstance> volumeInstances = new ArrayList<>();
+        VolumeInstance instance = createVolumeInstance();
+        volumeInstances.add(instance);
 
         PowerMockito.mockStatic(ApplicationFacade.class);
         given(ApplicationFacade.getInstance()).willReturn(this.facade);
-        doReturn(volumeOrders).when(this.facade).getAllVolumes(federationTokenValue);
+        doReturn(volumeInstances).when(this.facade).getAllVolumes(anyString());
 
         HttpHeaders headers = getHttpHeaders();
 
@@ -107,50 +100,73 @@ public class VolumeOrdersControllerTest {
 
         int expectedStatus = HttpStatus.OK.value();
 
+        TypeToken<List<VolumeInstance>> token = new TypeToken<List<VolumeInstance>>(){};
+        List<VolumeInstance> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
+
+        assertEquals(1, resultList.size());
         assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 
-    @Ignore
+    @Test
+    public void getAllVolumesWithEmptyListTest() throws Exception {
+        List<VolumeInstance> volumeInstances = new ArrayList<>();
+
+        PowerMockito.mockStatic(ApplicationFacade.class);
+        given(ApplicationFacade.getInstance()).willReturn(this.facade);
+        doReturn(volumeInstances).when(this.facade).getAllVolumes(anyString());
+
+        HttpHeaders headers = getHttpHeaders();
+
+        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(VOLUME_END_POINT)
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        int expectedStatus = HttpStatus.OK.value();
+
+        TypeToken<List<VolumeInstance>> token = new TypeToken<List<VolumeInstance>>(){};
+        List<VolumeInstance> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
+
+        assertEquals(0, resultList.size());
+        assertEquals(expectedStatus, result.getResponse().getStatus());
+    }
+
     @Test
     public void getVolumeTest() throws Exception {
-        VolumeOrder volumeOrder = createVolumeOrder();
+        VolumeInstance volumeInstance = createVolumeInstance();
 
-        String volumeId = volumeOrder.getId();
-        String federationTokenValue = "federationTokenValue";
+        String volumeId = volumeInstance.getId();
 
         PowerMockito.mockStatic(ApplicationFacade.class);
         given(ApplicationFacade.getInstance()).willReturn(this.facade);
-        doReturn(volumeOrder).when(this.facade).getVolume(volumeId, federationTokenValue);
+        doReturn(volumeInstance).when(this.facade).getVolume(anyString(), anyString());
 
         HttpHeaders headers = getHttpHeaders();
 
-        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(VOLUME_END_POINT)
-                .param("volumeId", volumeId)
+        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(VOLUME_END_POINT + "/" + volumeId)
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
         int expectedStatus = HttpStatus.OK.value();
 
+        VolumeInstance resultInstance = new Gson().fromJson(result.getResponse().getContentAsString(), VolumeInstance.class);
+        assertEquals(volumeInstance.getId(), resultInstance.getId());
         assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 
-    @Ignore
     @Test
     public void deleteVolumeTest() throws Exception {
         VolumeOrder volumeOrder = createVolumeOrder();
-
         String volumeId = volumeOrder.getId();
-        String federationTokenValue = "federationTokenValue";
 
         PowerMockito.mockStatic(ApplicationFacade.class);
         given(ApplicationFacade.getInstance()).willReturn(this.facade);
-        doNothing().when(this.facade).deleteVolume(volumeId, federationTokenValue);
+        doNothing().when(this.facade).deleteVolume(anyString(), anyString());
 
         HttpHeaders headers = getHttpHeaders();
 
-        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(VOLUME_END_POINT)
-                .param("volumeId", volumeId)
+        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.delete(VOLUME_END_POINT + "/" + volumeId)
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
@@ -163,7 +179,7 @@ public class VolumeOrdersControllerTest {
     private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         String fakeFederationTokenValue = "fake-access-id";
-        headers.set(FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
+        headers.set(VolumeOrdersController.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
         return headers;
     }
 
@@ -173,14 +189,12 @@ public class VolumeOrdersControllerTest {
         VolumeOrder volumeOrder = Mockito.spy(new VolumeOrder());
         volumeOrder.setFederationUser(federationUser);
 
-        String orderId = volumeOrder.getId();
-
-        Map<String, Order> activeOrdersMap = SharedOrderHolders.getInstance().getActiveOrdersMap();
-        activeOrdersMap.put(orderId, volumeOrder);
-
-        ChainedList openOrdersList = SharedOrderHolders.getInstance().getOpenOrdersList();
-        openOrdersList.addItem(volumeOrder);
-
         return volumeOrder;
     }
+
+    private VolumeInstance createVolumeInstance() {
+        String id = "fake-id";
+        return new VolumeInstance(id);
+    }
+
 }
