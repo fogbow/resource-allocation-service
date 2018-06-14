@@ -16,12 +16,7 @@ import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
 import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = NetworkOrdersController.NETWORK_ENDPOINT)
@@ -51,20 +46,20 @@ public class NetworkOrdersController {
         return new ResponseEntity<>(networks, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseEntity<NetworkInstance> getNetwork(@PathVariable String orderId,
+    @RequestMapping(value = "/{networkId}", method = RequestMethod.GET)
+    public ResponseEntity<NetworkInstance> getNetwork(@PathVariable String networkId,
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
-        NetworkInstance networkInstance = ApplicationFacade.getInstance().getNetwork(orderId, federationTokenValue);
+        NetworkInstance networkInstance = ApplicationFacade.getInstance().getNetwork(networkId, federationTokenValue);
         return new ResponseEntity<>(networkInstance, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public ResponseEntity<Boolean> deleteNetwork(@PathVariable String orderId,
+    @RequestMapping(value = "/{networkId}", method = RequestMethod.DELETE)
+    public ResponseEntity<Boolean> deleteNetwork(@PathVariable String networkId,
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
-        ApplicationFacade.getInstance().deleteNetwork(orderId, federationTokenValue);
+        ApplicationFacade.getInstance().deleteNetwork(networkId, federationTokenValue);
         return new ResponseEntity<Boolean>(HttpStatus.OK);
     }
-    
+
 }
