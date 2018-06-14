@@ -1,15 +1,21 @@
 package org.fogbowcloud.manager.core.plugins.cloud.attachment.openstack;
 
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import java.util.Properties;
+import org.apache.http.client.HttpClient;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
+import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -22,6 +28,9 @@ public class OpenStackAttachmentPluginTest {
     private static final String FAKE_SERVER_ID = "fake-server-id";
     private static final String FAKE_VOLUME_ID = "fake-volume-id";
     private static final String MOUNT_POINT = "/dev/vdd";
+    private static final String FAKE_INSTANCE_ID = "fake-instance-id";
+    private static final String FAKE_TENANT_ID = "fake-tenant-id";
+    private static final String FAKE_FEDERATION_TOKEN_VALUE = "fake_federation_token_value";
     
     @SuppressWarnings("unused")
     private AttachmentOrder attachmentOrder;
@@ -43,6 +52,25 @@ public class OpenStackAttachmentPluginTest {
         this.attachmentOrder = new AttachmentOrder(null, null, null, FAKE_SERVER_ID, FAKE_VOLUME_ID, MOUNT_POINT);
         
         this.openStackAttachmentPlugin = Mockito.spy(new OpenStackNovaV2AttachmentPlugin());
+    }
+    
+    @Ignore
+    @Test
+    public void requestInstanceTest() throws RequestException {
+        Mockito.doReturn(FAKE_TENANT_ID).when(openStackAttachmentPlugin).getTenantId(localToken);
+        Mockito.doReturn(FAKE_FEDERATION_TOKEN_VALUE).when(localToken).getAccessId();
+        String instanceId = this.openStackAttachmentPlugin.requestInstance(this.attachmentOrder, this.localToken);
+        Assert.assertEquals(FAKE_INSTANCE_ID, instanceId);
+    }
+    
+    @Test
+    public void deleteInstance() {
+        //TODO
+    }
+    
+    @Test
+    public void getInstanceTest() {
+        //TODO
     }
     
     @Test

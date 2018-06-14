@@ -24,6 +24,7 @@ import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.utils.HttpRequestUtil;
 import org.fogbowcloud.manager.utils.PropertiesUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -38,7 +39,6 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
 	private static final String ID_JSON_FIELD = "id";
     private static final String OS_VOLUME_ATTACHMENTS = "/os-volume_attachments";
-    private static final String SEPARATOR_ENPOINT = "/";
     private static final String SEPARATOR_ID = "|";
     private static final String SERVERS = "/servers/";
 	private static final String SERVER_JSON_FIELD = "server";
@@ -52,11 +52,15 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
 	private InstanceStateMapper instanceStateMapper;
     
     public OpenStackNovaV2AttachmentPlugin() {
-        this.properties = new Properties();
         HomeDir homeDir = HomeDir.getInstance();
         this.properties = PropertiesUtil.readProperties(homeDir.getPath() +
                 File.separator + OPENSTACK_NOVAV2_ATTACHMENT_PLUGIN_CONF);
-
+        initClient();
+    }
+    
+    private void initClient() {
+        HttpRequestUtil.init();
+        this.client = HttpRequestUtil.createHttpClient();
     }
 
     @Override
@@ -89,7 +93,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         String serverId = separatorInstanceId[0];
         String volumeId = separatorInstanceId[1];
         
-        String endpoint = getPrefixEndpoint(tenantId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + SEPARATOR_ENPOINT + volumeId;
+        String endpoint = getPrefixEndpoint(tenantId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + "/" + volumeId;
         doDeleteRequest(endpoint, localToken.getAccessId());
     }
 
@@ -106,7 +110,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     	/** this variable refers to volumeInstanceId received in the second part of the vector */
     	String volumeId = separatorInstanceId[1];
         
-        String requestEndpoint = getPrefixEndpoint(tenantId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + SEPARATOR_ENPOINT + volumeId;
+        String requestEndpoint = getPrefixEndpoint(tenantId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + "/" + volumeId;
         String jsonResponse = doGetRequest(requestEndpoint, localToken);
         
         LOGGER.debug("Getting instance from json: " + jsonResponse);        
