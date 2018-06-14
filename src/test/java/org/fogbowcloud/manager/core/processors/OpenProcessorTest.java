@@ -4,73 +4,58 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import org.fogbowcloud.manager.core.AaController;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
 import org.fogbowcloud.manager.core.BaseUnitTests;
-import org.fogbowcloud.manager.core.BehaviorPluginsHolder;
-import org.fogbowcloud.manager.core.CloudPluginsHolder;
 import org.fogbowcloud.manager.core.HomeDir;
-import org.fogbowcloud.manager.core.OrderController;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
-import org.fogbowcloud.manager.core.cloudconnector.RemoteCloudConnector;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.plugins.cloud.localidentity.LocalIdentityPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.localidentity.openstack.KeystoneV3IdentityPlugin;
-import org.fogbowcloud.manager.core.services.PluginInstantiationService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(CloudConnectorFactory.class)
 public class OpenProcessorTest extends BaseUnitTests {
 
     private OpenProcessor openProcessor;
-    
-    private BehaviorPluginsHolder behaviorPluginsHolder;
-    private LocalIdentityPlugin localIdentityPlugin;
-    private AaController aaController;
-    private OrderController orderController;
-    private CloudPluginsHolder cloudPluginsHolder;
-    
-    private LocalCloudConnector localCloudConnector;
-    private RemoteCloudConnector remoteCloudConnector;
     private Thread thread;
+    private CloudConnector cloudConnector;
     
     @Before
     public void setUp() {
         HomeDir.getInstance().setPath("src/test/resources/private");
-        initServiceConfig();
-        this.localCloudConnector = Mockito.spy(new LocalCloudConnector(BaseUnitTests.LOCAL_MEMBER_ID, this.aaController, this.orderController, this.cloudPluginsHolder));
-        this.remoteCloudConnector = Mockito.mock(RemoteCloudConnector.class);
+        
+        LocalCloudConnector localCloudConnector = Mockito.mock(LocalCloudConnector.class);
+
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        when(cloudConnectorFactory.getCloudConnector(anyString())).thenReturn(localCloudConnector);
+
+        PowerMockito.mockStatic(CloudConnectorFactory.class);
+        given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
+
+        this.cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(BaseUnitTests.LOCAL_MEMBER_ID);
+
         this.thread = null;
         this.openProcessor = Mockito.spy(new OpenProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
                 DefaultConfigurationConstants.OPEN_ORDERS_SLEEP_TIME));
-    }
-    
-    private void initServiceConfig() {
-        PluginInstantiationService instantiationInitService = PluginInstantiationService.getInstance();
-
-        this.behaviorPluginsHolder = new BehaviorPluginsHolder(instantiationInitService);
-        this.behaviorPluginsHolder.getLocalUserCredentialsMapperPlugin();
-        this.localIdentityPlugin = new KeystoneV3IdentityPlugin();
-        this.aaController = new AaController(this.localIdentityPlugin, this.behaviorPluginsHolder);
-        this.orderController = new OrderController(getLocalMemberId());
-
-        this.cloudPluginsHolder = new CloudPluginsHolder(instantiationInitService);
-        CloudConnectorFactory.getInstance().setCloudPluginsHolder(cloudPluginsHolder);
-        CloudConnectorFactory.getInstance().setLocalMemberId(getLocalMemberId());
-        CloudConnectorFactory.getInstance().setAaController(this.aaController);
-        CloudConnectorFactory.getInstance().setOrderController(this.orderController);
-//        CloudConnectorFactory.getInstance().setPacketSender(xmppComponentManager);
     }
 
     @After
@@ -95,7 +80,7 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         String id = "fake-id";
         Mockito.doReturn(id)
-                .when(this.localCloudConnector)
+                .when(this.cloudConnector)
                 .requestInstance(Mockito.any(Order.class));
 
         this.thread = new Thread(this.openProcessor);
@@ -127,14 +112,12 @@ public class OpenProcessorTest extends BaseUnitTests {
         OrderStateTransitioner.activateOrder(localOrder);
 
         Mockito.doReturn(null)
-                .when(this.localCloudConnector)
+                .when(this.cloudConnector)
                 .requestInstance(Mockito.any(Order.class));
 
-        this.openProcessor.processOpenOrder(localOrder);
-        
-//        this.thread = new Thread(this.openProcessor);
-//        this.thread.start();
-//        Thread.sleep(500);
+        this.thread = new Thread(this.openProcessor);
+        this.thread.start();
+        Thread.sleep(500);
 
         assertEquals(OrderState.FAILED, localOrder.getOrderState());
 
@@ -160,7 +143,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         OrderStateTransitioner.activateOrder(localOrder);
 
         Mockito.doThrow(new RuntimeException("Any Exception"))
-                .when(this.localCloudConnector)
+                .when(this.cloudConnector)
                 .requestInstance(Mockito.any(Order.class));
 
         this.thread = new Thread(this.openProcessor);
@@ -191,7 +174,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         OrderStateTransitioner.activateOrder(remoteOrder);
 
         Mockito.doReturn(null)
-                .when(this.remoteCloudConnector)
+                .when(this.cloudConnector)
                 .requestInstance(Mockito.any(Order.class));
 
         this.thread = new Thread(this.openProcessor);
@@ -223,7 +206,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         OrderStateTransitioner.activateOrder(remoteOrder);
 
         Mockito.doThrow(new RuntimeException("Any Exception"))
-                .when(this.remoteCloudConnector)
+                .when(this.cloudConnector)
                 .requestInstance(Mockito.any(Order.class));
 
         this.thread = new Thread(this.openProcessor);
@@ -351,7 +334,7 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         String id = "fake-id";
         Mockito.doReturn(id)
-                .when(this.localCloudConnector)
+                .when(this.cloudConnector)
                 .requestInstance(Mockito.any(Order.class));
 
         synchronized (localOrder) {
@@ -407,9 +390,7 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         String id = "fake-id";
 
-        this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
-        
-        Mockito.when(this.localCloudConnector.requestInstance(Mockito.any(Order.class)))
+        Mockito.when(this.cloudConnector.requestInstance(Mockito.any(Order.class)))
                 .thenAnswer(
                         new Answer<String>() {
                             @Override
