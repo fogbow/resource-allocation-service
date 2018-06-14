@@ -46,11 +46,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 public class NetworkOrdersControllerTest {
 
     public static final String CORRECT_BODY =
-            "{\"requestingMember\":\"req-member\", \"providingMember\":\"prov-member\", \"gateway\":\"gateway\", \"address\":\"address\", \"allocation\":\"allocation\", \"type\":\"network\"}";
+            "{\"requestingMember\":\"req-member\", \"providingMember\":\"prov-member\", \"gateway\":\"gateway\", \"address\":\"address\", \"allocation\":\"dynamic\"}";
 
-    public static final String NETWORK_END_POINT = "/network";
-
-    private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
+    public static final String NETWORK_END_POINT = "/" + NetworkOrdersController.NETWORK_ENDPOINT;
 
     private ApplicationFacade facade;
 
@@ -62,12 +60,12 @@ public class NetworkOrdersControllerTest {
         this.facade = spy(ApplicationFacade.class);
     }
 
-    @Ignore
     @Test
     public void createdNetworkTest() throws Exception {
         PowerMockito.mockStatic(ApplicationFacade.class);
         given(ApplicationFacade.getInstance()).willReturn(this.facade);
-        doNothing().when(this.facade).createNetwork(any(NetworkOrder.class), anyString());
+        String orderId = "orderId"; 
+        doReturn(orderId).when(this.facade).createNetwork(any(NetworkOrder.class), anyString());
 
         HttpHeaders headers = getHttpHeaders();
 
@@ -164,7 +162,7 @@ public class NetworkOrdersControllerTest {
     private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         String fakeFederationTokenValue = "fake-access-id";
-        headers.set(FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
+        headers.set(NetworkOrdersController.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
         return headers;
     }
 
