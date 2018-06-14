@@ -74,8 +74,7 @@ public class ApplicationFacade {
     }
 
     public ComputeAllocation getComputeAllocation(String memberId, String federationTokenValue)
-            throws UnauthenticatedException, QuotaException, UnauthorizedException, RemoteRequestException,
-            RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+            throws UnauthenticatedException, UnauthorizedException {
 
         return (ComputeAllocation) getUserAllocation(memberId, federationTokenValue, InstanceType.COMPUTE);
     }
@@ -269,8 +268,7 @@ public class ApplicationFacade {
     }
 
     private Allocation getUserAllocation(String memberId, String federationTokenValue, InstanceType instanceType)
-            throws UnauthenticatedException, QuotaException, UnauthorizedException, RemoteRequestException,
-            RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+            throws UnauthenticatedException, UnauthorizedException {
 
         this.aaController.authenticate(federationTokenValue);
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);

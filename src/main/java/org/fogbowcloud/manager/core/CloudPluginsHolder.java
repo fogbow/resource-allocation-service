@@ -11,13 +11,13 @@ import org.fogbowcloud.manager.core.services.PluginInstantiationService;
 
 public class CloudPluginsHolder {
 
-    private AttachmentPlugin attachmentPlugin;
-    private ComputePlugin computePlugin;
-    private ComputeQuotaPlugin computeQuotaPlugin;
-    private LocalIdentityPlugin localIdentityPlugin;
-    private NetworkPlugin networkPlugin;
-    private VolumePlugin volumePlugin;
-    private ImagePlugin imagePlugin;
+    private final AttachmentPlugin attachmentPlugin;
+    private final ComputePlugin computePlugin;
+    private final ComputeQuotaPlugin computeQuotaPlugin;
+    private final LocalIdentityPlugin localIdentityPlugin;
+    private final NetworkPlugin networkPlugin;
+    private final VolumePlugin volumePlugin;
+    private final ImagePlugin imagePlugin;
 
     public CloudPluginsHolder(PluginInstantiationService instantiationInitService) {
 
