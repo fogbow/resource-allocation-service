@@ -211,7 +211,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
             Date expirationDate = new Date(root.getLong(ATT_EXPIRATION_DATE));
             Date currentDate = new Date(System.currentTimeMillis());
 
-            if (expirationDate.after(currentDate)) {
+            if (expirationDate.before(currentDate)) {
                 throw new ExpiredTokenException("Expiration date: " + expirationDate);
             }
 
