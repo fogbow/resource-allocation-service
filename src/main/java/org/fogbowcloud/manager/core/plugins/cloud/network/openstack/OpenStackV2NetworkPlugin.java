@@ -108,12 +108,13 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
                 properties.getProperty(NETWORK_NEUTRONV2_URL_KEY)
                         + V2_API_ENDPOINT;
         this.instanceStateMapper = new OpenStackNetworkInstanceStateMapper();
+//        this.dnsList = new String[properties.size()];
         setDNSList(properties);
 
         initClient();
     }
 
-    private void setDNSList(Properties properties) {
+    protected void setDNSList(Properties properties) {
         String dnsProperty = properties.getProperty(KEY_DNS_NAMESERVERS);
         if (dnsProperty != null) {
             this.dnsList = dnsProperty.split(",");
