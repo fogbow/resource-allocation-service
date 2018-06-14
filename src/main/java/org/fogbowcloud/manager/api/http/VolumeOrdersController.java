@@ -51,19 +51,19 @@ public class VolumeOrdersController {
         return new ResponseEntity<>(volumes, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseEntity<VolumeInstance> getVolume(@PathVariable String orderId,
+    @RequestMapping(value = "/{volumeId}", method = RequestMethod.GET)
+    public ResponseEntity<VolumeInstance> getVolume(@PathVariable String volumeId,
         @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
-        VolumeInstance volume = ApplicationFacade.getInstance().getVolume(orderId, federationTokenValue);
+        VolumeInstance volume = ApplicationFacade.getInstance().getVolume(volumeId, federationTokenValue);
         return new ResponseEntity<>(volume, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public ResponseEntity<Boolean> deleteVolume(@PathVariable String orderId,
+    @RequestMapping(value = "/{volumeId}", method = RequestMethod.DELETE)
+    public ResponseEntity<Boolean> deleteVolume(@PathVariable String volumeId,
         @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
-        ApplicationFacade.getInstance().deleteVolume(orderId, federationTokenValue);
+        ApplicationFacade.getInstance().deleteVolume(volumeId, federationTokenValue);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
