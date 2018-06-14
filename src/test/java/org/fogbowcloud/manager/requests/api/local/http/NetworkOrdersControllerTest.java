@@ -10,18 +10,17 @@ import static org.mockito.Mockito.spy;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.fogbowcloud.manager.api.http.NetworkOrdersController;
 import org.fogbowcloud.manager.core.ApplicationFacade;
-import org.fogbowcloud.manager.core.SharedOrderHolders;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
+import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
-import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -45,10 +44,10 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @PrepareForTest(ApplicationFacade.class)
 public class NetworkOrdersControllerTest {
 
-    public static final String CORRECT_BODY =
+    private static final String CORRECT_BODY =
             "{\"requestingMember\":\"req-member\", \"providingMember\":\"prov-member\", \"gateway\":\"gateway\", \"address\":\"address\", \"allocation\":\"dynamic\"}";
 
-    public static final String NETWORK_END_POINT = "/" + NetworkOrdersController.NETWORK_ENDPOINT;
+    private static final String NETWORK_END_POINT = "/" + NetworkOrdersController.NETWORK_ENDPOINT;
 
     private ApplicationFacade facade;
 
@@ -56,7 +55,7 @@ public class NetworkOrdersControllerTest {
     private MockMvc mockMvc;
 
     @Before
-    public void setUp() throws OrderManagementException {
+    public void setUp() {
         this.facade = spy(ApplicationFacade.class);
     }
 
@@ -81,21 +80,15 @@ public class NetworkOrdersControllerTest {
         assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 
-    @Ignore
     @Test
     public void getAllNetworksTest() throws Exception {
-        String federationTokenValue = "federationTokenValue";
-
-        Map<String, Order> activeOrdersMap = SharedOrderHolders.getInstance().getActiveOrdersMap();
-        List<NetworkOrder> networkOrders = new ArrayList<NetworkOrder>();
-
-        for (Order order : activeOrdersMap.values()) {
-            networkOrders.add((NetworkOrder) order);
-        }
+        List<NetworkInstance> networkInstances = new ArrayList<>();
+        NetworkInstance instance = createNetworkInstance();
+        networkInstances.add(instance);
 
         PowerMockito.mockStatic(ApplicationFacade.class);
         given(ApplicationFacade.getInstance()).willReturn(this.facade);
-        doReturn(networkOrders).when(this.facade).getAllVolumes(federationTokenValue);
+        doReturn(networkInstances).when(this.facade).getAllNetworks(anyString());
 
         HttpHeaders headers = getHttpHeaders();
 
@@ -106,50 +99,74 @@ public class NetworkOrdersControllerTest {
 
         int expectedStatus = HttpStatus.OK.value();
 
+        TypeToken<List<NetworkInstance>> token = new TypeToken<List<NetworkInstance>>(){};
+        List<NetworkInstance> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
+
+        assertEquals(1, resultList.size());
         assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 
-    @Ignore
+    @Test
+    public void getAllNetworksWithEmptyListTest() throws Exception {
+        List<NetworkInstance> networkInstances = new ArrayList<>();
+
+        PowerMockito.mockStatic(ApplicationFacade.class);
+        given(ApplicationFacade.getInstance()).willReturn(this.facade);
+        doReturn(networkInstances).when(this.facade).getAllNetworks(anyString());
+
+        HttpHeaders headers = getHttpHeaders();
+
+        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(NETWORK_END_POINT)
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+
+        int expectedStatus = HttpStatus.OK.value();
+
+        TypeToken<List<NetworkInstance>> token = new TypeToken<List<NetworkInstance>>(){};
+        List<NetworkInstance> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
+
+        assertEquals(0, resultList.size());
+        assertEquals(expectedStatus, result.getResponse().getStatus());
+    }
+
     @Test
     public void getNetworkTest() throws Exception {
-        NetworkOrder networkOrder = createNetworkOrder();
+        NetworkInstance instance = createNetworkInstance();
 
-        String networkId = networkOrder.getId();
-        String federationTokenValue = "federationTokenValue";
+        String networkId = instance.getId();
 
         PowerMockito.mockStatic(ApplicationFacade.class);
         given(ApplicationFacade.getInstance()).willReturn(this.facade);
-        doReturn(networkOrder).when(this.facade).getNetwork(networkId, federationTokenValue);
+        doReturn(instance).when(this.facade).getNetwork(anyString(), anyString());
 
         HttpHeaders headers = getHttpHeaders();
 
-        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(NETWORK_END_POINT)
-                .param("networkId", networkId)
+        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(NETWORK_END_POINT + "/" + networkId)
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
         int expectedStatus = HttpStatus.OK.value();
 
+        NetworkInstance resultInstance = new Gson().fromJson(result.getResponse().getContentAsString(), NetworkInstance.class);
+        assertEquals(instance.getId(), resultInstance.getId());
         assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 
-    @Ignore
     @Test
     public void deleteNetworkTest() throws Exception {
         NetworkOrder networkOrder = createNetworkOrder();
 
-        String volumeId = networkOrder.getId();
-        String federationTokenValue = "federationTokenValue";
+        String networkId = networkOrder.getId();
 
         PowerMockito.mockStatic(ApplicationFacade.class);
         given(ApplicationFacade.getInstance()).willReturn(this.facade);
-        doNothing().when(this.facade).deleteVolume(volumeId, federationTokenValue);
+        doNothing().when(this.facade).deleteNetwork(anyString(), anyString());
 
         HttpHeaders headers = getHttpHeaders();
 
-        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(NETWORK_END_POINT)
-                .param("networkId", volumeId)
+        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.delete(NETWORK_END_POINT + "/" + networkId)
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
@@ -172,14 +189,15 @@ public class NetworkOrdersControllerTest {
         NetworkOrder networkOrder = Mockito.spy(new NetworkOrder());
         networkOrder.setFederationUser(federationUser);
 
-        String orderId = networkOrder.getId();
-
-        Map<String, Order> activeOrdersMap = SharedOrderHolders.getInstance().getActiveOrdersMap();
-        activeOrdersMap.put(orderId, networkOrder);
-
-        ChainedList openOrdersList = SharedOrderHolders.getInstance().getOpenOrdersList();
-        openOrdersList.addItem(networkOrder);
-
         return networkOrder;
+    }
+
+    private NetworkInstance createNetworkInstance() {
+        String id = "fake-id";
+        String label = "fake-label";
+        String address = "fake-address";
+        String gateway = "fake-gateway";
+        String vLan = "fake-vlan";
+        return new NetworkInstance(id, label, InstanceState.READY, address, gateway, vLan, NetworkAllocation.STATIC, null, null, null);
     }
 }
