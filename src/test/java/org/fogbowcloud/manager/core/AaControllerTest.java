@@ -38,6 +38,8 @@ public class AaControllerTest {
         this.localIdentityPlugin = Mockito.mock(LocalIdentityPlugin.class);
         this.authorizationPlugin = Mockito.mock(AuthorizationPlugin.class);
 
+        HomeDir.getInstance().setPath("src/test/resources/private");
+
         this.pluginInstantiationService = PluginInstantiationService.getInstance();
         
         this.behaviorPluginsHolder =
@@ -46,6 +48,7 @@ public class AaControllerTest {
                 Mockito.spy(this.behaviorPluginsHolder.getFederationIdentityPlugin());
         this.AaController =
                 Mockito.spy(new AaController(this.localIdentityPlugin, this.behaviorPluginsHolder));
+        
     }
 
     @Test
