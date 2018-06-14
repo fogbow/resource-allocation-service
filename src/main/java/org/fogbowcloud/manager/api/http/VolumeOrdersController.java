@@ -29,7 +29,7 @@ public class VolumeOrdersController {
 
     public static final String VOLUME_ENDPOINT = "volumes";
 
-    public final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
+    public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
     private final Logger LOGGER = Logger.getLogger(VolumeOrdersController.class);
 
