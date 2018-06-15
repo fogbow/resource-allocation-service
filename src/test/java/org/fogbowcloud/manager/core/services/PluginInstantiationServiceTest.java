@@ -1,8 +1,6 @@
 package org.fogbowcloud.manager.core.services;
 
-import java.io.FileInputStream;
-import java.util.Properties;
-
+import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
@@ -17,58 +15,54 @@ public class PluginInstantiationServiceTest {
 
     private PluginInstantiationService service;
 
-    private static final String TEST_CONF_FILE_FULL_PATH = "src/main/resources/test.properties";
+    private static final String TEST_CONF_PATH = "src/test/resources/private";
 
     @Before
     public void setUp() throws Exception {
+        HomeDir.getInstance().setPath(TEST_CONF_PATH);
         this.service = PluginInstantiationService.getInstance();
-        Properties mProperties = new Properties();
-        FileInputStream mInput = new FileInputStream(TEST_CONF_FILE_FULL_PATH);
-        mProperties.load(mInput);
-        this.service.getProperties().putAll(mProperties);
     }
 
-    // TODO implement
+    // FIXME: This test works if none class use getInstance from PluginInstantiationService before (if you run only this class, works fine).
+    // Note that DefaultLaunchCommandGeneratorTest uses PluginInstantiationService, preventing to set XMPP_JID_KEY afterwards.
     @Ignore
     @Test
     public void testSetUpProperties() {
-        String expected_xmpp_jid_value = "my-manager.internal.mydomain";
+        HomeDir.getInstance().setPath(TEST_CONF_PATH);
+        this.service = PluginInstantiationService.getInstance();
+
+        String expected_xmpp_jid_value = "fake-localidentity-member";
 
         Assert.assertEquals(
-                PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_JID_KEY),
-                expected_xmpp_jid_value);
+                expected_xmpp_jid_value,
+                PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_JID_KEY)
+                );
     }
 
-    // TODO implement
-    @Ignore
     @Test
     public void testCreateFederationIdentityPluginInstance() {
         String expected_federation_identity_class_value =
-                "org.fogbowcloud.manager.core.manager.plugins.identity.ldap.LdapIdentityPlugin";
+                "org.fogbowcloud.manager.core.plugins.behavior.federationidentity.DefaultFederationIdentityPlugin";
 
         FederationIdentityPlugin plugin = this.service.getFederationIdentityPlugin();
-        Assert.assertEquals(plugin.getClass().getName(), expected_federation_identity_class_value);
+        Assert.assertEquals(expected_federation_identity_class_value, plugin.getClass().getName());
     }
 
-    // TODO implement
-    @Ignore
     @Test
     public void testCreateLocalIdentityPluginInstance() {
         String expected_local_identity_class_value =
-                "org.fogbowcloud.manager.core.manager.plugins.identity.openstack.KeystoneV3IdentityPlugin";
+                "org.fogbowcloud.manager.core.plugins.cloud.openstack.KeystoneV3IdentityPlugin";
 
         LocalIdentityPlugin plugin = this.service.getLocalIdentityPlugin();
-        Assert.assertEquals(plugin.getClass().getName(), expected_local_identity_class_value);
+        Assert.assertEquals(expected_local_identity_class_value, plugin.getClass().getName());
     }
 
-    // TODO implement
-    @Ignore
     @Test
     public void testGetComputePlugin() {
         String expected_compute_plugin_class_value =
-                "org.fogbowcloud.manager.core.manager.plugins.compute.openstack.OpenStackNovaV2ComputePlugin";
+                "org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackNovaV2ComputePlugin";
 
         ComputePlugin plugin = this.service.getComputePlugin();
-        Assert.assertEquals(plugin.getClass().getName(), expected_compute_plugin_class_value);
+        Assert.assertEquals(expected_compute_plugin_class_value, plugin.getClass().getName());
     }
 }
