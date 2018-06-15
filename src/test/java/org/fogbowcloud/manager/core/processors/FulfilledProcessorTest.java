@@ -146,44 +146,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     /**
-     * Test if a fulfilled order of an active intercomponent compute instance has not being changed to
-     * failed if SSH connectivity is reachable.
-     *
-     * @throws InterruptedException
-     */
-    // FIXME: Maybe we want to remove this test, because Fulfilled Processor must treat only local orders
-    @Ignore
-    @Test
-    public void testRunProcessRemoteComputeOrderInstanceReachable() throws Exception {
-        Order order = this.createRemoteOrder();
-        order.setOrderState(OrderState.FULFILLED);
-
-        this.fulfilledOrderList.addItem(order);
-
-        String instanceId = "instanceid";
-        Instance orderInstance = Mockito.spy(new ComputeInstance(instanceId));
-        orderInstance.setState(InstanceState.READY);
-        order.setInstanceId(instanceId);
-
-        Mockito.doReturn(orderInstance)
-                .when(this.remoteCloudConnector)
-                .getInstance(Mockito.any(Order.class));
-
-        Mockito.when(this.sshConnectivity.checkSSHConnectivity(Mockito.any(
-                SshTunnelConnectionData.class))).thenReturn(true);
-
-        assertNull(this.failedOrderList.getNext());
-
-        this.thread = new Thread(this.fulfilledProcessor);
-        this.thread.start();
-
-        Thread.sleep(500);
-
-        assertNotNull(this.fulfilledOrderList.getNext());
-        assertNull(this.failedOrderList.getNext());
-    }
-
-    /**
      * Test if a fulfilled order of an active localidentity compute instance is changed to failed if SSH
      * connectivity is not reachable.
      *
@@ -203,51 +165,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         Mockito.doReturn(orderInstance)
                 .when(this.localCloudConnector)
-                .getInstance(Mockito.any(Order.class));
-
-        Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.eq(order.getId())))
-                .thenReturn(new HashMap<>());
-
-        Mockito.when(this.sshConnectivity.checkSSHConnectivity(Mockito.any(
-                SshTunnelConnectionData.class))).thenReturn(false);
-
-        assertNull(this.failedOrderList.getNext());
-
-        this.thread = new Thread(this.fulfilledProcessor);
-        this.thread.start();
-
-        Thread.sleep(500);
-
-        assertNull(this.fulfilledOrderList.getNext());
-
-        Order test = this.failedOrderList.getNext();
-        assertNotNull(test);
-        assertEquals(order.getInstanceId(), test.getInstanceId());
-        assertEquals(OrderState.FAILED, test.getOrderState());
-    }
-
-    /**
-     * Test if a fulfilled order of an active intercomponent compute instance is changed to failed if SSH
-     * connectivity is not reachable.
-     *
-     * @throws InterruptedException
-     */
-    // FIXME: Maybe we want to remove this test, because Fulfilled Processor must treat only local orders
-    @Ignore
-    @Test
-    public void testRunProcessRemoteComputeOrderInstanceNotReachable() throws Exception {
-        Order order = this.createRemoteOrder();
-        order.setOrderState(OrderState.FULFILLED);
-
-        this.fulfilledOrderList.addItem(order);
-
-        String instanceId = "instanceid";
-        Instance orderInstance = Mockito.spy(new ComputeInstance(instanceId));
-        orderInstance.setState(InstanceState.READY);
-        order.setInstanceId(instanceId);
-
-        Mockito.doReturn(orderInstance)
-                .when(this.remoteCloudConnector)
                 .getInstance(Mockito.any(Order.class));
 
         Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.eq(order.getId())))
@@ -308,49 +225,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         assertNotNull(test);
         assertEquals(order.getInstanceId(), test.getInstanceId());
         assertEquals(OrderState.FAILED, test.getOrderState());
-    }
-
-    /**
-     * Test if a fulfilled order of an failed intercomponent compute instance is definitely changed to
-     * failed.
-     *
-     * @throws InterruptedException
-     */
-    // FIXME: Maybe we want to remove this test, because Fulfilled Processor must treat only local orders
-    @Ignore
-    @Test
-    public void testRunProcessRemoteComputeOrderInstanceFailed() throws Exception {
-        Order order = this.createRemoteOrder();
-        order.setProvidingMember("othermember");
-        order.setOrderState(OrderState.FULFILLED);
-
-        this.fulfilledOrderList.addItem(order);
-
-        String instanceId = "instanceid";
-        Instance orderInstance = Mockito.spy(new ComputeInstance(instanceId));
-        orderInstance.setState(InstanceState.FAILED);
-        order.setInstanceId(instanceId);
-
-        Mockito.doReturn(orderInstance)
-                .when(this.remoteCloudConnector)
-                .getInstance(Mockito.any(Order.class));
-
-        Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.eq(order.getId())))
-                .thenReturn(new HashMap<>());
-
-        assertNull(this.failedOrderList.getNext());
-
-        this.thread = new Thread(this.fulfilledProcessor);
-        this.thread.start();
-
-        Thread.sleep(500);
-
-        assertNull(this.fulfilledOrderList.getNext());
-
-        Order orderTest = this.failedOrderList.getNext();
-        assertNotNull(orderTest);
-        assertEquals(order.getInstanceId(), orderTest.getInstanceId());
-        assertEquals(OrderState.FAILED, orderTest.getOrderState());
     }
 
     /**
