@@ -5,9 +5,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import org.fogbowcloud.manager.api.http.ComputeOrdersController;
 import org.fogbowcloud.manager.api.http.ExceptionTranslator;
+import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.plugins.exceptions.InvalidCredentialsException;
 import org.fogbowcloud.manager.core.plugins.exceptions.InvalidTokenException;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -23,7 +25,6 @@ public class ExceptionHandlerControllerTest {
 
     private final String COMPUTE_ENDPOINT = "/" + ComputeOrdersController.COMPUTE_ENDPOINT + "/";
     private final String URI_COMPUTE_ENDPOINT = "uri=/" + ComputeOrdersController.COMPUTE_ENDPOINT + "/";
-	private final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
     private MockMvc mockMvc;
 
@@ -38,48 +39,48 @@ public class ExceptionHandlerControllerTest {
                         .build();
     }
 
-    @Ignore
     @Test
-    public void testInvalidCredentialsException() throws Exception {
-        Mockito.when(this.computeOrdersController.getAllCompute(Mockito.anyString()))
-                .thenThrow(new InvalidCredentialsException());
-
-        MockHttpServletResponse response =
-        		this.mockMvc.perform(
-                                get(COMPUTE_ENDPOINT)
-                                        .accept(MediaType.APPLICATION_JSON)
-                                        .header(FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
-                        .andReturn()
-                        .getResponse();
-
-        JSONObject jsonObject = new JSONObject(response.getContentAsString());
-
-        assertEquals(jsonObject.get("details"), URI_COMPUTE_ENDPOINT);
-        assertEquals(jsonObject.get("message"), "Invalid Credentials");
-        assertEquals(jsonObject.get("statusCode"), HttpStatus.UNAUTHORIZED.name());
-        assertEquals(Integer.toString(response.getStatus()), HttpStatus.UNAUTHORIZED.toString());
-    }
-
-    @Test
-    public void testInvalidTokenException() throws Exception {
+    public void testUnauthorizedException() throws Exception {
         Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString()))
-                .thenThrow(new InvalidTokenException());
+                .thenThrow(new UnauthorizedException());
 
         MockHttpServletResponse response =
                 mockMvc.perform(
                                 get(COMPUTE_ENDPOINT)
                                         .accept(MediaType.APPLICATION_JSON)
-                                        .header(FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
+                                        .header(ComputeOrdersController.FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
                         .andReturn()
                         .getResponse();
         JSONObject jsonObject = new JSONObject(response.getContentAsString());
 
         assertEquals(jsonObject.get("details"), URI_COMPUTE_ENDPOINT);
-        assertEquals(jsonObject.get("message"), "Invalid token");
+        assertEquals(jsonObject.get("message"), "Unauthorized Error");
         assertEquals(jsonObject.get("statusCode"), HttpStatus.UNAUTHORIZED.name());
         assertEquals(Integer.toString(response.getStatus()), HttpStatus.UNAUTHORIZED.toString());
     }
 
+    @Test
+    public void testUnauthenticatedException() throws Exception {
+        Mockito.when(this.computeOrdersController.getAllCompute(Mockito.anyString()))
+                .thenThrow(new UnauthenticatedException());
+
+        MockHttpServletResponse response =
+                this.mockMvc.perform(
+                        get(COMPUTE_ENDPOINT)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .header(ComputeOrdersController.FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
+                        .andReturn()
+                        .getResponse();
+
+        JSONObject jsonObject = new JSONObject(response.getContentAsString());
+
+        assertEquals(jsonObject.get("details"), URI_COMPUTE_ENDPOINT);
+        assertEquals(jsonObject.get("message"), "Unauthenticated Error");
+        assertEquals(jsonObject.get("statusCode"), HttpStatus.UNAUTHORIZED.name());
+        assertEquals(Integer.toString(response.getStatus()), HttpStatus.UNAUTHORIZED.toString());
+    }
+
+    // TODO: review if this Exception is thrown, and if we need this test
     @Test
     public void testTokenCreationException() throws Exception {
         Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString()))
@@ -89,7 +90,7 @@ public class ExceptionHandlerControllerTest {
                 mockMvc.perform(
                                 get(COMPUTE_ENDPOINT)
                                         .accept(MediaType.APPLICATION_JSON)
-                                        .header(FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
+                                        .header(ComputeOrdersController.FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
                         .andReturn()
                         .getResponse();
 
@@ -110,7 +111,7 @@ public class ExceptionHandlerControllerTest {
                 mockMvc.perform(
                                 get(COMPUTE_ENDPOINT)
                                         .accept(MediaType.APPLICATION_JSON)
-                                        .header(FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
+                                        .header(ComputeOrdersController.FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
                         .andReturn()
                         .getResponse();
 
