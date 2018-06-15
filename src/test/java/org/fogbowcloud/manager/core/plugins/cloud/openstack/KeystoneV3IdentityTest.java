@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.localidentity.openstack;
+package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;

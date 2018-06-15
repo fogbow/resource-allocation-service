@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.compute;
+package org.fogbowcloud.manager.core.plugins.cloud.openstack.util;
 
 import java.io.IOException;
 import java.util.Properties;

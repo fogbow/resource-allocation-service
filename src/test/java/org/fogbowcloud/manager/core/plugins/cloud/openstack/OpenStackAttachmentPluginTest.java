@@ -1,6 +1,5 @@
-package org.fogbowcloud.manager.core.plugins.cloud.attachment.openstack;
+package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import java.util.Properties;
 

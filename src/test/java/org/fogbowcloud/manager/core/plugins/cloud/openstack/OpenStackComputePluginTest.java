@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.compute.openstack;
+package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -15,13 +15,13 @@ import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.CloudInitUserDataBuilder;
+import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.LaunchCommandGenerator;
 import org.fogbowcloud.manager.core.models.Flavor;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.plugins.cloud.compute.LaunchCommandGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackNovaV2ComputePlugin;
 import org.json.JSONArray;
 import org.json.JSONException;

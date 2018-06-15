@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.volume.openstack;
+package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import java.io.IOException;
 import java.util.Date;

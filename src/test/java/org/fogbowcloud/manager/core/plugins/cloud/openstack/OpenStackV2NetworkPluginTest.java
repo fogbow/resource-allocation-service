@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.network.openstack;
+package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

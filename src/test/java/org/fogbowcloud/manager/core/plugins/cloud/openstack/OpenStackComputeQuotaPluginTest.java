@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.quota.compute;
+package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import java.util.HashMap;
 import java.util.Map;

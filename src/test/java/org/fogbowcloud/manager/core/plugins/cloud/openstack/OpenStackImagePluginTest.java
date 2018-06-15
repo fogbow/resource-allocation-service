@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.image.openstack;
+package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 
 import java.util.HashMap;
