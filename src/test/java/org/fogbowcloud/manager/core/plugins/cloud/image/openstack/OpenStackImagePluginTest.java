@@ -9,6 +9,7 @@ import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.exceptions.ImageException;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackImagePlugin;
 import org.json.JSONObject;
 import org.junit.Ignore;
 import org.junit.Test;

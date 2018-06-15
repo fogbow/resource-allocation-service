@@ -8,7 +8,7 @@ import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.plugins.cloud.localidentity.LocalIdentityPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.LocalIdentityPlugin;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

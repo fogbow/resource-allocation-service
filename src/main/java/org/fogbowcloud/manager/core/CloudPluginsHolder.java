@@ -1,12 +1,12 @@
 package org.fogbowcloud.manager.core;
 
-import org.fogbowcloud.manager.core.plugins.cloud.attachment.AttachmentPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.compute.ComputePlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.image.ImagePlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.localidentity.LocalIdentityPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.network.NetworkPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.quota.ComputeQuotaPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.volume.VolumePlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.ImagePlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.LocalIdentityPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.ComputeQuotaPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
 import org.fogbowcloud.manager.core.services.PluginInstantiationService;
 
 public class CloudPluginsHolder {

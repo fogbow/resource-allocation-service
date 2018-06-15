@@ -13,12 +13,12 @@ import org.fogbowcloud.manager.core.models.orders.*;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.plugins.cloud.attachment.AttachmentPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.compute.ComputePlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.image.ImagePlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.network.NetworkPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.quota.ComputeQuotaPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.volume.VolumePlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.ImagePlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.ComputeQuotaPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 

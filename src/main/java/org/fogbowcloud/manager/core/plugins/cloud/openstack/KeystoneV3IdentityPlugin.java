@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.localidentity.openstack;
+package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import java.io.File;
 import java.net.UnknownHostException;
@@ -18,7 +18,7 @@ import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.plugins.cloud.localidentity.LocalIdentityPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.LocalIdentityPlugin;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.utils.HttpRequestUtil;
 import org.fogbowcloud.manager.utils.PropertiesUtil;

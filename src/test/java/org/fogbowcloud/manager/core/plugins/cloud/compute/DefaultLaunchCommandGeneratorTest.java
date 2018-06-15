@@ -11,7 +11,7 @@ import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.plugins.cloud.compute.util.CloudInitUserDataBuilder;
+import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.CloudInitUserDataBuilder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

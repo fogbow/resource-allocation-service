@@ -20,7 +20,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicStatusLine;
-import org.fogbowcloud.manager.core.plugins.cloud.localidentity.openstack.KeystoneV3IdentityPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.openstack.KeystoneV3IdentityPlugin;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.json.JSONArray;

@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.volume.openstack;
+package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -15,7 +15,7 @@ import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.plugins.cloud.volume.VolumePlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
 import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
 import org.fogbowcloud.manager.core.models.ResponseConstants;

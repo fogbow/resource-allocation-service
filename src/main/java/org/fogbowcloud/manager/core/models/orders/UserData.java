@@ -1,6 +1,6 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import org.fogbowcloud.manager.core.plugins.cloud.compute.util.CloudInitUserDataBuilder;
+import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.CloudInitUserDataBuilder;
 
 public class UserData {
 

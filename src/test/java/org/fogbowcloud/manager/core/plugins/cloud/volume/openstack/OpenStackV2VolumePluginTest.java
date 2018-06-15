@@ -27,6 +27,7 @@ import org.fogbowcloud.manager.core.models.RequestHeaders;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackV2VolumePlugin;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Assert;

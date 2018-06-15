@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.quota;
+package org.fogbowcloud.manager.core.plugins.cloud;
 
 import org.fogbowcloud.manager.core.exceptions.QuotaException;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;

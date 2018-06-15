@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.image.openstack;
+package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -12,7 +12,7 @@ import org.fogbowcloud.manager.core.exceptions.ImageException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.plugins.cloud.image.ImagePlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.ImagePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.utils.HttpRequestClientUtil;
 import org.fogbowcloud.manager.utils.PropertiesUtil;
 import org.json.JSONArray;

@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.image;
+package org.fogbowcloud.manager.core.plugins.cloud;
 
 import org.fogbowcloud.manager.core.exceptions.ImageException;
 import org.fogbowcloud.manager.core.models.images.Image;

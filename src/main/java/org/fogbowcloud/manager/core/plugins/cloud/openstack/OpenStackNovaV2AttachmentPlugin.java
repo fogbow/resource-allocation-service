@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.attachment.openstack;
+package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -14,7 +14,7 @@ import org.apache.http.util.EntityUtils;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
-import org.fogbowcloud.manager.core.plugins.cloud.attachment.AttachmentPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
 import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
 import org.fogbowcloud.manager.core.models.ResponseConstants;

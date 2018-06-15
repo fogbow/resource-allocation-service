@@ -1,17 +1,16 @@
 package org.fogbowcloud.manager.core.plugins.cloud.attachment.openstack;
 
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import java.util.Properties;
-import org.apache.http.client.HttpClient;
+
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackNovaV2AttachmentPlugin;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;

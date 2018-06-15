@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.network.openstack;
+package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;

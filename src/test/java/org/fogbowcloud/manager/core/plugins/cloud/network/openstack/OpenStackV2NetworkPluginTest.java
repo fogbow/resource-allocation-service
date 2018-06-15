@@ -28,6 +28,8 @@ import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackNetworkInstanceStateMapper;
+import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackV2NetworkPlugin;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

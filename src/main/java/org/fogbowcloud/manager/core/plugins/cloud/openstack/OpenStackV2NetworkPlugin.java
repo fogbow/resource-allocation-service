@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.network.openstack;
+package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,7 +22,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
-import org.fogbowcloud.manager.core.plugins.cloud.network.NetworkPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
 import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
 import org.fogbowcloud.manager.core.models.ResponseConstants;

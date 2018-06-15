@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.compute;
+package org.fogbowcloud.manager.core.plugins.cloud;
 
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;

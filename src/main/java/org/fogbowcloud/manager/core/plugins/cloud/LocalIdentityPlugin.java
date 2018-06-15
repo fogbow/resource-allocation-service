@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.localidentity;
+package org.fogbowcloud.manager.core.plugins.cloud;
 
 import java.util.Map;
 

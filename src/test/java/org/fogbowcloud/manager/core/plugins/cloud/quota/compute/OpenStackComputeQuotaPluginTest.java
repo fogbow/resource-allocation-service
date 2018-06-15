@@ -9,6 +9,7 @@ import org.fogbowcloud.manager.core.exceptions.ImageException;
 import org.fogbowcloud.manager.core.exceptions.QuotaException;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackComputeQuotaPlugin;
 import org.junit.Ignore;
 import org.junit.Test;
 

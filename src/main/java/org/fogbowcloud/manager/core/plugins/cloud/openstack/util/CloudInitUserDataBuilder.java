@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.compute.util;
+package org.fogbowcloud.manager.core.plugins.cloud.openstack.util;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;

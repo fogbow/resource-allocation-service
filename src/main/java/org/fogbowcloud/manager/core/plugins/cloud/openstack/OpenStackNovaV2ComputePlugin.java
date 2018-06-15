@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.compute.openstack;
+package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,7 +23,7 @@ import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
-import org.fogbowcloud.manager.core.plugins.cloud.compute.ComputePlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.compute.DefaultLaunchCommandGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.compute.LaunchCommandGenerator;
 import org.fogbowcloud.manager.core.models.ErrorType;
