@@ -17,7 +17,7 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
     @ExceptionHandler(
     		{UnauthorizedException.class, UnauthenticatedException.class})
     public final ResponseEntity<ExceptionResponse> handleAAException(
-            UnauthorizedException ex, WebRequest request) {
+            Exception ex, WebRequest request) {
 
         ExceptionResponse errorDetails =
                 new ExceptionResponse(
@@ -25,7 +25,7 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
 
         return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
     }
-	
+
     @ExceptionHandler(TokenCreationException.class)
     public final ResponseEntity<ExceptionResponse> handleTokenCreationException(
             TokenCreationException ex, WebRequest request) {
