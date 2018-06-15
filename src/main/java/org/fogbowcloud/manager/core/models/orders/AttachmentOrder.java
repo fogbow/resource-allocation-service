@@ -7,7 +7,7 @@ import org.fogbowcloud.manager.core.models.token.FederationUser;
 
 public class AttachmentOrder extends Order {
 
-    private static final String SEPARATOR_ID = "|";
+    private static final String SEPARATOR_ID = " ";
 
     /** this attribute refers to the instance of the computer where the volume will be attached */
     private String source;

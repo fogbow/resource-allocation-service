@@ -39,7 +39,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
 	private static final String ID_JSON_FIELD = "id";
     private static final String OS_VOLUME_ATTACHMENTS = "/os-volume_attachments";
-    private static final String SEPARATOR_ID = "|";
+    private static final String SEPARATOR_ID = " ";
     private static final String SERVERS = "/servers/";
 	private static final String SERVER_JSON_FIELD = "server";
 	private static final String STATUS_JSON_FIELD = "status";
@@ -119,7 +119,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         return attachmentInstance;
     }
     
-    private AttachmentInstance getInstanceFromJson(String jsonResponse) throws RequestException {
+    protected AttachmentInstance getInstanceFromJson(String jsonResponse) throws RequestException {
     	try {
         	JSONObject rootServer = new JSONObject(jsonResponse);
         	JSONObject serverJson = rootServer.getJSONObject(SERVER_JSON_FIELD);
@@ -140,7 +140,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     	}
     }
 
-    private String doGetRequest(String endpoint, Token localToken) throws RequestException {
+    protected String doGetRequest(String endpoint, Token localToken) throws RequestException {
         LOGGER.debug("Doing GET request to OpenStack on endpoint <" + endpoint + ">");
 
         HttpResponse response = null;
@@ -176,7 +176,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     private String getAttachmentIdJson(String responseStr) {
         try {
             JSONObject root = new JSONObject(responseStr);
-            return root.getJSONObject("volumeAttachment").getString("id").toString();
+            return root.getJSONObject("volumeAttachment").getString("volumeId").toString();
         } catch (JSONException e) {
             return null;
         }
@@ -206,7 +206,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         checkStatusResponse(response, "");
     }
     
-    private String doPostRequest(String endpoint, String federationTokenValue, JSONObject jsonRequest) throws RequestException {
+    protected String doPostRequest(String endpoint, String federationTokenValue, JSONObject jsonRequest) throws RequestException {
         LOGGER.debug("Doing POST request to OpenStack for creating an instance");
         HttpResponse response = null;
         String responseStr = null;
@@ -266,5 +266,5 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         Map<String, String> tokenAttributes = localToken.getAttributes();
         return tokenAttributes.get(TENANT_ID);
     }
-
+    
 }
