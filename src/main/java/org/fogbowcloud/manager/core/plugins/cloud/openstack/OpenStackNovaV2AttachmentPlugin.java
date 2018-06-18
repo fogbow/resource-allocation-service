@@ -57,11 +57,6 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
                 File.separator + OPENSTACK_NOVAV2_ATTACHMENT_PLUGIN_CONF);
         initClient();
     }
-    
-    private void initClient() {
-        HttpRequestUtil.init();
-        this.client = HttpRequestUtil.createHttpClient();
-    }
 
     @Override
     public String requestInstance(AttachmentOrder attachmentOrder, Token localToken) throws RequestException {
@@ -265,6 +260,15 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     protected String getTenantId(Token localToken) {
         Map<String, String> tokenAttributes = localToken.getAttributes();
         return tokenAttributes.get(TENANT_ID);
+    }
+    
+    private void initClient() {
+        HttpRequestUtil.init();
+        this.client = HttpRequestUtil.createHttpClient();
+    }
+
+    protected void setClient(HttpClient client) {
+        this.client = client;
     }
     
 }
