@@ -3,8 +3,12 @@ package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import java.io.IOException;
 import java.util.Properties;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
@@ -39,6 +43,7 @@ public class OpenStackAttachmentPluginTest {
     private AttachmentOrder attachmentOrder;
     private OpenStackNovaV2AttachmentPlugin openStackAttachmentPlugin;
     private Token localToken;
+    private HttpClient client;
 
     @Before
     public void setUp() {
@@ -51,6 +56,9 @@ public class OpenStackAttachmentPluginTest {
         this.localToken = mock(Token.class);
         this.attachmentOrder = new AttachmentOrder(null, null, null, FAKE_SERVER_ID, FAKE_VOLUME_ID, MOUNT_POINT);
         this.openStackAttachmentPlugin = Mockito.spy(new OpenStackNovaV2AttachmentPlugin());
+        
+        this.client = Mockito.mock(HttpClient.class);
+        this.openStackAttachmentPlugin.setClient(this.client);
     }
     
     @Test
@@ -62,16 +70,28 @@ public class OpenStackAttachmentPluginTest {
         Assert.assertEquals(FAKE_INSTANCE_ID, instanceId);
     }
     
+    @Test (expected = RequestException.class)
+    public void requestInstanceThrowRequestExceptionTest() throws RequestException {
+        this.openStackAttachmentPlugin.requestInstance(this.attachmentOrder, this.localToken);
+    }
+    
     @Test
-    public void deleteInstance() throws RequestException {
+    public void deleteInstanceTest() throws RequestException, ClientProtocolException, IOException {
       Mockito.doReturn(FAKE_TENANT_ID).when(this.openStackAttachmentPlugin).getTenantId(this.localToken);
       Mockito.doReturn(FAKE_FEDERATION_TOKEN_VALUE).when(this.localToken).getAccessId();
       
       String instanceId = FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID;
       
       doNothing().when(this.openStackAttachmentPlugin).deleteInstance(instanceId, this.localToken);
-      this.openStackAttachmentPlugin.deleteInstance(instanceId, this.localToken);
+      this.openStackAttachmentPlugin.deleteInstance(instanceId, this.localToken);    
       // returned on successful request response codes 202
+    }
+    
+    @Test (expected = RequestException.class)
+    public void deleteInstanceThrowsRequestExceptionTest() throws RequestException {
+        String instanceId = FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID;
+        doThrow(RequestException.class).when(this.openStackAttachmentPlugin).deleteInstance(instanceId, this.localToken);
+        this.openStackAttachmentPlugin.deleteInstance(instanceId, this.localToken);  
     }
     
     @Test
@@ -89,6 +109,12 @@ public class OpenStackAttachmentPluginTest {
         Assert.assertNotNull(attachmentInstance);
     }
     
+    @Test (expected = RequestException.class)
+    public void getInstanceThrowsRequestExceptionTest() throws RequestException {
+        String instanceId = FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID;
+        this.openStackAttachmentPlugin.getInstance(instanceId, this.localToken);
+    }
+    
     @Test
     public void generateJsonToAttachTest() {
         VolumeOrder volumeOrder = Mockito.spy(new VolumeOrder());
@@ -100,4 +126,5 @@ public class OpenStackAttachmentPluginTest {
         Assert.assertNotNull(json);
         Assert.assertEquals(expected, json.toString());        
     }
+    
 }
