@@ -24,5 +24,7 @@ log4j.properties
 /dist/
 /nbdist/
 /.nb-gradle/
+
+### Private Folder ###
 src/main/resources/private/
 
