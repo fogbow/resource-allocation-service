@@ -482,21 +482,25 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
                 }
             }
 
-            // FIXME We need to GET the flavor details in order to fill vcpus and ram
-//          int vCPU = serverJson.getJSONObject(FLAVOR_JSON_OBJECT).getInt(VCPU_JSON_FIELD);
-//          int memory = serverJson.getJSONObject(FLAVOR_JSON_OBJECT).getInt(MEMORY_JSON_FIELD);
+            String flavorId = serverJson.optString(FLAVOR_JSON_FIELD);
+            Flavor flavor = getFlavorById(flavorId);
+            int vCPU = -1;
+            int memory = -1;
+            // TODO: Do we want to ignore the disk attribute?
+//            int disk = flavor.getDisk();
+            if (flavor != null) {
+                vCPU = flavor.getCpu();
+                memory = flavor.getRam();
+            }
 
             InstanceState state = this.instanceStateMapper.getInstanceState(serverJson.getString(STATUS_JSON_FIELD));
-
-            // TODO: Why should I pass all this attributes for computeInstance if they are
-            // all related to tunneling? We don't have it on the cloud provider JSON response.
 
             ComputeInstance computeInstance =
                     new ComputeInstance(
                             id,
                             hostName,
-                            -1,
-                            -1,
+                            vCPU,
+                            memory,
                             state,
                             localIpAddress);
             return computeInstance;
@@ -504,6 +508,16 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             LOGGER.warn("There was an exception while getting instances from json", e);
             throw new RequestException();
         }
+    }
+
+    private Flavor getFlavorById(String id) {
+        TreeSet<Flavor> flavorsCopy = new TreeSet<>(this.flavors);
+        for (Flavor flavor : flavorsCopy) {
+            if (flavor.getId().equals(id)) {
+                return flavor;
+            }
+        }
+        return null;
     }
 
     @Override
