@@ -47,7 +47,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private static final String NOVAV2_PLUGIN_CONF_FILE = "openstack-nova-compute-plugin.conf";
 
     private static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
-    private static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
+    private static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
 
     private static final String ID_JSON_FIELD = "id";
     private static final String NAME_JSON_FIELD = "name";
@@ -165,7 +165,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     protected String getNetworkId() {
-        return this.properties.getProperty(NETWORK_NEUTRONV2_URL_KEY);
+        return this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
     }
 
     protected String getKeyName(String tenantId, Token localToken, String publicKey)

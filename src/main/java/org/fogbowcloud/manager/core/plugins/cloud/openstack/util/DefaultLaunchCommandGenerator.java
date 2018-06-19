@@ -25,7 +25,6 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
     protected static final String TOKEN_ID = "#TOKEN_ID#";
     protected static final String TOKEN_HOST = "#TOKEN_HOST#";
     protected static final String TOKEN_HOST_HTTP_PORT = "#TOKEN_HOST_HTTP_PORT#";
-    protected static final String TOKEN_HOST_SSH_PORT = "#TOKEN_HOST_SSH_PORT#";
     protected static final String TOKEN_SSH_USER = "#TOKEN_SSH_USER#";
     protected static final String TOKEN_USER_SSH_PUBLIC_KEY = "#TOKEN_USER_SSH_PUBLIC_KEY#";
     protected static final String TOKEN_MANAGER_SSH_PUBLIC_KEY = "#TOKEN_MANAGER_SSH_PUBLIC_KEY#";
@@ -44,7 +43,6 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
     private final String managerSshPublicKey;
 
     private final String reverseTunnelPrivateIP;
-    private final String reverseTunnelSshPort;
     private final String reverseTunnelHttpPort;
 
     private static final Logger LOGGER = Logger.getLogger(DefaultLaunchCommandGenerator.class);
@@ -76,10 +74,6 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
                 this.reverseTunnelPrivateIP,
                 ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY);
 
-        this.reverseTunnelSshPort =
-                PropertiesHolder.getInstance().getProperty(
-                        ConfigurationConstants.REVERSE_TUNNEL_PORT_KEY, DEFAULT_SSH_HOST_PORT);
-
         this.reverseTunnelHttpPort =
                 PropertiesHolder.getInstance().getProperty(ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY);
         checkPropertyNotEmpty(
@@ -101,15 +95,16 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
         UserData userData = order.getUserData();
 
-        String normalizedExtraUserData = null;
-        String extraUserDataFileContent = userData.getExtraUserDataFileContent();
-        if (extraUserDataFileContent != null) {
-            normalizedExtraUserData = new String(Base64.decodeBase64(extraUserDataFileContent));
+        if (userData != null) {
+            String normalizedExtraUserData = null;
+            String extraUserDataFileContent = userData.getExtraUserDataFileContent();
+            if (extraUserDataFileContent != null) {
+                normalizedExtraUserData = new String(Base64.decodeBase64(extraUserDataFileContent));
+            }
+
+            CloudInitUserDataBuilder.FileType extraUserDataFileType = userData.getExtraUserDataFileType();
+            addExtraUserData(cloudInitUserDataBuilder, normalizedExtraUserData, extraUserDataFileType);
         }
-
-        CloudInitUserDataBuilder.FileType extraUserDataFileType = userData.getExtraUserDataFileType();
-
-        addExtraUserData(cloudInitUserDataBuilder, normalizedExtraUserData, extraUserDataFileType);
 
         String mimeString = cloudInitUserDataBuilder.buildUserData();
 
@@ -150,7 +145,6 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
         Map<String, String> replacements = new HashMap<String, String>();
         replacements.put(TOKEN_ID, orderId);
         replacements.put(TOKEN_HOST, this.reverseTunnelPrivateIP);
-        replacements.put(TOKEN_HOST_SSH_PORT, this.reverseTunnelSshPort);
         replacements.put(TOKEN_HOST_HTTP_PORT, this.reverseTunnelHttpPort);
 
         String userPublicKey = order.getPublicKey();

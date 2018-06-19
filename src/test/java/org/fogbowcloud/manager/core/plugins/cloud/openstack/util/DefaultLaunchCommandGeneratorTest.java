@@ -123,10 +123,6 @@ public class DefaultLaunchCommandGeneratorTest {
         mimeString += DefaultLaunchCommandGenerator.TOKEN_HOST_HTTP_PORT + System.lineSeparator();
         expectedMimeString += this.reverseTunnelHttpPort + System.lineSeparator();
 
-        mimeString += DefaultLaunchCommandGenerator.TOKEN_HOST_SSH_PORT + System.lineSeparator();
-        expectedMimeString +=
-                DefaultLaunchCommandGenerator.DEFAULT_SSH_HOST_PORT + System.lineSeparator();
-
         mimeString += DefaultLaunchCommandGenerator.TOKEN_ID + System.lineSeparator();
         expectedMimeString += order.getId() + System.lineSeparator();
 
