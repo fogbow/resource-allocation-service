@@ -180,7 +180,7 @@ public class LocalCloudConnector implements CloudConnector {
 
         switch (instanceType) {
             case COMPUTE:
-                instance = this.computePlugin.getInstance(instanceId, localToken);
+                instance = this.computePlugin.getInstance(instanceId, order.getId(), localToken);
                 break;
 
             case NETWORK:

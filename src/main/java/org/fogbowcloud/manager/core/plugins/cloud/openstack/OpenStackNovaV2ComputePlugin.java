@@ -21,23 +21,17 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.models.*;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.DefaultLaunchCommandGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.LaunchCommandGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
-import org.fogbowcloud.manager.core.models.ErrorType;
-import org.fogbowcloud.manager.core.models.Flavor;
-import org.fogbowcloud.manager.core.models.RequestHeaders;
-import org.fogbowcloud.manager.core.models.ResponseConstants;
-import org.fogbowcloud.manager.core.models.StatusResponse;
-import org.fogbowcloud.manager.core.models.StatusResponseMap;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.utils.HttpRequestUtil;
-import org.fogbowcloud.manager.utils.PropertiesUtil;
+import org.fogbowcloud.manager.utils.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -75,6 +69,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
 
     private static final Logger LOGGER = Logger.getLogger(OpenStackNovaV2ComputePlugin.class);
+    private static final String ADDRESS_FIELD = "addresses";
+    private static final String PROVIDER_NETWORK_FIELD = "provider";
+    private static final String ADDR_FIELD = "addr";
 
     private TreeSet<Flavor> flavors;
     private Properties properties;
@@ -438,7 +435,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     @Override
-    public ComputeInstance getInstance(String instanceId, Token localToken)
+    public ComputeInstance getInstance(String instanceId, String orderId, Token localToken)
             throws RequestException {
         LOGGER.info("Getting instance " + instanceId + " with token " + localToken);
 
@@ -449,8 +446,22 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
         LOGGER.debug("Getting instance from json: " + jsonResponse);
         ComputeInstance computeInstance = getInstanceFromJson(jsonResponse);
+        addReverseTunnelInfo(orderId, computeInstance);
 
         return computeInstance;
+    }
+
+    private void addReverseTunnelInfo(String orderId, ComputeInstance computeInstance) {
+        TunnelingServiceUtil tunnelingServiceUtil = TunnelingServiceUtil.getInstance();
+        SshConnectivityUtil sshConnectivityUtil = SshConnectivityUtil.getInstance();
+
+        ComputeInstanceConnectivityUtil computeInstanceConnectivity =
+                new ComputeInstanceConnectivityUtil(tunnelingServiceUtil, sshConnectivityUtil);
+
+        SshTunnelConnectionData sshTunnelConnectionData = computeInstanceConnectivity
+                .getSshTunnelConnectionData(orderId);
+
+        computeInstance.setSshTunnelConnectionData(sshTunnelConnectionData);
     }
 
     private ComputeInstance getInstanceFromJson(String jsonResponse) throws RequestException {
@@ -460,6 +471,16 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
             String id = serverJson.getString(ID_JSON_FIELD);
             String hostName = serverJson.getString(NAME_JSON_FIELD);
+            String localIpAddress = "";
+
+            if (!serverJson.isNull(ADDRESS_FIELD)) {
+                JSONObject addressField = serverJson.optJSONObject(ADDRESS_FIELD);
+                if (!addressField.isNull(PROVIDER_NETWORK_FIELD)) {
+                    JSONArray providerNetworkArray = addressField.optJSONArray(PROVIDER_NETWORK_FIELD);
+                    JSONObject providerNetwork = (JSONObject) providerNetworkArray.get(0);
+                    localIpAddress = providerNetwork.optString(ADDR_FIELD);
+                }
+            }
 
             // FIXME We need to GET the flavor details in order to fill vcpus and ram
 //          int vCPU = serverJson.getJSONObject(FLAVOR_JSON_OBJECT).getInt(VCPU_JSON_FIELD);
@@ -469,10 +490,6 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
             // TODO: Why should I pass all this attributes for computeInstance if they are
             // all related to tunneling? We don't have it on the cloud provider JSON response.
-            String localIpAddress = "";
-            String sshPublicAddress = "";
-            String sshUserName = "";
-            String sshExtraPorts = "";
 
             ComputeInstance computeInstance =
                     new ComputeInstance(
@@ -481,11 +498,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
                             -1,
                             -1,
                             state,
-                            localIpAddress,
-                            sshPublicAddress,
-                            sshUserName,
-                            sshExtraPorts);
-
+                            localIpAddress);
             return computeInstance;
         } catch (JSONException e) {
             LOGGER.warn("There was an exception while getting instances from json", e);

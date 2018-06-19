@@ -20,10 +20,7 @@ public class ComputeInstance extends Instance {
             int vCPU,
             int ram,
             InstanceState state,
-            String localIpAddress,
-            String sshPublicAddress,
-            String sshUserName,
-            String sshExtraPorts) {
+            String localIpAddress) {
         super(id, state);
         this.hostName = hostName;
         this.vCPU = vCPU;
