@@ -1,12 +1,12 @@
 package org.fogbowcloud.manager;
 
+import org.fogbowcloud.manager.core.*;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
+import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppComponentManager;
-import org.fogbowcloud.manager.core.*;
-import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
-import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.services.PluginInstantiationService;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -73,5 +73,4 @@ public class Main implements ApplicationRunner {
         String homeDir = args.getSourceArgs()[0];
         return (homeDir == null ? DefaultConfigurationConstants.FOGBOW_HOME : homeDir);
     }
-
 }

@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.datastore.DatabaseManager;
 import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
 import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
@@ -21,9 +22,6 @@ public class OrderStateTransitioner {
 
     public static void activateOrder(Order order) throws OrderManagementException {
 
-        //FIXME: I moved this condition to outside of the synchronized block because it is unreachable in the old code
-        //Anyway, it is possible the best solution is to remove the condition completely, since the other methods do not check this
-        //I'll keep the FIXME instead of removing because I'm not sure about this piece of architecture
         if (order == null) {
             String message = "Can't process new order request. Order reference is null.";
             throw new OrderManagementException(message);
@@ -42,6 +40,11 @@ public class OrderStateTransitioner {
             }
 
             order.setOrderState(OrderState.OPEN);
+
+            // Adding newly created order in stable storage
+            DatabaseManager databaseManager = DatabaseManager.getInstance();
+            databaseManager.add(order);
+
             activeOrdersMap.put(orderId, order);
             openOrdersList.addItem(order);
         }
@@ -122,6 +125,11 @@ public class OrderStateTransitioner {
         } else {
             if (origin.removeItem(order)) {
                 order.setOrderState(newState);
+
+                // Updating order in stable storage
+                DatabaseManager databaseManager = DatabaseManager.getInstance();
+                databaseManager.update(order);
+
                 destination.addItem(order);
             } else {
                 String template = "Could not remove order id %s from list of %s orders";
