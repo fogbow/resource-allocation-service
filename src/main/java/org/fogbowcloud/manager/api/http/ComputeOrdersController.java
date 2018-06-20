@@ -70,7 +70,7 @@ public class ComputeOrdersController {
             @PathVariable String computeId,
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
-        LOGGER.info("Get compute order to id <%s> received");
+        LOGGER.info("Delete compute order to id <" + computeId + "> received");
         ApplicationFacade.getInstance().deleteCompute(computeId, federationTokenValue);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
