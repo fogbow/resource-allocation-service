@@ -6,7 +6,7 @@ import org.fogbowcloud.manager.core.models.instances.InstanceState;
 public class OpenStackNetworkInstanceStateMapper implements InstanceStateMapper {
 
     public static final String BUILD_STATUS = "BUILD";
-    public static final String ACTIVE_STATUS = "READY";
+    public static final String ACTIVE_STATUS = "ACTIVE";
     public static final String DOWN_STATUS = "DOWN";
     public static final String ERROR_STATUS = "ERROR";
 
