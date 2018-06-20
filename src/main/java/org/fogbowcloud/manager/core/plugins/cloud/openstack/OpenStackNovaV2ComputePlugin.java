@@ -46,7 +46,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private static final String ID_JSON_FIELD = "id";
     private static final String NAME_JSON_FIELD = "name";
     private static final String SERVER_JSON_FIELD = "server";
-    private static final String FLAVOR_JSON_FIELD = "flavorRef";
+    private static final String FLAVOR_REF_JSON_FIELD = "flavorRef";
+    private static final String FLAVOR_JSON_FIELD = "flavor";
+    private static final String FLAVOR_ID_JSON_FIELD = "id";
     private static final String IMAGE_JSON_FIELD = "imageRef";
     private static final String USER_DATA_JSON_FIELD = "user_data";
     private static final String NETWORK_JSON_FIELD = "networks";
@@ -280,7 +282,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         JSONObject server = new JSONObject();
         server.put(NAME_JSON_FIELD, FOGBOW_INSTANCE_NAME + UUID.randomUUID().toString());
         server.put(IMAGE_JSON_FIELD, imageRef);
-        server.put(FLAVOR_JSON_FIELD, flavorRef);
+        server.put(FLAVOR_REF_JSON_FIELD, flavorRef);
 
         if (userdata != null) {
             server.put(USER_DATA_JSON_FIELD, userdata);
@@ -482,12 +484,12 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
                 }
             }
 
-            String flavorId = serverJson.optString(FLAVOR_JSON_FIELD);
-            Flavor flavor = getFlavorById(flavorId);
             int vCPU = -1;
             int memory = -1;
             // TODO: Do we want to ignore the disk attribute?
 //            int disk = flavor.getDisk();
+
+            Flavor flavor = retrieveFlavorFromResponse(serverJson);
             if (flavor != null) {
                 vCPU = flavor.getCpu();
                 memory = flavor.getRam();
@@ -508,6 +510,16 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             LOGGER.warn("There was an exception while getting instances from json", e);
             throw new RequestException();
         }
+    }
+
+    private Flavor retrieveFlavorFromResponse(JSONObject jsonResponse) {
+        Flavor flavor = null;
+        if (!jsonResponse.isNull(FLAVOR_JSON_FIELD)) {
+            JSONObject flavorField = jsonResponse.optJSONObject(FLAVOR_JSON_FIELD);
+            String flavorId = flavorField.optString(FLAVOR_ID_JSON_FIELD);
+            flavor = getFlavorById(flavorId);
+        }
+        return flavor;
     }
 
     private Flavor getFlavorById(String id) {
