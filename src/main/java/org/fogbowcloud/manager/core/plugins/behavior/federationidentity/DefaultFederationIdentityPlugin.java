@@ -2,8 +2,6 @@ package org.fogbowcloud.manager.core.plugins.behavior.federationidentity;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
-
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 
 public class DefaultFederationIdentityPlugin implements FederationIdentityPlugin {
