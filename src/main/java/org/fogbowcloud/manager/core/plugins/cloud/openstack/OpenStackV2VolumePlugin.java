@@ -36,7 +36,6 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	private final String COULD_NOT_CONSUME_ENTITY_ERROR = "Could not consume entity";
 	private final String TENANT_ID_IS_NOT_SPECIFIED_ERROR = "Tenant id is not specified.";
 
-	private final String TENANT_ID = "openstack_tenantId";
 	private final String V2_API_ENDPOINT = "/v2/";
 	
 	protected static final String KEY_JSON_INSTANCE_UUID = "instance_uuid";
@@ -86,7 +85,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	
 	@Override
 	public String requestInstance(VolumeOrder order, Token localToken) throws RequestException {
-		String tenantId = localToken.getAttributes().get(TENANT_ID);
+		String tenantId = localToken.getAttributes().get(KeystoneV3IdentityPlugin.TENANT_ID);
 		if (tenantId == null) {
 			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 			throw new RequestException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);
@@ -110,7 +109,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 	@Override
 	public VolumeInstance getInstance(String storageOrderInstanceId, Token localToken) throws RequestException {
-		String tenantId = localToken.getAttributes().get(TENANT_ID);
+		String tenantId = localToken.getAttributes().get(KeystoneV3IdentityPlugin.TENANT_ID);
 		if (tenantId == null) {
 			throw new RequestException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 		}		
@@ -123,7 +122,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 	@Override
 	public void deleteInstance(String storageOrderInstanceId, Token localToken) throws RequestException {
-		String tenantId = localToken.getAttributes().get(TENANT_ID);
+		String tenantId = localToken.getAttributes().get(KeystoneV3IdentityPlugin.TENANT_ID);
 		if (tenantId == null) {
 			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 			throw new RequestException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);
