@@ -13,10 +13,11 @@ public class FederationUser {
     public FederationUser(String id, Map<String, String> attributes) {
         this.id = id;
         this.attributes = attributes;
-// TODO uncomment this code when breaking everything is affordable
-//        if (this.attributes.get(MANDATORY_NAME_ATTRIBUTE) == null) {
-//            throw new Exception();
-//        }
+        
+        // TODO uncomment this code when breaking everything is affordable
+        // if (this.attributes.get(MANDATORY_NAME_ATTRIBUTE) == null) {
+        // throw new Exception();
+        // }
     }
 
     public String getId() {
@@ -34,4 +35,17 @@ public class FederationUser {
     public void setAttributes(Map<String, String> attributes) {
         this.attributes = attributes;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+        FederationUser other = (FederationUser) obj;
+        if (this.id == null) {
+            if (other.getId() != null) return false;
+        } else if (!this.id.equals(other.getId())) return false;
+        return true;
+    }
+    
 }
