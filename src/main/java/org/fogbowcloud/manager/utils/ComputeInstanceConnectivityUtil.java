@@ -30,13 +30,14 @@ public class ComputeInstanceConnectivityUtil {
         try {
             Map<String, String> serviceAddresses =
                 this.tunnelingService.getExternalServiceAddresses(orderId);
-
-            String sshPublicAddress =
-                serviceAddresses.get(DefaultConfigurationConstants.SSH_SERVICE_NAME);
-            String sshUserName = SshCommonUserUtil.getSshCommonUser();
-            String sshExtraPorts = new JSONObject(serviceAddresses).toString();
-
-            return new SshTunnelConnectionData(sshPublicAddress, sshUserName, sshExtraPorts);
+            if (serviceAddresses != null) {
+                String sshPublicAddress =
+                        serviceAddresses.get(DefaultConfigurationConstants.SSH_SERVICE_NAME);
+                String sshUserName = SshCommonUserUtil.getSshCommonUser();
+                String sshExtraPorts = new JSONObject(serviceAddresses).toString();
+                return new SshTunnelConnectionData(sshPublicAddress, sshUserName, sshExtraPorts);
+            }
+            return null;
         } catch (Throwable e) {
             LOGGER.error(
                 "Error trying to get map of addresses (IP and Port) "
