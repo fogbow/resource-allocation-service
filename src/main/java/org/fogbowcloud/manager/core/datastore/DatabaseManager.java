@@ -5,16 +5,13 @@ import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedLi
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class DatabaseManager implements StableStorage {
 
     private static final Logger LOGGER = Logger.getLogger(DatabaseManager.class);
 
-    private static final String URL = "jdbc:postgresql://localhost:21700/recovery";
+    private static final String URL = "jdbc:postgresql://localhost:5432/recovery";
     private static final String USERNAME = "fogbow";
     private static final String PASSWORD = "fogbow";
 
@@ -22,13 +19,23 @@ public class DatabaseManager implements StableStorage {
     private static final String ORDER_ID = "order_id";
     private static final String INSTANCE_ID = "instance_id";
 
+    private static final String CREATE_ORDER_SQL = "CREATE TABLE IF NOT EXISTS "
+            + ORDER_TABLE_NAME + "(" + ORDER_ID + "VARCHAR(255) PRIMARY KEY, "
+            + INSTANCE_ID + " VARCHAR(255))";
+
     private static final String INSERT_ORDER_SQL = "INSERT INTO " + ORDER_TABLE_NAME
             + " (" + ORDER_ID + "," + INSTANCE_ID + ")" + " VALUES (?,?)";
 
     private static DatabaseManager instance;
 
     private DatabaseManager() {
-        // Database configuration must be in a propertie file
+        // TODO: Database configuration must be in a propertie file
+
+        try {
+            createOrderTable();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public static DatabaseManager getInstance() {
@@ -83,6 +90,24 @@ public class DatabaseManager implements StableStorage {
         return new SynchronizedDoublyLinkedList();
     }
 
+    private void createOrderTable() throws SQLException {
+        Statement statement = null;
+        Connection connection = null;
+
+        try {
+            connection = getConnection();
+
+            statement = connection.createStatement();
+            statement.execute(CREATE_ORDER_SQL);
+            statement.close();
+        } catch (SQLException e) {
+            LOGGER.error("Error creating order table", e);
+            throw new SQLException(e);
+        } finally {
+            closeConnection(statement, connection);
+        }
+    }
+
     private Connection getConnection() throws SQLException {
         try {
             return DriverManager.getConnection(URL, USERNAME, PASSWORD);
@@ -92,7 +117,7 @@ public class DatabaseManager implements StableStorage {
         }
     }
 
-    private void closeConnection(PreparedStatement statement, Connection connection) {
+    private void closeConnection(Statement statement, Connection connection) {
         if (statement != null) {
             try {
                 if (!statement.isClosed()) {
