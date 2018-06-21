@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.datastore;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
+import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 
@@ -11,16 +12,15 @@ public class DatabaseManager implements StableStorage {
 
     private static final Logger LOGGER = Logger.getLogger(DatabaseManager.class);
 
-    private static final String URL = "jdbc:postgresql://localhost:5432/recovery";
-    private static final String USERNAME = "fogbow";
-    private static final String PASSWORD = "fogbow";
+    private static final String URL = "jdbc:sqlite:/home/lucas/mydatabase.db";
+    private static final String MANAGER_DATASTORE_SQLITE_DRIVER = "org.sqlite.JDBC";
 
     private static final String ORDER_TABLE_NAME = "t_order";
     private static final String ORDER_ID = "order_id";
     private static final String INSTANCE_ID = "instance_id";
 
     private static final String CREATE_ORDER_SQL = "CREATE TABLE IF NOT EXISTS "
-            + ORDER_TABLE_NAME + "(" + ORDER_ID + "VARCHAR(255) PRIMARY KEY, "
+            + ORDER_TABLE_NAME + "(" + ORDER_ID + " VARCHAR(255) PRIMARY KEY, "
             + INSTANCE_ID + " VARCHAR(255))";
 
     private static final String INSERT_ORDER_SQL = "INSERT INTO " + ORDER_TABLE_NAME
@@ -30,10 +30,11 @@ public class DatabaseManager implements StableStorage {
 
     private DatabaseManager() {
         // TODO: Database configuration must be in a propertie file
-
         try {
+            Class.forName(MANAGER_DATASTORE_SQLITE_DRIVER);
+
             createOrderTable();
-        } catch (SQLException e) {
+        } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
@@ -48,6 +49,13 @@ public class DatabaseManager implements StableStorage {
 
     @Override
     public void add(Order order) {
+        switch (order.getType()) {
+            case COMPUTE:
+                ComputeOrder computeOrder = (ComputeOrder) order;
+                // TODO: Add in compute order table
+                break;
+        }
+
         Connection connection = null;
         PreparedStatement orderStatement = null;
 
@@ -110,7 +118,7 @@ public class DatabaseManager implements StableStorage {
 
     private Connection getConnection() throws SQLException {
         try {
-            return DriverManager.getConnection(URL, USERNAME, PASSWORD);
+            return DriverManager.getConnection(URL);
         } catch (SQLException e) {
             LOGGER.error("Error while getting a new connection from the connection pool.", e);
             throw e;
