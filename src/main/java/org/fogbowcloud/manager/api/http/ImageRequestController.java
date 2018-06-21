@@ -42,7 +42,7 @@ public class ImageRequestController {
         return new ResponseEntity<>(imagesMap, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    @RequestMapping(value = "/{imageId}", method = RequestMethod.GET)
     public ResponseEntity<Image> getImage(
             @PathVariable String imageId,
             @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
@@ -50,6 +50,7 @@ public class ImageRequestController {
             throws UnauthenticatedException, UnauthorizedException, RemoteRequestException, TokenCreationException,
             PropertyNotSpecifiedException, ImageException {
         Image image = ApplicationFacade.getInstance().getImage(memberId, imageId, federationTokenValue);
-        return new ResponseEntity<>(image, HttpStatus.OK);
+        return image == null ? new ResponseEntity<>(HttpStatus.NOT_FOUND) :
+                new ResponseEntity<>(image, HttpStatus.OK);
     }
 }
