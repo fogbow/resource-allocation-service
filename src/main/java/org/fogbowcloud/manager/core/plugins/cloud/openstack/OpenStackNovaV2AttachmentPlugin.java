@@ -13,7 +13,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
 import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
@@ -41,15 +40,12 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     private static final String OS_VOLUME_ATTACHMENTS = "/os-volume_attachments";
     private static final String SEPARATOR_ID = " ";
     private static final String SERVERS = "/servers/";
-	private static final String SERVER_JSON_FIELD = "server";
-	private static final String STATUS_JSON_FIELD = "status";
     private static final String TENANT_ID = "tenantId";
     
     private final Logger LOGGER = Logger.getLogger(OpenStackNovaV2AttachmentPlugin.class);
     
     private Properties properties;
     private HttpClient client;
-	private InstanceStateMapper instanceStateMapper;
     
     public OpenStackNovaV2AttachmentPlugin() {
         HomeDir homeDir = HomeDir.getInstance();
@@ -117,16 +113,14 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     protected AttachmentInstance getInstanceFromJson(String jsonResponse) throws RequestException {
     	try {
         	JSONObject rootServer = new JSONObject(jsonResponse);
-        	JSONObject serverJson = rootServer.getJSONObject(SERVER_JSON_FIELD);
-            
-        	// TODO Implementation incomplete, get more information about 'InstanceStateMapper' interface 
-        	String id = serverJson.getString(ID_JSON_FIELD);
-        	InstanceState state = instanceStateMapper.getInstanceState(serverJson.getString(STATUS_JSON_FIELD));
-        	String serverId = "";
-        	String volumeId = "";
-        	String device = "";
+        	rootServer = rootServer.getJSONObject("volumeAttachment");
+        	
+        	String id = rootServer.getString(ID_JSON_FIELD);
+        	String serverId = rootServer.getString("serverId");
+        	String volumeId = rootServer.getString("volumeId");
+        	String device = rootServer.getString("device");
 
-        	AttachmentInstance attachmentInstance = new AttachmentInstance(id, state, serverId, volumeId, device);
+        	AttachmentInstance attachmentInstance = new AttachmentInstance(id, InstanceState.READY, serverId, volumeId, device);
         	return attachmentInstance;
         	
     	} catch (JSONException e) {
