@@ -15,17 +15,6 @@ public class DatabaseManager implements StableStorage {
     private static final String URL = "jdbc:sqlite:/home/lucas/mydatabase.db";
     private static final String MANAGER_DATASTORE_SQLITE_DRIVER = "org.sqlite.JDBC";
 
-    private static final String ORDER_TABLE_NAME = "t_order";
-    private static final String ORDER_ID = "order_id";
-    private static final String INSTANCE_ID = "instance_id";
-
-    private static final String CREATE_ORDER_SQL = "CREATE TABLE IF NOT EXISTS "
-            + ORDER_TABLE_NAME + "(" + ORDER_ID + " VARCHAR(255) PRIMARY KEY, "
-            + INSTANCE_ID + " VARCHAR(255))";
-
-    private static final String INSERT_ORDER_SQL = "INSERT INTO " + ORDER_TABLE_NAME
-            + " (" + ORDER_ID + "," + INSTANCE_ID + ")" + " VALUES (?,?)";
-
     private static DatabaseManager instance;
 
     private DatabaseManager() {
@@ -33,7 +22,7 @@ public class DatabaseManager implements StableStorage {
         try {
             Class.forName(MANAGER_DATASTORE_SQLITE_DRIVER);
 
-            createOrderTable();
+            createOrderTable(SQLCommands.CREATE_COMPUTE_ORDER_SQL);
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -63,7 +52,7 @@ public class DatabaseManager implements StableStorage {
             connection = getConnection();
             connection.setAutoCommit(false);
 
-            orderStatement = connection.prepareStatement(INSERT_ORDER_SQL);
+            orderStatement = connection.prepareStatement(SQLCommands.INSERT_ORDER_SQL);
 
             orderStatement.setString(1, order.getId());
             orderStatement.setString(2, order.getInstanceId());
@@ -98,7 +87,7 @@ public class DatabaseManager implements StableStorage {
         return new SynchronizedDoublyLinkedList();
     }
 
-    private void createOrderTable() throws SQLException {
+    private void createOrderTable(String orderSql) throws SQLException {
         Statement statement = null;
         Connection connection = null;
 
@@ -106,7 +95,7 @@ public class DatabaseManager implements StableStorage {
             connection = getConnection();
 
             statement = connection.createStatement();
-            statement.execute(CREATE_ORDER_SQL);
+            statement.execute(orderSql);
             statement.close();
         } catch (SQLException e) {
             LOGGER.error("Error creating order table", e);
