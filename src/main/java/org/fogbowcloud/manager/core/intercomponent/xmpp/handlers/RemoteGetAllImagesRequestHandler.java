@@ -45,7 +45,7 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
             Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_ALL_IMAGES);
             Element imagesMapElement = queryEl.addElement(IqElement.IMAGES_MAP.toString());
 
-            Element imagesMapClassNameElement = queryElement.addElement(IqElement.IMAGES_MAP_CLASS_NAME.toString());
+            Element imagesMapClassNameElement = queryEl.addElement(IqElement.IMAGES_MAP_CLASS_NAME.toString());
             imagesMapClassNameElement.setText(imagesMap.getClass().getName());
 
             imagesMapElement.setText(new Gson().toJson(imagesMap));

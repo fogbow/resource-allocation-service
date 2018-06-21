@@ -47,7 +47,7 @@ public class RemoteGetImageRequestHandler extends AbstractQueryHandler {
             Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_IMAGE);
             Element imageElement = queryEl.addElement(IqElement.IMAGE.toString());
 
-            Element imageClassNameElement = queryElement.addElement(IqElement.IMAGE_CLASS_NAME.toString());
+            Element imageClassNameElement = queryEl.addElement(IqElement.IMAGE_CLASS_NAME.toString());
             imageClassNameElement.setText(image.getClass().getName());
 
             imageElement.setText(new Gson().toJson(image));
