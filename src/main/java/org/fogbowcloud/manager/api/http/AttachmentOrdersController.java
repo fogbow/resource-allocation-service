@@ -35,7 +35,7 @@ public class AttachmentOrdersController {
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<String> createAttachment(@RequestBody AttachmentOrder attachmentOrder,
-        @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+        @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
         LOGGER.info("New attachment order request received.");
 
@@ -45,7 +45,7 @@ public class AttachmentOrdersController {
     
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<AttachmentInstance>> getAllAttachments(
-        @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+        @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         LOGGER.info("Get all attachment orders request received");
         List<AttachmentInstance> attachmentInstance = ApplicationFacade.getInstance().getAllAttachments(federationTokenValue);
@@ -54,7 +54,7 @@ public class AttachmentOrdersController {
     
     @RequestMapping(value = "/{attachmentId}", method = RequestMethod.GET)
     public ResponseEntity<AttachmentInstance> getAttachment(@PathVariable String attachmentId,
-        @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+        @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         LOGGER.info("Get request to attachment order with id <" + attachmentId + "> received");
         AttachmentInstance attachmentInstance = ApplicationFacade.getInstance().getAttachment(attachmentId, federationTokenValue);
@@ -63,7 +63,7 @@ public class AttachmentOrdersController {
     
     @RequestMapping(value = "/{attachmentId}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> deleteAttachment(@PathVariable String attachmentId,
-        @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+        @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
         LOGGER.info("Delete attachment order to id <" + attachmentId + "> received");
         ApplicationFacade.getInstance().deleteAttachment(attachmentId, federationTokenValue);
