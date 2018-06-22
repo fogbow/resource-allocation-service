@@ -42,7 +42,7 @@ public class RemoteGetImageRequestHandler extends AbstractQueryHandler {
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            Image image = RemoteFacade.getInstance().getImage(imageId, memberId, federationUser);
+            Image image = RemoteFacade.getInstance().getImage(memberId, imageId, federationUser);
 
             Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_IMAGE);
             Element imageElement = queryEl.addElement(IqElement.IMAGE.toString());
