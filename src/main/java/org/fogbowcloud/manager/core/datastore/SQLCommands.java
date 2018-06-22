@@ -67,7 +67,29 @@ public class SQLCommands {
             + FEDERATION_USER_ATTR + " VARCHAR(255), " + REQUESTING_MEMBER + " VARCHAR(255), " + PROVIDING_MEMBER + " VARCHAR(255), "
             + SOURCE + " VARCHAR(255), " + TARGET + " VARCHAR(255), " + DEVICE + " VARCHAR(255))";
 
-    /** Commands to manipulate tables **/
-    protected static final String INSERT_ORDER_SQL = "INSERT INTO " + COMPUTE_ORDER_TABLE_NAME
-            + " (" + ORDER_ID + "," + INSTANCE_ID + ")" + " VALUES (?,?)";
+    /** Commands to insert orders into table **/
+    protected static final String INSERT_COMPUTE_ORDER_SQL = "INSERT INTO " + COMPUTE_ORDER_TABLE_NAME
+            + " (" + ORDER_ID + "," + INSTANCE_ID + "," + ORDER_STATE + "," + FEDERATION_USER_ID + ","
+            + FEDERATION_USER_ATTR + "," + REQUESTING_MEMBER + "," + PROVIDING_MEMBER + "," + VCPU + ","
+            + MEMORY + "," + DISK + "," + IMAGE_ID + "," + USER_DATA_FILE_CONTENT + ","
+            + USER_DATA_FILE_TYPE + "," + PUBLIC_KEY + "," + ACTUAL_ALLOCATION_VCPU + "," + ACTUAL_ALLOCATION_RAM + ","
+            + ACTUAL_ALLOCATION_INSTANCES +")" + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+    protected static final String INSERT_NETWORK_ORDER_SQL = "INSERT INTO " + NETWORK_ORDER_TABLE_NAME
+            + " (" + ORDER_ID + "," + INSTANCE_ID + "," + ORDER_STATE + "," + FEDERATION_USER_ID + ","
+            + FEDERATION_USER_ATTR + "," + REQUESTING_MEMBER + "," + PROVIDING_MEMBER + "," + GATEWAY
+            + "," + ADDRESS + "," + ALLOCATION +")" + " VALUES (?,?,?,?,?,?,?,?,?,?)";
+
+    protected static final String INSERT_VOLUME_ORDER_SQL = "INSERT INTO " + VOLUME_ORDER_TABLE_NAME
+            + " (" + ORDER_ID + "," + INSTANCE_ID + "," + ORDER_STATE + "," + FEDERATION_USER_ID + ","
+            + FEDERATION_USER_ATTR + "," + REQUESTING_MEMBER + "," + PROVIDING_MEMBER + ","
+            + VOLUME_SIZE +")" + " VALUES (?,?,?,?,?,?,?,?)";
+
+    protected static final String INSERT_ATTACHMENT_ORDER_SQL = "INSERT INTO " + ATTACHMENT_ORDER_TABLE_NAME
+            + " (" + ORDER_ID + "," + INSTANCE_ID + "," + ORDER_STATE + "," + FEDERATION_USER_ID + ","
+            + FEDERATION_USER_ATTR + "," + REQUESTING_MEMBER + "," + PROVIDING_MEMBER + ","
+            + SOURCE + "," + TARGET + "," + DEVICE +")" + " VALUES (?,?,?,?,?,?,?,?,?,?)";
+
+    /** Commands to select orders from the table **/
+
 }
