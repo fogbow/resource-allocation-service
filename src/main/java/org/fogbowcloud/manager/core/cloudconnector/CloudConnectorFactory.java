@@ -1,13 +1,10 @@
 package org.fogbowcloud.manager.core.cloudconnector;
 
-import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.AaController;
 import org.fogbowcloud.manager.core.CloudPluginsHolder;
 import org.fogbowcloud.manager.core.OrderController;
-import org.fogbowcloud.manager.core.AaController;
 
 public class CloudConnectorFactory {
-
-    private static Logger LOGGER = Logger.getLogger(CloudConnectorFactory.class);
 
     private static CloudConnectorFactory instance;
 

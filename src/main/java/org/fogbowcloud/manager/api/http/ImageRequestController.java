@@ -34,8 +34,8 @@ public class ImageRequestController {
 
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<Map<String, String>> getAllImages(
-            @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
-            @RequestHeader(value = MEMBER_ID_HEADER_KEY) String memberId)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
+            @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId)
             throws UnauthenticatedException, UnauthorizedException, PropertyNotSpecifiedException,
             TokenCreationException, RemoteRequestException, ImageException {
         Map<String, String> imagesMap = ApplicationFacade.getInstance().getAllImages(memberId, federationTokenValue);
@@ -45,8 +45,8 @@ public class ImageRequestController {
     @RequestMapping(value = "/{imageId}", method = RequestMethod.GET)
     public ResponseEntity<Image> getImage(
             @PathVariable String imageId,
-            @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
-            @RequestHeader(value = MEMBER_ID_HEADER_KEY) String memberId)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
+            @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId)
             throws UnauthenticatedException, UnauthorizedException, RemoteRequestException, TokenCreationException,
             PropertyNotSpecifiedException, ImageException {
         Image image = ApplicationFacade.getInstance().getImage(memberId, imageId, federationTokenValue);
