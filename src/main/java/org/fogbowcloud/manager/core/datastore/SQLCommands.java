@@ -90,6 +90,7 @@ public class SQLCommands {
             + FEDERATION_USER_ATTR + "," + REQUESTING_MEMBER + "," + PROVIDING_MEMBER + ","
             + SOURCE + "," + TARGET + "," + DEVICE +")" + " VALUES (?,?,?,?,?,?,?,?,?,?)";
 
-    /** Commands to select orders from the table **/
+    /** Commands to update orders in the table **/
 
+    /** Commands to select orders from the table **/
 }

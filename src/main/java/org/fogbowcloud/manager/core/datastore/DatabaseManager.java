@@ -97,6 +97,20 @@ public class DatabaseManager implements StableStorage {
         }
     }
 
+    private void addOrder(PreparedStatement orderStatement, Order order) throws SQLException {
+        orderStatement.setString(1, order.getId());
+        orderStatement.setString(2, order.getInstanceId());
+        orderStatement.setString(3, order.getOrderState().name());
+        orderStatement.setString(4, order.getFederationUser().getId());
+
+        Gson gson = new Gson();
+        String fedAttributes = gson.toJson(order.getFederationUser().getAttributes());
+
+        orderStatement.setString(5, fedAttributes);
+        orderStatement.setString(6, order.getRequestingMember());
+        orderStatement.setString(7, order.getProvidingMember());
+    }
+
     private void addComputeOrder(ComputeOrder computeOrder) {
         Connection connection = null;
         PreparedStatement orderStatement = null;
@@ -107,17 +121,8 @@ public class DatabaseManager implements StableStorage {
 
             orderStatement = connection.prepareStatement(SQLCommands.INSERT_COMPUTE_ORDER_SQL);
 
-            orderStatement.setString(1, computeOrder.getId());
-            orderStatement.setString(2, computeOrder.getInstanceId());
-            orderStatement.setString(3, computeOrder.getOrderState().name());
-            orderStatement.setString(4, computeOrder.getFederationUser().getId());
+            addOrder(orderStatement, computeOrder);
 
-            Gson gson = new Gson();
-            String fedAttributes = gson.toJson(computeOrder.getFederationUser().getAttributes());
-
-            orderStatement.setString(5, fedAttributes);
-            orderStatement.setString(6, computeOrder.getRequestingMember());
-            orderStatement.setString(7, computeOrder.getProvidingMember());
             orderStatement.setInt(8, computeOrder.getvCPU());
             orderStatement.setInt(9, computeOrder.getMemory());
             orderStatement.setInt(10, computeOrder.getDisk());
@@ -156,17 +161,8 @@ public class DatabaseManager implements StableStorage {
 
             orderStatement = connection.prepareStatement(SQLCommands.INSERT_NETWORK_ORDER_SQL);
 
-            orderStatement.setString(1, networkOrder.getId());
-            orderStatement.setString(2, networkOrder.getInstanceId());
-            orderStatement.setString(3, networkOrder.getOrderState().name());
-            orderStatement.setString(4, networkOrder.getFederationUser().getId());
+            addOrder(orderStatement, networkOrder);
 
-            Gson gson = new Gson();
-            String fedAttributes = gson.toJson(networkOrder.getFederationUser().getAttributes());
-
-            orderStatement.setString(5, fedAttributes);
-            orderStatement.setString(6, networkOrder.getRequestingMember());
-            orderStatement.setString(7, networkOrder.getProvidingMember());
             orderStatement.setString(8, networkOrder.getGateway());
             orderStatement.setString(9, networkOrder.getAddress());
             orderStatement.setString(10, networkOrder.getAllocation().getValue());
@@ -198,17 +194,8 @@ public class DatabaseManager implements StableStorage {
 
             orderStatement = connection.prepareStatement(SQLCommands.INSERT_VOLUME_ORDER_SQL);
 
-            orderStatement.setString(1, volumeOrder.getId());
-            orderStatement.setString(2, volumeOrder.getInstanceId());
-            orderStatement.setString(3, volumeOrder.getOrderState().name());
-            orderStatement.setString(4, volumeOrder.getFederationUser().getId());
+            addOrder(orderStatement, volumeOrder);
 
-            Gson gson = new Gson();
-            String fedAttributes = gson.toJson(volumeOrder.getFederationUser().getAttributes());
-
-            orderStatement.setString(5, fedAttributes);
-            orderStatement.setString(6, volumeOrder.getRequestingMember());
-            orderStatement.setString(7, volumeOrder.getProvidingMember());
             orderStatement.setInt(8, volumeOrder.getVolumeSize());
 
             orderStatement.executeUpdate();
@@ -238,17 +225,8 @@ public class DatabaseManager implements StableStorage {
 
             orderStatement = connection.prepareStatement(SQLCommands.INSERT_ATTACHMENT_ORDER_SQL);
 
-            orderStatement.setString(1, attachmentOrder.getId());
-            orderStatement.setString(2, attachmentOrder.getInstanceId());
-            orderStatement.setString(3, attachmentOrder.getOrderState().name());
-            orderStatement.setString(4, attachmentOrder.getFederationUser().getId());
+            addOrder(orderStatement, attachmentOrder);
 
-            Gson gson = new Gson();
-            String fedAttributes = gson.toJson(attachmentOrder.getFederationUser().getAttributes());
-
-            orderStatement.setString(5, fedAttributes);
-            orderStatement.setString(6, attachmentOrder.getRequestingMember());
-            orderStatement.setString(7, attachmentOrder.getProvidingMember());
             orderStatement.setString(8, attachmentOrder.getSource());
             orderStatement.setString(9, attachmentOrder.getTarget());
             orderStatement.setString(10, attachmentOrder.getDevice());
@@ -311,22 +289,22 @@ public class DatabaseManager implements StableStorage {
 //        UserData userData = new UserData("extraUserDataFileContent", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
 //
 //        ComputeAllocation computeAllocation = new ComputeAllocation(1, 1, 1);
-
+//
 //        ComputeOrder order = new ComputeOrder(federationUser, requestingMember, providingMember, 8, 1024,
 //                30, "fake_image_name", userData, "fake_public_key");
 //        order.setInstanceId("instance-id");
 //        order.setOrderState(OrderState.OPEN);
 //        order.setActualAllocation(computeAllocation);
-
+//
 //        NetworkOrder networkOrder = new NetworkOrder(federationUser, requestingMember, providingMember, "gat", "add", NetworkAllocation.STATIC);
 //        networkOrder.setOrderState(OrderState.OPEN);
-
+//
 //        VolumeOrder volumeOrder = new VolumeOrder(federationUser, requestingMember, providingMember, 10);
 //        volumeOrder.setOrderState(OrderState.OPEN);
-
+//
 //        AttachmentOrder attachmentOrder = new AttachmentOrder(federationUser, requestingMember, providingMember, "source", "target", "device");
 //        attachmentOrder.setOrderState(OrderState.OPEN);
-
+//
 //        databaseManager.add(attachmentOrder);
 //    }
 }
