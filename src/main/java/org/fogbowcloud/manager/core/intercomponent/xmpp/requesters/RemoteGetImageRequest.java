@@ -51,13 +51,13 @@ public class RemoteGetImageRequest implements RemoteRequest<Image> {
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_IMAGE.toString());
 
-        Element memberIdElement = iq.getElement().addElement(IqElement.MEMBER_ID.toString());
-        memberIdElement.setText(new Gson().toJson(this.federationMemberId));
+        Element memberIdElement = queryElement.addElement(IqElement.MEMBER_ID.toString());
+        memberIdElement.setText(this.federationMemberId);
 
         Element imageIdElement = queryElement.addElement(IqElement.IMAGE_ID.toString());
         imageIdElement.setText(this.imageId);
 
-        Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());
+        Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
         userElement.setText(new Gson().toJson(this.federationUser));
 
         return iq;

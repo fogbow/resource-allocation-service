@@ -31,12 +31,12 @@ public class RemoteGetImageRequestHandler extends AbstractQueryHandler {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
 
         Element imageIdElementRequest = queryElement.element(IqElement.IMAGE_ID.toString());
-        String imageId = new Gson().fromJson(imageIdElementRequest.getText(), String.class);
+        String imageId = imageIdElementRequest.getText();
 
-        Element memberIdElement = iq.getElement().element(IqElement.MEMBER_ID.toString());
-        String memberId = new Gson().fromJson(memberIdElement.getText(), String.class);
+        Element memberIdElement = queryElement.element(IqElement.MEMBER_ID.toString());
+        String memberId = memberIdElement.getText();
 
-        Element federationUserElement = iq.getElement().element(IqElement.FEDERATION_USER.toString());
+        Element federationUserElement = queryElement.element(IqElement.FEDERATION_USER.toString());
         FederationUser federationUser = new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
 
         IQ response = IQ.createResultIQ(iq);
