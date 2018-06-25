@@ -16,4 +16,13 @@ public enum NetworkAllocation {
         return value;
     }
 
+    public static NetworkAllocation fromValue(String value) {
+        for (NetworkAllocation networkAllocation : NetworkAllocation.values()) {
+            if (networkAllocation.getValue().equalsIgnoreCase(value)) {
+                return networkAllocation;
+            }
+        }
+
+        return null;
+    }
 }
