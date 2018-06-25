@@ -93,4 +93,17 @@ public class SQLCommands {
     /** Commands to update orders in the table **/
 
     /** Commands to select orders from the table **/
+    protected static final String NOT_NULL_INSTANCE_ID = " AND instance_id IS NOT NULL";
+
+    protected static String SELECT_COMPUTE_ORDER_SQL = "SELECT * FROM " + COMPUTE_ORDER_TABLE_NAME
+            + " WHERE order_state=?";
+
+    protected static String SELECT_NETWORK_ORDER_SQL = "SELECT * FROM " + NETWORK_ORDER_TABLE_NAME
+            + " WHERE order_state=?";
+
+    protected static String SELECT_VOLUME_ORDER_SQL = "SELECT * FROM " + VOLUME_ORDER_TABLE_NAME
+            + " WHERE order_state=?";
+
+    protected static String SELECT_ATTACHMENT_ORDER_SQL = "SELECT * FROM " + ATTACHMENT_ORDER_TABLE_NAME
+            + " WHERE order_state=?";
 }

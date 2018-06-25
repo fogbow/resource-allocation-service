@@ -1,6 +1,7 @@
 package org.fogbowcloud.manager.core.datastore;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.*;
@@ -8,8 +9,10 @@ import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.CloudInitUserDataBuilder;
 
+import java.lang.reflect.Type;
 import java.sql.*;
 import java.util.HashMap;
+import java.util.Map;
 
 public class DatabaseManager implements StableStorage {
 
@@ -72,11 +75,147 @@ public class DatabaseManager implements StableStorage {
 
     @Override
     public SynchronizedDoublyLinkedList readActiveOrders(OrderState orderState) {
+        SynchronizedDoublyLinkedList synchronizedDoublyLinkedList = new SynchronizedDoublyLinkedList();
+
         if (orderState.equals(OrderState.CLOSED)) {
             // returns only orders with instanceId different than null
+            SQLCommands.SELECT_COMPUTE_ORDER_SQL += SQLCommands.NOT_NULL_INSTANCE_ID;
+            SQLCommands.SELECT_VOLUME_ORDER_SQL += SQLCommands.NOT_NULL_INSTANCE_ID;
+            SQLCommands.SELECT_NETWORK_ORDER_SQL += SQLCommands.NOT_NULL_INSTANCE_ID;
+            SQLCommands.SELECT_ATTACHMENT_ORDER_SQL += SQLCommands.NOT_NULL_INSTANCE_ID;
         }
 
-        return new SynchronizedDoublyLinkedList();
+        Connection connection = null;
+        PreparedStatement orderStatement = null;
+
+        // Getting all orders by state from data base
+        try {
+            connection = getConnection();
+            connection.setAutoCommit(false);
+
+            orderStatement = connection.prepareStatement(SQLCommands.SELECT_COMPUTE_ORDER_SQL);
+            orderStatement.setString(1, orderState.name());
+
+            ResultSet computeResult = orderStatement.executeQuery();
+            addAllComputeOrdersToList(computeResult, synchronizedDoublyLinkedList);
+
+            orderStatement = connection.prepareStatement(SQLCommands.SELECT_NETWORK_ORDER_SQL);
+            orderStatement.setString(1, orderState.name());
+
+            ResultSet networkResult = orderStatement.executeQuery();
+            addAllNetworkOrdersToList(networkResult, synchronizedDoublyLinkedList);
+
+            orderStatement = connection.prepareStatement(SQLCommands.SELECT_VOLUME_ORDER_SQL);
+            orderStatement.setString(1, orderState.name());
+
+            ResultSet volumeResult = orderStatement.executeQuery();
+            addAllVolumeOrdersToList(volumeResult, synchronizedDoublyLinkedList);
+
+            orderStatement = connection.prepareStatement(SQLCommands.SELECT_ATTACHMENT_ORDER_SQL);
+            orderStatement.setString(1, orderState.name());
+
+            ResultSet attachmentResult = orderStatement.executeQuery();
+            addAllAttachmentOrdersToList(attachmentResult, synchronizedDoublyLinkedList);
+
+            connection.commit();
+        } catch (SQLException e) {
+            LOGGER.error("Couldn't create order.", e);
+            try {
+                if (connection != null) {
+                    connection.rollback();
+                }
+            } catch (SQLException e1) {
+                LOGGER.error("Couldn't rollback transaction.", e1);
+            }
+        } finally {
+            closeConnection(orderStatement, connection);
+        }
+
+        return synchronizedDoublyLinkedList;
+    }
+
+    private void addAllComputeOrdersToList(ResultSet computeResult, SynchronizedDoublyLinkedList synchronizedDoublyLinkedList)
+            throws SQLException {
+
+        Gson gson = new Gson();
+        Type mapType = new TypeToken<Map<String, String>>(){}.getType();
+
+        while (computeResult.next()) {
+            computeResult.getString(1);
+
+            Map<String, String> federationUserAttr = gson.fromJson(computeResult.getString(5), mapType);
+
+            ComputeOrder computeOrder = new ComputeOrder(computeResult.getString(1),
+                    new FederationUser(computeResult.getString(4), federationUserAttr),
+                    computeResult.getString(6), computeResult.getString(7), computeResult.getInt(8),
+                    computeResult.getInt(9), computeResult.getInt(10), computeResult.getString(11),
+                    new UserData(computeResult.getString(12), CloudInitUserDataBuilder.FileType.valueOf(
+                            computeResult.getString(13))), computeResult.getString(14));
+
+            synchronizedDoublyLinkedList.addItem(computeOrder);
+        }
+    }
+
+    private void addAllNetworkOrdersToList(ResultSet networkResult, SynchronizedDoublyLinkedList synchronizedDoublyLinkedList)
+            throws SQLException {
+
+        Gson gson = new Gson();
+        Type mapType = new TypeToken<Map<String, String>>(){}.getType();
+
+        while (networkResult.next()) {
+            networkResult.getString(1);
+
+            Map<String, String> federationUserAttr = gson.fromJson(networkResult.getString(5), mapType);
+
+            NetworkOrder networkOrder = new NetworkOrder(networkResult.getString(1),
+                    new FederationUser(networkResult.getString(4), federationUserAttr),
+                    networkResult.getString(6), networkResult.getString(7),
+                    networkResult.getString(8), networkResult.getString(9),
+                    NetworkAllocation.fromValue(networkResult.getString(10)));
+
+            synchronizedDoublyLinkedList.addItem(networkOrder);
+        }
+    }
+
+    private void addAllVolumeOrdersToList(ResultSet volumeResult, SynchronizedDoublyLinkedList synchronizedDoublyLinkedList)
+            throws SQLException {
+
+        Gson gson = new Gson();
+        Type mapType = new TypeToken<Map<String, String>>(){}.getType();
+
+        while (volumeResult.next()) {
+            volumeResult.getString(1);
+
+            Map<String, String> federationUserAttr = gson.fromJson(volumeResult.getString(5), mapType);
+
+            VolumeOrder volumeOrder = new VolumeOrder(volumeResult.getString(1),
+                    new FederationUser(volumeResult.getString(4), federationUserAttr),
+                    volumeResult.getString(6), volumeResult.getString(7),
+                    volumeResult.getInt(8));
+
+            synchronizedDoublyLinkedList.addItem(volumeOrder);
+        }
+    }
+
+    private void addAllAttachmentOrdersToList(ResultSet attachmentResult, SynchronizedDoublyLinkedList synchronizedDoublyLinkedList)
+            throws SQLException {
+
+        Gson gson = new Gson();
+        Type mapType = new TypeToken<Map<String, String>>(){}.getType();
+
+        while (attachmentResult.next()) {
+            attachmentResult.getString(1);
+
+            Map<String, String> federationUserAttr = gson.fromJson(attachmentResult.getString(5), mapType);
+
+            AttachmentOrder attachmentOrder = new AttachmentOrder(attachmentResult.getString(1),
+                    new FederationUser(attachmentResult.getString(4), federationUserAttr),
+                    attachmentResult.getString(6), attachmentResult.getString(7),
+                    attachmentResult.getString(8), attachmentResult.getString(9),
+                    attachmentResult.getString(10));
+
+            synchronizedDoublyLinkedList.addItem(attachmentOrder);
+        }
     }
 
     private void createOrderTable(String orderSql) throws SQLException {
@@ -279,32 +418,43 @@ public class DatabaseManager implements StableStorage {
         }
     }
 
-//    public static void main(String[] args) {
-//        DatabaseManager databaseManager = new DatabaseManager();
+    public static void main(String[] args) {
+        DatabaseManager databaseManager = new DatabaseManager();
+
+        FederationUser federationUser = new FederationUser("fed-id", new HashMap<>());
+        String requestingMember = "LOCAL_MEMBER_ID";
+        String providingMember = "LOCAL_MEMBER_ID";
+
+        UserData userData = new UserData("extraUserDataFileContent", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
+
+        ComputeAllocation computeAllocation = new ComputeAllocation(1, 1, 1);
+
+        ComputeOrder order = new ComputeOrder(federationUser, requestingMember, providingMember, 8, 1024,
+                30, "fake_image_name", userData, "fake_public_key");
+        order.setInstanceId("instance-id");
+        order.setOrderState(OrderState.OPEN);
+        order.setActualAllocation(computeAllocation);
+
+        NetworkOrder networkOrder = new NetworkOrder(federationUser, requestingMember, providingMember, "gat", "add", NetworkAllocation.STATIC);
+        networkOrder.setOrderState(OrderState.CLOSED);
+
+        VolumeOrder volumeOrder = new VolumeOrder(federationUser, requestingMember, providingMember, 10);
+        volumeOrder.setOrderState(OrderState.OPEN);
+
+        AttachmentOrder attachmentOrder = new AttachmentOrder(federationUser, requestingMember, providingMember, "source", "target", "device");
+        attachmentOrder.setOrderState(OrderState.OPEN);
+
+        databaseManager.add(order);
+        databaseManager.add(networkOrder);
+        databaseManager.add(volumeOrder);
+        databaseManager.add(attachmentOrder);
 //
-//        FederationUser federationUser = new FederationUser("fed-id", new HashMap<>());
-//        String requestingMember = "LOCAL_MEMBER_ID";
-//        String providingMember = "LOCAL_MEMBER_ID";
+        SynchronizedDoublyLinkedList synchronizedDoublyLinkedList = databaseManager.readActiveOrders(OrderState.CLOSED);
 //
-//        UserData userData = new UserData("extraUserDataFileContent", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
-//
-//        ComputeAllocation computeAllocation = new ComputeAllocation(1, 1, 1);
-//
-//        ComputeOrder order = new ComputeOrder(federationUser, requestingMember, providingMember, 8, 1024,
-//                30, "fake_image_name", userData, "fake_public_key");
-//        order.setInstanceId("instance-id");
-//        order.setOrderState(OrderState.OPEN);
-//        order.setActualAllocation(computeAllocation);
-//
-//        NetworkOrder networkOrder = new NetworkOrder(federationUser, requestingMember, providingMember, "gat", "add", NetworkAllocation.STATIC);
-//        networkOrder.setOrderState(OrderState.OPEN);
-//
-//        VolumeOrder volumeOrder = new VolumeOrder(federationUser, requestingMember, providingMember, 10);
-//        volumeOrder.setOrderState(OrderState.OPEN);
-//
-//        AttachmentOrder attachmentOrder = new AttachmentOrder(federationUser, requestingMember, providingMember, "source", "target", "device");
-//        attachmentOrder.setOrderState(OrderState.OPEN);
-//
-//        databaseManager.add(attachmentOrder);
-//    }
+        Order orderToPrint;
+
+        while ((orderToPrint = synchronizedDoublyLinkedList.getNext()) != null) {
+            System.out.println(orderToPrint.toString());
+        }
+    }
 }
