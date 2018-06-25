@@ -29,10 +29,7 @@ public class DatabaseManager implements StableStorage {
             Class.forName(MANAGER_DATASTORE_SQLITE_DRIVER);
 
             // Creating all tables
-            createOrderTable(SQLCommands.CREATE_COMPUTE_ORDER_SQL);
-            createOrderTable(SQLCommands.CREATE_NETWORK_ORDER_SQL);
-            createOrderTable(SQLCommands.CREATE_VOLUME_ORDER_SQL);
-            createOrderTable(SQLCommands.CREATE_ATTACHMENT_ORDER_SQL);
+            createOrderTables();
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -70,7 +67,24 @@ public class DatabaseManager implements StableStorage {
 
     @Override
     public void update(Order order) {
-
+        switch (order.getType()) {
+            case COMPUTE:
+                ComputeOrder computeOrder = (ComputeOrder) order;
+                updateComputeOrder(computeOrder);
+                break;
+            case NETWORK:
+                NetworkOrder networkOrder = (NetworkOrder) order;
+                updateNetworkOrder(networkOrder);
+                break;
+            case VOLUME:
+                VolumeOrder volumeOrder = (VolumeOrder) order;
+                updateVolumeOrder(volumeOrder);
+                break;
+            case ATTACHMENT:
+                AttachmentOrder attachmentOrder = (AttachmentOrder) order;
+                updateAttachmentOrder(attachmentOrder);
+                break;
+        }
     }
 
     @Override
@@ -134,16 +148,139 @@ public class DatabaseManager implements StableStorage {
         return synchronizedDoublyLinkedList;
     }
 
+    private void updateComputeOrder(ComputeOrder computeOrder) {
+        Connection connection = null;
+        PreparedStatement orderStatement = null;
+
+        try {
+            connection = getConnection();
+            connection.setAutoCommit(false);
+
+            orderStatement = connection.prepareStatement(SQLCommands.UPDATE_COMPUTE_ORDER_SQL);
+
+            orderStatement.setString(1, computeOrder.getInstanceId());
+            orderStatement.setString(2, computeOrder.getOrderState().name());
+            orderStatement.setInt(3, computeOrder.getActualAllocation().getvCPU());
+            orderStatement.setInt(4, computeOrder.getActualAllocation().getRam());
+            orderStatement.setInt(5, computeOrder.getActualAllocation().getInstances());
+            orderStatement.setString(6, computeOrder.getId());
+
+            orderStatement.executeUpdate();
+
+            connection.commit();
+        } catch (SQLException e) {
+            LOGGER.error("Couldn't create order.", e);
+            try {
+                if (connection != null) {
+                    connection.rollback();
+                }
+            } catch (SQLException e1) {
+                LOGGER.error("Couldn't rollback transaction.", e1);
+            }
+        } finally {
+            closeConnection(orderStatement, connection);
+        }
+    }
+
+    private void updateNetworkOrder(NetworkOrder networkOrder) {
+        Connection connection = null;
+        PreparedStatement orderStatement = null;
+
+        try {
+            connection = getConnection();
+            connection.setAutoCommit(false);
+
+            orderStatement = connection.prepareStatement(SQLCommands.UPDATE_NETWORK_ORDER_SQL);
+
+            orderStatement.setString(1, networkOrder.getInstanceId());
+            orderStatement.setString(2, networkOrder.getOrderState().name());
+            orderStatement.setString(3, networkOrder.getId());
+
+            orderStatement.executeUpdate();
+
+            connection.commit();
+        } catch (SQLException e) {
+            LOGGER.error("Couldn't create order.", e);
+            try {
+                if (connection != null) {
+                    connection.rollback();
+                }
+            } catch (SQLException e1) {
+                LOGGER.error("Couldn't rollback transaction.", e1);
+            }
+        } finally {
+            closeConnection(orderStatement, connection);
+        }
+    }
+
+    private void updateVolumeOrder(VolumeOrder volumeOrder) {
+        Connection connection = null;
+        PreparedStatement orderStatement = null;
+
+        try {
+            connection = getConnection();
+            connection.setAutoCommit(false);
+
+            orderStatement = connection.prepareStatement(SQLCommands.UPDATE_VOLUME_ORDER_SQL);
+
+            orderStatement.setString(1, volumeOrder.getInstanceId());
+            orderStatement.setString(2, volumeOrder.getOrderState().name());
+            orderStatement.setString(3, volumeOrder.getId());
+
+            orderStatement.executeUpdate();
+
+            connection.commit();
+        } catch (SQLException e) {
+            LOGGER.error("Couldn't create order.", e);
+            try {
+                if (connection != null) {
+                    connection.rollback();
+                }
+            } catch (SQLException e1) {
+                LOGGER.error("Couldn't rollback transaction.", e1);
+            }
+        } finally {
+            closeConnection(orderStatement, connection);
+        }
+    }
+
+    private void updateAttachmentOrder(AttachmentOrder attachmentOrder) {
+        Connection connection = null;
+        PreparedStatement orderStatement = null;
+
+        try {
+            connection = getConnection();
+            connection.setAutoCommit(false);
+
+            orderStatement = connection.prepareStatement(SQLCommands.UPDATE_ATTACHMENT_ORDER_SQL);
+
+            orderStatement.setString(1, attachmentOrder.getOrderState().name());
+            orderStatement.setString(2, attachmentOrder.getId());
+
+            orderStatement.executeUpdate();
+
+            connection.commit();
+        } catch (SQLException e) {
+            LOGGER.error("Couldn't create order.", e);
+            try {
+                if (connection != null) {
+                    connection.rollback();
+                }
+            } catch (SQLException e1) {
+                LOGGER.error("Couldn't rollback transaction.", e1);
+            }
+        } finally {
+            closeConnection(orderStatement, connection);
+        }
+    }
+
     private void addAllComputeOrdersToList(ResultSet computeResult, SynchronizedDoublyLinkedList synchronizedDoublyLinkedList)
             throws SQLException {
-
-        Gson gson = new Gson();
-        Type mapType = new TypeToken<Map<String, String>>(){}.getType();
 
         while (computeResult.next()) {
             computeResult.getString(1);
 
-            Map<String, String> federationUserAttr = gson.fromJson(computeResult.getString(5), mapType);
+            Map<String, String> federationUserAttr = getFederationUserAttrFromString(computeResult.getString(5));
 
             ComputeOrder computeOrder = new ComputeOrder(computeResult.getString(1),
                     new FederationUser(computeResult.getString(4), federationUserAttr),
@@ -159,13 +296,10 @@ public class DatabaseManager implements StableStorage {
     private void addAllNetworkOrdersToList(ResultSet networkResult, SynchronizedDoublyLinkedList synchronizedDoublyLinkedList)
             throws SQLException {
 
-        Gson gson = new Gson();
-        Type mapType = new TypeToken<Map<String, String>>(){}.getType();
-
         while (networkResult.next()) {
             networkResult.getString(1);
 
-            Map<String, String> federationUserAttr = gson.fromJson(networkResult.getString(5), mapType);
+            Map<String, String> federationUserAttr = getFederationUserAttrFromString(networkResult.getString(5));
 
             NetworkOrder networkOrder = new NetworkOrder(networkResult.getString(1),
                     new FederationUser(networkResult.getString(4), federationUserAttr),
@@ -180,13 +314,10 @@ public class DatabaseManager implements StableStorage {
     private void addAllVolumeOrdersToList(ResultSet volumeResult, SynchronizedDoublyLinkedList synchronizedDoublyLinkedList)
             throws SQLException {
 
-        Gson gson = new Gson();
-        Type mapType = new TypeToken<Map<String, String>>(){}.getType();
-
         while (volumeResult.next()) {
             volumeResult.getString(1);
 
-            Map<String, String> federationUserAttr = gson.fromJson(volumeResult.getString(5), mapType);
+            Map<String, String> federationUserAttr = getFederationUserAttrFromString(volumeResult.getString(5));
 
             VolumeOrder volumeOrder = new VolumeOrder(volumeResult.getString(1),
                     new FederationUser(volumeResult.getString(4), federationUserAttr),
@@ -200,13 +331,10 @@ public class DatabaseManager implements StableStorage {
     private void addAllAttachmentOrdersToList(ResultSet attachmentResult, SynchronizedDoublyLinkedList synchronizedDoublyLinkedList)
             throws SQLException {
 
-        Gson gson = new Gson();
-        Type mapType = new TypeToken<Map<String, String>>(){}.getType();
-
         while (attachmentResult.next()) {
             attachmentResult.getString(1);
 
-            Map<String, String> federationUserAttr = gson.fromJson(attachmentResult.getString(5), mapType);
+            Map<String, String> federationUserAttr = getFederationUserAttrFromString(attachmentResult.getString(5));
 
             AttachmentOrder attachmentOrder = new AttachmentOrder(attachmentResult.getString(1),
                     new FederationUser(attachmentResult.getString(4), federationUserAttr),
@@ -218,7 +346,14 @@ public class DatabaseManager implements StableStorage {
         }
     }
 
-    private void createOrderTable(String orderSql) throws SQLException {
+    private Map<String, String> getFederationUserAttrFromString(String jsonString) {
+        Gson gson = new Gson();
+        Type mapType = new TypeToken<Map<String, String>>(){}.getType();
+
+        return gson.fromJson(jsonString, mapType);
+    }
+
+    private void createOrderTables() throws SQLException {
         Statement statement = null;
         Connection connection = null;
 
@@ -226,7 +361,11 @@ public class DatabaseManager implements StableStorage {
             connection = getConnection();
 
             statement = connection.createStatement();
-            statement.execute(orderSql);
+            statement.execute(SQLCommands.CREATE_COMPUTE_ORDER_SQL);
+            statement.execute(SQLCommands.CREATE_NETWORK_ORDER_SQL);
+            statement.execute(SQLCommands.CREATE_VOLUME_ORDER_SQL);
+            statement.execute(SQLCommands.CREATE_ATTACHMENT_ORDER_SQL);
+
             statement.close();
         } catch (SQLException e) {
             LOGGER.error("Error creating order table", e);
@@ -421,7 +560,10 @@ public class DatabaseManager implements StableStorage {
     public static void main(String[] args) {
         DatabaseManager databaseManager = new DatabaseManager();
 
-        FederationUser federationUser = new FederationUser("fed-id", new HashMap<>());
+        Map<String, String> attr = new HashMap<>();
+        attr.put("oi", "aras");
+
+        FederationUser federationUser = new FederationUser("fed-id", attr);
         String requestingMember = "LOCAL_MEMBER_ID";
         String providingMember = "LOCAL_MEMBER_ID";
 
@@ -429,32 +571,38 @@ public class DatabaseManager implements StableStorage {
 
         ComputeAllocation computeAllocation = new ComputeAllocation(1, 1, 1);
 
-        ComputeOrder order = new ComputeOrder(federationUser, requestingMember, providingMember, 8, 1024,
+        ComputeOrder order = new ComputeOrder("x", federationUser, requestingMember, providingMember, 8, 1024,
                 30, "fake_image_name", userData, "fake_public_key");
         order.setInstanceId("instance-id");
         order.setOrderState(OrderState.OPEN);
         order.setActualAllocation(computeAllocation);
 
-        NetworkOrder networkOrder = new NetworkOrder(federationUser, requestingMember, providingMember, "gat", "add", NetworkAllocation.STATIC);
+        NetworkOrder networkOrder = new NetworkOrder("a", federationUser, requestingMember, providingMember, "gat", "add", NetworkAllocation.STATIC);
         networkOrder.setOrderState(OrderState.CLOSED);
 
-        VolumeOrder volumeOrder = new VolumeOrder(federationUser, requestingMember, providingMember, 10);
+        VolumeOrder volumeOrder = new VolumeOrder("b", federationUser, requestingMember, providingMember, 10);
         volumeOrder.setOrderState(OrderState.OPEN);
 
-        AttachmentOrder attachmentOrder = new AttachmentOrder(federationUser, requestingMember, providingMember, "source", "target", "device");
+        AttachmentOrder attachmentOrder = new AttachmentOrder("f", federationUser, requestingMember, providingMember, "source", "target", "device");
         attachmentOrder.setOrderState(OrderState.OPEN);
 
-        databaseManager.add(order);
-        databaseManager.add(networkOrder);
-        databaseManager.add(volumeOrder);
-        databaseManager.add(attachmentOrder);
-//
-        SynchronizedDoublyLinkedList synchronizedDoublyLinkedList = databaseManager.readActiveOrders(OrderState.CLOSED);
-//
-        Order orderToPrint;
+//        databaseManager.add(attachmentOrder);
 
-        while ((orderToPrint = synchronizedDoublyLinkedList.getNext()) != null) {
-            System.out.println(orderToPrint.toString());
-        }
+        attachmentOrder.setOrderState(OrderState.CLOSED);
+        databaseManager.update(attachmentOrder);
+
+
+//        databaseManager.add(networkOrder);
+//        databaseManager.add(volumeOrder);
+//        databaseManager.add(attachmentOrder);
+
+//        SynchronizedDoublyLinkedList synchronizedDoublyLinkedList = databaseManager.readActiveOrders(OrderState.OPEN);
+//
+//        Order orderToPrint;
+//
+//        while ((orderToPrint = synchronizedDoublyLinkedList.getNext()) != null) {
+//            System.out.println(orderToPrint.toString());
+//            System.out.println(orderToPrint.getFederationUser().getAttributes().toString());
+//        }
     }
 }

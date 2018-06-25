@@ -90,8 +90,6 @@ public class SQLCommands {
             + FEDERATION_USER_ATTR + "," + REQUESTING_MEMBER + "," + PROVIDING_MEMBER + ","
             + SOURCE + "," + TARGET + "," + DEVICE +")" + " VALUES (?,?,?,?,?,?,?,?,?,?)";
 
-    /** Commands to update orders in the table **/
-
     /** Commands to select orders from the table **/
     protected static final String NOT_NULL_INSTANCE_ID = " AND instance_id IS NOT NULL";
 
@@ -106,4 +104,18 @@ public class SQLCommands {
 
     protected static String SELECT_ATTACHMENT_ORDER_SQL = "SELECT * FROM " + ATTACHMENT_ORDER_TABLE_NAME
             + " WHERE order_state=?";
+
+    /** Commands to update orders in the table **/
+    protected static final String UPDATE_COMPUTE_ORDER_SQL = "UPDATE " + COMPUTE_ORDER_TABLE_NAME + " SET "
+            + "instance_id=?,order_state=?,actual_alloc_vcpu=?,actual_alloc_ram=?,actual_alloc_instances=? WHERE "
+            + ORDER_ID + "=?";
+
+    protected static final String UPDATE_NETWORK_ORDER_SQL = "UPDATE " + NETWORK_ORDER_TABLE_NAME + " SET "
+            + "instance_id=?,order_state=? WHERE " + ORDER_ID + "=?";
+
+    protected static final String UPDATE_VOLUME_ORDER_SQL = "UPDATE " + VOLUME_ORDER_TABLE_NAME + " SET "
+            + "instance_id=?,order_state=? WHERE " + ORDER_ID + "=?";
+
+    protected static final String UPDATE_ATTACHMENT_ORDER_SQL = "UPDATE " + ATTACHMENT_ORDER_TABLE_NAME + " SET "
+            + "order_state=? WHERE " + ORDER_ID + "=?";
 }
