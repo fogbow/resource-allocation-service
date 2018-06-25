@@ -142,6 +142,14 @@ public class ApplicationFacade {
 
     public String createAttachment(AttachmentOrder attachmentOrder, String federationTokenValue) throws
             OrderManagementException, UnauthorizedException, UnauthenticatedException {
+
+        // The AttachmentOrder uses the instanceId, therefore, we need to set the instanceId for source orderId and
+        // target orderId received from request.
+        Order sourceOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(attachmentOrder.getSource());
+        Order targetOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(attachmentOrder.getTarget());
+        attachmentOrder.setSource(sourceOrder.getInstanceId());
+        attachmentOrder.setTarget(targetOrder.getInstanceId());
+
         return activateOrder(attachmentOrder, federationTokenValue);
     }
 
