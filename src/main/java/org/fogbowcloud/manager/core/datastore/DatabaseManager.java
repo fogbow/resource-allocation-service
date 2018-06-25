@@ -149,6 +149,10 @@ public class DatabaseManager implements StableStorage {
         return synchronizedDoublyLinkedList;
     }
 
+    /**
+     * Methods to update orders in the table.
+     **/
+
     private void updateComputeOrder(ComputeOrder computeOrder) {
         Connection connection = null;
         PreparedStatement orderStatement = null;
@@ -275,6 +279,10 @@ public class DatabaseManager implements StableStorage {
         }
     }
 
+    /**
+     * Methods to add orders into the SynchronizedDoublyLinkedList.
+     **/
+
     private void addAllComputeOrdersToList(ResultSet computeResult, SynchronizedDoublyLinkedList synchronizedDoublyLinkedList)
             throws SQLException {
 
@@ -354,6 +362,10 @@ public class DatabaseManager implements StableStorage {
         return gson.fromJson(jsonString, mapType);
     }
 
+    /**
+     * Method to create all order tables.
+     **/
+
     private void createOrderTables() throws SQLException {
         Statement statement = null;
         Connection connection = null;
@@ -375,6 +387,10 @@ public class DatabaseManager implements StableStorage {
             closeConnection(statement, connection);
         }
     }
+
+    /**
+     * Methods to add orders into the database.
+     **/
 
     private void addOrder(PreparedStatement orderStatement, Order order) throws SQLException {
         orderStatement.setString(1, order.getId());
@@ -530,6 +546,10 @@ public class DatabaseManager implements StableStorage {
             closeConnection(orderStatement, connection);
         }
     }
+
+    /**
+     * Methods to manage database connection.
+     **/
 
     private Connection getConnection() throws SQLException {
         try {
