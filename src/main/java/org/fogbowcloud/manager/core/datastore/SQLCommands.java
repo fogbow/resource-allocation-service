@@ -40,6 +40,9 @@ public class SQLCommands {
     private static final String TARGET = "target";
     private static final String DEVICE = "device";
 
+    /** Date attribute **/
+    private static final String CREATE_AT = "create_at";
+
     /** Commands to create tables **/
     protected static final String CREATE_COMPUTE_ORDER_SQL = "CREATE TABLE IF NOT EXISTS "
             + COMPUTE_ORDER_TABLE_NAME + "(" + ORDER_ID + " VARCHAR(255) PRIMARY KEY, "
@@ -47,25 +50,27 @@ public class SQLCommands {
             + FEDERATION_USER_ATTR + " VARCHAR(255), " + REQUESTING_MEMBER + " VARCHAR(255), " + PROVIDING_MEMBER + " VARCHAR(255), "
             + VCPU + " INTEGER, " + MEMORY + " INTEGER, " + DISK + " INTEGER, " + IMAGE_ID + " VARCHAR(255), "
             + USER_DATA_FILE_CONTENT + " VARCHAR(255), " + USER_DATA_FILE_TYPE + " VARCHAR(255), " + PUBLIC_KEY + " VARCHAR(255), "
-            + ACTUAL_ALLOCATION_VCPU + " INTEGER, " + ACTUAL_ALLOCATION_RAM + " INTEGER, " + ACTUAL_ALLOCATION_INSTANCES + " INTEGER)";
+            + ACTUAL_ALLOCATION_VCPU + " INTEGER, " + ACTUAL_ALLOCATION_RAM + " INTEGER, " + ACTUAL_ALLOCATION_INSTANCES + " INTEGER, "
+            + CREATE_AT + " TIMESTAMP)";
 
     protected static final String CREATE_NETWORK_ORDER_SQL = "CREATE TABLE IF NOT EXISTS "
             + NETWORK_ORDER_TABLE_NAME + "(" + ORDER_ID + " VARCHAR(255) PRIMARY KEY, "
             + INSTANCE_ID + " VARCHAR(255), " + ORDER_STATE + " VARCHAR(255), " + FEDERATION_USER_ID + " VARCHAR(255), "
             + FEDERATION_USER_ATTR + " VARCHAR(255), " + REQUESTING_MEMBER + " VARCHAR(255), " + PROVIDING_MEMBER + " VARCHAR(255), "
-            + GATEWAY + " VARCHAR(255), " + ADDRESS + " VARCHAR(255), " + ALLOCATION + " VARCHAR(255))";
+            + GATEWAY + " VARCHAR(255), " + ADDRESS + " VARCHAR(255), " + ALLOCATION + " VARCHAR(255), "
+            + CREATE_AT + " TIMESTAMP)";
 
     protected static final String CREATE_VOLUME_ORDER_SQL = "CREATE TABLE IF NOT EXISTS "
             + VOLUME_ORDER_TABLE_NAME + "(" + ORDER_ID + " VARCHAR(255) PRIMARY KEY, "
             + INSTANCE_ID + " VARCHAR(255), " + ORDER_STATE + " VARCHAR(255), " + FEDERATION_USER_ID + " VARCHAR(255), "
             + FEDERATION_USER_ATTR + " VARCHAR(255), " + REQUESTING_MEMBER + " VARCHAR(255), " + PROVIDING_MEMBER + " VARCHAR(255), "
-            + VOLUME_SIZE + " INTEGER)";
+            + VOLUME_SIZE + " TIMESTAMP, " + CREATE_AT + " INTEGER)";
 
     protected static final String CREATE_ATTACHMENT_ORDER_SQL = "CREATE TABLE IF NOT EXISTS "
             + ATTACHMENT_ORDER_TABLE_NAME + "(" + ORDER_ID + " VARCHAR(255) PRIMARY KEY, "
             + INSTANCE_ID + " VARCHAR(255), " + ORDER_STATE + " VARCHAR(255), " + FEDERATION_USER_ID + " VARCHAR(255), "
             + FEDERATION_USER_ATTR + " VARCHAR(255), " + REQUESTING_MEMBER + " VARCHAR(255), " + PROVIDING_MEMBER + " VARCHAR(255), "
-            + SOURCE + " VARCHAR(255), " + TARGET + " VARCHAR(255), " + DEVICE + " VARCHAR(255))";
+            + SOURCE + " VARCHAR(255), " + TARGET + " VARCHAR(255), " + DEVICE + " VARCHAR(255), " + CREATE_AT + " TIMESTAMP)";
 
     /** Commands to insert orders into table **/
     protected static final String INSERT_COMPUTE_ORDER_SQL = "INSERT INTO " + COMPUTE_ORDER_TABLE_NAME
@@ -73,22 +78,22 @@ public class SQLCommands {
             + FEDERATION_USER_ATTR + "," + REQUESTING_MEMBER + "," + PROVIDING_MEMBER + "," + VCPU + ","
             + MEMORY + "," + DISK + "," + IMAGE_ID + "," + USER_DATA_FILE_CONTENT + ","
             + USER_DATA_FILE_TYPE + "," + PUBLIC_KEY + "," + ACTUAL_ALLOCATION_VCPU + "," + ACTUAL_ALLOCATION_RAM + ","
-            + ACTUAL_ALLOCATION_INSTANCES +")" + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            + ACTUAL_ALLOCATION_INSTANCES + "," + CREATE_AT +")" + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     protected static final String INSERT_NETWORK_ORDER_SQL = "INSERT INTO " + NETWORK_ORDER_TABLE_NAME
             + " (" + ORDER_ID + "," + INSTANCE_ID + "," + ORDER_STATE + "," + FEDERATION_USER_ID + ","
             + FEDERATION_USER_ATTR + "," + REQUESTING_MEMBER + "," + PROVIDING_MEMBER + "," + GATEWAY
-            + "," + ADDRESS + "," + ALLOCATION +")" + " VALUES (?,?,?,?,?,?,?,?,?,?)";
+            + "," + ADDRESS + "," + ALLOCATION + "," + CREATE_AT +")" + " VALUES (?,?,?,?,?,?,?,?,?,?,?)";
 
     protected static final String INSERT_VOLUME_ORDER_SQL = "INSERT INTO " + VOLUME_ORDER_TABLE_NAME
             + " (" + ORDER_ID + "," + INSTANCE_ID + "," + ORDER_STATE + "," + FEDERATION_USER_ID + ","
             + FEDERATION_USER_ATTR + "," + REQUESTING_MEMBER + "," + PROVIDING_MEMBER + ","
-            + VOLUME_SIZE +")" + " VALUES (?,?,?,?,?,?,?,?)";
+            + VOLUME_SIZE + "," + CREATE_AT +")" + " VALUES (?,?,?,?,?,?,?,?,?)";
 
     protected static final String INSERT_ATTACHMENT_ORDER_SQL = "INSERT INTO " + ATTACHMENT_ORDER_TABLE_NAME
             + " (" + ORDER_ID + "," + INSTANCE_ID + "," + ORDER_STATE + "," + FEDERATION_USER_ID + ","
             + FEDERATION_USER_ATTR + "," + REQUESTING_MEMBER + "," + PROVIDING_MEMBER + ","
-            + SOURCE + "," + TARGET + "," + DEVICE +")" + " VALUES (?,?,?,?,?,?,?,?,?,?)";
+            + SOURCE + "," + TARGET + "," + DEVICE + "," + CREATE_AT +")" + " VALUES (?,?,?,?,?,?,?,?,?,?,?)";
 
     /** Commands to select orders from the table **/
     protected static final String NOT_NULL_INSTANCE_ID = " AND instance_id IS NOT NULL";

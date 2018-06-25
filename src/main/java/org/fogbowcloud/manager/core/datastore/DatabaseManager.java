@@ -11,6 +11,7 @@ import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.CloudInitUserDa
 
 import java.lang.reflect.Type;
 import java.sql.*;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -411,6 +412,7 @@ public class DatabaseManager implements StableStorage {
             orderStatement.setInt(15, computeOrder.getActualAllocation().getvCPU());
             orderStatement.setInt(16, computeOrder.getActualAllocation().getRam());
             orderStatement.setInt(17, computeOrder.getActualAllocation().getInstances());
+            orderStatement.setTimestamp(18, new Timestamp(new Date().getTime()));
 
             orderStatement.executeUpdate();
 
@@ -444,6 +446,7 @@ public class DatabaseManager implements StableStorage {
             orderStatement.setString(8, networkOrder.getGateway());
             orderStatement.setString(9, networkOrder.getAddress());
             orderStatement.setString(10, networkOrder.getAllocation().getValue());
+            orderStatement.setTimestamp(11, new Timestamp(new Date().getTime()));
 
             orderStatement.executeUpdate();
 
@@ -475,6 +478,7 @@ public class DatabaseManager implements StableStorage {
             addOrder(orderStatement, volumeOrder);
 
             orderStatement.setInt(8, volumeOrder.getVolumeSize());
+            orderStatement.setTimestamp(9, new Timestamp(new Date().getTime()));
 
             orderStatement.executeUpdate();
 
@@ -508,6 +512,7 @@ public class DatabaseManager implements StableStorage {
             orderStatement.setString(8, attachmentOrder.getSource());
             orderStatement.setString(9, attachmentOrder.getTarget());
             orderStatement.setString(10, attachmentOrder.getDevice());
+            orderStatement.setTimestamp(11, new Timestamp(new Date().getTime()));
 
             orderStatement.executeUpdate();
 
@@ -586,15 +591,20 @@ public class DatabaseManager implements StableStorage {
         AttachmentOrder attachmentOrder = new AttachmentOrder("f", federationUser, requestingMember, providingMember, "source", "target", "device");
         attachmentOrder.setOrderState(OrderState.OPEN);
 
-//        databaseManager.add(attachmentOrder);
+        databaseManager.add(order);
 
-        attachmentOrder.setOrderState(OrderState.CLOSED);
-        databaseManager.update(attachmentOrder);
+//        attachmentOrder.setOrderState(OrderState.CLOSED);
+//        databaseManager.update(attachmentOrder);
 
 
-//        databaseManager.add(networkOrder);
-//        databaseManager.add(volumeOrder);
-//        databaseManager.add(attachmentOrder);
+//        Date date = new Date();
+//        System.out.println(date.getTime());
+
+
+        databaseManager.add(networkOrder);
+        databaseManager.add(volumeOrder);
+        databaseManager.add(attachmentOrder);
+
 
 //        SynchronizedDoublyLinkedList synchronizedDoublyLinkedList = databaseManager.readActiveOrders(OrderState.OPEN);
 //
