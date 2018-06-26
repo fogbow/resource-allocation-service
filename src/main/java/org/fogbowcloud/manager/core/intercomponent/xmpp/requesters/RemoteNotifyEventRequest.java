@@ -32,13 +32,13 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         if (response == null) {
-            String message = "Unable to retrieve the response from providing member: " + order.getProvidingMember();
+            String message = "Unable to retrieve the response from providing member: " + order.getRequestingMember();
             throw new UnexpectedException(message);
         } else if (response.getError() != null) {
             throw new UnexpectedException(response.getError().toString());
         }
 
-        LOGGER.debug("Request for order: " + this.order.getId() + " has been sent to " + order.getProvidingMember());
+        LOGGER.debug("Request for order: " + this.order.getId() + " has been sent to " + order.getRequestingMember());
         return null;
     }
 
@@ -46,7 +46,7 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
         LOGGER.debug("Creating IQ for order: " + this.order.getId());
 
         IQ iq = new IQ(IQ.Type.set);
-        iq.setTo(this.order.getProvidingMember());
+        iq.setTo(this.order.getRequestingMember());
         iq.setID(this.order.getId());
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
@@ -57,7 +57,7 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
         Element orderClassNameElement = queryElement.addElement(IqElement.ORDER_CLASS_NAME.toString());
         orderClassNameElement.setText(this.order.getClass().getName());
 
-        Element eventElement = iq.getElement().addElement(IqElement.EVENT.toString());
+        Element eventElement = queryElement.addElement(IqElement.EVENT.toString());
         eventElement.setText(new Gson().toJson(this.event));
 
         return iq;

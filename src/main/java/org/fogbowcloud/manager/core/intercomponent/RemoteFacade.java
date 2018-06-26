@@ -98,6 +98,7 @@ public class RemoteFacade {
         // order is a java object that represents the order passed in the message
         // actualOrder is the java object that represents this order inside the current manager
         Order actualOrder = this.orderController.getOrder(order.getId(), order.getFederationUser(), order.getType());
+        actualOrder.setInstanceId(order.getInstanceId());
         switch (event) {
             case INSTANCE_FULFILLED:
                 try {
