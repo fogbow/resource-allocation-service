@@ -67,7 +67,7 @@ public class AttachmentOrdersController {
         throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
         LOGGER.info("Delete attachment order to id <" + attachmentId + "> received");
         ApplicationFacade.getInstance().deleteAttachment(attachmentId, federationTokenValue);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
     
 }

@@ -17,8 +17,6 @@ public abstract class Order {
 
     private String instanceId;
 
-    private boolean notified;
-
     public Order(String id) {
         this.id = id;
     }

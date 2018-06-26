@@ -253,7 +253,8 @@ public class DefaultLaunchCommandGeneratorTest {
                         30,
                         imageName,
                         userData,
-                        publicKey);
+                        publicKey,
+                        null);
         return localOrder;
     }
 
@@ -277,7 +278,8 @@ public class DefaultLaunchCommandGeneratorTest {
                         30,
                         imageName,
                         userData,
-                        publicKey);
+                        publicKey,
+                        null);
         return localOrder;
     }
 
@@ -300,6 +302,7 @@ public class DefaultLaunchCommandGeneratorTest {
                         30,
                         imageName,
                         userData,
+                        null,
                         null);
         return localOrder;
     }

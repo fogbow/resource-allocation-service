@@ -306,7 +306,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
                         30,
                         imageName,
                         userData,
-                        publicKey);
+                        publicKey,
+                        null);
         return localOrder;
     }
 
@@ -329,7 +330,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
                         30,
                         imageName,
                         userData,
-                        publicKey);
+                        publicKey,
+                        null);
         return remoteOrder;
     }
 
