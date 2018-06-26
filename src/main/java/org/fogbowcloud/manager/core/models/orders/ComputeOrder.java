@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.models.orders;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,7 +43,8 @@ public class ComputeOrder extends Order {
             int disk,
             String imageId,
             UserData userData,
-            String publicKey, List<String> networksId) {
+            String publicKey, 
+            List<String> networksId) {
         super(id, federationUser, requestingMember, providingMember);
         this.vCPU = vCPU;
         this.memory = memory;
@@ -122,7 +124,11 @@ public class ComputeOrder extends Order {
     }
 
     public List<String> getNetworksId() {
-        return networksId;
+        return Collections.unmodifiableList(networksId);
+    }
+
+    public void setNetworksId(List<String> networksId) {
+        this.networksId = networksId;
     }
 
 }
