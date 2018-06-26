@@ -118,7 +118,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
         String tenantId = getTenantId(localToken);
 
-        String networkId = getNetworkId();
+        List<String> networksId = getNetworksId(computeOrder);
         
         String imageId = computeOrder.getImageId();
 
@@ -129,7 +129,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         String endpoint = getComputeEndpoint(tenantId, SERVERS);
 
         try {
-            JSONObject json = generateJsonRequest(imageId, flavorId, userData, keyName, networkId);
+            JSONObject json = generateJsonRequest(imageId, flavorId, userData, keyName, networksId);
             String jsonResponse = doPostRequest(endpoint, localToken, json);
 
             String instanceId = getAttFromJson(ID_JSON_FIELD, jsonResponse);
@@ -163,8 +163,16 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         return tokenAttr.get(TENANT_ID);
     }
 
-    protected String getNetworkId() {
-        return this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+    protected List<String> getNetworksId(ComputeOrder computeOrder) {
+        List<String> networksId = computeOrder.getNetworksId();
+        String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+        if (networksId == null) {
+            networksId = new ArrayList<String>();            
+            networksId.add(defaultNetworkId);
+        } else if (networksId.isEmpty()) {
+            networksId.add(defaultNetworkId);
+        }
+        return networksId;
     }
 
     protected String getKeyName(String tenantId, Token localToken, String publicKey)
@@ -275,7 +283,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     protected JSONObject generateJsonRequest(
-            String imageRef, String flavorRef, String userdata, String keyName, String networkId)
+            String imageRef, String flavorRef, String userdata, String keyName, List<String> networksId)
             throws JSONException {
         LOGGER.debug("Generating JSON to send as the body of instance POST request");
 
@@ -288,11 +296,15 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             server.put(USER_DATA_JSON_FIELD, userdata);
         }
 
-        if (networkId != null && !networkId.isEmpty()) {
-            List<JSONObject> networks = new ArrayList<>();
-            JSONObject net = new JSONObject();
-            net.put(UUID_JSON_FIELD, networkId);
-            networks.add(net);
+        if (networksId != null && !networksId.isEmpty()) {
+            JSONArray networks = new JSONArray();
+                       
+            for (String id : networksId) {
+                JSONObject netId = new JSONObject();
+                netId.put(UUID_JSON_FIELD, id);
+                networks.put(netId);
+            }
+          
             server.put(NETWORK_JSON_FIELD, networks);
         }
 
