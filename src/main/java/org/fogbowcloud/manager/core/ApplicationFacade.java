@@ -296,7 +296,11 @@ public class ApplicationFacade {
             // The user believes that the order id is actually the instance id.
             // So we need to set the instance id accordingly before returning the instance.
             instance.setId(order.getId());
-            instances.add(tClass.cast(instance));
+            if (tClass.isInstance(order)) {
+                instances.add(tClass.cast(instance));
+            } else {
+                instances.add((T) instance);
+            }
         }
         return instances;
 
