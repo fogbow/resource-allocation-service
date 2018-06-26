@@ -326,7 +326,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         String providingMember = BaseUnitTests.LOCAL_MEMBER_ID;
         UserData userData = Mockito.mock(UserData.class);
         Order order = new ComputeOrder(federationUser, requestingMember, providingMember, 8, 1024,
-                30, "fake_image_name", userData, "fake_public_key");
+                30, "fake_image_name", userData, "fake_public_key", null);
         return order;
     }
 
@@ -336,7 +336,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         String providingMember = BaseUnitTests.LOCAL_MEMBER_ID;
         UserData userData = Mockito.mock(UserData.class);
         Order order = spy(new ComputeOrder(federationUser, requestingMember, providingMember, 8, 1024,
-                30, "fake_image_name", userData, "fake_public_key"));
+                30, "fake_image_name", userData, "fake_public_key", null));
         return order;
     }
 }

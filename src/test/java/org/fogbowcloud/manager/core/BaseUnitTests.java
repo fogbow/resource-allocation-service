@@ -74,7 +74,8 @@ public class BaseUnitTests {
                         30,
                         imageName,
                         userData,
-                        publicKey);
+                        publicKey,
+                        null);
         return localOrder;
     }
 }
