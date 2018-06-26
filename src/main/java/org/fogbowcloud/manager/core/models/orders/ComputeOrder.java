@@ -1,12 +1,13 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 public class ComputeOrder extends Order {
 
@@ -124,6 +125,9 @@ public class ComputeOrder extends Order {
     }
 
     public List<String> getNetworksId() {
+        if (networksId == null) {
+            return Collections.unmodifiableList(new ArrayList<>());
+        }
         return Collections.unmodifiableList(networksId);
     }
 

@@ -1,16 +1,5 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeSet;
-import java.util.UUID;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
@@ -23,19 +12,24 @@ import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.*;
+import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
+import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.DefaultLaunchCommandGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.LaunchCommandGenerator;
-import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
-import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
-import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.utils.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
@@ -119,7 +113,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
         String tenantId = getTenantId(localToken);
 
-        List<String> networksId = getNetworksId(computeOrder);
+        List<String> networksId = resolveNetworksId(computeOrder);
         
         String imageId = computeOrder.getImageId();
 
@@ -164,16 +158,13 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         return tokenAttr.get(TENANT_ID);
     }
 
-    protected List<String> getNetworksId(ComputeOrder computeOrder) {
-        List<String> networksId = computeOrder.getNetworksId();
+    protected List<String> resolveNetworksId(ComputeOrder computeOrder) {
+        List<String> requestedNetworksId = new ArrayList<>();
+        Collections.copy(computeOrder.getNetworksId(), requestedNetworksId);
         String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
-        if (networksId == null) {
-            networksId = new ArrayList<String>();            
-            networksId.add(defaultNetworkId);
-        } else if (networksId.isEmpty()) {
-            networksId.add(defaultNetworkId);
-        }
-        return networksId;
+        requestedNetworksId.add(defaultNetworkId);
+        computeOrder.setNetworksId(requestedNetworksId);
+        return requestedNetworksId;
     }
 
     protected String getKeyName(String tenantId, Token localToken, String publicKey)
