@@ -11,7 +11,7 @@ import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
 import org.fogbowcloud.manager.core.models.ResponseConstants;
-import org.fogbowcloud.manager.core.models.StatusResponse;
+import org.fogbowcloud.manager.core.models.ErrorResponse;
 import org.fogbowcloud.manager.core.models.StatusResponseMap;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.utils.HttpRequestUtil;
@@ -65,11 +65,11 @@ public class HttpRequestClientUtil {
 
         StatusResponseMap statusResponseMap = new StatusResponseMap(response, message);
         Integer statusCode = response.getStatusLine().getStatusCode();
-        StatusResponse statusResponse = statusResponseMap.getStatusResponse(statusCode);
+        ErrorResponse errorResponse = statusResponseMap.getStatusResponse(statusCode);
 
-        if (statusResponse != null) {
+        if (errorResponse != null) {
             throw new RequestException(
-                    statusResponse.getErrorType(), statusResponse.getResponseConstants());
+                    errorResponse.getErrorType(), errorResponse.getResponseConstants());
         }
     }
 	

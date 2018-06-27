@@ -316,11 +316,11 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
         StatusResponseMap statusResponseMap = new StatusResponseMap(response, message);
         Integer statusCode = response.getStatusLine().getStatusCode();
-        StatusResponse statusResponse = statusResponseMap.getStatusResponse(statusCode);
+        ErrorResponse errorResponse = statusResponseMap.getStatusResponse(statusCode);
 
-        if (statusResponse != null) {
+        if (errorResponse != null) {
             throw new RequestException(
-                    statusResponse.getErrorType(), statusResponse.getResponseConstants());
+                    errorResponse.getErrorType(), errorResponse.getResponseConstants());
         }
     }
 
