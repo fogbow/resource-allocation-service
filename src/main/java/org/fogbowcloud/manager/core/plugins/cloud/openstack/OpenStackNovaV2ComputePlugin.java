@@ -314,9 +314,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             throws RequestException {
         LOGGER.debug("Checking status response...");
 
-        StatusResponseMap statusResponseMap = new StatusResponseMap(response, message);
+        ErrorResponseMap errorResponseMap = new ErrorResponseMap(response, message);
         Integer statusCode = response.getStatusLine().getStatusCode();
-        ErrorResponse errorResponse = statusResponseMap.getStatusResponse(statusCode);
+        ErrorResponse errorResponse = errorResponseMap.getStatusResponse(statusCode);
 
         if (errorResponse != null) {
             throw new RequestException(

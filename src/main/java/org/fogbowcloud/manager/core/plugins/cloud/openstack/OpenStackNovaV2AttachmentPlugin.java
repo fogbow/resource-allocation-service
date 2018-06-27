@@ -18,7 +18,7 @@ import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
 import org.fogbowcloud.manager.core.models.ResponseConstants;
 import org.fogbowcloud.manager.core.models.ErrorResponse;
-import org.fogbowcloud.manager.core.models.StatusResponseMap;
+import org.fogbowcloud.manager.core.models.ErrorResponseMap;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
@@ -228,9 +228,9 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     private void checkStatusResponse(HttpResponse response, String message) throws RequestException {
         LOGGER.debug("Checking status response...");
 
-        StatusResponseMap statusResponseMap = new StatusResponseMap(response, message);
+        ErrorResponseMap errorResponseMap = new ErrorResponseMap(response, message);
         Integer statusCode = response.getStatusLine().getStatusCode();
-        ErrorResponse errorResponse = statusResponseMap.getStatusResponse(statusCode);
+        ErrorResponse errorResponse = errorResponseMap.getStatusResponse(statusCode);
 
         if (errorResponse != null) {
             throw new RequestException(errorResponse.getErrorType(), errorResponse.getResponseConstants());

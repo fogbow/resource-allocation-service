@@ -5,53 +5,53 @@ import java.util.Map;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 
-public class StatusResponseMap {
+public class ErrorResponseMap {
 
     private String responseString;
     private HttpResponse httpResponse;
-    private Map<Integer, ErrorResponse> statusResponseMap;
+    private Map<Integer, ErrorResponse> errorResponseMap;
 
-    public StatusResponseMap(HttpResponse httpResponse, String responseString) {
+    public ErrorResponseMap(HttpResponse httpResponse, String responseString) {
         this.responseString = responseString;
         this.httpResponse = httpResponse;
-        this.statusResponseMap = new HashMap<>();
+        this.errorResponseMap = new HashMap<>();
 
         fillStatusResponseMap();
     }
 
     private void fillStatusResponseMap() {
-        statusResponseMap.put(
+        errorResponseMap.put(
                 HttpStatus.SC_UNAUTHORIZED,
                 new ErrorResponse(ErrorType.UNAUTHORIZED, ResponseConstants.UNAUTHORIZED));
-        statusResponseMap.put(
+        errorResponseMap.put(
                 HttpStatus.SC_NOT_FOUND,
                 new ErrorResponse(ErrorType.NOT_FOUND, ResponseConstants.NOT_FOUND));
-        statusResponseMap.put(
+        errorResponseMap.put(
                 HttpStatus.SC_BAD_REQUEST,
                 new ErrorResponse(ErrorType.BAD_REQUEST, responseString));
 
         if (responseString.contains(ResponseConstants.QUOTA_EXCEEDED_FOR_INSTANCES)) {
-            statusResponseMap.put(
+            errorResponseMap.put(
                     HttpStatus.SC_REQUEST_TOO_LONG,
                     new ErrorResponse(
                             ErrorType.QUOTA_EXCEEDED,
                             ResponseConstants.QUOTA_EXCEEDED_FOR_INSTANCES));
-            statusResponseMap.put(
+            errorResponseMap.put(
                     HttpStatus.SC_FORBIDDEN,
                     new ErrorResponse(
                             ErrorType.QUOTA_EXCEEDED,
                             ResponseConstants.QUOTA_EXCEEDED_FOR_INSTANCES));
         } else {
-            statusResponseMap.put(
+            errorResponseMap.put(
                     HttpStatus.SC_REQUEST_TOO_LONG,
                     new ErrorResponse(ErrorType.BAD_REQUEST, responseString));
-            statusResponseMap.put(
+            errorResponseMap.put(
                     HttpStatus.SC_FORBIDDEN,
                     new ErrorResponse(ErrorType.BAD_REQUEST, responseString));
         }
 
         if (responseString.contains(ResponseConstants.NO_VALID_HOST_FOUND)) {
-            statusResponseMap.put(
+            errorResponseMap.put(
                     HttpStatus.SC_INTERNAL_SERVER_ERROR,
                     new ErrorResponse(
                             ErrorType.NO_VALID_HOST_FOUND, ResponseConstants.NO_VALID_HOST_FOUND));
@@ -67,7 +67,7 @@ public class StatusResponseMap {
                             + " | Message:"
                             + httpResponse);
         } else {
-            return statusResponseMap.get(key);
+            return errorResponseMap.get(key);
         }
     }
 }
