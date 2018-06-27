@@ -64,7 +64,7 @@ public class SQLCommands {
     /**
      * Commands to create tables
      **/
-    protected static final String CREATE_COMPUTE_ORDER_SQL = "CREATE TABLE IF NOT EXISTS "
+    protected static final String CREATE_COMPUTE_ORDER_TABLE_SQL = "CREATE TABLE IF NOT EXISTS "
             + COMPUTE_ORDER_TABLE_NAME + "(" + ORDER_ID + " VARCHAR(255) PRIMARY KEY, "
             + INSTANCE_ID + " VARCHAR(255), " + ORDER_STATE + " VARCHAR(255), " + FEDERATION_USER_ID + " VARCHAR(255), "
             + FEDERATION_USER_ATTR + " VARCHAR(255), " + REQUESTING_MEMBER + " VARCHAR(255), " + PROVIDING_MEMBER + " VARCHAR(255), "
@@ -73,28 +73,28 @@ public class SQLCommands {
             + ACTUAL_ALLOCATION_VCPU + " INTEGER, " + ACTUAL_ALLOCATION_RAM + " INTEGER, " + ACTUAL_ALLOCATION_INSTANCES + " INTEGER, "
             + CREATE_AT + " TIMESTAMP)";
 
-    protected static final String CREATE_NETWORK_ORDER_SQL = "CREATE TABLE IF NOT EXISTS "
+    protected static final String CREATE_NETWORK_ORDER_TABLE_SQL = "CREATE TABLE IF NOT EXISTS "
             + NETWORK_ORDER_TABLE_NAME + "(" + ORDER_ID + " VARCHAR(255) PRIMARY KEY, "
             + INSTANCE_ID + " VARCHAR(255), " + ORDER_STATE + " VARCHAR(255), " + FEDERATION_USER_ID + " VARCHAR(255), "
             + FEDERATION_USER_ATTR + " VARCHAR(255), " + REQUESTING_MEMBER + " VARCHAR(255), " + PROVIDING_MEMBER + " VARCHAR(255), "
             + GATEWAY + " VARCHAR(255), " + ADDRESS + " VARCHAR(255), " + ALLOCATION + " VARCHAR(255), "
             + CREATE_AT + " TIMESTAMP)";
 
-    protected static final String CREATE_VOLUME_ORDER_SQL = "CREATE TABLE IF NOT EXISTS "
+    protected static final String CREATE_VOLUME_ORDER_TABLE_SQL = "CREATE TABLE IF NOT EXISTS "
             + VOLUME_ORDER_TABLE_NAME + "(" + ORDER_ID + " VARCHAR(255) PRIMARY KEY, "
             + INSTANCE_ID + " VARCHAR(255), " + ORDER_STATE + " VARCHAR(255), " + FEDERATION_USER_ID + " VARCHAR(255), "
             + FEDERATION_USER_ATTR + " VARCHAR(255), " + REQUESTING_MEMBER + " VARCHAR(255), " + PROVIDING_MEMBER + " VARCHAR(255), "
             + VOLUME_SIZE + " TIMESTAMP, " + CREATE_AT + " INTEGER)";
 
-    protected static final String CREATE_ATTACHMENT_ORDER_SQL = "CREATE TABLE IF NOT EXISTS "
+    protected static final String CREATE_ATTACHMENT_ORDER_TABLE_SQL = "CREATE TABLE IF NOT EXISTS "
             + ATTACHMENT_ORDER_TABLE_NAME + "(" + ORDER_ID + " VARCHAR(255) PRIMARY KEY, "
             + INSTANCE_ID + " VARCHAR(255), " + ORDER_STATE + " VARCHAR(255), " + FEDERATION_USER_ID + " VARCHAR(255), "
             + FEDERATION_USER_ATTR + " VARCHAR(255), " + REQUESTING_MEMBER + " VARCHAR(255), " + PROVIDING_MEMBER + " VARCHAR(255), "
             + SOURCE + " VARCHAR(255), " + TARGET + " VARCHAR(255), " + DEVICE + " VARCHAR(255), " + CREATE_AT + " TIMESTAMP)";
 
-    protected static final String CREATE_TIMESTAMP_SQL = "CREATE TABLE IF NOT EXISTS " + TIMESTAMP_TABLE_NAME
-            + "(" + ORDER_ID + " VARCHAR(255) PRIMARY KEY, " + ORDER_STATE + " VARCHAR(255) PRIMARY KEY, "
-            + TIMESTAMP + " TIMESTAMP)";
+    protected static final String CREATE_TIMESTAMP_TABLE_SQL = "CREATE TABLE IF NOT EXISTS " + TIMESTAMP_TABLE_NAME
+            + "(" + ORDER_ID + " VARCHAR(255), " + ORDER_STATE + " VARCHAR(255), " + FEDERATION_USER_ID + " VARCHAR(255), "
+            + TIMESTAMP + " TIMESTAMP, PRIMARY KEY (" + ORDER_ID + ", " + ORDER_STATE + "))";
 
     /**
      * Commands to insert orders into table
@@ -120,6 +120,10 @@ public class SQLCommands {
             + " (" + ORDER_ID + "," + INSTANCE_ID + "," + ORDER_STATE + "," + FEDERATION_USER_ID + ","
             + FEDERATION_USER_ATTR + "," + REQUESTING_MEMBER + "," + PROVIDING_MEMBER + ","
             + SOURCE + "," + TARGET + "," + DEVICE + "," + CREATE_AT +")" + " VALUES (?,?,?,?,?,?,?,?,?,?,?)";
+
+    protected static final String INSERT_TIMESTAMP_SQL = "INSERT INTO " + TIMESTAMP_TABLE_NAME
+            + " (" + ORDER_ID + "," + ORDER_STATE + "," + FEDERATION_USER_ID + "," + TIMESTAMP + ")"
+            + " VALUES (?,?,?,?)";
 
     /**
      * Commands to select orders from the table

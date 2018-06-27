@@ -50,18 +50,22 @@ public class DatabaseManager implements StableStorage {
             case COMPUTE:
                 ComputeOrder computeOrder = (ComputeOrder) order;
                 addComputeOrder(computeOrder);
+                addTimestamp(computeOrder);
                 break;
             case NETWORK:
                 NetworkOrder networkOrder = (NetworkOrder) order;
                 addNetworkOrder(networkOrder);
+                addTimestamp(networkOrder);
                 break;
             case VOLUME:
                 VolumeOrder volumeOrder = (VolumeOrder) order;
                 addVolumeOrder(volumeOrder);
+                addTimestamp(volumeOrder);
                 break;
             case ATTACHMENT:
                 AttachmentOrder attachmentOrder = (AttachmentOrder) order;
                 addAttachmentOrder(attachmentOrder);
+                addTimestamp(attachmentOrder);
                 break;
         }
     }
@@ -72,18 +76,22 @@ public class DatabaseManager implements StableStorage {
             case COMPUTE:
                 ComputeOrder computeOrder = (ComputeOrder) order;
                 updateComputeOrder(computeOrder);
+                addTimestamp(computeOrder);
                 break;
             case NETWORK:
                 NetworkOrder networkOrder = (NetworkOrder) order;
                 updateNetworkOrder(networkOrder);
+                addTimestamp(networkOrder);
                 break;
             case VOLUME:
                 VolumeOrder volumeOrder = (VolumeOrder) order;
                 updateVolumeOrder(volumeOrder);
+                addTimestamp(volumeOrder);
                 break;
             case ATTACHMENT:
                 AttachmentOrder attachmentOrder = (AttachmentOrder) order;
                 updateAttachmentOrder(attachmentOrder);
+                addTimestamp(attachmentOrder);
                 break;
         }
     }
@@ -363,7 +371,43 @@ public class DatabaseManager implements StableStorage {
     }
 
     /**
-     * Method to create all order tables.
+     * Method to add an order into timestamp table.
+     */
+
+    private void addTimestamp(Order order) {
+        Connection connection = null;
+        PreparedStatement orderStatement = null;
+
+        try {
+            connection = getConnection();
+            connection.setAutoCommit(false);
+
+            orderStatement = connection.prepareStatement(SQLCommands.INSERT_TIMESTAMP_SQL);
+
+            orderStatement.setString(1, order.getId());
+            orderStatement.setString(2, order.getOrderState().name());
+            orderStatement.setString(3, order.getFederationUser().getId());
+            orderStatement.setTimestamp(4, new Timestamp(new Date().getTime()));
+
+            orderStatement.executeUpdate();
+
+            connection.commit();
+        } catch (SQLException e) {
+            LOGGER.error("Couldn't create order.", e);
+            try {
+                if (connection != null) {
+                    connection.rollback();
+                }
+            } catch (SQLException e1) {
+                LOGGER.error("Couldn't rollback transaction.", e1);
+            }
+        } finally {
+            closeConnection(orderStatement, connection);
+        }
+    }
+
+    /**
+     * Method to create orders tables and timestamp table.
      **/
 
     private void createOrderTables() throws SQLException {
@@ -374,10 +418,11 @@ public class DatabaseManager implements StableStorage {
             connection = getConnection();
 
             statement = connection.createStatement();
-            statement.execute(SQLCommands.CREATE_COMPUTE_ORDER_SQL);
-            statement.execute(SQLCommands.CREATE_NETWORK_ORDER_SQL);
-            statement.execute(SQLCommands.CREATE_VOLUME_ORDER_SQL);
-            statement.execute(SQLCommands.CREATE_ATTACHMENT_ORDER_SQL);
+            statement.execute(SQLCommands.CREATE_COMPUTE_ORDER_TABLE_SQL);
+            statement.execute(SQLCommands.CREATE_NETWORK_ORDER_TABLE_SQL);
+            statement.execute(SQLCommands.CREATE_VOLUME_ORDER_TABLE_SQL);
+            statement.execute(SQLCommands.CREATE_ATTACHMENT_ORDER_TABLE_SQL);
+            statement.execute(SQLCommands.CREATE_TIMESTAMP_TABLE_SQL);
 
             statement.close();
         } catch (SQLException e) {
@@ -611,7 +656,7 @@ public class DatabaseManager implements StableStorage {
         AttachmentOrder attachmentOrder = new AttachmentOrder("f", federationUser, requestingMember, providingMember, "source", "target", "device");
         attachmentOrder.setOrderState(OrderState.OPEN);
 
-        databaseManager.add(order);
+//        databaseManager.add(order);
 
 //        attachmentOrder.setOrderState(OrderState.CLOSED);
 //        databaseManager.update(attachmentOrder);
@@ -620,10 +665,13 @@ public class DatabaseManager implements StableStorage {
 //        Date date = new Date();
 //        System.out.println(date.getTime());
 
+        networkOrder.setOrderState(OrderState.OPEN);
+        databaseManager.update(networkOrder);
 
-        databaseManager.add(networkOrder);
-        databaseManager.add(volumeOrder);
-        databaseManager.add(attachmentOrder);
+
+//        databaseManager.add(networkOrder);
+//        databaseManager.add(volumeOrder);
+//        databaseManager.add(attachmentOrder);
 
 
 //        SynchronizedDoublyLinkedList synchronizedDoublyLinkedList = databaseManager.readActiveOrders(OrderState.OPEN);
