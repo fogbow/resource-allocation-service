@@ -40,4 +40,7 @@ public class ConfigurationConstants {
     public static final String REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY = "reverse_tunnel_private_address";
     public static final String REVERSE_TUNNEL_PORT_KEY = "reverse_tunnel_port";
     public static final String REVERSE_TUNNEL_HTTP_PORT_KEY = "reverse_tunnel_http_port";
+
+    // HISTORY & RECOVERY DATABASE CONF
+    public static final String DATABASE_URL = "history_recovery_database_url";
 }

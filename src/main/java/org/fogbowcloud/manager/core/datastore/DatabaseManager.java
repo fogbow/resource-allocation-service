@@ -3,6 +3,8 @@ package org.fogbowcloud.manager.core.datastore;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.PropertiesHolder;
+import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.*;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
@@ -19,13 +21,16 @@ public class DatabaseManager implements StableStorage {
 
     private static final Logger LOGGER = Logger.getLogger(DatabaseManager.class);
 
-    private static final String URL = "jdbc:sqlite:/home/lucas/mydatabase.db";
+    // TODO: get this value only from conf file (still here for testing)
+    private static String DATABASE_URL = "jdbc:sqlite:/home/lucas/mydatabase.db";
     private static final String MANAGER_DATASTORE_SQLITE_DRIVER = "org.sqlite.JDBC";
 
     private static DatabaseManager instance;
 
     private DatabaseManager() {
-        // TODO: Database configuration must be in a propertie file
+//        PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
+//        DATABASE_URL = propertiesHolder.getProperty(ConfigurationConstants.DATABASE_URL);
+
         try {
             Class.forName(MANAGER_DATASTORE_SQLITE_DRIVER);
 
@@ -598,7 +603,7 @@ public class DatabaseManager implements StableStorage {
 
     private Connection getConnection() throws SQLException {
         try {
-            return DriverManager.getConnection(URL);
+            return DriverManager.getConnection(DATABASE_URL);
         } catch (SQLException e) {
             LOGGER.error("Error while getting a new connection from the connection pool.", e);
             throw e;
