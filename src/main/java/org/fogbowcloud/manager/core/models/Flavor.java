@@ -4,7 +4,7 @@ public class Flavor implements Comparable<Flavor> {
     
     /** the lower value, the greater relevance. */
     private final int VCPU_VALUE_RELEVANCE = 1;
-    private final int MEM_VALUE_RELEVANCE = 2;
+    private final int MEM_VALUE_RELEVANCE = 1;
 
     private String name;
     private String id;
