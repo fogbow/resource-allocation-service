@@ -31,23 +31,23 @@ public class RemoteGetImageRequestHandler extends AbstractQueryHandler {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
 
         Element imageIdElementRequest = queryElement.element(IqElement.IMAGE_ID.toString());
-        String imageId = new Gson().fromJson(imageIdElementRequest.getText(), String.class);
+        String imageId = imageIdElementRequest.getText();
 
-        Element memberIdElement = iq.getElement().element(IqElement.MEMBER_ID.toString());
-        String memberId = new Gson().fromJson(memberIdElement.getText(), String.class);
+        Element memberIdElement = queryElement.element(IqElement.MEMBER_ID.toString());
+        String memberId = memberIdElement.getText();
 
-        Element federationUserElement = iq.getElement().element(IqElement.FEDERATION_USER.toString());
+        Element federationUserElement = queryElement.element(IqElement.FEDERATION_USER.toString());
         FederationUser federationUser = new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
 
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            Image image = RemoteFacade.getInstance().getImage(imageId, memberId, federationUser);
+            Image image = RemoteFacade.getInstance().getImage(memberId, imageId, federationUser);
 
             Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_IMAGE);
             Element imageElement = queryEl.addElement(IqElement.IMAGE.toString());
 
-            Element imageClassNameElement = queryElement.addElement(IqElement.IMAGE_CLASS_NAME.toString());
+            Element imageClassNameElement = queryEl.addElement(IqElement.IMAGE_CLASS_NAME.toString());
             imageClassNameElement.setText(image.getClass().getName());
 
             imageElement.setText(new Gson().toJson(image));

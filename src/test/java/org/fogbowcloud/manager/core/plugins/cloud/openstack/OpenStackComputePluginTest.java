@@ -3,6 +3,7 @@ package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -10,6 +11,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
@@ -80,6 +83,7 @@ public class OpenStackComputePluginTest {
                         new UserData(
                                 FAKE_USER_DATA_FILE, 
                                 CloudInitUserDataBuilder.FileType.SHELL_SCRIPT),
+                        null,
                         null);
 
         this.launchCommandGenerator = mock(LaunchCommandGenerator.class);
@@ -104,17 +108,20 @@ public class OpenStackComputePluginTest {
                 .when(this.novaV2ComputeOpenStack)
                 .getComputeEndpoint(anyString(), anyString());
 
+        List<String> fakeNetIds = new ArrayList<String>();
+        fakeNetIds.add(FAKE_NET_ID);
+        
         JSONObject json =
                 this.novaV2ComputeOpenStack.generateJsonRequest(
                         FAKE_IMAGE_ID,
                         FAKE_FLAVOR_ID,
                         FAKE_USER_DATA_FILE,
                         FAKE_KEYNAME,
-                        FAKE_NET_ID);
+                        fakeNetIds);
         doReturn(json)
                 .when(this.novaV2ComputeOpenStack)
                 .generateJsonRequest(
-                        anyString(), anyString(), anyString(), anyString(), anyString());
+                        anyString(), anyString(), anyString(), anyString(), anyObject());
 
         doReturn(FAKE_POST_RETURN)
                 .when(this.novaV2ComputeOpenStack)
@@ -146,9 +153,12 @@ public class OpenStackComputePluginTest {
 
     @Test
     public void testGenerateJsonRequest() {
+        List<String> netIds = new ArrayList<String>();
+        netIds.add("netId");
+        
         JSONObject json =
                 novaV2ComputeOpenStack.generateJsonRequest(
-                        "imageRef", "flavorRef", "user-data", "keyName", "netId");
+                        "imageRef", "flavorRef", "user-data", "keyName", netIds);
 
         assertNotNull(json);
         JSONObject server = json.getJSONObject("server");
@@ -177,9 +187,12 @@ public class OpenStackComputePluginTest {
 
     @Test(expected = JSONException.class)
     public void testGenerateJsonRequestWithoutUserData() {
+        List<String> netIds = new ArrayList<String>();
+        netIds.add("netId");
+        
         JSONObject json =
                 novaV2ComputeOpenStack.generateJsonRequest(
-                        "imageRef", "flavorRef", null, "keyName", "netId");
+                        "imageRef", "flavorRef", null, "keyName", netIds);
 
         assertNotNull(json);
         JSONObject server = json.getJSONObject("server");
@@ -232,9 +245,12 @@ public class OpenStackComputePluginTest {
 
     @Test(expected = JSONException.class)
     public void testGenerateJsonRequestWithoutKeyName() {
+        List<String> netIds = new ArrayList<String>();
+        netIds.add("netId");
+        
         JSONObject json =
                 novaV2ComputeOpenStack.generateJsonRequest(
-                        "imageRef", "flavorRef", "user-data", null, "netId");
+                        "imageRef", "flavorRef", "user-data", null, netIds);
 
         assertNotNull(json);
         JSONObject server = json.getJSONObject("server");

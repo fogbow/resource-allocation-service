@@ -27,6 +27,7 @@ public class SQLCommands {
     private static final String ACTUAL_ALLOCATION_VCPU = "actual_alloc_vcpu";
     private static final String ACTUAL_ALLOCATION_RAM = "actual_alloc_ram";
     private static final String ACTUAL_ALLOCATION_INSTANCES = "actual_alloc_instances";
+    private static final String NETWORKS_ID = "networks_id";
 
     /**
      * Network order attributes
@@ -71,7 +72,7 @@ public class SQLCommands {
             + VCPU + " INTEGER, " + MEMORY + " INTEGER, " + DISK + " INTEGER, " + IMAGE_ID + " VARCHAR(255), "
             + USER_DATA_FILE_CONTENT + " VARCHAR(255), " + USER_DATA_FILE_TYPE + " VARCHAR(255), " + PUBLIC_KEY + " VARCHAR(255), "
             + ACTUAL_ALLOCATION_VCPU + " INTEGER, " + ACTUAL_ALLOCATION_RAM + " INTEGER, " + ACTUAL_ALLOCATION_INSTANCES + " INTEGER, "
-            + CREATE_AT + " TIMESTAMP)";
+            + NETWORKS_ID + " VARCHAR(255), " + CREATE_AT + " TIMESTAMP)";
 
     protected static final String CREATE_NETWORK_ORDER_TABLE_SQL = "CREATE TABLE IF NOT EXISTS "
             + NETWORK_ORDER_TABLE_NAME + "(" + ORDER_ID + " VARCHAR(255) PRIMARY KEY, "
@@ -104,7 +105,8 @@ public class SQLCommands {
             + FEDERATION_USER_ATTR + "," + REQUESTING_MEMBER + "," + PROVIDING_MEMBER + "," + VCPU + ","
             + MEMORY + "," + DISK + "," + IMAGE_ID + "," + USER_DATA_FILE_CONTENT + ","
             + USER_DATA_FILE_TYPE + "," + PUBLIC_KEY + "," + ACTUAL_ALLOCATION_VCPU + "," + ACTUAL_ALLOCATION_RAM + ","
-            + ACTUAL_ALLOCATION_INSTANCES + "," + CREATE_AT +")" + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            + ACTUAL_ALLOCATION_INSTANCES + "," + NETWORKS_ID + "," + CREATE_AT +")"
+            + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     protected static final String INSERT_NETWORK_ORDER_SQL = "INSERT INTO " + NETWORK_ORDER_TABLE_NAME
             + " (" + ORDER_ID + "," + INSTANCE_ID + "," + ORDER_STATE + "," + FEDERATION_USER_ID + ","

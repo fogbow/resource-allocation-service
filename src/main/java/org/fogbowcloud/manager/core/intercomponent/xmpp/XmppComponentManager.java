@@ -10,14 +10,15 @@ public class XmppComponentManager extends XMPPComponent {
 
     public XmppComponentManager(String jid, String password, String xmppServerIp, int xmppServerPort, long timeout) {
         super(jid, password, xmppServerIp, xmppServerPort, timeout);
-        // instantiate all handlers here
+        // instantiate set handlers here
         addSetHandler(new RemoteCreateOrderRequestHandler());
         addSetHandler(new RemoteDeleteOrderRequestHandler());
-        addSetHandler(new RemoteGetAllImagesRequestHandler());
-        addSetHandler(new RemoteGetImageRequestHandler());
+        addSetHandler(new RemoteNotifyEventHandler());
+        // instantiate get handlers here
+        addGetHandler(new RemoteGetAllImagesRequestHandler());
+        addGetHandler(new RemoteGetImageRequestHandler());
         addGetHandler(new RemoteGetOrderRequestHandler());
         addGetHandler(new RemoteGetUserQuotaRequestHandler());
-        addSetHandler(new RemoteNotifyEventHandler());
     }
 
 }

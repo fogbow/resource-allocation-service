@@ -46,8 +46,16 @@ public class AttachmentOrder extends Order {
         return this.source;
     }
 
+    public void setSource(String source) {
+        this.source = source;
+    }
+
     public String getTarget() {
         return this.target;
+    }
+
+    public void setTarget(String target) {
+        this.target = target;
     }
 
     public String getDevice() {

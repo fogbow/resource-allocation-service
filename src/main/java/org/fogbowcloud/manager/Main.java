@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager;
 
+import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.*;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
@@ -11,10 +12,13 @@ import org.fogbowcloud.manager.core.services.PluginInstantiationService;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
+import org.xmpp.component.ComponentException;
 
 @Component
 public class Main implements ApplicationRunner {
-
+	
+	private final Logger LOGGER = Logger.getLogger(Main.class);
+	
     @Override
     public void run(ApplicationArguments args) {
         HomeDir.getInstance().setPath(setHomeDirectory(args));
@@ -52,6 +56,13 @@ public class Main implements ApplicationRunner {
 
         XmppComponentManager xmppComponentManager = new XmppComponentManager(xmppJid, xmppPassword, xmppServerIp,
                 xmppServerPort, xmppTimeout);
+        
+        try {
+			xmppComponentManager.connect();
+		} catch (ComponentException e) {
+			LOGGER.error("Unable to connect to XMPP, check XMPP configuration file");
+			return;
+		}
 
         PacketSenderHolder.init(xmppComponentManager);
 

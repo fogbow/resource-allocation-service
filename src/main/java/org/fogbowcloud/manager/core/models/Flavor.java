@@ -1,9 +1,10 @@
 package org.fogbowcloud.manager.core.models;
 
 public class Flavor implements Comparable<Flavor> {
-
-    private final int MEM_VALUE_RELEVANCE = 1;
+    
+    /** the lower value, the greater relevance. */
     private final int VCPU_VALUE_RELEVANCE = 1;
+    private final int MEM_VALUE_RELEVANCE = 2;
 
     private String name;
     private String id;
@@ -95,7 +96,7 @@ public class Flavor implements Comparable<Flavor> {
     @Override
     public int compareTo(Flavor flavor) {
         double oneRelevance = calculateRelevance(this, flavor);
-        double twoRelevance = calculateRelevance(this, flavor);
+        double twoRelevance = calculateRelevance(flavor, this);
 
         if (oneRelevance != twoRelevance) {
             return Double.compare(oneRelevance, twoRelevance);

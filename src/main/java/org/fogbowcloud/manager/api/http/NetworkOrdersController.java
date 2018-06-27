@@ -30,9 +30,9 @@ public class NetworkOrdersController {
     
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<String> createNetwork(@RequestBody NetworkOrder networkOrder,
-            @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
-        LOGGER.info("New volume order request received.");
+        LOGGER.info("New network order request received.");
 
         String networkId = ApplicationFacade.getInstance().createNetwork(networkOrder, federationTokenValue);
         return new ResponseEntity<String>(networkId, HttpStatus.CREATED);
@@ -40,7 +40,7 @@ public class NetworkOrdersController {
 
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<NetworkInstance>> getAllNetworks(
-            @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false ,value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         List<NetworkInstance> networks = ApplicationFacade.getInstance().getAllNetworks(federationTokenValue);
         return new ResponseEntity<>(networks, HttpStatus.OK);
@@ -48,18 +48,19 @@ public class NetworkOrdersController {
 
     @RequestMapping(value = "/{networkId}", method = RequestMethod.GET)
     public ResponseEntity<NetworkInstance> getNetwork(@PathVariable String networkId,
-            @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         NetworkInstance networkInstance = ApplicationFacade.getInstance().getNetwork(networkId, federationTokenValue);
-        return new ResponseEntity<>(networkInstance, HttpStatus.OK);
+        return networkInstance == null ?  new ResponseEntity<>(networkInstance, HttpStatus.NOT_FOUND) :
+                new ResponseEntity<>(networkInstance, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/{networkId}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> deleteNetwork(@PathVariable String networkId,
-            @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
         ApplicationFacade.getInstance().deleteNetwork(networkId, federationTokenValue);
-        return new ResponseEntity<Boolean>(HttpStatus.OK);
+        return new ResponseEntity<Boolean>(HttpStatus.NO_CONTENT);
     }
 
 }

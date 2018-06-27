@@ -31,10 +31,10 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
     public IQ handle(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
 
-        Element memberIdElement = iq.getElement().element(IqElement.MEMBER_ID.toString());
-        String memberId = new Gson().fromJson(memberIdElement.getText(), String.class);
+        Element memberIdElement = queryElement.element(IqElement.MEMBER_ID.toString());
+        String memberId = memberIdElement.getText();
 
-        Element federationUserElement = iq.getElement().element(IqElement.FEDERATION_USER.toString());
+        Element federationUserElement = queryElement.element(IqElement.FEDERATION_USER.toString());
         FederationUser federationUser = new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
 
         IQ response = IQ.createResultIQ(iq);
@@ -45,7 +45,7 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
             Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_ALL_IMAGES);
             Element imagesMapElement = queryEl.addElement(IqElement.IMAGES_MAP.toString());
 
-            Element imagesMapClassNameElement = queryElement.addElement(IqElement.IMAGES_MAP_CLASS_NAME.toString());
+            Element imagesMapClassNameElement = queryEl.addElement(IqElement.IMAGES_MAP_CLASS_NAME.toString());
             imagesMapClassNameElement.setText(imagesMap.getClass().getName());
 
             imagesMapElement.setText(new Gson().toJson(imagesMap));

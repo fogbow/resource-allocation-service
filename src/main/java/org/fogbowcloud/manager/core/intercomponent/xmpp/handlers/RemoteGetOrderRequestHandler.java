@@ -49,7 +49,7 @@ public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
             Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_INSTANCE);
             Element instanceElement = queryEl.addElement(IqElement.INSTANCE.toString());
             
-            Element instanceClassNameElement = queryElement.addElement(IqElement.INSTANCE_CLASS_NAME.toString());
+            Element instanceClassNameElement = queryEl.addElement(IqElement.INSTANCE_CLASS_NAME.toString());
             instanceClassNameElement.setText(instance.getClass().getName());
             
             instanceElement.setText(new Gson().toJson(instance));

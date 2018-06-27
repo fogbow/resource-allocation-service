@@ -52,20 +52,18 @@ public class ApplicationFacade {
     public List<ComputeInstance> getAllComputes(String federationTokenValue)
         throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException,
             PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
-        List<ComputeInstance> computeInstances = new ArrayList<ComputeInstance>();
-
         List<Order> allOrders = getAllOrders(federationTokenValue, InstanceType.COMPUTE);
-        for (Order order : allOrders) {
-            ComputeInstance instance = (ComputeInstance) this.orderController.getResourceInstance(order);
-            computeInstances.add(instance);
-        }
-        return computeInstances;
+        return getAllInstances(allOrders, ComputeInstance.class);
     }
 
     public ComputeInstance getCompute(String orderId, String federationTokenValue)
         throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException,
             UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
-        return (ComputeInstance) getResourceInstance(orderId, federationTokenValue, InstanceType.COMPUTE);
+        ComputeInstance instance = (ComputeInstance) getResourceInstance(orderId, federationTokenValue, InstanceType.COMPUTE);
+        // The user believes that the order id is actually the instance id.
+        // So we need to set the instance id accordingly before returning the instance.
+        instance.setId(orderId);
+        return instance;
     }
 
     public void deleteCompute(String computeId, String federationTokenValue)
@@ -94,20 +92,19 @@ public class ApplicationFacade {
     public List<VolumeInstance> getAllVolumes(String federationTokenValue)
         throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException,
             PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
-        List<VolumeInstance> volumeInstances = new ArrayList<VolumeInstance>();
 
         List<Order> allOrders = getAllOrders(federationTokenValue, InstanceType.VOLUME);
-        for (Order order : allOrders) {
-            VolumeInstance instance = (VolumeInstance) this.orderController.getResourceInstance(order);
-            volumeInstances.add(instance);
-        }
-        return volumeInstances;
+        return getAllInstances(allOrders, VolumeInstance.class);
     }
 
     public VolumeInstance getVolume(String orderId, String federationTokenValue)
         throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException,
             UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
-        return (VolumeInstance) getResourceInstance(orderId, federationTokenValue, InstanceType.VOLUME);
+        VolumeInstance instance = (VolumeInstance) getResourceInstance(orderId, federationTokenValue, InstanceType.VOLUME);
+        // The user believes that the order id is actually the instance id.
+        // So we need to set the instance id accordingly before returning the instance.
+        instance.setId(orderId);
+        return instance;
     }
 
     public void deleteVolume(String orderId, String federationTokenValue)
@@ -123,20 +120,19 @@ public class ApplicationFacade {
     public List<NetworkInstance> getAllNetworks(String federationTokenValue)
         throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException,
             PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
-        List<NetworkInstance> networkInstances = new ArrayList<NetworkInstance>();
 
         List<Order> allOrders = getAllOrders(federationTokenValue, InstanceType.NETWORK);
-        for (Order order : allOrders) {
-            NetworkInstance instance = (NetworkInstance) this.orderController.getResourceInstance(order);
-            networkInstances.add(instance);
-        }
-        return networkInstances;
+        return getAllInstances(allOrders, NetworkInstance.class);
     }
 
     public NetworkInstance getNetwork(String orderId, String federationTokenValue)
         throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException,
             UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
-        return (NetworkInstance) getResourceInstance(orderId, federationTokenValue, InstanceType.NETWORK);
+        NetworkInstance instance = (NetworkInstance) getResourceInstance(orderId, federationTokenValue, InstanceType.NETWORK);
+        // The user believes that the order id is actually the instance id.
+        // So we need to set the instance id accordingly before returning the instance.
+        instance.setId(orderId);
+        return instance;
     }
 
     public void deleteNetwork(String orderId, String federationTokenValue)
@@ -146,20 +142,23 @@ public class ApplicationFacade {
 
     public String createAttachment(AttachmentOrder attachmentOrder, String federationTokenValue) throws
             OrderManagementException, UnauthorizedException, UnauthenticatedException {
+
+        // The AttachmentOrder uses the instanceId, therefore, we need to set the instanceId for source orderId and
+        // target orderId received from request.
+        Order sourceOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(attachmentOrder.getSource());
+        Order targetOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(attachmentOrder.getTarget());
+        attachmentOrder.setSource(sourceOrder.getInstanceId());
+        attachmentOrder.setTarget(targetOrder.getInstanceId());
+
         return activateOrder(attachmentOrder, federationTokenValue);
     }
 
     public List<AttachmentInstance> getAllAttachments(String federationTokenValue) throws UnauthenticatedException,
             UnauthorizedException, PropertyNotSpecifiedException, TokenCreationException, RequestException,
             InstanceNotFoundException, RemoteRequestException {
-        List<AttachmentInstance> attachmentInstances = new ArrayList<AttachmentInstance>();
 
         List<Order> allOrders = getAllOrders(federationTokenValue, InstanceType.ATTACHMENT);
-        for (Order order : allOrders) {
-            AttachmentInstance instance = (AttachmentInstance) this.orderController.getResourceInstance(order);
-            attachmentInstances.add(instance);
-        }
-        return attachmentInstances;
+        return getAllInstances(allOrders, AttachmentInstance.class);
     }
 
     public AttachmentInstance getAttachment(String orderId, String federationTokenValue) throws
@@ -287,5 +286,23 @@ public class ApplicationFacade {
 
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return cloudConnector.getUserQuota(federationUser, instanceType);
+    }
+
+    private <T extends Instance> List<T> getAllInstances(List<Order> orders, Class<T> tClass) throws TokenCreationException,
+            RequestException, RemoteRequestException, InstanceNotFoundException, PropertyNotSpecifiedException, UnauthorizedException {
+        List<T> instances = new ArrayList<>();
+        for (Order order : orders) {
+            Instance instance = this.orderController.getResourceInstance(order);
+            // The user believes that the order id is actually the instance id.
+            // So we need to set the instance id accordingly before returning the instance.
+            instance.setId(order.getId());
+            if (tClass.isInstance(order)) {
+                instances.add(tClass.cast(instance));
+            } else {
+                instances.add((T) instance);
+            }
+        }
+        return instances;
+
     }
 }

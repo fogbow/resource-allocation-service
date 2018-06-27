@@ -48,7 +48,7 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
             Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_USER_QUOTA);
             Element instanceElement = queryEl.addElement(IqElement.USER_QUOTA.toString());
 
-            Element instanceClassNameElement = queryElement.addElement(IqElement.USER_QUOTA_CLASS_NAME.toString());
+            Element instanceClassNameElement = queryEl.addElement(IqElement.USER_QUOTA_CLASS_NAME.toString());
             instanceClassNameElement.setText(userQuota.getClass().getName());
 
             instanceElement.setText(new Gson().toJson(userQuota));

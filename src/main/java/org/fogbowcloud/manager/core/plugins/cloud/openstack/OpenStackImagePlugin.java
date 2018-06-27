@@ -24,6 +24,8 @@ public class OpenStackImagePlugin implements ImagePlugin {
 	private static final String GLANCE_PLUGIN_CONF_FILE = "openstack-glance-image-plugin.conf";
 
 	private static final String SUFFIX = "images";
+	private static final String ACTIVE_STATE = "active";
+	private static final String QUERY_ACTIVE_IMAGES = "?status=" + ACTIVE_STATE;
 	private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
 	private static final String TENANT_ID = "tenantId";
 	
@@ -33,7 +35,7 @@ public class OpenStackImagePlugin implements ImagePlugin {
 	private static final String MIN_DISK_JSON = "min_disk";
 	private static final String MIN_RAM_JSON = "min_ram";
 	private static final String STATUS = "status";
-	
+
 	private Properties properties;
 	private HttpRequestClientUtil client;
 	
@@ -55,15 +57,19 @@ public class OpenStackImagePlugin implements ImagePlugin {
 	@Override
 	public Image getImage(String imageId, Token localToken) throws ImageException {
 		JSONObject imageJsonObject = getJsonObjectImage(imageId, localToken);
-		Image image = new Image(
-				imageJsonObject.getString(ID_JSON),
-				imageJsonObject.getString(NAME_JSON),
-				imageJsonObject.getLong(SIZE_JSON),
-				imageJsonObject.getLong(MIN_DISK_JSON),
-				imageJsonObject.getLong(MIN_RAM_JSON),
-				imageJsonObject.getString(STATUS)
-				);
-		return image;
+		String status = imageJsonObject.optString(STATUS);
+		if (status.equals(ACTIVE_STATE)) {
+			Image image = new Image(
+					imageJsonObject.getString(ID_JSON),
+					imageJsonObject.getString(NAME_JSON),
+					imageJsonObject.getLong(SIZE_JSON),
+					imageJsonObject.getLong(MIN_DISK_JSON),
+					imageJsonObject.getLong(MIN_RAM_JSON),
+					imageJsonObject.getString(STATUS)
+			);
+			return image;
+		}
+		return null;
 	}
 	
 	private JSONObject getJsonObjectImage(String imageId, Token localToken) throws ImageException {
@@ -86,7 +92,8 @@ public class OpenStackImagePlugin implements ImagePlugin {
 		String endpoint = 
 				this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
                 + COMPUTE_V2_API_ENDPOINT
-                + SUFFIX;
+                + SUFFIX
+                + QUERY_ACTIVE_IMAGES;
 		try {
 			String jsonResponse = this.client.doGetRequest(endpoint, localToken);
 			List<JSONObject> imagesJson = new ArrayList<JSONObject>();

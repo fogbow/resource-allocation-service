@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 
+
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
@@ -44,12 +45,11 @@ public class RemoteNotifyEventHandler extends AbstractQueryHandler {
             return response;
         }
 
-        Element eventElement = iq.getElement();
+        Element eventElement = queryElement.element(IqElement.EVENT.toString());
         Event event = gson.fromJson(eventElement.getText(), Event.class);
 
         RemoteFacade.getInstance().handleRemoteEvent(event, order);
 
-        return null;
-
+        return response;
     }
 }

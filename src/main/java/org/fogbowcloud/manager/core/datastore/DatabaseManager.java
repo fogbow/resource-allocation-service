@@ -13,9 +13,8 @@ import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.CloudInitUserDa
 
 import java.lang.reflect.Type;
 import java.sql.*;
+import java.util.*;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 public class DatabaseManager implements StableStorage {
 
@@ -303,13 +302,14 @@ public class DatabaseManager implements StableStorage {
             computeResult.getString(1);
 
             Map<String, String> federationUserAttr = getFederationUserAttrFromString(computeResult.getString(5));
+            List<String> networksid = getNetworksIdFromString(computeResult.getString(18));
 
             ComputeOrder computeOrder = new ComputeOrder(computeResult.getString(1),
                     new FederationUser(computeResult.getString(4), federationUserAttr),
                     computeResult.getString(6), computeResult.getString(7), computeResult.getInt(8),
                     computeResult.getInt(9), computeResult.getInt(10), computeResult.getString(11),
                     new UserData(computeResult.getString(12), CloudInitUserDataBuilder.FileType.valueOf(
-                            computeResult.getString(13))), computeResult.getString(14));
+                            computeResult.getString(13))), computeResult.getString(14), networksid);
 
             synchronizedDoublyLinkedList.addItem(computeOrder);
         }
@@ -371,6 +371,13 @@ public class DatabaseManager implements StableStorage {
     private Map<String, String> getFederationUserAttrFromString(String jsonString) {
         Gson gson = new Gson();
         Type mapType = new TypeToken<Map<String, String>>(){}.getType();
+
+        return gson.fromJson(jsonString, mapType);
+    }
+
+    private List<String> getNetworksIdFromString(String jsonString) {
+        Gson gson = new Gson();
+        Type mapType = new TypeToken<List<String>>(){}.getType();
 
         return gson.fromJson(jsonString, mapType);
     }
@@ -478,7 +485,12 @@ public class DatabaseManager implements StableStorage {
             orderStatement.setInt(15, computeOrder.getActualAllocation().getvCPU());
             orderStatement.setInt(16, computeOrder.getActualAllocation().getRam());
             orderStatement.setInt(17, computeOrder.getActualAllocation().getInstances());
-            orderStatement.setTimestamp(18, new Timestamp(new Date().getTime()));
+
+            Gson gson = new Gson();
+            String networksId = gson.toJson(computeOrder.getNetworksId());
+
+            orderStatement.setString(18, networksId);
+            orderStatement.setTimestamp(19, new Timestamp(new Date().getTime()));
 
             orderStatement.executeUpdate();
 
@@ -646,8 +658,12 @@ public class DatabaseManager implements StableStorage {
 
         ComputeAllocation computeAllocation = new ComputeAllocation(1, 1, 1);
 
+        List<String> netIds = new ArrayList<>();
+        netIds.add("netid1");
+        netIds.add("netid2");
+
         ComputeOrder order = new ComputeOrder("x", federationUser, requestingMember, providingMember, 8, 1024,
-                30, "fake_image_name", userData, "fake_public_key");
+                30, "fake_image_name", userData, "fake_public_key", netIds);
         order.setInstanceId("instance-id");
         order.setOrderState(OrderState.OPEN);
         order.setActualAllocation(computeAllocation);
@@ -670,8 +686,8 @@ public class DatabaseManager implements StableStorage {
 //        Date date = new Date();
 //        System.out.println(date.getTime());
 
-        networkOrder.setOrderState(OrderState.OPEN);
-        databaseManager.update(networkOrder);
+//        networkOrder.setOrderState(OrderState.OPEN);
+//        databaseManager.update(networkOrder);
 
 
 //        databaseManager.add(networkOrder);
@@ -679,13 +695,13 @@ public class DatabaseManager implements StableStorage {
 //        databaseManager.add(attachmentOrder);
 
 
-//        SynchronizedDoublyLinkedList synchronizedDoublyLinkedList = databaseManager.readActiveOrders(OrderState.OPEN);
+        SynchronizedDoublyLinkedList synchronizedDoublyLinkedList = databaseManager.readActiveOrders(OrderState.OPEN);
 //
-//        Order orderToPrint;
-//
-//        while ((orderToPrint = synchronizedDoublyLinkedList.getNext()) != null) {
-//            System.out.println(orderToPrint.toString());
-//            System.out.println(orderToPrint.getFederationUser().getAttributes().toString());
-//        }
+        Order orderToPrint;
+
+        while ((orderToPrint = synchronizedDoublyLinkedList.getNext()) != null) {
+            System.out.println(orderToPrint.toString());
+            System.out.println(orderToPrint.getFederationUser().getAttributes().toString());
+        }
     }
 }

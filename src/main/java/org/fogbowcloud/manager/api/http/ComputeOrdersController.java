@@ -36,7 +36,7 @@ public class ComputeOrdersController {
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<String> createCompute(
             @RequestBody ComputeOrder computeOrder,
-            @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
         LOGGER.info("New compute order request received");
 
@@ -46,7 +46,7 @@ public class ComputeOrdersController {
 
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<ComputeInstance>> getAllCompute(
-            @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException,
             UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         LOGGER.info("Get all compute orders request received");
@@ -57,7 +57,7 @@ public class ComputeOrdersController {
     @RequestMapping(value = "/{computeId}", method = RequestMethod.GET)
     public ResponseEntity<ComputeInstance> getCompute(
             @PathVariable String computeId,
-            @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException,
             UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
         LOGGER.info("Get request to compute order with id <" + computeId + "> received");
@@ -68,16 +68,16 @@ public class ComputeOrdersController {
     @RequestMapping(value = "/{computeId}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> deleteCompute(
             @PathVariable String computeId,
-            @RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
         throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
-        LOGGER.info("Get compute order to id <%s> received");
+        LOGGER.info("Delete compute order to id <" + computeId + "> received");
         ApplicationFacade.getInstance().deleteCompute(computeId, federationTokenValue);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
     
 	@RequestMapping(value = "/quota/{memberId}", method = RequestMethod.GET)
 	public ResponseEntity<ComputeQuota> getUserQuota(@PathVariable String memberId,
-			@RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+			@RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws UnauthenticatedException, QuotaException, UnauthorizedException, PropertyNotSpecifiedException,
             RemoteRequestException, TokenCreationException {
 
@@ -89,7 +89,7 @@ public class ComputeOrdersController {
 
 	@RequestMapping(value = "/allocation/{memberId}", method = RequestMethod.GET)
 	public ResponseEntity<ComputeAllocation> getUserAllocation(@PathVariable String memberId,
-			@RequestHeader(value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+			@RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
 			throws UnauthenticatedException, QuotaException, UnauthorizedException, RemoteRequestException,
             RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
 
