@@ -99,8 +99,8 @@ public class OrderController {
     public Instance getResourceInstance(Order order)
             throws PropertyNotSpecifiedException, TokenCreationException, RequestException, UnauthorizedException,
             InstanceNotFoundException, RemoteRequestException {
+        LOGGER.info("Get resource instance from order with id <" + order.getId() + "> received");
         synchronized (order) {
-
             CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
             return cloudConnector.getInstance(order);
         }

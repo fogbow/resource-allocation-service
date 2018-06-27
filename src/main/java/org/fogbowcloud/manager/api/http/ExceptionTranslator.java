@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.api.http;
 
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
+import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.springframework.http.HttpHeaders;
@@ -49,7 +50,18 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
 
         return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
     }
-    
+
+    @ExceptionHandler(RemoteRequestException.class)
+    public final ResponseEntity<ExceptionResponse> handleRemoteRequestException(
+            Exception ex, WebRequest request) {
+
+        ExceptionResponse errorDetails =
+                new ExceptionResponse(
+                        ex.getMessage(), request.getDescription(false), HttpStatus.NOT_FOUND);
+
+        return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
+    }
+
     @Override
     public final ResponseEntity<Object> handleServletRequestBindingException(
     		ServletRequestBindingException ex,
