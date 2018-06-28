@@ -1,17 +1,11 @@
 package org.fogbowcloud.manager.core.processors;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -77,11 +71,7 @@ public class FulfilledProcessor implements Runnable {
                 Order order = this.fulfilledOrdersList.getNext();
 
                 if (order != null) {
-                    try {
-                        processFulfilledOrder(order);
-                    } catch (OrderStateTransitionException e) {
-                        LOGGER.error("Error while trying to process the order " + order, e);
-                    }
+                    processFulfilledOrder(order);
                 } else {
                     this.fulfilledOrdersList.resetPointer();
                     LOGGER.debug(
@@ -104,9 +94,8 @@ public class FulfilledProcessor implements Runnable {
      * set to failed.
      *
      * @param order {@link Order}
-     * @throws OrderStateTransitionException Could not remove order from list of fulfilled orders.
      */
-    protected void processFulfilledOrder(Order order) throws OrderStateTransitionException {
+    protected void processFulfilledOrder(Order order) {
         synchronized (order) {
             OrderState orderState = order.getOrderState();
 
@@ -119,13 +108,8 @@ public class FulfilledProcessor implements Runnable {
 
                 try {
                     processInstance(order);
-                } catch (OrderStateTransitionException e) {
-                    LOGGER.error(
-                        "Transition ["
-                            + order.getId()
-                            + "] order state from fulfilled to failed");
                 } catch (Exception e) {
-                    LOGGER.error("Error while getting instance from the cloud.", e);
+                    LOGGER.warn("Error while getting instance from the cloud.", e);
                     OrderStateTransitioner.transition(order, OrderState.FAILED);
                 }
             }
@@ -137,10 +121,9 @@ public class FulfilledProcessor implements Runnable {
      * connectivity if instance state is active and the order type is compute.
      *
      * @param order {@link Order}
-     * @throws RemoteRequestException 
+     * @throws FogbowManagerException
      */
-    protected void processInstance(Order order)
-        throws PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException, UnauthorizedException, OrderStateTransitionException, RemoteRequestException {
+    protected void processInstance(Order order) throws FogbowManagerException {
 
         InstanceType instanceType = order.getType();
 

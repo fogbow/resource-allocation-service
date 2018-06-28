@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.intercomponent;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.Event;
 import org.fogbowcloud.manager.core.OrderController;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
@@ -13,8 +12,7 @@ import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
@@ -40,14 +38,13 @@ public class RemoteFacade {
         }
     }
 
-    public void activateOrder(Order order) throws UnauthorizedException, OrderManagementException {
+    public void activateOrder(Order order) throws FogbowManagerException {
         this.aaController.authorize(order.getFederationUser(), Operation.CREATE, order);
         OrderStateTransitioner.activateOrder(order);
     }
 
     public Instance getResourceInstance(String orderId, FederationUser federationUser, InstanceType instanceType) throws
-            UnauthorizedException, PropertyNotSpecifiedException,
-            TokenCreationException, RequestException, InstanceNotFoundException, RemoteRequestException {
+            FogbowManagerException {
 
         Order order = this.orderController.getOrder(orderId, federationUser, instanceType);
         this.aaController.authorize(federationUser, Operation.GET, order);
@@ -56,7 +53,7 @@ public class RemoteFacade {
     }
 
     public void deleteOrder(String orderId, FederationUser federationUser, InstanceType instanceType)
-            throws UnauthorizedException, OrderManagementException {
+            throws FogbowManagerException {
 
         Order order = this.orderController.getOrder(orderId, federationUser, instanceType);
         this.aaController.authorize(federationUser, Operation.DELETE, order);
@@ -64,9 +61,7 @@ public class RemoteFacade {
         this.orderController.deleteOrder(order);
     }
 
-    public Quota getUserQuota(String memberId, FederationUser federationUser, InstanceType instanceType) throws
-            UnauthorizedException, QuotaException, TokenCreationException,
-            PropertyNotSpecifiedException, RemoteRequestException {
+    public Quota getUserQuota(String memberId, FederationUser federationUser, InstanceType instanceType) throws FogbowManagerException {
 
         this.aaController.authorize(federationUser, Operation.GET_USER_QUOTA, instanceType);
 
@@ -74,9 +69,7 @@ public class RemoteFacade {
         return cloudConnector.getUserQuota(federationUser, instanceType);
     }
 
-    public Image getImage(String memberId, String imageId, FederationUser federationUser) throws
-            UnauthorizedException, TokenCreationException,
-            PropertyNotSpecifiedException, RemoteRequestException, ImageException {
+    public Image getImage(String memberId, String imageId, FederationUser federationUser) throws FogbowManagerException {
 
         this.aaController.authorize(federationUser, Operation.GET_IMAGE);
 
@@ -84,9 +77,7 @@ public class RemoteFacade {
         return cloudConnector.getImage(imageId, federationUser);
     }
 
-    public Map<String, String> getAllImages(String memberId, FederationUser federationUser) throws
-            UnauthorizedException, TokenCreationException,
-            PropertyNotSpecifiedException, RemoteRequestException, ImageException {
+    public Map<String, String> getAllImages(String memberId, FederationUser federationUser) throws FogbowManagerException {
 
         this.aaController.authorize(federationUser, Operation.GET_ALL_IMAGES);
 
@@ -100,18 +91,10 @@ public class RemoteFacade {
         Order actualOrder = this.orderController.getOrder(order.getId(), order.getFederationUser(), order.getType());
         switch (event) {
             case INSTANCE_FULFILLED:
-                try {
-                    OrderStateTransitioner.transition(actualOrder, OrderState.FULFILLED);
-                } catch (OrderStateTransitionException e) {
-                    LOGGER.error(e.getMessage(), e);
-                }
+                OrderStateTransitioner.transition(actualOrder, OrderState.FULFILLED);
                 break;
             case INSTANCE_FAILED:
-                try {
-                    OrderStateTransitioner.transition(actualOrder, OrderState.FAILED);
-                } catch (OrderStateTransitionException e) {
-                    LOGGER.error(e.getMessage(), e);
-                }
+                OrderStateTransitioner.transition(actualOrder, OrderState.FAILED);
                 break;
         }
     }

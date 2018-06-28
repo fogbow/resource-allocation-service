@@ -2,16 +2,8 @@ package org.fogbowcloud.manager.api.http;
 
 import java.util.List;
 
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.ApplicationFacade;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.QuotaException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
@@ -37,9 +29,8 @@ public class ComputeOrdersController {
     public ResponseEntity<String> createCompute(
             @RequestBody ComputeOrder computeOrder,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
-        LOGGER.info("New compute order request received");
-
+        throws FogbowManagerException {
+        LOGGER.info("New compute order request received <" + computeOrder.getId() + ">.");
         String computeId = ApplicationFacade.getInstance().createCompute(computeOrder, federationTokenValue);
         return new ResponseEntity<String>(computeId, HttpStatus.CREATED);
     }
@@ -47,20 +38,18 @@ public class ComputeOrdersController {
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<ComputeInstance>> getAllCompute(
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException,
-            UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
-        LOGGER.info("Get all compute orders request received");
+        throws FogbowManagerException {
+        LOGGER.info("Get all compute orders request received.");
         List<ComputeInstance> computes = ApplicationFacade.getInstance().getAllComputes(federationTokenValue);
-	    return ResponseEntity.ok(computes);
+        return new ResponseEntity<>(computes, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/{computeId}", method = RequestMethod.GET)
     public ResponseEntity<ComputeInstance> getCompute(
             @PathVariable String computeId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException,
-            UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
-        LOGGER.info("Get request to compute order with id <" + computeId + "> received");
+        throws FogbowManagerException {
+        LOGGER.info("Get request for compute order <" + computeId + "> received.");
         ComputeInstance compute = ApplicationFacade.getInstance().getCompute(computeId, federationTokenValue);
         return new ResponseEntity<ComputeInstance>(compute, HttpStatus.OK);
     }
@@ -69,20 +58,18 @@ public class ComputeOrdersController {
     public ResponseEntity<Boolean> deleteCompute(
             @PathVariable String computeId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
-        LOGGER.info("Delete compute order to id <" + computeId + "> received");
+        throws FogbowManagerException {
+        LOGGER.info("Delete compute order <" + computeId + "> received.");
         ApplicationFacade.getInstance().deleteCompute(computeId, federationTokenValue);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
     
 	@RequestMapping(value = "/quota/{memberId}", method = RequestMethod.GET)
 	public ResponseEntity<ComputeQuota> getUserQuota(@PathVariable String memberId,
 			@RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws UnauthenticatedException, QuotaException, UnauthorizedException, PropertyNotSpecifiedException,
-            RemoteRequestException, TokenCreationException {
+            throws FogbowManagerException {
 
-		LOGGER.info("User quota information request received.");
-
+		LOGGER.info("User quota information request for member <" + memberId + "> received.");
 		ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(memberId, federationTokenValue);
 		return new ResponseEntity<>(quotaInstance, HttpStatus.OK);
 	}
@@ -90,11 +77,9 @@ public class ComputeOrdersController {
 	@RequestMapping(value = "/allocation/{memberId}", method = RequestMethod.GET)
 	public ResponseEntity<ComputeAllocation> getUserAllocation(@PathVariable String memberId,
 			@RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-			throws UnauthenticatedException, QuotaException, UnauthorizedException, RemoteRequestException,
-            RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+			throws FogbowManagerException {
 
-		LOGGER.info("User allocation information request received.");
-
+		LOGGER.info("User allocation information request for member <" + memberId + "> received.");
 		ComputeAllocation computeAllocation = ApplicationFacade.getInstance().getComputeAllocation(memberId, federationTokenValue);
 		return new ResponseEntity<>(computeAllocation, HttpStatus.OK);
 	}    

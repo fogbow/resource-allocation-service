@@ -3,14 +3,12 @@ package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
-import org.fogbowcloud.manager.core.intercomponent.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.Event;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.xmpp.packet.IQ;
 
@@ -27,7 +25,7 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
     }
 
     @Override
-    public Void send() throws RemoteRequestException, OrderManagementException, UnauthorizedException {
+    public Void send() throws FogbowManagerException {
         IQ iq = createIq();
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 

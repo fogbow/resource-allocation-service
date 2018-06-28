@@ -4,11 +4,12 @@ import com.google.gson.Gson;
 
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
@@ -46,12 +47,15 @@ public class RemoteCreateOrderRequestHandler extends AbstractQueryHandler {
 
         try {
             RemoteFacade.getInstance().activateOrder(order);
-        } catch (UnauthorizedException e) {
+        } catch (UnauthorizedRequestException e) {
             LOGGER.error("The user is not authorized to create order: " + order.getId(), e);
             response.setError(PacketError.Condition.forbidden);
-        } catch (OrderManagementException e) {
+        } catch (InvalidParameterException e) {
             LOGGER.error("The id is duplicated.", e);
             response.setError(PacketError.Condition.bad_request);
+        }  catch (FogbowManagerException e) {
+            LOGGER.error("The id is duplicated.", e);
+
         }
 
         return response;

@@ -19,8 +19,9 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.*;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
@@ -81,7 +82,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private LaunchCommandGenerator launchCommandGenerator;
     private InstanceStateMapper instanceStateMapper;
 
-    public OpenStackNovaV2ComputePlugin() {
+    public OpenStackNovaV2ComputePlugin() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
         this.properties = PropertiesUtil.
                 readProperties(homeDir.getPath() + File.separator + NOVAV2_PLUGIN_CONF_FILE);
@@ -110,7 +111,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     public String requestInstance(ComputeOrder computeOrder, Token localToken)
-            throws RequestException {
+            throws FogbowManagerException {
         LOGGER.debug("Requesting instance with token=" + localToken);
 
         Flavor flavor = findSmallestFlavor(computeOrder, localToken);
@@ -141,7 +142,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             return instanceId;
         } catch (JSONException e) {
             LOGGER.error("Invalid JSON key: " + e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         } finally {
             if (keyName != null) {
                 try {
@@ -176,7 +177,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     protected String getKeyName(String tenantId, Token localToken, String publicKey)
-            throws RequestException {
+            throws FogbowManagerException {
         String keyname = null;
 
         if (publicKey != null && !publicKey.isEmpty()) {
@@ -193,7 +194,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
                 doPostRequest(osKeypairEndpoint, localToken, root);
             } catch (JSONException e) {
                 LOGGER.error("Error while getting key name: " + e);
-                throw new RequestException(
+                throw new FogbowManagerException(
                         ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
             }
         }
@@ -216,14 +217,14 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     protected void deleteKeyName(String tenantId, Token localToken, String keyName)
-            throws RequestException {
+            throws FogbowManagerException {
         String suffixEndpoint = SUFFIX_ENDPOINT_KEYPAIRS + "/" + keyName;
         String keynameEndpoint = getComputeEndpoint(tenantId, suffixEndpoint);
 
         doDeleteRequest(keynameEndpoint, localToken);
     }
 
-    private void doDeleteRequest(String endpoint, Token localToken) throws RequestException {
+    private void doDeleteRequest(String endpoint, Token localToken) throws FogbowManagerException {
         LOGGER.debug("Doing DELETE request to OpenStack on endpoint <" + endpoint + ">");
 
         HttpResponse response = null;
@@ -234,7 +235,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             response = this.client.execute(request);
         } catch (Exception e) {
             LOGGER.error("Unable to complete the DELETE request: ", e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         } finally {
             try {
                 EntityUtils.consume(response.getEntity());
@@ -248,7 +249,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     protected String doPostRequest(String endpoint, Token localToken, JSONObject jsonRequest)
-            throws RequestException {
+            throws FogbowManagerException {
         LOGGER.debug("Doing POST request to OpenStack for creating an instance");
 
         HttpResponse response = null;
@@ -268,7 +269,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         } catch (Exception e) {
             LOGGER.error("Impossible to complete the POST request: " + e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         } finally {
             try {
                 EntityUtils.consume(response.getEntity());
@@ -319,7 +320,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     private void checkStatusResponse(HttpResponse response, String message)
-            throws RequestException {
+            throws FogbowManagerException {
         LOGGER.debug("Checking status response...");
 
         StatusResponseMap statusResponseMap = new StatusResponseMap(response, message);
@@ -327,7 +328,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         StatusResponse statusResponse = statusResponseMap.getStatusResponse(statusCode);
 
         if (statusResponse != null) {
-            throw new RequestException(
+            throw new FogbowManagerException(
                     statusResponse.getErrorType(), statusResponse.getResponseConstants());
         }
     }
@@ -380,7 +381,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     private TreeSet<Flavor> detailFlavors(String endpoint, Token localToken, List<String> flavorsId)
-            throws JSONException, RequestException {
+            throws JSONException, FogbowManagerException {
         TreeSet<Flavor> newFlavors = new TreeSet<>();
         TreeSet<Flavor> flavorsCopy = new TreeSet<>(this.flavors);
 
@@ -415,7 +416,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         return newFlavors;
     }
 
-    protected String doGetRequest(String endpoint, Token localToken) throws RequestException {
+    protected String doGetRequest(String endpoint, Token localToken) throws FogbowManagerException {
         LOGGER.debug("Doing GET request to OpenStack on endpoint <" + endpoint + ">");
 
         HttpResponse response = null;
@@ -434,7 +435,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         } catch (Exception e) {
             LOGGER.error("Could not make GET request.", e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         } finally {
             try {
                 EntityUtils.consume(response.getEntity());
@@ -450,7 +451,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
     @Override
     public ComputeInstance getInstance(String instanceId, String orderId, Token localToken)
-            throws RequestException {
+            throws FogbowManagerException {
         LOGGER.info("Getting instance " + instanceId + " with token " + localToken);
 
         String tenantId = getTenantId(localToken);
@@ -478,7 +479,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         computeInstance.setSshTunnelConnectionData(sshTunnelConnectionData);
     }
 
-    private ComputeInstance getInstanceFromJson(String jsonResponse) throws RequestException {
+    private ComputeInstance getInstanceFromJson(String jsonResponse) throws FogbowManagerException {
         try {
             JSONObject rootServer = new JSONObject(jsonResponse);
             JSONObject serverJson = rootServer.getJSONObject(SERVER_JSON_FIELD);
@@ -498,13 +499,13 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
             int vCPU = -1;
             int memory = -1;
-            // TODO: Do we want to ignore the disk attribute?
-//            int disk = flavor.getDisk();
+            int disk = -1;
 
             Flavor flavor = retrieveFlavorFromResponse(serverJson);
             if (flavor != null) {
                 vCPU = flavor.getCpu();
                 memory = flavor.getRam();
+                disk = flavor.getDisk();
             }
 
             InstanceState state = this.instanceStateMapper.getInstanceState(serverJson.getString(STATUS_JSON_FIELD));
@@ -515,12 +516,12 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
                             hostName,
                             vCPU,
                             memory,
-                            state,
-                            localIpAddress);
+                            disk,
+                            state, localIpAddress);
             return computeInstance;
         } catch (JSONException e) {
             LOGGER.warn("There was an exception while getting instances from json", e);
-            throw new RequestException();
+            throw new FogbowManagerException();
         }
     }
 
@@ -545,9 +546,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     }
 
     @Override
-    public void deleteInstance(String instanceId, Token localToken) throws RequestException {
+    public void deleteInstance(String instanceId, Token localToken) throws FogbowManagerException {
         if (instanceId == null) {
-            throw new RequestException();
+            throw new FogbowManagerException();
         }
         String endpoint =
                 getComputeEndpoint(getTenantId(localToken), SERVERS + "/" + instanceId);

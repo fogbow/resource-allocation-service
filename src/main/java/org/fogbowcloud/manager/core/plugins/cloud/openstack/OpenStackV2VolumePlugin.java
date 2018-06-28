@@ -14,7 +14,9 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
 import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
@@ -37,7 +39,8 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	private final String TENANT_ID_IS_NOT_SPECIFIED_ERROR = "Tenant id is not specified.";
 
 	private final String V2_API_ENDPOINT = "/v2/";
-	
+	private InstanceStateMapper instanceStateMapper;
+
 	protected static final String KEY_JSON_INSTANCE_UUID = "instance_uuid";
 	protected static final String KEY_JSON_MOUNTPOINT = "mountpoint";
 	protected static final String KEY_JSON_VOLUMES = "volumes";
@@ -46,27 +49,6 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	protected static final String KEY_JSON_SIZE = "size";
 	protected static final String KEY_JSON_NAME = "name";
 	protected static final String KEY_JSON_ID = "id";
-
-	private static final String VALUE_CREATING_STATUS = "creating";
-	private static final String VALUE_AVAILABLE_STATUS = "available";
-	private static final String VALUE_ATTACHING_STATUS = "attaching";
-	private static final String VALUE_DETACHING_STATUS = "detaching";
-	private static final String VALUE_IN_USE_STATUS = "in-use";
-	private static final String VALUE_MAINTENANCE_STATUS = "maintenance";
-	private static final String VALUE_DELETING_STATUS = "deleting";
-	private static final String VALUE_AWAITING_TRANSFER_STATUS = "awaiting-transfer";
-	private static final String VALUE_ERROR_STATUS = "error";
-	private static final String VALUE_ERROR_DELETING_STATUS = "error_deleting";
-	private static final String VALUE_BACKING_UP_STATUS = "backing-up";
-	private static final String VALUE_RESTORING_BACKUP_STATUS = "restoring-backup";
-	private static final String VALUE_ERROR_BACKING_UP_STATUS = "error_backing-up";
-	private static final String VALUE_ERROR_RESTORING_STATUS = "error_restoring";
-	private static final String VALUE_ERROR_EXTENDING_STATUS = "error_extending";
-	private static final String VALUE_DOWNLOADING_STATUS = "downloading";
-	private static final String VALUE_UPLOADING_STATUS = "uploading";
-	private static final String VALUE_RETYPING_STATUS = "retyping";
-	private static final String VALUE_EXTENDING_STATUS = "extending";
-
 	protected static final String SUFIX_ENDPOINT_VOLUMES = "/volumes";
 
 	private HttpClient client;
@@ -74,21 +56,22 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenStackV2VolumePlugin.class);
 
-	public OpenStackV2VolumePlugin() {
+	public OpenStackV2VolumePlugin() throws FatalErrorException {
 		HomeDir homeDir = HomeDir.getInstance();
 		Properties properties = PropertiesUtil.
 				readProperties(homeDir.getPath() + File.separator + CINDER_PLUGIN_CONF_FILE);
 		this.volumeV2APIEndpoint = properties.getProperty(VOLUME_NOVAV2_URL_KEY) + V2_API_ENDPOINT;
+		this.instanceStateMapper = new OpenStackVolumeInstanceStateMapper();
 
 		initClient();
 	}
 	
 	@Override
-	public String requestInstance(VolumeOrder order, Token localToken) throws RequestException {
+	public String requestInstance(VolumeOrder order, Token localToken) throws FogbowManagerException {
 		String tenantId = localToken.getAttributes().get(KeystoneV3IdentityPlugin.TENANT_ID);
 		if (tenantId == null) {
 			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
-			throw new RequestException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);
+			throw new FogbowManagerException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 		}
 		String size = String.valueOf(order.getVolumeSize());
 
@@ -98,7 +81,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 		} catch (JSONException e) {
 			String errorMsg = "An error occurred when generating json.";
 			LOGGER.error(errorMsg, e);
-			throw new RequestException(ErrorType.BAD_REQUEST, errorMsg);
+			throw new FogbowManagerException(ErrorType.BAD_REQUEST, errorMsg);
 		}
 
 		String endpoint = this.volumeV2APIEndpoint + tenantId + SUFIX_ENDPOINT_VOLUMES;
@@ -108,10 +91,10 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	}
 
 	@Override
-	public VolumeInstance getInstance(String storageOrderInstanceId, Token localToken) throws RequestException {
+	public VolumeInstance getInstance(String storageOrderInstanceId, Token localToken) throws FogbowManagerException {
 		String tenantId = localToken.getAttributes().get(KeystoneV3IdentityPlugin.TENANT_ID);
 		if (tenantId == null) {
-			throw new RequestException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);
+			throw new FogbowManagerException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 		}		
 		
 		String endpoint = this.volumeV2APIEndpoint + tenantId 
@@ -121,11 +104,11 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	}
 
 	@Override
-	public void deleteInstance(String storageOrderInstanceId, Token localToken) throws RequestException {
+	public void deleteInstance(String storageOrderInstanceId, Token localToken) throws FogbowManagerException {
 		String tenantId = localToken.getAttributes().get(KeystoneV3IdentityPlugin.TENANT_ID);
 		if (tenantId == null) {
 			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
-			throw new RequestException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);
+			throw new FogbowManagerException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 		}		
 		
 		String endpoint = this.volumeV2APIEndpoint + tenantId 
@@ -134,7 +117,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	}
 
 	// TODO change to a common class. KeystoneV3IdentityPlugin and OpenStackV2VolumePlugin class have the same method	
-	protected String doPostRequest(String endpoint, String authToken, JSONObject json) throws RequestException {
+	protected String doPostRequest(String endpoint, String authToken, JSONObject json) throws FogbowManagerException {
 		HttpResponse response = null;
 		String responseStr = null;
 		try {
@@ -151,7 +134,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 			String errorMsg = "Could not make POST request";
 			LOGGER.error(errorMsg, e);
 			// TODO check this exception.
-			throw new RequestException(ErrorType.BAD_REQUEST, errorMsg);
+			throw new FogbowManagerException(ErrorType.BAD_REQUEST, errorMsg);
 		} finally {
 			try {
 				EntityUtils.consume(response.getEntity());
@@ -164,7 +147,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	}	
 	
 	// TODO change to a common class. KeystoneV3IdentityPlugin and OpenStackV2VolumePlugin class have the same method	
-	protected String doGetRequest(String endpoint, String authToken) throws RequestException {
+	protected String doGetRequest(String endpoint, String authToken) throws FogbowManagerException {
 		HttpResponse response = null;
 		String responseStr = null;
 		try {
@@ -180,7 +163,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 			String errorMsg = "Could not make GET request";
 			LOGGER.error(errorMsg, e);
 			// TODO check this exception.
-			throw new RequestException(ErrorType.BAD_REQUEST, errorMsg);
+			throw new FogbowManagerException(ErrorType.BAD_REQUEST, errorMsg);
 		} finally {
 			try {
 				EntityUtils.consume(response.getEntity());
@@ -193,7 +176,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	}
 	
 	// TODO change to a common class. KeystoneV3IdentityPlugin and OpenStackV2VolumePlugin class have the same method	
-	protected void doDeleteRequest(String endpoint, String authToken) throws RequestException {
+	protected void doDeleteRequest(String endpoint, String authToken) throws FogbowManagerException {
 		HttpResponse response = null;
 		try {
 			HttpDelete request = new HttpDelete(endpoint);
@@ -202,7 +185,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 		} catch (Exception e) {
 			String errorMsg = "Could not make DELETE request";
 			LOGGER.error(errorMsg, e);
-			throw new RequestException(ErrorType.BAD_REQUEST, errorMsg);
+			throw new FogbowManagerException(ErrorType.BAD_REQUEST, errorMsg);
 		} finally {
 			try {
 				EntityUtils.consume(response.getEntity());
@@ -215,27 +198,27 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	}	
 	
 	// TODO change to a common class. KeystoneV3IdentityPlugin and OpenStackV2VolumePlugin class have the same method
-	private void checkStatusResponse(HttpResponse response, String message) throws RequestException {
+	private void checkStatusResponse(HttpResponse response, String message) throws FogbowManagerException {
 		if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-			throw new RequestException(ErrorType.UNAUTHORIZED, "");
+			throw new FogbowManagerException(ErrorType.UNAUTHORIZED, "");
 		} else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-			throw new RequestException(ErrorType.NOT_FOUND, "");
+			throw new FogbowManagerException(ErrorType.NOT_FOUND, "");
 		} else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_REQUEST) {
-			throw new RequestException(ErrorType.BAD_REQUEST, message);
+			throw new FogbowManagerException(ErrorType.BAD_REQUEST, message);
 		} else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_REQUEST_TOO_LONG) {
 			if (message.contains(ResponseConstants.QUOTA_EXCEEDED_FOR_INSTANCES)) {
-				throw new RequestException(ErrorType.QUOTA_EXCEEDED,
+				throw new FogbowManagerException(ErrorType.QUOTA_EXCEEDED,
 						ResponseConstants.QUOTA_EXCEEDED_FOR_INSTANCES);
 			}
-			throw new RequestException(ErrorType.BAD_REQUEST, message);
+			throw new FogbowManagerException(ErrorType.BAD_REQUEST, message);
 		}
 		else if (response.getStatusLine().getStatusCode() > 204) {
-			throw new RequestException(ErrorType.BAD_REQUEST, 
+			throw new FogbowManagerException(ErrorType.BAD_REQUEST,
 					"Status code: " + response.getStatusLine().toString() + " | Message:" + message);
 		}
 	}	
 	
-	protected VolumeInstance getInstanceFromJson(String json) throws RequestException {
+	protected VolumeInstance getInstanceFromJson(String json) throws FogbowManagerException {
 		try {
 			JSONObject rootServer = new JSONObject(json);
 			JSONObject volumeJson = rootServer.getJSONObject(KEY_JSON_VOLUME);
@@ -243,7 +226,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 			
 			String name = volumeJson.optString(KEY_JSON_NAME);
 			String statusOpenstack = volumeJson.optString(KEY_JSON_STATUS);
-			InstanceState status = getInstanceState(statusOpenstack);
+			InstanceState status = this.instanceStateMapper.getInstanceState(statusOpenstack);
 			String sizeStr = volumeJson.optString(KEY_JSON_SIZE);
 			int size = Integer.valueOf(sizeStr);
 
@@ -251,55 +234,8 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 		} catch (Exception e) {
 			String errorMsg = "There was an exception while getting instance storage.";
 			LOGGER.error(errorMsg, e);
-			throw new RequestException(ErrorType.BAD_REQUEST, errorMsg);
+			throw new FogbowManagerException(ErrorType.BAD_REQUEST, errorMsg);
 		}
-	}
-	
-	// TODO check openstack documentation. https://developer.openstack.org/api-ref/block-storage/v2/
-	// TODO: Better map openstack states. Should be better create InstanceState.BUSY?
-	protected InstanceState getInstanceState(String statusOpenstack) {
-		switch (statusOpenstack.toLowerCase()) {
-			case VALUE_CREATING_STATUS:
-				return InstanceState.INACTIVE;
-			case VALUE_AVAILABLE_STATUS:
-				return InstanceState.READY;
-			case VALUE_ATTACHING_STATUS:
-				return InstanceState.READY;
-			case VALUE_DETACHING_STATUS:
-				return InstanceState.READY;
-			case VALUE_IN_USE_STATUS:
-				return InstanceState.READY;
-			case VALUE_MAINTENANCE_STATUS:
-				return InstanceState.READY;
-			case VALUE_DELETING_STATUS:
-				return InstanceState.READY;
-			case VALUE_AWAITING_TRANSFER_STATUS:
-				return InstanceState.READY;
-			case VALUE_ERROR_STATUS:
-				return InstanceState.FAILED;
-			case VALUE_ERROR_DELETING_STATUS:
-				return InstanceState.FAILED;
-			case VALUE_BACKING_UP_STATUS:
-				return InstanceState.READY;
-			case VALUE_RESTORING_BACKUP_STATUS:
-				return InstanceState.READY;
-			case VALUE_ERROR_RESTORING_STATUS:
-				return InstanceState.FAILED;
-			case VALUE_ERROR_BACKING_UP_STATUS:
-				return InstanceState.FAILED;
-			case VALUE_ERROR_EXTENDING_STATUS:
-				return InstanceState.FAILED;
-			case VALUE_DOWNLOADING_STATUS:
-				return InstanceState.READY;
-			case VALUE_UPLOADING_STATUS:
-				return InstanceState.READY;
-			case VALUE_RETYPING_STATUS:
-				return InstanceState.READY;
-			case VALUE_EXTENDING_STATUS:
-				return InstanceState.READY;
-			default:
-				return InstanceState.INACTIVE;
-        }
 	}
 
 	protected JSONObject generateJsonEntityToCreateInstance(String size) throws JSONException {

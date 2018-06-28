@@ -2,16 +2,14 @@ package org.fogbowcloud.manager.core;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.Event;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 
 import java.util.Map;
 
@@ -19,14 +17,12 @@ public class OrderStateTransitioner {
 
     private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
 
-    public static void activateOrder(Order order) throws OrderManagementException {
+    public static void activateOrder(Order order) {
 
-        //FIXME: I moved this condition to outside of the synchronized block because it is unreachable in the old code
-        //Anyway, it is possible the best solution is to remove the condition completely, since the other methods do not check this
-        //I'll keep the FIXME instead of removing because I'm not sure about this piece of architecture
         if (order == null) {
             String message = "Can't process new order request. Order reference is null.";
-            throw new OrderManagementException(message);
+            LOGGER.error(message);
+            return;
         }
 
         synchronized (order) {
@@ -38,7 +34,8 @@ public class OrderStateTransitioner {
 
             if (activeOrdersMap.containsKey(orderId)) {
                 String message = String.format("Order with id %s is already in active orders map.", orderId);
-                throw new OrderManagementException(message);
+                LOGGER.error(message);
+                return;
             }
 
             order.setOrderState(OrderState.OPEN);
@@ -47,8 +44,7 @@ public class OrderStateTransitioner {
         }
     }
 
-    public static void transition(Order order, OrderState newState)
-            throws OrderStateTransitionException {
+    public static void transition(Order order, OrderState newState) {
 
         String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         synchronized (order) {
@@ -98,14 +94,12 @@ public class OrderStateTransitioner {
      * @param order, the order that will transition through states
      * @param newState, the new state
      */
-    private static void doTransition(Order order, OrderState newState)
-            throws OrderStateTransitionException {
+    private static void doTransition(Order order, OrderState newState) {
         OrderState currentState = order.getOrderState();
 
         if (currentState == newState) {
-            String message =
-                    String.format("Order with id %s is already %s", order.getId(), currentState);
-            throw new OrderStateTransitionException(message);
+            String message = String.format("Order with id %s is already %s", order.getId(), currentState);
+            LOGGER.error(message);
         }
 
         SharedOrderHolders ordersHolder = SharedOrderHolders.getInstance();
@@ -114,11 +108,10 @@ public class OrderStateTransitioner {
 
         if (origin == null) {
             String message = String.format("Could not find list for state %s", currentState);
-            throw new RuntimeException(message);
+            LOGGER.error(message);
         } else if (destination == null) {
-            String message =
-                    String.format("Could not find destination list for state %s", newState);
-            throw new RuntimeException(message);
+            String message = String.format("Could not find destination list for state %s", newState);
+            LOGGER.error(message);
         } else {
             if (origin.removeItem(order)) {
                 order.setOrderState(newState);
@@ -126,7 +119,7 @@ public class OrderStateTransitioner {
             } else {
                 String template = "Could not remove order id %s from list of %s orders";
                 String message = String.format(template, order.getId(), currentState.toString());
-                throw new OrderStateTransitionException(message);
+                LOGGER.error(message);
             }
         }
     }
@@ -135,7 +128,7 @@ public class OrderStateTransitioner {
         RemoteNotifyEventRequest remoteNotifyEventRequest = new RemoteNotifyEventRequest(order, instanceFailed);
         try {
             remoteNotifyEventRequest.send();
-        } catch (RemoteRequestException | OrderManagementException | UnauthorizedException e) {
+        } catch (FogbowManagerException e) {
             LOGGER.error(e.getMessage(), e);
         }
     }

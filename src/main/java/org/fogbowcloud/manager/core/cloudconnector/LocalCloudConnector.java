@@ -19,8 +19,8 @@ import org.fogbowcloud.manager.core.plugins.cloud.ImagePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputeQuotaPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 
 import java.util.Map;
 
@@ -53,8 +53,7 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public String requestInstance(Order order) throws PropertyNotSpecifiedException, RequestException,
-            UnauthorizedException, TokenCreationException {
+    public String requestInstance(Order order) throws FogbowManagerException {
         String requestInstance = null;
         Token localToken = this.aaController.getLocalToken(order.getFederationUser());
         switch (order.getType()) {
@@ -85,8 +84,7 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public void deleteInstance(Order order) throws RequestException, PropertyNotSpecifiedException,
-            UnauthorizedException, TokenCreationException {
+    public void deleteInstance(Order order) throws FogbowManagerException {
 
         //FIXME: This code does nothing (do not throw an exception nor a flag, e.g false, in case the order
         //does not have an instanceId yet. Is it ok?
@@ -113,8 +111,7 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public Instance getInstance(Order order) throws RequestException, PropertyNotSpecifiedException,
-            InstanceNotFoundException, UnauthorizedException, TokenCreationException {
+    public Instance getInstance(Order order) throws FogbowManagerException {
         Instance instance;
         Token localToken = this.aaController.getLocalToken(order.getFederationUser());
 
@@ -147,7 +144,7 @@ public class LocalCloudConnector implements CloudConnector {
 
     @Override
     public Quota getUserQuota(FederationUser federationUser, InstanceType instanceType) throws
-            PropertyNotSpecifiedException, QuotaException, UnauthorizedException, TokenCreationException {
+            FogbowManagerException {
 
         Token localToken = this.aaController.getLocalToken(federationUser);
 
@@ -160,21 +157,19 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public Map<String, String> getAllImages(FederationUser federationUser) throws TokenCreationException,
-            UnauthorizedException, PropertyNotSpecifiedException, ImageException {
+    public Map<String, String> getAllImages(FederationUser federationUser) throws FogbowManagerException {
         Token localToken = this.aaController.getLocalToken(federationUser);
         return this.imagePlugin.getAllImages(localToken);
     }
 
     @Override
-    public Image getImage(String imageId, FederationUser federationUser) throws TokenCreationException,
-            UnauthorizedException, PropertyNotSpecifiedException, ImageException {
+    public Image getImage(String imageId, FederationUser federationUser) throws FogbowManagerException {
         Token localToken = this.aaController.getLocalToken(federationUser);
         return this.imagePlugin.getImage(imageId, localToken);
     }
 
     private Instance getResourceInstance(Order order, InstanceType instanceType, Token localToken)
-            throws RequestException {
+            throws FogbowManagerException {
         Instance instance;
         String instanceId = order.getInstanceId();
 

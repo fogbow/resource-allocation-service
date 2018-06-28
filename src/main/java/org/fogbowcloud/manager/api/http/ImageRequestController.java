@@ -1,14 +1,10 @@
 package org.fogbowcloud.manager.api.http;
 
 import java.util.Map;
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
+
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.ApplicationFacade;
-import org.fogbowcloud.manager.core.exceptions.ImageException;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
 import org.fogbowcloud.manager.core.models.images.Image;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,16 +24,14 @@ public class ImageRequestController {
 
     private final String MEMBER_ID_HEADER_KEY = "memberId";
 
-
-    @SuppressWarnings("unused")
     private final Logger LOGGER = Logger.getLogger(ImageRequestController.class);
 
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<Map<String, String>> getAllImages(
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
             @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId)
-            throws UnauthenticatedException, UnauthorizedException, PropertyNotSpecifiedException,
-            TokenCreationException, RemoteRequestException, ImageException {
+            throws FogbowManagerException {
+        LOGGER.info("Get all images request received.");
         Map<String, String> imagesMap = ApplicationFacade.getInstance().getAllImages(memberId, federationTokenValue);
         return new ResponseEntity<>(imagesMap, HttpStatus.OK);
     }
@@ -47,10 +41,9 @@ public class ImageRequestController {
             @PathVariable String imageId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
             @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId)
-            throws UnauthenticatedException, UnauthorizedException, RemoteRequestException, TokenCreationException,
-            PropertyNotSpecifiedException, ImageException {
+            throws FogbowManagerException {
+        LOGGER.info("Get image request for <" + imageId + "> received.");
         Image image = ApplicationFacade.getInstance().getImage(memberId, imageId, federationTokenValue);
-        return image == null ? new ResponseEntity<>(HttpStatus.NOT_FOUND) :
-                new ResponseEntity<>(image, HttpStatus.OK);
+        return new ResponseEntity<>(image, HttpStatus.OK);
     }
 }

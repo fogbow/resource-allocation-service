@@ -5,20 +5,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.instances.Instance;
@@ -38,7 +32,7 @@ public class OrderController {
         this.orderHolders = SharedOrderHolders.getInstance();
     }
 
-    public List<Order> getAllOrders(FederationUser federationUser, InstanceType instanceType) throws UnauthorizedException {
+    public List<Order> getAllOrders(FederationUser federationUser, InstanceType instanceType) throws UnauthorizedRequestException {
         Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
 
         List<Order> requestedOrders =
@@ -69,36 +63,25 @@ public class OrderController {
         return requestedOrder;
     }
 
-    public void deleteOrder(Order order) throws OrderManagementException {
+    public void deleteOrder(Order order) throws FogbowManagerException {
         if (order == null) {
-            String message = "Cannot delete a null order";
-            throw new OrderManagementException(message);
+            String message = "Cannot delete a null order.";
+            LOGGER.error(message);
+            return;
         }
-        synchronized (order) {
 
+        synchronized (order) {
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.CLOSED)) {
-                try {
-                    OrderStateTransitioner.transition(order, OrderState.CLOSED);
-                } catch (OrderStateTransitionException e) {
-                    LOGGER.error(
-                            "This should never happen. Error trying to change the status from"
-                                    + order.getOrderState()
-                                    + " to closed for order ["
-                                    + order.getId()
-                                    + "]",
-                            e);
-                }
-            } else {
+                OrderStateTransitioner.transition(order, OrderState.CLOSED);
+           } else {
                 String message = "Order [" + order.getId() + "] is already in the closed state";
-                throw new OrderManagementException(message);
+                LOGGER.error(message);
             }
         }
     }
 
-    public Instance getResourceInstance(Order order)
-            throws PropertyNotSpecifiedException, TokenCreationException, RequestException, UnauthorizedException,
-            InstanceNotFoundException, RemoteRequestException {
+    public Instance getResourceInstance(Order order) throws FogbowManagerException {
         synchronized (order) {
 
             CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());

@@ -10,7 +10,6 @@ import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
-import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -60,7 +59,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
     }
 
     @Test
-    public void testValidTransition() throws OrderStateTransitionException {
+    public void testValidTransition() {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 
@@ -76,22 +75,8 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         assertEquals(order, spawningOrdersList.getNext());
     }
 
-    @Test
-    public void testTransitioningToTheCurrentState() {
-        SharedOrderHolders orderHolders = SharedOrderHolders.getInstance();
-        SynchronizedDoublyLinkedList openOrdersList = orderHolders.getOpenOrdersList();
-        Order order = createOrder(OrderState.OPEN);
-        openOrdersList.addItem(order);
-
-        try {
-            OrderStateTransitioner.transition(order, OrderState.OPEN);
-            fail("Transitioning to the current state should not be permitted.");
-        } catch (OrderStateTransitionException e) {
-        }
-    }
-
     @Test(expected = RuntimeException.class)
-    public void testOriginListCannotBeFound() throws OrderStateTransitionException {
+    public void testOriginListCannotBeFound() {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 
@@ -107,7 +92,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
     }
 
     @Test(expected = RuntimeException.class)
-    public void testDestinationListCannotBeFound() throws OrderStateTransitionException {
+    public void testDestinationListCannotBeFound() {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 
@@ -125,8 +110,8 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         OrderStateTransitioner.transition(order, destinationState);
     }
 
-    @Test(expected = OrderStateTransitionException.class)
-    public void testOriginListRemovalFailure() throws OrderStateTransitionException {
+    @Test
+    public void testOriginListRemovalFailure() {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 

@@ -2,15 +2,8 @@ package org.fogbowcloud.manager.api.http;
 
 import java.util.List;
 
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.ApplicationFacade;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.apache.log4j.Logger;
@@ -36,8 +29,8 @@ public class AttachmentOrdersController {
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<String> createAttachment(@RequestBody AttachmentOrder attachmentOrder,
         @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
-        LOGGER.info("New attachment order request received.");
+        throws FogbowManagerException {
+        LOGGER.info("New attachment order request received <" + attachmentOrder.getId() + ">.");
 
         String attachmentId = ApplicationFacade.getInstance().createAttachment(attachmentOrder, federationTokenValue);
         return new ResponseEntity<String>(attachmentId, HttpStatus.CREATED);
@@ -46,8 +39,8 @@ public class AttachmentOrdersController {
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<AttachmentInstance>> getAllAttachments(
         @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
-        LOGGER.info("Get all attachment orders request received");
+        throws FogbowManagerException {
+        LOGGER.info("Get all attachment orders request received.");
         List<AttachmentInstance> attachmentInstance = ApplicationFacade.getInstance().getAllAttachments(federationTokenValue);
         return new ResponseEntity<>(attachmentInstance, HttpStatus.OK);
     }
@@ -55,8 +48,8 @@ public class AttachmentOrdersController {
     @RequestMapping(value = "/{attachmentId}", method = RequestMethod.GET)
     public ResponseEntity<AttachmentInstance> getAttachment(@PathVariable String attachmentId,
         @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
-        LOGGER.info("Get request to attachment order with id <" + attachmentId + "> received");
+        throws FogbowManagerException {
+        LOGGER.info("Get request for attachment order <" + attachmentId + "> received.");
         AttachmentInstance attachmentInstance = ApplicationFacade.getInstance().getAttachment(attachmentId, federationTokenValue);
         return new ResponseEntity<>(attachmentInstance, HttpStatus.OK);
     }
@@ -64,8 +57,8 @@ public class AttachmentOrdersController {
     @RequestMapping(value = "/{attachmentId}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> deleteAttachment(@PathVariable String attachmentId,
         @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
-        LOGGER.info("Delete attachment order to id <" + attachmentId + "> received");
+        throws FogbowManagerException {
+        LOGGER.info("Delete attachment order <" + attachmentId + "> received.");
         ApplicationFacade.getInstance().deleteAttachment(attachmentId, federationTokenValue);
         return new ResponseEntity<>(HttpStatus.OK);
     }

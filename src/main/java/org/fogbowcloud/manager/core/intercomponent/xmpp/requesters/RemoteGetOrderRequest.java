@@ -2,8 +2,8 @@ package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
-import org.fogbowcloud.manager.core.intercomponent.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
@@ -24,7 +24,7 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
     }
 
     @Override
-    public Instance send() throws RemoteRequestException {
+    public Instance send() throws FogbowManagerException {
         IQ iq = createIq();
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
@@ -58,7 +58,7 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
         return iq;
     }
 
-    private Instance getInstanceFromResponse(IQ response) throws RemoteRequestException {
+    private Instance getInstanceFromResponse(IQ response) throws FogbowManagerException {
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
         String instanceStr = queryElement.element(IqElement.INSTANCE.toString()).getText();
         
@@ -68,7 +68,7 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
 		try {
 			instance = (Instance) new Gson().fromJson(instanceStr, Class.forName(instanceClassName));
 		} catch (Exception e) {
-			throw new RemoteRequestException(e.getMessage());
+			throw new UnexpectedException(e.getMessage());
 		}
         
         return instance;

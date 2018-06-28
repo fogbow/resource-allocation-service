@@ -3,13 +3,10 @@ package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
-import org.fogbowcloud.manager.core.intercomponent.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
@@ -25,21 +22,21 @@ public class RemoteCreateOrderRequest implements RemoteRequest<Void> {
     }
 
     @Override
-    public Void send() throws RemoteRequestException, OrderManagementException, UnauthorizedException {
+    public Void send() throws FogbowManagerException {
         IQ iq = createIq();
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         if (response == null) {
             String message = "Unable to retrieve the response from providing member: " + order.getProvidingMember();
-            throw new UnexpectedException(message);
+            throw new UnavailableProviderException(message);
         }
         if (response.getError() != null) {
             if (response.getError().getCondition() == PacketError.Condition.forbidden){
                 String message = "The order was not authorized for: " + order.getId();
-                throw new UnauthorizedException(message);
+                throw new UnauthorizedRequestException(message);
             } else if (response.getError().getCondition() == PacketError.Condition.bad_request){
                 String message = "The order was duplicated on providing member: " + order.getProvidingMember();
-                throw new OrderManagementException(message);
+                throw new InvalidParameterException(message);
             }
         }
         LOGGER.debug("Request for order: " + this.order.getId() + " has been sent to " + order.getProvidingMember());

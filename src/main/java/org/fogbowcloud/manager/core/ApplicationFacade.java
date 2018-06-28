@@ -2,25 +2,16 @@ package org.fogbowcloud.manager.core;
 
 import java.util.*;
 
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.exceptions.ImageException;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.QuotaException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.constants.Operation;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.*;
 import org.fogbowcloud.manager.core.models.orders.*;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
@@ -44,21 +35,16 @@ public class ApplicationFacade {
         }
     }
 
-    public String createCompute(ComputeOrder order, String federationTokenValue)
-        throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
+    public String createCompute(ComputeOrder order, String federationTokenValue) throws FogbowManagerException {
         return activateOrder(order, federationTokenValue);
     }
 
-    public List<ComputeInstance> getAllComputes(String federationTokenValue)
-        throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException,
-            PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
+    public List<ComputeInstance> getAllComputes(String federationTokenValue) throws FogbowManagerException {
         List<Order> allOrders = getAllOrders(federationTokenValue, InstanceType.COMPUTE);
         return getAllInstances(allOrders, ComputeInstance.class);
     }
 
-    public ComputeInstance getCompute(String orderId, String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException,
-            UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
+    public ComputeInstance getCompute(String orderId, String federationTokenValue) throws FogbowManagerException {
         ComputeInstance instance = (ComputeInstance) getResourceInstance(orderId, federationTokenValue, InstanceType.COMPUTE);
         // The user believes that the order id is actually the instance id.
         // So we need to set the instance id accordingly before returning the instance.
@@ -66,40 +52,32 @@ public class ApplicationFacade {
         return instance;
     }
 
-    public void deleteCompute(String computeId, String federationTokenValue)
-        throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
+    public void deleteCompute(String computeId, String federationTokenValue) throws FogbowManagerException {
         deleteOrder(computeId, federationTokenValue, InstanceType.COMPUTE);
     }
 
     public ComputeAllocation getComputeAllocation(String memberId, String federationTokenValue)
-            throws UnauthenticatedException, UnauthorizedException {
+            throws FogbowManagerException {
 
         return (ComputeAllocation) getUserAllocation(memberId, federationTokenValue, InstanceType.COMPUTE);
     }
 
-    public ComputeQuota getComputeQuota(String memberId, String federationTokenValue)
-            throws UnauthenticatedException, QuotaException, UnauthorizedException, PropertyNotSpecifiedException,
-            TokenCreationException, RemoteRequestException {
+    public ComputeQuota getComputeQuota(String memberId, String federationTokenValue) throws FogbowManagerException {
 
             return (ComputeQuota) getUserQuota(memberId, federationTokenValue, InstanceType.COMPUTE);
     }
 
-    public String createVolume(VolumeOrder volumeOrder, String federationTokenValue)
-        throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
+    public String createVolume(VolumeOrder volumeOrder, String federationTokenValue) throws FogbowManagerException {
         return activateOrder(volumeOrder, federationTokenValue);
     }
 
-    public List<VolumeInstance> getAllVolumes(String federationTokenValue)
-        throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException,
-            PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
+    public List<VolumeInstance> getAllVolumes(String federationTokenValue) throws FogbowManagerException {
 
         List<Order> allOrders = getAllOrders(federationTokenValue, InstanceType.VOLUME);
         return getAllInstances(allOrders, VolumeInstance.class);
     }
 
-    public VolumeInstance getVolume(String orderId, String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException,
-            UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
+    public VolumeInstance getVolume(String orderId, String federationTokenValue) throws FogbowManagerException {
         VolumeInstance instance = (VolumeInstance) getResourceInstance(orderId, federationTokenValue, InstanceType.VOLUME);
         // The user believes that the order id is actually the instance id.
         // So we need to set the instance id accordingly before returning the instance.
@@ -107,27 +85,21 @@ public class ApplicationFacade {
         return instance;
     }
 
-    public void deleteVolume(String orderId, String federationTokenValue)
-        throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
+    public void deleteVolume(String orderId, String federationTokenValue) throws FogbowManagerException {
         deleteOrder(orderId, federationTokenValue, InstanceType.VOLUME);
     }
 
-    public String createNetwork(NetworkOrder networkOrder, String federationTokenValue)
-        throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
+    public String createNetwork(NetworkOrder networkOrder, String federationTokenValue) throws FogbowManagerException {
         return activateOrder(networkOrder, federationTokenValue);
     }
 
-    public List<NetworkInstance> getAllNetworks(String federationTokenValue)
-        throws UnauthorizedException, UnauthenticatedException, RequestException, TokenCreationException,
-            PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
+    public List<NetworkInstance> getAllNetworks(String federationTokenValue) throws FogbowManagerException {
 
         List<Order> allOrders = getAllOrders(federationTokenValue, InstanceType.NETWORK);
         return getAllInstances(allOrders, NetworkInstance.class);
     }
 
-    public NetworkInstance getNetwork(String orderId, String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException,
-            UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
+    public NetworkInstance getNetwork(String orderId, String federationTokenValue) throws FogbowManagerException {
         NetworkInstance instance = (NetworkInstance) getResourceInstance(orderId, federationTokenValue, InstanceType.NETWORK);
         // The user believes that the order id is actually the instance id.
         // So we need to set the instance id accordingly before returning the instance.
@@ -135,13 +107,11 @@ public class ApplicationFacade {
         return instance;
     }
 
-    public void deleteNetwork(String orderId, String federationTokenValue)
-        throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
+    public void deleteNetwork(String orderId, String federationTokenValue) throws FogbowManagerException {
         deleteOrder(orderId, federationTokenValue, InstanceType.NETWORK);
     }
 
-    public String createAttachment(AttachmentOrder attachmentOrder, String federationTokenValue) throws
-            OrderManagementException, UnauthorizedException, UnauthenticatedException {
+    public String createAttachment(AttachmentOrder attachmentOrder, String federationTokenValue) throws FogbowManagerException {
 
         // The AttachmentOrder uses the instanceId, therefore, we need to set the instanceId for source orderId and
         // target orderId received from request.
@@ -153,28 +123,21 @@ public class ApplicationFacade {
         return activateOrder(attachmentOrder, federationTokenValue);
     }
 
-    public List<AttachmentInstance> getAllAttachments(String federationTokenValue) throws UnauthenticatedException,
-            UnauthorizedException, PropertyNotSpecifiedException, TokenCreationException, RequestException,
-            InstanceNotFoundException, RemoteRequestException {
+    public List<AttachmentInstance> getAllAttachments(String federationTokenValue) throws FogbowManagerException {
 
         List<Order> allOrders = getAllOrders(federationTokenValue, InstanceType.ATTACHMENT);
         return getAllInstances(allOrders, AttachmentInstance.class);
     }
 
-    public AttachmentInstance getAttachment(String orderId, String federationTokenValue) throws
-            UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException,
-            PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
+    public AttachmentInstance getAttachment(String orderId, String federationTokenValue) throws FogbowManagerException {
         return (AttachmentInstance) getResourceInstance(orderId, federationTokenValue, InstanceType.ATTACHMENT);
     }
 
-    public void deleteAttachment(String orderId, String federationTokenValue) throws UnauthenticatedException,
-            UnauthorizedException, OrderManagementException {
+    public void deleteAttachment(String orderId, String federationTokenValue) throws FogbowManagerException {
         deleteOrder(orderId, federationTokenValue, InstanceType.ATTACHMENT);
     }
 
-    public Map<String, String> getAllImages(String memberId, String federationTokenValue) throws
-            UnauthenticatedException, UnauthorizedException, PropertyNotSpecifiedException, TokenCreationException,
-            RemoteRequestException, ImageException {
+    public Map<String, String> getAllImages(String memberId, String federationTokenValue) throws FogbowManagerException {
 
         this.aaController.authenticate(federationTokenValue);
 
@@ -189,9 +152,7 @@ public class ApplicationFacade {
         return cloudConnector.getAllImages(federationUser);
     }
 
-    public Image getImage(String memberId, String imageId, String federationTokenValue) throws
-            UnauthenticatedException, UnauthorizedException, RemoteRequestException, TokenCreationException,
-            PropertyNotSpecifiedException, ImageException {
+    public Image getImage(String memberId, String imageId, String federationTokenValue) throws FogbowManagerException {
 
         this.aaController.authenticate(federationTokenValue);
 
@@ -214,8 +175,7 @@ public class ApplicationFacade {
         this.orderController = orderController;
     }
 
-    private String activateOrder(Order order, String federationTokenValue)
-    			throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
+    private String activateOrder(Order order, String federationTokenValue) throws FogbowManagerException {
 
         this.aaController.authenticate(federationTokenValue);
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
@@ -234,8 +194,7 @@ public class ApplicationFacade {
         return order.getId();
     }
 
-    private void deleteOrder(String orderId, String federationTokenValue, InstanceType instanceType)
-    			throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
+    private void deleteOrder(String orderId, String federationTokenValue, InstanceType instanceType) throws FogbowManagerException {
         this.aaController.authenticate(federationTokenValue);
 
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
@@ -245,8 +204,7 @@ public class ApplicationFacade {
         this.orderController.deleteOrder(order);
     }
 
-    private List<Order> getAllOrders(String federationTokenValue, InstanceType instanceType)
-    			throws UnauthorizedException, UnauthenticatedException {
+    private List<Order> getAllOrders(String federationTokenValue, InstanceType instanceType) throws FogbowManagerException {
         this.aaController.authenticate(federationTokenValue);
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
         this.aaController.authorize(federationUser, Operation.GET_ALL, instanceType);
@@ -255,8 +213,7 @@ public class ApplicationFacade {
     }
 
     private Instance getResourceInstance(String orderId, String federationTokenValue, InstanceType instanceType)
-        throws UnauthenticatedException, UnauthorizedException, RequestException, TokenCreationException,
-            PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException {
+        throws FogbowManagerException {
         this.aaController.authenticate(federationTokenValue);
 
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
@@ -266,8 +223,7 @@ public class ApplicationFacade {
         return this.orderController.getResourceInstance(order);
     }
 
-    private Allocation getUserAllocation(String memberId, String federationTokenValue, InstanceType instanceType)
-            throws UnauthenticatedException, UnauthorizedException {
+    private Allocation getUserAllocation(String memberId, String federationTokenValue, InstanceType instanceType) throws FogbowManagerException {
 
         this.aaController.authenticate(federationTokenValue);
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
@@ -277,8 +233,7 @@ public class ApplicationFacade {
     }
 
     private Quota getUserQuota(String memberId, String federationTokenValue, InstanceType instanceType)
-            throws UnauthenticatedException, QuotaException, UnauthorizedException, PropertyNotSpecifiedException,
-            TokenCreationException, RemoteRequestException {
+            throws FogbowManagerException {
 
         this.aaController.authenticate(federationTokenValue);
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
@@ -288,8 +243,7 @@ public class ApplicationFacade {
         return cloudConnector.getUserQuota(federationUser, instanceType);
     }
 
-    private <T extends Instance> List<T> getAllInstances(List<Order> orders, Class<T> tClass) throws TokenCreationException,
-            RequestException, RemoteRequestException, InstanceNotFoundException, PropertyNotSpecifiedException, UnauthorizedException {
+    private <T extends Instance> List<T> getAllInstances(List<Order> orders, Class<T> tClass) throws FogbowManagerException {
         List<T> instances = new ArrayList<>();
         for (Order order : orders) {
             Instance instance = this.orderController.getResourceInstance(order);

@@ -18,7 +18,6 @@ import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.OrderController;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
-import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.RemoteCloudConnector;
@@ -227,38 +226,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         assertEquals(OrderState.FAILED, test.getOrderState());
     }
 
-    /**
-     * Test if the fulfilled processor still running and do not change the order state if the method
-     * processFulfilledOrder throw an order state transition exception.
-     *
-     * @throws OrderStateTransitionException
-     * @throws InterruptedException
-     */
     @Test
-    public void testProcessFulfilledOrderThrowingOrderStateTransitionException()
-            throws OrderStateTransitionException, InterruptedException {
-        Order order = this.createLocalOrder();
-        order.setOrderState(OrderState.FULFILLED);
-
-        this.fulfilledOrderList.addItem(order);
-
-        Mockito.doThrow(OrderStateTransitionException.class)
-                .when(this.fulfilledProcessor)
-                .processFulfilledOrder(Mockito.any(Order.class));
-
-        this.thread = new Thread(this.fulfilledProcessor);
-        this.thread.start();
-
-        Thread.sleep(500);
-
-        Order test = this.fulfilledOrderList.getNext();
-        assertEquals(order.getInstanceId(), test.getInstanceId());
-        assertEquals(OrderState.FULFILLED, order.getOrderState());
-    }
-
-    @Test
-    public void testRunThrowableExceptionWhileTryingToProcessOrder()
-            throws InterruptedException, OrderStateTransitionException {
+    public void testRunThrowableExceptionWhileTryingToProcessOrder() throws InterruptedException {
         Order order = Mockito.mock(Order.class);
         OrderState state = null;
         order.setOrderState(state);
@@ -271,19 +240,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
         Thread.sleep(500);
-    }
-
-    @Test
-    public void testRunExceptionWhileTryingToProcessInstance() throws Exception {
-        Order order = this.createLocalOrder();
-        order.setOrderState(OrderState.FULFILLED);
-        this.fulfilledOrderList.addItem(order);
-
-        Mockito.doThrow(new OrderStateTransitionException("Any Exception"))
-                .when(this.fulfilledProcessor)
-                .processInstance(order);
-
-        this.fulfilledProcessor.processFulfilledOrder(order);
     }
 
     private Order createLocalOrder() {

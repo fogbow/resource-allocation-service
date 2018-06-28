@@ -11,8 +11,7 @@ import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
@@ -231,7 +230,7 @@ public class OpenProcessorTest extends BaseUnitTests {
      * @throws InterruptedException
      */
     @Test
-    public void testProcessNotOpenOrder() throws InterruptedException, OrderManagementException {
+    public void testProcessNotOpenOrder() throws InterruptedException, FogbowManagerException {
         Order order = this.createLocalOrder(getLocalMemberId());
 
         OrderStateTransitioner.activateOrder(order);
@@ -264,43 +263,12 @@ public class OpenProcessorTest extends BaseUnitTests {
 
     /**
      * Test if the open processor still running and do not change the order state if the method
-     * processOpenOrder throw an order state transition exception.
-     *
-     * @throws OrderStateTransitionException
-     * @throws InterruptedException
-     */
-    @Test
-    public void testProcessOpenOrderThrowingOrderStateTransitionException()
-            throws Exception {
-        Order order = this.createLocalOrder(getLocalMemberId());
-
-        OrderStateTransitioner.activateOrder(order);
-
-        Mockito.doThrow(OrderStateTransitionException.class)
-                .when(this.openProcessor)
-                .processOpenOrder(Mockito.any(Order.class));
-
-        this.thread = new Thread(this.openProcessor);
-        this.thread.start();
-
-        Thread.sleep(500);
-
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        assertEquals(OrderState.OPEN, order.getOrderState());
-        assertFalse(this.listIsEmpty(openOrdersList));
-    }
-
-    /**
-     * Test if the open processor still running and do not change the order state if the method
      * processOpenOrder throw an exception.
      *
-     * @throws OrderStateTransitionException
      * @throws InterruptedException
      */
     @Test
-    public void testProcessOpenOrderThrowingAnException()
-            throws Exception {
+    public void testProcessOpenOrderThrowingAnException() throws Exception {
         Order order = this.createLocalOrder(getLocalMemberId());
 
         OrderStateTransitioner.activateOrder(order);

@@ -5,14 +5,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import org.fogbowcloud.manager.api.http.ComputeOrdersController;
 import org.fogbowcloud.manager.api.http.ExceptionTranslator;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.plugins.exceptions.InvalidCredentialsException;
-import org.fogbowcloud.manager.core.plugins.exceptions.InvalidTokenException;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
+import org.fogbowcloud.manager.core.exceptions.TokenCreationException;
+import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.json.JSONObject;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
@@ -42,7 +39,7 @@ public class ExceptionHandlerControllerTest {
     @Test
     public void testUnauthorizedException() throws Exception {
         Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString()))
-                .thenThrow(new UnauthorizedException());
+                .thenThrow(new UnauthorizedRequestException());
 
         MockHttpServletResponse response =
                 mockMvc.perform(
@@ -62,7 +59,7 @@ public class ExceptionHandlerControllerTest {
     @Test
     public void testUnauthenticatedException() throws Exception {
         Mockito.when(this.computeOrdersController.getAllCompute(Mockito.anyString()))
-                .thenThrow(new UnauthenticatedException());
+                .thenThrow(new UnauthenticatedUserException());
 
         MockHttpServletResponse response =
                 this.mockMvc.perform(

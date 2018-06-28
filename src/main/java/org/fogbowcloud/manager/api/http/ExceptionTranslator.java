@@ -1,9 +1,6 @@
 package org.fogbowcloud.manager.api.http;
 
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,24 +13,29 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice
 public class ExceptionTranslator extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(
-    		{UnauthorizedException.class, UnauthenticatedException.class})
-    public final ResponseEntity<ExceptionResponse> handleAAException(
-            Exception ex, WebRequest request) {
+    @ExceptionHandler(UnauthorizedRequestException.class)
+    public final ResponseEntity<ExceptionResponse> handleAuthorizationException(Exception ex, WebRequest request) {
 
-        ExceptionResponse errorDetails =
-                new ExceptionResponse(
+        ExceptionResponse errorDetails = new ExceptionResponse(
+                        ex.getMessage(), request.getDescription(false), HttpStatus.FORBIDDEN);
+
+        return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
+    }
+
+    @ExceptionHandler(UnauthenticatedUserException.class)
+    public final ResponseEntity<ExceptionResponse> handleAuthenticationException(Exception ex, WebRequest request) {
+
+        ExceptionResponse errorDetails = new ExceptionResponse(
                         ex.getMessage(), request.getDescription(false), HttpStatus.UNAUTHORIZED);
 
         return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
     }
 
-    @ExceptionHandler(TokenCreationException.class)
-    public final ResponseEntity<ExceptionResponse> handleTokenCreationException(
+    @ExceptionHandler(InvalidParameterException.class)
+    public final ResponseEntity<ExceptionResponse> handleInvalidParameterException(
             TokenCreationException ex, WebRequest request) {
 
-        ExceptionResponse errorDetails =
-                new ExceptionResponse(
+        ExceptionResponse errorDetails = new ExceptionResponse(
                         ex.getMessage(), request.getDescription(false), HttpStatus.BAD_REQUEST);
 
         return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
@@ -43,32 +45,57 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
     public final ResponseEntity<ExceptionResponse> handleInstanceNotFoundException(
             Exception ex, WebRequest request) {
 
-        ExceptionResponse errorDetails =
-                new ExceptionResponse(
+        ExceptionResponse errorDetails = new ExceptionResponse(
                         ex.getMessage(), request.getDescription(false), HttpStatus.NOT_FOUND);
 
         return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
     }
-    
+
+    @ExceptionHandler(QuotaExceededException.class)
+    public final ResponseEntity<ExceptionResponse> handleQuotaExceededException(
+            Exception ex, WebRequest request) {
+
+        ExceptionResponse errorDetails = new ExceptionResponse(
+                ex.getMessage(), request.getDescription(false), HttpStatus.CONFLICT);
+
+        return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
+    }
+
+    @ExceptionHandler(NoAvailableResourcesException.class)
+    public final ResponseEntity<ExceptionResponse> handleNoAvailableResourcesException(
+            Exception ex, WebRequest request) {
+
+        ExceptionResponse errorDetails = new ExceptionResponse(
+                ex.getMessage(), request.getDescription(false), HttpStatus.NOT_ACCEPTABLE);
+
+        return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
+    }
+
+    @ExceptionHandler(UnauthorizedRequestException.class)
+    public final ResponseEntity<ExceptionResponse> handleUnavailableProviderException(
+            Exception ex, WebRequest request) {
+
+        ExceptionResponse errorDetails = new ExceptionResponse(
+                ex.getMessage(), request.getDescription(false), HttpStatus.GATEWAY_TIMEOUT);
+
+        return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
+    }
+
     @Override
     public final ResponseEntity<Object> handleServletRequestBindingException(
-    		ServletRequestBindingException ex,
-			HttpHeaders headers, HttpStatus status, WebRequest request) {
+    		ServletRequestBindingException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
 
-        ExceptionResponse errorDetails =
-                new ExceptionResponse(
+        ExceptionResponse errorDetails = new ExceptionResponse(
                         ex.getMessage(), request.getDescription(false), HttpStatus.UNAUTHORIZED);
 
         return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
     }
 
     @ExceptionHandler(Exception.class)
-    public final ResponseEntity<ExceptionResponse> handleAnyException(
-            Exception ex, WebRequest request) {
+    public final ResponseEntity<ExceptionResponse> handleAnyException(Exception ex, WebRequest request) {
 
-        ExceptionResponse errorDetails =
-                new ExceptionResponse(
-                        ex.getMessage(), request.getDescription(false), HttpStatus.BAD_REQUEST);
+        ExceptionResponse errorDetails = new ExceptionResponse(
+                        ex.getMessage(), request.getDescription(false), HttpStatus.UNSUPPORTED_MEDIA_TYPE);
 
         return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
     }

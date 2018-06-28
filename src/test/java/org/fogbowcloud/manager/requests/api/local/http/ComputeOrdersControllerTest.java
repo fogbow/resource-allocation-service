@@ -57,7 +57,7 @@ public class ComputeOrdersControllerTest {
     private final String COMPUTE_ENDPOINT = "/" + ComputeOrdersController.COMPUTE_ENDPOINT;
 
     @Before
-    public void setUp() throws OrderManagementException {
+    public void setUp() throws FogbowManagerException {
         this.facade = spy(ApplicationFacade.class);
         PowerMockito.mockStatic(ApplicationFacade.class);
         given(ApplicationFacade.getInstance()).willReturn(this.facade);

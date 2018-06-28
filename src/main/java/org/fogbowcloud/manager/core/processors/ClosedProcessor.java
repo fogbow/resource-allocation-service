@@ -1,20 +1,13 @@
 package org.fogbowcloud.manager.core.processors;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
-
-import java.util.Map;
 
 public class ClosedProcessor implements Runnable {
 
@@ -56,8 +49,7 @@ public class ClosedProcessor implements Runnable {
         }
     }
 
-    protected void processClosedOrder(Order order)
-    		throws PropertyNotSpecifiedException, TokenCreationException, RequestException, UnauthorizedException, RemoteRequestException, OrderManagementException {
+    protected void processClosedOrder(Order order) throws FogbowManagerException {
         synchronized (order) {
             CloudConnector provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
             provider.deleteInstance(order);

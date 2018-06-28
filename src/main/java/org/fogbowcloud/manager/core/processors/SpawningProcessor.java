@@ -1,18 +1,12 @@
 package org.fogbowcloud.manager.core.processors;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -58,11 +52,7 @@ public class SpawningProcessor implements Runnable {
             try {
                 Order order = this.spawningOrderList.getNext();
                 if (order != null) {
-                    try {
-                        processSpawningOrder(order);
-                    } catch (OrderStateTransitionException e) {
-                        LOGGER.error("Error while trying to change the state of order " + order, e);
-                    }
+                    processSpawningOrder(order);
                 } else {
                     this.spawningOrderList.resetPointer();
                     LOGGER.debug(
@@ -95,10 +85,9 @@ public class SpawningProcessor implements Runnable {
     /**
      * This method does not synchronize the order object because it is private and can only be
      * called by the processSpawningOrder method.
-     * @throws RemoteRequestException 
+     * @throws FogbowManagerException
      */
-    private void processInstance(Order order)
-    		throws PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException, UnauthorizedException, OrderStateTransitionException, RemoteRequestException {
+    private void processInstance(Order order) throws FogbowManagerException {
         Instance instance = this.localCloudConnector.getInstance(order);
         InstanceType instanceType = order.getType();
 

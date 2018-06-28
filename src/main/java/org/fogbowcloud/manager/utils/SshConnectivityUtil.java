@@ -6,6 +6,7 @@ import net.schmizz.sshj.connection.channel.direct.Session.Command;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.processors.SpawningProcessor;
 
@@ -59,7 +60,7 @@ public class SshConnectivityUtil {
         return command;
     }
 
-    private String getManagerSSHPrivateKey() {
+    private String getManagerSSHPrivateKey() throws FatalErrorException {
         String privateKey = PropertiesHolder.getInstance().
                 getProperty(ConfigurationConstants.MANAGER_SSH_PRIVATE_KEY_FILE_PATH);
         if (privateKey == null || privateKey.isEmpty()) {

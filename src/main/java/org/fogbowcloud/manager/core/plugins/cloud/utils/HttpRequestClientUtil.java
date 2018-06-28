@@ -7,7 +7,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
 import org.fogbowcloud.manager.core.models.ResponseConstants;
@@ -21,12 +22,12 @@ public class HttpRequestClientUtil {
 	private static final Logger LOGGER = Logger.getLogger(HttpRequestClientUtil.class);
 	private HttpClient client;
 	
-	public HttpRequestClientUtil() {
+	public HttpRequestClientUtil() throws FatalErrorException {
         HttpRequestUtil.init();
         this.client = HttpRequestUtil.createHttpClient();
 	}
 	
-    public String doGetRequest(String endpoint, Token localToken) throws RequestException {
+    public String doGetRequest(String endpoint, Token localToken) throws FogbowManagerException {
         LOGGER.debug("Doing GET request to endpoint <" + endpoint + ">");
 
         HttpResponse response = null;
@@ -47,7 +48,7 @@ public class HttpRequestClientUtil {
             responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         } catch (Exception e) {
             LOGGER.error("Could not make GET request.", e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         } finally {
             try {
                 EntityUtils.consume(response.getEntity());
@@ -60,7 +61,7 @@ public class HttpRequestClientUtil {
     }
     
     private void checkStatusResponse(HttpResponse response, String message)
-            throws RequestException {
+            throws FogbowManagerException {
         LOGGER.debug("Checking status response...");
 
         StatusResponseMap statusResponseMap = new StatusResponseMap(response, message);
@@ -68,7 +69,7 @@ public class HttpRequestClientUtil {
         StatusResponse statusResponse = statusResponseMap.getStatusResponse(statusCode);
 
         if (statusResponse != null) {
-            throw new RequestException(
+            throw new FogbowManagerException(
                     statusResponse.getErrorType(), statusResponse.getResponseConstants());
         }
     }

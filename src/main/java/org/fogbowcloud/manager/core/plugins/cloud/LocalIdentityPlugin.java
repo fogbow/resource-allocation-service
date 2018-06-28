@@ -2,9 +2,7 @@ package org.fogbowcloud.manager.core.plugins.cloud;
 
 import java.util.Map;
 
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.models.token.Token;
 
 public interface LocalIdentityPlugin {
@@ -14,11 +12,8 @@ public interface LocalIdentityPlugin {
      *
      * @param userCredentials
      * @return a Token with an access ID provided by the identity service.
-     * @throws UnauthorizedException
-     * @throws TokenCreationException
+     * @throws FogbowManagerException
      */
-    // TODO Change Unauthorized to Unauthenticated
-    public Token createToken(Map<String, String> userCredentials)
-            throws UnauthorizedException, TokenCreationException;
+    public Token createToken(Map<String, String> userCredentials) throws FogbowManagerException;
 
 }

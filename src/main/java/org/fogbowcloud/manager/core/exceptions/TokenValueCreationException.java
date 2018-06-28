@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.exceptions;
+package org.fogbowcloud.manager.core.exceptions;
 
 public class TokenValueCreationException extends Exception {
 

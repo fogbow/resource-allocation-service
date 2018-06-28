@@ -19,7 +19,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.message.BasicStatusLine;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.ResponseConstants;
 import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
@@ -28,8 +28,6 @@ import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackNetworkInstanceStateMapper;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackV2NetworkPlugin;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -242,7 +240,7 @@ public class OpenStackV2NetworkPluginTest {
 	}
 
 	@Test
-	public void testGetInstanceFromJson() throws JSONException, IOException, RequestException {
+	public void testGetInstanceFromJson() throws JSONException, IOException, FogbowManagerException {
 		// Generating network response string
 		JSONObject networkContentJsonObject = new JSONObject();
 		String networkId = "networkId00";
@@ -287,7 +285,7 @@ public class OpenStackV2NetworkPluginTest {
 	}
 
 	@Test
-	public void testRemoveInstance() throws IOException, JSONException, RequestException {
+	public void testRemoveInstance() throws IOException, JSONException, FogbowManagerException {
 		JSONObject portOneJsonObject = new JSONObject();
 		String networkId = "networkId";
 		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_NETWORK_ID, networkId);
@@ -343,7 +341,7 @@ public class OpenStackV2NetworkPluginTest {
 		try {
 			this.openStackV2NetworkPlugin.deleteInstance(networkId, this.defaultToken);
 			Assert.fail();
-		} catch (RequestException e) {
+		} catch (FogbowManagerException e) {
 			String errorMessage = e.getMessage();
 			Assert.assertTrue(errorMessage.contains(ErrorType.BAD_REQUEST.toString()));
 			Assert.assertTrue(errorMessage.contains(ResponseConstants.IRREGULAR_SYNTAX.toString()));
@@ -386,7 +384,7 @@ public class OpenStackV2NetworkPluginTest {
 		try {
 			this.openStackV2NetworkPlugin.deleteInstance(networkId, this.defaultToken);
 			Assert.fail();
-		} catch (RequestException e) {
+		} catch (FogbowManagerException e) {
 			String errorMessage = e.getMessage();
 			Assert.assertTrue(errorMessage.contains(ErrorType.BAD_REQUEST.toString()));
 		} catch (Exception e) {
@@ -428,7 +426,7 @@ public class OpenStackV2NetworkPluginTest {
 		try {
 			this.openStackV2NetworkPlugin.deleteInstance(networkId, this.defaultToken);
 			Assert.fail();
-		} catch (RequestException e) {
+		} catch (FogbowManagerException e) {
 			String errorMessage = e.getMessage();
 			Assert.assertTrue(errorMessage.contains(ErrorType.BAD_REQUEST.toString()));
 		} catch (Exception e) {
@@ -439,7 +437,7 @@ public class OpenStackV2NetworkPluginTest {
 	}
 
 	@Test
-	public void testRemoveNetworkWithInstanceAssociatedException() throws JSONException, IOException, RequestException {
+	public void testRemoveNetworkWithInstanceAssociatedException() throws JSONException, IOException, FogbowManagerException {
 		String networkId = "networkId";
 		String routerId = "routerId";
 
@@ -471,7 +469,7 @@ public class OpenStackV2NetworkPluginTest {
 		try {
 			this.openStackV2NetworkPlugin.deleteInstance(networkId, this.defaultToken);
 			Assert.fail();
-		} catch (RequestException e) {
+		} catch (FogbowManagerException e) {
 			String errorMessage = e.getMessage();
 			Assert.assertTrue(errorMessage.contains(ErrorType.BAD_REQUEST.toString()));
 		} catch (Exception e) {
@@ -502,7 +500,7 @@ public class OpenStackV2NetworkPluginTest {
 	}
 
 	@Test
-	public void testRequestInstance() throws IOException, RequestException {
+	public void testRequestInstance() throws IOException, FogbowManagerException {
 		HttpResponse httpResponsePostRouter = createHttpResponse("", HttpStatus.SC_OK);
 		HttpResponse httpResponsePostNetwork = createHttpResponse("", HttpStatus.SC_OK);
 		HttpResponse httpResponsePostSubnet = createHttpResponse("", HttpStatus.SC_OK);
@@ -516,8 +514,8 @@ public class OpenStackV2NetworkPluginTest {
 		Mockito.verify(this.client, Mockito.times(4)).execute(Mockito.any(HttpUriRequest.class));
 	}
 
-	@Test(expected = RequestException.class)
-	public void testRequestInstancePostRouterError() throws IOException, RequestException {
+	@Test(expected = FogbowManagerException.class)
+	public void testRequestInstancePostRouterError() throws IOException, FogbowManagerException {
 		HttpResponse httpResponsePostRouter = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
 		Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostRouter);
 
@@ -545,8 +543,8 @@ public class OpenStackV2NetworkPluginTest {
 		Mockito.verify(this.client, Mockito.times(3)).execute(Mockito.any(HttpUriRequest.class));
 	}
 
-	@Test(expected = RequestException.class)
-	public void testRequestInstancePostSubnetError() throws IOException, RequestException {
+	@Test(expected = FogbowManagerException.class)
+	public void testRequestInstancePostSubnetError() throws IOException, FogbowManagerException {
 		HttpResponse httpResponsePostRouter = createHttpResponse("", HttpStatus.SC_OK);
 		HttpResponse httpResponsePostNetwork = createHttpResponse("", HttpStatus.SC_OK);
 		HttpResponse httpResponsePostSubnet = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);

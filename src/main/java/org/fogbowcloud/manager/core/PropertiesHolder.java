@@ -1,6 +1,7 @@
 package org.fogbowcloud.manager.core;
 
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.utils.PropertiesUtil;
 
 import java.io.File;
@@ -14,7 +15,7 @@ public class PropertiesHolder {
 
     private static PropertiesHolder instance;
 
-    private PropertiesHolder() {
+    private PropertiesHolder() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
         String path = homeDir.getPath() + File.separator;
         List<String> configFilesNames = new ArrayList<>();
@@ -23,7 +24,7 @@ public class PropertiesHolder {
         configFilesNames.add(path+DefaultConfigurationConstants.REVERSE_TUNNEL_CONF_FILE_NAME);
         this.properties = PropertiesUtil.readProperties(configFilesNames);    }
 
-    public static synchronized PropertiesHolder getInstance() {
+    public static synchronized PropertiesHolder getInstance() throws FatalErrorException {
         if (instance == null) {
             instance = new PropertiesHolder();
         }

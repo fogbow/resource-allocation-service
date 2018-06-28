@@ -4,8 +4,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
-import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
-import org.fogbowcloud.manager.core.exceptions.RemoteConnectionException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -41,11 +40,7 @@ public class OpenProcessor implements Runnable {
             try {
                 Order order = this.openOrdersList.getNext();
                 if (order != null) {
-                    try {
-                        processOpenOrder(order);
-                    } catch (OrderStateTransitionException e) {
-                        LOGGER.error("Error while trying to change the state of order " + order, e);
-                    }
+                    processOpenOrder(order);
                 } else {
                     this.openOrdersList.resetPointer();
                     LOGGER.debug(
@@ -68,7 +63,7 @@ public class OpenProcessor implements Runnable {
      * set to failed, else, is set to spawning or pending if the order is localidentity or intercomponent,
      * respectively.
      */
-    protected void processOpenOrder(Order order) throws OrderStateTransitionException {
+    protected void processOpenOrder(Order order) {
         // The order object synchronization is needed to prevent a race
         // condition on order access. For example: a user can delete a open
         // order while this method is trying to get an Instance for this order.
@@ -89,7 +84,7 @@ public class OpenProcessor implements Runnable {
 
                     LOGGER.debug("Updating order state after processing [" + order.getId() + "]");
                     updateOrderStateAfterProcessing(order);
-                } catch (RemoteConnectionException e) {
+                } catch (FogbowManagerException e) {
                     LOGGER.error("", e);
                 } catch (Exception e) {
                     LOGGER.error("Error while trying to get an instance for order: " + order, e);
@@ -102,7 +97,7 @@ public class OpenProcessor implements Runnable {
     /**
      * Update the order state and do the order state transition after the open order process.
      */
-    private void updateOrderStateAfterProcessing(Order order) throws OrderStateTransitionException {
+    private void updateOrderStateAfterProcessing(Order order) {
         if (order.isProviderLocal(this.localMemberId)) {
             String orderInstanceId = order.getInstanceId();
 
