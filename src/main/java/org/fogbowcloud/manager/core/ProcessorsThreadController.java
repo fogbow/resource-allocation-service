@@ -52,10 +52,10 @@ public class ProcessorsThreadController {
 
         ClosedProcessor closedProcessor = new ClosedProcessor(closedOrdersProcSleepTimeStr);
 
-        this.openProcessorThread = new Thread(openProcessor, "OpenProcessor-thread");
-        this.spawningProcessorThread = new Thread(spawningProcessor, "SpawningProcessor-thread");
-        this.fulfilledProcessorThread = new Thread(fulfilledProcessor, "FulfilledProcessor-thread");
-        this.closedProcessorThread = new Thread(closedProcessor, "ClosedProcessor-thread");
+        this.openProcessorThread = new Thread(openProcessor, "open-proc");
+        this.spawningProcessorThread = new Thread(spawningProcessor, "spawning-proc");
+        this.fulfilledProcessorThread = new Thread(fulfilledProcessor, "fulfilled-proc");
+        this.closedProcessorThread = new Thread(closedProcessor, "closed-proc");
     }
 
     /**
