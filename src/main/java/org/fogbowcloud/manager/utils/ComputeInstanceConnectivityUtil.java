@@ -27,6 +27,7 @@ public class ComputeInstanceConnectivityUtil {
     }
 
     public SshTunnelConnectionData getSshTunnelConnectionData(String orderId) {
+        LOGGER.info("Getting tunnel connection data.");
         try {
             Map<String, String> serviceAddresses =
                 this.tunnelingService.getExternalServiceAddresses(orderId);

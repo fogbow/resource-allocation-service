@@ -314,32 +314,25 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             throws RequestException {
         LOGGER.debug("Checking status response...");
 
-        StatusResponseMap statusResponseMap = new StatusResponseMap(response, message);
+        ErrorResponseMap errorResponseMap = new ErrorResponseMap(response, message);
         Integer statusCode = response.getStatusLine().getStatusCode();
-        StatusResponse statusResponse = statusResponseMap.getStatusResponse(statusCode);
+        ErrorResponse errorResponse = errorResponseMap.getStatusResponse(statusCode);
 
-        if (statusResponse != null) {
+        if (errorResponse != null) {
             throw new RequestException(
-                    statusResponse.getErrorType(), statusResponse.getResponseConstants());
+                    errorResponse.getErrorType(), errorResponse.getResponseConstants());
         }
     }
 
     protected Flavor findSmallestFlavor(ComputeOrder computeOrder, Token localToken) {
-        updateFlavors(localToken);
+        updateFlavors(localToken, computeOrder);
 
         LOGGER.debug("Finding smallest flavor");
 
-        Flavor minimumFlavor =
-                new Flavor(
-                        null,
-                        computeOrder.getvCPU(),
-                        computeOrder.getMemory(),
-                        computeOrder.getDisk());
-
-        return this.flavors.ceiling(minimumFlavor);
+        return this.flavors.first();
     }
 
-    protected synchronized void updateFlavors(Token localToken) {
+    protected synchronized void updateFlavors(Token localToken, ComputeOrder order) {
         LOGGER.debug("Updating flavors from OpenStack");
 
         try {
@@ -361,7 +354,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
                 flavorsId.add(itemFlavor.getString(ID_JSON_FIELD));
             }
 
-            TreeSet<Flavor> newFlavors = detailFlavors(endpoint, localToken, flavorsId);
+            TreeSet<Flavor> newFlavors = detailFlavors(endpoint, localToken, flavorsId, order);
             if (newFlavors != null) {
                 this.flavors = newFlavors;
             }
@@ -371,7 +364,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         }
     }
 
-    private TreeSet<Flavor> detailFlavors(String endpoint, Token localToken, List<String> flavorsId)
+    private TreeSet<Flavor> detailFlavors(String endpoint, Token localToken, List<String> flavorsId, ComputeOrder order)
             throws JSONException, RequestException {
         TreeSet<Flavor> newFlavors = new TreeSet<>();
         TreeSet<Flavor> flavorsCopy = new TreeSet<>(this.flavors);
@@ -400,7 +393,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
                 int ram = specificFlavor.getInt(MEMORY_JSON_FIELD);
                 int vcpus = specificFlavor.getInt(VCPU_JSON_FIELD);
 
-                newFlavors.add(new Flavor(name, id, vcpus, ram, disk));
+                if (vcpus >= order.getvCPU() && ram >= order.getMemory() && disk >= order.getDisk()) {
+                    newFlavors.add(new Flavor(name, id, vcpus, ram, disk));
+                }
             }
         }
 

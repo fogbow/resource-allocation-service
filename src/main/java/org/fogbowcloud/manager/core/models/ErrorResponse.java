@@ -1,11 +1,11 @@
 package org.fogbowcloud.manager.core.models;
 
-public class StatusResponse {
+public class ErrorResponse {
 
     private ErrorType errorType;
     private String responseConstants;
 
-    public StatusResponse(ErrorType errorType, String responseConstants) {
+    public ErrorResponse(ErrorType errorType, String responseConstants) {
         this.errorType = errorType;
         this.responseConstants = responseConstants;
     }

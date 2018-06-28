@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core;
 
 import java.util.*;
 
+import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
@@ -28,6 +29,8 @@ import org.fogbowcloud.manager.core.models.token.FederationUser;
 public class ApplicationFacade {
 
     private static ApplicationFacade instance;
+
+    private final Logger LOGGER = Logger.getLogger(ApplicationFacade.class);
 
     private AaController aaController;
     private OrderController orderController;
@@ -217,6 +220,7 @@ public class ApplicationFacade {
     private String activateOrder(Order order, String federationTokenValue)
     			throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
 
+        LOGGER.info("Normalizing the new compute order request received");
         this.aaController.authenticate(federationTokenValue);
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
         this.aaController.authorize(federationUser, Operation.CREATE, order);
@@ -290,6 +294,7 @@ public class ApplicationFacade {
 
     private <T extends Instance> List<T> getAllInstances(List<Order> orders, Class<T> tClass) throws TokenCreationException,
             RequestException, RemoteRequestException, InstanceNotFoundException, PropertyNotSpecifiedException, UnauthorizedException {
+        LOGGER.info("Get instance of all orders.");
         List<T> instances = new ArrayList<>();
         for (Order order : orders) {
             Instance instance = this.orderController.getResourceInstance(order);

@@ -20,6 +20,7 @@ public class OrderStateTransitioner {
     private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
 
     public static void activateOrder(Order order) throws OrderManagementException {
+        LOGGER.info("Activating new compute order request received");
 
         //FIXME: I moved this condition to outside of the synchronized block because it is unreachable in the old code
         //Anyway, it is possible the best solution is to remove the condition completely, since the other methods do not check this
