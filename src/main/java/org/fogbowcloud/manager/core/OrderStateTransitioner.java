@@ -85,7 +85,13 @@ public class OrderStateTransitioner {
                         "Tried to remove order %s from the active orders but it was not active";
                 LOGGER.error(String.format(message, order.getId()));
             }
+
             closedOrders.removeItem(order);
+
+            // TODO: is it here? (only used for closed orders, here the resource is definitely deleted on provider)
+            order.setInstanceId(null);
+            DatabaseManager databaseManager = DatabaseManager.getInstance();
+            databaseManager.update(order);
         }
     }
 
@@ -126,9 +132,12 @@ public class OrderStateTransitioner {
             if (origin.removeItem(order)) {
                 order.setOrderState(newState);
 
-                // Updating order in stable storage
-                DatabaseManager databaseManager = DatabaseManager.getInstance();
-                databaseManager.update(order);
+                // TODO: Updating order in stable storage
+                // (do not update closed orders here since it still have an instance id)
+                if (! order.getOrderState().equals(OrderState.CLOSED)) {
+                    DatabaseManager databaseManager = DatabaseManager.getInstance();
+                    databaseManager.update(order);
+                }
 
                 destination.addItem(order);
             } else {
@@ -147,5 +156,4 @@ public class OrderStateTransitioner {
             LOGGER.error(e.getMessage(), e);
         }
     }
-
 }

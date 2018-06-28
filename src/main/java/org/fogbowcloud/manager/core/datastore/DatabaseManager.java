@@ -13,8 +13,9 @@ import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.CloudInitUserDa
 
 import java.lang.reflect.Type;
 import java.sql.*;
-import java.util.*;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 public class DatabaseManager implements StableStorage {
 
@@ -27,8 +28,8 @@ public class DatabaseManager implements StableStorage {
     private static DatabaseManager instance;
 
     private DatabaseManager() {
-//        PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
-//        DATABASE_URL = propertiesHolder.getProperty(ConfigurationConstants.DATABASE_URL);
+        PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
+        DATABASE_URL = propertiesHolder.getProperty(ConfigurationConstants.DATABASE_URL);
 
         try {
             Class.forName(MANAGER_DATASTORE_SQLITE_DRIVER);
@@ -311,6 +312,16 @@ public class DatabaseManager implements StableStorage {
                     new UserData(computeResult.getString(12), CloudInitUserDataBuilder.FileType.valueOf(
                             computeResult.getString(13))), computeResult.getString(14), networksid);
 
+            computeOrder.setInstanceId(computeResult.getString(2));
+            computeOrder.setOrderState(OrderState.fromValue(computeResult.getString(3)));
+
+            ComputeAllocation computeAllocation = new ComputeAllocation(
+                    computeResult.getInt(15),
+                    computeResult.getInt(16),
+                    computeResult.getInt(17));
+
+            computeOrder.setActualAllocation(computeAllocation);
+
             synchronizedDoublyLinkedList.addItem(computeOrder);
         }
     }
@@ -482,9 +493,17 @@ public class DatabaseManager implements StableStorage {
             orderStatement.setString(12, computeOrder.getUserData().getExtraUserDataFileContent());
             orderStatement.setString(13, computeOrder.getUserData().getExtraUserDataFileType().name());
             orderStatement.setString(14, computeOrder.getPublicKey());
-            orderStatement.setInt(15, computeOrder.getActualAllocation().getvCPU());
-            orderStatement.setInt(16, computeOrder.getActualAllocation().getRam());
-            orderStatement.setInt(17, computeOrder.getActualAllocation().getInstances());
+
+            // TODO: It is not necessary when creating an order (can be null)
+            if (computeOrder.getActualAllocation() == null) {
+                orderStatement.setInt(15, -1);
+                orderStatement.setInt(16, -1);
+                orderStatement.setInt(17, -1);
+            } else {
+                orderStatement.setInt(15, computeOrder.getActualAllocation().getvCPU());
+                orderStatement.setInt(16, computeOrder.getActualAllocation().getRam());
+                orderStatement.setInt(17, computeOrder.getActualAllocation().getInstances());
+            }
 
             Gson gson = new Gson();
             String networksId = gson.toJson(computeOrder.getNetworksId());
@@ -644,64 +663,64 @@ public class DatabaseManager implements StableStorage {
         }
     }
 
-    public static void main(String[] args) {
-        DatabaseManager databaseManager = new DatabaseManager();
-
-        Map<String, String> attr = new HashMap<>();
-        attr.put("oi", "aras");
-
-        FederationUser federationUser = new FederationUser("fed-id", attr);
-        String requestingMember = "LOCAL_MEMBER_ID";
-        String providingMember = "LOCAL_MEMBER_ID";
-
-        UserData userData = new UserData("extraUserDataFileContent", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
-
-        ComputeAllocation computeAllocation = new ComputeAllocation(1, 1, 1);
-
-        List<String> netIds = new ArrayList<>();
-        netIds.add("netid1");
-        netIds.add("netid2");
-
-        ComputeOrder order = new ComputeOrder("x", federationUser, requestingMember, providingMember, 8, 1024,
-                30, "fake_image_name", userData, "fake_public_key", netIds);
-        order.setInstanceId("instance-id");
-        order.setOrderState(OrderState.OPEN);
-        order.setActualAllocation(computeAllocation);
-
-        NetworkOrder networkOrder = new NetworkOrder("a", federationUser, requestingMember, providingMember, "gat", "add", NetworkAllocation.STATIC);
-        networkOrder.setOrderState(OrderState.CLOSED);
-
-        VolumeOrder volumeOrder = new VolumeOrder("b", federationUser, requestingMember, providingMember, 10);
-        volumeOrder.setOrderState(OrderState.OPEN);
-
-        AttachmentOrder attachmentOrder = new AttachmentOrder("f", federationUser, requestingMember, providingMember, "source", "target", "device");
-        attachmentOrder.setOrderState(OrderState.OPEN);
-
-//        databaseManager.add(order);
-
-//        attachmentOrder.setOrderState(OrderState.CLOSED);
-//        databaseManager.update(attachmentOrder);
-
-
-//        Date date = new Date();
-//        System.out.println(date.getTime());
-
+//    public static void main(String[] args) {
+//        DatabaseManager databaseManager = new DatabaseManager();
+//
+//        Map<String, String> attr = new HashMap<>();
+//        attr.put("oi", "aras");
+//
+//        FederationUser federationUser = new FederationUser("fed-id", attr);
+//        String requestingMember = "LOCAL_MEMBER_ID";
+//        String providingMember = "LOCAL_MEMBER_ID";
+//
+//        UserData userData = new UserData("extraUserDataFileContent", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
+//
+//        ComputeAllocation computeAllocation = new ComputeAllocation(1, 1, 1);
+//
+//        List<String> netIds = new ArrayList<>();
+//        netIds.add("netid1");
+//        netIds.add("netid2");
+//
+//        ComputeOrder order = new ComputeOrder("x", federationUser, requestingMember, providingMember, 8, 1024,
+//                30, "fake_image_name", userData, "fake_public_key", netIds);
+//        order.setInstanceId("instance-id");
+//        order.setOrderState(OrderState.OPEN);
+//        order.setActualAllocation(computeAllocation);
+//
+//        NetworkOrder networkOrder = new NetworkOrder("a", federationUser, requestingMember, providingMember, "gat", "add", NetworkAllocation.STATIC);
+//        networkOrder.setOrderState(OrderState.CLOSED);
+//
+//        VolumeOrder volumeOrder = new VolumeOrder("b", federationUser, requestingMember, providingMember, 10);
+//        volumeOrder.setOrderState(OrderState.OPEN);
+//
+//        AttachmentOrder attachmentOrder = new AttachmentOrder("f", federationUser, requestingMember, providingMember, "source", "target", "device");
+//        attachmentOrder.setOrderState(OrderState.OPEN);
+//
+////        databaseManager.add(order);
+//
+////        attachmentOrder.setOrderState(OrderState.CLOSED);
+////        databaseManager.update(attachmentOrder);
+//
+//
+////        Date date = new Date();
+////        System.out.println(date.getTime());
+//
 //        networkOrder.setOrderState(OrderState.OPEN);
 //        databaseManager.update(networkOrder);
-
-
-//        databaseManager.add(networkOrder);
-//        databaseManager.add(volumeOrder);
-//        databaseManager.add(attachmentOrder);
-
-
-        SynchronizedDoublyLinkedList synchronizedDoublyLinkedList = databaseManager.readActiveOrders(OrderState.OPEN);
 //
-        Order orderToPrint;
-
-        while ((orderToPrint = synchronizedDoublyLinkedList.getNext()) != null) {
-            System.out.println(orderToPrint.toString());
-            System.out.println(orderToPrint.getFederationUser().getAttributes().toString());
-        }
-    }
+//
+////        databaseManager.add(networkOrder);
+////        databaseManager.add(volumeOrder);
+////        databaseManager.add(attachmentOrder);
+//
+//
+//        SynchronizedDoublyLinkedList synchronizedDoublyLinkedList = databaseManager.readActiveOrders(OrderState.OPEN);
+////
+//        Order orderToPrint;
+//
+//        while ((orderToPrint = synchronizedDoublyLinkedList.getNext()) != null) {
+//            System.out.println(orderToPrint.toString());
+//            System.out.println(orderToPrint.getFederationUser().getAttributes().toString());
+//        }
+//    }
 }
