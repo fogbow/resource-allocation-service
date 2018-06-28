@@ -75,7 +75,7 @@ public class ComputeOrdersController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
     
-	@RequestMapping(value = "/quota/{memberId}", method = RequestMethod.GET)
+	@RequestMapping(value = "/quota/{memberId:.+}", method = RequestMethod.GET)
 	public ResponseEntity<ComputeQuota> getUserQuota(@PathVariable String memberId,
 			@RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws UnauthenticatedException, QuotaException, UnauthorizedException, PropertyNotSpecifiedException,
@@ -87,7 +87,7 @@ public class ComputeOrdersController {
 		return new ResponseEntity<>(quotaInstance, HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "/allocation/{memberId}", method = RequestMethod.GET)
+	@RequestMapping(value = "/allocation/{memberId:.+}", method = RequestMethod.GET)
 	public ResponseEntity<ComputeAllocation> getUserAllocation(@PathVariable String memberId,
 			@RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
 			throws UnauthenticatedException, QuotaException, UnauthorizedException, RemoteRequestException,
