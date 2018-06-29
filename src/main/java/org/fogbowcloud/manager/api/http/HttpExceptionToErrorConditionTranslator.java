@@ -16,84 +16,75 @@ public class HttpExceptionToErrorConditionTranslator extends ResponseEntityExcep
     @ExceptionHandler(UnauthorizedRequestException.class)
     public final ResponseEntity<ExceptionResponse> handleAuthorizationException(Exception ex, WebRequest request) {
 
-        ExceptionResponse errorDetails = new ExceptionResponse(
-                        ex.getMessage(), request.getDescription(false), HttpStatus.FORBIDDEN);
+        ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
 
-        return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
+        return new ResponseEntity<>(errorDetails, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(UnauthenticatedUserException.class)
     public final ResponseEntity<ExceptionResponse> handleAuthenticationException(Exception ex, WebRequest request) {
 
-        ExceptionResponse errorDetails = new ExceptionResponse(
-                        ex.getMessage(), request.getDescription(false), HttpStatus.UNAUTHORIZED);
+        ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
 
-        return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
+        return new ResponseEntity<>(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(InvalidParameterException.class)
     public final ResponseEntity<ExceptionResponse> handleInvalidParameterException(Exception ex, WebRequest request) {
 
-        ExceptionResponse errorDetails = new ExceptionResponse(
-                        ex.getMessage(), request.getDescription(false), HttpStatus.BAD_REQUEST);
+        ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
 
-        return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(InstanceNotFoundException.class)
     public final ResponseEntity<ExceptionResponse> handleInstanceNotFoundException(Exception ex, WebRequest request) {
 
-        ExceptionResponse errorDetails = new ExceptionResponse(
-                        ex.getMessage(), request.getDescription(false), HttpStatus.NOT_FOUND);
+        ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
 
-        return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
+        return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(QuotaExceededException.class)
     public final ResponseEntity<ExceptionResponse> handleQuotaExceededException(Exception ex, WebRequest request) {
 
-        ExceptionResponse errorDetails = new ExceptionResponse(
-                ex.getMessage(), request.getDescription(false), HttpStatus.CONFLICT);
+        ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
 
-        return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
+        return new ResponseEntity<>(errorDetails, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(NoAvailableResourcesException.class)
     public final ResponseEntity<ExceptionResponse> handleNoAvailableResourcesException(
             Exception ex, WebRequest request) {
 
-        ExceptionResponse errorDetails = new ExceptionResponse(
-                ex.getMessage(), request.getDescription(false), HttpStatus.NOT_ACCEPTABLE);
+        ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
 
-        return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
+        return new ResponseEntity<>(errorDetails, HttpStatus.NOT_ACCEPTABLE);
     }
 
     @ExceptionHandler(UnavailableProviderException.class)
     public final ResponseEntity<ExceptionResponse> handleUnavailableProviderException(
             Exception ex, WebRequest request) {
 
-        ExceptionResponse errorDetails = new ExceptionResponse(
-                ex.getMessage(), request.getDescription(false), HttpStatus.GATEWAY_TIMEOUT);
+        ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
 
-        return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
+        return new ResponseEntity<>(errorDetails, HttpStatus.GATEWAY_TIMEOUT);
     }
 
     @ExceptionHandler(UnexpectedException.class)
     public final ResponseEntity<ExceptionResponse> handleUnexpectedException(Exception ex, WebRequest request) {
 
-        ExceptionResponse errorDetails = new ExceptionResponse(
-                ex.getMessage(), request.getDescription(false), HttpStatus.INTERNAL_SERVER_ERROR);
+        ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
 
-        return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
+        return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(Exception.class)
     public final ResponseEntity<ExceptionResponse> handleAnyException(Exception ex, WebRequest request) {
 
-        ExceptionResponse errorDetails = new ExceptionResponse(
-                        ex.getMessage(), request.getDescription(false), HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+        ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
 
-        return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
+        return new ResponseEntity<>(errorDetails, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
     }
 
     // FIXME: Check when/if this exception can be thrown; do we need to handle it? Should this be mapped to unauthorized?
@@ -101,9 +92,8 @@ public class HttpExceptionToErrorConditionTranslator extends ResponseEntityExcep
     public final ResponseEntity<Object> handleServletRequestBindingException(
             ServletRequestBindingException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
 
-        ExceptionResponse errorDetails = new ExceptionResponse(
-                ex.getMessage(), request.getDescription(false), HttpStatus.UNAUTHORIZED);
+        ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
 
-        return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
+        return new ResponseEntity<>(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 }
