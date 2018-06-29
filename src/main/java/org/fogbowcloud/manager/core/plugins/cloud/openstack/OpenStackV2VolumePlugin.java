@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
-
+import java.util.UUID;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
@@ -68,6 +68,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	private static final String VALUE_EXTENDING_STATUS = "extending";
 
 	protected static final String SUFIX_ENDPOINT_VOLUMES = "/volumes";
+	private static final String FOGBOW_VOLUME_NAME = "fogbow-volume-";
 
 	private HttpClient client;
 	private String volumeV2APIEndpoint;
@@ -305,6 +306,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	protected JSONObject generateJsonEntityToCreateInstance(String size) throws JSONException {
 		JSONObject volumeContent = new JSONObject();
 		volumeContent.put(KEY_JSON_SIZE, size);
+		volumeContent.put(KEY_JSON_NAME, FOGBOW_VOLUME_NAME + UUID.randomUUID().toString());
 
 		JSONObject volume = new JSONObject();
 		volume.put(KEY_JSON_VOLUME, volumeContent);
