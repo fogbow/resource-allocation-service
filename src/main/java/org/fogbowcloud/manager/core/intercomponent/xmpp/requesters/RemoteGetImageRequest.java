@@ -2,16 +2,14 @@ package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
-import org.fogbowcloud.manager.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.xmpp.packet.IQ;
-
 import com.google.gson.Gson;
 
 public class RemoteGetImageRequest implements RemoteRequest<Image> {
@@ -29,18 +27,11 @@ public class RemoteGetImageRequest implements RemoteRequest<Image> {
     }
 
     @Override
-    public Image send() throws FogbowManagerException {
+    public Image send() throws Exception {
         IQ iq = createIq();
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
-        if (response == null) {
-            String message = "Unable to retrieve image " + this.imageId;
-            throw new UnavailableProviderException(message);
-        } else if (response.getError() != null) {
-            LOGGER.error(response.getError().toString());
-            // TODO: Add errors treatment.
-            throw new UnexpectedException(response.getError().toString());
-        }
+        XmppErrorConditionToExceptionTranslator.handleError(response, this.federationMemberId);
         Image image = getImageFromResponse(response);
         return image;
     }
@@ -64,7 +55,7 @@ public class RemoteGetImageRequest implements RemoteRequest<Image> {
         return iq;
     }
 
-    private Image getImageFromResponse(IQ response) throws FogbowManagerException {
+    private Image getImageFromResponse(IQ response) throws UnexpectedException {
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
         String imageStr = queryElement.element(IqElement.IMAGE.toString()).getText();
 

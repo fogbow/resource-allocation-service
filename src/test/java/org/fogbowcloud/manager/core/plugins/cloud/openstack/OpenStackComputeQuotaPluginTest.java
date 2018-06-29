@@ -6,6 +6,7 @@ import java.util.Properties;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.junit.Ignore;
@@ -21,7 +22,7 @@ public class OpenStackComputeQuotaPluginTest {
      */
     @Ignore
 	@Test
-	public void testGetUserQuota() throws FogbowManagerException {
+	public void testGetUserQuota() throws FogbowManagerException, UnexpectedException {
         HomeDir.getInstance().setPath("src/test/resources/private");
 
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();

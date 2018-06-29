@@ -2,17 +2,15 @@ package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
-import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
-import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
-import org.xmpp.packet.PacketError;
 
 import com.google.gson.Gson;
 
@@ -50,12 +48,9 @@ public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
             instanceClassNameElement.setText(instance.getClass().getName());
             
             instanceElement.setText(new Gson().toJson(instance));
-        } catch (FogbowManagerException e) {
-            // TODO: Switch this error for an appropriate one.
-            response.setError(PacketError.Condition.internal_server_error);
-        } finally {
-            return response;
+        } catch (Exception e) {
+            XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
+        return response;
     }
-
 }

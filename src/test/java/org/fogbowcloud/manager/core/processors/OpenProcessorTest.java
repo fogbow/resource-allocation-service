@@ -16,6 +16,7 @@ import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -230,7 +231,7 @@ public class OpenProcessorTest extends BaseUnitTests {
      * @throws InterruptedException
      */
     @Test
-    public void testProcessNotOpenOrder() throws InterruptedException, FogbowManagerException {
+    public void testProcessNotOpenOrder() throws InterruptedException, UnexpectedException {
         Order order = this.createLocalOrder(getLocalMemberId());
 
         OrderStateTransitioner.activateOrder(order);

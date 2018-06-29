@@ -12,7 +12,6 @@ import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
-import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
@@ -38,13 +37,13 @@ public class RemoteFacade {
         }
     }
 
-    public void activateOrder(Order order) throws FogbowManagerException {
+    public void activateOrder(Order order) throws FogbowManagerException, UnexpectedException {
         this.aaController.authorize(order.getFederationUser(), Operation.CREATE, order);
         OrderStateTransitioner.activateOrder(order);
     }
 
     public Instance getResourceInstance(String orderId, FederationUser federationUser, InstanceType instanceType) throws
-            FogbowManagerException {
+            Exception {
 
         Order order = this.orderController.getOrder(orderId, federationUser, instanceType);
         this.aaController.authorize(federationUser, Operation.GET, order);
@@ -53,7 +52,7 @@ public class RemoteFacade {
     }
 
     public void deleteOrder(String orderId, FederationUser federationUser, InstanceType instanceType)
-            throws FogbowManagerException {
+            throws FogbowManagerException, UnexpectedException {
 
         Order order = this.orderController.getOrder(orderId, federationUser, instanceType);
         this.aaController.authorize(federationUser, Operation.DELETE, order);
@@ -61,7 +60,8 @@ public class RemoteFacade {
         this.orderController.deleteOrder(order);
     }
 
-    public Quota getUserQuota(String memberId, FederationUser federationUser, InstanceType instanceType) throws FogbowManagerException {
+    public Quota getUserQuota(String memberId, FederationUser federationUser, InstanceType instanceType) throws
+            Exception {
 
         this.aaController.authorize(federationUser, Operation.GET_USER_QUOTA, instanceType);
 
@@ -69,7 +69,8 @@ public class RemoteFacade {
         return cloudConnector.getUserQuota(federationUser, instanceType);
     }
 
-    public Image getImage(String memberId, String imageId, FederationUser federationUser) throws FogbowManagerException {
+    public Image getImage(String memberId, String imageId, FederationUser federationUser) throws
+            Exception {
 
         this.aaController.authorize(federationUser, Operation.GET_IMAGE);
 
@@ -77,7 +78,8 @@ public class RemoteFacade {
         return cloudConnector.getImage(imageId, federationUser);
     }
 
-    public Map<String, String> getAllImages(String memberId, FederationUser federationUser) throws FogbowManagerException {
+    public Map<String, String> getAllImages(String memberId, FederationUser federationUser) throws
+            Exception {
 
         this.aaController.authorize(federationUser, Operation.GET_ALL_IMAGES);
 
@@ -85,7 +87,7 @@ public class RemoteFacade {
         return cloudConnector.getAllImages(federationUser);
     }
 
-    public void handleRemoteEvent(Event event, Order order) {
+    public void handleRemoteEvent(Event event, Order order) throws FogbowManagerException, UnexpectedException {
         // order is a java object that represents the order passed in the message
         // actualOrder is the java object that represents this order inside the current manager
         Order actualOrder = this.orderController.getOrder(order.getId(), order.getFederationUser(), order.getType());

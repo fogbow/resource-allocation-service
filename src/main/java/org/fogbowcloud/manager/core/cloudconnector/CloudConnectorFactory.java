@@ -24,7 +24,7 @@ public class CloudConnectorFactory {
         CloudConnector cloudConnector;
 
         if (memberId.equals(this.localMemberId)) {
-                cloudConnector = new LocalCloudConnector(this.localMemberId, this.aaController, this.orderController,
+                cloudConnector = new LocalCloudConnector(this.aaController,
                         this.cloudPluginsHolder);
         } else {
                 cloudConnector = new RemoteCloudConnector(memberId);

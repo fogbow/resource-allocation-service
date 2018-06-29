@@ -44,7 +44,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
 		properties = propertiesHolder.getProperties();
 		
-		this.orderController = Mockito.spy(new OrderController(""));
+		this.orderController = Mockito.spy(new OrderController());
 		this.application = Mockito.spy(ApplicationFacade.getInstance());
 		this.application.setAaController(this.aaaController);
 		this.application.setOrderController(this.orderController);
@@ -399,7 +399,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 	
 	@Test
-	public void testGetAllComputes() throws FogbowManagerException {
+	public void testGetAllComputes() throws Exception {
 		ComputeOrder order = createComputeOrder();
 
 		OrderStateTransitioner.activateOrder(order);
@@ -419,7 +419,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	}
 
 	@Test
-	public void testGetAllComputesEmpty() throws FogbowManagerException {
+	public void testGetAllComputesEmpty() throws Exception {
 		ComputeOrder order = createComputeOrder();
 
 		Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
@@ -435,7 +435,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	}
 
 	@Test(expected = UnauthenticatedUserException.class)
-	public void testGetAllComputesUnauthenticated() throws FogbowManagerException {
+	public void testGetAllComputesUnauthenticated() throws Exception {
 		ComputeOrder order = createComputeOrder();
 
 		OrderStateTransitioner.activateOrder(order);
@@ -451,7 +451,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	}
 
 	@Test(expected = UnauthenticatedUserException.class)
-	public void testGetAllComputesTokenUnauthenticated() throws FogbowManagerException {
+	public void testGetAllComputesTokenUnauthenticated() throws Exception {
 		ComputeOrder order = createComputeOrder();
 
 		OrderStateTransitioner.activateOrder(order);
@@ -468,7 +468,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	}
 
 	@Test(expected = UnauthenticatedUserException.class)
-	public void testGetAllComputesWithFederationUserUnauthenticated() throws FogbowManagerException {
+	public void testGetAllComputesWithFederationUserUnauthenticated() throws Exception {
 		ComputeOrder order = createComputeOrder();
 
 		OrderStateTransitioner.activateOrder(order);
@@ -484,7 +484,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	}
 
 	@Test(expected = UnauthorizedRequestException.class)
-	public void testGetAllComputesOperationUnauthorized() throws FogbowManagerException {
+	public void testGetAllComputesOperationUnauthorized() throws Exception {
 		ComputeOrder order = createComputeOrder();
 
 		OrderStateTransitioner.activateOrder(order);
@@ -723,7 +723,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
 	@Test
-    public void testGetAllVolumes() throws FogbowManagerException {
+    public void testGetAllVolumes() throws Exception {
         VolumeOrder order = createVolumeOrder();
 
 		OrderStateTransitioner.activateOrder(order);
@@ -744,7 +744,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
 	@Test
-    public void testGetAllVolumesEmpty() throws FogbowManagerException {
+    public void testGetAllVolumesEmpty() throws Exception {
         VolumeOrder order = createVolumeOrder();
 
         Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
@@ -762,7 +762,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 	@Test(expected = UnauthenticatedUserException.class)
     public void testGetAllVolumesTokenUnauthenticated()
-            throws FogbowManagerException {
+            throws Exception {
         VolumeOrder order = createVolumeOrder();
 
 		OrderStateTransitioner.activateOrder(order);
@@ -781,7 +781,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 	@Test(expected = UnauthenticatedUserException.class)
     public void testGetAllVolumesFederationUserUnauthenticated()
-            throws FogbowManagerException {
+            throws Exception {
         VolumeOrder order = createVolumeOrder();
 
 		OrderStateTransitioner.activateOrder(order);
@@ -797,7 +797,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
 	@Test(expected = UnauthorizedRequestException.class)
-    public void testGetAllVolumesOperationUnauthorized() throws FogbowManagerException {
+    public void testGetAllVolumesOperationUnauthorized() throws Exception {
         VolumeOrder order = createVolumeOrder();
 
         OrderStateTransitioner.activateOrder(order);
@@ -1170,7 +1170,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     @Test
-    public void testGetAllNetworks() throws FogbowManagerException {
+    public void testGetAllNetworks() throws Exception {
         NetworkOrder order = createNetworkOrder();
 
         OrderStateTransitioner.activateOrder(order);
@@ -1190,7 +1190,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     @Test
-    public void testGetAllNetworksEmpty() throws FogbowManagerException {
+    public void testGetAllNetworksEmpty() throws Exception {
         NetworkOrder order = createNetworkOrder();
 
         Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
@@ -1207,7 +1207,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     @Test(expected = UnauthenticatedUserException.class)
-    public void testGetAllNetworksTokenUnauthenticated() throws FogbowManagerException {
+    public void testGetAllNetworksTokenUnauthenticated() throws Exception {
         NetworkOrder order = createNetworkOrder();
 
         OrderStateTransitioner.activateOrder(order);
@@ -1225,7 +1225,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     @Test(expected = UnauthenticatedUserException.class)
-    public void testGetAllNetworksWithFederationUserUnauthenticated() throws FogbowManagerException {
+    public void testGetAllNetworksWithFederationUserUnauthenticated() throws Exception {
         NetworkOrder order = createNetworkOrder();
 
         OrderStateTransitioner.activateOrder(order);
@@ -1242,7 +1242,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     @Test(expected = UnauthorizedRequestException.class)
-    public void testGetAllNetworksOperationUnauthorized() throws FogbowManagerException {
+    public void testGetAllNetworksOperationUnauthorized() throws Exception {
         NetworkOrder order = createNetworkOrder();
 
         OrderStateTransitioner.activateOrder(order);
@@ -1387,7 +1387,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         }
     }
 
-	private NetworkOrder createNetworkOrder() throws FogbowManagerException {
+	private NetworkOrder createNetworkOrder() throws Exception {
 	    FederationUser federationUser = new FederationUser("fake-user", new HashMap<>());
         NetworkOrder order = new NetworkOrder(federationUser, "fake-member-id", "fake-member-id", "fake-gateway", "fake-address", NetworkAllocation.STATIC);
         
@@ -1398,7 +1398,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         return order;
     }
 
-    private VolumeOrder createVolumeOrder() throws FogbowManagerException {
+    private VolumeOrder createVolumeOrder() throws Exception {
         FederationUser federationUser = new FederationUser("fake-user", new HashMap<>());
         VolumeOrder order = new VolumeOrder(federationUser, "fake-member-id", "fake-member-id", 1);
         
@@ -1409,7 +1409,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         return order;
     }
 
-    private ComputeOrder createComputeOrder() throws FogbowManagerException {
+    private ComputeOrder createComputeOrder() throws Exception {
 		FederationUser federationUser = new FederationUser("fake-user", new HashMap<>());
 		
 		ComputeOrder order = new ComputeOrder(federationUser, "fake-member-id", "fake-member-id", 2, 2, 30,
@@ -1620,7 +1620,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     @Test
-    public void testGetAllAttachments() throws FogbowManagerException {
+    public void testGetAllAttachments() throws Exception {
         AttachmentOrder order = createAttachmentOrder();
 
         OrderStateTransitioner.activateOrder(order);
@@ -1638,7 +1638,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
     
     @Test
-    public void testGetAllAttachmentEmpty() throws FogbowManagerException {
+    public void testGetAllAttachmentEmpty() throws Exception {
         AttachmentOrder order = createAttachmentOrder();
 
         Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
@@ -1654,7 +1654,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     @Test(expected = UnauthenticatedUserException.class)
-    public void testGetAllAttachmentTokenUnauthenticated() throws FogbowManagerException {
+    public void testGetAllAttachmentTokenUnauthenticated() throws Exception {
         AttachmentOrder order = createAttachmentOrder();
 
         OrderStateTransitioner.activateOrder(order);
@@ -1671,7 +1671,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     @Test(expected = UnauthenticatedUserException.class)
-    public void testGetAllAttachmentsFederationUserUnauthenticated() throws FogbowManagerException {
+    public void testGetAllAttachmentsFederationUserUnauthenticated() throws Exception {
         AttachmentOrder order = createAttachmentOrder();
 
         OrderStateTransitioner.activateOrder(order);
@@ -1687,7 +1687,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     @Test(expected = UnauthorizedRequestException.class)
-    public void testGetAllAttachmentOperationUnauthorized() throws FogbowManagerException {
+    public void testGetAllAttachmentOperationUnauthorized() throws Exception {
         AttachmentOrder order = createAttachmentOrder();
 
         OrderStateTransitioner.activateOrder(order);
@@ -1828,7 +1828,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         }
     }
     
-    private AttachmentOrder createAttachmentOrder() throws FogbowManagerException {
+    private AttachmentOrder createAttachmentOrder() throws Exception {
         FederationUser federationUser = new FederationUser("fake-user", new HashMap<>());
 
         AttachmentOrder order = new AttachmentOrder(federationUser, "fake-member-id",

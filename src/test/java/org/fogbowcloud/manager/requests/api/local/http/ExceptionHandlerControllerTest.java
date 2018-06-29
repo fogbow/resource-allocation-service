@@ -4,9 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import org.fogbowcloud.manager.api.http.ComputeOrdersController;
-import org.fogbowcloud.manager.api.http.ExceptionTranslator;
+import org.fogbowcloud.manager.api.http.HttpExceptionToErrorConditionTranslator;
+import org.fogbowcloud.manager.core.exceptions.TokenValueCreationException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
-import org.fogbowcloud.manager.core.exceptions.TokenCreationException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -32,7 +32,7 @@ public class ExceptionHandlerControllerTest {
         this.computeOrdersController = Mockito.mock(ComputeOrdersController.class);
         this.mockMvc =
                 MockMvcBuilders.standaloneSetup(computeOrdersController)
-                        .setControllerAdvice(new ExceptionTranslator())
+                        .setControllerAdvice(new HttpExceptionToErrorConditionTranslator())
                         .build();
     }
 
@@ -77,27 +77,26 @@ public class ExceptionHandlerControllerTest {
         assertEquals(Integer.toString(response.getStatus()), HttpStatus.UNAUTHORIZED.toString());
     }
 
-    // TODO: review if this Exception is thrown, and if we need this test
-    @Test
-    public void testTokenCreationException() throws Exception {
-        Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString()))
-                .thenThrow(new TokenCreationException());
-
-        MockHttpServletResponse response =
-                mockMvc.perform(
-                                get(COMPUTE_ENDPOINT)
-                                        .accept(MediaType.APPLICATION_JSON)
-                                        .header(ComputeOrdersController.FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
-                        .andReturn()
-                        .getResponse();
-
-        JSONObject jsonObject = new JSONObject(response.getContentAsString());
-
-        assertEquals(jsonObject.get("details"), URI_COMPUTE_ENDPOINT);
-        assertEquals(jsonObject.get("message"), "Token Creation Exception");
-        assertEquals(jsonObject.get("statusCode"), HttpStatus.BAD_REQUEST.name());
-        assertEquals(Integer.toString(response.getStatus()), HttpStatus.BAD_REQUEST.toString());
-    }
+//    @Test
+//    public void testTokenCreationException() throws Exception {
+//        Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString()))
+//                .thenThrow(new TokenValueCreationException());
+//
+//        MockHttpServletResponse response =
+//                mockMvc.perform(
+//                                get(COMPUTE_ENDPOINT)
+//                                        .accept(MediaType.APPLICATION_JSON)
+//                                        .header(ComputeOrdersController.FEDERATION_TOKEN_VALUE_HEADER_KEY, Mockito.anyString()))
+//                        .andReturn()
+//                        .getResponse();
+//
+//        JSONObject jsonObject = new JSONObject(response.getContentAsString());
+//
+//        assertEquals(jsonObject.get("details"), URI_COMPUTE_ENDPOINT);
+//        assertEquals(jsonObject.get("message"), "Token Creation Exception");
+//        assertEquals(jsonObject.get("statusCode"), HttpStatus.BAD_REQUEST.name());
+//        assertEquals(Integer.toString(response.getStatus()), HttpStatus.BAD_REQUEST.toString());
+//    }
 
     @Test
     public void testAnyException() throws Exception {

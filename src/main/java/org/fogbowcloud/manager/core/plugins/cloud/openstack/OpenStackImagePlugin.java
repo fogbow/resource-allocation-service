@@ -84,7 +84,7 @@ public class OpenStackImagePlugin implements ImagePlugin {
 		return image;
 	}
 	
-	private List<JSONObject> getAllImagesJson(Token localToken) throws FogbowManagerException  {
+	private List<JSONObject> getAllImagesJson(Token localToken) throws FogbowManagerException {
 		String endpoint = 
 				this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
                 + COMPUTE_V2_API_ENDPOINT

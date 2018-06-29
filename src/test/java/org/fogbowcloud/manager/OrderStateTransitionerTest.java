@@ -10,6 +10,7 @@ import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -59,7 +60,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
     }
 
     @Test
-    public void testValidTransition() {
+    public void testValidTransition() throws UnexpectedException {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 
@@ -76,7 +77,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
     }
 
     @Test(expected = RuntimeException.class)
-    public void testOriginListCannotBeFound() {
+    public void testOriginListCannotBeFound() throws UnexpectedException {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 
@@ -92,7 +93,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
     }
 
     @Test(expected = RuntimeException.class)
-    public void testDestinationListCannotBeFound() {
+    public void testDestinationListCannotBeFound() throws UnexpectedException {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 
@@ -111,7 +112,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
     }
 
     @Test
-    public void testOriginListRemovalFailure() {
+    public void testOriginListRemovalFailure() throws UnexpectedException {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 

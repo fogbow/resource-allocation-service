@@ -23,6 +23,7 @@ import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.RemoteCloudConnector;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -227,7 +228,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     @Test
-    public void testRunThrowableExceptionWhileTryingToProcessOrder() throws InterruptedException {
+    public void testRunThrowableExceptionWhileTryingToProcessOrder() throws InterruptedException, UnexpectedException {
         Order order = Mockito.mock(Order.class);
         OrderState state = null;
         order.setOrderState(state);

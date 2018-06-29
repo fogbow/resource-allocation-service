@@ -3,12 +3,7 @@ package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
-import org.fogbowcloud.manager.core.intercomponent.xmpp.Event;
-import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
-import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
-import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.*;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.xmpp.packet.IQ;
 
@@ -25,17 +20,11 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
     }
 
     @Override
-    public Void send() throws FogbowManagerException {
+    public Void send() throws Exception {
         IQ iq = createIq();
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
-        if (response == null) {
-            String message = "Unable to retrieve the response from providing member: " + order.getProvidingMember();
-            throw new UnexpectedException(message);
-        } else if (response.getError() != null) {
-            throw new UnexpectedException(response.getError().toString());
-        }
-
+        XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getRequestingMember());
         LOGGER.debug("Request for order: " + this.order.getId() + " has been sent to " + order.getProvidingMember());
         return null;
     }

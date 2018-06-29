@@ -45,7 +45,7 @@ public class Main implements ApplicationRunner {
 
             AaController aaController =
                     new AaController(cloudPluginsHolder.getLocalIdentityPlugin(), behaviorPluginsHolder);
-            OrderController orderController = new OrderController(localMemberId);
+            OrderController orderController = new OrderController();
 
             ApplicationFacade applicationFacade = ApplicationFacade.getInstance();
             RemoteFacade remoteFacade = RemoteFacade.getInstance();
@@ -59,7 +59,8 @@ public class Main implements ApplicationRunner {
             String xmppPassword = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_PASSWORD_KEY);
             String xmppServerIp = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_SERVER_IP_KEY);
             int xmppServerPort =
-                    Integer.parseInt(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_SERVER_PORT_KEY));
+                    Integer.parseInt(PropertiesHolder.getInstance().
+                            getProperty(ConfigurationConstants.XMPP_SERVER_PORT_KEY));
             long xmppTimeout =
                     Long.parseLong(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_TIMEOUT_KEY));
 

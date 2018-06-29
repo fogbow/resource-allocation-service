@@ -3,13 +3,12 @@ package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
-import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.xmpp.packet.IQ;
-import org.xmpp.packet.PacketError;
 
 public class RemoteCreateOrderRequest implements RemoteRequest<Void> {
 
@@ -22,23 +21,11 @@ public class RemoteCreateOrderRequest implements RemoteRequest<Void> {
     }
 
     @Override
-    public Void send() throws FogbowManagerException {
+    public Void send() throws Exception {
         IQ iq = createIq();
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
-        if (response == null) {
-            String message = "Unable to retrieve the response from providing member: " + order.getProvidingMember();
-            throw new UnavailableProviderException(message);
-        }
-        if (response.getError() != null) {
-            if (response.getError().getCondition() == PacketError.Condition.forbidden){
-                String message = "The order was not authorized for: " + order.getId();
-                throw new UnauthorizedRequestException(message);
-            } else if (response.getError().getCondition() == PacketError.Condition.bad_request){
-                String message = "The order was duplicated on providing member: " + order.getProvidingMember();
-                throw new InvalidParameterException(message);
-            }
-        }
+        XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getProvidingMember());
         LOGGER.debug("Request for order: " + this.order.getId() + " has been sent to " + order.getProvidingMember());
         return null;
     }

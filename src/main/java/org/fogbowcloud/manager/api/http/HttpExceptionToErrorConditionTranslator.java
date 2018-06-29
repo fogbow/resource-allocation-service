@@ -11,7 +11,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @ControllerAdvice
-public class ExceptionTranslator extends ResponseEntityExceptionHandler {
+public class HttpExceptionToErrorConditionTranslator extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(UnauthorizedRequestException.class)
     public final ResponseEntity<ExceptionResponse> handleAuthorizationException(Exception ex, WebRequest request) {
@@ -32,8 +32,7 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(InvalidParameterException.class)
-    public final ResponseEntity<ExceptionResponse> handleInvalidParameterException(
-            TokenCreationException ex, WebRequest request) {
+    public final ResponseEntity<ExceptionResponse> handleInvalidParameterException(Exception ex, WebRequest request) {
 
         ExceptionResponse errorDetails = new ExceptionResponse(
                         ex.getMessage(), request.getDescription(false), HttpStatus.BAD_REQUEST);
@@ -42,8 +41,7 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(InstanceNotFoundException.class)
-    public final ResponseEntity<ExceptionResponse> handleInstanceNotFoundException(
-            Exception ex, WebRequest request) {
+    public final ResponseEntity<ExceptionResponse> handleInstanceNotFoundException(Exception ex, WebRequest request) {
 
         ExceptionResponse errorDetails = new ExceptionResponse(
                         ex.getMessage(), request.getDescription(false), HttpStatus.NOT_FOUND);
@@ -52,8 +50,7 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(QuotaExceededException.class)
-    public final ResponseEntity<ExceptionResponse> handleQuotaExceededException(
-            Exception ex, WebRequest request) {
+    public final ResponseEntity<ExceptionResponse> handleQuotaExceededException(Exception ex, WebRequest request) {
 
         ExceptionResponse errorDetails = new ExceptionResponse(
                 ex.getMessage(), request.getDescription(false), HttpStatus.CONFLICT);

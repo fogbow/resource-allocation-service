@@ -5,8 +5,8 @@ import org.fogbowcloud.manager.core.exceptions.*;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
 
-public class ExceptionToErrorConditionTranslator {
-    private static final Logger LOGGER = Logger.getLogger(ExceptionToErrorConditionTranslator.class);
+public class XmppExceptionToErrorConditionTranslator {
+    private static final Logger LOGGER = Logger.getLogger(XmppExceptionToErrorConditionTranslator.class);
 
     public static void updateErrorCondition(IQ response, Throwable e) {
         // FogbowManagerExceptions are part of the business logic and should be logged in debug level
@@ -16,7 +16,7 @@ public class ExceptionToErrorConditionTranslator {
         } else {
             LOGGER.error(e.getMessage(), e);
         }
-        PacketError error = new PacketError(ExceptionToErrorConditionTranslator.mapExceptionToCondition(e));
+        PacketError error = new PacketError(XmppExceptionToErrorConditionTranslator.mapExceptionToCondition(e));
         if (e.getMessage() != null) {
             error.setText(e.getMessage());
         } else {

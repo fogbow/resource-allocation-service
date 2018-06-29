@@ -1,18 +1,19 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 
 import com.google.gson.Gson;
+import org.apache.log4j.Logger;
 import org.dom4j.Element;
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
-import org.xmpp.packet.PacketError;
 
 public class RemoteDeleteOrderRequestHandler extends AbstractQueryHandler {
+    private static final Logger LOGGER = Logger.getLogger(RemoteDeleteOrderRequestHandler.class);
 
     private RemoteFacade remoteFacade;
 
@@ -37,11 +38,9 @@ public class RemoteDeleteOrderRequestHandler extends AbstractQueryHandler {
 
         try {
             this.remoteFacade.deleteOrder(orderId, federationUser, instanceType);
-        } catch (FogbowManagerException e) {
-            // TODO: Switch this error for an appropriate one.
-            response.setError(PacketError.Condition.internal_server_error);
+        } catch (Exception e) {
+            XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
-
         return response;
     }
 }

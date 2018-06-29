@@ -23,47 +23,49 @@ public class OrderController {
 
     private static final Logger LOGGER = Logger.getLogger(OrderController.class);
 
-    private final String localMemberId;
     private final SharedOrderHolders orderHolders;
 
-    public OrderController(String localMemberId) {
-        //FIXME: is localMemberId really necessary? Maybe it was put here to support future plans. I do not know
-        this.localMemberId = localMemberId;
+    public OrderController() {
         this.orderHolders = SharedOrderHolders.getInstance();
     }
 
-    public List<Order> getAllOrders(FederationUser federationUser, InstanceType instanceType) throws UnauthorizedRequestException {
+    public List<Order> getAllOrders(FederationUser federationUser, InstanceType instanceType) {
         Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
 
+        // Filter all orders of instanceType from federationUser that are not closed (closed orders have been deleted by
+        // the user and should not be seen; they will disappear from the system as soon as the closedProcessor thread
+        // process them).
         List<Order> requestedOrders =
                 orders.stream()
                         .filter(order -> order.getType().equals(instanceType))
                         .filter(order -> order.getFederationUser().equals(federationUser))
+                        .filter(order -> !order.getOrderState().equals(OrderState.CLOSED))
                         .collect(Collectors.toList());
 
         return requestedOrders;
     }
 
-    public Order getOrder(String orderId, FederationUser federationUser, InstanceType instanceType) {
+    public Order getOrder(String orderId, FederationUser federationUser, InstanceType instanceType)
+            throws FogbowManagerException {
         Order requestedOrder = this.orderHolders.getActiveOrdersMap().get(orderId);
 
         if (requestedOrder == null) {
-            return null;
+            throw new InstanceNotFoundException();
         }
 
         if (!requestedOrder.getType().equals(instanceType)) {
-            return null;
+            throw new InstanceNotFoundException();
         }
 
         FederationUser orderOwner = requestedOrder.getFederationUser();
         if (!orderOwner.getId().equals(federationUser.getId())) {
-            return null;
+            throw new UnauthorizedRequestException();
         }
 
         return requestedOrder;
     }
 
-    public void deleteOrder(Order order) throws FogbowManagerException {
+    public void deleteOrder(Order order) throws UnexpectedException {
         if (order == null) {
             String message = "Cannot delete a null order.";
             LOGGER.error(message);
@@ -81,15 +83,17 @@ public class OrderController {
         }
     }
 
-    public Instance getResourceInstance(Order order) throws FogbowManagerException {
+    public Instance getResourceInstance(Order order) throws Exception {
         synchronized (order) {
 
-            CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
+            CloudConnector cloudConnector =
+                    CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
             return cloudConnector.getInstance(order);
         }
     }
 
-    public Allocation getUserAllocation(String memberId, FederationUser federationUser, InstanceType instanceType) {
+    public Allocation getUserAllocation(String memberId, FederationUser federationUser, InstanceType instanceType)
+            throws UnexpectedException {
 
         Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
 
@@ -108,13 +112,13 @@ public class OrderController {
                 }
                 return (Allocation) getUserComputeAllocation(computeOrders);
             default:
-                throw new UnsupportedOperationException("Not yet implemented.");
+                throw new UnexpectedException("Not yet implemented.");
         }
     }
 
     private ComputeAllocation getUserComputeAllocation(Collection<ComputeOrder> computeOrders) {
 
-        int vCPU = 0, ram = 0, disk = 0, instances = 0;
+        int vCPU = 0, ram = 0, instances = 0;
 
         for (ComputeOrder order : computeOrders) {
             ComputeAllocation actualAllocation = order.getActualAllocation();

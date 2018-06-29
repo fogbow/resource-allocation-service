@@ -20,7 +20,6 @@ public class ClosedProcessor implements Runnable {
     public ClosedProcessor(String sleepTimeStr) {
         SharedOrderHolders sharedOrdersHolder = SharedOrderHolders.getInstance();
         this.closedOrders = sharedOrdersHolder.getClosedOrdersList();
-
         this.sleepTime = Long.valueOf(sleepTimeStr);
     }
 
@@ -34,26 +33,27 @@ public class ClosedProcessor implements Runnable {
                     processClosedOrder(order);
                 } else {
                     this.closedOrders.resetPointer();
-                    LOGGER.debug(
-                            "There is no closed order to be processed, sleeping for "
-                                    + this.sleepTime
-                                    + " milliseconds");
+                    LOGGER.debug("There is no closed order to be processed, sleeping for "
+                                    + this.sleepTime + " milliseconds");
                     Thread.sleep(this.sleepTime);
                 }
             } catch (InterruptedException e) {
                 isActive = false;
-                LOGGER.warn("Thread interrupted", e);
+                LOGGER.error("Thread interrupted", e);
+            } catch (UnexpectedException e) {
+                LOGGER.error(e.getMessage(), e);
             } catch (Throwable e) {
                 LOGGER.error("Unexpected error", e);
             }
         }
     }
 
-    protected void processClosedOrder(Order order) throws FogbowManagerException {
+    protected void processClosedOrder(Order order) throws Exception {
         synchronized (order) {
-            CloudConnector provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
-            provider.deleteInstance(order);
-
+            if (order.getInstanceId() != null) {
+                CloudConnector provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
+                provider.deleteInstance(order);
+            }
             OrderStateTransitioner.deactivateOrder(order);
         }
     }

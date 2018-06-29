@@ -45,12 +45,12 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 	}
 	
 	@Override
-	public ComputeQuota getUserQuota(Token localToken) throws FogbowManagerException {
+	public ComputeQuota getUserQuota(Token localToken) throws FogbowManagerException, UnexpectedException {
 		String jsonResponse = getJson(localToken);
 		return processJson(jsonResponse);
 	}
 
-	private String getJson(Token localToken) throws FogbowManagerException {
+	private String getJson(Token localToken) throws UnexpectedException {
 		String endpoint = 
 				this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY)
                 + COMPUTE_V2_API_ENDPOINT	
@@ -63,7 +63,7 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 		}
 	}
 	
-	private ComputeQuota processJson(String jsonStr) throws FogbowManagerException {
+	private ComputeQuota processJson(String jsonStr) throws UnexpectedException {
 		try {
 			JSONObject jsonObject = (JSONObject) JSONUtil.getValue(jsonStr, "limits", "absolute");
 			ComputeAllocation totalQuota = new ComputeAllocation(

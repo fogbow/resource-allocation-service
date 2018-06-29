@@ -6,6 +6,7 @@ import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -38,23 +39,15 @@ public class FulfilledProcessor implements Runnable {
      */
     private Long sleepTime;
 
-    public FulfilledProcessor(
-            String localMemberId,
-            TunnelingServiceUtil tunnelingService,
+    public FulfilledProcessor(String localMemberId, TunnelingServiceUtil tunnelingService,
             SshConnectivityUtil sshConnectivity, String sleepTimeStr) {
-
         CloudConnectorFactory cloudConnectorFactory = CloudConnectorFactory.getInstance();
-
         this.localMemberId = localMemberId;
-
         this.localCloudConnector = cloudConnectorFactory.getCloudConnector(localMemberId);
-
         this.computeInstanceConnectivity =
             new ComputeInstanceConnectivityUtil(tunnelingService, sshConnectivity);
-
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
-
         this.sleepTime = Long.valueOf(sleepTimeStr);
     }
 
@@ -74,15 +67,15 @@ public class FulfilledProcessor implements Runnable {
                     processFulfilledOrder(order);
                 } else {
                     this.fulfilledOrdersList.resetPointer();
-                    LOGGER.debug(
-                        "There is no fulfilled order to be processed, sleeping for "
-                            + this.sleepTime
-                            + " milliseconds");
+                    LOGGER.debug("There is no fulfilled order to be processed, sleeping for "
+                            + this.sleepTime + " milliseconds");
                     Thread.sleep(this.sleepTime);
                 }
             } catch (InterruptedException e) {
                 isActive = false;
-                LOGGER.warn("Thread interrupted", e);
+                LOGGER.error("Thread interrupted", e);
+            } catch (UnexpectedException e) {
+                LOGGER.error(e.getMessage(), e);
             } catch (Throwable e) {
                 LOGGER.error("Unexpected error", e);
             }
@@ -95,21 +88,27 @@ public class FulfilledProcessor implements Runnable {
      *
      * @param order {@link Order}
      */
-    protected void processFulfilledOrder(Order order) {
+    protected void processFulfilledOrder(Order order) throws UnexpectedException {
+        // The order object synchronization is needed to prevent a race
+        // condition on order access. For example: a user can delete a fulfilled
+        // order while this method is trying to check the status of an instance
+        // that was allocated to an order.
         synchronized (order) {
             OrderState orderState = order.getOrderState();
 
+            // Only orders that have been served by the local cloud are checked; remote ones are checked by
+            // the Fogbow manager running in the other member, which reports back any changes in the status.
             if (!order.isProviderLocal(this.localMemberId)) {
                 return;
             }
 
+            // Check if the order is still in the Fulfilled state (it could have been changed by another thread)
             if (orderState.equals(OrderState.FULFILLED)) {
-                LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
-
+                LOGGER.debug("Trying to get an instance for order [" + order.getId() + "]");
                 try {
                     processInstance(order);
                 } catch (Exception e) {
-                    LOGGER.warn("Error while getting instance from the cloud.", e);
+                    LOGGER.error("Error while getting instance from the cloud.", e);
                     OrderStateTransitioner.transition(order, OrderState.FAILED);
                 }
             }
@@ -121,9 +120,9 @@ public class FulfilledProcessor implements Runnable {
      * connectivity if instance state is active and the order type is compute.
      *
      * @param order {@link Order}
-     * @throws FogbowManagerException
+     * @throws Exception
      */
-    protected void processInstance(Order order) throws FogbowManagerException {
+    protected void processInstance(Order order) throws Exception {
 
         InstanceType instanceType = order.getType();
 
@@ -131,12 +130,10 @@ public class FulfilledProcessor implements Runnable {
 		InstanceState instanceState = instance.getState();
 
         if (instanceState.equals(InstanceState.FAILED)) {
-            LOGGER.info("Instance state is failed for order [" + order.getId() + "]");
+            LOGGER.debug("Instance state is failed for order [" + order.getId() + "]");
             OrderStateTransitioner.transition(order, OrderState.FAILED);
-        } else if (instanceState.equals(InstanceState.READY)
-            && instanceType.equals(InstanceType.COMPUTE)) {
-            LOGGER.info("Processing active compute instance for order [" + order.getId() + "]");
-
+        } else if (instanceState.equals(InstanceState.READY) && instanceType.equals(InstanceType.COMPUTE)) {
+            LOGGER.debug("Processing active compute instance for order [" + order.getId() + "]");
             SshTunnelConnectionData sshTunnelConnectionData = this.computeInstanceConnectivity
                 .getSshTunnelConnectionData(order.getId());
             if (sshTunnelConnectionData != null) {

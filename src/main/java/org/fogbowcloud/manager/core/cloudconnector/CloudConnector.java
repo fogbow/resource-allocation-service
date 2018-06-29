@@ -13,46 +13,57 @@ import java.util.Map;
 public interface CloudConnector {
 
     /**
-     * Requests an Instance for a Order.
+     * Requests an instance in the cloud (either locally or remotely) using the requirements contained in order.
      *
-     * @return An Instance with at least an nonempty Id.
+     * @return the string that represents the instance Id
+     * @param order the order
      * @throws FogbowManagerException
      */
-    String requestInstance(Order order) throws FogbowManagerException;
-    /**
-     * Signals the cloud that the provided instance is no longer required.
-     *
-     * @throws FogbowManagerException
-     */
-     void deleteInstance(Order order) throws FogbowManagerException;
+    String requestInstance(Order order) throws Exception;
 
     /**
-     * Gets the instance currently associated for the provided order.
-     * @throws FogbowManagerException;
-     */
-     Instance getInstance(Order order) throws FogbowManagerException;
-
-    /**
-     * Gets the quota of the federation user.
+     * Deletes in the cloud the instance associated to an order.
+     *
+     * @param order the order
      * @throws FogbowManagerException
      */
-     Quota getUserQuota(FederationUser federationUser, InstanceType instanceType) throws FogbowManagerException;
+     void deleteInstance(Order order) throws Exception;
+
+    /**
+     * Gets from the cloud the instance currently associated to order.
+     *
+     * @return the Instance whose instance Id is stored in the order
+     * @param order the order
+     * @throws FogbowManagerException
+     */
+     Instance getInstance(Order order) throws Exception;
+
+    /**
+     * Gets the quota of the federation user for instanceType.
+     *
+     * @return the quota associated to the user
+     * @param federationUser the attributes of the federation user
+     * @param instanceType the type of instance for which the quota was requested
+     * @throws FogbowManagerException
+     */
+     Quota getUserQuota(FederationUser federationUser, InstanceType instanceType) throws Exception;
 
     /**
      * Gets the list of images that the federation user can see in the target cloud.
+     *
      * @param federationUser
-     * @return a map where each element is a pair (image name, image id).
+     * @return a map where each element is a pair (image name, image id)
      * @throws FogbowManagerException
      */
-     Map<String, String> getAllImages(FederationUser federationUser) throws FogbowManagerException;
+     Map<String, String> getAllImages(FederationUser federationUser) throws Exception;
 
     /**
-     *
      * Gets the information about a given image.
-     * @param imageId
-     * @param federationUser
-     * @return
+     *
+     * @return the requested image
+     * @param imageId the Id of the image to be retrieved
+     * @param federationUser the attributes of the federation user
      * @throws FogbowManagerException
      */
-     Image getImage(String imageId, FederationUser federationUser) throws FogbowManagerException;
+     Image getImage(String imageId, FederationUser federationUser) throws Exception;
 }

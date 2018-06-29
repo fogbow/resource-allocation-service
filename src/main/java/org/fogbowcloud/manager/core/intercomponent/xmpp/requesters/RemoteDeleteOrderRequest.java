@@ -2,16 +2,12 @@ package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
-import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.xmpp.packet.IQ;
-import org.xmpp.packet.PacketError;
-
 import com.google.gson.Gson;
 
 public class RemoteDeleteOrderRequest implements RemoteRequest<Void> {
@@ -25,24 +21,11 @@ public class RemoteDeleteOrderRequest implements RemoteRequest<Void> {
     }
 
     @Override
-    public Void send() throws FogbowManagerException {
+    public Void send() throws Exception {
         IQ iq = createIq();
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
-        if (response == null) {
-            String message = "Unable to retrieve the response from providing member: " + this.order.getProvidingMember();
-            throw new UnexpectedException(message);
-        }
-        if (response.getError() != null) {
-            if (response.getError().getCondition() == PacketError.Condition.forbidden){
-                String message = "The order was not authorized for: " + this.order.getId();
-                throw new UnauthorizedRequestException(message);
-            } else if (response.getError().getCondition() == PacketError.Condition.bad_request){
-                String message = "The order was duplicated on providing member: " + this.order.getProvidingMember();
-                throw new UnexpectedException(message);
-            }
-        }
-        LOGGER.debug("Request for order: " + this.order.getId() + " has been sent to " + this.order.getProvidingMember());
+        XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getProvidingMember());
         return null;
     }
 

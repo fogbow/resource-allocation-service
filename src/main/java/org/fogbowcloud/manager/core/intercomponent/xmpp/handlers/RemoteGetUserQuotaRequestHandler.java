@@ -2,20 +2,15 @@ package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
-import org.fogbowcloud.manager.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
-import org.fogbowcloud.manager.core.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
-import org.xmpp.packet.PacketError;
-
 import com.google.gson.Gson;
 
 public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
@@ -53,15 +48,9 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
             instanceClassNameElement.setText(userQuota.getClass().getName());
 
             instanceElement.setText(new Gson().toJson(userQuota));
-        } catch (UnavailableProviderException e) {
-            // TODO: Switch this error for an appropriate one.
-            response.setError(PacketError.Condition.internal_server_error);
-        } catch (UnauthorizedRequestException e) {
-            LOGGER.error("The user is not authorized to get quota.", e);
-            response.setError(PacketError.Condition.forbidden);
-        } finally {
-            return response;
+        } catch (Exception e) {
+            XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
+        return response;
     }
-
 }

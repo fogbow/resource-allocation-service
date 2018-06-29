@@ -30,7 +30,7 @@ public class ImageRequestController {
     public ResponseEntity<Map<String, String>> getAllImages(
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
             @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId)
-            throws FogbowManagerException {
+            throws Exception {
         LOGGER.info("Get all images request received.");
         Map<String, String> imagesMap = ApplicationFacade.getInstance().getAllImages(memberId, federationTokenValue);
         return new ResponseEntity<>(imagesMap, HttpStatus.OK);
@@ -41,7 +41,7 @@ public class ImageRequestController {
             @PathVariable String imageId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
             @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId)
-            throws FogbowManagerException {
+            throws Exception {
         LOGGER.info("Get image request for <" + imageId + "> received.");
         Image image = ApplicationFacade.getInstance().getImage(memberId, imageId, federationTokenValue);
         return new ResponseEntity<>(image, HttpStatus.OK);

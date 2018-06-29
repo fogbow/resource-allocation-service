@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.cloudconnector;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.requesters.*;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.Instance;
@@ -23,28 +24,29 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public String requestInstance(Order order) throws FogbowManagerException {
+    public String requestInstance(Order order) throws Exception {
         RemoteCreateOrderRequest remoteCreateOrderRequest = new RemoteCreateOrderRequest(order);
         remoteCreateOrderRequest.send();
-        
+        // At the requesting member, the instance Id should be null, since the instance
+        // was not created at the requesting member's cloud.
         return null;
     }
 
     @Override
-    public void deleteInstance(Order order) throws FogbowManagerException {
+    public void deleteInstance(Order order) throws Exception {
         RemoteDeleteOrderRequest remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(order);
 		remoteDeleteOrderRequest.send();
     }
 
     @Override
-    public Instance getInstance(Order order) throws FogbowManagerException {
+    public Instance getInstance(Order order) throws Exception {
         RemoteGetOrderRequest remoteGetOrderRequest = new RemoteGetOrderRequest(order);
         Instance instance = remoteGetOrderRequest.send();
         return instance;
     }
 
     @Override
-    public Quota getUserQuota(FederationUser federationUser, InstanceType instanceType) throws FogbowManagerException {
+    public Quota getUserQuota(FederationUser federationUser, InstanceType instanceType) throws Exception {
 
         RemoteGetUserQuotaRequest remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.destinationMember,
                 federationUser, instanceType);
@@ -53,7 +55,7 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public HashMap<String, String> getAllImages(FederationUser federationUser) throws FogbowManagerException {
+    public HashMap<String, String> getAllImages(FederationUser federationUser) throws Exception {
 
         RemoteGetAllImagesRequest remoteGetAllImagesRequest = new RemoteGetAllImagesRequest(this.destinationMember,
                 federationUser);
@@ -62,7 +64,7 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public Image getImage(String imageId, FederationUser federationUser) throws FogbowManagerException {
+    public Image getImage(String imageId, FederationUser federationUser) throws Exception {
 
         RemoteGetImageRequest remoteGetImageRequest = new RemoteGetImageRequest(this.destinationMember, imageId,
                 federationUser);

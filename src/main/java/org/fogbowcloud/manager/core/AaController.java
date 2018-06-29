@@ -23,9 +23,7 @@ public class AaController {
     private AuthorizationPlugin authorizationPlugin;
     private LocalUserCredentialsMapperPlugin localUserCredentialsMapperPlugin;
 
-    public AaController(
-            LocalIdentityPlugin localIdentityPlugin, BehaviorPluginsHolder behaviorPluginsHolder) {
-
+    public AaController(LocalIdentityPlugin localIdentityPlugin, BehaviorPluginsHolder behaviorPluginsHolder) {
         this.localIdentityPlugin = localIdentityPlugin;
         this.federationIdentityPlugin = behaviorPluginsHolder.getFederationIdentityPlugin();
         this.localUserCredentialsMapperPlugin = behaviorPluginsHolder.getLocalUserCredentialsMapperPlugin();
@@ -64,7 +62,7 @@ public class AaController {
     }    
 
     public void authorize(FederationUser federationUser, Operation operation, Order order)
-            throws UnauthorizedRequestException {
+            throws FogbowManagerException {
         if (!this.authorizationPlugin.isAuthorized(federationUser, operation, order)) {
             throw new UnauthorizedRequestException();
         }

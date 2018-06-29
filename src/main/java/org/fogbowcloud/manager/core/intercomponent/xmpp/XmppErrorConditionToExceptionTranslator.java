@@ -4,7 +4,7 @@ import org.fogbowcloud.manager.core.exceptions.*;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
 
-public class ErrorConditionToExceptionTranslator {
+public class XmppErrorConditionToExceptionTranslator {
 
     public static void handleError(IQ response, String memberId) throws Exception {
         if (response == null) {
@@ -13,7 +13,7 @@ public class ErrorConditionToExceptionTranslator {
         } else if (response.getError() != null) {
             PacketError.Condition condition = response.getError().getCondition();
             String message = response.getError().getText();
-            ErrorConditionToExceptionTranslator.throwException(condition, message);
+            XmppErrorConditionToExceptionTranslator.throwException(condition, message);
         }
     }
 
