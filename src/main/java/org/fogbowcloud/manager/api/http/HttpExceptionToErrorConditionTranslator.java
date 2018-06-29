@@ -71,7 +71,7 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
     }
 
-    @ExceptionHandler(UnauthorizedRequestException.class)
+    @ExceptionHandler(UnavailableProviderException.class)
     public final ResponseEntity<ExceptionResponse> handleUnavailableProviderException(
             Exception ex, WebRequest request) {
 
@@ -81,12 +81,11 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
     }
 
-    @Override
-    public final ResponseEntity<Object> handleServletRequestBindingException(
-    		ServletRequestBindingException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+    @ExceptionHandler(UnexpectedException.class)
+    public final ResponseEntity<ExceptionResponse> handleUnexpectedException(Exception ex, WebRequest request) {
 
         ExceptionResponse errorDetails = new ExceptionResponse(
-                        ex.getMessage(), request.getDescription(false), HttpStatus.UNAUTHORIZED);
+                ex.getMessage(), request.getDescription(false), HttpStatus.INTERNAL_SERVER_ERROR);
 
         return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
     }
@@ -96,6 +95,17 @@ public class ExceptionTranslator extends ResponseEntityExceptionHandler {
 
         ExceptionResponse errorDetails = new ExceptionResponse(
                         ex.getMessage(), request.getDescription(false), HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+
+        return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
+    }
+
+    // FIXME: Check when/if this exception can be thrown; do we need to handle it? Should this be mapped to unauthorized?
+    @Override
+    public final ResponseEntity<Object> handleServletRequestBindingException(
+            ServletRequestBindingException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
+
+        ExceptionResponse errorDetails = new ExceptionResponse(
+                ex.getMessage(), request.getDescription(false), HttpStatus.UNAUTHORIZED);
 
         return new ResponseEntity<>(errorDetails, errorDetails.getStatusCode());
     }
