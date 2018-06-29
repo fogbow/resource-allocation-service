@@ -158,5 +158,5 @@ public class SQLCommands {
             + "instance_id=?,order_state=? WHERE " + ORDER_ID + "=?";
 
     protected static final String UPDATE_ATTACHMENT_ORDER_SQL = "UPDATE " + ATTACHMENT_ORDER_TABLE_NAME + " SET "
-            + "order_state=? WHERE " + ORDER_ID + "=?";
+            + "instance_id=?,order_state=? WHERE " + ORDER_ID + "=?";
 }

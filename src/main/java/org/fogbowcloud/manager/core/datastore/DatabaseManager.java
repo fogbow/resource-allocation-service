@@ -272,8 +272,9 @@ public class DatabaseManager implements StableStorage {
 
             orderStatement = connection.prepareStatement(SQLCommands.UPDATE_ATTACHMENT_ORDER_SQL);
 
-            orderStatement.setString(1, attachmentOrder.getOrderState().name());
-            orderStatement.setString(2, attachmentOrder.getId());
+            orderStatement.setString(1, attachmentOrder.getInstanceId());
+            orderStatement.setString(2, attachmentOrder.getOrderState().name());
+            orderStatement.setString(3, attachmentOrder.getId());
 
             orderStatement.executeUpdate();
 
@@ -340,6 +341,9 @@ public class DatabaseManager implements StableStorage {
                     networkResult.getString(8), networkResult.getString(9),
                     NetworkAllocation.fromValue(networkResult.getString(10)));
 
+            networkOrder.setInstanceId(networkResult.getString(2));
+            networkOrder.setOrderState(OrderState.fromValue(networkResult.getString(3)));
+
             synchronizedDoublyLinkedList.addItem(networkOrder);
         }
     }
@@ -356,6 +360,9 @@ public class DatabaseManager implements StableStorage {
                     new FederationUser(volumeResult.getString(4), federationUserAttr),
                     volumeResult.getString(6), volumeResult.getString(7),
                     volumeResult.getInt(8));
+
+            volumeOrder.setInstanceId(volumeResult.getString(2));
+            volumeOrder.setOrderState(OrderState.fromValue(volumeResult.getString(3)));
 
             synchronizedDoublyLinkedList.addItem(volumeOrder);
         }
@@ -374,6 +381,9 @@ public class DatabaseManager implements StableStorage {
                     attachmentResult.getString(6), attachmentResult.getString(7),
                     attachmentResult.getString(8), attachmentResult.getString(9),
                     attachmentResult.getString(10));
+
+            attachmentOrder.setInstanceId(attachmentResult.getString(2));
+            attachmentOrder.setOrderState(OrderState.fromValue(attachmentResult.getString(3)));
 
             synchronizedDoublyLinkedList.addItem(attachmentOrder);
         }
@@ -490,20 +500,13 @@ public class DatabaseManager implements StableStorage {
             orderStatement.setInt(9, computeOrder.getMemory());
             orderStatement.setInt(10, computeOrder.getDisk());
             orderStatement.setString(11, computeOrder.getImageId());
-            orderStatement.setString(12, computeOrder.getUserData().getExtraUserDataFileContent());
-            orderStatement.setString(13, computeOrder.getUserData().getExtraUserDataFileType().name());
-            orderStatement.setString(14, computeOrder.getPublicKey());
 
-            // TODO: It is not necessary when creating an order (can be null)
-            if (computeOrder.getActualAllocation() == null) {
-                orderStatement.setInt(15, -1);
-                orderStatement.setInt(16, -1);
-                orderStatement.setInt(17, -1);
-            } else {
-                orderStatement.setInt(15, computeOrder.getActualAllocation().getvCPU());
-                orderStatement.setInt(16, computeOrder.getActualAllocation().getRam());
-                orderStatement.setInt(17, computeOrder.getActualAllocation().getInstances());
+            if (computeOrder.getUserData() != null) {
+                orderStatement.setString(12, computeOrder.getUserData().getExtraUserDataFileContent());
+                orderStatement.setString(13, computeOrder.getUserData().getExtraUserDataFileType().name());
             }
+
+            orderStatement.setString(14, computeOrder.getPublicKey());
 
             Gson gson = new Gson();
             String networksId = gson.toJson(computeOrder.getNetworksId());

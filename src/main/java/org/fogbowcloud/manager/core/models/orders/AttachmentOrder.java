@@ -61,15 +61,27 @@ public class AttachmentOrder extends Order {
     public String getDevice() {
         return this.device;
     }
-    
+
+    /**
+     * The attachment-instance-id is formed by the source-id and target-id.
+     *
+     * If order-instance-id is null, it means the attachment has
+     * already been deleted, then it also must return null so that
+     * the closed processor will no longer try to delete this one.
+     *
+     * @return instance-id
+     */
     @Override
     public String getInstanceId() {
-        return getSource()+ SEPARATOR_ID + getTarget();
+        if (super.getInstanceId() == null) {
+            return null;
+        }
+
+        return getSource() + SEPARATOR_ID + getTarget();
     }
 
     @Override
     public InstanceType getType() {
         return InstanceType.ATTACHMENT;
     }
-
 }
