@@ -8,8 +8,8 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.fogbowcloud.manager.core.HomeDir;
-import org.fogbowcloud.manager.core.exceptions.ImageException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.token.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.ImagePlugin;
@@ -39,7 +39,7 @@ public class OpenStackImagePlugin implements ImagePlugin {
 	private Properties properties;
 	private HttpRequestClientUtil client;
 	
-	public OpenStackImagePlugin() {
+	public OpenStackImagePlugin() throws FatalErrorException {
 		HomeDir homeDir = HomeDir.getInstance();
 		this.properties = PropertiesUtil.
 				readProperties(homeDir.getPath() + File.separator + GLANCE_PLUGIN_CONF_FILE);
@@ -47,7 +47,7 @@ public class OpenStackImagePlugin implements ImagePlugin {
 	}
 	
 	@Override
-	public Map<String, String> getAllImages(Token localToken) throws ImageException {
+	public Map<String, String> getAllImages(Token localToken) throws FogbowManagerException {
 		Map<String, String> allAvailableImageNameIdMap = getImageNameAndIdMapFromAllAvailableImages(
 				localToken,
 				localToken.getAttributes().get(TENANT_ID));
@@ -55,7 +55,7 @@ public class OpenStackImagePlugin implements ImagePlugin {
 	}
 
 	@Override
-	public Image getImage(String imageId, Token localToken) throws ImageException {
+	public Image getImage(String imageId, Token localToken) throws FogbowManagerException {
 		JSONObject imageJsonObject = getJsonObjectImage(imageId, localToken);
 		String status = imageJsonObject.optString(STATUS);
 		if (status.equals(ACTIVE_STATE)) {
@@ -72,40 +72,32 @@ public class OpenStackImagePlugin implements ImagePlugin {
 		return null;
 	}
 	
-	private JSONObject getJsonObjectImage(String imageId, Token localToken) throws ImageException {
+	private JSONObject getJsonObjectImage(String imageId, Token localToken) throws FogbowManagerException {
 		String endpoint = 
 				this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
                 + COMPUTE_V2_API_ENDPOINT
                 + SUFFIX
                 + "/"
                 + imageId;
-		try {
-			String jsonResponse = this.client.doGetRequest(endpoint, localToken);
-			JSONObject image = new JSONObject(jsonResponse);
-			return image;
-		} catch (RequestException e) {
-			throw new ImageException("Could not make GET request.", e);
-		}
+		String jsonResponse = this.client.doGetRequest(endpoint, localToken);
+		JSONObject image = new JSONObject(jsonResponse);
+		return image;
 	}
 	
-	private List<JSONObject> getAllImagesJson(Token localToken) throws ImageException  {
+	private List<JSONObject> getAllImagesJson(Token localToken) throws FogbowManagerException {
 		String endpoint = 
 				this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
                 + COMPUTE_V2_API_ENDPOINT
                 + SUFFIX
                 + QUERY_ACTIVE_IMAGES;
-		try {
-			String jsonResponse = this.client.doGetRequest(endpoint, localToken);
-			List<JSONObject> imagesJson = new ArrayList<JSONObject>();
-			imagesJson.addAll(getImagesFromJson(jsonResponse));
-			getNextJsonByPagination(localToken, jsonResponse, imagesJson);
-			return imagesJson;
-		} catch (RequestException e) {
-			throw new ImageException("Could not make GET request.", e);
-		}
+		String jsonResponse = this.client.doGetRequest(endpoint, localToken);
+		List<JSONObject> imagesJson = new ArrayList<JSONObject>();
+		imagesJson.addAll(getImagesFromJson(jsonResponse));
+		getNextJsonByPagination(localToken, jsonResponse, imagesJson);
+		return imagesJson;
 	}
 	
-	private void getNextJsonByPagination(Token localToken, String currentJson, List<JSONObject> imagesJson) throws RequestException{
+	private void getNextJsonByPagination(Token localToken, String currentJson, List<JSONObject> imagesJson) throws FogbowManagerException {
 		JSONObject jsonObject = new JSONObject (currentJson);
 		if (jsonObject.has("next")) {
 			String next = jsonObject.getString("next");
@@ -149,7 +141,7 @@ public class OpenStackImagePlugin implements ImagePlugin {
 		return privateImages;
 	}
 	
-	private Map<String, String> getImageNameAndIdMapFromAllAvailableImages(Token localToken, String tenantId) throws ImageException{
+	private Map<String, String> getImageNameAndIdMapFromAllAvailableImages(Token localToken, String tenantId) throws FogbowManagerException {
 		Map<String, String> imageNameIdMap = new HashMap<String, String>();
 		List<JSONObject> allImages = getAllImagesJson(localToken);
 		List<JSONObject> filteredImages = new ArrayList<JSONObject>();

@@ -1,7 +1,7 @@
 package org.fogbowcloud.manager.core;
 
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
+import org.fogbowcloud.manager.core.exceptions.*;
+
 import java.util.Map;
 import org.fogbowcloud.manager.core.constants.Operation;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -14,8 +14,6 @@ import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.Federati
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.DefaultLocalUserCredentialsMapper;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.LocalUserCredentialsMapperPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.LocalIdentityPlugin;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.services.PluginInstantiationService;
 import org.junit.Assert;
 import org.junit.Before;
@@ -52,7 +50,7 @@ public class AaControllerTest {
     }
 
     @Test
-    public void testAuthenticate() throws UnauthenticatedException {
+    public void testAuthenticate() throws UnauthenticatedUserException {
         boolean isAuthenticated = true;
         Mockito.doReturn(isAuthenticated).when(this.federationIdentityPlugin)
                 .isValid(Mockito.anyString());
@@ -65,9 +63,9 @@ public class AaControllerTest {
      * is set to always return true
      */
     @Ignore
-    @Test(expected = UnauthorizedException.class)
-    public void testAuthenticationFail() throws UnauthenticatedException {
-        Mockito.doThrow(UnauthorizedException.class).when(this.federationIdentityPlugin)
+    @Test(expected = UnauthorizedRequestException.class)
+    public void testAuthenticationFail() throws UnauthenticatedUserException {
+        Mockito.doThrow(UnauthorizedRequestException.class).when(this.federationIdentityPlugin)
                 .isValid(Mockito.anyString());
         this.AaController.authenticate(Mockito.anyString());
     }
@@ -109,8 +107,7 @@ public class AaControllerTest {
     @SuppressWarnings("unchecked")
     @Ignore
     @Test
-    public void testGetLocalToken()
-            throws UnauthorizedException, TokenCreationException, PropertyNotSpecifiedException {
+    public void testGetLocalToken() throws FogbowManagerException {
         Token localToken = Mockito.mock(Token.class);
         Mockito.doReturn(localToken).when(this.localIdentityPlugin).createToken(Mockito.anyMap());
         Token tokenGenarated = this.AaController.getLocalToken(null);
@@ -118,8 +115,7 @@ public class AaControllerTest {
     }
 
     @Test(expected = PropertyNotSpecifiedException.class)
-    public void testGetLocalTokenWithNoCredentials()
-            throws PropertyNotSpecifiedException, UnauthorizedException, TokenCreationException {
+    public void testGetLocalTokenWithNoCredentials() throws FogbowManagerException {
         FederationUser federationUser = Mockito.mock(FederationUser.class);
         LocalUserCredentialsMapperPlugin localUserCredentialsMapperPlugin =
                 new DefaultLocalUserCredentialsMapper();

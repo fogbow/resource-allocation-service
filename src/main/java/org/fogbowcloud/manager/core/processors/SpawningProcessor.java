@@ -1,18 +1,12 @@
 package org.fogbowcloud.manager.core.processors;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -34,20 +28,13 @@ public class SpawningProcessor implements Runnable {
 
     private CloudConnector localCloudConnector;
 
-    public SpawningProcessor(
-            String memberId,
-            TunnelingServiceUtil tunnelingService,
-            SshConnectivityUtil sshConnectivity,
-            String sleepTimeStr) {
-
+    public SpawningProcessor(String memberId, TunnelingServiceUtil tunnelingService,
+            SshConnectivityUtil sshConnectivity, String sleepTimeStr) {
         this.computeInstanceConnectivity =
             new ComputeInstanceConnectivityUtil(tunnelingService, sshConnectivity);
-
         this.localCloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
-
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();
-
         this.sleepTime = Long.valueOf(sleepTimeStr);
     }
 
@@ -58,22 +45,18 @@ public class SpawningProcessor implements Runnable {
             try {
                 Order order = this.spawningOrderList.getNext();
                 if (order != null) {
-                    try {
-                        processSpawningOrder(order);
-                    } catch (OrderStateTransitionException e) {
-                        LOGGER.error("Error while trying to change the state of order " + order, e);
-                    }
+                    processSpawningOrder(order);
                 } else {
                     this.spawningOrderList.resetPointer();
-                    LOGGER.debug(
-                        "There is no spawning order to be processed, sleeping for "
-                            + this.sleepTime
-                            + " milliseconds");
+                    LOGGER.debug("There is no spawning order to be processed, sleeping for "
+                            + this.sleepTime + " milliseconds");
                     Thread.sleep(this.sleepTime);
                 }
             } catch (InterruptedException e) {
                 isActive = false;
-                LOGGER.warn("Thread interrupted", e);
+                LOGGER.error("Thread interrupted", e);
+            } catch (UnexpectedException e) {
+                LOGGER.error(e.getMessage(), e);
             } catch (Throwable e) {
                 LOGGER.error("Unexpected error", e);
             }
@@ -81,8 +64,14 @@ public class SpawningProcessor implements Runnable {
     }
 
     protected void processSpawningOrder(Order order) throws Exception {
+        // The order object synchronization is needed to prevent a race
+        // condition on order access. For example: a user can delete an open
+        // order while this method is trying to check the status of an instance
+        // that has been requested in the cloud.
         synchronized (order) {
             OrderState orderState = order.getOrderState();
+
+            // Check if the order is still in the Spawning state (it could have been changed by another thread)
             if (orderState.equals(OrderState.SPAWNING)) {
                 LOGGER.debug("Trying to process an instance for order [" + order.getId() + "]");
                 processInstance(order);
@@ -95,24 +84,19 @@ public class SpawningProcessor implements Runnable {
     /**
      * This method does not synchronize the order object because it is private and can only be
      * called by the processSpawningOrder method.
-     * @throws RemoteRequestException 
+     * @throws FogbowManagerException
      */
-    private void processInstance(Order order)
-    		throws PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException, UnauthorizedException, OrderStateTransitionException, RemoteRequestException {
+    private void processInstance(Order order) throws Exception {
         Instance instance = this.localCloudConnector.getInstance(order);
         InstanceType instanceType = order.getType();
 
         InstanceState instanceState = instance.getState();
 
         if (instanceState.equals(InstanceState.FAILED)) {
-            LOGGER.debug(
-                "The compute instance state is failed for order [" + order.getId() + "]");
+            LOGGER.debug("The compute instance state is failed for order [" + order.getId() + "]");
             OrderStateTransitioner.transition(order, OrderState.FAILED);
-
         } else if (instanceState.equals(InstanceState.READY)) {
-            LOGGER
-                .debug("Processing active compute instance for order [" + order.getId() + "]");
-
+            LOGGER.debug("Processing active compute instance for order [" + order.getId() + "]");
             if (instanceType.equals(InstanceType.COMPUTE)) {
                 SshTunnelConnectionData sshTunnelConnectionData = this.computeInstanceConnectivity
                     .getSshTunnelConnectionData(order.getId());
@@ -125,7 +109,6 @@ public class SpawningProcessor implements Runnable {
                     }
                 }
             }
-
             OrderStateTransitioner.transition(order, OrderState.FULFILLED);
         }
     }

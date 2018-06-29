@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.processors.SpawningProcessor;
 import org.json.JSONObject;
 
@@ -31,21 +32,22 @@ public class TunnelingServiceUtil {
 
     private PoolingHttpClientConnectionManager connectionManager;
 
-    private HttpClient reverseTunnelHttpClient = createReverseTunnelHttpClient();
+    private HttpClient reverseTunnelHttpClient;
 
     private static TunnelingServiceUtil instance;
 
-    private TunnelingServiceUtil() {
+    private TunnelingServiceUtil() throws FatalErrorException {
+        this.reverseTunnelHttpClient = createReverseTunnelHttpClient();
     }
 
-    public static TunnelingServiceUtil getInstance() {
+    public static TunnelingServiceUtil getInstance() throws FatalErrorException {
         if (instance == null) {
             instance = new TunnelingServiceUtil();
         }
         return instance;
     }
 
-    public Map<String, String> getExternalServiceAddresses(String orderId) {
+    public Map<String, String> getExternalServiceAddresses(String orderId) throws FatalErrorException {
         if (orderId == null || orderId.isEmpty()) {
             return null;
         }
@@ -111,7 +113,7 @@ public class TunnelingServiceUtil {
         return null;
     }
 
-    private CloseableHttpClient createReverseTunnelHttpClient() {
+    private CloseableHttpClient createReverseTunnelHttpClient() throws FatalErrorException {
         this.connectionManager = new PoolingHttpClientConnectionManager();
         this.connectionManager.setMaxTotal(DefaultConfigurationConstants.DEFAULT_MAX_POOL);
         this.connectionManager.setDefaultMaxPerRoute(DefaultConfigurationConstants.DEFAULT_MAX_POOL);

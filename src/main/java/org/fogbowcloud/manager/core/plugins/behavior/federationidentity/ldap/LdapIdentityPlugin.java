@@ -26,9 +26,8 @@ import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
-import org.fogbowcloud.manager.core.plugins.exceptions.*;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.utils.PropertiesUtil;
 import org.fogbowcloud.manager.utils.RSAUtils;
@@ -77,7 +76,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
     private String privateKeyPath;
     private String publicKeyPath;
 
-    public LdapIdentityPlugin() {
+    public LdapIdentityPlugin() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
         Properties properties = PropertiesUtil.
                 readProperties(homeDir.getPath() + File.separator + LDAP_PLUGIN_CONF_FILE);
@@ -90,7 +89,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
     @Override
     public String createFederationTokenValue(Map<String, String> userCredentials)
-        throws UnauthenticatedException, TokenValueCreationException {
+        throws UnauthenticatedUserException, TokenValueCreationException {
 
         String userId = userCredentials.get(CRED_USERNAME);
         String password = userCredentials.get(CRED_PASSWORD);
@@ -103,7 +102,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
         try {
             name = ldapAuthenticate(userId, password);
         } catch (Exception e) {
-            throw new InvalidCredentialsException(
+            throw new InvalidCredentialsUserException(
                     "Couldn't load account summary from LDAP Server.", e);
         }
 
@@ -149,7 +148,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
     }
 
     @Override
-    public FederationUser getFederationUser(String federationTokenValue) throws UnauthenticatedException {
+    public FederationUser getFederationUser(String federationTokenValue) throws UnauthenticatedUserException {
 
         try {
 
@@ -158,7 +157,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
             String split[] = decodedFederationTokenValue.split(ACCESSID_SEPARATOR);
             if(split == null || split.length < 2){
                 LOGGER.error("Invalid accessID: " + decodedFederationTokenValue);
-                throw new UnauthenticatedException();
+                throw new UnauthenticatedUserException();
             }
 
             String tokenValue = split[0];
@@ -168,7 +167,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
             if(!verifySign(tokenValue, signature)){
                 LOGGER.error("Invalid accessID: " + decodedFederationTokenValue);
-                throw new UnauthenticatedException();
+                throw new UnauthenticatedUserException();
             }
 
             String uuid = root.getString(ATT_LOGIN);
@@ -180,7 +179,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
             return new FederationUser(uuid, attributes);
         } catch (JSONException e) {
             LOGGER.error("Exception while getting token from json.", e);
-            throw new UnauthenticatedException();
+            throw new UnauthenticatedUserException();
         }
     }
 
@@ -194,14 +193,14 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
         }
     }
 
-    private void checkTokenValue(String federationTokenValue) throws UnauthorizedException, ExpiredTokenException {
+    private void checkTokenValue(String federationTokenValue) throws ExpiredTokenException, UnauthenticTokenException {
         try {
             String decodedAccessId =
                     new String(Base64.decodeBase64(federationTokenValue), StandardCharsets.UTF_8);
 
             String split[] = decodedAccessId.split(ACCESSID_SEPARATOR);
             if (split == null || split.length < 2) {
-                throw new InvalidTokenException("Invalid accessID: " + decodedAccessId);
+                throw new UnauthenticTokenException("Invalid token: " + decodedAccessId);
             }
 
             String tokenMessage = split[0];
@@ -216,10 +215,10 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
             }
 
             if (!verifySign(tokenMessage, signature)) {
-                throw new UnauthorizedException("Invalid accessID: " + decodedAccessId);
+                throw new UnauthenticTokenException("Invalid token: " + decodedAccessId);
             }
         } catch (JSONException e) {
-            throw new InvalidTokenException("Exception while getting token from json.", e);
+            throw new UnauthenticTokenException("Exception while getting token from json.", e);
         }
     }
 

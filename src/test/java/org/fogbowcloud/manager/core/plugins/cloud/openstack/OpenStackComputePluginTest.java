@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Properties;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.CloudInitUserDataBuilder;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.LaunchCommandGenerator;
 import org.fogbowcloud.manager.core.models.Flavor;
@@ -25,7 +25,6 @@ import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackNovaV2ComputePlugin;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -93,7 +92,7 @@ public class OpenStackComputePluginTest {
     }
 
     @Test
-    public void testRequestInstance() throws IOException, RequestException {
+    public void testRequestInstance() throws IOException, FogbowManagerException {
         Flavor flavor = mock(Flavor.class);
         doReturn(flavor)
                 .when(this.novaV2ComputeOpenStack)
@@ -132,8 +131,8 @@ public class OpenStackComputePluginTest {
         assertEquals(instanceId, FAKE_INSTANCE_ID);
     }
 
-    @Test(expected = RequestException.class)
-    public void testRequestInstanceIrregularSyntax() throws IOException, RequestException {
+    @Test(expected = FogbowManagerException.class)
+    public void testRequestInstanceIrregularSyntax() throws IOException, FogbowManagerException {
         Flavor flavor = mock(Flavor.class);
         doReturn(flavor)
                 .when(novaV2ComputeOpenStack)
@@ -274,7 +273,7 @@ public class OpenStackComputePluginTest {
     }
 
     @Test
-    public void testGetActivateInstance() throws RequestException {
+    public void testGetActivateInstance() throws FogbowManagerException {
         doReturn(FAKE_ENDPOINT)
                 .when(novaV2ComputeOpenStack)
                 .getComputeEndpoint(anyString(), anyString());
@@ -291,7 +290,7 @@ public class OpenStackComputePluginTest {
     }
 
     @Test
-    public void testGetFailedInstance() throws RequestException {
+    public void testGetFailedInstance() throws FogbowManagerException {
         doReturn(FAKE_ENDPOINT)
                 .when(novaV2ComputeOpenStack)
                 .getComputeEndpoint(anyString(), anyString());
@@ -308,7 +307,7 @@ public class OpenStackComputePluginTest {
     }
 
     @Test
-    public void testGetInactiveInstance() throws RequestException {
+    public void testGetInactiveInstance() throws FogbowManagerException {
         doReturn(FAKE_ENDPOINT)
                 .when(this.novaV2ComputeOpenStack)
                 .getComputeEndpoint(anyString(), anyString());
@@ -325,7 +324,7 @@ public class OpenStackComputePluginTest {
     }
 
     @Test(expected = Exception.class)
-    public void testGetInstanceWithJSONException() throws RequestException {
+    public void testGetInstanceWithJSONException() throws FogbowManagerException {
         doReturn(INVALID_FAKE_POST_RETURN)
                 .when(this.novaV2ComputeOpenStack)
                 .doGetRequest(anyString(), any(Token.class));

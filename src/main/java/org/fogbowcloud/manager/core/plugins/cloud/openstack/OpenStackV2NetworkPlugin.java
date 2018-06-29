@@ -20,7 +20,8 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
 import org.fogbowcloud.manager.core.models.ErrorType;
@@ -98,7 +99,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
 
     private static final Logger LOGGER = Logger.getLogger(OpenStackV2NetworkPlugin.class);
 
-    public OpenStackV2NetworkPlugin() {
+    public OpenStackV2NetworkPlugin() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
         Properties properties = PropertiesUtil.
                 readProperties(homeDir.getPath() + File.separator + NEUTRON_PLUGIN_CONF_FILE);
@@ -122,7 +123,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     }
 
     @Override
-    public String requestInstance(NetworkOrder order, Token localToken) throws RequestException {
+    public String requestInstance(NetworkOrder order, Token localToken) throws FogbowManagerException {
         JSONObject jsonRequest = null;
         String tenantId = localToken.getAttributes().get(TENANT_ID);
 
@@ -131,7 +132,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
             jsonRequest = generateJsonEntityToCreateRouter();
         } catch (JSONException e) {
             LOGGER.error("An error occurred when generating json.", e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         }
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_ROUTER;
         String responseStr = doPostRequest(endpoint, localToken.getAccessId(), jsonRequest);
@@ -143,12 +144,12 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         } catch (JSONException e) {
             String messageTemplate = "Error while trying to generate json data";
             LOGGER.error(messageTemplate, e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         }
         try {
             endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK;
             responseStr = doPostRequest(endpoint, localToken.getAccessId(), jsonRequest);
-        } catch (RequestException e) {
+        } catch (FogbowManagerException e) {
             removeRouter(localToken, routerId);
             throw e;
         }
@@ -161,12 +162,12 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
             String messageTemplate =
                     "Error while trying to generate json subnet entity with networkId %s for order %s";
             LOGGER.error(String.format(messageTemplate, networkId, order), e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         }
         try {
             endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SUBNET;
             responseStr = doPostRequest(endpoint, localToken.getAccessId(), jsonRequest);
-        } catch (RequestException e) {
+        } catch (FogbowManagerException e) {
             String messageTemplate = "Error while trying to create subnet for order %s";
             LOGGER.error(String.format(messageTemplate, order));
             removeRouter(localToken, routerId);
@@ -180,7 +181,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         } catch (JSONException e) {
             String messageTemplate = "Error while trying to generate json entity with subnetId %s";
             LOGGER.error(String.format(messageTemplate, subnetId), e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         }
 
         // Adding router interface
@@ -188,7 +189,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
             endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_ROUTER + "/" + routerId + "/"
                     + SUFFIX_ENDPOINT_ADD_ROUTER_INTERFACE_ADD;
             doPutRequest(endpoint, localToken.getAccessId(), jsonRequest);
-        } catch (RequestException e) {
+        } catch (FogbowManagerException e) {
             String messageTemplate = "Error while trying to add router interface with json %s";
             LOGGER.error(String.format(messageTemplate, jsonRequest));
             removeRouter(localToken, routerId);
@@ -201,7 +202,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
 
     @Override
     public NetworkInstance getInstance(String instanceId, Token token)
-            throws RequestException {
+            throws FogbowManagerException {
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK + "/" + instanceId;
         String responseStr = doGetRequest(endpoint, token.getAccessId());
         NetworkInstance instance = getInstanceFromJson(responseStr, token);
@@ -209,7 +210,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     }
 
     @Override
-    public void deleteInstance(String instanceId, Token token) throws RequestException {
+    public void deleteInstance(String instanceId, Token token) throws FogbowManagerException {
         // TODO: ensure that all the necessary token attributes are set.
         String tenantId = token.getAttributes().get(TENANT_ID);
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_PORTS + "?" + KEY_TENANT_ID
@@ -230,7 +231,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
 
                     boolean thereIsInstance = deviceOwner.equals(COMPUTE_NOVA);
                     if (thereIsInstance) {
-                        throw new RequestException(ErrorType.BAD_REQUEST,
+                        throw new FogbowManagerException(ErrorType.BAD_REQUEST,
                                 MSG_LOG_THERE_IS_INSTANCE_ASSOCIATED + "( " + instanceId + " ).");
                     }
 
@@ -256,10 +257,10 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
             }
         } catch (JSONException e) {
             LOGGER.error(MSG_LOG_ERROR_MANIPULATE_JSON);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         } catch (NullPointerException e) {
             LOGGER.error(MSG_LOG_ERROR_MANIPULATE_JSON);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         }
 
 
@@ -269,11 +270,11 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         if (!removeNetwork(token, instanceId)) {
             String messageTemplate = "Was not possible delete network with id %s";
             LOGGER.error(String.format(messageTemplate, instanceId));
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         }
     }
 
-    protected NetworkInstance getInstanceFromJson(String json, Token token) throws RequestException {
+    protected NetworkInstance getInstanceFromJson(String json, Token token) throws FogbowManagerException {
         String networkId = null;
         String label = null;
         InstanceState instanceState = null;
@@ -326,7 +327,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         return instance;
     }
 
-    private JSONObject getSubnetInformation(Token token, String subnetId) throws RequestException {
+    private JSONObject getSubnetInformation(Token token, String subnetId) throws FogbowManagerException {
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SUBNET + "/" + subnetId;
         String responseStr = doGetRequest(endpoint, token.getAccessId());
 
@@ -473,7 +474,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK + "/" + networkId;
             doDeleteRequest(endpoint, token.getAccessId());
             deleted = true;
-        } catch (RequestException e) {
+        } catch (FogbowManagerException e) {
             messageTemplate = "Was not possible remove network %s";
             LOGGER.error(String.format(messageTemplate, networkId), e);
         }
@@ -488,7 +489,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_ROUTER + "/" + routerId;
             doDeleteRequest(endpoint, token.getAccessId());
             deleted = true;
-        } catch (RequestException e) {
+        } catch (FogbowManagerException e) {
             messageTemplate = "Was not possible remove router %s";
             LOGGER.error(String.format(messageTemplate, routerId), e);
         }
@@ -496,7 +497,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     }
 
     protected String doPostRequest(String endpoint, String authToken, JSONObject data)
-            throws RequestException {
+            throws FogbowManagerException {
         HttpPost request = new HttpPost(endpoint);
         addRequestHeaders(request, authToken);
         request.setEntity(new StringEntity(data.toString(), StandardCharsets.UTF_8));
@@ -511,7 +512,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         } catch (Exception e) {
             messageTemplate = "Error while trying to post";
             LOGGER.error(messageTemplate, e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         } finally {
             consumeResponseStream(response);
         }
@@ -521,7 +522,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         return responseStr;
     }
 
-    protected String doGetRequest(String endpoint, String authToken) throws RequestException {
+    protected String doGetRequest(String endpoint, String authToken) throws FogbowManagerException {
         HttpGet request = new HttpGet(endpoint);
         addRequestHeaders(request, authToken);
 
@@ -535,7 +536,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         } catch (Exception e) {
             messageTemplate = "Error while trying to get";
             LOGGER.error(messageTemplate, e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         } finally {
             consumeResponseStream(response);
         }
@@ -546,7 +547,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     }
 
     protected String doPutRequest(String endpoint, String authToken, JSONObject data)
-            throws RequestException {
+            throws FogbowManagerException {
         HttpPut request = new HttpPut(endpoint);
         addRequestHeaders(request, authToken);
         // TODO: check it (ensure that data is never null).
@@ -564,7 +565,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         } catch (Exception e) {
             messageTemplate = "Error while trying to put";
             LOGGER.error(messageTemplate, e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         } finally {
             consumeResponseStream(response);
         }
@@ -574,7 +575,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         return responseStr;
     }
 
-    protected void doDeleteRequest(String endpoint, String authToken) throws RequestException {
+    protected void doDeleteRequest(String endpoint, String authToken) throws FogbowManagerException {
         HttpDelete request = new HttpDelete(endpoint);
         addRequestHeaders(request, authToken);
 
@@ -591,7 +592,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         } catch (Exception e) {
             messageTemplate = "Error while trying to delete";
             LOGGER.error(messageTemplate, e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         } finally {
             consumeResponseStream(response);
         }
@@ -600,22 +601,22 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     }
 
     private void checkStatusResponse(HttpResponse response, String message)
-            throws RequestException {
+            throws FogbowManagerException {
         if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-            throw new RequestException(ErrorType.UNAUTHORIZED, ResponseConstants.UNAUTHORIZED);
+            throw new FogbowManagerException(ErrorType.UNAUTHORIZED, ResponseConstants.UNAUTHORIZED);
         } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-            throw new RequestException(ErrorType.NOT_FOUND, ResponseConstants.NOT_FOUND);
+            throw new FogbowManagerException(ErrorType.NOT_FOUND, ResponseConstants.NOT_FOUND);
         } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_REQUEST) {
-            throw new RequestException(ErrorType.BAD_REQUEST, message);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, message);
         } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_REQUEST_TOO_LONG) {
             if (message != null
                     && message.contains(ResponseConstants.QUOTA_EXCEEDED_FOR_INSTANCES)) {
-                throw new RequestException(ErrorType.QUOTA_EXCEEDED,
+                throw new FogbowManagerException(ErrorType.QUOTA_EXCEEDED,
                         ResponseConstants.QUOTA_EXCEEDED_FOR_INSTANCES);
             }
-            throw new RequestException(ErrorType.BAD_REQUEST, message);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, message);
         } else if (response.getStatusLine().getStatusCode() > 204) {
-            throw new RequestException(ErrorType.BAD_REQUEST, "Status code: "
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, "Status code: "
                     + response.getStatusLine().toString() + " | Message:" + message);
         }
     }

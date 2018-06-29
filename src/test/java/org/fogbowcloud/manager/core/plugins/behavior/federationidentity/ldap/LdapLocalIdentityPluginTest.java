@@ -8,8 +8,7 @@ import java.util.Properties;
 import org.apache.commons.codec.binary.Base64;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.ldap.LdapIdentityPlugin;
+import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
@@ -88,7 +87,7 @@ public class LdapLocalIdentityPluginTest {
         try {
             ldapStoneIdentity.createFederationTokenValue(userCredentials);
             Assert.fail();
-        } catch (UnauthenticatedException e) {
+        } catch (UnauthenticatedUserException e) {
             Assert.assertEquals("Couldn't load account summary from LDAP Server.", e.getMessage());
         }
     }

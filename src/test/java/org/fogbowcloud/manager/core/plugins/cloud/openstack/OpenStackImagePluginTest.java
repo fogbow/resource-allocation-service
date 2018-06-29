@@ -6,10 +6,9 @@ import java.util.Map;
 import java.util.Properties;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
-import org.fogbowcloud.manager.core.exceptions.ImageException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackImagePlugin;
 import org.json.JSONObject;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -19,11 +18,11 @@ public class OpenStackImagePluginTest {
 
     /**
      * TODO The test must be redone using mock.
-     * @throws ImageException
+     * @throws FogbowManagerException
      */
     @Ignore
     @Test
-    public void testGetAllImages() throws ImageException {
+    public void testGetAllImages() throws FogbowManagerException {
         HomeDir.getInstance().setPath("src/test/resources/private");
 
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();

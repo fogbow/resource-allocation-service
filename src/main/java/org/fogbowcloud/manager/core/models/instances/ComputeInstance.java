@@ -10,6 +10,8 @@ public class ComputeInstance extends Instance {
     /** Memory attribute, must be set in MB. */
     private int ram;
 
+    private int disk;
+
     private String localIpAddress;
 
     private SshTunnelConnectionData sshTunnelConnectionData;
@@ -19,12 +21,14 @@ public class ComputeInstance extends Instance {
             String hostName,
             int vCPU,
             int ram,
+            int disk,
             InstanceState state,
             String localIpAddress) {
         super(id, state);
         this.hostName = hostName;
         this.vCPU = vCPU;
         this.ram = ram;
+        this.disk = disk;
         this.localIpAddress = localIpAddress;
     }
 
@@ -55,7 +59,15 @@ public class ComputeInstance extends Instance {
     public void setRam(int ram) {
         this.ram = ram;
     }
-    
+
+    public int getDisk() {
+        return disk;
+    }
+
+    public void setDisk(int disk) {
+        this.disk = disk;
+    }
+
     public String getLocalIpAddress() {
 		return localIpAddress;
 	}

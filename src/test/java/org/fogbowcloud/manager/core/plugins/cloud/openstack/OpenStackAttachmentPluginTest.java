@@ -11,12 +11,11 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackNovaV2AttachmentPlugin;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
@@ -62,7 +61,7 @@ public class OpenStackAttachmentPluginTest {
     }
     
     @Test
-    public void requestInstanceTest() throws RequestException {
+    public void requestInstanceTest() throws FogbowManagerException {
         doReturn(FAKE_POST_REQUEST_BODY).when(this.openStackAttachmentPlugin).
         doPostRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(JSONObject.class));
 
@@ -70,13 +69,13 @@ public class OpenStackAttachmentPluginTest {
         Assert.assertEquals(FAKE_INSTANCE_ID, instanceId);
     }
     
-    @Test (expected = RequestException.class)
-    public void requestInstanceThrowRequestExceptionTest() throws RequestException {
+    @Test (expected = FogbowManagerException.class)
+    public void requestInstanceThrowRequestExceptionTest() throws FogbowManagerException {
         this.openStackAttachmentPlugin.requestInstance(this.attachmentOrder, this.localToken);
     }
     
     @Test
-    public void deleteInstanceTest() throws RequestException, ClientProtocolException, IOException {
+    public void deleteInstanceTest() throws FogbowManagerException, ClientProtocolException, IOException {
       Mockito.doReturn(FAKE_TENANT_ID).when(this.openStackAttachmentPlugin).getTenantId(this.localToken);
       Mockito.doReturn(FAKE_FEDERATION_TOKEN_VALUE).when(this.localToken).getAccessId();
       
@@ -87,15 +86,15 @@ public class OpenStackAttachmentPluginTest {
       // returned on successful request response codes 202
     }
     
-    @Test (expected = RequestException.class)
-    public void deleteInstanceThrowsRequestExceptionTest() throws RequestException {
+    @Test (expected = FogbowManagerException.class)
+    public void deleteInstanceThrowsRequestExceptionTest() throws FogbowManagerException {
         String instanceId = FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID;
-        doThrow(RequestException.class).when(this.openStackAttachmentPlugin).deleteInstance(instanceId, this.localToken);
+        doThrow(FogbowManagerException.class).when(this.openStackAttachmentPlugin).deleteInstance(instanceId, this.localToken);
         this.openStackAttachmentPlugin.deleteInstance(instanceId, this.localToken);  
     }
     
     @Test
-    public void getInstanceTest() throws RequestException {
+    public void getInstanceTest() throws FogbowManagerException {
         String instanceId = FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID;
         
         doReturn(FAKE_GET_RESQUEST_BODY).when(this.openStackAttachmentPlugin).
@@ -109,8 +108,8 @@ public class OpenStackAttachmentPluginTest {
         Assert.assertNotNull(attachmentInstance);
     }
     
-    @Test (expected = RequestException.class)
-    public void getInstanceThrowsRequestExceptionTest() throws RequestException {
+    @Test (expected = FogbowManagerException.class)
+    public void getInstanceThrowsRequestExceptionTest() throws FogbowManagerException {
         String instanceId = FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID;
         this.openStackAttachmentPlugin.getInstance(instanceId, this.localToken);
     }

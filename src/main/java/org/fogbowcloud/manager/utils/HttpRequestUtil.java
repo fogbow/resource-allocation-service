@@ -10,6 +10,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 
 public class HttpRequestUtil {
 
@@ -20,7 +21,7 @@ public class HttpRequestUtil {
     private static final Logger LOGGER = Logger.getLogger(HttpRequestUtil.class);
     private static Integer timeoutHttpRequest;
 
-    public static void init() {
+    public static void init() throws FatalErrorException {
         try {
             String timeoutRequestStr =
                     PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT);
@@ -32,28 +33,27 @@ public class HttpRequestUtil {
                             + " ms.");
             timeoutHttpRequest = Integer.valueOf(DefaultConfigurationConstants.HTTP_REQUEST_TIMEOUT);
         } catch (Exception e) {
-            LOGGER.error("It is not possible to initialize HttpRequestUtil.", e);
-            throw e;
+            throw new FatalErrorException("It is not possible to initialize HttpRequestUtil.", e);
         }
         LOGGER.info("The default HttpRequestUtil timeout is: " + timeoutHttpRequest + " ms.");
     }
 
-    public static CloseableHttpClient createHttpClient() {
+    public static CloseableHttpClient createHttpClient() throws FatalErrorException {
         return createHttpClient(null, null, null);
     }
 
-    public static CloseableHttpClient createHttpClient(SSLConnectionSocketFactory sslsf) {
+    public static CloseableHttpClient createHttpClient(SSLConnectionSocketFactory sslsf) throws FatalErrorException {
         return createHttpClient(null, sslsf, null);
     }
 
-    public static CloseableHttpClient createHttpClient(HttpClientConnectionManager connManager) {
+    public static CloseableHttpClient createHttpClient(HttpClientConnectionManager connManager) throws FatalErrorException {
         return createHttpClient(null, null, connManager);
     }
 
     public static CloseableHttpClient createHttpClient(
             Integer timeout,
             SSLConnectionSocketFactory sslsf,
-            HttpClientConnectionManager connManager) {
+            HttpClientConnectionManager connManager) throws FatalErrorException {
         if (timeoutHttpRequest == null) {
             init(); // Set to default timeout.
         }

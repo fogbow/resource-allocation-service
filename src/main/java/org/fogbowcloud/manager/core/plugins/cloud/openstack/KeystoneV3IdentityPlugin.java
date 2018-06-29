@@ -17,6 +17,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.plugins.cloud.LocalIdentityPlugin;
 import org.fogbowcloud.manager.core.models.token.Token;
@@ -61,30 +62,25 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
     private String v3TokensEndpoint;
     private HttpClient client;
 
-    public KeystoneV3IdentityPlugin() {
+    public KeystoneV3IdentityPlugin() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
         Properties properties = PropertiesUtil.
                 readProperties(homeDir.getPath() + File.separator + KEYSTONEV3_PLUGIN_CONF_FILE);
 
         String identityUrl = properties.getProperty(OPENSTACK_KEYSTONE_V3_URL);
-        try {
-            if (isUrlValid(identityUrl)) {
-                this.keystoneUrl = identityUrl;
-                this.v3TokensEndpoint = keystoneUrl + V3_TOKENS_ENDPOINT_PATH; 
-            }
-        } catch (PropertyNotSpecifiedException e) {
-            LOGGER.error("Identity url not found!", e);
-        }        
+        if (isUrlValid(identityUrl)) {
+            this.keystoneUrl = identityUrl;
+            this.v3TokensEndpoint = keystoneUrl + V3_TOKENS_ENDPOINT_PATH;
+        }
         this.client = HttpRequestUtil.createHttpClient();
     }
 
     /**
      * Constructor used for testing only
      * @param client
-     * @throws PropertyNotSpecifiedException if a required property was not set
+     * @throws FatalErrorException if the properties file cannot be read or a required property was not set
      */
-    protected KeystoneV3IdentityPlugin(HttpClient client)
-            throws PropertyNotSpecifiedException {
+    protected KeystoneV3IdentityPlugin(HttpClient client) throws FatalErrorException {
 
         HomeDir homeDir = HomeDir.getInstance();
         Properties properties = PropertiesUtil.
@@ -97,9 +93,9 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
         this.client = client != null ? client : HttpRequestUtil.createHttpClient();
     }
 
-    private boolean isUrlValid(String url) throws PropertyNotSpecifiedException {
+    private boolean isUrlValid(String url) throws FatalErrorException {
         if (url == null || url.trim().isEmpty()) {
-            throw new PropertyNotSpecifiedException(OPENSTACK_KEYSTONE_V3_URL);
+            throw new FatalErrorException("Invalid Keystone_V3_URL " + OPENSTACK_KEYSTONE_V3_URL);
         }
         return true;
     }

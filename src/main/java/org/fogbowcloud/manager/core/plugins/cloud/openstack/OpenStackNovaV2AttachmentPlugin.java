@@ -12,7 +12,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.fogbowcloud.manager.core.HomeDir;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
 import org.fogbowcloud.manager.core.models.ErrorType;
 import org.fogbowcloud.manager.core.models.RequestHeaders;
@@ -47,7 +48,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     private Properties properties;
     private HttpClient client;
     
-    public OpenStackNovaV2AttachmentPlugin() {
+    public OpenStackNovaV2AttachmentPlugin() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
         this.properties = PropertiesUtil.readProperties(homeDir.getPath() +
                 File.separator + OPENSTACK_NOVAV2_ATTACHMENT_PLUGIN_CONF);
@@ -55,7 +56,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     }
 
     @Override
-    public String requestInstance(AttachmentOrder attachmentOrder, Token localToken) throws RequestException {
+    public String requestInstance(AttachmentOrder attachmentOrder, Token localToken) throws FogbowManagerException {
         String tenantId = getTenantId(localToken);
         
         String serverId = attachmentOrder.getSource();
@@ -66,7 +67,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
             jsonRequest = generateJsonToAttach(volumeId);
         } catch (JSONException e) {
             LOGGER.error("An error occurred when generating json.", e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         }      
         
         String endpoint = getPrefixEndpoint(tenantId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS;
@@ -76,7 +77,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     }
     
     @Override
-    public void deleteInstance(String instanceId, Token localToken) throws RequestException {
+    public void deleteInstance(String instanceId, Token localToken) throws FogbowManagerException {
         String tenantId = getTenantId(localToken);
         
         String[] separatorInstanceId = instanceId.split(SEPARATOR_ID);
@@ -89,7 +90,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     }
 
     @Override
-    public AttachmentInstance getInstance(String instanceId, Token localToken) throws RequestException {
+    public AttachmentInstance getInstance(String instanceId, Token localToken) throws FogbowManagerException {
         LOGGER.info("Getting instance " + instanceId + " with token " + localToken);
     	String tenantId = getTenantId(localToken);
     	
@@ -110,7 +111,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         return attachmentInstance;
     }
     
-    protected AttachmentInstance getInstanceFromJson(String jsonResponse) throws RequestException {
+    protected AttachmentInstance getInstanceFromJson(String jsonResponse) throws FogbowManagerException {
     	try {
         	JSONObject rootServer = new JSONObject(jsonResponse);
         	rootServer = rootServer.getJSONObject("volumeAttachment");
@@ -125,11 +126,11 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         	
     	} catch (JSONException e) {
     		LOGGER.warn("There was an exception while getting instances from json", e);
-        	throw new RequestException();
+        	throw new FogbowManagerException();
     	}
     }
 
-    protected String doGetRequest(String endpoint, Token localToken) throws RequestException {
+    protected String doGetRequest(String endpoint, Token localToken) throws FogbowManagerException {
         LOGGER.debug("Doing GET request to OpenStack on endpoint <" + endpoint + ">");
 
         HttpResponse response = null;
@@ -148,7 +149,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
             responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         } catch (Exception e) {
             LOGGER.error("Could not make GET request.", e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         } finally {
             try {
                 EntityUtils.consume(response.getEntity());
@@ -171,7 +172,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         }
     }
     
-    private void doDeleteRequest(String endpoint, String federationTokenValue) throws RequestException {
+    private void doDeleteRequest(String endpoint, String federationTokenValue) throws FogbowManagerException {
         LOGGER.debug("Doing DELETE request to OpenStack on endpoint <" + endpoint + ">");
 
         HttpResponse response = null;
@@ -182,7 +183,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
             response = this.client.execute(request);
         } catch (Exception e) {
             LOGGER.error("Unable to complete the DELETE request: ", e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         } finally {
             try {
                 EntityUtils.consume(response.getEntity());
@@ -195,7 +196,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         checkStatusResponse(response, "");
     }
     
-    protected String doPostRequest(String endpoint, String federationTokenValue, JSONObject jsonRequest) throws RequestException {
+    protected String doPostRequest(String endpoint, String federationTokenValue, JSONObject jsonRequest) throws FogbowManagerException {
         LOGGER.debug("Doing POST request to OpenStack for creating an instance");
         HttpResponse response = null;
         String responseStr = null;
@@ -213,7 +214,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
             responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         } catch (Exception e) {
             LOGGER.error("Impossible to complete the POST request: " + e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new FogbowManagerException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
         } finally {
             try {
                 EntityUtils.consume(response.getEntity());
@@ -225,7 +226,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         return responseStr;
     }
     
-    private void checkStatusResponse(HttpResponse response, String message) throws RequestException {
+    private void checkStatusResponse(HttpResponse response, String message) throws FogbowManagerException {
         LOGGER.debug("Checking status response...");
 
         ErrorResponseMap errorResponseMap = new ErrorResponseMap(response, message);
@@ -233,7 +234,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         ErrorResponse errorResponse = errorResponseMap.getStatusResponse(statusCode);
 
         if (errorResponse != null) {
-            throw new RequestException(errorResponse.getErrorType(), errorResponse.getResponseConstants());
+            throw new FogbowManagerException(errorResponse.getErrorType(), errorResponse.getResponseConstants());
         }
     }
     

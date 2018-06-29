@@ -5,11 +5,10 @@ import java.util.Map;
 import java.util.Properties;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
-import org.fogbowcloud.manager.core.exceptions.ImageException;
-import org.fogbowcloud.manager.core.exceptions.QuotaException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackComputeQuotaPlugin;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -19,11 +18,11 @@ public class OpenStackComputeQuotaPluginTest {
 	
     /**
      * TODO The test must be redone using mock.
-     * @throws ImageException
+     * @throws FogbowManagerException
      */
     @Ignore
 	@Test
-	public void testGetUserQuota() throws QuotaException {
+	public void testGetUserQuota() throws FogbowManagerException, UnexpectedException {
         HomeDir.getInstance().setPath("src/test/resources/private");
 
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();

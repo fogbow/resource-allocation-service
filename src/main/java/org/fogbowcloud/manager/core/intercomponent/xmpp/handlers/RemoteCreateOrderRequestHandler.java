@@ -5,14 +5,12 @@ import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
-import org.xmpp.packet.PacketError;
 
 public class RemoteCreateOrderRequestHandler extends AbstractQueryHandler {
 
@@ -38,22 +36,10 @@ public class RemoteCreateOrderRequestHandler extends AbstractQueryHandler {
         Order order = null;
 		try {
 			order = (Order) gson.fromJson(orderJsonStr, Class.forName(className));
-		} catch (Exception e) {
-			LOGGER.error(e.getMessage(), e);
-			response.setError(PacketError.Condition.bad_request);
-			return response;
-		}
-
-        try {
             RemoteFacade.getInstance().activateOrder(order);
-        } catch (UnauthorizedException e) {
-            LOGGER.error("The user is not authorized to create order: " + order.getId(), e);
-            response.setError(PacketError.Condition.forbidden);
-        } catch (OrderManagementException e) {
-            LOGGER.error("The id is duplicated.", e);
-            response.setError(PacketError.Condition.bad_request);
+        } catch (Throwable e) {
+            XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
-
         return response;
     }
 

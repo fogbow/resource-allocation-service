@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.plugins.PluginFactory;
 import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
@@ -30,7 +31,7 @@ public class PluginInstantiationService {
 
     private static final Logger LOGGER = Logger.getLogger(PluginInstantiationService.class.getName());
 
-    private PluginInstantiationService() {
+    private PluginInstantiationService() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
         String path = homeDir.getPath() + File.separator;
         List<String> configFilesNames = new ArrayList<>();
@@ -40,7 +41,7 @@ public class PluginInstantiationService {
         this.pluginFactory = new PluginFactory();
     }
 
-    public static synchronized PluginInstantiationService getInstance() {
+    public static synchronized PluginInstantiationService getInstance() throws FatalErrorException {
         if (instance == null) {
             instance = new PluginInstantiationService();
         }

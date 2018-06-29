@@ -1,6 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.cloud;
 
-import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
@@ -17,15 +17,15 @@ public interface ComputePlugin {
      * @param computeOrder {@link Order} for creating a virtual machine.
      * @param localToken
      * @return Instance ID.
-     * @throws RequestException {@link RequestException} When request fails.
+     * @throws FogbowManagerException {@link FogbowManagerException} When request fails.
      */
     public String requestInstance(ComputeOrder computeOrder, Token localToken)
-            throws RequestException;
+            throws FogbowManagerException;
 
     public ComputeInstance getInstance(String computeInstanceId, String computeOrderId, Token localToken)
-            throws RequestException;
+            throws FogbowManagerException;
 
     public void deleteInstance(String computeInstanceId, Token localToken) 
-    		throws RequestException;
+    		throws FogbowManagerException;
 
 }

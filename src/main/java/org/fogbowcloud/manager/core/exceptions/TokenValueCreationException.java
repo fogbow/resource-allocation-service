@@ -1,6 +1,6 @@
-package org.fogbowcloud.manager.core.plugins.exceptions;
+package org.fogbowcloud.manager.core.exceptions;
 
-public class TokenValueCreationException extends Exception {
+public class TokenValueCreationException extends FogbowManagerException {
 
     private static final long serialVersionUID = 1L;
 

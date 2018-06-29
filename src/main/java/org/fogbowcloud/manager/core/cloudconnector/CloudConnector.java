@@ -1,75 +1,69 @@
 package org.fogbowcloud.manager.core.cloudconnector;
 
 import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 
 import java.util.Map;
 
 public interface CloudConnector {
 
     /**
-     * Requests an Instance for a Order.
+     * Requests an instance in the cloud (either locally or remotely) using the requirements contained in order.
      *
-     * @return An Instance with at least an nonempty Id.
-     * @throws PropertyNotSpecifiedException,
-     *             UnauthorizedException, TokenCreationException, RequestException, RemoteConnectionException,
-     *             RemoteRequestException, OrderManagementException
+     * @return the string that represents the instance Id
+     * @param order the order
+     * @throws FogbowManagerException
      */
-    String requestInstance(Order order) throws PropertyNotSpecifiedException,
-            UnauthorizedException, TokenCreationException, RequestException, RemoteConnectionException,
-            RemoteRequestException, OrderManagementException;
+    String requestInstance(Order order) throws Exception;
 
     /**
-     * Signals the cloud that the provided instance is no longer required.
+     * Deletes in the cloud the instance associated to an order.
      *
-     * @throws RequestException, TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException,
-     * RemoteRequestException, OrderManagementException
+     * @param order the order
+     * @throws FogbowManagerException
      */
-     void deleteInstance(Order order)
-        throws RequestException, TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException,
-            RemoteRequestException, OrderManagementException;
+     void deleteInstance(Order order) throws Exception;
 
     /**
-     * Gets the instance currently associated for the provided order.
-     * @throws RequestException, TokenCreationException,
-     *         UnauthorizedException, PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException
+     * Gets from the cloud the instance currently associated to order.
+     *
+     * @return the Instance whose instance Id is stored in the order
+     * @param order the order
+     * @throws FogbowManagerException
      */
-     Instance getInstance(Order order) throws RequestException, TokenCreationException,
-        UnauthorizedException, PropertyNotSpecifiedException, InstanceNotFoundException, RemoteRequestException;
+     Instance getInstance(Order order) throws Exception;
 
     /**
-     * Gets the quota of the federation user.
-     * @throws TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException, QuotaException
+     * Gets the quota of the federation user for instanceType.
+     *
+     * @return the quota associated to the user
+     * @param federationUser the attributes of the federation user
+     * @param instanceType the type of instance for which the quota was requested
+     * @throws FogbowManagerException
      */
-     Quota getUserQuota(FederationUser federationUser, InstanceType instanceType) throws
-            TokenCreationException, UnauthorizedException, PropertyNotSpecifiedException, QuotaException,
-            RemoteRequestException;
+     Quota getUserQuota(FederationUser federationUser, InstanceType instanceType) throws Exception;
 
     /**
      * Gets the list of images that the federation user can see in the target cloud.
+     *
      * @param federationUser
-     * @return a map where each element is a pair (image name, image id).
-     * @throws ImageException 
+     * @return a map where each element is a pair (image name, image id)
+     * @throws FogbowManagerException
      */
-     Map<String, String> getAllImages(FederationUser federationUser) throws TokenCreationException,
-            UnauthorizedException, PropertyNotSpecifiedException, RemoteRequestException, ImageException;
+     Map<String, String> getAllImages(FederationUser federationUser) throws Exception;
 
     /**
-     *
      * Gets the information about a given image.
-     * @param imageId
-     * @param federationUser
-     * @return
-     * @throws ImageException 
+     *
+     * @return the requested image
+     * @param imageId the Id of the image to be retrieved
+     * @param federationUser the attributes of the federation user
+     * @throws FogbowManagerException
      */
-     Image getImage(String imageId, FederationUser federationUser) throws TokenCreationException,
-            UnauthorizedException, PropertyNotSpecifiedException, RemoteRequestException, ImageException;
+     Image getImage(String imageId, FederationUser federationUser) throws Exception;
 }

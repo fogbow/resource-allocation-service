@@ -4,8 +4,9 @@ import java.io.File;
 import java.util.Properties;
 
 import org.fogbowcloud.manager.core.HomeDir;
-import org.fogbowcloud.manager.core.exceptions.QuotaException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.token.Token;
@@ -35,7 +36,7 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 	private HttpRequestClientUtil client;
 	
 
-	public OpenStackComputeQuotaPlugin() {
+	public OpenStackComputeQuotaPlugin() throws FatalErrorException {
 		HomeDir homeDir = HomeDir.getInstance();
 		this.properties = PropertiesUtil.
 				readProperties(homeDir.getPath() + File.separator + NOVAV2_PLUGIN_CONF_FILE);
@@ -44,12 +45,12 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 	}
 	
 	@Override
-	public ComputeQuota getUserQuota(Token localToken) throws QuotaException {
+	public ComputeQuota getUserQuota(Token localToken) throws FogbowManagerException, UnexpectedException {
 		String jsonResponse = getJson(localToken);
 		return processJson(jsonResponse);
 	}
 
-	private String getJson(Token localToken) throws QuotaException {
+	private String getJson(Token localToken) throws UnexpectedException {
 		String endpoint = 
 				this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY)
                 + COMPUTE_V2_API_ENDPOINT	
@@ -57,12 +58,12 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 		try {
 			String jsonResponse = this.client.doGetRequest(endpoint, localToken);
 			return jsonResponse;
-		} catch (RequestException e) {
-			throw new QuotaException("Could not make GET request.", e);
+		} catch (FogbowManagerException e) {
+			throw new UnexpectedException("Could not make GET request.", e);
 		}
 	}
 	
-	private ComputeQuota processJson(String jsonStr) throws QuotaException {
+	private ComputeQuota processJson(String jsonStr) throws UnexpectedException {
 		try {
 			JSONObject jsonObject = (JSONObject) JSONUtil.getValue(jsonStr, "limits", "absolute");
 			ComputeAllocation totalQuota = new ComputeAllocation(
@@ -79,7 +80,7 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 			
 			return computeQuota;
 		} catch (JSONException e) {
-			throw new QuotaException(e.getMessage(), e);
+			throw new UnexpectedException(e.getMessage(), e);
 		}
 	}
 	

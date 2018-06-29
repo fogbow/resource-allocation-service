@@ -1,7 +1,9 @@
 package org.fogbowcloud.manager.core;
 
 import java.util.Map;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
+
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -28,7 +30,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
     @Before
     public void setUp() {
-        this.ordersController = new OrderController(this.localMember);
+        this.ordersController = new OrderController();
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 
@@ -42,15 +44,11 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     @Test
-    public void testNewOrderRequest() {
-        try {
-            ComputeOrder computeOrder = new ComputeOrder();
-            @SuppressWarnings("unused")
-            FederationUser federationUser = new FederationUser("fake-id", null);
-            OrderStateTransitioner.activateOrder(computeOrder);
-        } catch (OrderManagementException e) {
-            Assert.fail();
-        }
+    public void testNewOrderRequest() throws UnexpectedException {
+        ComputeOrder computeOrder = new ComputeOrder();
+        @SuppressWarnings("unused")
+        FederationUser federationUser = new FederationUser("fake-id", null);
+        OrderStateTransitioner.activateOrder(computeOrder);
     }
 
     /**
@@ -64,17 +62,13 @@ public class OrderControllerTest extends BaseUnitTests {
             @SuppressWarnings("unused")
             FederationUser federationUser = new FederationUser("fake-id", null);
             OrderStateTransitioner.activateOrder(order);
-        } catch (OrderManagementException e) {
-            String expectedErrorMessage =
-                    "Can't process new order request. Order reference is null.";
-            Assert.assertEquals(e.getMessage(), expectedErrorMessage);
         } catch (Exception e) {
             Assert.fail();
         }
     }
 
-    @Test(expected = OrderManagementException.class)
-    public void testDeleteOrderStateClosed() throws OrderManagementException {
+    @Test(expected = FogbowManagerException.class)
+    public void testDeleteOrderStateClosed() throws UnexpectedException {
         String orderId = getComputeOrderCreationId(OrderState.CLOSED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
@@ -82,7 +76,7 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     @Test
-    public void testDeleteOrderStateFailed() throws OrderManagementException {
+    public void testDeleteOrderStateFailed() throws UnexpectedException {
         String orderId = getComputeOrderCreationId(OrderState.FAILED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
@@ -97,7 +91,7 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     @Test
-    public void testDeleteOrderStateFulfilled() throws OrderManagementException {
+    public void testDeleteOrderStateFulfilled() throws UnexpectedException {
         String orderId = getComputeOrderCreationId(OrderState.FULFILLED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
@@ -112,7 +106,7 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     @Test
-    public void testDeleteOrderStateSpawning() throws OrderManagementException {
+    public void testDeleteOrderStateSpawning() throws UnexpectedException {
         String orderId = getComputeOrderCreationId(OrderState.SPAWNING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
@@ -127,7 +121,7 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     @Test
-    public void testDeleteOrderStatePending() throws OrderManagementException {
+    public void testDeleteOrderStatePending() throws UnexpectedException {
         String orderId = getComputeOrderCreationId(OrderState.PENDING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
@@ -142,7 +136,7 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     @Test
-    public void testDeleteOrderStateOpen() throws OrderManagementException {
+    public void testDeleteOrderStateOpen() throws UnexpectedException {
         String orderId = getComputeOrderCreationId(OrderState.OPEN);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
@@ -156,8 +150,8 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, test.getOrderState());
     }
 
-    @Test(expected = OrderManagementException.class)
-    public void testDeleteNullOrder() throws OrderManagementException {
+    @Test(expected = FogbowManagerException.class)
+    public void testDeleteNullOrder() throws UnexpectedException {
         this.ordersController.deleteOrder(null);
     }
 

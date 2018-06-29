@@ -6,12 +6,12 @@ import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.Event;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
-import org.xmpp.packet.PacketError;
 
 public class RemoteNotifyEventHandler extends AbstractQueryHandler {
 
@@ -39,17 +39,12 @@ public class RemoteNotifyEventHandler extends AbstractQueryHandler {
         Order order = null;
         try {
             order = (Order) gson.fromJson(orderJsonStr, Class.forName(className));
+            Element eventElement = queryElement.element(IqElement.EVENT.toString());
+            Event event = gson.fromJson(eventElement.getText(), Event.class);
+            RemoteFacade.getInstance().handleRemoteEvent(event, order);
         } catch (Exception e) {
-            LOGGER.error(e.getMessage(), e);
-            response.setError(PacketError.Condition.bad_request);
-            return response;
+            XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
-
-        Element eventElement = queryElement.element(IqElement.EVENT.toString());
-        Event event = gson.fromJson(eventElement.getText(), Event.class);
-
-        RemoteFacade.getInstance().handleRemoteEvent(event, order);
-
         return response;
     }
 }

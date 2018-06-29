@@ -1,11 +1,9 @@
-package org.fogbowcloud.manager.core.plugins.exceptions;
+package org.fogbowcloud.manager.core.exceptions;
 
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-
-public class ExpiredTokenException extends Exception {
+public class ExpiredTokenException extends UnauthenticatedUserException {
 
     private static final long serialVersionUID = 1L;
-    private static final String message = "Expired token.";
+    private static final String message = "Expired token exception";
 
     public ExpiredTokenException() {
         super(message);
