@@ -272,20 +272,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.thread.start();
         Thread.sleep(500);
     }
-
-    @Test
-    public void testRunExceptionWhileTryingToProcessInstance() throws Exception {
-        Order order = this.createLocalOrder();
-        order.setOrderState(OrderState.FULFILLED);
-        this.fulfilledOrderList.addItem(order);
-
-        Mockito.doThrow(new OrderStateTransitionException("Any Exception"))
-                .when(this.fulfilledProcessor)
-                .processInstance(order);
-
-        this.fulfilledProcessor.processFulfilledOrder(order);
-    }
-
+    
     private Order createLocalOrder() {
         FederationUser federationUser = Mockito.mock(FederationUser.class);
         UserData userData = Mockito.mock(UserData.class);

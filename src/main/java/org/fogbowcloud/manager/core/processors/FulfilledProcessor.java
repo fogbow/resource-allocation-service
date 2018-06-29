@@ -107,6 +107,12 @@ public class FulfilledProcessor implements Runnable {
      * @throws OrderStateTransitionException Could not remove order from list of fulfilled orders.
      */
     protected void processFulfilledOrder(Order order) throws OrderStateTransitionException {
+
+        Instance instance = null;
+        InstanceState instanceState = null;
+
+        //this block tries to get the info about the instance in the cloud and check it is up.
+        //it runs exclusive in the order object
         synchronized (order) {
             OrderState orderState = order.getOrderState();
 
@@ -114,57 +120,55 @@ public class FulfilledProcessor implements Runnable {
                 return;
             }
 
-            if (orderState.equals(OrderState.FULFILLED)) {
-                LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
+            if (!orderState.equals(OrderState.FULFILLED)) {
+                return;
+            }
 
-                try {
-                    processInstance(order);
-                } catch (OrderStateTransitionException e) {
-                    LOGGER.error(
-                        "Transition ["
-                            + order.getId()
-                            + "] order state from fulfilled to failed");
-                } catch (Exception e) {
-                    LOGGER.error("Error while getting instance from the cloud.", e);
-                    OrderStateTransitioner.transition(order, OrderState.FAILED);
-                }
+            LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
+
+            try {
+                instance = this.localCloudConnector.getInstance(order);
+            } catch (Exception e) {
+                LOGGER.error("Error while getting instance from the cloud.", e);
+                OrderStateTransitioner.transition(order, OrderState.FAILED);
+                return;
+            }
+
+            instanceState = instance.getState();
+            if (instanceState.equals(InstanceState.FAILED)) {
+                LOGGER.info("Instance state is failed for order [" + order.getId() + "]");
+                OrderStateTransitioner.transition(order, OrderState.FAILED);
+                return;
             }
         }
-    }
 
-    /**
-     * Checks if instance state is failed and changes the order state to failed. Checks SSH
-     * connectivity if instance state is active and the order type is compute.
-     *
-     * @param order {@link Order}
-     * @throws RemoteRequestException 
-     */
-    protected void processInstance(Order order)
-        throws PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException, UnauthorizedException, OrderStateTransitionException, RemoteRequestException {
+        //now, we know the cloud is able to manage the resource and it is up. then, we try to ssh it
+        //below code DOES NOT run exclusive in the order. we relax it because the isInstanceReachable may take too long
+        //to finish. So, a get to this order or, even worse, a get all call in the API will be blocked
 
         InstanceType instanceType = order.getType();
-
-        Instance instance = this.localCloudConnector.getInstance(order);
-		InstanceState instanceState = instance.getState();
-
-        if (instanceState.equals(InstanceState.FAILED)) {
-            LOGGER.info("Instance state is failed for order [" + order.getId() + "]");
-            OrderStateTransitioner.transition(order, OrderState.FAILED);
-        } else if (instanceState.equals(InstanceState.READY)
-            && instanceType.equals(InstanceType.COMPUTE)) {
+        if (instanceState.equals(InstanceState.READY) && instanceType.equals(InstanceType.COMPUTE)) {
             LOGGER.info("Processing active compute instance for order [" + order.getId() + "]");
 
             SshTunnelConnectionData sshTunnelConnectionData = this.computeInstanceConnectivity
-                .getSshTunnelConnectionData(order.getId());
+                    .getSshTunnelConnectionData(order.getId());
             if (sshTunnelConnectionData != null) {
-                boolean instanceReachable = this.computeInstanceConnectivity
-                    .isInstanceReachable(sshTunnelConnectionData);
+                boolean instanceReachable = this.computeInstanceConnectivity.isInstanceReachable(sshTunnelConnectionData);
+
                 if (!instanceReachable) {
-                    OrderStateTransitioner.transition(order, OrderState.FAILED);
+
+                    //taking the mutex back.
+                    //Since we might have lost the CPU, it is possible the order is not longer FULFILLED
+                    synchronized (order) {
+
+                        OrderStateTransitioner.transition(order, OrderState.FAILED);
+                        return;
+                    }
                 }
             }
-        } else {
-            LOGGER.debug("The instance was processed successfully");
         }
+
+        LOGGER.debug("The instance was processed successfully");
     }
+
 }
