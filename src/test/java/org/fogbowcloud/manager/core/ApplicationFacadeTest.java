@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
@@ -39,6 +40,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	private ApplicationFacade application;
 	private AaController aaaController;
 	private OrderController orderController;
+    private Map<String, Order> activeOrdersMap;
 
 	@Before
 	public void setUp() throws UnauthorizedException {
@@ -55,6 +57,9 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.application = Mockito.spy(ApplicationFacade.getInstance());
 		this.application.setAaController(this.aaaController);
 		this.application.setOrderController(this.orderController);
+		
+		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+		this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
 	}
 
 	@Test
@@ -1440,7 +1445,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		return order;
 	}
     
-    @Ignore
     @Test
     public void testCreateAttachmentOrderUnauthenticated() throws Exception {
         AttachmentOrder order = createAttachmentOrder();
@@ -1460,11 +1464,10 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         }
     }
 
-    @Ignore
     @Test
     public void testCreateAttachmentOrderTokenUnauthenticated() throws Exception {
         AttachmentOrder order = createAttachmentOrder();
-
+        
         Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 
         Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController)
@@ -1472,9 +1475,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
                 Mockito.any(Order.class));
-
-        Assert.assertNull(order.getOrderState());
-
+        
         try {
             this.application.createAttachment(order, "");
             Assert.fail();
@@ -1483,11 +1484,10 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         }
     }
     
-    @Ignore
     @Test
     public void testCreateAttachmentOrderWithFederationUserUnauthenticated() throws Exception {
         AttachmentOrder order = createAttachmentOrder();
-
+        
         Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 
         Mockito.doThrow(new UnauthenticatedException()).when(this.aaaController).getFederationUser(Mockito.anyString());
@@ -1495,7 +1495,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
                 Mockito.any(Order.class));
 
-        Assert.assertNull(order.getOrderState());
+        
 
         try {
             this.application.createAttachment(order, "");
@@ -1853,10 +1853,23 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     private AttachmentOrder createAttachmentOrder()
             throws PropertyNotSpecifiedException, TokenCreationException, RequestException,
             UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
+        
         FederationUser federationUser = new FederationUser("fake-user", new HashMap<>());
+        
+        ComputeOrder computeOrder = new ComputeOrder();
+        ComputeInstance computeInstance = new ComputeInstance("fake-source-id");
+        computeOrder.setInstanceId(computeInstance.getId());
+        this.activeOrdersMap.put(computeOrder.getId(), computeOrder);
+        String sourceId = computeOrder.getId();
+        
+        VolumeOrder volumeOrder = new VolumeOrder();
+        VolumeInstance volumeInstance = new VolumeInstance("fake-target-id");
+        volumeOrder.setInstanceId(volumeInstance.getId());
+        this.activeOrdersMap.put(volumeOrder.getId(), volumeOrder);
+        String targetId = volumeOrder.getId();
 
         AttachmentOrder order = new AttachmentOrder(federationUser, "fake-member-id",
-                "fake-member-id", "fake-source-id", "fake-target-id", "fake-device-mount-point");
+                "fake-member-id", sourceId, targetId, "fake-device-mount-point");
 
         AttachmentInstance attachmentInstanceExcepted = new AttachmentInstance(order.getId());
         

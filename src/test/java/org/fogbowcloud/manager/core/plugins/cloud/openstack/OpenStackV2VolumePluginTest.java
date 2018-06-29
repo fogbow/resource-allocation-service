@@ -1,5 +1,7 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
@@ -41,7 +43,7 @@ import com.google.common.base.Charsets;
 
 public class OpenStackV2VolumePluginTest {
 
-    private final String TENANT_ID = "openstack_tenantId";
+    private final String TENANT_ID = "tenantId";
     private final String V2_API_ENDPOINT = "/v2/";
 
     private final String FAKE_STORAGE_URL = "http://localhost:0000";
@@ -62,7 +64,7 @@ public class OpenStackV2VolumePluginTest {
         Properties properties = propertiesHolder.getProperties();
         properties.put(OpenStackV2VolumePlugin.VOLUME_NOVAV2_URL_KEY, FAKE_STORAGE_URL);
 
-        this.openStackV2VolumePlugin = new OpenStackV2VolumePlugin();
+        this.openStackV2VolumePlugin = Mockito.spy(new OpenStackV2VolumePlugin());
         this.client = Mockito.mock(HttpClient.class);
         HttpResponseFactory factory = new DefaultHttpResponseFactory();
         HttpResponse response = factory.newHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_1,
@@ -83,8 +85,11 @@ public class OpenStackV2VolumePluginTest {
         HttpUriRequest request = new HttpPost(url);
         addHeaders(request);
 
-        this.expectedRequest = new HttpUriRequestMatcher(request, this.openStackV2VolumePlugin
-                .generateJsonEntityToCreateInstance(FAKE_SIZE).toString());
+        JSONObject json = this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE);
+        
+        doReturn(json).when(this.openStackV2VolumePlugin).generateJsonEntityToCreateInstance(anyString());
+        
+        this.expectedRequest = new HttpUriRequestMatcher(request, this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE).toString());
 
         String id = "fake-id";
         int size = 2;
