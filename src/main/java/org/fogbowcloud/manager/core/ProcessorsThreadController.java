@@ -7,8 +7,8 @@ import org.fogbowcloud.manager.core.processors.ClosedProcessor;
 import org.fogbowcloud.manager.core.processors.FulfilledProcessor;
 import org.fogbowcloud.manager.core.processors.OpenProcessor;
 import org.fogbowcloud.manager.core.processors.SpawningProcessor;
-import org.fogbowcloud.manager.utils.SshConnectivityUtil;
-import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
+import org.fogbowcloud.manager.util.connectivity.SshConnectivityUtil;
+import org.fogbowcloud.manager.util.connectivity.TunnelingServiceUtil;
 
 public class ProcessorsThreadController {
 

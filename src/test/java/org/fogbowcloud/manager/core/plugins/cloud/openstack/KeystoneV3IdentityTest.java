@@ -20,9 +20,8 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicStatusLine;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.KeystoneV3IdentityPlugin;
 import org.fogbowcloud.manager.core.HomeDir;
-import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -187,7 +186,7 @@ public class KeystoneV3IdentityTest {
                         userId,
                         userName);
 
-        returnJson.remove("token");
+        returnJson.remove("tokens");
 
         String content = returnJson.toString();
 
@@ -258,7 +257,7 @@ public class KeystoneV3IdentityTest {
         userJson.put("name", userName);
         tokenJson.put("user", userJson);
 
-        returnJson.put("token", tokenJson);
+        returnJson.put("tokens", tokenJson);
 
         return returnJson;
     }

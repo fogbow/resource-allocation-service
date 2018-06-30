@@ -4,7 +4,7 @@ import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
-import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 
 public interface ComputePlugin {
 

@@ -2,7 +2,7 @@ package org.fogbowcloud.manager.core;
 
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
-import org.fogbowcloud.manager.utils.PropertiesUtil;
+import org.fogbowcloud.manager.util.PropertiesUtil;
 
 import java.io.File;
 import java.util.ArrayList;

@@ -4,7 +4,7 @@ public class UnauthenticatedUserException extends FogbowManagerException {
 
     private static final long serialVersionUID = 1L;
 
-    private static final String DEFAULT_MESSAGE = "Unauthenticated Error";
+    private static final String DEFAULT_MESSAGE = "Unauthenticated error";
 
     public UnauthenticatedUserException() {
         super(DEFAULT_MESSAGE);

@@ -11,8 +11,8 @@ import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.Federati
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.LocalUserCredentialsMapperPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.LocalIdentityPlugin;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 
 public class AaController {
 
@@ -32,7 +32,7 @@ public class AaController {
 
     public FederationUser getFederationUser(String federationTokenValue) throws UnauthenticatedUserException {
         LOGGER.debug(
-                "Trying to get the federationidentity token by federationidentity token id: " + federationTokenValue);
+                "Trying to get the federationidentity tokens by federationidentity tokens id: " + federationTokenValue);
         return this.federationIdentityPlugin.getFederationUser(federationTokenValue);
     }
 

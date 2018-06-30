@@ -7,14 +7,13 @@ import org.fogbowcloud.manager.core.constants.Operation;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.DefaultLocalUserCredentialsMapper;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.LocalUserCredentialsMapperPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.LocalIdentityPlugin;
-import org.fogbowcloud.manager.core.services.PluginInstantiationService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -28,7 +27,7 @@ public class AaControllerTest {
     private FederationIdentityPlugin federationIdentityPlugin;
     private LocalIdentityPlugin localIdentityPlugin;
 
-    private PluginInstantiationService pluginInstantiationService;
+    private PluginInstantiator pluginInstantiator;
     private BehaviorPluginsHolder behaviorPluginsHolder;
 
     @Before
@@ -38,10 +37,10 @@ public class AaControllerTest {
 
         HomeDir.getInstance().setPath("src/test/resources/private");
 
-        this.pluginInstantiationService = PluginInstantiationService.getInstance();
+        this.pluginInstantiator = PluginInstantiator.getInstance();
         
         this.behaviorPluginsHolder =
-                Mockito.spy(new BehaviorPluginsHolder(pluginInstantiationService));
+                Mockito.spy(new BehaviorPluginsHolder(pluginInstantiator));
         this.federationIdentityPlugin =
                 Mockito.spy(this.behaviorPluginsHolder.getFederationIdentityPlugin());
         this.AaController =
@@ -114,7 +113,7 @@ public class AaControllerTest {
         Assert.assertEquals(localToken, tokenGenarated);
     }
 
-    @Test(expected = PropertyNotSpecifiedException.class)
+    @Test(expected = FatalErrorException.class)
     public void testGetLocalTokenWithNoCredentials() throws FogbowManagerException {
         FederationUser federationUser = Mockito.mock(FederationUser.class);
         LocalUserCredentialsMapperPlugin localUserCredentialsMapperPlugin =
@@ -123,7 +122,7 @@ public class AaControllerTest {
                 localUserCredentialsMapperPlugin.getCredentials(federationUser);
         Mockito.doReturn(userCredentials).when(localUserCredentialsMapperPlugin)
                 .getCredentials(federationUser);
-        Mockito.doThrow(PropertyNotSpecifiedException.class).when(this.AaController)
+        Mockito.doThrow(FatalErrorException.class).when(this.AaController)
                 .getLocalToken(federationUser);
     }
 

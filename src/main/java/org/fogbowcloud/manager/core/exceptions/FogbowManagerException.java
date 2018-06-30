@@ -1,6 +1,6 @@
 package org.fogbowcloud.manager.core.exceptions;
 
-import org.fogbowcloud.manager.core.models.ErrorType;
+import org.fogbowcloud.manager.core.plugins.cloud.models.ErrorType;
 
 public class FogbowManagerException extends Exception {
 

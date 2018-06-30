@@ -3,16 +3,16 @@ package org.fogbowcloud.manager.core.plugins.behavior.federationidentity;
 import java.util.Map;
 
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.fogbowcloud.manager.core.exceptions.TokenValueCreationException;
 
 public interface FederationIdentityPlugin {
 
     /**
-     * Creates a token value based on the user's credentials.
+     * Creates a tokens value based on the user's credentials.
      *
      * @param userCredentials
-     * @return a String that is a token value used to make requests
+     * @return a String that is a tokens value used to make requests
      * @throws UnauthenticatedUserException
      * @throws TokenValueCreationException
      */
@@ -21,7 +21,7 @@ public interface FederationIdentityPlugin {
 
     /**
      * Based on an access id recreates a Token containing the corresponding access id plus the user
-     * name and some arbitrary information regarding the token.
+     * name and some arbitrary information regarding the tokens.
      *
      * @return a FederationUser for the corresponding federationTokenValue. A federationUser is
      * composed of a unique id (String) and a Map<String, String> of attributes.
@@ -35,7 +35,7 @@ public interface FederationIdentityPlugin {
      * Verifies if the federationTokenValue is valid against the identity service.
      *
      * @param federationTokenValue
-     * @return a boolean stating whether the token value is valid or not.
+     * @return a boolean stating whether the tokens value is valid or not.
      */
     public boolean isValid(String federationTokenValue);
 

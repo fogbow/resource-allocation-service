@@ -16,7 +16,7 @@ import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppComponentManager;
-import org.fogbowcloud.manager.core.services.PluginInstantiationService;
+import org.fogbowcloud.manager.core.PluginInstantiator;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -32,7 +32,7 @@ public class Main implements ApplicationRunner {
         HomeDir.getInstance().setPath(setHomeDirectory(args));
 
         try {
-            PluginInstantiationService instantiationInitService = PluginInstantiationService.getInstance();
+            PluginInstantiator instantiationInitService = PluginInstantiator.getInstance();
 
             // Setting up cloud plugins
             CloudPluginsHolder cloudPluginsHolder = new CloudPluginsHolder(instantiationInitService);

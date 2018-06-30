@@ -1,6 +1,6 @@
 package org.fogbowcloud.manager.core.models.instances;
 
-import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
+import org.fogbowcloud.manager.util.connectivity.SshTunnelConnectionData;
 
 // TODO: We need to discuss about these attributes
 public class ComputeInstance extends Instance {

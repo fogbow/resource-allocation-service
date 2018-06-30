@@ -18,11 +18,10 @@ import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.plugins.cloud.LocalIdentityPlugin;
-import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.utils.HttpRequestUtil;
-import org.fogbowcloud.manager.utils.PropertiesUtil;
+import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
+import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,7 +38,7 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
     private static final String IDENTITY_PROP = "identity";
     private static final String PROJECT_PROP = "project";
     private static final String METHODS_PROP = "methods";
-    private static final String TOKEN_PROP = "token";
+    private static final String TOKEN_PROP = "tokens";
     private static final String SCOPE_PROP = "scope";
     private static final String NAME_PROP = "name";
     private static final String AUTH_PROP = "auth";
@@ -108,7 +107,7 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
         try {
             json = mountJson(credentials);
         } catch (JSONException e) {
-            LOGGER.error("Could not mount JSON while creating token", e);
+            LOGGER.error("Could not mount JSON while creating tokens", e);
 
             Integer statusResponse = HttpStatus.SC_BAD_REQUEST;
             throw new IllegalArgumentException(statusResponse.toString());
@@ -223,7 +222,7 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
 
             return new Token(accessId, new Token.User(userId, userName), new Date(), tokenAtt);
         } catch (Exception e) {
-            LOGGER.error("Exception while getting token from json", e);
+            LOGGER.error("Exception while getting tokens from json", e);
             return null;
         }
     }

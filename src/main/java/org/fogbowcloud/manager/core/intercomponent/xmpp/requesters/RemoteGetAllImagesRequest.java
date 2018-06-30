@@ -7,7 +7,7 @@ import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppErrorConditionToExce
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.xmpp.packet.IQ;
 import com.google.gson.Gson;
 import java.util.HashMap;

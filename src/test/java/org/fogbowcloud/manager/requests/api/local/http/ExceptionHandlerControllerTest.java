@@ -51,7 +51,7 @@ public class ExceptionHandlerControllerTest {
         JSONObject jsonObject = new JSONObject(response.getContentAsString());
 
         assertEquals(jsonObject.get("details"), URI_COMPUTE_ENDPOINT);
-        assertEquals(jsonObject.get("message"), "Unauthorized Error");
+        assertEquals(jsonObject.get("message"), "Unauthorized error");
         assertEquals(jsonObject.get("statusCode"), HttpStatus.UNAUTHORIZED.name());
         assertEquals(Integer.toString(response.getStatus()), HttpStatus.UNAUTHORIZED.toString());
     }
@@ -72,7 +72,7 @@ public class ExceptionHandlerControllerTest {
         JSONObject jsonObject = new JSONObject(response.getContentAsString());
 
         assertEquals(jsonObject.get("details"), URI_COMPUTE_ENDPOINT);
-        assertEquals(jsonObject.get("message"), "Unauthenticated Error");
+        assertEquals(jsonObject.get("message"), "Unauthenticated error");
         assertEquals(jsonObject.get("statusCode"), HttpStatus.UNAUTHORIZED.name());
         assertEquals(Integer.toString(response.getStatus()), HttpStatus.UNAUTHORIZED.toString());
     }
@@ -113,8 +113,7 @@ public class ExceptionHandlerControllerTest {
 
         JSONObject jsonObject = new JSONObject(response.getContentAsString());
         assertEquals(jsonObject.get("details"), URI_COMPUTE_ENDPOINT);
-        assertEquals(jsonObject.get("statusCode"), HttpStatus.BAD_REQUEST.name());
-
-        assertEquals(Integer.toString(response.getStatus()), HttpStatus.BAD_REQUEST.toString());
+        assertEquals(jsonObject.get("statusCode"), HttpStatus.UNSUPPORTED_MEDIA_TYPE.name());
+        assertEquals(Integer.toString(response.getStatus()), HttpStatus.UNSUPPORTED_MEDIA_TYPE.toString());
     }
 }

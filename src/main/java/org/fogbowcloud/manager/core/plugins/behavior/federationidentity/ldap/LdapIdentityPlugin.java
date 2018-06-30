@@ -28,9 +28,9 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.utils.PropertiesUtil;
-import org.fogbowcloud.manager.utils.RSAUtils;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.util.PropertiesUtil;
+import org.fogbowcloud.manager.util.RSAUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -125,7 +125,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
             return federationTokenValue;
         } catch (IOException | GeneralSecurityException e) {
-            throw new TokenValueCreationException("Error while trying to sign the token.", e);
+            throw new TokenValueCreationException("Error while trying to sign the tokens.", e);
         }
     }
 
@@ -178,7 +178,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
             return new FederationUser(uuid, attributes);
         } catch (JSONException e) {
-            LOGGER.error("Exception while getting token from json.", e);
+            LOGGER.error("Exception while getting tokens from json.", e);
             throw new UnauthenticatedUserException();
         }
     }
@@ -200,7 +200,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
             String split[] = decodedAccessId.split(ACCESSID_SEPARATOR);
             if (split == null || split.length < 2) {
-                throw new UnauthenticTokenException("Invalid token: " + decodedAccessId);
+                throw new UnauthenticTokenException("Invalid tokens: " + decodedAccessId);
             }
 
             String tokenMessage = split[0];
@@ -215,10 +215,10 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
             }
 
             if (!verifySign(tokenMessage, signature)) {
-                throw new UnauthenticTokenException("Invalid token: " + decodedAccessId);
+                throw new UnauthenticTokenException("Invalid tokens: " + decodedAccessId);
             }
         } catch (JSONException e) {
-            throw new UnauthenticTokenException("Exception while getting token from json.", e);
+            throw new UnauthenticTokenException("Exception while getting tokens from json.", e);
         }
     }
 
@@ -311,18 +311,18 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
             throws IOException, GeneralSecurityException, NoSuchAlgorithmException,
                     InvalidKeyException, SignatureException, UnsupportedEncodingException {
         RSAPrivateKey privateKey = null;
-        privateKey = RSAUtils.getPrivateKey(this.privateKeyPath);
-        String signature = RSAUtils.sign(privateKey, json.toString());
+        privateKey = RSAUtil.getPrivateKey(this.privateKeyPath);
+        String signature = RSAUtil.sign(privateKey, json.toString());
         return signature;
     }
 
     protected boolean verifySign(String tokenMessage, String signature) {
         RSAPublicKey publicKey = null;
         try {
-            publicKey = RSAUtils.getPublicKey(this.publicKeyPath);
-            return RSAUtils.verify(publicKey, tokenMessage, signature);
+            publicKey = RSAUtil.getPublicKey(this.publicKeyPath);
+            return RSAUtil.verify(publicKey, tokenMessage, signature);
         } catch (Exception e) {
-            throw new RuntimeException("Error while trying to validate sing of the token.", e);
+            throw new RuntimeException("Error while trying to validate sing of the tokens.", e);
         }
     }
 

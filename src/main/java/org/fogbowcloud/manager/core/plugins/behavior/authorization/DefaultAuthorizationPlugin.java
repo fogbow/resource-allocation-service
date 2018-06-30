@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.core.plugins.behavior.authorization;
 import org.fogbowcloud.manager.core.constants.Operation;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 
 public class DefaultAuthorizationPlugin implements AuthorizationPlugin {
 

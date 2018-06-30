@@ -1,7 +1,7 @@
 package org.fogbowcloud.manager.core.models.orders;
 
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 
 public abstract class Order {
 

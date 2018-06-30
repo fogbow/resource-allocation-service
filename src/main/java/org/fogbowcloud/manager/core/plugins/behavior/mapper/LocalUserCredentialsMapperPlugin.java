@@ -2,7 +2,7 @@ package org.fogbowcloud.manager.core.plugins.behavior.mapper;
 
 import java.util.Map;
 
-import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 
 public interface LocalUserCredentialsMapperPlugin {
 

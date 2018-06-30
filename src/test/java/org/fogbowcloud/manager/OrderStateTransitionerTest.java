@@ -11,7 +11,7 @@ import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
-import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
+import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.junit.After;
@@ -76,7 +76,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         assertEquals(order, spawningOrdersList.getNext());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = UnexpectedException.class)
     public void testOriginListCannotBeFound() throws UnexpectedException {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
@@ -92,7 +92,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         OrderStateTransitioner.transition(order, destinationState);
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test(expected = UnexpectedException.class)
     public void testDestinationListCannotBeFound() throws UnexpectedException {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
@@ -111,7 +111,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         OrderStateTransitioner.transition(order, destinationState);
     }
 
-    @Test
+    @Test(expected = UnexpectedException.class)
     public void testOriginListRemovalFailure() throws UnexpectedException {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;

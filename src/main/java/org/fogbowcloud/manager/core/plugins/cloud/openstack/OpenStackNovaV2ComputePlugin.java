@@ -11,24 +11,23 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.models.*;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.DefaultLaunchCommandGenerator;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.LaunchCommandGenerator;
-import org.fogbowcloud.manager.utils.*;
+import org.fogbowcloud.manager.core.plugins.cloud.models.*;
+import org.fogbowcloud.manager.core.plugins.cloud.util.DefaultLaunchCommandGenerator;
+import org.fogbowcloud.manager.core.plugins.cloud.util.LaunchCommandGenerator;
+import org.fogbowcloud.manager.util.*;
+import org.fogbowcloud.manager.util.connectivity.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -81,13 +80,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         HomeDir homeDir = HomeDir.getInstance();
         this.properties = PropertiesUtil.
                 readProperties(homeDir.getPath() + File.separator + NOVAV2_PLUGIN_CONF_FILE);
-        try {
-            this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
-        } catch (PropertyNotSpecifiedException e) {
-            LOGGER.error("failed to instantiate class with properties = " + this.properties.toString(), e);
-        } catch (IOException e) {
-            LOGGER.error("failed to instantiate class with properties = " + this.properties.toString(), e);
-        }
+        this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
         instantiateOtherAttributes();
     }
     
@@ -107,7 +100,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
     public String requestInstance(ComputeOrder computeOrder, Token localToken)
             throws FogbowManagerException {
-        LOGGER.debug("Requesting instance with token=" + localToken);
+        LOGGER.debug("Requesting instance with tokens=" + localToken);
 
         Flavor flavor = findSmallestFlavor(computeOrder, localToken);
         String flavorId = flavor.getId();
@@ -439,7 +432,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     @Override
     public ComputeInstance getInstance(String instanceId, String orderId, Token localToken)
             throws FogbowManagerException {
-        LOGGER.info("Getting instance " + instanceId + " with token " + localToken);
+        LOGGER.info("Getting instance " + instanceId + " with tokens " + localToken);
 
         String tenantId = getTenantId(localToken);
         String requestEndpoint = getComputeEndpoint(tenantId, SERVERS + "/" + instanceId);

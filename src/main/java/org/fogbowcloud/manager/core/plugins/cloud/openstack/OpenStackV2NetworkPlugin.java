@@ -24,16 +24,16 @@ import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
-import org.fogbowcloud.manager.core.models.ErrorType;
-import org.fogbowcloud.manager.core.models.RequestHeaders;
-import org.fogbowcloud.manager.core.models.ResponseConstants;
+import org.fogbowcloud.manager.core.plugins.cloud.models.ErrorType;
+import org.fogbowcloud.manager.core.plugins.cloud.models.RequestHeaders;
+import org.fogbowcloud.manager.core.plugins.cloud.models.ResponseConstants;
 import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
-import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.utils.HttpRequestUtil;
-import org.fogbowcloud.manager.utils.PropertiesUtil;
+import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
+import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -211,7 +211,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
 
     @Override
     public void deleteInstance(String instanceId, Token token) throws FogbowManagerException {
-        // TODO: ensure that all the necessary token attributes are set.
+        // TODO: ensure that all the necessary tokens attributes are set.
         String tenantId = token.getAttributes().get(TENANT_ID);
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_PORTS + "?" + KEY_TENANT_ID
                 + "=" + tenantId;
@@ -504,7 +504,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
 
         HttpResponse response = null;
         String responseStr = null;
-        String messageTemplate = "Posting %s at %s with auth token %s";
+        String messageTemplate = "Posting %s at %s with auth tokens %s";
         LOGGER.debug(String.format(messageTemplate, data.toString(), endpoint, authToken));
         try {
             response = this.client.execute(request);
@@ -528,7 +528,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
 
         HttpResponse response = null;
         String responseStr = null;
-        String messageTemplate = "Getting at %s with auth token %s";
+        String messageTemplate = "Getting at %s with auth tokens %s";
         LOGGER.debug(String.format(messageTemplate, endpoint, authToken));
         try {
             response = this.client.execute(request);
@@ -557,7 +557,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
 
         HttpResponse response = null;
         String responseStr = null;
-        String messageTemplate = "Putting %s at %s with auth token %s";
+        String messageTemplate = "Putting %s at %s with auth tokens %s";
         LOGGER.debug(String.format(messageTemplate, data.toString(), endpoint, authToken));
         try {
             response = this.client.execute(request);
@@ -581,7 +581,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
 
         HttpResponse response = null;
         String responseStr = null;
-        String messageTemplate = "Deleting at %s with auth token %s";
+        String messageTemplate = "Deleting at %s with auth tokens %s";
         LOGGER.debug(String.format(messageTemplate, endpoint, authToken));
         try {
             response = this.client.execute(request);

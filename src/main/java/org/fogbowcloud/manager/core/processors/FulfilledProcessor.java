@@ -5,18 +5,17 @@ import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
-import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
-import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
+import org.fogbowcloud.manager.util.connectivity.SshTunnelConnectionData;
+import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.utils.ComputeInstanceConnectivityUtil;
-import org.fogbowcloud.manager.utils.SshConnectivityUtil;
-import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
+import org.fogbowcloud.manager.util.connectivity.ComputeInstanceConnectivityUtil;
+import org.fogbowcloud.manager.util.connectivity.SshConnectivityUtil;
+import org.fogbowcloud.manager.util.connectivity.TunnelingServiceUtil;
 
 /**
  * Process orders in fulfilled state. It monitors the resourced that have been successfully
@@ -92,14 +91,13 @@ public class FulfilledProcessor implements Runnable {
 
         Instance instance = null;
         InstanceState instanceState = null;
+        InstanceType instanceType = null;
+
 
         // The order object synchronization is needed to prevent a race
         // condition on order access. For example: a user can delete a fulfilled
         // order while this method is trying to check the status of an instance
         // that was allocated to an order.
-
-        // This block tries to get the info about the instance in the cloud and check it is up.
-        // it runs exclusive in the order object.
 
         synchronized (order) {
             OrderState orderState = order.getOrderState();
@@ -110,29 +108,12 @@ public class FulfilledProcessor implements Runnable {
                 return;
             }
 
+            // Check if the order is still in the Fulfilled state (it could have been changed by another thread)
             if (!orderState.equals(OrderState.FULFILLED)) {
                 return;
-            // Check if the order is still in the Fulfilled state (it could have been changed by another thread)
-//            if (orderState.equals(OrderState.FULFILLED)) {
-//                LOGGER.debug("Trying to get an instance for order [" + order.getId() + "]");
-//                try {
-//                    processInstance(order);
-//                } catch (Exception e) {
-//                    LOGGER.error("Error while getting instance from the cloud.", e);
-//                    OrderStateTransitioner.transition(order, OrderState.FAILED);
-//                }
             }
 
             LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
-//    /**
-//     * Checks if instance state is failed and changes the order state to failed. Checks SSH
-//     * connectivity if instance state is active and the order type is compute.
-//     *
-//     * @param order {@link Order}
-//     * @throws Exception
-//     */
-//    protected void processInstance(Order order) throws Exception {
-
             try {
                 instance = this.localCloudConnector.getInstance(order);
             } catch (Exception e) {
@@ -140,7 +121,7 @@ public class FulfilledProcessor implements Runnable {
                 OrderStateTransitioner.transition(order, OrderState.FAILED);
                 return;
             }
-
+            instanceType = order.getType();
             instanceState = instance.getState();
             if (instanceState.equals(InstanceState.FAILED)) {
                 LOGGER.info("Instance state is failed for order [" + order.getId() + "]");
@@ -149,19 +130,12 @@ public class FulfilledProcessor implements Runnable {
             }
         }
 
-        //now, we know the cloud is able to manage the resource and it is up. then, we try to ssh it
-        //below code DOES NOT run exclusive in the order. we relax it because the isInstanceReachable may take too long
-        //to finish. So, a get to this order or, even worse, a get all call in the API will be blocked
+        // Checking if the compute instance is reacheable. This needs to be done outside the synchonized block
+        // because it may take a few seconds, and keeping the lock on the order could slow down other threads.
+        // Since the order object is not accessed, there is no race condition that can happen.
 
-        InstanceType instanceType = order.getType();
         if (instanceState.equals(InstanceState.READY) && instanceType.equals(InstanceType.COMPUTE)) {
             LOGGER.info("Processing active compute instance for order [" + order.getId() + "]");
-
-//        if (instanceState.equals(InstanceState.FAILED)) {
-//            LOGGER.debug("Instance state is failed for order [" + order.getId() + "]");
-//            OrderStateTransitioner.transition(order, OrderState.FAILED);
-//        } else if (instanceState.equals(InstanceState.READY) && instanceType.equals(InstanceType.COMPUTE)) {
-//            LOGGER.debug("Processing active compute instance for order [" + order.getId() + "]");
 
             SshTunnelConnectionData sshTunnelConnectionData = this.computeInstanceConnectivity
                     .getSshTunnelConnectionData(order.getId());
@@ -173,14 +147,15 @@ public class FulfilledProcessor implements Runnable {
                     //taking the mutex back.
                     //Since we might have lost the CPU, it is possible the order is not longer FULFILLED
                     synchronized (order) {
-
+                        if (!((order.getOrderState()).equals(OrderState.FULFILLED))) {
+                            return;
+                        }
                         OrderStateTransitioner.transition(order, OrderState.FAILED);
                         return;
                     }
                 }
             }
         }
-
         LOGGER.debug("The instance was processed successfully");
     }
 

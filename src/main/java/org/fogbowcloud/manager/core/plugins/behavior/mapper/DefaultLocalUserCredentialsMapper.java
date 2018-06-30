@@ -7,10 +7,9 @@ import java.util.Properties;
 
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.utils.PropertiesUtil;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.util.PropertiesUtil;
 
 public class DefaultLocalUserCredentialsMapper implements LocalUserCredentialsMapperPlugin {
 	
@@ -37,7 +36,7 @@ public class DefaultLocalUserCredentialsMapper implements LocalUserCredentialsMa
      * Gets credentials with prefix in the properties (LOCAL_TOKEN_CREDENTIALS_PREFIX).
      *
      * @param properties
-     * @return user credentials to generate local token
+     * @return user credentials to generate local tokens
      * @throws FatalErrorException
      */
     private Map<String, String> getDefaultLocalTokenCredentials(Properties properties) throws FatalErrorException {
@@ -57,7 +56,7 @@ public class DefaultLocalUserCredentialsMapper implements LocalUserCredentialsMa
         }
 
         if (localDefaultTokenCredentials.isEmpty()) {
-            throw new FatalErrorException("Default localidentity token credentials not found.");
+            throw new FatalErrorException("Default localidentity tokens credentials not found.");
         } else {
             return localDefaultTokenCredentials;
         }

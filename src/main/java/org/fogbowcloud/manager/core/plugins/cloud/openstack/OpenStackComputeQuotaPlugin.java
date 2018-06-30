@@ -9,11 +9,11 @@ import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputeQuotaPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.utils.HttpRequestClientUtil;
-import org.fogbowcloud.manager.utils.JSONUtil;
-import org.fogbowcloud.manager.utils.PropertiesUtil;
+import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.manager.util.JSONUtil;
+import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
