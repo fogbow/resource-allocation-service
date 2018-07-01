@@ -22,6 +22,5 @@ public class ComputeAllocation extends Allocation {
 
 	public int getInstances() {
 		return this.instances;
-	}	
-	
+	}
 }

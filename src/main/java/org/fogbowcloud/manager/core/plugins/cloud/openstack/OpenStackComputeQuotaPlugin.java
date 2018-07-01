@@ -3,10 +3,9 @@ package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 import java.io.File;
 import java.util.Properties;
 
+import org.apache.http.client.HttpResponseException;
 import org.fogbowcloud.manager.core.HomeDir;
-import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.tokens.Token;
@@ -34,7 +33,6 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 	
 	private Properties properties;
 	private HttpRequestClientUtil client;
-	
 
 	public OpenStackComputeQuotaPlugin() throws FatalErrorException {
 		HomeDir homeDir = HomeDir.getInstance();
@@ -50,33 +48,26 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 		return processJson(jsonResponse);
 	}
 
-	private String getJson(Token localToken) throws UnexpectedException {
-		String endpoint = 
-				this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY)
-                + COMPUTE_V2_API_ENDPOINT	
-                + SUFFIX;
+	private String getJson(Token localToken) throws FogbowManagerException, UnexpectedException {
+		String endpoint = this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY)
+                + COMPUTE_V2_API_ENDPOINT + SUFFIX;
+		String jsonResponse = null;
 		try {
-			String jsonResponse = this.client.doGetRequest(endpoint, localToken);
-			return jsonResponse;
-		} catch (FogbowManagerException e) {
-			throw new UnexpectedException("Could not make GET request.", e);
+			jsonResponse = this.client.doGetRequest(endpoint, localToken);
+		} catch (HttpResponseException e) {
+			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}
+		return jsonResponse;
 	}
 	
 	private ComputeQuota processJson(String jsonStr) throws UnexpectedException {
 		try {
 			JSONObject jsonObject = (JSONObject) JSONUtil.getValue(jsonStr, "limits", "absolute");
-			ComputeAllocation totalQuota = new ComputeAllocation(
-					jsonObject.getInt(MAX_TOTAL_CORES_JSON), 
-					jsonObject.getInt(MAX_TOTAL_RAM_SIZE_JSON),
-					jsonObject.getInt(MAX_TOTAL_INSTANCES_JSON));
-			ComputeAllocation usedQuota = new ComputeAllocation(
-					jsonObject.getInt(TOTAL_CORES_USED_JSON), 
-					jsonObject.getInt(TOTAL_RAM_USED_JSON),
-					jsonObject.getInt(TOTAL_INSTANCES_USED_JSON));
-			ComputeQuota computeQuota =	new ComputeQuota(
-					totalQuota, 
-					usedQuota);
+			ComputeAllocation totalQuota = new ComputeAllocation(jsonObject.getInt(MAX_TOTAL_CORES_JSON),
+					jsonObject.getInt(MAX_TOTAL_RAM_SIZE_JSON), jsonObject.getInt(MAX_TOTAL_INSTANCES_JSON));
+			ComputeAllocation usedQuota = new ComputeAllocation(jsonObject.getInt(TOTAL_CORES_USED_JSON),
+					jsonObject.getInt(TOTAL_RAM_USED_JSON),	jsonObject.getInt(TOTAL_INSTANCES_USED_JSON));
+			ComputeQuota computeQuota =	new ComputeQuota(totalQuota, usedQuota);
 			
 			return computeQuota;
 		} catch (JSONException e) {

@@ -7,9 +7,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.http.client.HttpResponseException;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.ImagePlugin;
@@ -47,15 +49,14 @@ public class OpenStackImagePlugin implements ImagePlugin {
 	}
 	
 	@Override
-	public Map<String, String> getAllImages(Token localToken) throws FogbowManagerException {
+	public Map<String, String> getAllImages(Token localToken) throws FogbowManagerException, UnexpectedException {
 		Map<String, String> allAvailableImageNameIdMap = getImageNameAndIdMapFromAllAvailableImages(
-				localToken,
-				localToken.getAttributes().get(TENANT_ID));
+				localToken, localToken.getAttributes().get(TENANT_ID));
 		return allAvailableImageNameIdMap;
 	}
 
 	@Override
-	public Image getImage(String imageId, Token localToken) throws FogbowManagerException {
+	public Image getImage(String imageId, Token localToken) throws FogbowManagerException, UnexpectedException {
 		JSONObject imageJsonObject = getJsonObjectImage(imageId, localToken);
 		String status = imageJsonObject.optString(STATUS);
 		if (status.equals(ACTIVE_STATE)) {
@@ -72,39 +73,56 @@ public class OpenStackImagePlugin implements ImagePlugin {
 		return null;
 	}
 	
-	private JSONObject getJsonObjectImage(String imageId, Token localToken) throws FogbowManagerException {
+	private JSONObject getJsonObjectImage(String imageId, Token localToken)
+			throws FogbowManagerException, UnexpectedException {
 		String endpoint = 
 				this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
                 + COMPUTE_V2_API_ENDPOINT
                 + SUFFIX
                 + "/"
                 + imageId;
-		String jsonResponse = this.client.doGetRequest(endpoint, localToken);
+		String jsonResponse = null;
+		try {
+			jsonResponse = this.client.doGetRequest(endpoint, localToken);
+		} catch (HttpResponseException e) {
+			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
+		}
 		JSONObject image = new JSONObject(jsonResponse);
 		return image;
 	}
 	
-	private List<JSONObject> getAllImagesJson(Token localToken) throws FogbowManagerException {
+	private List<JSONObject> getAllImagesJson(Token localToken) throws FogbowManagerException, UnexpectedException {
 		String endpoint = 
 				this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
                 + COMPUTE_V2_API_ENDPOINT
                 + SUFFIX
                 + QUERY_ACTIVE_IMAGES;
-		String jsonResponse = this.client.doGetRequest(endpoint, localToken);
+		String jsonResponse = null;
+		try {
+			jsonResponse = this.client.doGetRequest(endpoint, localToken);
+		} catch (HttpResponseException e) {
+			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
+		}
 		List<JSONObject> imagesJson = new ArrayList<JSONObject>();
 		imagesJson.addAll(getImagesFromJson(jsonResponse));
 		getNextJsonByPagination(localToken, jsonResponse, imagesJson);
 		return imagesJson;
 	}
 	
-	private void getNextJsonByPagination(Token localToken, String currentJson, List<JSONObject> imagesJson) throws FogbowManagerException {
+	private void getNextJsonByPagination(Token localToken, String currentJson, List<JSONObject> imagesJson)
+			throws FogbowManagerException, UnexpectedException {
 		JSONObject jsonObject = new JSONObject (currentJson);
 		if (jsonObject.has("next")) {
 			String next = jsonObject.getString("next");
 			String endpoint = 
 					this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
 	                + next;
-			String jsonResponse = this.client.doGetRequest(endpoint, localToken);
+			String jsonResponse = null;
+			try {
+				jsonResponse = this.client.doGetRequest(endpoint, localToken);
+			} catch (HttpResponseException e) {
+				OpenStackHttpToFogbowManagerExceptionMapper.map(e);
+			}
 			imagesJson.addAll(getImagesFromJson(jsonResponse));
 			getNextJsonByPagination(localToken, jsonResponse, imagesJson);
 		}
@@ -141,7 +159,8 @@ public class OpenStackImagePlugin implements ImagePlugin {
 		return privateImages;
 	}
 	
-	private Map<String, String> getImageNameAndIdMapFromAllAvailableImages(Token localToken, String tenantId) throws FogbowManagerException {
+	private Map<String, String> getImageNameAndIdMapFromAllAvailableImages(Token localToken, String tenantId)
+			throws FogbowManagerException, UnexpectedException {
 		Map<String, String> imageNameIdMap = new HashMap<String, String>();
 		List<JSONObject> allImages = getAllImagesJson(localToken);
 		List<JSONObject> filteredImages = new ArrayList<JSONObject>();

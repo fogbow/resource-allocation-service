@@ -106,7 +106,7 @@ public class AaControllerTest {
     @SuppressWarnings("unchecked")
     @Ignore
     @Test
-    public void testGetLocalToken() throws FogbowManagerException {
+    public void testGetLocalToken() throws FogbowManagerException, UnexpectedException {
         Token localToken = Mockito.mock(Token.class);
         Mockito.doReturn(localToken).when(this.localIdentityPlugin).createToken(Mockito.anyMap());
         Token tokenGenarated = this.AaController.getLocalToken(null);
@@ -114,7 +114,7 @@ public class AaControllerTest {
     }
 
     @Test(expected = FatalErrorException.class)
-    public void testGetLocalTokenWithNoCredentials() throws FogbowManagerException {
+    public void testGetLocalTokenWithNoCredentials() throws FogbowManagerException, UnexpectedException {
         FederationUser federationUser = Mockito.mock(FederationUser.class);
         LocalUserCredentialsMapperPlugin localUserCredentialsMapperPlugin =
                 new DefaultLocalUserCredentialsMapper();

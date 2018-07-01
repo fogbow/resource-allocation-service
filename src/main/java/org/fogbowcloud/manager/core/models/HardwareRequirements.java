@@ -1,6 +1,6 @@
-package org.fogbowcloud.manager.core.plugins.cloud.models;
+package org.fogbowcloud.manager.core.models;
 
-public class Flavor implements Comparable<Flavor> {
+public class HardwareRequirements implements Comparable<HardwareRequirements> {
     
     /** the lower value, the greater relevance. */
     private final int VCPU_VALUE_RELEVANCE = 1;
@@ -11,14 +11,12 @@ public class Flavor implements Comparable<Flavor> {
 
     /** Number of cores of the CPU. */
     private int cpu;
-
     /** RAM memory in MB. */
     private int ram;
-
     /** Disk in GB. */
     private int disk;
 
-    public Flavor(String name, String id, int cpu, int ram, int disk) {
+    public HardwareRequirements(String name, String id, int cpu, int ram, int disk) {
         this.setName(name);
         this.setCpu(cpu);
         this.setRam(ram);
@@ -71,9 +69,9 @@ public class Flavor implements Comparable<Flavor> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Flavor flavor = (Flavor) o;
+        HardwareRequirements hardwareRequirements = (HardwareRequirements) o;
 
-        return id != null ? id.equals(flavor.id) : flavor.id == null;
+        return id != null ? id.equals(hardwareRequirements.id) : hardwareRequirements.id == null;
     }
 
     @Override
@@ -87,25 +85,25 @@ public class Flavor implements Comparable<Flavor> {
     }
 
     @Override
-    public int compareTo(Flavor flavor) {
-        double oneRelevance = calculateRelevance(this, flavor);
-        double twoRelevance = calculateRelevance(flavor, this);
+    public int compareTo(HardwareRequirements hardwareRequirements) {
+        double oneRelevance = calculateRelevance(this, hardwareRequirements);
+        double twoRelevance = calculateRelevance(hardwareRequirements, this);
 
         if (oneRelevance != twoRelevance) {
             return Double.compare(oneRelevance, twoRelevance);
         }
 
         int oneDisk = this.getDisk();
-        int twoDisk = flavor.getDisk();
+        int twoDisk = hardwareRequirements.getDisk();
         return Integer.compare(oneDisk, twoDisk);
     }
 
-    private double calculateRelevance(Flavor flavorOne, Flavor flavorTwo) {
-        int cpuOne = flavorOne.getCpu();
-        int cpuTwo = flavorTwo.getCpu();
-        int memOne = flavorOne.getRam();
-        int memTwo = flavorTwo.getRam();
+    private double calculateRelevance(HardwareRequirements req1, HardwareRequirements req2) {
+        int cpu1 = req1.getCpu();
+        int cpu2 = req2.getCpu();
+        int ram1 = req1.getRam();
+        int ram2 = req2.getRam();
 
-        return ((cpuOne / cpuTwo) / VCPU_VALUE_RELEVANCE) + ((memOne / memTwo) / MEM_VALUE_RELEVANCE);
+        return ((cpu1 / cpu2) / VCPU_VALUE_RELEVANCE) + ((ram1 / ram2) / MEM_VALUE_RELEVANCE);
     }
 }

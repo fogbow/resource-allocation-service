@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.models.status;
+package org.fogbowcloud.manager.core.models;
 
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 

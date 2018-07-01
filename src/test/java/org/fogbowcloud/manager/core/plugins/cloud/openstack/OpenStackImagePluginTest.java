@@ -7,6 +7,7 @@ import java.util.Properties;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.json.JSONObject;
@@ -22,7 +23,7 @@ public class OpenStackImagePluginTest {
      */
     @Ignore
     @Test
-    public void testGetAllImages() throws FogbowManagerException {
+    public void testGetAllImages() throws FogbowManagerException, UnexpectedException {
         HomeDir.getInstance().setPath("src/test/resources/private");
 
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();

@@ -79,7 +79,7 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public void deleteInstance(Order order) throws FogbowManagerException {
+    public void deleteInstance(Order order) throws FogbowManagerException, UnexpectedException {
 
         if (order.getInstanceId() != null) {
             Token localToken = this.aaController.getLocalToken(order.getFederationUser());
@@ -156,13 +156,15 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public Map<String, String> getAllImages(FederationUser federationUser) throws FogbowManagerException {
+    public Map<String, String> getAllImages(FederationUser federationUser)
+            throws FogbowManagerException, UnexpectedException {
         Token localToken = this.aaController.getLocalToken(federationUser);
         return this.imagePlugin.getAllImages(localToken);
     }
 
     @Override
-    public Image getImage(String imageId, FederationUser federationUser) throws FogbowManagerException {
+    public Image getImage(String imageId, FederationUser federationUser)
+            throws FogbowManagerException, UnexpectedException {
         Token localToken = this.aaController.getLocalToken(federationUser);
         return this.imagePlugin.getImage(imageId, localToken);
     }

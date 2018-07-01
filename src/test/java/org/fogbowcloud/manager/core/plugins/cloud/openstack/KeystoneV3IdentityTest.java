@@ -21,6 +21,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicStatusLine;
 import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -43,11 +44,11 @@ public class KeystoneV3IdentityTest {
     public void setUp() throws Exception {
         HomeDir.getInstance().setPath("src/test/resources/private");
         client = Mockito.mock(HttpClient.class);
-        this.keystoneV3Identity = Mockito.spy(new KeystoneV3IdentityPlugin(client));
+        this.keystoneV3Identity = Mockito.spy(new KeystoneV3IdentityPlugin());
     }
 
     @Test
-    public void testCreateToken() throws JSONException, ClientProtocolException, IOException {
+    public void testCreateToken() throws JSONException, ClientProtocolException, IOException, UnexpectedException, FogbowManagerException {
 
         String userId = "3e57892203271c195f5d473fc84f484b8062103275ce6ad6e7bcd1baedf70d5c";
         String userName = "fogbow";
@@ -150,7 +151,7 @@ public class KeystoneV3IdentityTest {
 
     @Test
     public void testMissingTokenParameters()
-            throws JSONException, ClientProtocolException, IOException {
+            throws JSONException, ClientProtocolException, IOException, UnexpectedException, FogbowManagerException {
 
         String userId = "3e57892203271c195f5d473fc84f484b8062103275ce6ad6e7bcd1baedf70d5c";
         String userName = "fogbow";
@@ -285,6 +286,16 @@ public class KeystoneV3IdentityTest {
         } catch (RuntimeException runtimeException) {
             Integer expectedStatusResponse = HttpStatus.SC_UNAUTHORIZED;
             Assert.assertEquals(expectedStatusResponse.toString(), runtimeException.getMessage());
+        } catch (UnavailableProviderException e) {
+            e.printStackTrace();
+        } catch (InvalidCredentialsUserException e) {
+            e.printStackTrace();
+        } catch (InvalidParameterException e) {
+            e.printStackTrace();
+        } catch (UnexpectedException e) {
+            e.printStackTrace();
+        } catch (FogbowManagerException e) {
+            e.printStackTrace();
         }
     }
 
@@ -311,6 +322,16 @@ public class KeystoneV3IdentityTest {
         } catch (RuntimeException runtimeException) {
             Integer expectedStatusResponse = HttpStatus.SC_NOT_FOUND;
             Assert.assertEquals(expectedStatusResponse.toString(), runtimeException.getMessage());
+        } catch (UnavailableProviderException e) {
+            e.printStackTrace();
+        } catch (InvalidCredentialsUserException e) {
+            e.printStackTrace();
+        } catch (InvalidParameterException e) {
+            e.printStackTrace();
+        } catch (UnexpectedException e) {
+            e.printStackTrace();
+        } catch (FogbowManagerException e) {
+            e.printStackTrace();
         }
     }
 
@@ -337,6 +358,16 @@ public class KeystoneV3IdentityTest {
         } catch (RuntimeException runtimeException) {
             Integer expectedStatusResponse = HttpStatus.SC_BAD_REQUEST;
             Assert.assertEquals(expectedStatusResponse.toString(), runtimeException.getMessage());
+        } catch (UnavailableProviderException e) {
+            e.printStackTrace();
+        } catch (InvalidCredentialsUserException e) {
+            e.printStackTrace();
+        } catch (InvalidParameterException e) {
+            e.printStackTrace();
+        } catch (UnexpectedException e) {
+            e.printStackTrace();
+        } catch (FogbowManagerException e) {
+            e.printStackTrace();
         }
     }
 
@@ -361,6 +392,16 @@ public class KeystoneV3IdentityTest {
         } catch (RuntimeException runtimeException) {
             Integer expectedStatusResponse = HttpStatus.SC_BAD_REQUEST;
             Assert.assertEquals(expectedStatusResponse.toString(), runtimeException.getMessage());
+        } catch (UnavailableProviderException e) {
+            e.printStackTrace();
+        } catch (InvalidCredentialsUserException e) {
+            e.printStackTrace();
+        } catch (InvalidParameterException e) {
+            e.printStackTrace();
+        } catch (UnexpectedException e) {
+            e.printStackTrace();
+        } catch (FogbowManagerException e) {
+            e.printStackTrace();
         }
     }
 
@@ -397,6 +438,16 @@ public class KeystoneV3IdentityTest {
             Integer expectedStatusResponse = HttpStatus.SC_BAD_REQUEST;
             Assert.assertEquals(
                     expectedStatusResponse.toString(), illegalArgumentException.getMessage());
+        } catch (UnavailableProviderException e) {
+            e.printStackTrace();
+        } catch (InvalidCredentialsUserException e) {
+            e.printStackTrace();
+        } catch (InvalidParameterException e) {
+            e.printStackTrace();
+        } catch (UnexpectedException e) {
+            e.printStackTrace();
+        } catch (FogbowManagerException e) {
+            e.printStackTrace();
         }
     }
 
@@ -421,6 +472,16 @@ public class KeystoneV3IdentityTest {
             this.keystoneV3Identity.createToken(credentials);
         } catch (RuntimeException runtimeException) {
             Assert.fail();
+        } catch (UnavailableProviderException e) {
+            e.printStackTrace();
+        } catch (InvalidCredentialsUserException e) {
+            e.printStackTrace();
+        } catch (InvalidParameterException e) {
+            e.printStackTrace();
+        } catch (UnexpectedException e) {
+            e.printStackTrace();
+        } catch (FogbowManagerException e) {
+            e.printStackTrace();
         }
     }
 }

@@ -37,7 +37,7 @@ public class AaController {
         return this.federationIdentityPlugin.getFederationUser(federationTokenValue);
     }
 
-    public Token getLocalToken(FederationUser federationUser) throws FogbowManagerException {
+    public Token getLocalToken(FederationUser federationUser) throws FogbowManagerException, UnexpectedException {
     	Map<String, String> userCredentials = this.localUserCredentialsMapperPlugin.getCredentials(federationUser);
         return this.localIdentityPlugin.createToken(userCredentials);
     }

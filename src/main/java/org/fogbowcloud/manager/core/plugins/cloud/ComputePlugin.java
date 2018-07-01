@@ -1,6 +1,7 @@
 package org.fogbowcloud.manager.core.plugins.cloud;
 
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
@@ -20,12 +21,12 @@ public interface ComputePlugin {
      * @throws FogbowManagerException {@link FogbowManagerException} When request fails.
      */
     public String requestInstance(ComputeOrder computeOrder, Token localToken)
-            throws FogbowManagerException;
+            throws FogbowManagerException, UnexpectedException;
 
     public ComputeInstance getInstance(String computeInstanceId, Token localToken)
-            throws FogbowManagerException;
+            throws FogbowManagerException, UnexpectedException;
 
-    public void deleteInstance(String computeInstanceId, Token localToken) 
-    		throws FogbowManagerException;
+    public void deleteInstance(String computeInstanceId, Token localToken)
+            throws FogbowManagerException, UnexpectedException;
 
 }
