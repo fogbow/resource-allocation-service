@@ -4,9 +4,11 @@ import java.util.List;
 
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.ApplicationFacade;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.models.status.InstanceStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,6 +40,16 @@ public class NetworkOrdersController {
         LOGGER.info("Get all network orders request received.");
         List<NetworkInstance> networks = ApplicationFacade.getInstance().getAllNetworks(federationTokenValue);
         return new ResponseEntity<>(networks, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/status", method = RequestMethod.GET)
+    public ResponseEntity<List<InstanceStatus>> getAllNetworksStatus(
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            throws Exception {
+        LOGGER.info("Get the status of all networks order requests received.");
+        List<InstanceStatus> networkInstanceStatus =
+                ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, InstanceType.NETWORK);
+        return new ResponseEntity<>(networkInstanceStatus, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/{networkId}", method = RequestMethod.GET)

@@ -8,6 +8,7 @@ import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.constants.Operation;
+import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.*;
@@ -16,6 +17,7 @@ import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
+import org.fogbowcloud.manager.core.models.status.InstanceStatus;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 
 public class ApplicationFacade {
@@ -44,9 +46,6 @@ public class ApplicationFacade {
         return activateOrder(order, federationTokenValue);
     }
 
-    // FIXME: the getAllInstance methods should return List<InstanceSummary>. An instanceSummary object has the orderId
-    // which the user believes is the instanceId, and the last know state of the instance, which is kept in the
-    // associated order. This means that there is no need to get the instance in the cloud, calling getAllInstances.
     public List<ComputeInstance> getAllComputes(String federationTokenValue) throws Exception {
         List<Order> allOrders = getAllOrders(federationTokenValue, InstanceType.COMPUTE);
         return getAllInstances(allOrders, ComputeInstance.class);
@@ -179,6 +178,29 @@ public class ApplicationFacade {
         return (Image) cloudConnector.getImage(imageId, federationUser);
     }
 
+    public List<InstanceStatus> getAllInstancesStatus(String federationTokenValue, InstanceType instanceType) throws
+            Exception {
+        List<Order> allOrders = getAllOrders(federationTokenValue, instanceType);
+        return getInstancesStatus(allOrders, instanceType);
+    }
+
+    private List<InstanceStatus> getInstancesStatus(List<Order> allOrders, InstanceType instanceType)
+            throws UnexpectedException {
+        List<InstanceStatus> instanceStatusList = new ArrayList<>();
+        for (Order order : allOrders) {
+            InstanceState instanceState = null;
+            try {
+                // The state of the instance can be inferred from the state of the order
+                instanceState = OrderToInstanceStateMapper.map(order.getOrderState(), instanceType);
+                InstanceStatus instanceStatus = new InstanceStatus(order.getId(), instanceState);
+                instanceStatusList.add(instanceStatus);
+            } catch (InstanceNotFoundException e) {
+                // The order has already been deleted, but is still to be collected; just ignore this order.
+            }
+        }
+        return instanceStatusList;
+    }
+
     public void setAaController(AaController aaController) {
         this.aaController = aaController;
     }
@@ -219,7 +241,7 @@ public class ApplicationFacade {
     }
 
     private List<Order> getAllOrders(String federationTokenValue, InstanceType instanceType) throws
-            FogbowManagerException {
+            FogbowManagerException, UnexpectedException {
         this.aaController.authenticate(federationTokenValue);
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
         this.aaController.authorize(federationUser, Operation.GET_ALL, instanceType);

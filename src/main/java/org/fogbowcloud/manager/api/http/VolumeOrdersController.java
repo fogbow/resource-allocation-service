@@ -4,9 +4,11 @@ import java.util.List;
 
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.ApplicationFacade;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.models.status.InstanceStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,9 +42,19 @@ public class VolumeOrdersController {
     public ResponseEntity<List<VolumeInstance>> getAllVolumes(
         @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info("Get all volume orders request received.");
+        LOGGER.info("Get all volume order requests received.");
         List<VolumeInstance> volumes = ApplicationFacade.getInstance().getAllVolumes(federationTokenValue);
         return new ResponseEntity<>(volumes, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/status", method = RequestMethod.GET)
+    public ResponseEntity<List<InstanceStatus>> getAllVolumesStatus(
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            throws Exception {
+        LOGGER.info("Get the status of all volume order requests received.");
+        List<InstanceStatus> volumeInstanceStatus =
+                ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, InstanceType.VOLUME);
+        return new ResponseEntity<>(volumeInstanceStatus, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/{volumeId}", method = RequestMethod.GET)

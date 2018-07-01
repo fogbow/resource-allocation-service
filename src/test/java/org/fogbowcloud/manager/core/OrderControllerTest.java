@@ -155,7 +155,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.deleteOrder(null);
     }
 
-    private String getComputeOrderCreationId(OrderState orderState) {
+    private String getComputeOrderCreationId(OrderState orderState) throws UnexpectedException {
         String orderId = null;
 
         FederationUser federationUser = new FederationUser("fake-id", null);

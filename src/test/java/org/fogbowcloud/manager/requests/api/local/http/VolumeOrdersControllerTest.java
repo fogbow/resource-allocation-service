@@ -15,6 +15,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.fogbowcloud.manager.api.http.VolumeOrdersController;
 import org.fogbowcloud.manager.core.ApplicationFacade;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
@@ -183,7 +184,7 @@ public class VolumeOrdersControllerTest {
         return headers;
     }
 
-    private VolumeOrder createVolumeOrder() {
+    private VolumeOrder createVolumeOrder() throws UnexpectedException {
     	FederationUser federationUser = new FederationUser("fake-user", null);
 
         VolumeOrder volumeOrder = Mockito.spy(new VolumeOrder());

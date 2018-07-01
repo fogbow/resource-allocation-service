@@ -38,7 +38,7 @@ public class ExceptionHandlerControllerTest {
 
     @Test
     public void testUnauthorizedException() throws Exception {
-        Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString()))
+        Mockito.when(computeOrdersController.getAllComputes(Mockito.anyString()))
                 .thenThrow(new UnauthorizedRequestException());
 
         MockHttpServletResponse response =
@@ -58,7 +58,7 @@ public class ExceptionHandlerControllerTest {
 
     @Test
     public void testUnauthenticatedException() throws Exception {
-        Mockito.when(this.computeOrdersController.getAllCompute(Mockito.anyString()))
+        Mockito.when(this.computeOrdersController.getAllComputes(Mockito.anyString()))
                 .thenThrow(new UnauthenticatedUserException());
 
         MockHttpServletResponse response =
@@ -100,7 +100,7 @@ public class ExceptionHandlerControllerTest {
 
     @Test
     public void testAnyException() throws Exception {
-        Mockito.when(computeOrdersController.getAllCompute(Mockito.anyString()))
+        Mockito.when(computeOrdersController.getAllComputes(Mockito.anyString()))
                 .thenThrow(new RuntimeException());
 
         MockHttpServletResponse response =

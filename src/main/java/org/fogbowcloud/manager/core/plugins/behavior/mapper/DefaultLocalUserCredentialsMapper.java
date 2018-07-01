@@ -42,6 +42,7 @@ public class DefaultLocalUserCredentialsMapper implements LocalUserCredentialsMa
     private Map<String, String> getDefaultLocalTokenCredentials(Properties properties) throws FatalErrorException {
         Map<String, String> localDefaultTokenCredentials = new HashMap<String, String>();
         if (properties == null) {
+            LOGGER.debug("Empty property map.");
             throw new FatalErrorException("Empty property map.");
         }
 
@@ -56,6 +57,7 @@ public class DefaultLocalUserCredentialsMapper implements LocalUserCredentialsMa
         }
 
         if (localDefaultTokenCredentials.isEmpty()) {
+            LOGGER.debug("Credentials not found.");
             throw new FatalErrorException("Default localidentity tokens credentials not found.");
         } else {
             return localDefaultTokenCredentials;

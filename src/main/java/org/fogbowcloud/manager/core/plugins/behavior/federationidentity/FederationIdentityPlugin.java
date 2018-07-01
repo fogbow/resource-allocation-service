@@ -3,6 +3,7 @@ package org.fogbowcloud.manager.core.plugins.behavior.federationidentity;
 import java.util.Map;
 
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.fogbowcloud.manager.core.exceptions.TokenValueCreationException;
 
@@ -29,7 +30,7 @@ public interface FederationIdentityPlugin {
      * "user-name", which is the name of the user (ex. used in the Dashboard after authentication).
      * @throws UnauthenticatedUserException
      */
-    public FederationUser getFederationUser(String federationTokenValue) throws UnauthenticatedUserException;
+    public FederationUser getFederationUser(String federationTokenValue) throws UnauthenticatedUserException, UnexpectedException;
 
     /**
      * Verifies if the federationTokenValue is valid against the identity service.

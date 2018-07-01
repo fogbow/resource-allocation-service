@@ -3,6 +3,7 @@ package org.fogbowcloud.manager.core.cloudconnector;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.AaController;
 import org.fogbowcloud.manager.core.CloudPluginsHolder;
+import org.fogbowcloud.manager.core.OrderToInstanceStateMapper;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.*;
@@ -50,22 +51,18 @@ public class LocalCloudConnector implements CloudConnector {
                 ComputeOrder computeOrder = (ComputeOrder) order;
                 requestInstance = this.computePlugin.requestInstance(computeOrder, localToken);
                 break;
-
             case NETWORK:
                 NetworkOrder networkOrder = (NetworkOrder) order;
                 requestInstance = this.networkPlugin.requestInstance(networkOrder, localToken);
                 break;
-
             case VOLUME:
                 VolumeOrder volumeOrder = (VolumeOrder) order;
                 requestInstance = this.volumePlugin.requestInstance(volumeOrder, localToken);
                 break;
-
             case ATTACHMENT:
                 AttachmentOrder attachmentOrder = (AttachmentOrder) order;
                 requestInstance = this.attachmentPlugin.requestInstance(attachmentOrder, localToken);
                 break;
-
             default:
                 String message = "No requestInstance plugin implemented for order " + order.getType();
                 throw new UnexpectedException(message);
@@ -133,22 +130,10 @@ public class LocalCloudConnector implements CloudConnector {
                         String message = "Not supported order type " + order.getType();
                         throw new UnexpectedException(message);
                 }
-                switch (order.getOrderState()) {
-                    case OPEN:
-                        instance.setState(InstanceState.INACTIVE);
-                        break;
-                    case FAILED:
-                        instance.setState(InstanceState.FAILED);
-                        break;
-                    case CLOSED:
-                        throw new InstanceNotFoundException();
-                    default:
-                        LOGGER.error("Inconsistent state for order " + order.getId());
-                        instance.setState(InstanceState.INCONSISTENT);
-                }
+                // The state of the instance can be inferred from the state of the order
+                instance.setState(OrderToInstanceStateMapper.map(order.getOrderState(), order.getType()));
             }
         }
-
         return instance;
     }
 
@@ -187,24 +172,19 @@ public class LocalCloudConnector implements CloudConnector {
             case COMPUTE:
                 instance = this.computePlugin.getInstance(instanceId, order.getId(), localToken);
                 break;
-
             case NETWORK:
                 instance = this.networkPlugin.getInstance(instanceId, localToken);
                 break;
-
             case VOLUME:
                 instance = this.volumePlugin.getInstance(instanceId, localToken);
                 break;
-
             case ATTACHMENT:
                 instance = this.attachmentPlugin.getInstance(instanceId, localToken);
                 break;
-
             default:
                 String message = "Not supported order type " + order.getType();
                 throw new UnexpectedException(message);
         }
-
         return instance;
     }
 }

@@ -148,7 +148,8 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
     }
 
     @Override
-    public FederationUser getFederationUser(String federationTokenValue) throws UnauthenticatedUserException {
+    public FederationUser getFederationUser(String federationTokenValue)
+            throws UnauthenticatedUserException, UnexpectedException {
 
         try {
 

@@ -4,11 +4,13 @@ import java.util.List;
 
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.ApplicationFacade;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.models.status.InstanceStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,12 +38,22 @@ public class ComputeOrdersController {
     }
 
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<ComputeInstance>> getAllCompute(
+    public ResponseEntity<List<ComputeInstance>> getAllComputes(
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info("Get all compute orders request received.");
+        LOGGER.info("Get all compute order requests received.");
         List<ComputeInstance> computes = ApplicationFacade.getInstance().getAllComputes(federationTokenValue);
         return new ResponseEntity<>(computes, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/status", method = RequestMethod.GET)
+    public ResponseEntity<List<InstanceStatus>> getAllComputesStatus(
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            throws Exception {
+        LOGGER.info("Get the status of all compute order requests received.");
+        List<InstanceStatus> computeInstanceStatus =
+                ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, InstanceType.COMPUTE);
+        return new ResponseEntity<>(computeInstanceStatus, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/{computeId}", method = RequestMethod.GET)

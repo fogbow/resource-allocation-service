@@ -15,6 +15,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.fogbowcloud.manager.api.http.NetworkOrdersController;
 import org.fogbowcloud.manager.core.ApplicationFacade;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
 import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
@@ -183,7 +184,7 @@ public class NetworkOrdersControllerTest {
         return headers;
     }
 
-    private NetworkOrder createNetworkOrder() {
+    private NetworkOrder createNetworkOrder() throws UnexpectedException {
     	FederationUser federationUser = new FederationUser("fake-user", null);
 
         NetworkOrder networkOrder = Mockito.spy(new NetworkOrder());

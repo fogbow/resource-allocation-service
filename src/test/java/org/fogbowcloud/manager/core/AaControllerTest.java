@@ -70,7 +70,7 @@ public class AaControllerTest {
     }
 
     @Test
-    public void testAuthorizePassingOrderTypeParam() {
+    public void testAuthorizePassingOrderTypeParam() throws UnexpectedException {
         FederationUser federationUser = new FederationUser("fake-user", null);
         Mockito.doReturn(true).when(this.authorizationPlugin).isAuthorized(
                 Mockito.eq(federationUser), Mockito.any(Operation.class),
@@ -86,7 +86,7 @@ public class AaControllerTest {
     }
 
     @Test
-    public void testAuthorizePassingOrderParam() {
+    public void testAuthorizePassingOrderParam() throws UnexpectedException {
         FederationUser federationUser = new FederationUser("fake-user", null);
         Order order = new ComputeOrder();
         Mockito.doReturn(true).when(this.authorizationPlugin).isAuthorized(
