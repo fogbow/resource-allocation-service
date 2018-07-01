@@ -22,8 +22,7 @@ public abstract class Order {
     }
 
     /** Creating Order with predefined Id. */
-    public Order(
-            String id, FederationUser federationUser, String requestingMember, String providingMember) {
+    public Order(String id, FederationUser federationUser, String requestingMember, String providingMember) {
         this(id);
         this.federationUser = federationUser;
         this.requestingMember = requestingMember;
@@ -88,6 +87,7 @@ public abstract class Order {
 
     public abstract InstanceType getType();
 
+    // TODO: add a comment to explain why we need to override these methods
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -110,18 +110,8 @@ public abstract class Order {
 
     @Override
     public String toString() {
-        return "Order [id="
-                + id
-                + ", orderState="
-                + orderState
-                + ", federationUser="
-                + federationUser
-                + ", requestingMember="
-                + requestingMember
-                + ", providingMember="
-                + providingMember
-                + ", instanceId="
-                + instanceId
-                + "]";
+        return "Order [id=" + id + ", orderState=" + orderState + ", federationUser=" + federationUser
+                + ", requestingMember=" + requestingMember + ", providingMember=" + providingMember
+                + ", instanceId=" + instanceId + "]";
     }
 }

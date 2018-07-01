@@ -75,10 +75,11 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 			throw new FogbowManagerException(ErrorType.BAD_REQUEST, TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 		}
 		String size = String.valueOf(order.getVolumeSize());
+		String name = order.getVolumeName();
 
 		JSONObject jsonRequest = null;
 		try {
-			jsonRequest = generateJsonEntityToCreateInstance(size);
+			jsonRequest = generateJsonEntityToCreateInstance(size, name);
 		} catch (JSONException e) {
 			String errorMsg = "An error occurred when generating json.";
 			LOGGER.error(errorMsg, e);
@@ -231,7 +232,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 			String sizeStr = volumeJson.optString(KEY_JSON_SIZE);
 			int size = Integer.valueOf(sizeStr);
 
-			return new VolumeInstance(id, name, status, size);
+			return new VolumeInstance(id, status, name, size);
 		} catch (Exception e) {
 			String errorMsg = "There was an exception while getting instance storage.";
 			LOGGER.error(errorMsg, e);
@@ -239,10 +240,10 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 		}
 	}
 
-	protected JSONObject generateJsonEntityToCreateInstance(String size) throws JSONException {
+	protected JSONObject generateJsonEntityToCreateInstance(String size, String name) throws JSONException {
 		JSONObject volumeContent = new JSONObject();
 		volumeContent.put(KEY_JSON_SIZE, size);
-		volumeContent.put(KEY_JSON_NAME, FOGBOW_VOLUME_NAME + UUID.randomUUID().toString());
+		volumeContent.put(KEY_JSON_NAME, name);
 
 		JSONObject volume = new JSONObject();
 		volume.put(KEY_JSON_VOLUME, volumeContent);

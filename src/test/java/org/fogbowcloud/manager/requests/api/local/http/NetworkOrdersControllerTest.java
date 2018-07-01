@@ -18,7 +18,7 @@ import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
-import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
+import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.junit.Before;
@@ -199,6 +199,6 @@ public class NetworkOrdersControllerTest {
         String address = "fake-address";
         String gateway = "fake-gateway";
         String vLan = "fake-vlan";
-        return new NetworkInstance(id, label, InstanceState.READY, address, gateway, vLan, NetworkAllocation.STATIC, null, null, null);
+        return new NetworkInstance(id, InstanceState.READY, label, address, gateway, vLan, NetworkAllocationMode.STATIC, null, null, null);
     }
 }

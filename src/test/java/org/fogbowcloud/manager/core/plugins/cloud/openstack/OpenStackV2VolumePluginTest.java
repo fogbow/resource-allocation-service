@@ -47,6 +47,7 @@ public class OpenStackV2VolumePluginTest {
 
     private final String FAKE_STORAGE_URL = "http://localhost:0000";
     private final String FAKE_SIZE = "2";
+    private final String FAKE_NAME = "fake-name";
     private final String FAKE_ACCESS_ID = "access-id";
     private final String FAKE_TENANT_ID = "tenant-id";
     private final String FAKE_INSTANCE_ID = "instance-id";
@@ -84,15 +85,15 @@ public class OpenStackV2VolumePluginTest {
         HttpUriRequest request = new HttpPost(url);
         addHeaders(request);
 
-        JSONObject json = this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE);
+        JSONObject json = this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE, FAKE_NAME);
         
-        doReturn(json).when(this.openStackV2VolumePlugin).generateJsonEntityToCreateInstance(anyString());
+        doReturn(json).when(this.openStackV2VolumePlugin).generateJsonEntityToCreateInstance(anyString(), anyString());
         
-        this.expectedRequest = new HttpUriRequestMatcher(request, this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE).toString());
+        this.expectedRequest = new HttpUriRequestMatcher(request, this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE, FAKE_NAME).toString());
 
         String id = "fake-id";
         int size = 2;
-        VolumeOrder order = new VolumeOrder(id, null, "", "", size);
+        VolumeOrder order = new VolumeOrder(id, null, "", "", size, "fake-volume-name");
         try {
             this.openStackV2VolumePlugin.requestInstance(order, this.tokenDefault);
         } catch (Exception e) {
@@ -110,7 +111,7 @@ public class OpenStackV2VolumePluginTest {
 
     @Test
     public void testGenerateJsonEntityToCreateInstance() {
-        JSONObject jsonEntity = this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE);
+        JSONObject jsonEntity = this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE, FAKE_NAME);
         Assert.assertEquals(FAKE_SIZE, jsonEntity.getJSONObject(OpenStackV2VolumePlugin.KEY_JSON_VOLUME)
                 .getString(OpenStackV2VolumePlugin.KEY_JSON_SIZE));
     }

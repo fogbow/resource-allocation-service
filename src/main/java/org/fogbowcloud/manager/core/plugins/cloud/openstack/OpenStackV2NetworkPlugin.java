@@ -27,7 +27,7 @@ import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.models.ErrorType;
 import org.fogbowcloud.manager.core.plugins.cloud.models.RequestHeaders;
 import org.fogbowcloud.manager.core.plugins.cloud.models.ResponseConstants;
-import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
+import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
@@ -298,7 +298,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
 
         String gateway = null;
         String address = null;
-        NetworkAllocation allocation = null;
+        NetworkAllocationMode allocation = null;
         try {
             JSONObject subnetJSONObject = getSubnetInformation(token, subnetId);
 
@@ -307,9 +307,9 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
                 allocation = null;
                 boolean enableDHCP = subnetJSONObject.optBoolean(KEY_ENABLE_DHCP);
                 if (enableDHCP) {
-                    allocation = NetworkAllocation.DYNAMIC;
+                    allocation = NetworkAllocationMode.DYNAMIC;
                 } else {
-                    allocation = NetworkAllocation.STATIC;
+                    allocation = NetworkAllocationMode.STATIC;
                 }
                 address = subnetJSONObject.optString(KEY_CIDR);
             }
@@ -320,7 +320,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
 
         NetworkInstance instance = null;
         if (networkId != null) {
-            instance = new NetworkInstance(networkId, label, instanceState, address, gateway,
+            instance = new NetworkInstance(networkId, instanceState, label, address, gateway,
                     vlan, allocation, null, null, null);
         }
 
@@ -441,11 +441,11 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         }
         subnetContent.put(KEY_CIDR, networkAddress);
 
-        NetworkAllocation networkAllocation = order.getAllocation();
-        if (networkAllocation != null) {
-            if (networkAllocation.equals(NetworkAllocation.DYNAMIC)) {
+        NetworkAllocationMode networkAllocationMode = order.getAllocation();
+        if (networkAllocationMode != null) {
+            if (networkAllocationMode.equals(NetworkAllocationMode.DYNAMIC)) {
                 subnetContent.put(KEY_ENABLE_DHCP, true);
-            } else if (networkAllocation.equals(NetworkAllocation.STATIC)) {
+            } else if (networkAllocationMode.equals(NetworkAllocationMode.STATIC)) {
                 subnetContent.put(KEY_ENABLE_DHCP, false);
             }
         }

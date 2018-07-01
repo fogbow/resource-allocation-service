@@ -1,9 +1,18 @@
 package org.fogbowcloud.manager.core.models.instances;
 
 public enum InstanceState {
-    READY,
-    INACTIVE,
-    SPAWNING,
-    FAILED,
-    INCONSISTENT; // This state signals a bug in the code.
+    READY("ready"),
+    INACTIVE("inactive"),
+    SPAWNING("spawning"),
+    FAILED("failed");
+
+    private String value;
+
+    private InstanceState(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return this.value;
+    }
 }

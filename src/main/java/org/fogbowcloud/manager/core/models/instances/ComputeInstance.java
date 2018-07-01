@@ -9,21 +9,13 @@ public class ComputeInstance extends Instance {
     private int vCPU;
     /** Memory attribute, must be set in MB. */
     private int ram;
-
+    /** Disk attribute, must be set in GB. */
     private int disk;
-
     private String localIpAddress;
-
     private SshTunnelConnectionData sshTunnelConnectionData;
 
-    public ComputeInstance(
-            String id,
-            String hostName,
-            int vCPU,
-            int ram,
-            int disk,
-            InstanceState state,
-            String localIpAddress) {
+    public ComputeInstance(String id, InstanceState state, String hostName, int vCPU, int ram, int disk,
+                           String localIpAddress) {
         super(id, state);
         this.hostName = hostName;
         this.vCPU = vCPU;
@@ -36,48 +28,7 @@ public class ComputeInstance extends Instance {
         super(id);
     }
 
-    public String getHostName() {
-        return hostName;
-    }
-
-    public void setHostName(String hostName) {
-        this.hostName = hostName;
-    }
-
-    public int getvCPU() {
-        return vCPU;
-    }
-
-    public void setvCPU(int vCPU) {
-        this.vCPU = vCPU;
-    }
-
-    public int getRam() {
-        return ram;
-    }
-
-    public void setRam(int ram) {
-        this.ram = ram;
-    }
-
-    public int getDisk() {
-        return disk;
-    }
-
-    public void setDisk(int disk) {
-        this.disk = disk;
-    }
-
-    public String getLocalIpAddress() {
-		return localIpAddress;
-	}
-
-    public SshTunnelConnectionData getSshTunnelConnectionData() {
-        return sshTunnelConnectionData;
-    }
-
-    public void setSshTunnelConnectionData(
-        SshTunnelConnectionData sshTunnelConnectionData) {
+    public void setSshTunnelConnectionData(SshTunnelConnectionData sshTunnelConnectionData) {
         this.sshTunnelConnectionData = sshTunnelConnectionData;
     }
 }

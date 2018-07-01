@@ -1,6 +1,6 @@
 package org.fogbowcloud.manager.core.models.instances;
 
-import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
+import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 
 public class NetworkInstance extends Instance {
 
@@ -8,28 +8,20 @@ public class NetworkInstance extends Instance {
     private String address;
     private String gateway;
     private String vLAN;
-    private NetworkAllocation allocation;
+    private NetworkAllocationMode allocation;
     private String networkInterface;
     private String MACInterface;
     private InstanceState interfaceState;
 
-    public NetworkInstance(
-            String id,
-            String label,
-            InstanceState state,
-            String address,
-            String gateway,
-            String vLAN,
-            NetworkAllocation networkAllocation,
-            String networkInterface,
-            String MACInterface,
-            InstanceState interfaceState) {
-        super(id, state);
+    public NetworkInstance(String id, InstanceState instanceState, String label, String address, String gateway,
+                           String vLAN, NetworkAllocationMode networkAllocationMode, String networkInterface,
+                           String MACInterface, InstanceState interfaceState) {
+        super(id, instanceState);
         this.label = label;
         this.address = address;
         this.gateway = gateway;
         this.vLAN = vLAN;
-        this.allocation = networkAllocation;
+        this.allocation = networkAllocationMode;
         this.networkInterface = networkInterface;
         this.MACInterface = MACInterface;
         this.interfaceState = interfaceState;
@@ -43,63 +35,23 @@ public class NetworkInstance extends Instance {
         return label;
     }
 
-    public void setLabel(String label) {
-        this.label = label;
-    }
-
     public String getAddress() {
         return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
     }
 
     public String getGateway() {
         return gateway;
     }
 
-    public void setGateway(String gateway) {
-        this.gateway = gateway;
-    }
-
     public String getvLAN() {
         return vLAN;
     }
 
-    public void setvLAN(String vLAN) {
-        this.vLAN = vLAN;
-    }
-
-    public NetworkAllocation getAllocation() {
+    public NetworkAllocationMode getAllocation() {
         return allocation;
     }
 
-    public void setAllocation(NetworkAllocation allocation) {
+    public void setAllocation(NetworkAllocationMode allocation) {
         this.allocation = allocation;
-    }
-
-    public String getNetworkInterface() {
-        return networkInterface;
-    }
-
-    public void setNetworkInterface(String networkInterface) {
-        this.networkInterface = networkInterface;
-    }
-
-    public String getMACInterface() {
-        return MACInterface;
-    }
-
-    public void setMACInterface(String MACInterface) {
-        this.MACInterface = MACInterface;
-    }
-
-    public InstanceState getInterfaceState() {
-        return interfaceState;
-    }
-
-    public void setInterfaceState(InstanceState interfaceState) {
-        this.interfaceState = interfaceState;
     }
 }

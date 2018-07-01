@@ -91,12 +91,6 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         this.launchCommandGenerator = launchCommandGenerator;
         instantiateOtherAttributes();
     }
-    
-    private void instantiateOtherAttributes() {
-        this.flavors = new TreeSet<Flavor>();
-        this.instanceStateMapper = new OpenStackComputeInstanceStateMapper();
-        this.initClient();
-    }
 
     public String requestInstance(ComputeOrder computeOrder, Token localToken)
             throws FogbowManagerException {
@@ -140,6 +134,39 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
                 }
             }
         }
+    }
+
+    @Override
+    public ComputeInstance getInstance(String instanceId, Token localToken)
+            throws FogbowManagerException {
+        LOGGER.info("Getting instance " + instanceId + " with tokens " + localToken);
+
+        String tenantId = getTenantId(localToken);
+        String requestEndpoint = getComputeEndpoint(tenantId, SERVERS + "/" + instanceId);
+
+        String jsonResponse = doGetRequest(requestEndpoint, localToken);
+
+        LOGGER.debug("Getting instance from json: " + jsonResponse);
+        ComputeInstance computeInstance = getInstanceFromJson(jsonResponse);
+
+        return computeInstance;
+    }
+
+    @Override
+    public void deleteInstance(String instanceId, Token localToken) throws FogbowManagerException {
+        if (instanceId == null) {
+            throw new FogbowManagerException();
+        }
+        String endpoint =
+                getComputeEndpoint(getTenantId(localToken), SERVERS + "/" + instanceId);
+
+        doDeleteRequest(endpoint, localToken);
+    }
+
+    private void instantiateOtherAttributes() {
+        this.flavors = new TreeSet<Flavor>();
+        this.instanceStateMapper = new OpenStackComputeInstanceStateMapper();
+        this.initClient();
     }
 
     private void initClient() {
@@ -429,36 +456,6 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         return responseStr;
     }
 
-    @Override
-    public ComputeInstance getInstance(String instanceId, String orderId, Token localToken)
-            throws FogbowManagerException {
-        LOGGER.info("Getting instance " + instanceId + " with tokens " + localToken);
-
-        String tenantId = getTenantId(localToken);
-        String requestEndpoint = getComputeEndpoint(tenantId, SERVERS + "/" + instanceId);
-
-        String jsonResponse = doGetRequest(requestEndpoint, localToken);
-
-        LOGGER.debug("Getting instance from json: " + jsonResponse);
-        ComputeInstance computeInstance = getInstanceFromJson(jsonResponse);
-        addReverseTunnelInfo(orderId, computeInstance);
-
-        return computeInstance;
-    }
-
-    private void addReverseTunnelInfo(String orderId, ComputeInstance computeInstance) {
-        TunnelingServiceUtil tunnelingServiceUtil = TunnelingServiceUtil.getInstance();
-        SshConnectivityUtil sshConnectivityUtil = SshConnectivityUtil.getInstance();
-
-        ComputeInstanceConnectivityUtil computeInstanceConnectivity =
-                new ComputeInstanceConnectivityUtil(tunnelingServiceUtil, sshConnectivityUtil);
-
-        SshTunnelConnectionData sshTunnelConnectionData = computeInstanceConnectivity
-                .getSshTunnelConnectionData(orderId);
-
-        computeInstance.setSshTunnelConnectionData(sshTunnelConnectionData);
-    }
-
     private ComputeInstance getInstanceFromJson(String jsonResponse) throws FogbowManagerException {
         try {
             JSONObject rootServer = new JSONObject(jsonResponse);
@@ -493,11 +490,11 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             ComputeInstance computeInstance =
                     new ComputeInstance(
                             id,
-                            hostName,
+                            state, hostName,
                             vCPU,
                             memory,
                             disk,
-                            state, localIpAddress);
+                            localIpAddress);
             return computeInstance;
         } catch (JSONException e) {
             LOGGER.warn("There was an exception while getting instances from json", e);
@@ -524,16 +521,4 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         }
         return null;
     }
-
-    @Override
-    public void deleteInstance(String instanceId, Token localToken) throws FogbowManagerException {
-        if (instanceId == null) {
-            throw new FogbowManagerException();
-        }
-        String endpoint =
-                getComputeEndpoint(getTenantId(localToken), SERVERS + "/" + instanceId);
-
-        doDeleteRequest(endpoint, localToken);
-    }
-
 }

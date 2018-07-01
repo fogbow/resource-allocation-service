@@ -9,7 +9,7 @@ import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.constants.Operation;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
+import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -1394,7 +1394,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
 	private NetworkOrder createNetworkOrder() throws Exception {
 	    FederationUser federationUser = new FederationUser("fake-user", new HashMap<>());
-        NetworkOrder order = new NetworkOrder(federationUser, "fake-member-id", "fake-member-id", "fake-gateway", "fake-address", NetworkAllocation.STATIC);
+        NetworkOrder order = new NetworkOrder(federationUser, "fake-member-id", "fake-member-id", "fake-gateway", "fake-address", NetworkAllocationMode.STATIC);
         
 		NetworkInstance networtkInstanceExcepted = new NetworkInstance(order.getId());
 		Mockito.doReturn(networtkInstanceExcepted).when(this.orderController).getResourceInstance(Mockito.eq(order));
@@ -1405,7 +1405,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
     private VolumeOrder createVolumeOrder() throws Exception {
         FederationUser federationUser = new FederationUser("fake-user", new HashMap<>());
-        VolumeOrder order = new VolumeOrder(federationUser, "fake-member-id", "fake-member-id", 1);
+        VolumeOrder order = new VolumeOrder(federationUser, "fake-member-id", "fake-member-id", 1, "fake-volume-name");
         
 		VolumeInstance volumeInstanceExcepted = new VolumeInstance(order.getId());
 		Mockito.doReturn(volumeInstanceExcepted).when(this.orderController).getResourceInstance(Mockito.eq(order));

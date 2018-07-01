@@ -22,7 +22,7 @@ import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.plugins.cloud.models.ErrorType;
 import org.fogbowcloud.manager.core.plugins.cloud.models.ResponseConstants;
-import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
+import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
@@ -124,7 +124,7 @@ public class OpenStackV2NetworkPluginTest {
 		String networkId = "networkId";
 		String address = "10.10.10.10/24";
 		String gateway = "10.10.10.11";
-		NetworkOrder order = createNetworkOrder(networkId, address, gateway, NetworkAllocation.DYNAMIC);
+		NetworkOrder order = createNetworkOrder(networkId, address, gateway, NetworkAllocationMode.DYNAMIC);
 
 		JSONObject generateJsonEntityToCreateSubnet = this.openStackV2NetworkPlugin
 				.generateJsonEntityToCreateSubnet(order.getId(), DEFAULT_TENANT_ID, order);
@@ -175,7 +175,7 @@ public class OpenStackV2NetworkPluginTest {
 	@Test
 	public void testGenerateJsonEntityToCreateSubnetStaticAllocation() throws JSONException {
 		String networkId = "networkId";
-		NetworkOrder order = createNetworkOrder(networkId, null, null, NetworkAllocation.STATIC);
+		NetworkOrder order = createNetworkOrder(networkId, null, null, NetworkAllocationMode.STATIC);
 		JSONObject generateJsonEntityToCreateSubnet = this.openStackV2NetworkPlugin
 				.generateJsonEntityToCreateSubnet(order.getId(), DEFAULT_TENANT_ID, order);
 
@@ -281,7 +281,7 @@ public class OpenStackV2NetworkPluginTest {
 		Assert.assertEquals(InstanceState.READY, instance.getState());
 		Assert.assertEquals(gatewayIp, instance.getGateway());
 		Assert.assertEquals(cidr, instance.getAddress());
-		Assert.assertEquals(NetworkAllocation.DYNAMIC, instance.getAllocation());
+		Assert.assertEquals(NetworkAllocationMode.DYNAMIC, instance.getAllocation());
 	}
 
 	@Test
@@ -582,7 +582,7 @@ public class OpenStackV2NetworkPluginTest {
 	}
 
 	private NetworkOrder createNetworkOrder(String networkId, String address, String gateway,
-			NetworkAllocation allocation) {
+			NetworkAllocationMode allocation) {
 		String requestingMember = "fake-requesting-member";
 		String providingMember = "fake-providing-member";
 		NetworkOrder order = new NetworkOrder(networkId, Mockito.mock(FederationUser.class), requestingMember, providingMember,
