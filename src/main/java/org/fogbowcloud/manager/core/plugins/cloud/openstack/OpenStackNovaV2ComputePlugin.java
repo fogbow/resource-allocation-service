@@ -44,7 +44,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private static final String VCPU_JSON_FIELD = "vcpus";
     private static final String MEMORY_JSON_FIELD = "ram";
     private static final String FLAVOR_JSON_OBJECT = "flavor";
-    private static final String FLAVOR_JSON_KEY = "hardwareRequirements";
+    private static final String FLAVOR_JSON_KEY = "flavors";
     private static final String KEY_JSON_FIELD = "key_name";
     private static final String PUBLIC_KEY_JSON_FIELD = "public_key";
     private static final String KEYPAIR_JSON_FIELD = "keypair";
@@ -54,7 +54,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
     private static final String SERVERS = "/servers";
     private static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
-    private static final String SUFFIX_ENDPOINT_FLAVORS = "/hardwareRequirements";
+    private static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
     private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
 
     private static final Logger LOGGER = Logger.getLogger(OpenStackNovaV2ComputePlugin.class);
@@ -322,10 +322,10 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         for (String flavorId : flavorsId) {
             boolean containsFlavor = false;
 
-            for (HardwareRequirements hardwareRequirements : flavorsCopy) {
-                if (hardwareRequirements.getId().equals(flavorId)) {
+            for (HardwareRequirements flavor : flavorsCopy) {
+                if (flavor.getId().equals(flavorId)) {
                     containsFlavor = true;
-                    newHardwareRequirements.add(hardwareRequirements);
+                    newHardwareRequirements.add(flavor);
                     break;
                 }
             }
