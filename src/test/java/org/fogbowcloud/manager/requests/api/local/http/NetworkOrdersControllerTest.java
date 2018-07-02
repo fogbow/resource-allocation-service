@@ -172,7 +172,7 @@ public class NetworkOrdersControllerTest {
                 .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
-        int expectedStatus = HttpStatus.NO_CONTENT.value();
+        int expectedStatus = HttpStatus.OK.value();
 
         assertEquals(expectedStatus, result.getResponse().getStatus());
     }
