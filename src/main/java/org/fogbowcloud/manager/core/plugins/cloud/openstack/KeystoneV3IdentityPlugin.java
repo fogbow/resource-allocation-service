@@ -30,7 +30,7 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
     private static final String IDENTITY_PROP = "identity";
     private static final String PROJECT_PROP = "project";
     private static final String METHODS_PROP = "methods";
-    private static final String TOKEN_PROP = "tokens";
+    private static final String TOKEN_PROP = "token";
     private static final String SCOPE_PROP = "scope";
     private static final String NAME_PROP = "name";
     private static final String AUTH_PROP = "auth";
