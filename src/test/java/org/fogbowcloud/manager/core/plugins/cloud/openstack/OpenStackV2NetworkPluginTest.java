@@ -24,7 +24,7 @@
 //import org.fogbowcloud.manager.core.plugins.cloud.models.ResponseConstants;
 //import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 //import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
-//import org.fogbowcloud.manager.core.models.instances.InstanceState;
+//import org.fogbowcloud.manager.core.models.instances.String;
 //import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
 //import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 //import org.fogbowcloud.manager.core.models.tokens.Token;
@@ -278,7 +278,7 @@
 //		Assert.assertEquals(networkId, instance.getId());
 //		Assert.assertEquals(networkName, instance.getLabel());
 //		Assert.assertEquals(vlan, instance.getvLAN());
-//		Assert.assertEquals(InstanceState.READY, instance.getState());
+//		Assert.assertEquals(String.READY, instance.getState());
 //		Assert.assertEquals(gatewayIp, instance.getGateway());
 //		Assert.assertEquals(cidr, instance.getAddress());
 //		Assert.assertEquals(NetworkAllocationMode.DYNAMIC, instance.getAllocation());

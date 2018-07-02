@@ -16,7 +16,7 @@ public class FederationUser {
         this.id = id;
         this.attributes = attributes;
 
-        // TODO remove these comments, when we have tiem to fix all the tests that will break
+        // TODO remove these comments, when we have time to fix all the tests that will break
 //         if (this.attributes.get(MANDATORY_NAME_ATTRIBUTE) == null) {
 //            throw new UnexpectedException("Mandatory name attribute not defined for federation user.");
 //         }

@@ -6,10 +6,10 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
-import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
@@ -25,7 +25,6 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	private final String TENANT_ID_IS_NOT_SPECIFIED_ERROR = "Tenant id is not specified.";
 
 	private final String V2_API_ENDPOINT = "/v2/";
-	private InstanceStateMapper instanceStateMapper;
 
 	protected static final String KEY_JSON_VOLUME = "volume";
 	protected static final String KEY_JSON_STATUS = "status";
@@ -44,7 +43,6 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 		Properties properties = PropertiesUtil.
 				readProperties(homeDir.getPath() + File.separator + CINDER_PLUGIN_CONF_FILE);
 		this.volumeV2APIEndpoint = properties.getProperty(VOLUME_NOVAV2_URL_KEY) + V2_API_ENDPOINT;
-		this.instanceStateMapper = new OpenStackVolumeInstanceStateMapper();
 
 		initClient();
 	}
@@ -89,7 +87,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 			throw new UnauthenticatedUserException(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 		}		
 		
-		String endpoint = this.volumeV2APIEndpoint + tenantId 
+		String endpoint = this.volumeV2APIEndpoint + tenantId
 				+ SUFIX_ENDPOINT_VOLUMES + "/" + storageOrderInstanceId;
 		String responseStr = null;
 		try {
@@ -109,7 +107,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 			throw new UnauthenticatedUserException(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 		}		
 		
-		String endpoint = this.volumeV2APIEndpoint + tenantId 
+		String endpoint = this.volumeV2APIEndpoint + tenantId
 				+ SUFIX_ENDPOINT_VOLUMES + "/" + storageOrderInstanceId;
 		try {
 			this.client.doDeleteRequest(endpoint, localToken);
@@ -126,11 +124,11 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 			
 			String name = volumeJson.optString(KEY_JSON_NAME);
 			String statusOpenstack = volumeJson.optString(KEY_JSON_STATUS);
-			InstanceState status = this.instanceStateMapper.getInstanceState(statusOpenstack);
+			InstanceState fogbowState = OpenStackStateMapper.map(InstanceType.VOLUME, statusOpenstack);
 			String sizeStr = volumeJson.optString(KEY_JSON_SIZE);
 			int size = Integer.valueOf(sizeStr);
 
-			return new VolumeInstance(id, status, name, size);
+			return new VolumeInstance(id, fogbowState, name, size);
 		} catch (Exception e) {
 			String errorMsg = "There was an exception while getting volume instance.";
 			LOGGER.error(errorMsg, e);

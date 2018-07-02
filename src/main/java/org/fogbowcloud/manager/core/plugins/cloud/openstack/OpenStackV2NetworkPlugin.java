@@ -9,11 +9,11 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
 import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
-import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
@@ -79,7 +79,6 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     private String networkV2APIEndpoint;
     private String externalNetworkId;
     private String[] dnsList;
-    private InstanceStateMapper instanceStateMapper;
 
     private static final Logger LOGGER = Logger.getLogger(OpenStackV2NetworkPlugin.class);
 
@@ -92,7 +91,6 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         this.networkV2APIEndpoint =
                 properties.getProperty(NETWORK_NEUTRONV2_URL_KEY)
                         + V2_API_ENDPOINT;
-        this.instanceStateMapper = new OpenStackNetworkInstanceStateMapper();
         setDNSList(properties);
 
         initClient();
@@ -276,7 +274,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
             throws FogbowManagerException, UnexpectedException {
         String networkId = null;
         String label = null;
-        InstanceState instanceState = null;
+        String instanceState = null;
         String vlan = null;
         String subnetId = null;
         try {
@@ -285,10 +283,8 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
             networkId = networkJSONObject.optString(KEY_ID);
 
             vlan = networkJSONObject.optString(KEY_PROVIDER_SEGMENTATION_ID);
-            String instanceStatus = networkJSONObject.optString(KEY_STATUS);
-            instanceState = this.instanceStateMapper.getInstanceState(instanceStatus);
+            instanceState = networkJSONObject.optString(KEY_STATUS);
             label = networkJSONObject.optString(KEY_NAME);
-
             subnetId = networkJSONObject.optJSONArray(KEY_SUBNETS).optString(0);
         } catch (JSONException e) {
             String errorMsg = String.format("Was not possible to get network informations from json %s", json);
@@ -321,7 +317,8 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
 
         NetworkInstance instance = null;
         if (networkId != null) {
-            instance = new NetworkInstance(networkId, instanceState, label, address, gateway,
+            InstanceState fogbowState = OpenStackStateMapper.map(InstanceType.NETWORK, instanceState);
+            instance = new NetworkInstance(networkId, fogbowState, label, address, gateway,
                     vlan, allocation, null, null, null);
         }
 
@@ -434,7 +431,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     }
 
     protected JSONObject generateJsonEntityToCreateSubnet(String networkId, String tenantId,
-            NetworkOrder order) throws JSONException {
+                                                          NetworkOrder order) throws JSONException {
         JSONObject subnetContent = new JSONObject();
         subnetContent.put(KEY_NAME, DEFAULT_SUBNET_NAME + "-" + UUID.randomUUID());
         subnetContent.put(KEY_TENANT_ID, tenantId);

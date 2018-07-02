@@ -1,10 +1,16 @@
 package org.fogbowcloud.manager.core.models.instances;
 
 public enum InstanceState {
+    DISPATCHED("dispatched"),
     READY("ready"),
     INACTIVE("inactive"),
     SPAWNING("spawning"),
-    FAILED("failed");
+    CREATING("creating"),
+    ATTACHING("attaching"),
+    IN_USE("in-use"),
+    UNAVAILABLE("unavailable"),
+    FAILED("failed"),
+    INCONSISTENT("inconsistent");
 
     private String value;
 
@@ -15,4 +21,5 @@ public enum InstanceState {
     public String getValue() {
         return this.value;
     }
+
 }

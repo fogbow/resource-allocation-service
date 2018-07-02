@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.models.orders;
 
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 
@@ -16,6 +17,8 @@ public abstract class Order {
     private String providingMember;
 
     private String instanceId;
+
+    private InstanceState cachedInstanceState;
 
     public Order(String id) {
         this.id = id;
@@ -75,6 +78,14 @@ public abstract class Order {
 
     public synchronized void setInstanceId(String instanceId) {
         this.instanceId = instanceId;
+    }
+
+    public InstanceState getCachedInstanceState() {
+        return (this.orderState.equals(OrderState.FAILED) ? InstanceState.FAILED : cachedInstanceState);
+    }
+
+    public void setCachedInstanceState(InstanceState cachedInstanceState) {
+        this.cachedInstanceState = cachedInstanceState;
     }
 
     public boolean isProviderLocal(String localMemberId) {

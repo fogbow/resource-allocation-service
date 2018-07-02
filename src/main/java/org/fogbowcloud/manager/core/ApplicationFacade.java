@@ -188,15 +188,9 @@ public class ApplicationFacade {
             throws UnexpectedException {
         List<InstanceStatus> instanceStatusList = new ArrayList<>();
         for (Order order : allOrders) {
-            InstanceState instanceState = null;
-            try {
-                // The state of the instance can be inferred from the state of the order
-                instanceState = OrderToInstanceStateMapper.map(order.getOrderState(), instanceType);
-                InstanceStatus instanceStatus = new InstanceStatus(order.getId(), instanceState);
-                instanceStatusList.add(instanceStatus);
-            } catch (InstanceNotFoundException e) {
-                // The order has already been deleted, but is still to be collected; just ignore this order.
-            }
+            // The state of the instance can be inferred from the state of the order
+            InstanceStatus instanceStatus = new InstanceStatus(order.getId(), order.getCachedInstanceState());
+            instanceStatusList.add(instanceStatus);
         }
         return instanceStatusList;
     }
@@ -218,6 +212,7 @@ public class ApplicationFacade {
         this.aaController.authorize(federationUser, Operation.CREATE, order);
         order.setId(UUID.randomUUID().toString());
         order.setFederationUser(federationUser);
+        order.setCachedInstanceState(InstanceState.DISPATCHED);
 
         String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 

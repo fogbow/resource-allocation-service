@@ -23,7 +23,7 @@
 //import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 //import org.fogbowcloud.manager.core.models.orders.UserData;
 //import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
-//import org.fogbowcloud.manager.core.models.instances.InstanceState;
+//import org.fogbowcloud.manager.core.models.instances.String;
 //import org.fogbowcloud.manager.core.models.tokens.Token;
 //import org.json.JSONArray;
 //import org.json.JSONException;
@@ -285,7 +285,7 @@
 //                this.novaV2ComputeOpenStack.getInstance(FAKE_INSTANCE_ID, this.localToken);
 //
 //        assertEquals(computeInstance.getId(), FAKE_INSTANCE_ID);
-//        assertEquals(computeInstance.getState(), InstanceState.READY);
+//        assertEquals(computeInstance.getState(), String.READY);
 //    }
 //
 //    @Test
@@ -302,7 +302,7 @@
 //                this.novaV2ComputeOpenStack.getInstance(FAKE_INSTANCE_ID, this.localToken);
 //
 //        assertEquals(computeInstance.getId(), FAKE_INSTANCE_ID);
-//        assertEquals(computeInstance.getState(), InstanceState.FAILED);
+//        assertEquals(computeInstance.getState(), String.FAILED);
 //    }
 //
 //    @Test
@@ -319,7 +319,7 @@
 //                this.novaV2ComputeOpenStack.getInstance(FAKE_INSTANCE_ID, this.localToken);
 //
 //        assertEquals(computeInstance.getId(), FAKE_INSTANCE_ID);
-//        assertEquals(computeInstance.getState(), InstanceState.SPAWNING);
+//        assertEquals(computeInstance.getState(), String.SPAWNING);
 //    }
 //
 //    @Test(expected = Exception.class)

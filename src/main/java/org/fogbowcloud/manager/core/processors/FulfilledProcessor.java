@@ -6,13 +6,13 @@ import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.util.connectivity.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.util.connectivity.ComputeInstanceConnectivityUtil;
 import org.fogbowcloud.manager.util.connectivity.SshConnectivityUtil;
 import org.fogbowcloud.manager.util.connectivity.TunnelingServiceUtil;
@@ -39,7 +39,7 @@ public class FulfilledProcessor implements Runnable {
     private Long sleepTime;
 
     public FulfilledProcessor(String localMemberId, TunnelingServiceUtil tunnelingService,
-            SshConnectivityUtil sshConnectivity, String sleepTimeStr) {
+                              SshConnectivityUtil sshConnectivity, String sleepTimeStr) {
         CloudConnectorFactory cloudConnectorFactory = CloudConnectorFactory.getInstance();
         this.localMemberId = localMemberId;
         this.localCloudConnector = cloudConnectorFactory.getCloudConnector(localMemberId);

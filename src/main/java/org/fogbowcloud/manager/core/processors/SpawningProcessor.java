@@ -6,13 +6,13 @@ import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.util.connectivity.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.util.connectivity.ComputeInstanceConnectivityUtil;
 import org.fogbowcloud.manager.util.connectivity.SshConnectivityUtil;
 import org.fogbowcloud.manager.util.connectivity.TunnelingServiceUtil;
@@ -29,7 +29,7 @@ public class SpawningProcessor implements Runnable {
     private CloudConnector localCloudConnector;
 
     public SpawningProcessor(String memberId, TunnelingServiceUtil tunnelingService,
-            SshConnectivityUtil sshConnectivity, String sleepTimeStr) {
+                             SshConnectivityUtil sshConnectivity, String sleepTimeStr) {
         this.computeInstanceConnectivity =
             new ComputeInstanceConnectivityUtil(tunnelingService, sshConnectivity);
         this.localCloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);

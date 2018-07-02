@@ -11,11 +11,11 @@ public class NetworkInstance extends Instance {
     private NetworkAllocationMode allocation;
     private String networkInterface;
     private String MACInterface;
-    private InstanceState interfaceState;
+    private String interfaceState;
 
     public NetworkInstance(String id, InstanceState instanceState, String label, String address, String gateway,
                            String vLAN, NetworkAllocationMode networkAllocationMode, String networkInterface,
-                           String MACInterface, InstanceState interfaceState) {
+                           String MACInterface, String interfaceState) {
         super(id, instanceState);
         this.label = label;
         this.address = address;

@@ -64,7 +64,7 @@ public class NetworkOrdersControllerTest {
     public void createdNetworkTest() throws Exception {
         PowerMockito.mockStatic(ApplicationFacade.class);
         given(ApplicationFacade.getInstance()).willReturn(this.facade);
-        String orderId = "orderId"; 
+        String orderId = "orderId";
         doReturn(orderId).when(this.facade).createNetwork(any(NetworkOrder.class), anyString());
 
         HttpHeaders headers = getHttpHeaders();

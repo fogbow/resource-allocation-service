@@ -7,11 +7,11 @@ import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.HardwareRequirements;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.util.DefaultLaunchCommandGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.util.LaunchCommandGenerator;
 import org.fogbowcloud.manager.util.*;
@@ -66,7 +66,6 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     private Properties properties;
     private HttpRequestClientUtil client;
     private LaunchCommandGenerator launchCommandGenerator;
-    private InstanceStateMapper instanceStateMapper;
 
     public OpenStackNovaV2ComputePlugin() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
@@ -164,7 +163,6 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
     private void instantiateOtherAttributes() {
         this.hardwareRequirements = new TreeSet<HardwareRequirements>();
-        this.instanceStateMapper = new OpenStackComputeInstanceStateMapper();
         this.initClient();
     }
 
@@ -383,16 +381,12 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
                 disk = hardwareRequirements.getDisk();
             }
 
-            InstanceState state = this.instanceStateMapper.getInstanceState(serverJson.getString(STATUS_JSON_FIELD));
+            String openStackState = serverJson.getString(STATUS_JSON_FIELD);
+            InstanceState fogbowState = OpenStackStateMapper.map(InstanceType.COMPUTE, openStackState);
 
-            ComputeInstance computeInstance =
-                    new ComputeInstance(
-                            id,
-                            state, hostName,
-                            vCPU,
-                            memory,
-                            disk,
-                            localIpAddress);
+
+            ComputeInstance computeInstance = new ComputeInstance(id, fogbowState, hostName, vCPU, memory,
+                            disk, localIpAddress);
             return computeInstance;
         } catch (JSONException e) {
             LOGGER.warn("There was an exception while getting instances from json", e);

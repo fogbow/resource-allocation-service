@@ -3,7 +3,6 @@ package org.fogbowcloud.manager.core.cloudconnector;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.AaController;
 import org.fogbowcloud.manager.core.CloudPluginsHolder;
-import org.fogbowcloud.manager.core.OrderToInstanceStateMapper;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.*;
@@ -134,8 +133,6 @@ public class LocalCloudConnector implements CloudConnector {
                         String message = "Not supported order type " + order.getType();
                         throw new UnexpectedException(message);
                 }
-                // The state of the instance can be inferred from the state of the order
-                instance.setState(OrderToInstanceStateMapper.map(order.getOrderState(), order.getType()));
             }
         }
         return instance;
@@ -192,6 +189,7 @@ public class LocalCloudConnector implements CloudConnector {
                 String message = "Not supported order type " + order.getType();
                 throw new UnexpectedException(message);
         }
+        order.setCachedInstanceState(instance.getState());
         return instance;
     }
 
