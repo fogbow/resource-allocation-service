@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.datastore;
 
+import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.datastore.commands.*;
 import org.fogbowcloud.manager.core.datastore.orderstorage.*;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
@@ -10,6 +11,8 @@ import java.sql.SQLException;
 
 public class DatabaseManager implements StableStorage {
 
+    private static final Logger LOGGER = Logger.getLogger(DatabaseManager.class);
+
     private static DatabaseManager instance;
 
     private ComputeOrderStorage computeOrderStorage;
@@ -18,21 +21,22 @@ public class DatabaseManager implements StableStorage {
     private AttachmentOrderStorage attachmentOrderStorage;
     private OrderTimestampStorage orderTimestampStorage;
 
-    private DatabaseManager() {
-        try {
-            this.computeOrderStorage = new ComputeOrderStorage();
-            this.networkOrderStorage = new NetworkOrderStorage();
-            this.volumeOrderStorage = new VolumeOrderStorage();
-            this.attachmentOrderStorage = new AttachmentOrderStorage();
-            this.orderTimestampStorage = new OrderTimestampStorage();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    private DatabaseManager() throws SQLException {
+        this.computeOrderStorage = new ComputeOrderStorage();
+        this.networkOrderStorage = new NetworkOrderStorage();
+        this.volumeOrderStorage = new VolumeOrderStorage();
+        this.attachmentOrderStorage = new AttachmentOrderStorage();
+        this.orderTimestampStorage = new OrderTimestampStorage();
     }
 
     public static DatabaseManager getInstance() {
         if (instance == null) {
-            instance = new DatabaseManager();
+            try {
+                instance = new DatabaseManager();
+            } catch (SQLException e) {
+                LOGGER.error("Error instantiating database manager", e);
+                throw new Error(e);
+            }
         }
 
         return instance;

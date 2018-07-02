@@ -26,7 +26,7 @@ public class OrderStorage {
         try {
             Class.forName(MANAGER_DATASTORE_SQLITE_DRIVER);
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            LOGGER.error("Invalid datastore driver: " + e);
         }
     }
 
