@@ -32,56 +32,7 @@ public class HttpRequestClientUtil {
         request.addHeader(HttpRequestUtil.CONTENT_TYPE_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
         request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
         request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, localToken.getAccessId());
-        return doRequestToString(request);
-    }
 
-    public String doPostRequest(String endpoint, Token localToken, JSONObject json)
-            throws UnavailableProviderException, HttpResponseException {
-        LOGGER.debug("Doing POST request to endpoint <" + endpoint + ">");
-        HttpPost request = new HttpPost(endpoint);
-        request.addHeader(HttpRequestUtil.CONTENT_TYPE_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
-        request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
-        request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, localToken.getAccessId());
-        request.setEntity(new StringEntity(json.toString(), StandardCharsets.UTF_8));
-        return doRequestToString(request);
-    }
-
-    public void doDeleteRequest(String endpoint, Token localToken)
-            throws UnavailableProviderException, HttpResponseException {
-        LOGGER.debug("Doing DELETE request to endpoint <" + endpoint + ">");
-        HttpDelete request = new HttpDelete(endpoint);
-        request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, localToken.getAccessId());
-        doRequestToString(request);
-   }
-
-    public Response doPostRequest(String endpoint, JSONObject json)
-            throws HttpResponseException, UnavailableProviderException {
-        HttpPost request = new HttpPost(endpoint);
-        request.addHeader(HttpRequestUtil.CONTENT_TYPE_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
-        request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
-        request.setEntity(new StringEntity(json.toString(), StandardCharsets.UTF_8));
-        HttpResponse response = doRequestToResponse(request);
-        String responseStr = null;
-        try {
-            responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new UnavailableProviderException(e.getMessage(), e);
-        }
-        return new Response(responseStr, response.getAllHeaders());
-    }
-
-    public String doPutRequest(String endpoint, Token localToken, JSONObject json)
-            throws HttpResponseException, UnavailableProviderException {
-        HttpPut request = new HttpPut(endpoint);
-        request.addHeader(HttpRequestUtil.CONTENT_TYPE_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
-        request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
-        request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, localToken.getAccessId());
-        request.setEntity(new StringEntity(json.toString(), StandardCharsets.UTF_8));
-        return doRequestToString(request);
-    }
-
-    protected String doRequestToString(HttpRequestBase request)
-            throws HttpResponseException, UnavailableProviderException {
         String responseStr;
         HttpResponse response = null;
 
@@ -102,11 +53,44 @@ public class HttpRequestClientUtil {
         return responseStr;
     }
 
-    protected HttpResponse doRequestToResponse(HttpRequestBase request)
-            throws HttpResponseException, UnavailableProviderException {
+    public String doPostRequest(String endpoint, Token localToken, JSONObject json)
+            throws UnavailableProviderException, HttpResponseException {
+        LOGGER.debug("Doing POST request to endpoint <" + endpoint + ">");
+        HttpPost request = new HttpPost(endpoint);
+        request.addHeader(HttpRequestUtil.CONTENT_TYPE_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
+        request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
+        request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, localToken.getAccessId());
+        request.setEntity(new StringEntity(json.toString(), StandardCharsets.UTF_8));
+
+        String responseStr;
         HttpResponse response = null;
 
-	    try {
+        try {
+            response = this.client.execute(request);
+            responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+        } catch (HttpResponseException e) {
+            throw e;
+        } catch (IOException e) {
+            throw new UnavailableProviderException(e.getMessage(), e);
+        } finally {
+            try {
+                EntityUtils.consume(response.getEntity());
+            } catch (Throwable t) {
+                LOGGER.error("Error while consuming the response: " + t);
+            }
+        }
+        return responseStr;
+    }
+
+    public void doDeleteRequest(String endpoint, Token localToken)
+            throws UnavailableProviderException, HttpResponseException {
+        LOGGER.debug("Doing DELETE request to endpoint <" + endpoint + ">");
+        HttpDelete request = new HttpDelete(endpoint);
+        request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, localToken.getAccessId());
+
+        HttpResponse response = null;
+
+        try {
             response = this.client.execute(request);
         } catch (HttpResponseException e) {
             throw e;
@@ -119,7 +103,61 @@ public class HttpRequestClientUtil {
                 LOGGER.error("Error while consuming the response: " + t);
             }
         }
-        return response;
+	}
+
+    public Response doPostRequest(String endpoint, JSONObject json)
+            throws HttpResponseException, UnavailableProviderException {
+        HttpPost request = new HttpPost(endpoint);
+        request.addHeader(HttpRequestUtil.CONTENT_TYPE_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
+        request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
+        request.setEntity(new StringEntity(json.toString(), StandardCharsets.UTF_8));
+
+        HttpResponse response = null;
+        String responseStr = null;
+
+        try {
+            response = this.client.execute(request);
+            responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+        } catch (HttpResponseException e) {
+            throw e;
+        } catch (IOException e) {
+            throw new UnavailableProviderException(e.getMessage(), e);
+        } finally {
+            try {
+                EntityUtils.consume(response.getEntity());
+            } catch (Throwable t) {
+                LOGGER.error("Error while consuming the response: " + t);
+            }
+        }
+        return new Response(responseStr, response.getAllHeaders());
+    }
+
+    public String doPutRequest(String endpoint, Token localToken, JSONObject json)
+            throws HttpResponseException, UnavailableProviderException {
+        HttpPut request = new HttpPut(endpoint);
+        request.addHeader(HttpRequestUtil.CONTENT_TYPE_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
+        request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
+        request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, localToken.getAccessId());
+        request.setEntity(new StringEntity(json.toString(), StandardCharsets.UTF_8));
+
+        String responseStr;
+        HttpResponse response = null;
+
+        try {
+            response = this.client.execute(request);
+            responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+        } catch (HttpResponseException e) {
+            throw e;
+        } catch (IOException e) {
+            throw new UnavailableProviderException(e.getMessage(), e);
+        } finally {
+            try {
+                EntityUtils.consume(response.getEntity());
+            } catch (Throwable t) {
+                LOGGER.error("Error while consuming the response: " + t);
+            }
+        }
+        return responseStr;
     }
 
     public class Response {
