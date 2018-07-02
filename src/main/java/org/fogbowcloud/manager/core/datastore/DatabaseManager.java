@@ -1,6 +1,6 @@
 package org.fogbowcloud.manager.core.datastore;
 
-import org.fogbowcloud.manager.core.datastore.commands.SQLCommands;
+import org.fogbowcloud.manager.core.datastore.commands.*;
 import org.fogbowcloud.manager.core.datastore.orderstorage.*;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -87,11 +87,10 @@ public class DatabaseManager implements StableStorage {
         SynchronizedDoublyLinkedList synchronizedDoublyLinkedList = new SynchronizedDoublyLinkedList();
 
         if (orderState.equals(OrderState.CLOSED)) {
-            // returns only orders with instanceId different than null
-            SQLCommands.SELECT_COMPUTE_ORDER_SQL += SQLCommands.NOT_NULL_INSTANCE_ID;
-            SQLCommands.SELECT_VOLUME_ORDER_SQL += SQLCommands.NOT_NULL_INSTANCE_ID;
-            SQLCommands.SELECT_NETWORK_ORDER_SQL += SQLCommands.NOT_NULL_INSTANCE_ID;
-            SQLCommands.SELECT_ATTACHMENT_ORDER_SQL += SQLCommands.NOT_NULL_INSTANCE_ID;
+            ComputeSQLCommands.updateSelectCommand();
+            NetworkSQLCommands.updateSelectCommand();
+            VolumeSQLCommands.updateSelectCommand();
+            AttachmentSQLCommands.updateSelectCommand();
         }
 
         this.computeOrderStorage.readOrdersByState(orderState, synchronizedDoublyLinkedList);

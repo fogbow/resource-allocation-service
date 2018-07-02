@@ -1,7 +1,7 @@
 package org.fogbowcloud.manager.core.datastore.orderstorage;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.datastore.commands.SQLCommands;
+import org.fogbowcloud.manager.core.datastore.commands.TimestampSQLCommands;
 import org.fogbowcloud.manager.core.models.orders.Order;
 
 import java.sql.*;
@@ -20,11 +20,11 @@ public class OrderTimestampStorage extends OrderStorage {
 
             statement = connection.createStatement();
 
-            statement.execute(SQLCommands.CREATE_TIMESTAMP_TABLE_SQL);
+            statement.execute(TimestampSQLCommands.CREATE_TIMESTAMP_TABLE_SQL);
 
             statement.close();
         } catch (SQLException e) {
-            LOGGER.error("Error creating order table", e);
+            LOGGER.error("Error creating timestamp table", e);
             throw new SQLException(e);
         } finally {
             closeConnection(statement, connection);
@@ -39,7 +39,7 @@ public class OrderTimestampStorage extends OrderStorage {
             connection = getConnection();
             connection.setAutoCommit(false);
 
-            orderStatement = connection.prepareStatement(SQLCommands.INSERT_TIMESTAMP_SQL);
+            orderStatement = connection.prepareStatement(TimestampSQLCommands.INSERT_TIMESTAMP_SQL);
 
             orderStatement.setString(1, order.getId());
             orderStatement.setString(2, order.getOrderState().name());
@@ -50,7 +50,7 @@ public class OrderTimestampStorage extends OrderStorage {
 
             connection.commit();
         } catch (SQLException e) {
-            LOGGER.error("Couldn't create order.", e);
+            LOGGER.error("Couldn't add timestamp.", e);
             try {
                 if (connection != null) {
                     connection.rollback();

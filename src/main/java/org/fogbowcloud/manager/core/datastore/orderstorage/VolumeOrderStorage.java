@@ -1,14 +1,11 @@
 package org.fogbowcloud.manager.core.datastore.orderstorage;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.datastore.commands.SQLCommands;
+import org.fogbowcloud.manager.core.datastore.commands.VolumeSQLCommands;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.*;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 
-import java.lang.reflect.Type;
 import java.sql.*;
 import java.util.Date;
 import java.util.Map;
@@ -26,11 +23,11 @@ public class VolumeOrderStorage extends OrderStorage {
 
             statement = connection.createStatement();
 
-            statement.execute(SQLCommands.CREATE_VOLUME_ORDER_TABLE_SQL);
+            statement.execute(VolumeSQLCommands.CREATE_VOLUME_ORDER_TABLE_SQL);
 
             statement.close();
         } catch (SQLException e) {
-            LOGGER.error("Error creating order table", e);
+            LOGGER.error("Error creating volume order table", e);
             throw new SQLException(e);
         } finally {
             closeConnection(statement, connection);
@@ -47,7 +44,7 @@ public class VolumeOrderStorage extends OrderStorage {
             connection = getConnection();
             connection.setAutoCommit(false);
 
-            orderStatement = connection.prepareStatement(SQLCommands.INSERT_VOLUME_ORDER_SQL);
+            orderStatement = connection.prepareStatement(VolumeSQLCommands.INSERT_VOLUME_ORDER_SQL);
 
             addOverallOrderAttributes(orderStatement, volumeOrder);
 
@@ -58,7 +55,7 @@ public class VolumeOrderStorage extends OrderStorage {
 
             connection.commit();
         } catch (SQLException e) {
-            LOGGER.error("Couldn't create order.", e);
+            LOGGER.error("Couldn't add the volume order.", e);
             try {
                 if (connection != null) {
                     connection.rollback();
@@ -81,7 +78,7 @@ public class VolumeOrderStorage extends OrderStorage {
             connection = getConnection();
             connection.setAutoCommit(false);
 
-            orderStatement = connection.prepareStatement(SQLCommands.UPDATE_VOLUME_ORDER_SQL);
+            orderStatement = connection.prepareStatement(VolumeSQLCommands.UPDATE_VOLUME_ORDER_SQL);
 
             orderStatement.setString(1, volumeOrder.getInstanceId());
             orderStatement.setString(2, volumeOrder.getOrderState().name());
@@ -91,7 +88,7 @@ public class VolumeOrderStorage extends OrderStorage {
 
             connection.commit();
         } catch (SQLException e) {
-            LOGGER.error("Couldn't create order.", e);
+            LOGGER.error("Couldn't update the volume order.", e);
             try {
                 if (connection != null) {
                     connection.rollback();
@@ -114,31 +111,30 @@ public class VolumeOrderStorage extends OrderStorage {
             connection = getConnection();
             connection.setAutoCommit(false);
 
-            orderStatement = connection.prepareStatement(SQLCommands.SELECT_NETWORK_ORDER_SQL);
+            orderStatement = connection.prepareStatement(VolumeSQLCommands.SELECT_VOLUME_ORDER_SQL);
             orderStatement.setString(1, orderState.name());
 
-            ResultSet networkResult = orderStatement.executeQuery();
+            ResultSet volumeResult = orderStatement.executeQuery();
 
-            while (networkResult.next()) {
-                networkResult.getString(1);
+            while (volumeResult.next()) {
+                volumeResult.getString(1);
 
-                Map<String, String> federationUserAttr = getFederationUserAttrFromString(networkResult.getString(5));
+                Map<String, String> federationUserAttr = getFederationUserAttrFromString(volumeResult.getString(5));
 
-                NetworkOrder networkOrder = new NetworkOrder(networkResult.getString(1),
-                        new FederationUser(networkResult.getString(4), federationUserAttr),
-                        networkResult.getString(6), networkResult.getString(7),
-                        networkResult.getString(8), networkResult.getString(9),
-                        NetworkAllocation.fromValue(networkResult.getString(10)));
+                VolumeOrder volumeOrder = new VolumeOrder(volumeResult.getString(1),
+                        new FederationUser(volumeResult.getString(4), federationUserAttr),
+                        volumeResult.getString(6), volumeResult.getString(7),
+                        volumeResult.getInt(8));
 
-                networkOrder.setInstanceId(networkResult.getString(2));
-                networkOrder.setOrderState(OrderState.fromValue(networkResult.getString(3)));
+                volumeOrder.setInstanceId(volumeResult.getString(2));
+                volumeOrder.setOrderState(OrderState.fromValue(volumeResult.getString(3)));
 
-                synchronizedDoublyLinkedList.addItem(networkOrder);
+                synchronizedDoublyLinkedList.addItem(volumeOrder);
             }
 
             connection.commit();
         } catch (SQLException e) {
-            LOGGER.error("Couldn't create order.", e);
+            LOGGER.error("Couldn't read the volume order.", e);
             try {
                 if (connection != null) {
                     connection.rollback();
@@ -149,26 +145,5 @@ public class VolumeOrderStorage extends OrderStorage {
         } finally {
             closeConnection(orderStatement, connection);
         }
-    }
-
-    private void addOverallOrderAttributes(PreparedStatement orderStatement, Order order) throws SQLException {
-        orderStatement.setString(1, order.getId());
-        orderStatement.setString(2, order.getInstanceId());
-        orderStatement.setString(3, order.getOrderState().name());
-        orderStatement.setString(4, order.getFederationUser().getId());
-
-        Gson gson = new Gson();
-        String fedAttributes = gson.toJson(order.getFederationUser().getAttributes());
-
-        orderStatement.setString(5, fedAttributes);
-        orderStatement.setString(6, order.getRequestingMember());
-        orderStatement.setString(7, order.getProvidingMember());
-    }
-
-    private Map<String, String> getFederationUserAttrFromString(String jsonString) {
-        Gson gson = new Gson();
-        Type mapType = new TypeToken<Map<String, String>>(){}.getType();
-
-        return gson.fromJson(jsonString, mapType);
     }
 }

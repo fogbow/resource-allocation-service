@@ -1,16 +1,13 @@
 package org.fogbowcloud.manager.core.datastore.orderstorage;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.datastore.commands.SQLCommands;
+import org.fogbowcloud.manager.core.datastore.commands.AttachmentSQLCommands;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 
-import java.lang.reflect.Type;
 import java.sql.*;
 import java.util.Date;
 import java.util.Map;
@@ -28,11 +25,11 @@ public class AttachmentOrderStorage extends OrderStorage {
 
             statement = connection.createStatement();
 
-            statement.execute(SQLCommands.CREATE_ATTACHMENT_ORDER_TABLE_SQL);
+            statement.execute(AttachmentSQLCommands.CREATE_ATTACHMENT_ORDER_TABLE_SQL);
 
             statement.close();
         } catch (SQLException e) {
-            LOGGER.error("Error creating order table", e);
+            LOGGER.error("Error creating attachment order table", e);
             throw new SQLException(e);
         } finally {
             closeConnection(statement, connection);
@@ -49,7 +46,7 @@ public class AttachmentOrderStorage extends OrderStorage {
             connection = getConnection();
             connection.setAutoCommit(false);
 
-            orderStatement = connection.prepareStatement(SQLCommands.INSERT_ATTACHMENT_ORDER_SQL);
+            orderStatement = connection.prepareStatement(AttachmentSQLCommands.INSERT_ATTACHMENT_ORDER_SQL);
 
             addOverallOrderAttributes(orderStatement, attachmentOrder);
 
@@ -62,7 +59,7 @@ public class AttachmentOrderStorage extends OrderStorage {
 
             connection.commit();
         } catch (SQLException e) {
-            LOGGER.error("Couldn't create order.", e);
+            LOGGER.error("Couldn't add the attachment order.", e);
             try {
                 if (connection != null) {
                     connection.rollback();
@@ -85,7 +82,7 @@ public class AttachmentOrderStorage extends OrderStorage {
             connection = getConnection();
             connection.setAutoCommit(false);
 
-            orderStatement = connection.prepareStatement(SQLCommands.UPDATE_ATTACHMENT_ORDER_SQL);
+            orderStatement = connection.prepareStatement(AttachmentSQLCommands.UPDATE_ATTACHMENT_ORDER_SQL);
 
             orderStatement.setString(1, attachmentOrder.getInstanceId());
             orderStatement.setString(2, attachmentOrder.getOrderState().name());
@@ -95,7 +92,7 @@ public class AttachmentOrderStorage extends OrderStorage {
 
             connection.commit();
         } catch (SQLException e) {
-            LOGGER.error("Couldn't create order.", e);
+            LOGGER.error("Couldn't update the attachment order.", e);
             try {
                 if (connection != null) {
                     connection.rollback();
@@ -118,7 +115,7 @@ public class AttachmentOrderStorage extends OrderStorage {
             connection = getConnection();
             connection.setAutoCommit(false);
 
-            orderStatement = connection.prepareStatement(SQLCommands.SELECT_ATTACHMENT_ORDER_SQL);
+            orderStatement = connection.prepareStatement(AttachmentSQLCommands.SELECT_ATTACHMENT_ORDER_SQL);
             orderStatement.setString(1, orderState.name());
 
             ResultSet attachmentResult = orderStatement.executeQuery();
@@ -142,7 +139,7 @@ public class AttachmentOrderStorage extends OrderStorage {
 
             connection.commit();
         } catch (SQLException e) {
-            LOGGER.error("Couldn't create order.", e);
+            LOGGER.error("Couldn't read the attachment order.", e);
             try {
                 if (connection != null) {
                     connection.rollback();
@@ -153,26 +150,5 @@ public class AttachmentOrderStorage extends OrderStorage {
         } finally {
             closeConnection(orderStatement, connection);
         }
-    }
-
-    private void addOverallOrderAttributes(PreparedStatement orderStatement, Order order) throws SQLException {
-        orderStatement.setString(1, order.getId());
-        orderStatement.setString(2, order.getInstanceId());
-        orderStatement.setString(3, order.getOrderState().name());
-        orderStatement.setString(4, order.getFederationUser().getId());
-
-        Gson gson = new Gson();
-        String fedAttributes = gson.toJson(order.getFederationUser().getAttributes());
-
-        orderStatement.setString(5, fedAttributes);
-        orderStatement.setString(6, order.getRequestingMember());
-        orderStatement.setString(7, order.getProvidingMember());
-    }
-
-    private Map<String, String> getFederationUserAttrFromString(String jsonString) {
-        Gson gson = new Gson();
-        Type mapType = new TypeToken<Map<String, String>>(){}.getType();
-
-        return gson.fromJson(jsonString, mapType);
     }
 }

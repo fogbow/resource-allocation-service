@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.core.datastore.orderstorage;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.datastore.commands.SQLCommands;
+import org.fogbowcloud.manager.core.datastore.commands.ComputeSQLCommands;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -32,11 +32,11 @@ public class ComputeOrderStorage extends OrderStorage {
 
             statement = connection.createStatement();
 
-            statement.execute(SQLCommands.CREATE_COMPUTE_ORDER_TABLE_SQL);
+            statement.execute(ComputeSQLCommands.CREATE_COMPUTE_ORDER_TABLE_SQL);
 
             statement.close();
         } catch (SQLException e) {
-            LOGGER.error("Error creating order table", e);
+            LOGGER.error("Error creating compute order table", e);
             throw new SQLException(e);
         } finally {
             closeConnection(statement, connection);
@@ -53,7 +53,7 @@ public class ComputeOrderStorage extends OrderStorage {
             connection = getConnection();
             connection.setAutoCommit(false);
 
-            orderStatement = connection.prepareStatement(SQLCommands.INSERT_COMPUTE_ORDER_SQL);
+            orderStatement = connection.prepareStatement(ComputeSQLCommands.INSERT_COMPUTE_ORDER_SQL);
 
             addOverallOrderAttributes(orderStatement, computeOrder);
 
@@ -79,7 +79,7 @@ public class ComputeOrderStorage extends OrderStorage {
 
             connection.commit();
         } catch (SQLException e) {
-            LOGGER.error("Couldn't create order.", e);
+            LOGGER.error("Couldn't add the compute order.", e);
             try {
                 if (connection != null) {
                     connection.rollback();
@@ -102,7 +102,7 @@ public class ComputeOrderStorage extends OrderStorage {
             connection = getConnection();
             connection.setAutoCommit(false);
 
-            orderStatement = connection.prepareStatement(SQLCommands.UPDATE_COMPUTE_ORDER_SQL);
+            orderStatement = connection.prepareStatement(ComputeSQLCommands.UPDATE_COMPUTE_ORDER_SQL);
 
             orderStatement.setString(1, computeOrder.getInstanceId());
             orderStatement.setString(2, computeOrder.getOrderState().name());
@@ -115,7 +115,7 @@ public class ComputeOrderStorage extends OrderStorage {
 
             connection.commit();
         } catch (SQLException e) {
-            LOGGER.error("Couldn't create order.", e);
+            LOGGER.error("Couldn't update the compute order.", e);
             try {
                 if (connection != null) {
                     connection.rollback();
@@ -138,7 +138,7 @@ public class ComputeOrderStorage extends OrderStorage {
             connection = getConnection();
             connection.setAutoCommit(false);
 
-            orderStatement = connection.prepareStatement(SQLCommands.SELECT_COMPUTE_ORDER_SQL);
+            orderStatement = connection.prepareStatement(ComputeSQLCommands.SELECT_COMPUTE_ORDER_SQL);
             orderStatement.setString(1, orderState.name());
 
             ResultSet computeResult = orderStatement.executeQuery();
@@ -171,7 +171,7 @@ public class ComputeOrderStorage extends OrderStorage {
 
             connection.commit();
         } catch (SQLException e) {
-            LOGGER.error("Couldn't create order.", e);
+            LOGGER.error("Couldn't read the compute order.", e);
             try {
                 if (connection != null) {
                     connection.rollback();
@@ -182,27 +182,6 @@ public class ComputeOrderStorage extends OrderStorage {
         } finally {
             closeConnection(orderStatement, connection);
         }
-    }
-
-    private void addOverallOrderAttributes(PreparedStatement orderStatement, Order order) throws SQLException {
-        orderStatement.setString(1, order.getId());
-        orderStatement.setString(2, order.getInstanceId());
-        orderStatement.setString(3, order.getOrderState().name());
-        orderStatement.setString(4, order.getFederationUser().getId());
-
-        Gson gson = new Gson();
-        String fedAttributes = gson.toJson(order.getFederationUser().getAttributes());
-
-        orderStatement.setString(5, fedAttributes);
-        orderStatement.setString(6, order.getRequestingMember());
-        orderStatement.setString(7, order.getProvidingMember());
-    }
-
-    private Map<String, String> getFederationUserAttrFromString(String jsonString) {
-        Gson gson = new Gson();
-        Type mapType = new TypeToken<Map<String, String>>(){}.getType();
-
-        return gson.fromJson(jsonString, mapType);
     }
 
     private List<String> getNetworksIdFromString(String jsonString) {
