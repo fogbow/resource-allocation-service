@@ -93,24 +93,6 @@ public class SpawningProcessorTest extends BaseUnitTests {
         super.tearDown();
     }
 
-    // FIXME: What this method tests?
-    @Ignore
-    @Test
-    public void testRunThrowableExceptionWhileTryingToProcessOrder() throws Exception {
-        Order order = Mockito.mock(Order.class);
-        OrderState state = null;
-        order.setOrderState(state);
-        this.spawningOrderList.addItem(order);
-
-        Mockito.doThrow(new RuntimeException("Any Exception")).when(this.spawningProcessor)
-                .processSpawningOrder(order);
-
-        this.thread = new Thread(this.spawningProcessor);
-        this.thread.start();
-
-        Thread.sleep(500);
-    }
-
     @Test
     public void testRunProcessComputeOrderInstanceActive() throws Exception {
         Order order = this.createMockedOrder();
@@ -270,28 +252,6 @@ public class SpawningProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.spawningOrderList.getNext());
         Assert.assertNull(this.failedOrderList.getNext());
         Assert.assertNull(this.fulfilledOrderList.getNext());
-    }
-
-    // FIXME: What this method tests?
-    @Ignore
-    @Test
-    public void testRunThrowableExceptionWhileTryingToGetMapAddressesOfComputeOrderInstance()
-            throws InterruptedException {
-        Order order = this.createOrder();
-        order.setOrderState(OrderState.SPAWNING);
-        this.spawningOrderList.addItem(order);
-
-        String instanceId = "fake-id";
-        ComputeInstance computeOrderInstance =
-                spy(new ComputeInstance(instanceId));
-        computeOrderInstance.setState(InstanceState.READY);
-        order.setInstanceId(instanceId);
-
-        doThrow(new RuntimeException("Any Exception")).when(this.tunnelingService).getExternalServiceAddresses(order.getId());
-
-        this.thread = new Thread(this.spawningProcessor);
-        this.thread.start();
-        Thread.sleep(500);
     }
 
     @Test
