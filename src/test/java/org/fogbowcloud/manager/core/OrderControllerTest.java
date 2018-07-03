@@ -53,18 +53,14 @@ public class OrderControllerTest extends BaseUnitTests {
 
     /**
      * There is no matching method in the 'OrdersController' class
+     * @throws UnexpectedException 
      */
-    @Ignore
-    @Test
-    public void testFailedNewOrderRequestOrderIsNull() {
-        try {
-            Order order = null;
-            @SuppressWarnings("unused")
-            FederationUser federationUser = new FederationUser("fake-id", null);
-            OrderStateTransitioner.activateOrder(order);
-        } catch (Exception e) {
-            Assert.fail();
-        }
+    @Test(expected = UnexpectedException.class)
+    public void testFailedNewOrderRequestOrderIsNull() throws UnexpectedException {
+    	Order order = null;
+    	@SuppressWarnings("unused")
+    	FederationUser federationUser = new FederationUser("fake-id", null);
+    	OrderStateTransitioner.activateOrder(order);
     }
 
     @Test(expected = FogbowManagerException.class)
