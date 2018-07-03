@@ -269,7 +269,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
      * in 'DefaultAuthorizationPlugin' class, 
      * is set to always return true
      */
-	@Ignore
 	@Test
 	public void testCreateComputeOrderUnauthorizedOperation() throws Exception {
 		ComputeOrder order = createComputeOrder();
@@ -279,7 +278,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
 		Mockito.doThrow(new UnauthorizedRequestException()).when(this.aaaController).authorize(Mockito.any(FederationUser.class),
-				Mockito.any(Operation.class), Mockito.any(InstanceType.class));
+				Mockito.any(Operation.class), Mockito.any(Order.class));
 
 		Assert.assertNull(order.getOrderState());
 
@@ -1065,7 +1064,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
             Assert.assertNull(order.getOrderState());
         }
     }
-    
+
     @Test
     public void testGetNetworkOrder() throws Exception {
         NetworkOrder order = createNetworkOrder();
