@@ -5,7 +5,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import org.fogbowcloud.manager.api.http.ComputeOrdersController;
 import org.fogbowcloud.manager.api.http.HttpExceptionToErrorConditionTranslator;
-import org.fogbowcloud.manager.core.exceptions.TokenValueCreationException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.json.JSONObject;
@@ -51,9 +50,8 @@ public class ExceptionHandlerControllerTest {
         JSONObject jsonObject = new JSONObject(response.getContentAsString());
 
         assertEquals(jsonObject.get("details"), URI_COMPUTE_ENDPOINT);
-        assertEquals(jsonObject.get("message"), "Unauthorized error");
-        assertEquals(jsonObject.get("statusCode"), HttpStatus.UNAUTHORIZED.name());
-        assertEquals(Integer.toString(response.getStatus()), HttpStatus.UNAUTHORIZED.toString());
+        assertEquals(jsonObject.get("message"), "Unauthorized Error");
+        assertEquals(response.getStatus(), HttpStatus.FORBIDDEN.value());
     }
 
     @Test
@@ -73,7 +71,7 @@ public class ExceptionHandlerControllerTest {
 
         assertEquals(jsonObject.get("details"), URI_COMPUTE_ENDPOINT);
         assertEquals(jsonObject.get("message"), "Unauthenticated error");
-        assertEquals(jsonObject.get("statusCode"), HttpStatus.UNAUTHORIZED.name());
+        assertEquals(response.getStatus(), HttpStatus.UNAUTHORIZED.value());
         assertEquals(Integer.toString(response.getStatus()), HttpStatus.UNAUTHORIZED.toString());
     }
 
@@ -113,7 +111,7 @@ public class ExceptionHandlerControllerTest {
 
         JSONObject jsonObject = new JSONObject(response.getContentAsString());
         assertEquals(jsonObject.get("details"), URI_COMPUTE_ENDPOINT);
-        assertEquals(jsonObject.get("statusCode"), HttpStatus.UNSUPPORTED_MEDIA_TYPE.name());
+        assertEquals(response.getStatus(), HttpStatus.UNSUPPORTED_MEDIA_TYPE.value());
         assertEquals(Integer.toString(response.getStatus()), HttpStatus.UNSUPPORTED_MEDIA_TYPE.toString());
     }
 }
