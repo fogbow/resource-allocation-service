@@ -1065,30 +1065,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
             Assert.assertNull(order.getOrderState());
         }
     }
-
-    /**
-     * This test attempts to throw FogbowManagerException, which occurs when sending a 'null'
-     * request, something that should not be tested in this class, since the request here must go
-     * through several checks before this.
-     */
-    @Ignore
-    @Test(expected = FogbowManagerException.class)
-    public void testCreateNullNetworkOrder() throws Exception {
-        NetworkOrder order = createNetworkOrder();
-
-        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
-
-        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
-
-        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-                Mockito.any(InstanceType.class));
-
-        Assert.assertNull(order.getOrderState());
-
-        String federationTokenValue = "";
-        this.application.createNetwork(order, federationTokenValue);
-    }
-
     
     @Test
     public void testGetNetworkOrder() throws Exception {
