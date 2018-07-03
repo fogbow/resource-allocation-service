@@ -595,7 +595,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
      * in 'DefaultAuthorizationPlugin' class, 
      * is set to always return true
      */
-	@Ignore
 	@Test
     public void testCreateVolumeOrderUnauthorizedOperation() throws Exception {
         VolumeOrder order = createVolumeOrder();
@@ -605,7 +604,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
         Mockito.doThrow(new UnauthorizedRequestException()).when(this.aaaController).authorize(Mockito.any(FederationUser.class),
-                Mockito.any(Operation.class), Mockito.any(InstanceType.class));
+                Mockito.any(Operation.class), Mockito.any(Order.class));
 
         Assert.assertNull(order.getOrderState());
 
@@ -1042,7 +1041,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
      * in 'DefaultAuthorizationPlugin' class, 
      * is set to always return true
      */
-    @Ignore
     @Test
     public void testCreateNetworkOrderUnauthorizedOperation() throws Exception {
         NetworkOrder order = createNetworkOrder();
@@ -1052,7 +1050,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
         Mockito.doThrow(new UnauthorizedRequestException()).when(this.aaaController).authorize(Mockito.any(FederationUser.class),
-                Mockito.any(Operation.class), Mockito.any(InstanceType.class));
+                Mockito.any(Operation.class), Mockito.any(Order.class));
 
         Assert.assertNull(order.getOrderState());
 
@@ -1477,7 +1475,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
      * in 'DefaultAuthorizationPlugin' class, 
      * is set to always return true
      */
-    @Ignore
     @Test
     public void testCreateAttachmentOrderUnauthorizedOperation() throws Exception {
         AttachmentOrder order = createAttachmentOrder();
@@ -1487,7 +1484,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
 
         Mockito.doThrow(new UnauthorizedRequestException()).when(this.aaaController).authorize(Mockito.any(FederationUser.class),
-                Mockito.any(Operation.class), Mockito.any(InstanceType.class));
+                Mockito.any(Operation.class), Mockito.any(Order.class));
 
         Assert.assertNull(order.getOrderState());
 
