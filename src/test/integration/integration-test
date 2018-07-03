@@ -1,0 +1,252 @@
+#!/bin/bash
+
+maxTries=5
+sleepTimeSecs=10
+
+baseUrl=http://localhost:8080/
+computesEndpoint=computes/
+networksEndpoint=networks/
+
+notFoundHttpStatus=404
+noContentHttpStatus=204
+
+## Compute Tests
+
+### Post compute functions
+
+function testPostCompute {
+  instanceId=$(doPostCompute)
+  echo "Created order"
+  for try in `seq 1 $maxTries`
+  do
+    echo "Get compute. Try:" $try/$maxTries 
+    getInstanceResponse=$(doGetCompute $instanceId)
+    echo ${getInstanceResponse} | grep READY
+    if [ $? -eq 0 ]; then
+      echo "Test ok. Deleting compute..."
+      $(doDeleteCompute $instanceId)
+      return 0
+    fi
+    sleep $sleepTimeSecs
+  done
+  echo "Error when retrieving the compute created"
+  $(doDeleteCompute $instanceId)
+  return 1
+}
+
+function doPostCompute {
+  local response=$(curl -X POST -H "Content-Type: application/json" -H "federationTokenValue: token" -d \
+  '{ 
+      "vCPU" : 1,
+      "memory" : 1024,
+      "disk" : 30,
+      "providingMember" : "fake-localidentity-member",
+      "imageId" : "9b672abd-67f7-463e-b926-a87adbc80860",
+      "publicKey" : ""
+  }' $baseUrl$computesEndpoint 2> /dev/null)
+  echo $response
+}
+
+function testNonExistentCompute {
+  local fakeInstanceId="non-existent-instance-id"
+  local responseStatus=$(doGetComputeReturningStatus $fakeInstanceId)
+  if [ $responseStatus -eq $notFoundHttpStatus ]; then
+      echo "Test ok."
+    return 0
+  fi
+  echo "Test failed, expected $notFoundHttpStatus error, but got:" $responseStatus
+  return 1
+}
+
+### Get compute functions
+
+function doGetCompute {
+  local instanceId=$1
+  local response=$(curl -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$computesEndpoint$instanceId 2> /dev/null)
+  echo $response
+}
+
+function doGetComputeReturningStatus {
+  local instanceId=$1
+  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$computesEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  echo $responseStatus
+}
+
+### Delete compute functions
+
+function testDeleteCompute {
+  local instanceId=$(doPostCompute)
+  echo "Testing delete compute"
+  local deleteStatus=$(doDeleteComputeReturningStatus $instanceId)
+  sleep $sleepTimeSecs
+  if [ $deleteStatus -eq $noContentHttpStatus ]; then
+    echo "Delete status was the expected:" $deleteStatus
+  else
+    echo "Test failed, expected $noContentHttpStatus error, but got:" $deleteStatus
+    #return 1
+  fi
+  echo "Testing if the instance can still be retrieved"
+  getInstanceStatus=$(doGetComputeReturningStatus $instanceId)
+  if [ $getInstanceStatus -eq $notFoundHttpStatus ]; then
+    echo "Test ok."
+    return 0
+  fi
+  echo "Test failed, expected $notFoundHttpStatus error, but got:" $getInstanceStatus
+  return 1
+}
+
+function testDeleteNonExistentCompute {
+  local fakeInstanceId="non-existent-instance-id"
+  deleteStatus=$(doDeleteComputeReturningStatus $fakeInstanceId)
+  sleep $sleepTimeSecs
+  if [ $deleteStatus -eq $notFoundHttpStatus ]; then
+    echo "Test ok."
+    return 0
+  fi
+  echo "Test failed, expected $notFoundHttpStatus error, but got:" $deleteStatus
+  return 1
+}
+
+function doDeleteCompute {
+  local instanceId=$1
+  $(curl -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$computesEndpoint$instanceId 2> /dev/null)
+}
+
+function doDeleteComputeReturningStatus {
+  local instanceId=$1
+  local responseStatus=$(curl -I -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$computesEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  echo $responseStatus
+}
+
+## Network Tests
+
+### Delete network functions
+
+function testDeleteNetwork {
+  local instanceId=$(doPostNetwork)
+  echo "Testing delete network"
+  local deleteStatus=$(doDeleteNetworkReturningStatus $instanceId)
+  sleep $sleepTimeSecs
+  if [ $deleteStatus -eq $noContentHttpStatus ]; then
+    echo "Delete status was the expected:" $deleteStatus
+  else
+    echo "Test failed, expected $noContentHttpStatus error, but got:" $deleteStatus
+    #return 1
+  fi
+  echo "Testing if the instance can still be retrieved"
+  getInstanceStatus=$(doGetNetworkReturningStatus $instanceId)
+  if [ $getInstanceStatus -eq $notFoundHttpStatus ]; then
+    echo "Test ok."
+    return 0
+  fi
+  echo "Test failed, expected $notFoundHttpStatus error, but got:" $getInstanceStatus
+  return 1
+}
+
+function testDeleteNonExistentNetwork {
+  local fakeInstanceId="non-existent-instance-id"
+  deleteStatus=$(doDeleteNetworkReturningStatus $fakeInstanceId)
+  sleep $sleepTimeSecs
+  if [ $deleteStatus -eq $notFoundHttpStatus ]; then
+    echo "Test ok."
+    return 0
+  fi
+  echo "Test failed, expected $notFoundHttpStatus error, but got:" $deleteStatus
+  return 1
+}
+
+function doDeleteNetwork {
+  local instanceId=$1
+  $(curl -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$networksEndpoint$instanceId 2> /dev/null)
+}
+
+function doDeleteNetworkReturningStatus {
+  local instanceId=$1
+  local responseStatus=$(curl -I -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$networksEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  echo $responseStatus
+}
+
+### Post network functions
+
+function testPostNetwork {
+  local instanceId=$(doPostNetwork)
+  for try in `seq 1 $maxTries`
+  do
+    echo "Get network. Try:" $try/$maxTries 
+    getInstanceResponse=$(doGetNetwork $instanceId)
+    echo ${getInstanceResponse} | grep READY
+    if [ $? -eq 0 ]; then
+      echo "Test ok. Deleting network..."
+      $(doDeleteNetwork $instanceId)
+      return 0
+    fi
+    sleep $sleepTimeSecs
+  done
+  echo "Error when retrieving the network created"
+  $(doDeleteNetwork $instanceId)
+  return 1
+}
+
+function doPostNetwork {
+  local response=$(curl -X POST -H "Content-Type: application/json" -H "federationTokenValue: token" -d \
+  '{
+	"gateway" : "10.15.20.1",
+	"address" : "10.15.20.1/28",
+	"allocation" : "dynamic"
+  }' $baseUrl$networksEndpoint 2> /dev/null)
+  echo $response
+}
+
+### Get network functions
+
+function testNonExistentNetwork {
+  local fakeInstanceId="non-existent-instance-id"
+  local responseStatus=$(doGetNetworkReturningStatus $fakeInstanceId)
+  if [ $responseStatus -eq $notFoundHttpStatus ]; then
+      echo "Test ok."
+    return 0
+  fi
+  echo "Test failed, expected $notFoundHttpStatus error, but got:" $responseStatus
+  return 1
+}
+
+function doGetNetwork {
+  local instanceId=$1
+  local response=$(curl -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$networksEndpoint$instanceId 2> /dev/null)
+  echo $response
+}
+
+function doGetNetworkReturningStatus {
+  local instanceId=$1
+  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$networksEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  echo $responseStatus
+}
+
+## Main
+
+function main {
+  echo "============ Testing Compute ============"
+  echo "### Testing POST compute ###"
+  testPostCompute
+  echo "### Testing POST compute with a new network ###"
+  #testPostComputeWithNetwork
+  echo "### Testing GET non-existent compute ###"
+  testNonExistentCompute
+  echo "### Testing DELETE compute ###"
+  testDeleteCompute
+  echo "### Testing DELETE non-existent compute ###"
+  testDeleteNonExistentCompute
+
+  echo "============ Testing Network ============"
+
+  echo "### Testing POST network ###"
+  testPostNetwork
+  echo "### Testing GET non-existent network ###"
+  testNonExistentNetwork
+  echo "### Testing DELETE network ###"
+  testDeleteNetwork
+  echo "### Testing DELETE non-existent network ###"
+  testDeleteNonExistentNetwork
+}
+
+main
