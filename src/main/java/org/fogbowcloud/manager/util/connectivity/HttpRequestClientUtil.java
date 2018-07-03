@@ -14,6 +14,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.json.JSONObject;
+import org.springframework.http.HttpStatus;
 
 public class HttpRequestClientUtil {
 
@@ -66,10 +67,12 @@ public class HttpRequestClientUtil {
         HttpResponse response = null;
 
         try {
-            response = this.client.execute(request);
+            response = this.client.execute(request);            
+            if (response.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
+                String message = response.getStatusLine().getReasonPhrase();
+                throw new HttpResponseException(response.getStatusLine().getStatusCode(), message); 
+            }            
             responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        } catch (HttpResponseException e) {
-            throw e;
         } catch (IOException e) {
             throw new UnavailableProviderException(e.getMessage(), e);
         } finally {
