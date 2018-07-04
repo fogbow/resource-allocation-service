@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
@@ -28,9 +27,12 @@ public class PluginInstantiator {
     private Properties properties;
     private static PluginInstantiator instance;
 
-    private static final Logger LOGGER = Logger.getLogger(PluginInstantiator.class.getName());
-
-    private PluginInstantiator() throws FatalErrorException {
+    /**
+     * THERE ARE ONLY TWO CALLEES ALLOWED TO CALL THIS METHOD: 
+     * i) test code; and 
+     * ii) below getInstance method.
+     */
+    protected PluginInstantiator() {
         HomeDir homeDir = HomeDir.getInstance();
         String path = homeDir.getPath() + File.separator;
         List<String> configFilesNames = new ArrayList<>();
@@ -103,8 +105,9 @@ public class PluginInstantiator {
                 this.pluginFactory.createPluginInstance(className);
     }
 
-    // Used only for tests
+    /** Used only for tests */
     protected Properties getProperties() {
         return this.properties;
     }
+    
 }
