@@ -178,7 +178,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
     protected List<String> resolveNetworksId(ComputeOrder computeOrder) {
         List<String> requestedNetworksId = new ArrayList<>();
-        Collections.copy(computeOrder.getNetworksId(), requestedNetworksId);
+        requestedNetworksId.addAll(computeOrder.getNetworksId());
         String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
         requestedNetworksId.add(defaultNetworkId);
         computeOrder.setNetworksId(requestedNetworksId);
@@ -412,5 +412,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             }
         }
         return null;
+    }
+    
+    protected void setClient(HttpRequestClientUtil client) {
+    	this.client = client;
     }
 }
