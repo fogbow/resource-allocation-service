@@ -16,6 +16,10 @@ public class AttachmentOrder extends Order {
     /** this attribute refers to the mount point of the volume device */
     private String device;
 
+    public AttachmentOrder() {
+        super(UUID.randomUUID().toString());
+    }
+
     public AttachmentOrder(FederationUser federationUser, String requestingMember,
             String providingMember, String source, String target, String device) {
         super(UUID.randomUUID().toString(), federationUser, requestingMember, providingMember);
