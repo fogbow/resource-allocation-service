@@ -5,10 +5,10 @@ import org.fogbowcloud.manager.core.models.instances.InstanceType;
 
 public class OpenStackStateMapper {
 
-    private static final String ACTIVE_STATUS = "active";
-    private static final String BUILD_STATUS = "build";
-    private static final String DOWN_STATUS = "down";
-    private static final String ERROR_STATUS = "error";
+    public static final String ACTIVE_STATUS = "active";
+    public static final String BUILD_STATUS = "build";
+    public static final String DOWN_STATUS = "down";
+    public static final String ERROR_STATUS = "error";
     private static final String CREATING_STATUS = "creating";
     private static final String AVAILABLE_STATUS = "available";
     private static final String ATTACHING_STATUS = "attaching";
