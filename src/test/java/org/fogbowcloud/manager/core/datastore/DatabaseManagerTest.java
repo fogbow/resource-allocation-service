@@ -6,10 +6,7 @@ import org.fogbowcloud.manager.core.models.orders.*;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.CloudInitUserDataBuilder;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -28,8 +25,17 @@ import static org.mockito.Mockito.when;
 @PrepareForTest(PropertiesHolder.class)
 public class DatabaseManagerTest {
 
-    private String DATABASE_PATH = "/tmp/fogbow_history_test.db";
+    private static final String DATABASE_PATH = "/tmp/fogbow_history_test.db";
     private String DATABASE_URL = "jdbc:sqlite:" + DATABASE_PATH;
+
+    /**
+     * Cleaning all the enviromnent before running the tests.
+     */
+    @BeforeClass
+    public static void init() throws NoSuchFieldException, IllegalAccessException {
+        resetDatabaseManagerInstance();
+        cleanEnviromnent();
+    }
 
     @Before
     public void setUp() {
@@ -41,26 +47,12 @@ public class DatabaseManagerTest {
     }
 
     /**
-     * Remove database file.
+     * Remove database file and reset database manager.
      */
     @After
     public void tearDown() throws NoSuchFieldException, IllegalAccessException {
         resetDatabaseManagerInstance();
-
-        File folder = new File(DATABASE_PATH);
-        File[] listFiles = folder.listFiles();
-
-        if (listFiles != null) {
-            for (File file : listFiles) {
-                if (file != null) {
-                    file.delete();
-                    file.deleteOnExit();
-                }
-            }
-        }
-
-        folder.delete();
-        folder.deleteOnExit();
+        cleanEnviromnent();
     }
 
     @Test(expected = Error.class)
@@ -71,6 +63,7 @@ public class DatabaseManagerTest {
         PowerMockito.mockStatic(PropertiesHolder.class);
         given(PropertiesHolder.getInstance()).willReturn(propertiesHolder);
 
+        // It should raise an exception since the database path is an invalid one
         DatabaseManager.getInstance();
     }
 
@@ -276,9 +269,26 @@ public class DatabaseManagerTest {
         return listSize;
     }
 
-    private void resetDatabaseManagerInstance() throws NoSuchFieldException, IllegalAccessException {
+    private static void resetDatabaseManagerInstance() throws NoSuchFieldException, IllegalAccessException {
         Field instance = DatabaseManager.class.getDeclaredField("instance");
         instance.setAccessible(true);
         instance.set(null, null);
+    }
+
+    private static void cleanEnviromnent() {
+        File folder = new File(DATABASE_PATH);
+        File[] listFiles = folder.listFiles();
+
+        if (listFiles != null) {
+            for (File file : listFiles) {
+                if (file != null) {
+                    file.delete();
+                    file.deleteOnExit();
+                }
+            }
+        }
+
+        folder.delete();
+        folder.deleteOnExit();
     }
 }

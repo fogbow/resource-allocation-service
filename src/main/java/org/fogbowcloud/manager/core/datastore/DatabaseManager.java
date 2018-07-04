@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.datastore;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.datastore.commands.*;
 import org.fogbowcloud.manager.core.datastore.orderstorage.*;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -89,13 +88,6 @@ public class DatabaseManager implements StableStorage {
     @Override
     public SynchronizedDoublyLinkedList readActiveOrders(OrderState orderState) {
         SynchronizedDoublyLinkedList synchronizedDoublyLinkedList = new SynchronizedDoublyLinkedList();
-
-        if (orderState.equals(OrderState.CLOSED)) {
-            ComputeSQLCommands.updateSelectCommand();
-            NetworkSQLCommands.updateSelectCommand();
-            VolumeSQLCommands.updateSelectCommand();
-            AttachmentSQLCommands.updateSelectCommand();
-        }
 
         this.computeOrderStorage.readOrdersByState(orderState, synchronizedDoublyLinkedList);
         this.networkOrderStorage.readOrdersByState(orderState, synchronizedDoublyLinkedList);

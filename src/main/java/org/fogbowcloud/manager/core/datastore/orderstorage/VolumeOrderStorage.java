@@ -3,7 +3,9 @@ package org.fogbowcloud.manager.core.datastore.orderstorage;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.datastore.commands.VolumeSQLCommands;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
-import org.fogbowcloud.manager.core.models.orders.*;
+import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.OrderState;
+import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 
 import java.sql.*;
@@ -111,7 +113,13 @@ public class VolumeOrderStorage extends OrderStorage {
             connection = getConnection();
             connection.setAutoCommit(false);
 
-            orderStatement = connection.prepareStatement(VolumeSQLCommands.SELECT_VOLUME_ORDER_SQL);
+            String sqlCommand = VolumeSQLCommands.SELECT_VOLUME_ORDER_SQL;
+
+            if (orderState.equals(OrderState.CLOSED)) {
+                sqlCommand = VolumeSQLCommands.SELECT_VOLUME_ORDER_NOT_NULL_INSTANCE_ID;
+            }
+
+            orderStatement = connection.prepareStatement(sqlCommand);
             orderStatement.setString(1, orderState.name());
 
             ResultSet volumeResult = orderStatement.executeQuery();

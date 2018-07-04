@@ -61,9 +61,4 @@ public class OrderTableAttributes {
      * Date attribute
      **/
     protected static final String CREATE_AT = "create_at";
-
-    /**
-     * Command to select orders from the table with not null instance id
-     **/
-    protected static final String NOT_NULL_INSTANCE_ID = " AND instance_id IS NOT NULL";
 }

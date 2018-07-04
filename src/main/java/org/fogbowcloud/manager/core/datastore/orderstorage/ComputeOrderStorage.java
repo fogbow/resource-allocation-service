@@ -138,7 +138,13 @@ public class ComputeOrderStorage extends OrderStorage {
             connection = getConnection();
             connection.setAutoCommit(false);
 
-            orderStatement = connection.prepareStatement(ComputeSQLCommands.SELECT_COMPUTE_ORDER_SQL);
+            String sqlCommand = ComputeSQLCommands.SELECT_COMPUTE_ORDER_SQL;
+
+            if (orderState.equals(OrderState.CLOSED)) {
+                sqlCommand = ComputeSQLCommands.SELECT_COMPUTE_ORDER_NOT_NULL_INSTANCE_ID;
+            }
+
+            orderStatement = connection.prepareStatement(sqlCommand);
             orderStatement.setString(1, orderState.name());
 
             ResultSet computeResult = orderStatement.executeQuery();

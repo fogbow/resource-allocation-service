@@ -3,7 +3,10 @@ package org.fogbowcloud.manager.core.datastore.orderstorage;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.datastore.commands.NetworkSQLCommands;
 import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
-import org.fogbowcloud.manager.core.models.orders.*;
+import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
+import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
+import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.token.FederationUser;
 
 import java.sql.*;
@@ -113,7 +116,13 @@ public class NetworkOrderStorage extends OrderStorage {
             connection = getConnection();
             connection.setAutoCommit(false);
 
-            orderStatement = connection.prepareStatement(NetworkSQLCommands.SELECT_NETWORK_ORDER_SQL);
+            String sqlCommand = NetworkSQLCommands.SELECT_NETWORK_ORDER_SQL;
+
+            if (orderState.equals(OrderState.CLOSED)) {
+                sqlCommand = NetworkSQLCommands.SELECT_NETWORK_ORDER_NOT_NULL_INSTANCE_ID;
+            }
+
+            orderStatement = connection.prepareStatement(sqlCommand);
             orderStatement.setString(1, orderState.name());
 
             ResultSet networkResult = orderStatement.executeQuery();

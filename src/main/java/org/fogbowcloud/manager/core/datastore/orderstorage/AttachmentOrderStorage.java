@@ -115,7 +115,13 @@ public class AttachmentOrderStorage extends OrderStorage {
             connection = getConnection();
             connection.setAutoCommit(false);
 
-            orderStatement = connection.prepareStatement(AttachmentSQLCommands.SELECT_ATTACHMENT_ORDER_SQL);
+            String sqlCommand = AttachmentSQLCommands.SELECT_ATTACHMENT_ORDER_SQL;
+
+            if (orderState.equals(OrderState.CLOSED)) {
+                sqlCommand = AttachmentSQLCommands.SELECT_ATTACHMENT_ORDER_NOT_NULL_INSTANCE_ID;
+            }
+
+            orderStatement = connection.prepareStatement(sqlCommand);
             orderStatement.setString(1, orderState.name());
 
             ResultSet attachmentResult = orderStatement.executeQuery();

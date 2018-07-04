@@ -19,14 +19,13 @@ public class ComputeSQLCommands extends OrderTableAttributes {
             + ACTUAL_ALLOCATION_INSTANCES + "," + NETWORKS_ID + "," + CREATE_AT +")"
             + " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
-    public static String SELECT_COMPUTE_ORDER_SQL = "SELECT * FROM " + COMPUTE_ORDER_TABLE_NAME
+    public static final String SELECT_COMPUTE_ORDER_SQL = "SELECT * FROM " + COMPUTE_ORDER_TABLE_NAME
             + " WHERE order_state=?";
+
+    public static final String SELECT_COMPUTE_ORDER_NOT_NULL_INSTANCE_ID = "SELECT * FROM " + COMPUTE_ORDER_TABLE_NAME
+            + " WHERE order_state=? AND instance_id IS NOT NULL";
 
     public static final String UPDATE_COMPUTE_ORDER_SQL = "UPDATE " + COMPUTE_ORDER_TABLE_NAME + " SET "
             + "instance_id=?,order_state=?,actual_alloc_vcpu=?,actual_alloc_ram=?,actual_alloc_instances=? WHERE "
             + ORDER_ID + "=?";
-
-    public static void updateSelectCommand() {
-        SELECT_COMPUTE_ORDER_SQL += NOT_NULL_INSTANCE_ID;
-    }
 }
