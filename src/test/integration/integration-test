@@ -7,8 +7,10 @@ baseUrl=http://localhost:8080/
 computesEndpoint=computes/
 networksEndpoint=networks/
 
-notFoundHttpStatus=404
+okHttpStatus=200
 noContentHttpStatus=204
+
+notFoundHttpStatus=404
 
 ## Compute Tests
 
@@ -47,18 +49,45 @@ function doPostCompute {
   echo $response
 }
 
-function testNonExistentCompute {
+### Get compute functions
+
+function testGetNonExistentCompute {
   local fakeInstanceId="non-existent-instance-id"
   local responseStatus=$(doGetComputeReturningStatus $fakeInstanceId)
   if [ $responseStatus -eq $notFoundHttpStatus ]; then
-      echo "Test ok."
+    echo "Test ok."
     return 0
   fi
   echo "Test failed, expected $notFoundHttpStatus error, but got:" $responseStatus
   return 1
 }
 
-### Get compute functions
+function testGetAllNonExistentCompute {
+  local emptyResponseMsg="[]"
+  local responseStatus=$(doGetAllComputeReturningStatus)
+  local responseMsg=$(doGetAllCompute)
+  if [ $responseStatus -eq $okHttpStatus -a "$responseMsg" = "$emptyResponseMsg" ]; then
+    echo "Test ok."
+    return 0
+  fi
+  echo "Test failed, expected $okHttpStatus error, but got:" $responseStatus
+  return 1
+}
+
+function testGetAllCompute {
+  instanceId=$(doPostCompute)
+  local emptyResponseMsg="[]"
+  local responseStatus=$(doGetAllComputeReturningStatus)
+  local responseMsg=$(doGetAllCompute)
+  if [ $responseStatus -eq $okHttpStatus -a "$responseMsg" != "$emptyResponseMsg" ]; then
+    echo "Test ok. Deleting compute"
+    $(doDeleteCompute $instanceId)
+    return 0
+  fi
+  echo "Test failed, deleting compute. Expected empty response message, but got:" $responseMsg
+  $(doDeleteCompute $instanceId)
+  return 1
+}
 
 function doGetCompute {
   local instanceId=$1
@@ -72,13 +101,22 @@ function doGetComputeReturningStatus {
   echo $responseStatus
 }
 
+function doGetAllCompute {
+  local response=$(curl -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$computesEndpoint 2> /dev/null)
+  echo $response
+}
+
+function doGetAllComputeReturningStatus {
+  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$computesEndpoint 2> /dev/null | grep HTTP | awk '{print $2}')
+  echo $responseStatus
+}
+
 ### Delete compute functions
 
 function testDeleteCompute {
   local instanceId=$(doPostCompute)
   echo "Testing delete compute"
   local deleteStatus=$(doDeleteComputeReturningStatus $instanceId)
-  sleep $sleepTimeSecs
   if [ $deleteStatus -eq $noContentHttpStatus ]; then
     echo "Delete status was the expected:" $deleteStatus
   else
@@ -98,7 +136,6 @@ function testDeleteCompute {
 function testDeleteNonExistentCompute {
   local fakeInstanceId="non-existent-instance-id"
   deleteStatus=$(doDeleteComputeReturningStatus $fakeInstanceId)
-  sleep $sleepTimeSecs
   if [ $deleteStatus -eq $notFoundHttpStatus ]; then
     echo "Test ok."
     return 0
@@ -110,11 +147,13 @@ function testDeleteNonExistentCompute {
 function doDeleteCompute {
   local instanceId=$1
   $(curl -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$computesEndpoint$instanceId 2> /dev/null)
+  sleep $sleepTimeSecs
 }
 
 function doDeleteComputeReturningStatus {
   local instanceId=$1
   local responseStatus=$(curl -I -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$computesEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  sleep $sleepTimeSecs
   echo $responseStatus
 }
 
@@ -190,16 +229,16 @@ function testPostNetwork {
 function doPostNetwork {
   local response=$(curl -X POST -H "Content-Type: application/json" -H "federationTokenValue: token" -d \
   '{
-	"gateway" : "10.15.20.1",
-	"address" : "10.15.20.1/28",
-	"allocation" : "dynamic"
+    "gateway" : "10.15.20.1",
+    "address" : "10.15.20.1/28",
+    "allocation" : "dynamic"
   }' $baseUrl$networksEndpoint 2> /dev/null)
   echo $response
 }
 
 ### Get network functions
 
-function testNonExistentNetwork {
+function testGetNonExistentNetwork {
   local fakeInstanceId="non-existent-instance-id"
   local responseStatus=$(doGetNetworkReturningStatus $fakeInstanceId)
   if [ $responseStatus -eq $notFoundHttpStatus ]; then
@@ -230,8 +269,12 @@ function main {
   testPostCompute
   echo "### Testing POST compute with a new network ###"
   #testPostComputeWithNetwork
+  echo "### Testing GET ALL non-existent compute ###"
+  testGetAllNonExistentCompute
+  echo "### Testing GET ALL compute ###"
+  testGetAllCompute
   echo "### Testing GET non-existent compute ###"
-  testNonExistentCompute
+  testGetNonExistentCompute
   echo "### Testing DELETE compute ###"
   testDeleteCompute
   echo "### Testing DELETE non-existent compute ###"
@@ -242,11 +285,22 @@ function main {
   echo "### Testing POST network ###"
   testPostNetwork
   echo "### Testing GET non-existent network ###"
-  testNonExistentNetwork
+  testGetNonExistentNetwork
   echo "### Testing DELETE network ###"
   testDeleteNetwork
   echo "### Testing DELETE non-existent network ###"
   testDeleteNonExistentNetwork
+
+  #echo "============ Testing Volume ============"
+#
+  #echo "### Testing POST volume ###"
+  #testPostNetwork
+  #echo "### Testing GET non-existent volume ###"
+  #testGetNonExistentNetwork
+  #echo "### Testing DELETE volume ###"
+  #testDeleteNetwork
+  #echo "### Testing DELETE non-existent volume ###"
+  #testDeleteNonExistentNetwork
 }
 
 main
