@@ -31,4 +31,28 @@ public class ComputeInstance extends Instance {
     public void setSshTunnelConnectionData(SshTunnelConnectionData sshTunnelConnectionData) {
         this.sshTunnelConnectionData = sshTunnelConnectionData;
     }
+    
+    public int getDisk() {
+        return this.disk;
+    }
+    
+    public String getHostName() {
+        return this.hostName;
+    }
+    
+    public String getLocalIpAddress() {
+        return this.localIpAddress;
+    }
+    
+    public int getRam() {
+        return this.ram;
+    }
+    
+    public SshTunnelConnectionData getSshTunnelConnectionData() {
+        return this.sshTunnelConnectionData;
+    }
+    
+    public int getvCPU() {
+        return this.vCPU;
+    }
 }

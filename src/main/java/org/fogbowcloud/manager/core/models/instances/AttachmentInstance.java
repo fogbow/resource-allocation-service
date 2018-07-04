@@ -16,4 +16,16 @@ public class AttachmentInstance extends Instance {
     public AttachmentInstance(String id) {
         super(id);
     }
+    
+    public String getDevice() {
+        return this.device;
+    }
+    
+    public String getServerId() {
+        return this.serverId;
+    }
+    
+    public String getVolumeId() {
+        return this.volumeId;
+    }
 }

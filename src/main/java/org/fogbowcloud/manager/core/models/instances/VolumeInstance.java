@@ -22,4 +22,8 @@ public class VolumeInstance extends Instance {
     public void setName(String name) {
         this.name = name;
     }
+    
+    public int getSize() {
+        return this.size;
+    }
 }

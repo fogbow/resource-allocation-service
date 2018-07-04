@@ -54,4 +54,16 @@ public class NetworkInstance extends Instance {
     public void setAllocation(NetworkAllocationMode allocation) {
         this.allocation = allocation;
     }
+    
+    public String getInterfaceState() {
+        return this.interfaceState;
+    }
+    
+    public String getMACInterface() {
+        return this.MACInterface;
+    }
+    
+    public String getNetworkInterface() {
+        return this.networkInterface;
+    }
 }
