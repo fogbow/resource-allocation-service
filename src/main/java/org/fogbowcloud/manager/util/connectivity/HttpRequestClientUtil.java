@@ -25,6 +25,10 @@ public class HttpRequestClientUtil {
         HttpRequestUtil.init();
         this.client = HttpRequestUtil.createHttpClient();
 	}
+	
+	public HttpRequestClientUtil(HttpClient httpClient) {
+		this.client = httpClient;
+	}
 
     public String doGetRequest(String endpoint, Token localToken)
             throws UnavailableProviderException, HttpResponseException {
