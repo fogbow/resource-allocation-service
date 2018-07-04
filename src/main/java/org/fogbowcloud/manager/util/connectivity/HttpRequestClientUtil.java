@@ -95,8 +95,10 @@ public class HttpRequestClientUtil {
 
         try {
             response = this.client.execute(request);
-        } catch (HttpResponseException e) {
-            throw e;
+            if (response.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
+                String message = response.getStatusLine().getReasonPhrase();
+                throw new HttpResponseException(response.getStatusLine().getStatusCode(), message); 
+            }            
         } catch (IOException e) {
             throw new UnavailableProviderException(e.getMessage(), e);
         } finally {
