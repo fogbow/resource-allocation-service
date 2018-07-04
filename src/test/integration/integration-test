@@ -7,6 +7,7 @@ baseUrl=http://localhost:8080/
 computesEndpoint=computes/
 networksEndpoint=networks/
 volumesEndpoint=volumes/
+attachmentsEndpoint=attachments/
 
 okHttpStatus=200
 noContentHttpStatus=204
@@ -364,6 +365,148 @@ function doGetVolumeReturningStatus {
   echo $responseStatus
 }
 
+## Attachment Tests
+
+### Post attachment functions
+
+function testPostAttachment {
+  local computeId=$(doPostCompute)
+  local volumeId=$(doPostVolume)
+  local instanceId=$(doPostAttachment $computeId $volumeId)
+  for try in `seq 1 $maxTries`
+  do
+    echo "Get attachment. Try:" $try/$maxTries 
+    getInstanceResponse=$(doGetAttachment $instanceId)
+    echo ${getInstanceResponse} | grep READY
+    if [ $? -eq 0 ]; then
+      echo "Test ok. Deleting attachment..."
+      $(doDeleteAttachment $instanceId)
+      $(doDeleteCompute $computeId)
+      $(doDeleteVolume $volumeId)
+      return 0
+    fi
+    sleep $sleepTimeSecs
+  done
+  echo "Error when retrieving the attachment created"
+  $(doDeleteAttachment $instanceId)
+  $(doDeleteCompute $computeId)
+  $(doDeleteVolume $volumeId)
+  return 1
+}
+
+function doPostAttachment {
+  local computeId=$1
+  local volumeId=$2
+  if waitForInstacesToBeReady $computeId $volumeId; then
+    echo "Compute and volume are READY. Proceeding to post attachment"
+  else
+    echo "Test failed. Compute and volume are not READY, deleting instances"
+    $(doDeleteCompute $computeId)
+    $(doDeleteVolume $volumeId)
+    return 1
+  fi
+  local response=$(curl -X POST -H "Content-Type: application/json" -H "federationTokenValue: token" -d \
+  '{
+    "source":"$computeId",
+    "target":"$volumeId",
+    "device":"/dev/sdd"
+  }' $baseUrl$attachmentsEndpoint 2> /dev/null)
+  echo $response
+}
+
+function waitForInstacesToBeReady {
+  computeId=$1
+  volumeId=$2
+  for try in `seq 1 $maxTries`
+  do
+    echo "Get instances. Try:" $try/$maxTries 
+    getComputeResponse=$(doGetCompute $computeId)
+    echo ${getComputeResponse} | grep READY
+    if [ $? -eq 0 ]; then
+      getVolumeResponse=$(doGetVolume $volumeId)
+      echo ${getVolumeResponse} | grep READY
+      if [ $? -eq 0 ]; then
+        return 0
+      fi
+    fi
+    sleep $sleepTimeSecs
+  done
+  return 1
+}
+
+### Get attachment functions
+
+function testGetNonExistentAttachment {
+  local fakeInstanceId="non-existent-instance-id"
+  local responseStatus=$(doGetAttachmentReturningStatus $fakeInstanceId)
+  if [ $responseStatus -eq $notFoundHttpStatus ]; then
+      echo "Test ok."
+    return 0
+  fi
+  echo "Test failed, expected $notFoundHttpStatus status, but got:" $responseStatus
+  return 1
+}
+
+function doGetAttachment {
+  local instanceId=$1
+  local response=$(curl -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$attachmentsEndpoint$instanceId 2> /dev/null)
+  echo $response
+}
+
+function doGetAttachmentReturningStatus {
+  local instanceId=$1
+  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$attachmentsEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  echo $responseStatus
+}
+
+### Delete attachment functions
+
+function testDeleteAttachment {
+  local computeId=$(doPostCompute)
+  local volumeId=$(doPostVolume)
+  local instanceId=$(doPostAttachment $computeId $volumeId)
+  echo "Testing delete attachment"
+  local deleteStatus=$(doDeleteAttachmentReturningStatus $instanceId)
+  sleep $sleepTimeSecs
+  if [ $deleteStatus -eq $noContentHttpStatus ]; then
+    echo "Delete status was the expected:" $deleteStatus
+  else
+    echo "Test failed, expected $noContentHttpStatus status, but got:" $deleteStatus
+    #return 1
+  fi
+  echo "Testing if the instance can still be retrieved"
+  getInstanceStatus=$(doGetAttachmentReturningStatus $instanceId)
+  if [ $getInstanceStatus -eq $notFoundHttpStatus ]; then
+    echo "Test ok."
+    return 0
+  fi
+  echo "Test failed, expected $notFoundHttpStatus status, but got:" $getInstanceStatus
+  return 1
+}
+
+function testDeleteNonExistentAttachment {
+  local fakeInstanceId="non-existent-instance-id"
+  deleteStatus=$(doDeleteAttachmentReturningStatus $fakeInstanceId)
+  sleep $sleepTimeSecs
+  if [ $deleteStatus -eq $notFoundHttpStatus ]; then
+    echo "Test ok."
+    return 0
+  fi
+  echo "Test failed, expected $notFoundHttpStatus status, but got:" $deleteStatus
+  return 1
+}
+
+function doDeleteAttachment {
+  local instanceId=$1
+  $(curl -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$attachmentsEndpoint$instanceId 2> /dev/null)
+}
+
+function doDeleteAttachmentReturningStatus {
+  local instanceId=$1
+  local responseStatus=$(curl -I -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$attachmentsEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  echo $responseStatus
+}
+
 ## Main
 
 function main {
@@ -404,6 +547,17 @@ function main {
   testDeleteVolume
   echo "### DELETE non-existent volume ###"
   testDeleteNonExistentVolume
+
+  echo "============ Testing Attachment ============"
+
+  echo "### POST attachment ###"
+  testPostAttachment
+  echo "### GET non-existent attachment ###"
+  testGetNonExistentAttachment
+  echo "### DELETE attachment ###"
+  testDeleteAttachment
+  echo "### DELETE non-existent attachment ###"
+  testDeleteNonExistentAttachment
 }
 
 main
