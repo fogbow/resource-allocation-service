@@ -2,8 +2,9 @@ package org.fogbowcloud.manager.core.models.instances;
 
 public class Instance {
 
-    // TODO: the id should not be empty. Is necessary to check it in the
-    // constructor method.
+    // TODO: the id should not be empty. Is necessary to check it in the constructor method.
+    // TODO: check above comment; it seems that instead, we can get rid of this id attribute altogether.
+    // Removing this attribute might require changes in the Attachment processing.
     private String id;
     private InstanceState state;
 
@@ -32,6 +33,7 @@ public class Instance {
         this.state = state;
     }
 
+    // TODO: add comment explaining why we need to override these methods
     @Override
     public int hashCode() {
         final int prime = 31;

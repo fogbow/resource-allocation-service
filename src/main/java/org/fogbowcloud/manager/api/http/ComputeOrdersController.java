@@ -2,21 +2,15 @@ package org.fogbowcloud.manager.api.http;
 
 import java.util.List;
 
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.ApplicationFacade;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.QuotaException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.models.InstanceStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,35 +26,42 @@ public class ComputeOrdersController {
 
     private final Logger LOGGER = Logger.getLogger(ComputeOrdersController.class);
 
-    // ExceptionTranslator handles the possible problems in request
+    // HttpExceptionToErrorConditionTranslator handles the possible problems in request
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<String> createCompute(
             @RequestBody ComputeOrder computeOrder,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws OrderManagementException, UnauthorizedException, UnauthenticatedException {
-        LOGGER.info("New compute order request received");
-
+            throws FogbowManagerException, UnexpectedException {
+        LOGGER.info("New compute order request received <" + computeOrder.getId() + ">.");
         String computeId = ApplicationFacade.getInstance().createCompute(computeOrder, federationTokenValue);
         return new ResponseEntity<String>(computeId, HttpStatus.CREATED);
     }
 
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<ComputeInstance>> getAllCompute(
+    public ResponseEntity<List<ComputeInstance>> getAllComputes(
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException,
-            UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
-        LOGGER.info("Get all compute orders request received");
+            throws Exception {
+        LOGGER.info("Get all compute order requests received.");
         List<ComputeInstance> computes = ApplicationFacade.getInstance().getAllComputes(federationTokenValue);
-	    return ResponseEntity.ok(computes);
+        return new ResponseEntity<>(computes, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/status", method = RequestMethod.GET)
+    public ResponseEntity<List<InstanceStatus>> getAllComputesStatus(
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            throws Exception {
+        LOGGER.info("Get the status of all compute order requests received.");
+        List<InstanceStatus> computeInstanceStatus =
+                ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, InstanceType.COMPUTE);
+        return new ResponseEntity<>(computeInstanceStatus, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/{computeId}", method = RequestMethod.GET)
     public ResponseEntity<ComputeInstance> getCompute(
             @PathVariable String computeId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException,
-            UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
-        LOGGER.info("Get request to compute order with id <" + computeId + "> received");
+            throws Exception {
+        LOGGER.info("Get request for compute order <" + computeId + "> received.");
         ComputeInstance compute = ApplicationFacade.getInstance().getCompute(computeId, federationTokenValue);
         return new ResponseEntity<ComputeInstance>(compute, HttpStatus.OK);
     }
@@ -69,33 +70,30 @@ public class ComputeOrdersController {
     public ResponseEntity<Boolean> deleteCompute(
             @PathVariable String computeId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
-        LOGGER.info("Delete compute order to id <" + computeId + "> received");
+            throws FogbowManagerException, UnexpectedException {
+        LOGGER.info("Delete compute order <" + computeId + "> received.");
         ApplicationFacade.getInstance().deleteCompute(computeId, federationTokenValue);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
     
-	@RequestMapping(value = "/quota/{memberId}", method = RequestMethod.GET)
+	@RequestMapping(value = "/quota/{memberId:.+}", method = RequestMethod.GET)
 	public ResponseEntity<ComputeQuota> getUserQuota(@PathVariable String memberId,
 			@RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws UnauthenticatedException, QuotaException, UnauthorizedException, PropertyNotSpecifiedException,
-            RemoteRequestException, TokenCreationException {
+            throws Exception {
 
-		LOGGER.info("User quota information request received.");
-
+		LOGGER.info("User quota information request for member <" + memberId + "> received.");
 		ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(memberId, federationTokenValue);
 		return new ResponseEntity<>(quotaInstance, HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "/allocation/{memberId}", method = RequestMethod.GET)
+	@RequestMapping(value = "/allocation/{memberId:.+}", method = RequestMethod.GET)
 	public ResponseEntity<ComputeAllocation> getUserAllocation(@PathVariable String memberId,
 			@RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-			throws UnauthenticatedException, QuotaException, UnauthorizedException, RemoteRequestException,
-            RequestException, TokenCreationException, PropertyNotSpecifiedException, InstanceNotFoundException {
+            throws FogbowManagerException, UnexpectedException {
 
-		LOGGER.info("User allocation information request received.");
-
-		ComputeAllocation computeAllocation = ApplicationFacade.getInstance().getComputeAllocation(memberId, federationTokenValue);
+		LOGGER.info("User allocation information request for member <" + memberId + "> received.");
+		ComputeAllocation computeAllocation =
+                ApplicationFacade.getInstance().getComputeAllocation(memberId, federationTokenValue);
 		return new ResponseEntity<>(computeAllocation, HttpStatus.OK);
 	}    
     

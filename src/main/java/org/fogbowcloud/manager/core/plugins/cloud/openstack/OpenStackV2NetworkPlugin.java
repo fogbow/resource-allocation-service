@@ -1,38 +1,23 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpMessage;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
+import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.plugins.cloud.InstanceStateMapper;
-import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
-import org.fogbowcloud.manager.core.models.ErrorType;
-import org.fogbowcloud.manager.core.models.RequestHeaders;
-import org.fogbowcloud.manager.core.models.ResponseConstants;
-import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
-import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
+import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
+import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
-import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.utils.HttpRequestUtil;
-import org.fogbowcloud.manager.utils.PropertiesUtil;
+import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -90,15 +75,14 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     protected static final String COMPUTE_NOVA = "compute:nova";
     protected static final String NETWORK_ROUTER = "network:ha_router_replicated_interface";
 
-    private HttpClient client;
+    private HttpRequestClientUtil client;
     private String networkV2APIEndpoint;
     private String externalNetworkId;
     private String[] dnsList;
-    private InstanceStateMapper instanceStateMapper;
 
     private static final Logger LOGGER = Logger.getLogger(OpenStackV2NetworkPlugin.class);
 
-    public OpenStackV2NetworkPlugin() {
+    public OpenStackV2NetworkPlugin() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
         Properties properties = PropertiesUtil.
                 readProperties(homeDir.getPath() + File.separator + NEUTRON_PLUGIN_CONF_FILE);
@@ -107,8 +91,6 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         this.networkV2APIEndpoint =
                 properties.getProperty(NETWORK_NEUTRONV2_URL_KEY)
                         + V2_API_ENDPOINT;
-        this.instanceStateMapper = new OpenStackNetworkInstanceStateMapper();
-//        this.dnsList = new String[properties.size()];
         setDNSList(properties);
 
         initClient();
@@ -122,7 +104,8 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     }
 
     @Override
-    public String requestInstance(NetworkOrder order, Token localToken) throws RequestException {
+    public String requestInstance(NetworkOrder order, Token localToken)
+            throws FogbowManagerException, UnexpectedException {
         JSONObject jsonRequest = null;
         String tenantId = localToken.getAttributes().get(TENANT_ID);
 
@@ -130,27 +113,33 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         try {
             jsonRequest = generateJsonEntityToCreateRouter();
         } catch (JSONException e) {
-            LOGGER.error("An error occurred when generating json.", e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            String errorMsg = "An error occurred when generating json.";
+            LOGGER.error(errorMsg, e);
+            throw new InvalidParameterException(errorMsg, e);
         }
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_ROUTER;
-        String responseStr = doPostRequest(endpoint, localToken.getAccessId(), jsonRequest);
+        String responseStr = null;
+        try {
+            responseStr = this.client.doPostRequest(endpoint, localToken, jsonRequest);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowManagerExceptionMapper.map(e);
+        }
         String routerId = getRouterIdFromJson(responseStr);
 
         // Creating network
         try {
             jsonRequest = generateJsonEntityToCreateNetwork(tenantId);
         } catch (JSONException e) {
-            String messageTemplate = "Error while trying to generate json data";
-            LOGGER.error(messageTemplate, e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            String errorMsg = "An error occurred when generating json.";
+            LOGGER.error(errorMsg, e);
+            throw new InvalidParameterException(errorMsg, e);
         }
         try {
             endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK;
-            responseStr = doPostRequest(endpoint, localToken.getAccessId(), jsonRequest);
-        } catch (RequestException e) {
+            responseStr = this.client.doPostRequest(endpoint, localToken, jsonRequest);
+        } catch (HttpResponseException e) {
             removeRouter(localToken, routerId);
-            throw e;
+            OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
         String networkId = getNetworkIdFromJson(responseStr);
 
@@ -158,63 +147,69 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         try {
             jsonRequest = generateJsonEntityToCreateSubnet(networkId, tenantId, order);
         } catch (JSONException e) {
-            String messageTemplate =
-                    "Error while trying to generate json subnet entity with networkId %s for order %s";
-            LOGGER.error(String.format(messageTemplate, networkId, order), e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            String errorMsg =
+                    String.format("Error while trying to generate json subnet entity with networkId %s for order %s",
+                            networkId, order);
+            LOGGER.error(errorMsg, e);
+            throw new InvalidParameterException(errorMsg, e);
         }
         try {
             endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SUBNET;
-            responseStr = doPostRequest(endpoint, localToken.getAccessId(), jsonRequest);
-        } catch (RequestException e) {
-            String messageTemplate = "Error while trying to create subnet for order %s";
-            LOGGER.error(String.format(messageTemplate, order));
+            responseStr = this.client.doPostRequest(endpoint, localToken, jsonRequest);
+        } catch (HttpResponseException e) {
             removeRouter(localToken, routerId);
             removeNetwork(localToken, networkId);
-            throw e;
+            OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
 
         String subnetId = getSubnetIdFromJson(responseStr);
         try {
             jsonRequest = generateJsonEntitySubnetId(subnetId);
         } catch (JSONException e) {
-            String messageTemplate = "Error while trying to generate json entity with subnetId %s";
-            LOGGER.error(String.format(messageTemplate, subnetId), e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            String errorMsg = String.format("Error while trying to generate json entity with subnetId %s", subnetId);
+            LOGGER.error(errorMsg, e);
+            throw new InvalidParameterException(errorMsg, e);
         }
 
         // Adding router interface
         try {
             endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_ROUTER + "/" + routerId + "/"
                     + SUFFIX_ENDPOINT_ADD_ROUTER_INTERFACE_ADD;
-            doPutRequest(endpoint, localToken.getAccessId(), jsonRequest);
-        } catch (RequestException e) {
-            String messageTemplate = "Error while trying to add router interface with json %s";
-            LOGGER.error(String.format(messageTemplate, jsonRequest));
+            this.client.doPutRequest(endpoint, localToken, jsonRequest);
+        } catch (HttpResponseException e) {
             removeRouter(localToken, routerId);
             removeNetwork(localToken, networkId);
-            throw e;
+            OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
-
         return networkId;
     }
 
     @Override
     public NetworkInstance getInstance(String instanceId, Token token)
-            throws RequestException {
+            throws FogbowManagerException, UnexpectedException {
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK + "/" + instanceId;
-        String responseStr = doGetRequest(endpoint, token.getAccessId());
-        NetworkInstance instance = getInstanceFromJson(responseStr, token);
-        return instance;
+        String responseStr = null;
+        try {
+            responseStr = this.client.doGetRequest(endpoint, token);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowManagerExceptionMapper.map(e);
+        }
+        return getInstanceFromJson(responseStr, token);
+
     }
 
     @Override
-    public void deleteInstance(String instanceId, Token token) throws RequestException {
-        // TODO: ensure that all the necessary token attributes are set.
+    public void deleteInstance(String instanceId, Token token) throws FogbowManagerException, UnexpectedException {
+        // TODO: ensure that all the necessary tokens attributes are set.
         String tenantId = token.getAttributes().get(TENANT_ID);
-        String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_PORTS + "?" + KEY_TENANT_ID
-                + "=" + tenantId;
-        String responseStr = doGetRequest(endpoint, token.getAccessId());
+        String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_PORTS + "?" + KEY_TENANT_ID + "=" + tenantId;
+
+        String responseStr = null;
+        try {
+            responseStr = this.client.doGetRequest(endpoint, token);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowManagerExceptionMapper.map(e);
+        }
 
         String routerId = null;
         List<String> subnets = new ArrayList<String>();
@@ -230,8 +225,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
 
                     boolean thereIsInstance = deviceOwner.equals(COMPUTE_NOVA);
                     if (thereIsInstance) {
-                        throw new RequestException(ErrorType.BAD_REQUEST,
-                                MSG_LOG_THERE_IS_INSTANCE_ASSOCIATED + "( " + instanceId + " ).");
+                        throw new InvalidParameterException();
                     }
 
                     if (deviceOwner.equals(NETWORK_ROUTER)) {
@@ -251,32 +245,36 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
                 if (routerId != null) {
                     endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_ROUTER + "/" + routerId
                             + "/" + SUFFIX_ENDPOINT_REMOVE_ROUTER_INTERFACE_ADD;
-                    doPutRequest(endpoint, token.getAccessId(), jsonRequest);
+                    try {
+                        this.client.doPutRequest(endpoint, token, jsonRequest);
+                    } catch (HttpResponseException e) {
+                        OpenStackHttpToFogbowManagerExceptionMapper.map(e);
+                    }
                 }
             }
         } catch (JSONException e) {
             LOGGER.error(MSG_LOG_ERROR_MANIPULATE_JSON);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new UnexpectedException(MSG_LOG_ERROR_MANIPULATE_JSON, e);
         } catch (NullPointerException e) {
             LOGGER.error(MSG_LOG_ERROR_MANIPULATE_JSON);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            throw new UnexpectedException(MSG_LOG_ERROR_MANIPULATE_JSON, e);
         }
-
 
         if (routerId != null) {
             removeRouter(token, routerId);
         }
         if (!removeNetwork(token, instanceId)) {
-            String messageTemplate = "Was not possible delete network with id %s";
-            LOGGER.error(String.format(messageTemplate, instanceId));
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
+            String errorMsg = String.format("Was not possible delete network with id %s", instanceId);
+            LOGGER.error(errorMsg);
+            throw new UnexpectedException(errorMsg);
         }
     }
 
-    protected NetworkInstance getInstanceFromJson(String json, Token token) throws RequestException {
+    protected NetworkInstance getInstanceFromJson(String json, Token token)
+            throws FogbowManagerException, UnexpectedException {
         String networkId = null;
         String label = null;
-        InstanceState instanceState = null;
+        String instanceState = null;
         String vlan = null;
         String subnetId = null;
         try {
@@ -285,19 +283,18 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
             networkId = networkJSONObject.optString(KEY_ID);
 
             vlan = networkJSONObject.optString(KEY_PROVIDER_SEGMENTATION_ID);
-            String instanceStatus = networkJSONObject.optString(KEY_STATUS);
-            instanceState = this.instanceStateMapper.getInstanceState(instanceStatus);
+            instanceState = networkJSONObject.optString(KEY_STATUS);
             label = networkJSONObject.optString(KEY_NAME);
-
             subnetId = networkJSONObject.optJSONArray(KEY_SUBNETS).optString(0);
         } catch (JSONException e) {
-            String messageTemplate = "Was not possible to get network informations from json %s";
-            LOGGER.warn(String.format(messageTemplate, json), e);
+            String errorMsg = String.format("Was not possible to get network informations from json %s", json);
+            LOGGER.error(errorMsg, e);
+            throw new InvalidParameterException(errorMsg, e);
         }
 
         String gateway = null;
         String address = null;
-        NetworkAllocation allocation = null;
+        NetworkAllocationMode allocation = null;
         try {
             JSONObject subnetJSONObject = getSubnetInformation(token, subnetId);
 
@@ -306,36 +303,44 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
                 allocation = null;
                 boolean enableDHCP = subnetJSONObject.optBoolean(KEY_ENABLE_DHCP);
                 if (enableDHCP) {
-                    allocation = NetworkAllocation.DYNAMIC;
+                    allocation = NetworkAllocationMode.DYNAMIC;
                 } else {
-                    allocation = NetworkAllocation.STATIC;
+                    allocation = NetworkAllocationMode.STATIC;
                 }
                 address = subnetJSONObject.optString(KEY_CIDR);
             }
         } catch (JSONException e) {
-            String messageTemplate = "Was not possible to get subnet informations of subnet id %s";
-            LOGGER.warn(String.format(messageTemplate, subnetId), e);
+            String errorMsg = String.format("Was not possible to get network informations from json %s", json);
+            LOGGER.error(errorMsg, e);
+            throw new InvalidParameterException(errorMsg, e);
         }
 
         NetworkInstance instance = null;
         if (networkId != null) {
-            instance = new NetworkInstance(networkId, label, instanceState, address, gateway,
+            InstanceState fogbowState = OpenStackStateMapper.map(InstanceType.NETWORK, instanceState);
+            instance = new NetworkInstance(networkId, fogbowState, label, address, gateway,
                     vlan, allocation, null, null, null);
         }
 
         return instance;
     }
 
-    private JSONObject getSubnetInformation(Token token, String subnetId) throws RequestException {
+    private JSONObject getSubnetInformation(Token token, String subnetId)
+            throws FogbowManagerException, UnexpectedException {
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SUBNET + "/" + subnetId;
-        String responseStr = doGetRequest(endpoint, token.getAccessId());
+        String responseStr = null;
+        try {
+            responseStr = this.client.doGetRequest(endpoint, token);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowManagerExceptionMapper.map(e);
+        }
 
         JSONObject rootServer = new JSONObject(responseStr);
         JSONObject subnetJSON = rootServer.optJSONObject(KEY_JSON_SUBNET);
         return subnetJSON;
     }
 
-    protected String[] getRoutersFromJson(String json) {
+    protected String[] getRoutersFromJson(String json) throws UnexpectedException {
         try {
             JSONObject rootServer = new JSONObject(json);
             JSONArray routersJSONArray = rootServer.optJSONArray(KEY_JSON_ROUTERS);
@@ -345,46 +350,50 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
             }
             return routerIds;
         } catch (JSONException e) {
-            LOGGER.warn("There was an exception while getting routers from json.", e);
+            String errorMsg = String.format("Was not possible retrieve routers from json %s", json);
+            LOGGER.error(errorMsg);
+            throw new UnexpectedException(errorMsg, e);
         }
-        return null;
     }
 
-    protected String getNetworkIdFromJson(String json) {
+    protected String getNetworkIdFromJson(String json) throws UnexpectedException {
         String networkId = null;
         try {
             JSONObject rootServer = new JSONObject(json);
             JSONObject networkJSONObject = rootServer.optJSONObject(KEY_JSON_NETWORK);
             networkId = networkJSONObject.optString(KEY_ID);
         } catch (JSONException e) {
-            String messageTemplate = "Was not possible to get the network id from json %s";
-            LOGGER.warn(String.format(messageTemplate, json.toString()), e);
+            String errorMsg = String.format("Was not possible retrieve network id from json %s", json);
+            LOGGER.error(errorMsg);
+            throw new UnexpectedException(errorMsg, e);
         }
         return networkId;
     }
 
-    protected String getSubnetIdFromJson(String json) {
+    protected String getSubnetIdFromJson(String json) throws UnexpectedException {
         String subnetId = null;
         try {
             JSONObject rootServer = new JSONObject(json);
             JSONObject networkJSONObject = rootServer.optJSONObject(KEY_JSON_SUBNET);
             subnetId = networkJSONObject.optString(KEY_ID);
         } catch (JSONException e) {
-            String messageTemplate = "Was not possible to get the subnet id from json %s";
-            LOGGER.warn(String.format(messageTemplate, json.toString()), e);
+            String errorMsg = String.format("Was not possible retrieve subnet id from json %s", json);
+            LOGGER.error(errorMsg);
+            throw new UnexpectedException(errorMsg, e);
         }
         return subnetId;
     }
 
-    protected String getRouterIdFromJson(String json) {
+    protected String getRouterIdFromJson(String json) throws UnexpectedException {
         String routerId = null;
         try {
             JSONObject rootServer = new JSONObject(json);
             JSONObject networkJSONObject = rootServer.optJSONObject(KEY_JSON_ROUTER);
             routerId = networkJSONObject.optString(KEY_ID);
         } catch (JSONException e) {
-            String messageTemplate = "Was not possible to get the router id from json %s";
-            LOGGER.warn(String.format(messageTemplate, json.toString()), e);
+            String errorMsg = String.format("Was not possible retrieve router id from json %s", json);
+            LOGGER.error(errorMsg);
+            throw new UnexpectedException(errorMsg, e);
         }
         return routerId;
     }
@@ -422,7 +431,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     }
 
     protected JSONObject generateJsonEntityToCreateSubnet(String networkId, String tenantId,
-            NetworkOrder order) throws JSONException {
+                                                          NetworkOrder order) throws JSONException {
         JSONObject subnetContent = new JSONObject();
         subnetContent.put(KEY_NAME, DEFAULT_SUBNET_NAME + "-" + UUID.randomUUID());
         subnetContent.put(KEY_TENANT_ID, tenantId);
@@ -440,11 +449,11 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         }
         subnetContent.put(KEY_CIDR, networkAddress);
 
-        NetworkAllocation networkAllocation = order.getAllocation();
-        if (networkAllocation != null) {
-            if (networkAllocation.equals(NetworkAllocation.DYNAMIC)) {
+        NetworkAllocationMode networkAllocationMode = order.getAllocation();
+        if (networkAllocationMode != null) {
+            if (networkAllocationMode.equals(NetworkAllocationMode.DYNAMIC)) {
                 subnetContent.put(KEY_ENABLE_DHCP, true);
-            } else if (networkAllocation.equals(NetworkAllocation.STATIC)) {
+            } else if (networkAllocationMode.equals(NetworkAllocationMode.STATIC)) {
                 subnetContent.put(KEY_ENABLE_DHCP, false);
             }
         }
@@ -465,183 +474,39 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         return subnet;
     }
 
-    protected boolean removeNetwork(Token token, String networkId) {
+    protected boolean removeNetwork(Token token, String networkId) throws UnexpectedException, FogbowManagerException {
         boolean deleted = false;
         String messageTemplate = "Removing network %s";
         LOGGER.debug(String.format(messageTemplate, networkId));
+        String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK + "/" + networkId;
         try {
-            String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK + "/" + networkId;
-            doDeleteRequest(endpoint, token.getAccessId());
+            this.client.doDeleteRequest(endpoint, token);
             deleted = true;
-        } catch (RequestException e) {
-            messageTemplate = "Was not possible remove network %s";
-            LOGGER.error(String.format(messageTemplate, networkId), e);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
         return deleted;
     }
 
-    protected boolean removeRouter(Token token, String routerId) {
+    protected boolean removeRouter(Token token, String routerId) throws FogbowManagerException, UnexpectedException {
         boolean deleted = false;
         String messageTemplate = "Removing router %s";
         LOGGER.debug(String.format(messageTemplate, routerId));
+        String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_ROUTER + "/" + routerId;
         try {
-            String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_ROUTER + "/" + routerId;
-            doDeleteRequest(endpoint, token.getAccessId());
+            this.client.doDeleteRequest(endpoint, token);
             deleted = true;
-        } catch (RequestException e) {
-            messageTemplate = "Was not possible remove router %s";
-            LOGGER.error(String.format(messageTemplate, routerId), e);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
         return deleted;
     }
 
-    protected String doPostRequest(String endpoint, String authToken, JSONObject data)
-            throws RequestException {
-        HttpPost request = new HttpPost(endpoint);
-        addRequestHeaders(request, authToken);
-        request.setEntity(new StringEntity(data.toString(), StandardCharsets.UTF_8));
-
-        HttpResponse response = null;
-        String responseStr = null;
-        String messageTemplate = "Posting %s at %s with auth token %s";
-        LOGGER.debug(String.format(messageTemplate, data.toString(), endpoint, authToken));
-        try {
-            response = this.client.execute(request);
-            responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            messageTemplate = "Error while trying to post";
-            LOGGER.error(messageTemplate, e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
-        } finally {
-            consumeResponseStream(response);
-        }
-
-        checkStatusResponse(response, responseStr);
-
-        return responseStr;
-    }
-
-    protected String doGetRequest(String endpoint, String authToken) throws RequestException {
-        HttpGet request = new HttpGet(endpoint);
-        addRequestHeaders(request, authToken);
-
-        HttpResponse response = null;
-        String responseStr = null;
-        String messageTemplate = "Getting at %s with auth token %s";
-        LOGGER.debug(String.format(messageTemplate, endpoint, authToken));
-        try {
-            response = this.client.execute(request);
-            responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            messageTemplate = "Error while trying to get";
-            LOGGER.error(messageTemplate, e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
-        } finally {
-            consumeResponseStream(response);
-        }
-
-        checkStatusResponse(response, responseStr);
-
-        return responseStr;
-    }
-
-    protected String doPutRequest(String endpoint, String authToken, JSONObject data)
-            throws RequestException {
-        HttpPut request = new HttpPut(endpoint);
-        addRequestHeaders(request, authToken);
-        // TODO: check it (ensure that data is never null).
-        if (data != null) {
-            request.setEntity(new StringEntity(data.toString(), StandardCharsets.UTF_8));
-        }
-
-        HttpResponse response = null;
-        String responseStr = null;
-        String messageTemplate = "Putting %s at %s with auth token %s";
-        LOGGER.debug(String.format(messageTemplate, data.toString(), endpoint, authToken));
-        try {
-            response = this.client.execute(request);
-            responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            messageTemplate = "Error while trying to put";
-            LOGGER.error(messageTemplate, e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
-        } finally {
-            consumeResponseStream(response);
-        }
-
-        checkStatusResponse(response, responseStr);
-
-        return responseStr;
-    }
-
-    protected void doDeleteRequest(String endpoint, String authToken) throws RequestException {
-        HttpDelete request = new HttpDelete(endpoint);
-        addRequestHeaders(request, authToken);
-
-        HttpResponse response = null;
-        String responseStr = null;
-        String messageTemplate = "Deleting at %s with auth token %s";
-        LOGGER.debug(String.format(messageTemplate, endpoint, authToken));
-        try {
-            response = this.client.execute(request);
-            HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                responseStr = EntityUtils.toString(entity, StandardCharsets.UTF_8);
-            }
-        } catch (Exception e) {
-            messageTemplate = "Error while trying to delete";
-            LOGGER.error(messageTemplate, e);
-            throw new RequestException(ErrorType.BAD_REQUEST, ResponseConstants.IRREGULAR_SYNTAX);
-        } finally {
-            consumeResponseStream(response);
-        }
-
-        checkStatusResponse(response, responseStr);
-    }
-
-    private void checkStatusResponse(HttpResponse response, String message)
-            throws RequestException {
-        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-            throw new RequestException(ErrorType.UNAUTHORIZED, ResponseConstants.UNAUTHORIZED);
-        } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-            throw new RequestException(ErrorType.NOT_FOUND, ResponseConstants.NOT_FOUND);
-        } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_BAD_REQUEST) {
-            throw new RequestException(ErrorType.BAD_REQUEST, message);
-        } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_REQUEST_TOO_LONG) {
-            if (message != null
-                    && message.contains(ResponseConstants.QUOTA_EXCEEDED_FOR_INSTANCES)) {
-                throw new RequestException(ErrorType.QUOTA_EXCEEDED,
-                        ResponseConstants.QUOTA_EXCEEDED_FOR_INSTANCES);
-            }
-            throw new RequestException(ErrorType.BAD_REQUEST, message);
-        } else if (response.getStatusLine().getStatusCode() > 204) {
-            throw new RequestException(ErrorType.BAD_REQUEST, "Status code: "
-                    + response.getStatusLine().toString() + " | Message:" + message);
-        }
-    }
-
-    private void addRequestHeaders(HttpMessage request, String authToken) {
-        request.addHeader(RequestHeaders.CONTENT_TYPE.getValue(),
-                RequestHeaders.JSON_CONTENT_TYPE.getValue());
-        request.addHeader(RequestHeaders.ACCEPT.getValue(),
-                RequestHeaders.JSON_CONTENT_TYPE.getValue());
-        request.addHeader(RequestHeaders.X_AUTH_TOKEN.getValue(), authToken);
-    }
-
-    private void consumeResponseStream(HttpResponse response) {
-        try {
-            EntityUtils.consume(response.getEntity());
-        } catch (IOException e) {
-            String messageTemplate = "Error while trying to consume entity stream";
-            LOGGER.error(messageTemplate, e);
-        }
-    }
-
     private void initClient() {
-        this.client = HttpRequestUtil.createHttpClient();
+        this.client = new HttpRequestClientUtil();
     }
 
-    protected void setClient(HttpClient client) {
+    protected void setClient(HttpRequestClientUtil client) {
         this.client = client;
     }
 

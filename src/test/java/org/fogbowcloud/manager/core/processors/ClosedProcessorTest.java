@@ -5,7 +5,7 @@ import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.RemoteCloudConnector;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
+import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.plugins.cloud.LocalIdentityPlugin;
@@ -47,6 +47,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
 
     @Before
     public void setUp() {
+        mockDB();
         this.properties = new Properties();
         
         HomeDir.getInstance().setPath("src/test/resources/private");

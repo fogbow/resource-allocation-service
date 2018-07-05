@@ -1,6 +1,6 @@
 package org.fogbowcloud.manager.core.models.instances;
 
-import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
+import org.fogbowcloud.manager.util.connectivity.SshTunnelConnectionData;
 
 // TODO: We need to discuss about these attributes
 public class ComputeInstance extends Instance {
@@ -9,22 +9,18 @@ public class ComputeInstance extends Instance {
     private int vCPU;
     /** Memory attribute, must be set in MB. */
     private int ram;
-
+    /** Disk attribute, must be set in GB. */
+    private int disk;
     private String localIpAddress;
-
     private SshTunnelConnectionData sshTunnelConnectionData;
 
-    public ComputeInstance(
-            String id,
-            String hostName,
-            int vCPU,
-            int ram,
-            InstanceState state,
-            String localIpAddress) {
+    public ComputeInstance(String id, InstanceState state, String hostName, int vCPU, int ram, int disk,
+                           String localIpAddress) {
         super(id, state);
         this.hostName = hostName;
         this.vCPU = vCPU;
         this.ram = ram;
+        this.disk = disk;
         this.localIpAddress = localIpAddress;
     }
 
@@ -32,40 +28,31 @@ public class ComputeInstance extends Instance {
         super(id);
     }
 
+    public void setSshTunnelConnectionData(SshTunnelConnectionData sshTunnelConnectionData) {
+        this.sshTunnelConnectionData = sshTunnelConnectionData;
+    }
+    
+    public int getDisk() {
+        return this.disk;
+    }
+    
     public String getHostName() {
-        return hostName;
-    }
-
-    public void setHostName(String hostName) {
-        this.hostName = hostName;
-    }
-
-    public int getvCPU() {
-        return vCPU;
-    }
-
-    public void setvCPU(int vCPU) {
-        this.vCPU = vCPU;
-    }
-
-    public int getRam() {
-        return ram;
-    }
-
-    public void setRam(int ram) {
-        this.ram = ram;
+        return this.hostName;
     }
     
     public String getLocalIpAddress() {
-		return localIpAddress;
-	}
-
-    public SshTunnelConnectionData getSshTunnelConnectionData() {
-        return sshTunnelConnectionData;
+        return this.localIpAddress;
     }
-
-    public void setSshTunnelConnectionData(
-        SshTunnelConnectionData sshTunnelConnectionData) {
-        this.sshTunnelConnectionData = sshTunnelConnectionData;
+    
+    public int getRam() {
+        return this.ram;
+    }
+    
+    public SshTunnelConnectionData getSshTunnelConnectionData() {
+        return this.sshTunnelConnectionData;
+    }
+    
+    public int getvCPU() {
+        return this.vCPU;
     }
 }

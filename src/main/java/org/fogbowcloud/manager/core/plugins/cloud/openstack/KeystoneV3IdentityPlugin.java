@@ -1,27 +1,20 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import java.io.File;
-import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.http.Header;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
+import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.plugins.cloud.LocalIdentityPlugin;
-import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.utils.HttpRequestUtil;
-import org.fogbowcloud.manager.utils.PropertiesUtil;
+import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -31,7 +24,6 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
     private static final Logger LOGGER = Logger.getLogger(KeystoneV3IdentityPlugin.class);
 
     private static final String KEYSTONEV3_PLUGIN_CONF_FILE = "openstack-keystone-identity-plugin.conf";
-
     private static final String OPENSTACK_KEYSTONE_V3_URL = "openstack_keystone_v3_url";
     private static final String X_SUBJECT_TOKEN = "X-Subject-Token";
     private static final String PASSWORD_PROP = "password";
@@ -50,72 +42,45 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
     public static final String TENANT_ID = "tenantId";
     public static final String PASSWORD = "password";
     public static final String USER_ID = "userId";
-
-    public static final int LAST_SUCCESSFUL_STATUS = 204;
-
-    public static String V3_TOKENS_ENDPOINT_PATH = "/auth/tokens";
-
     public static final String AUTH_URL = "authUrl";
+    public static String V3_TOKENS_ENDPOINT_PATH = "/auth/tokens";
 
     private String keystoneUrl;
     private String v3TokensEndpoint;
-    private HttpClient client;
+    private HttpRequestClientUtil client;
 
-    public KeystoneV3IdentityPlugin() {
+    public KeystoneV3IdentityPlugin() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
         Properties properties = PropertiesUtil.
                 readProperties(homeDir.getPath() + File.separator + KEYSTONEV3_PLUGIN_CONF_FILE);
 
         String identityUrl = properties.getProperty(OPENSTACK_KEYSTONE_V3_URL);
-        try {
-            if (isUrlValid(identityUrl)) {
-                this.keystoneUrl = identityUrl;
-                this.v3TokensEndpoint = keystoneUrl + V3_TOKENS_ENDPOINT_PATH; 
-            }
-        } catch (PropertyNotSpecifiedException e) {
-            LOGGER.error("Identity url not found!", e);
-        }        
-        this.client = HttpRequestUtil.createHttpClient();
+        if (isUrlValid(identityUrl)) {
+            this.keystoneUrl = identityUrl;
+            this.v3TokensEndpoint = keystoneUrl + V3_TOKENS_ENDPOINT_PATH;
+        }
+        this.client = new HttpRequestClientUtil();
     }
 
-    /**
-     * Constructor used for testing only
-     * @param client
-     * @throws PropertyNotSpecifiedException if a required property was not set
-     */
-    protected KeystoneV3IdentityPlugin(HttpClient client)
-            throws PropertyNotSpecifiedException {
-
-        HomeDir homeDir = HomeDir.getInstance();
-        Properties properties = PropertiesUtil.
-                readProperties(homeDir.getPath() + File.separator + KEYSTONEV3_PLUGIN_CONF_FILE);
-        
-        String identityUrl = properties.getProperty(OPENSTACK_KEYSTONE_V3_URL);
-        isUrlValid(identityUrl);
-        this.keystoneUrl = identityUrl;
-        this.v3TokensEndpoint = keystoneUrl + V3_TOKENS_ENDPOINT_PATH;
-        this.client = client != null ? client : HttpRequestUtil.createHttpClient();
-    }
-
-    private boolean isUrlValid(String url) throws PropertyNotSpecifiedException {
+    private boolean isUrlValid(String url) throws FatalErrorException {
         if (url == null || url.trim().isEmpty()) {
-            throw new PropertyNotSpecifiedException(OPENSTACK_KEYSTONE_V3_URL);
+            throw new FatalErrorException("Invalid Keystone_V3_URL " + OPENSTACK_KEYSTONE_V3_URL);
         }
         return true;
     }
 
     @Override
-    public Token createToken(Map<String, String> credentials) {
+    public Token createToken(Map<String, String> credentials) throws FogbowManagerException,
+            UnexpectedException {
         LOGGER.debug("Creating new Token");
 
         JSONObject json;
         try {
             json = mountJson(credentials);
         } catch (JSONException e) {
-            LOGGER.error("Could not mount JSON while creating token", e);
-
-            Integer statusResponse = HttpStatus.SC_BAD_REQUEST;
-            throw new IllegalArgumentException(statusResponse.toString());
+            String errorMsg = "An error occurred when generating json.";
+            LOGGER.error(errorMsg, e);
+            throw new InvalidParameterException(errorMsg, e);
         }
 
         String authUrl = credentials.get(AUTH_URL);
@@ -124,45 +89,14 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
             currentTokenEndpoint = authUrl + V3_TOKENS_ENDPOINT_PATH;
         }
 
-        Response response = doPostRequest(currentTokenEndpoint, json);
-        Token token = getTokenFromJson(response);
-
-        return token;
-    }
-
-    private Response doPostRequest(String endpoint, JSONObject json) {
-        HttpResponse response = null;
-        String responseStr = null;
+        HttpRequestClientUtil.Response response = null;
         try {
-            HttpPost request = new HttpPost(endpoint);
-            request.addHeader(
-                    HttpRequestUtil.CONTENT_TYPE_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
-            request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
-            request.setEntity(new StringEntity(json.toString(), StandardCharsets.UTF_8));
-            response = getClient().execute(request);
-            responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
-        } catch (UnknownHostException e) {
-            LOGGER.error("Could not do post request, unknown host", e);
-            Integer statusResponse = HttpStatus.SC_BAD_REQUEST;
-            throw new RuntimeException(statusResponse.toString());
-        } catch (Exception e) {
-            LOGGER.error("Could not do post request", e);
-            Integer statusResponse = HttpStatus.SC_BAD_REQUEST;
-            throw new RuntimeException(statusResponse.toString());
-        } finally {
-            try {
-                EntityUtils.consume(response.getEntity());
-            } catch (Exception e) {
-                LOGGER.error("Could not release HTTPEntity resources", e);
-            }
+            response = this.client.doPostRequest(currentTokenEndpoint, json);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
-        checkStatusResponse(response);
-
-        return new Response(responseStr, response.getAllHeaders());
-    }
-
-    private HttpClient getClient() {
-        return client;
+        Token token = getTokenFromJson(response);
+        return token;
     }
 
     protected JSONObject mountJson(Map<String, String> credentials) throws JSONException {
@@ -191,7 +125,7 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
         return root;
     }
 
-    private Token getTokenFromJson(Response response) {
+    private Token getTokenFromJson(HttpRequestClientUtil.Response response) throws UnexpectedException {
 
         String accessId = null;
         Header[] headers = response.getHeaders();
@@ -227,41 +161,12 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
 
             return new Token(accessId, new Token.User(userId, userName), new Date(), tokenAtt);
         } catch (Exception e) {
-            LOGGER.error("Exception while getting token from json", e);
-            return null;
+            LOGGER.error("Exception while getting tokens from json", e);
+            throw new UnexpectedException("Exception while getting tokens from json", e);
         }
     }
-
-    private void checkStatusResponse(HttpResponse response) {
-
-        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-            Integer statusResponse = HttpStatus.SC_UNAUTHORIZED;
-            throw new RuntimeException(statusResponse.toString());
-        } else if (response.getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-            Integer statusResponse = HttpStatus.SC_NOT_FOUND;
-            throw new RuntimeException(statusResponse.toString());
-        } else if (response.getStatusLine().getStatusCode() > LAST_SUCCESSFUL_STATUS) {
-            Integer statusResponse = HttpStatus.SC_BAD_REQUEST;
-            throw new RuntimeException(statusResponse.toString());
-        }
-    }
-
-    public class Response {
-
-        private String content;
-        private Header[] headers;
-
-        public Response(String content, Header[] headers) {
-            this.content = content;
-            this.headers = headers;
-        }
-
-        public String getContent() {
-            return content;
-        }
-
-        public Header[] getHeaders() {
-            return headers;
-        }
+    
+    protected void setClient (HttpRequestClientUtil client) {
+    	this.client = client;
     }
 }

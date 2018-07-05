@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.core.models.orders;
 import java.util.UUID;
 
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 
 public class AttachmentOrder extends Order {
 
@@ -11,10 +11,8 @@ public class AttachmentOrder extends Order {
 
     /** this attribute refers to the instance of the computer where the volume will be attached */
     private String source;
-
     /** this attribute refers to the instanceId of the target volume of the attachment */
     private String target;
-
     /** this attribute refers to the mount point of the volume device */
     private String device;
 
@@ -23,7 +21,7 @@ public class AttachmentOrder extends Order {
     }
 
     public AttachmentOrder(String id, FederationUser federationUser, String requestingMember,
-            String providingMember, String source, String target, String device) {
+                           String providingMember, String source, String target, String device) {
         super(id, federationUser, requestingMember, providingMember);
         this.source = source;
         this.target = target;
@@ -36,10 +34,6 @@ public class AttachmentOrder extends Order {
         this.source = source;
         this.target = target;
         this.device = device;
-    }
-
-    public AttachmentOrder(String id) {
-        super(id);
     }
 
     public String getSource() {

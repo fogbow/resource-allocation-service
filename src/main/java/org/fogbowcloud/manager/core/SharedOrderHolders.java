@@ -4,7 +4,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.fogbowcloud.manager.core.datastore.DatabaseManager;
-import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
+
+import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 

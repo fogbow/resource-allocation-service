@@ -2,15 +2,14 @@ package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
-import org.fogbowcloud.manager.core.intercomponent.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.xmpp.packet.IQ;
-
 import com.google.gson.Gson;
 
 public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
@@ -24,18 +23,11 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
     }
 
     @Override
-    public Instance send() throws RemoteRequestException {
+    public Instance send() throws Exception {
         IQ iq = createIq();
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
-        if (response == null) {
-            String message = "Unable to retrieve the response from providing member: " + this.order.getProvidingMember();
-            throw new UnexpectedException(message);
-        } else if (response.getError() != null) {
-            LOGGER.error(response.getError().toString());
-            // TODO: Add errors treatment.
-            throw new UnexpectedException(response.getError().toString());
-        }
+        XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getProvidingMember());
         Instance instance = getInstanceFromResponse(response);
         return instance;
     }
@@ -58,7 +50,7 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
         return iq;
     }
 
-    private Instance getInstanceFromResponse(IQ response) throws RemoteRequestException {
+    private Instance getInstanceFromResponse(IQ response) throws UnexpectedException {
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
         String instanceStr = queryElement.element(IqElement.INSTANCE.toString()).getText();
         
@@ -68,7 +60,7 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
 		try {
 			instance = (Instance) new Gson().fromJson(instanceStr, Class.forName(instanceClassName));
 		} catch (Exception e) {
-			throw new RemoteRequestException(e.getMessage());
+			throw new UnexpectedException(e.getMessage());
 		}
         
         return instance;

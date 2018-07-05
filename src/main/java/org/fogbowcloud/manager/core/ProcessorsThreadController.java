@@ -7,8 +7,8 @@ import org.fogbowcloud.manager.core.processors.ClosedProcessor;
 import org.fogbowcloud.manager.core.processors.FulfilledProcessor;
 import org.fogbowcloud.manager.core.processors.OpenProcessor;
 import org.fogbowcloud.manager.core.processors.SpawningProcessor;
-import org.fogbowcloud.manager.utils.SshConnectivityUtil;
-import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
+import org.fogbowcloud.manager.util.connectivity.SshConnectivityUtil;
+import org.fogbowcloud.manager.util.connectivity.TunnelingServiceUtil;
 
 public class ProcessorsThreadController {
 
@@ -52,10 +52,10 @@ public class ProcessorsThreadController {
 
         ClosedProcessor closedProcessor = new ClosedProcessor(closedOrdersProcSleepTimeStr);
 
-        this.openProcessorThread = new Thread(openProcessor, "OpenProcessor-thread");
-        this.spawningProcessorThread = new Thread(spawningProcessor, "SpawningProcessor-thread");
-        this.fulfilledProcessorThread = new Thread(fulfilledProcessor, "FulfilledProcessor-thread");
-        this.closedProcessorThread = new Thread(closedProcessor, "ClosedProcessor-thread");
+        this.openProcessorThread = new Thread(openProcessor, "open-proc");
+        this.spawningProcessorThread = new Thread(spawningProcessor, "spawning-proc");
+        this.fulfilledProcessorThread = new Thread(fulfilledProcessor, "fulfilled-proc");
+        this.closedProcessorThread = new Thread(closedProcessor, "closed-proc");
     }
 
     /**

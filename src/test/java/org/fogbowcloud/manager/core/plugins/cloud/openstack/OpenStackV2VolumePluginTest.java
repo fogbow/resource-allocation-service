@@ -1,5 +1,8 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
+
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
@@ -22,12 +25,13 @@ import org.apache.http.message.BasicStatusLine;
 import org.apache.http.util.EntityUtils;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.models.RequestHeaders;
-import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
-import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackV2VolumePlugin;
+import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
+import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Assert;
@@ -41,11 +45,12 @@ import com.google.common.base.Charsets;
 
 public class OpenStackV2VolumePluginTest {
 
-    private final String TENANT_ID = "openstack_tenantId";
+    private final String TENANT_ID = "tenantId";
     private final String V2_API_ENDPOINT = "/v2/";
 
     private final String FAKE_STORAGE_URL = "http://localhost:0000";
     private final String FAKE_SIZE = "2";
+    private final String FAKE_NAME = "fake-name";
     private final String FAKE_ACCESS_ID = "access-id";
     private final String FAKE_TENANT_ID = "tenant-id";
     private final String FAKE_INSTANCE_ID = "instance-id";
@@ -54,6 +59,7 @@ public class OpenStackV2VolumePluginTest {
     private HttpUriRequestMatcher expectedRequest;
     private OpenStackV2VolumePlugin openStackV2VolumePlugin;
     private Token tokenDefault;
+    private HttpRequestClientUtil httpRequestClientUtil;
 
     @Before
     public void setUp() throws Exception {
@@ -62,13 +68,15 @@ public class OpenStackV2VolumePluginTest {
         Properties properties = propertiesHolder.getProperties();
         properties.put(OpenStackV2VolumePlugin.VOLUME_NOVAV2_URL_KEY, FAKE_STORAGE_URL);
 
-        this.openStackV2VolumePlugin = new OpenStackV2VolumePlugin();
+        this.openStackV2VolumePlugin = Mockito.spy(new OpenStackV2VolumePlugin());
         this.client = Mockito.mock(HttpClient.class);
         HttpResponseFactory factory = new DefaultHttpResponseFactory();
         HttpResponse response = factory.newHttpResponse(new BasicStatusLine(HttpVersion.HTTP_1_1,
                 HttpStatus.SC_NO_CONTENT, "Return Irrelevant"), null);
         Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(response);
-        this.openStackV2VolumePlugin.setClient(this.client);
+        
+        this.httpRequestClientUtil = new HttpRequestClientUtil(this.client);
+        this.openStackV2VolumePlugin.setClient(this.httpRequestClientUtil);
 
         Map<String, String> attributes = new HashMap<>();
         attributes.put(TENANT_ID, FAKE_TENANT_ID);
@@ -77,18 +85,21 @@ public class OpenStackV2VolumePluginTest {
     }
 
     @Test
-    public void testRequestInstance() throws IOException, RequestException {
+    public void testRequestInstance() throws IOException, FogbowManagerException {
         String url = FAKE_STORAGE_URL + V2_API_ENDPOINT + FAKE_TENANT_ID
                 + OpenStackV2VolumePlugin.SUFIX_ENDPOINT_VOLUMES;
         HttpUriRequest request = new HttpPost(url);
         addHeaders(request);
 
-        this.expectedRequest = new HttpUriRequestMatcher(request, this.openStackV2VolumePlugin
-                .generateJsonEntityToCreateInstance(FAKE_SIZE).toString());
+        JSONObject json = this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE, FAKE_NAME);
+
+        doReturn(json).when(this.openStackV2VolumePlugin).generateJsonEntityToCreateInstance(anyString(), anyString());
+
+        this.expectedRequest = new HttpUriRequestMatcher(request, this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE, FAKE_NAME).toString());
 
         String id = "fake-id";
         int size = 2;
-        VolumeOrder order = new VolumeOrder(id, null, "", "", size);
+        VolumeOrder order = new VolumeOrder(id, null, "", "", size, "fake-volume-name");
         try {
             this.openStackV2VolumePlugin.requestInstance(order, this.tokenDefault);
         } catch (Exception e) {
@@ -98,21 +109,21 @@ public class OpenStackV2VolumePluginTest {
         Mockito.verify(this.client).execute(Mockito.argThat(this.expectedRequest));
     }
 
-    @Test(expected=RequestException.class)
-    public void testRequestInstanceWithoutTenantId() throws RequestException {
+    @Test(expected=FogbowManagerException.class)
+    public void testRequestInstanceWithoutTenantId() throws FogbowManagerException, UnexpectedException {
         this.tokenDefault.getAttributes().clear();
         this.openStackV2VolumePlugin.requestInstance(null, this.tokenDefault);
     }
 
     @Test
     public void testGenerateJsonEntityToCreateInstance() {
-        JSONObject jsonEntity = this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE);
+        JSONObject jsonEntity = this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE, FAKE_NAME);
         Assert.assertEquals(FAKE_SIZE, jsonEntity.getJSONObject(OpenStackV2VolumePlugin.KEY_JSON_VOLUME)
                 .getString(OpenStackV2VolumePlugin.KEY_JSON_SIZE));
     }
 
     @Test
-    public void testGetInstanceFromJson() throws RequestException  {
+    public void testGetInstanceFromJson() throws FogbowManagerException, JSONException, UnexpectedException {
         VolumeInstance instance = this.openStackV2VolumePlugin.getInstanceFromJson(
                 generateInstanceJsonResponse(FAKE_INSTANCE_ID).toString());
         Assert.assertEquals(FAKE_INSTANCE_ID, instance.getId());
@@ -135,7 +146,7 @@ public class OpenStackV2VolumePluginTest {
         Mockito.verify(this.client).execute(Mockito.argThat(this.expectedRequest));
     }
 
-    @Test(expected=RequestException.class)
+    @Test(expected=FogbowManagerException.class)
     public void testGetInstancesWithoutTenantId() throws Exception {
         this.tokenDefault.getAttributes().clear();
         this.openStackV2VolumePlugin.getInstance(FAKE_ACCESS_ID, this.tokenDefault);
@@ -158,7 +169,7 @@ public class OpenStackV2VolumePluginTest {
         Mockito.verify(client).execute(Mockito.argThat(this.expectedRequest));
     }
 
-    @Test(expected=RequestException.class)
+    @Test(expected=FogbowManagerException.class)
     public void testRemoveInstanceWithoutTenantId() throws Exception {
         this.tokenDefault.getAttributes().clear();
         this.openStackV2VolumePlugin.deleteInstance(FAKE_INSTANCE_ID, tokenDefault);
@@ -171,9 +182,9 @@ public class OpenStackV2VolumePluginTest {
     }
 
     private void addHeaders(HttpUriRequest request) {
-        request.addHeader(RequestHeaders.CONTENT_TYPE.getValue(), RequestHeaders.JSON_CONTENT_TYPE.getValue());
-        request.addHeader(RequestHeaders.ACCEPT.getValue(), RequestHeaders.JSON_CONTENT_TYPE.getValue());
-        request.addHeader(RequestHeaders.X_AUTH_TOKEN.getValue(), this.tokenDefault.getAccessId());
+        request.addHeader(HttpRequestUtil.CONTENT_TYPE_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
+        request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
+        request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, this.tokenDefault.getAccessId());
     }
 
     private JSONObject generateInstanceJsonResponse(String instanceId) throws JSONException {
@@ -228,7 +239,7 @@ public class OpenStackV2VolumePluginTest {
             for (Header comparedHeader : comparedHeaders) {
                 boolean headerEquals = false;
                 for (Header header : this.request.getAllHeaders()) {
-                    if (header.getName().equals(RequestHeaders.X_AUTH_TOKEN.getValue())) {
+                    if (header.getName().equals(HttpRequestUtil.X_AUTH_TOKEN_KEY)) {
                         if (header.getName().equals(comparedHeader.getName())) {
                             headerEquals = true;
                             break;

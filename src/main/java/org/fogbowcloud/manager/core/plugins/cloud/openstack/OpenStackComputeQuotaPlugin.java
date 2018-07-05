@@ -3,16 +3,16 @@ package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 import java.io.File;
 import java.util.Properties;
 
+import org.apache.http.client.HttpResponseException;
 import org.fogbowcloud.manager.core.HomeDir;
-import org.fogbowcloud.manager.core.exceptions.QuotaException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputeQuotaPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.utils.HttpRequestClientUtil;
-import org.fogbowcloud.manager.utils.JSONUtil;
-import org.fogbowcloud.manager.utils.PropertiesUtil;
+import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.manager.util.JSONUtil;
+import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -33,9 +33,8 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 	
 	private Properties properties;
 	private HttpRequestClientUtil client;
-	
 
-	public OpenStackComputeQuotaPlugin() {
+	public OpenStackComputeQuotaPlugin() throws FatalErrorException {
 		HomeDir homeDir = HomeDir.getInstance();
 		this.properties = PropertiesUtil.
 				readProperties(homeDir.getPath() + File.separator + NOVAV2_PLUGIN_CONF_FILE);
@@ -44,42 +43,35 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 	}
 	
 	@Override
-	public ComputeQuota getUserQuota(Token localToken) throws QuotaException {
+	public ComputeQuota getUserQuota(Token localToken) throws FogbowManagerException, UnexpectedException {
 		String jsonResponse = getJson(localToken);
 		return processJson(jsonResponse);
 	}
 
-	private String getJson(Token localToken) throws QuotaException {
-		String endpoint = 
-				this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY)
-                + COMPUTE_V2_API_ENDPOINT	
-                + SUFFIX;
+	protected String getJson(Token localToken) throws FogbowManagerException, UnexpectedException {
+		String endpoint = this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY)
+                + COMPUTE_V2_API_ENDPOINT + SUFFIX;
+		String jsonResponse = null;
 		try {
-			String jsonResponse = this.client.doGetRequest(endpoint, localToken);
-			return jsonResponse;
-		} catch (RequestException e) {
-			throw new QuotaException("Could not make GET request.", e);
+			jsonResponse = this.client.doGetRequest(endpoint, localToken);
+		} catch (HttpResponseException e) {
+			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}
+		return jsonResponse;
 	}
 	
-	private ComputeQuota processJson(String jsonStr) throws QuotaException {
+	private ComputeQuota processJson(String jsonStr) throws UnexpectedException {
 		try {
 			JSONObject jsonObject = (JSONObject) JSONUtil.getValue(jsonStr, "limits", "absolute");
-			ComputeAllocation totalQuota = new ComputeAllocation(
-					jsonObject.getInt(MAX_TOTAL_CORES_JSON), 
-					jsonObject.getInt(MAX_TOTAL_RAM_SIZE_JSON),
-					jsonObject.getInt(MAX_TOTAL_INSTANCES_JSON));
-			ComputeAllocation usedQuota = new ComputeAllocation(
-					jsonObject.getInt(TOTAL_CORES_USED_JSON), 
-					jsonObject.getInt(TOTAL_RAM_USED_JSON),
-					jsonObject.getInt(TOTAL_INSTANCES_USED_JSON));
-			ComputeQuota computeQuota =	new ComputeQuota(
-					totalQuota, 
-					usedQuota);
+			ComputeAllocation totalQuota = new ComputeAllocation(jsonObject.getInt(MAX_TOTAL_CORES_JSON),
+					jsonObject.getInt(MAX_TOTAL_RAM_SIZE_JSON), jsonObject.getInt(MAX_TOTAL_INSTANCES_JSON));
+			ComputeAllocation usedQuota = new ComputeAllocation(jsonObject.getInt(TOTAL_CORES_USED_JSON),
+					jsonObject.getInt(TOTAL_RAM_USED_JSON),	jsonObject.getInt(TOTAL_INSTANCES_USED_JSON));
+			ComputeQuota computeQuota =	new ComputeQuota(totalQuota, usedQuota);
 			
 			return computeQuota;
 		} catch (JSONException e) {
-			throw new QuotaException(e.getMessage(), e);
+			throw new UnexpectedException(e.getMessage(), e);
 		}
 	}
 	

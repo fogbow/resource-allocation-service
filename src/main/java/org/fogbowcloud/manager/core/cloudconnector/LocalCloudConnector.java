@@ -3,32 +3,29 @@ package org.fogbowcloud.manager.core.cloudconnector;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.AaController;
 import org.fogbowcloud.manager.core.CloudPluginsHolder;
-import org.fogbowcloud.manager.core.OrderController;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.images.Image;
-import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.instances.*;
 import org.fogbowcloud.manager.core.models.orders.*;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.ImagePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputeQuotaPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.util.connectivity.ComputeInstanceConnectivityUtil;
+import org.fogbowcloud.manager.util.connectivity.SshConnectivityUtil;
+import org.fogbowcloud.manager.util.connectivity.SshTunnelConnectionData;
+import org.fogbowcloud.manager.util.connectivity.TunnelingServiceUtil;
 
 import java.util.Map;
 
 public class LocalCloudConnector implements CloudConnector {
 
-    private final String memberId;
     private final AaController aaController;
-    private final OrderController orderController;
     private final AttachmentPlugin attachmentPlugin;
     private final ComputePlugin computePlugin;
     private final ComputeQuotaPlugin computeQuotaPlugin;
@@ -38,12 +35,8 @@ public class LocalCloudConnector implements CloudConnector {
 
     private static final Logger LOGGER = Logger.getLogger(LocalCloudConnector.class);
 
-    public LocalCloudConnector(String memberId, AaController aaController, OrderController orderController,
-                               CloudPluginsHolder cloudPluginsHolder) {
-        //FIXME: is this memberId variable still necessary?
-        this.memberId = memberId;
+    public LocalCloudConnector(AaController aaController, CloudPluginsHolder cloudPluginsHolder) {
         this.aaController = aaController;
-        this.orderController = orderController;
         this.attachmentPlugin = cloudPluginsHolder.getAttachmentPlugin();
         this.computePlugin = cloudPluginsHolder.getComputePlugin();
         this.computeQuotaPlugin = cloudPluginsHolder.getComputeQuotaPlugin();
@@ -53,8 +46,7 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public String requestInstance(Order order) throws PropertyNotSpecifiedException, RequestException,
-            UnauthorizedException, TokenCreationException {
+    public String requestInstance(Order order) throws FogbowManagerException, UnexpectedException {
         String requestInstance = null;
         Token localToken = this.aaController.getLocalToken(order.getFederationUser());
         switch (order.getType()) {
@@ -62,34 +54,32 @@ public class LocalCloudConnector implements CloudConnector {
                 ComputeOrder computeOrder = (ComputeOrder) order;
                 requestInstance = this.computePlugin.requestInstance(computeOrder, localToken);
                 break;
-
             case NETWORK:
                 NetworkOrder networkOrder = (NetworkOrder) order;
                 requestInstance = this.networkPlugin.requestInstance(networkOrder, localToken);
                 break;
-
             case VOLUME:
                 VolumeOrder volumeOrder = (VolumeOrder) order;
                 requestInstance = this.volumePlugin.requestInstance(volumeOrder, localToken);
                 break;
-
             case ATTACHMENT:
                 AttachmentOrder attachmentOrder = (AttachmentOrder) order;
                 requestInstance = this.attachmentPlugin.requestInstance(attachmentOrder, localToken);
                 break;
+            default:
+                String message = "No requestInstance plugin implemented for order " + order.getType();
+                throw new UnexpectedException(message);
         }
         if (requestInstance == null) {
-            throw new UnsupportedOperationException("Not implemented yet.");
+            String message = "Plugin returned a null value for the instanceId.";
+            throw new UnexpectedException(message);
         }
         return requestInstance;
     }
 
     @Override
-    public void deleteInstance(Order order) throws RequestException, PropertyNotSpecifiedException,
-            UnauthorizedException, TokenCreationException {
+    public void deleteInstance(Order order) throws FogbowManagerException, UnexpectedException {
 
-        //FIXME: This code does nothing (do not throw an exception nor a flag, e.g false, in case the order
-        //does not have an instanceId yet. Is it ok?
         if (order.getInstanceId() != null) {
             Token localToken = this.aaController.getLocalToken(order.getFederationUser());
             switch (order.getType()) {
@@ -106,15 +96,16 @@ public class LocalCloudConnector implements CloudConnector {
                     this.attachmentPlugin.deleteInstance(order.getInstanceId(), localToken);
                     break;
                 default:
-                    LOGGER.error("Undefined type " + order.getType());
+                    LOGGER.error("No deleteInstance plugin implemented for order " + order.getType());
                     break;
             }
+        } else {
+            LOGGER.error("Trying to delete an instance with no instanceId.");
         }
     }
 
     @Override
-    public Instance getInstance(Order order) throws RequestException, PropertyNotSpecifiedException,
-            InstanceNotFoundException, UnauthorizedException, TokenCreationException {
+    public Instance getInstance(Order order) throws FogbowManagerException, UnexpectedException {
         Instance instance;
         Token localToken = this.aaController.getLocalToken(order.getFederationUser());
 
@@ -125,29 +116,31 @@ public class LocalCloudConnector implements CloudConnector {
                 instance = getResourceInstance(order, order.getType(), localToken);
             } else {
                 // When there is no instance, an empty one is created with the appropriate state
-                instance = new Instance(null);
-                switch (order.getOrderState()) {
-                    case OPEN:
-                        instance.setState(InstanceState.INACTIVE);
+                switch (order.getType()) {
+                    case COMPUTE:
+                        instance = new ComputeInstance(order.getId());
                         break;
-                    case FAILED:
-                        instance.setState(InstanceState.FAILED);
+                    case VOLUME:
+                        instance = new VolumeInstance(order.getId());
                         break;
-                    case CLOSED:
-                        throw new InstanceNotFoundException();
+                    case NETWORK:
+                        instance = new NetworkInstance(order.getId());
+                        break;
+                    case ATTACHMENT:
+                        instance = new AttachmentInstance(order.getId());
+                        break;
                     default:
-                        LOGGER.error("Inconsistent state.");
-                        instance.setState(InstanceState.INCONSISTENT);
+                        String message = "Not supported order type " + order.getType();
+                        throw new UnexpectedException(message);
                 }
             }
         }
-
         return instance;
     }
 
     @Override
     public Quota getUserQuota(FederationUser federationUser, InstanceType instanceType) throws
-            PropertyNotSpecifiedException, QuotaException, UnauthorizedException, TokenCreationException {
+            FogbowManagerException, UnexpectedException {
 
         Token localToken = this.aaController.getLocalToken(federationUser);
 
@@ -155,51 +148,62 @@ public class LocalCloudConnector implements CloudConnector {
             case COMPUTE:
                 return this.computeQuotaPlugin.getUserQuota(localToken);
             default:
-                throw new UnsupportedOperationException("Not yet implemented.");
+                throw new UnexpectedException("Not yet implemented quota endpoint for " + instanceType);
         }
     }
 
     @Override
-    public Map<String, String> getAllImages(FederationUser federationUser) throws TokenCreationException,
-            UnauthorizedException, PropertyNotSpecifiedException, ImageException {
+    public Map<String, String> getAllImages(FederationUser federationUser)
+            throws FogbowManagerException, UnexpectedException {
         Token localToken = this.aaController.getLocalToken(federationUser);
         return this.imagePlugin.getAllImages(localToken);
     }
 
     @Override
-    public Image getImage(String imageId, FederationUser federationUser) throws TokenCreationException,
-            UnauthorizedException, PropertyNotSpecifiedException, ImageException {
+    public Image getImage(String imageId, FederationUser federationUser)
+            throws FogbowManagerException, UnexpectedException {
         Token localToken = this.aaController.getLocalToken(federationUser);
         return this.imagePlugin.getImage(imageId, localToken);
     }
 
     private Instance getResourceInstance(Order order, InstanceType instanceType, Token localToken)
-            throws RequestException {
+            throws FogbowManagerException, UnexpectedException {
         Instance instance;
         String instanceId = order.getInstanceId();
 
         switch (instanceType) {
             case COMPUTE:
-                instance = this.computePlugin.getInstance(instanceId, order.getId(), localToken);
+                instance = this.computePlugin.getInstance(instanceId, localToken);
+                addReverseTunnelInfo(order.getId(), (ComputeInstance) instance);
                 break;
-
             case NETWORK:
                 instance = this.networkPlugin.getInstance(instanceId, localToken);
                 break;
-
             case VOLUME:
                 instance = this.volumePlugin.getInstance(instanceId, localToken);
                 break;
-
             case ATTACHMENT:
                 instance = this.attachmentPlugin.getInstance(instanceId, localToken);
                 break;
-
             default:
-                throw new UnsupportedOperationException("Not implemented yet.");
+                String message = "Not supported order type " + order.getType();
+                throw new UnexpectedException(message);
         }
-
+        order.setCachedInstanceState(instance.getState());
         return instance;
+    }
+
+    private void addReverseTunnelInfo(String orderId, ComputeInstance computeInstance) {
+        TunnelingServiceUtil tunnelingServiceUtil = TunnelingServiceUtil.getInstance();
+        SshConnectivityUtil sshConnectivityUtil = SshConnectivityUtil.getInstance();
+
+        ComputeInstanceConnectivityUtil computeInstanceConnectivity =
+                new ComputeInstanceConnectivityUtil(tunnelingServiceUtil, sshConnectivityUtil);
+
+        SshTunnelConnectionData sshTunnelConnectionData = computeInstanceConnectivity
+                .getSshTunnelConnectionData(orderId);
+
+        computeInstance.setSshTunnelConnectionData(sshTunnelConnectionData);
     }
 
 }

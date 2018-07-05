@@ -6,7 +6,7 @@ public class VolumeSQLCommands extends OrderTableAttributes {
             + VOLUME_ORDER_TABLE_NAME + "(" + ORDER_ID + " VARCHAR(255) PRIMARY KEY, "
             + INSTANCE_ID + " VARCHAR(255), " + ORDER_STATE + " VARCHAR(255), " + FEDERATION_USER_ID + " VARCHAR(255), "
             + FEDERATION_USER_ATTR + " VARCHAR(255), " + REQUESTING_MEMBER + " VARCHAR(255), " + PROVIDING_MEMBER + " VARCHAR(255), "
-            + VOLUME_SIZE + " TIMESTAMP, " + CREATE_AT + " INTEGER)";
+            + VOLUME_SIZE + " TIMESTAMP, " + VOLUME_NAME + " VARCHAR(255), " + CREATE_AT + " INTEGER)";
 
     public static final String INSERT_VOLUME_ORDER_SQL = "INSERT INTO " + VOLUME_ORDER_TABLE_NAME
             + " (" + ORDER_ID + "," + INSTANCE_ID + "," + ORDER_STATE + "," + FEDERATION_USER_ID + ","

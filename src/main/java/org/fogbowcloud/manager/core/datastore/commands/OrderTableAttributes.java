@@ -42,6 +42,7 @@ public class OrderTableAttributes {
      **/
     protected static final String VOLUME_ORDER_TABLE_NAME = "t_volume_order";
     protected static final String VOLUME_SIZE = "volume_size";
+    protected static final String VOLUME_NAME = "volume_name";
 
     /**
      * Attachment order attributes

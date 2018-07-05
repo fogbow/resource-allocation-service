@@ -5,25 +5,26 @@ import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
+import org.fogbowcloud.manager.util.connectivity.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
+import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.fogbowcloud.manager.core.plugins.cloud.LocalIdentityPlugin;
-import org.fogbowcloud.manager.utils.SshConnectivityUtil;
-import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
+import org.fogbowcloud.manager.util.connectivity.SshConnectivityUtil;
+import org.fogbowcloud.manager.util.connectivity.TunnelingServiceUtil;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import sun.security.jca.GetInstance;
 
 import java.util.HashMap;
 
@@ -54,6 +55,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
     @Before
     public void setUp() {
+        mockDB();
         HomeDir.getInstance().setPath("src/test/resources/private");
         
         this.tunnelingService = Mockito.mock(TunnelingServiceUtil.class);
@@ -90,24 +92,6 @@ public class SpawningProcessorTest extends BaseUnitTests {
             this.thread.interrupt();
         }
         super.tearDown();
-    }
-
-    // FIXME: What this method tests?
-    @Ignore
-    @Test
-    public void testRunThrowableExceptionWhileTryingToProcessOrder() throws Exception {
-        Order order = Mockito.mock(Order.class);
-        OrderState state = null;
-        order.setOrderState(state);
-        this.spawningOrderList.addItem(order);
-
-        Mockito.doThrow(new RuntimeException("Any Exception")).when(this.spawningProcessor)
-                .processSpawningOrder(order);
-
-        this.thread = new Thread(this.spawningProcessor);
-        this.thread.start();
-
-        Thread.sleep(500);
     }
 
     @Test
@@ -269,28 +253,6 @@ public class SpawningProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.spawningOrderList.getNext());
         Assert.assertNull(this.failedOrderList.getNext());
         Assert.assertNull(this.fulfilledOrderList.getNext());
-    }
-
-    // FIXME: What this method tests?
-    @Ignore
-    @Test
-    public void testRunThrowableExceptionWhileTryingToGetMapAddressesOfComputeOrderInstance()
-            throws InterruptedException {
-        Order order = this.createOrder();
-        order.setOrderState(OrderState.SPAWNING);
-        this.spawningOrderList.addItem(order);
-
-        String instanceId = "fake-id";
-        ComputeInstance computeOrderInstance =
-                spy(new ComputeInstance(instanceId));
-        computeOrderInstance.setState(InstanceState.READY);
-        order.setInstanceId(instanceId);
-
-        doThrow(new RuntimeException("Any Exception")).when(this.tunnelingService).getExternalServiceAddresses(order.getId());
-
-        this.thread = new Thread(this.spawningProcessor);
-        this.thread.start();
-        Thread.sleep(500);
     }
 
     @Test

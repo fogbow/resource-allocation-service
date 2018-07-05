@@ -5,108 +5,96 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.apache.log4j.Logger;
 
 public class OrderController {
 
     private static final Logger LOGGER = Logger.getLogger(OrderController.class);
 
-    private final String localMemberId;
     private final SharedOrderHolders orderHolders;
 
-    public OrderController(String localMemberId) {
-        //FIXME: is localMemberId really necessary? Maybe it was put here to support future plans. I do not know
-        this.localMemberId = localMemberId;
+    public OrderController() {
         this.orderHolders = SharedOrderHolders.getInstance();
     }
 
-    public List<Order> getAllOrders(FederationUser federationUser, InstanceType instanceType) throws UnauthorizedException {
+    public List<Order> getAllOrders(FederationUser federationUser, InstanceType instanceType) {
         Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
 
+        // Filter all orders of instanceType from federationUser that are not closed (closed orders have been deleted by
+        // the user and should not be seen; they will disappear from the system as soon as the closedProcessor thread
+        // process them).
         List<Order> requestedOrders =
                 orders.stream()
                         .filter(order -> order.getType().equals(instanceType))
                         .filter(order -> order.getFederationUser().equals(federationUser))
+                        .filter(order -> !order.getOrderState().equals(OrderState.CLOSED))
                         .collect(Collectors.toList());
 
         return requestedOrders;
     }
 
-    public Order getOrder(String orderId, FederationUser federationUser, InstanceType instanceType) {
+    public Order getOrder(String orderId, FederationUser federationUser, InstanceType instanceType)
+            throws FogbowManagerException {
         Order requestedOrder = this.orderHolders.getActiveOrdersMap().get(orderId);
 
         if (requestedOrder == null) {
-            return null;
+            throw new InstanceNotFoundException();
         }
 
         if (!requestedOrder.getType().equals(instanceType)) {
-            return null;
+            throw new InstanceNotFoundException();
         }
 
         FederationUser orderOwner = requestedOrder.getFederationUser();
         if (!orderOwner.getId().equals(federationUser.getId())) {
-            return null;
+            throw new UnauthorizedRequestException();
         }
 
         return requestedOrder;
     }
 
-    public void deleteOrder(Order order) throws OrderManagementException {
+    public void deleteOrder(Order order) throws UnexpectedException {
         if (order == null) {
-            String message = "Cannot delete a null order";
-            throw new OrderManagementException(message);
+            String message = "Cannot delete a null order.";
+            LOGGER.error(message);
+            return;
         }
-        synchronized (order) {
 
+        synchronized (order) {
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.CLOSED)) {
-                try {
-                    OrderStateTransitioner.transition(order, OrderState.CLOSED);
-                } catch (OrderStateTransitionException e) {
-                    LOGGER.error(
-                            "This should never happen. Error trying to change the status from"
-                                    + order.getOrderState()
-                                    + " to closed for order ["
-                                    + order.getId()
-                                    + "]",
-                            e);
-                }
-            } else {
+                OrderStateTransitioner.transition(order, OrderState.CLOSED);
+           } else {
                 String message = "Order [" + order.getId() + "] is already in the closed state";
-                throw new OrderManagementException(message);
+                LOGGER.error(message);
             }
         }
     }
 
-    public Instance getResourceInstance(Order order)
-            throws PropertyNotSpecifiedException, TokenCreationException, RequestException, UnauthorizedException,
-            InstanceNotFoundException, RemoteRequestException {
+    public Instance getResourceInstance(Order order) throws Exception {
+        LOGGER.info("Get resource instance from order with id <" + order.getId() + "> received");
         synchronized (order) {
 
-            CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
+            CloudConnector cloudConnector =
+                    CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
             return cloudConnector.getInstance(order);
         }
     }
 
-    public Allocation getUserAllocation(String memberId, FederationUser federationUser, InstanceType instanceType) {
+    public Allocation getUserAllocation(String memberId, FederationUser federationUser, InstanceType instanceType)
+            throws UnexpectedException {
 
         Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
 
@@ -125,13 +113,13 @@ public class OrderController {
                 }
                 return (Allocation) getUserComputeAllocation(computeOrders);
             default:
-                throw new UnsupportedOperationException("Not yet implemented.");
+                throw new UnexpectedException("Not yet implemented.");
         }
     }
 
     private ComputeAllocation getUserComputeAllocation(Collection<ComputeOrder> computeOrders) {
 
-        int vCPU = 0, ram = 0, disk = 0, instances = 0;
+        int vCPU = 0, ram = 0, instances = 0;
 
         for (ComputeOrder order : computeOrders) {
             ComputeAllocation actualAllocation = order.getActualAllocation();

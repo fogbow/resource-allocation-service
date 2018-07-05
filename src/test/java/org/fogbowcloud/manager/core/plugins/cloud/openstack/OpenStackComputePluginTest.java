@@ -14,23 +14,27 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+
+import org.apache.http.client.HttpResponseException;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.CloudInitUserDataBuilder;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.LaunchCommandGenerator;
-import org.fogbowcloud.manager.core.models.Flavor;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.plugins.cloud.util.CloudInitUserDataBuilder;
+import org.fogbowcloud.manager.core.plugins.cloud.util.LaunchCommandGenerator;
+import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.manager.core.models.HardwareRequirements;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.token.Token;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackNovaV2ComputePlugin;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 public class OpenStackComputePluginTest {
 
@@ -41,7 +45,6 @@ public class OpenStackComputePluginTest {
     protected static final String FAKE_ENDPOINT = "fake-endpoint";
     protected static final String FAKE_IMAGE_ID = "fake-image-id";
     protected static final String FAKE_INSTANCE_ID = "fake-instance-id";
-    protected static final String FAKE_ORDER_ID = "fake-order-id";
     protected static final String FAKE_POST_RETURN = "{\"server\": {\"id\": \"fake-instance-id\"}}";
     protected static final String FAKE_GET_RETURN_ACTIVE_INSTANCE =
             "{\"server\": {\"id\": \"fake-instance-id\", "
@@ -81,7 +84,7 @@ public class OpenStackComputePluginTest {
                         20,
                         null,
                         new UserData(
-                                FAKE_USER_DATA_FILE, 
+                                FAKE_USER_DATA_FILE,
                                 CloudInitUserDataBuilder.FileType.SHELL_SCRIPT),
                         null,
                         null);
@@ -93,8 +96,8 @@ public class OpenStackComputePluginTest {
     }
 
     @Test
-    public void testRequestInstance() throws IOException, RequestException {
-        Flavor flavor = mock(Flavor.class);
+    public void testRequestInstance() throws IOException, FogbowManagerException, UnexpectedException {
+        HardwareRequirements flavor = mock(HardwareRequirements.class);
         doReturn(flavor)
                 .when(this.novaV2ComputeOpenStack)
                 .findSmallestFlavor(any(ComputeOrder.class), eq(this.localToken));
@@ -110,7 +113,7 @@ public class OpenStackComputePluginTest {
 
         List<String> fakeNetIds = new ArrayList<String>();
         fakeNetIds.add(FAKE_NET_ID);
-        
+
         JSONObject json =
                 this.novaV2ComputeOpenStack.generateJsonRequest(
                         FAKE_IMAGE_ID,
@@ -122,19 +125,22 @@ public class OpenStackComputePluginTest {
                 .when(this.novaV2ComputeOpenStack)
                 .generateJsonRequest(
                         anyString(), anyString(), anyString(), anyString(), anyObject());
-
+        
+        HttpRequestClientUtil httpRequestClientUtil = Mockito.mock(HttpRequestClientUtil.class);
+        this.novaV2ComputeOpenStack.setClient(httpRequestClientUtil);
+        
         doReturn(FAKE_POST_RETURN)
-                .when(this.novaV2ComputeOpenStack)
+                .when(httpRequestClientUtil)
                 .doPostRequest(eq(FAKE_ENDPOINT), eq(localToken), eq(json));
-
+        
         String instanceId = novaV2ComputeOpenStack.requestInstance(computeOrder, localToken);
 
         assertEquals(instanceId, FAKE_INSTANCE_ID);
     }
 
-    @Test(expected = RequestException.class)
-    public void testRequestInstanceIrregularSyntax() throws IOException, RequestException {
-        Flavor flavor = mock(Flavor.class);
+    @Test(expected = FogbowManagerException.class)
+    public void testRequestInstanceIrregularSyntax() throws IOException, FogbowManagerException, UnexpectedException {
+        HardwareRequirements flavor = mock(HardwareRequirements.class);
         doReturn(flavor)
                 .when(novaV2ComputeOpenStack)
                 .findSmallestFlavor(any(ComputeOrder.class), eq(localToken));
@@ -143,9 +149,12 @@ public class OpenStackComputePluginTest {
         doReturn(fakeCommand)
                 .when(launchCommandGenerator)
                 .createLaunchCommand(any(ComputeOrder.class));
-
+        
+        HttpRequestClientUtil httpRequestClientUtil = Mockito.mock(HttpRequestClientUtil.class);
+        this.novaV2ComputeOpenStack.setClient(httpRequestClientUtil);
+        
         doReturn(INVALID_FAKE_POST_RETURN)
-                .when(novaV2ComputeOpenStack)
+                .when(httpRequestClientUtil)
                 .doPostRequest(anyString(), any(Token.class), any(JSONObject.class));
 
         novaV2ComputeOpenStack.requestInstance(computeOrder, localToken);
@@ -155,7 +164,7 @@ public class OpenStackComputePluginTest {
     public void testGenerateJsonRequest() {
         List<String> netIds = new ArrayList<String>();
         netIds.add("netId");
-        
+
         JSONObject json =
                 novaV2ComputeOpenStack.generateJsonRequest(
                         "imageRef", "flavorRef", "user-data", "keyName", netIds);
@@ -189,7 +198,7 @@ public class OpenStackComputePluginTest {
     public void testGenerateJsonRequestWithoutUserData() {
         List<String> netIds = new ArrayList<String>();
         netIds.add("netId");
-        
+
         JSONObject json =
                 novaV2ComputeOpenStack.generateJsonRequest(
                         "imageRef", "flavorRef", null, "keyName", netIds);
@@ -247,7 +256,7 @@ public class OpenStackComputePluginTest {
     public void testGenerateJsonRequestWithoutKeyName() {
         List<String> netIds = new ArrayList<String>();
         netIds.add("netId");
-        
+
         JSONObject json =
                 novaV2ComputeOpenStack.generateJsonRequest(
                         "imageRef", "flavorRef", "user-data", null, netIds);
@@ -274,62 +283,75 @@ public class OpenStackComputePluginTest {
     }
 
     @Test
-    public void testGetActivateInstance() throws RequestException {
+    public void testGetActivateInstance() throws FogbowManagerException, UnexpectedException, HttpResponseException {
         doReturn(FAKE_ENDPOINT)
                 .when(novaV2ComputeOpenStack)
                 .getComputeEndpoint(anyString(), anyString());
-
+        
+        HttpRequestClientUtil httpRequestClientUtil = Mockito.mock(HttpRequestClientUtil.class);
+        this.novaV2ComputeOpenStack.setClient(httpRequestClientUtil);
+        
         doReturn(FAKE_GET_RETURN_ACTIVE_INSTANCE)
-                .when(novaV2ComputeOpenStack)
+                .when(httpRequestClientUtil)
                 .doGetRequest(eq(FAKE_ENDPOINT), eq(localToken));
 
         ComputeInstance computeInstance =
-                this.novaV2ComputeOpenStack.getInstance(FAKE_INSTANCE_ID, FAKE_ORDER_ID, this.localToken);
+                this.novaV2ComputeOpenStack.getInstance(FAKE_INSTANCE_ID, this.localToken);
 
         assertEquals(computeInstance.getId(), FAKE_INSTANCE_ID);
         assertEquals(computeInstance.getState(), InstanceState.READY);
     }
 
     @Test
-    public void testGetFailedInstance() throws RequestException {
+    public void testGetFailedInstance() throws FogbowManagerException, HttpResponseException, UnexpectedException {
         doReturn(FAKE_ENDPOINT)
                 .when(novaV2ComputeOpenStack)
                 .getComputeEndpoint(anyString(), anyString());
-
+        
+        HttpRequestClientUtil httpRequestClientUtil = Mockito.mock(HttpRequestClientUtil.class);
+        this.novaV2ComputeOpenStack.setClient(httpRequestClientUtil);
+        
         doReturn(FAKE_GET_RETURN_FAILED_INSTANCE)
-                .when(novaV2ComputeOpenStack)
+                .when(httpRequestClientUtil)
                 .doGetRequest(eq(FAKE_ENDPOINT), eq(localToken));
 
         ComputeInstance computeInstance =
-                this.novaV2ComputeOpenStack.getInstance(FAKE_INSTANCE_ID, FAKE_ORDER_ID, this.localToken);
+                this.novaV2ComputeOpenStack.getInstance(FAKE_INSTANCE_ID, this.localToken);
 
         assertEquals(computeInstance.getId(), FAKE_INSTANCE_ID);
         assertEquals(computeInstance.getState(), InstanceState.FAILED);
     }
 
     @Test
-    public void testGetInactiveInstance() throws RequestException {
+    public void testGetInactiveInstance() throws FogbowManagerException, HttpResponseException, UnexpectedException {
         doReturn(FAKE_ENDPOINT)
                 .when(this.novaV2ComputeOpenStack)
                 .getComputeEndpoint(anyString(), anyString());
-
+        
+        HttpRequestClientUtil httpRequestClientUtil = Mockito.mock(HttpRequestClientUtil.class);
+        this.novaV2ComputeOpenStack.setClient(httpRequestClientUtil);
+        
         doReturn(FAKE_GET_RETURN_INACTIVE_INSTANCE)
-                .when(this.novaV2ComputeOpenStack)
+                .when(httpRequestClientUtil)
                 .doGetRequest(eq(FAKE_ENDPOINT), eq(this.localToken));
 
         ComputeInstance computeInstance =
-                this.novaV2ComputeOpenStack.getInstance(FAKE_INSTANCE_ID, FAKE_ORDER_ID, this.localToken);
+                this.novaV2ComputeOpenStack.getInstance(FAKE_INSTANCE_ID, this.localToken);
 
         assertEquals(computeInstance.getId(), FAKE_INSTANCE_ID);
         assertEquals(computeInstance.getState(), InstanceState.SPAWNING);
     }
 
     @Test(expected = Exception.class)
-    public void testGetInstanceWithJSONException() throws RequestException {
+    public void testGetInstanceWithJSONException() throws FogbowManagerException, HttpResponseException, UnexpectedException {
+    	
+    	HttpRequestClientUtil httpRequestClientUtil = Mockito.mock(HttpRequestClientUtil.class);
+        this.novaV2ComputeOpenStack.setClient(httpRequestClientUtil);
+    	
         doReturn(INVALID_FAKE_POST_RETURN)
-                .when(this.novaV2ComputeOpenStack)
+                .when(httpRequestClientUtil)
                 .doGetRequest(anyString(), any(Token.class));
 
-        this.novaV2ComputeOpenStack.getInstance(FAKE_INSTANCE_ID, FAKE_ORDER_ID, this.localToken);
+        this.novaV2ComputeOpenStack.getInstance(FAKE_INSTANCE_ID, this.localToken);
     }
 }

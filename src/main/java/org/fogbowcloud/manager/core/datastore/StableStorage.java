@@ -1,6 +1,6 @@
 package org.fogbowcloud.manager.core.datastore;
 
-import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
+import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 

@@ -3,48 +3,31 @@ package org.fogbowcloud.manager.core.models.orders;
 import java.util.UUID;
 
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 
 public class NetworkOrder extends Order {
 
     private String gateway;
     private String address;
-    private NetworkAllocation allocation;
+    private NetworkAllocationMode allocation;
 
     public NetworkOrder() {
         super(UUID.randomUUID().toString());
     }
     
     /** Creating Order with predefined Id. */
-    public NetworkOrder(
-            String id,
-            FederationUser federationUser,
-            String requestingMember,
-            String providingMember,
-            String gateway,
-            String address,
-            NetworkAllocation allocation) {
+    public NetworkOrder(String id, FederationUser federationUser, String requestingMember, String providingMember,
+            String gateway, String address, NetworkAllocationMode allocation) {
         super(id, federationUser, requestingMember, providingMember);
         this.gateway = gateway;
         this.address = address;
         this.allocation = allocation;
     }
 
-    public NetworkOrder(
-            FederationUser federationUser,
-            String requestingMember,
-            String providingMember,
-            String gateway,
-            String address,
-            NetworkAllocation allocation) {
-        this(
-                UUID.randomUUID().toString(),
-                federationUser,
-                requestingMember,
-                providingMember,
-                gateway,
-                address,
-                allocation);
+    public NetworkOrder(FederationUser federationUser, String requestingMember, String providingMember,
+            String gateway, String address, NetworkAllocationMode allocation) {
+        this(UUID.randomUUID().toString(), federationUser, requestingMember, providingMember,
+                gateway, address, allocation);
     }
 
     public String getGateway() {
@@ -55,7 +38,7 @@ public class NetworkOrder extends Order {
         return address;
     }
 
-    public NetworkAllocation getAllocation() {
+    public NetworkAllocationMode getAllocation() {
         return allocation;
     }
 

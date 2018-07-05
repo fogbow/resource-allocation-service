@@ -1,27 +1,21 @@
 package org.fogbowcloud.manager.core.processors;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
-import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
+import org.fogbowcloud.manager.util.connectivity.SshTunnelConnectionData;
+import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.utils.ComputeInstanceConnectivityUtil;
-import org.fogbowcloud.manager.utils.SshConnectivityUtil;
-import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
+import org.fogbowcloud.manager.util.connectivity.ComputeInstanceConnectivityUtil;
+import org.fogbowcloud.manager.util.connectivity.SshConnectivityUtil;
+import org.fogbowcloud.manager.util.connectivity.TunnelingServiceUtil;
 
 /**
  * Process orders in fulfilled state. It monitors the resourced that have been successfully
@@ -44,23 +38,15 @@ public class FulfilledProcessor implements Runnable {
      */
     private Long sleepTime;
 
-    public FulfilledProcessor(
-            String localMemberId,
-            TunnelingServiceUtil tunnelingService,
-            SshConnectivityUtil sshConnectivity, String sleepTimeStr) {
-
+    public FulfilledProcessor(String localMemberId, TunnelingServiceUtil tunnelingService,
+                              SshConnectivityUtil sshConnectivity, String sleepTimeStr) {
         CloudConnectorFactory cloudConnectorFactory = CloudConnectorFactory.getInstance();
-
         this.localMemberId = localMemberId;
-
         this.localCloudConnector = cloudConnectorFactory.getCloudConnector(localMemberId);
-
         this.computeInstanceConnectivity =
             new ComputeInstanceConnectivityUtil(tunnelingService, sshConnectivity);
-
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
-
         this.sleepTime = Long.valueOf(sleepTimeStr);
     }
 
@@ -77,22 +63,18 @@ public class FulfilledProcessor implements Runnable {
                 Order order = this.fulfilledOrdersList.getNext();
 
                 if (order != null) {
-                    try {
-                        processFulfilledOrder(order);
-                    } catch (OrderStateTransitionException e) {
-                        LOGGER.error("Error while trying to process the order " + order, e);
-                    }
+                    processFulfilledOrder(order);
                 } else {
                     this.fulfilledOrdersList.resetPointer();
-                    LOGGER.debug(
-                        "There is no fulfilled order to be processed, sleeping for "
-                            + this.sleepTime
-                            + " milliseconds");
+                    LOGGER.debug("There is no fulfilled order to be processed, sleeping for "
+                            + this.sleepTime + " milliseconds");
                     Thread.sleep(this.sleepTime);
                 }
             } catch (InterruptedException e) {
                 isActive = false;
-                LOGGER.warn("Thread interrupted", e);
+                LOGGER.error("Thread interrupted", e);
+            } catch (UnexpectedException e) {
+                LOGGER.error(e.getMessage(), e);
             } catch (Throwable e) {
                 LOGGER.error("Unexpected error", e);
             }
@@ -104,67 +86,77 @@ public class FulfilledProcessor implements Runnable {
      * set to failed.
      *
      * @param order {@link Order}
-     * @throws OrderStateTransitionException Could not remove order from list of fulfilled orders.
      */
-    protected void processFulfilledOrder(Order order) throws OrderStateTransitionException {
+    protected void processFulfilledOrder(Order order) throws UnexpectedException {
+
+        Instance instance = null;
+        InstanceState instanceState = null;
+        InstanceType instanceType = null;
+
+
+        // The order object synchronization is needed to prevent a race
+        // condition on order access. For example: a user can delete a fulfilled
+        // order while this method is trying to check the status of an instance
+        // that was allocated to an order.
+
         synchronized (order) {
             OrderState orderState = order.getOrderState();
 
+            // Only orders that have been served by the local cloud are checked; remote ones are checked by
+            // the Fogbow manager running in the other member, which reports back any changes in the status.
             if (!order.isProviderLocal(this.localMemberId)) {
                 return;
             }
 
-            if (orderState.equals(OrderState.FULFILLED)) {
-                LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
+            // Check if the order is still in the Fulfilled state (it could have been changed by another thread)
+            if (!orderState.equals(OrderState.FULFILLED)) {
+                return;
+            }
 
-                try {
-                    processInstance(order);
-                } catch (OrderStateTransitionException e) {
-                    LOGGER.error(
-                        "Transition ["
-                            + order.getId()
-                            + "] order state from fulfilled to failed");
-                } catch (Exception e) {
-                    LOGGER.error("Error while getting instance from the cloud.", e);
-                    OrderStateTransitioner.transition(order, OrderState.FAILED);
-                }
+            LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
+            try {
+                instance = this.localCloudConnector.getInstance(order);
+            } catch (Exception e) {
+                LOGGER.error("Error while getting instance from the cloud.", e);
+                OrderStateTransitioner.transition(order, OrderState.FAILED);
+                return;
+            }
+            instanceType = order.getType();
+            instanceState = instance.getState();
+            if (instanceState.equals(InstanceState.FAILED)) {
+                LOGGER.info("Instance state is failed for order [" + order.getId() + "]");
+                OrderStateTransitioner.transition(order, OrderState.FAILED);
+                return;
             }
         }
-    }
 
-    /**
-     * Checks if instance state is failed and changes the order state to failed. Checks SSH
-     * connectivity if instance state is active and the order type is compute.
-     *
-     * @param order {@link Order}
-     * @throws RemoteRequestException 
-     */
-    protected void processInstance(Order order)
-        throws PropertyNotSpecifiedException, TokenCreationException, RequestException, InstanceNotFoundException, UnauthorizedException, OrderStateTransitionException, RemoteRequestException {
+        // Checking if the compute instance is reacheable. This needs to be done outside the synchonized block
+        // because it may take a few seconds, and keeping the lock on the order could slow down other threads.
+        // Since the order object is not accessed, there is no race condition that can happen.
 
-        InstanceType instanceType = order.getType();
-
-        Instance instance = this.localCloudConnector.getInstance(order);
-		InstanceState instanceState = instance.getState();
-
-        if (instanceState.equals(InstanceState.FAILED)) {
-            LOGGER.info("Instance state is failed for order [" + order.getId() + "]");
-            OrderStateTransitioner.transition(order, OrderState.FAILED);
-        } else if (instanceState.equals(InstanceState.READY)
-            && instanceType.equals(InstanceType.COMPUTE)) {
+        if (instanceState.equals(InstanceState.READY) && instanceType.equals(InstanceType.COMPUTE)) {
             LOGGER.info("Processing active compute instance for order [" + order.getId() + "]");
 
             SshTunnelConnectionData sshTunnelConnectionData = this.computeInstanceConnectivity
-                .getSshTunnelConnectionData(order.getId());
+                    .getSshTunnelConnectionData(order.getId());
             if (sshTunnelConnectionData != null) {
-                boolean instanceReachable = this.computeInstanceConnectivity
-                    .isInstanceReachable(sshTunnelConnectionData);
+                boolean instanceReachable = this.computeInstanceConnectivity.isInstanceReachable(sshTunnelConnectionData);
+
                 if (!instanceReachable) {
-                    OrderStateTransitioner.transition(order, OrderState.FAILED);
+
+                    //taking the mutex back.
+                    //Since we might have lost the CPU, it is possible the order is not longer FULFILLED
+                    synchronized (order) {
+                        if (!((order.getOrderState()).equals(OrderState.FULFILLED))) {
+                            return;
+                        }
+                        OrderStateTransitioner.transition(order, OrderState.FAILED);
+                        return;
+                    }
                 }
             }
-        } else {
-            LOGGER.debug("The instance was processed successfully");
         }
+        LOGGER.debug("The instance was processed successfully");
     }
+
 }

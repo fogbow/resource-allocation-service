@@ -2,12 +2,13 @@ package org.fogbowcloud.manager.core.datastore.orderstorage;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.datastore.commands.NetworkSQLCommands;
-import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
-import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
+import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 
 import java.sql.*;
 import java.util.Date;
@@ -136,7 +137,7 @@ public class NetworkOrderStorage extends OrderStorage {
                         new FederationUser(networkResult.getString(4), federationUserAttr),
                         networkResult.getString(6), networkResult.getString(7),
                         networkResult.getString(8), networkResult.getString(9),
-                        NetworkAllocation.fromValue(networkResult.getString(10)));
+                        NetworkAllocationMode.fromValue(networkResult.getString(10)));
 
                 networkOrder.setInstanceId(networkResult.getString(2));
                 networkOrder.setOrderState(OrderState.fromValue(networkResult.getString(3)));
@@ -154,6 +155,8 @@ public class NetworkOrderStorage extends OrderStorage {
             } catch (SQLException e1) {
                 LOGGER.error("Couldn't rollback transaction.", e1);
             }
+        } catch (UnexpectedException e) {
+            LOGGER.error(e);
         } finally {
             closeConnection(orderStatement, connection);
         }

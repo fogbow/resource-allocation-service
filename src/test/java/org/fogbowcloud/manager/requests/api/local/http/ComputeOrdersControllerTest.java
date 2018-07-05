@@ -1,10 +1,23 @@
 package org.fogbowcloud.manager.requests.api.local.http;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.fogbowcloud.manager.api.http.ComputeOrdersController;
 import org.fogbowcloud.manager.core.ApplicationFacade;
-import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.junit.Before;
@@ -26,15 +39,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
@@ -47,7 +53,7 @@ public class ComputeOrdersControllerTest {
                     + "\"publicKey\":\"pub-key\", \"vCPU\":\"2\", \"memory\":\"1024\", \"disk\":\"20\", "
                     + "\"imageName\":\"ubuntu\"}";
 
-    private final String WRONG_BODY = "{ }";
+    private final String WRONG_BODY = "";
 
     @Autowired
     private MockMvc mockMvc;
@@ -57,7 +63,7 @@ public class ComputeOrdersControllerTest {
     private final String COMPUTE_ENDPOINT = "/" + ComputeOrdersController.COMPUTE_ENDPOINT;
 
     @Before
-    public void setUp() throws OrderManagementException {
+    public void setUp() throws FogbowManagerException {
         this.facade = spy(ApplicationFacade.class);
         PowerMockito.mockStatic(ApplicationFacade.class);
         given(ApplicationFacade.getInstance()).willReturn(this.facade);
@@ -166,7 +172,7 @@ public class ComputeOrdersControllerTest {
 
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
-        int expectedStatus = HttpStatus.NO_CONTENT.value();
+        int expectedStatus = HttpStatus.OK.value();
         assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 

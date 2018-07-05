@@ -1,7 +1,8 @@
 package org.fogbowcloud.manager.core.models.orders;
 
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 
 public abstract class Order {
 
@@ -17,13 +18,14 @@ public abstract class Order {
 
     private String instanceId;
 
+    private InstanceState cachedInstanceState;
+
     public Order(String id) {
         this.id = id;
     }
 
     /** Creating Order with predefined Id. */
-    public Order(
-            String id, FederationUser federationUser, String requestingMember, String providingMember) {
+    public Order(String id, FederationUser federationUser, String requestingMember, String providingMember) {
         this(id);
         this.federationUser = federationUser;
         this.requestingMember = requestingMember;
@@ -78,6 +80,14 @@ public abstract class Order {
         this.instanceId = instanceId;
     }
 
+    public InstanceState getCachedInstanceState() {
+        return (this.orderState.equals(OrderState.FAILED) ? InstanceState.FAILED : cachedInstanceState);
+    }
+
+    public void setCachedInstanceState(InstanceState cachedInstanceState) {
+        this.cachedInstanceState = cachedInstanceState;
+    }
+
     public boolean isProviderLocal(String localMemberId) {
         return this.providingMember.equals(localMemberId);
     }
@@ -88,6 +98,7 @@ public abstract class Order {
 
     public abstract InstanceType getType();
 
+    // TODO: add a comment to explain why we need to override these methods
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -110,18 +121,8 @@ public abstract class Order {
 
     @Override
     public String toString() {
-        return "Order [id="
-                + id
-                + ", orderState="
-                + orderState
-                + ", federationUser="
-                + federationUser
-                + ", requestingMember="
-                + requestingMember
-                + ", providingMember="
-                + providingMember
-                + ", instanceId="
-                + instanceId
-                + "]";
+        return "Order [id=" + id + ", orderState=" + orderState + ", federationUser=" + federationUser
+                + ", requestingMember=" + requestingMember + ", providingMember=" + providingMember
+                + ", instanceId=" + instanceId + "]";
     }
 }

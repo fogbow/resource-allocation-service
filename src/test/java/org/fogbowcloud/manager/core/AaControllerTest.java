@@ -1,25 +1,21 @@
 package org.fogbowcloud.manager.core;
 
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
+import org.fogbowcloud.manager.core.exceptions.*;
+
 import java.util.Map;
 import org.fogbowcloud.manager.core.constants.Operation;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.models.token.Token;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.DefaultLocalUserCredentialsMapper;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.LocalUserCredentialsMapperPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.LocalIdentityPlugin;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.services.PluginInstantiationService;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -30,7 +26,7 @@ public class AaControllerTest {
     private FederationIdentityPlugin federationIdentityPlugin;
     private LocalIdentityPlugin localIdentityPlugin;
 
-    private PluginInstantiationService pluginInstantiationService;
+    private PluginInstantiator pluginInstantiator;
     private BehaviorPluginsHolder behaviorPluginsHolder;
 
     @Before
@@ -40,10 +36,10 @@ public class AaControllerTest {
 
         HomeDir.getInstance().setPath("src/test/resources/private");
 
-        this.pluginInstantiationService = PluginInstantiationService.getInstance();
+        this.pluginInstantiator = PluginInstantiator.getInstance();
         
         this.behaviorPluginsHolder =
-                Mockito.spy(new BehaviorPluginsHolder(pluginInstantiationService));
+                Mockito.spy(new BehaviorPluginsHolder(pluginInstantiator));
         this.federationIdentityPlugin =
                 Mockito.spy(this.behaviorPluginsHolder.getFederationIdentityPlugin());
         this.AaController =
@@ -52,28 +48,27 @@ public class AaControllerTest {
     }
 
     @Test
-    public void testAuthenticate() throws UnauthenticatedException {
+    public void testAuthenticate() throws UnauthenticatedUserException {
         boolean isAuthenticated = true;
         Mockito.doReturn(isAuthenticated).when(this.federationIdentityPlugin)
                 .isValid(Mockito.anyString());
         this.AaController.authenticate(Mockito.anyString());
     }
 
-    /**
-     * Method 'isValid(String federationTokenValue)' 
-     * in 'DefaultFederationIdentityPlugin' class, 
-     * is set to always return true
-     */
-    @Ignore
-    @Test(expected = UnauthorizedException.class)
-    public void testAuthenticationFail() throws UnauthenticatedException {
-        Mockito.doThrow(UnauthorizedException.class).when(this.federationIdentityPlugin)
-                .isValid(Mockito.anyString());
+    @Test(expected = UnauthenticatedUserException.class)
+    public void testAuthenticationFail() throws UnauthenticatedUserException {
+        FederationIdentityPlugin federationIdentityPlugin =
+                Mockito.mock(FederationIdentityPlugin.class);
+        Mockito.doReturn(false).when(federationIdentityPlugin).isValid(Mockito.anyString());
+        Assert.assertFalse(federationIdentityPlugin.isValid(Mockito.anyString()));
+        Mockito.verify(federationIdentityPlugin).isValid(Mockito.anyString());
+        Mockito.doThrow(UnauthenticatedUserException.class).when(this.AaController)
+                .authenticate(Mockito.anyString());
         this.AaController.authenticate(Mockito.anyString());
     }
 
     @Test
-    public void testAuthorizePassingOrderTypeParam() {
+    public void testAuthorizePassingOrderTypeParam() throws UnexpectedException {
         FederationUser federationUser = new FederationUser("fake-user", null);
         Mockito.doReturn(true).when(this.authorizationPlugin).isAuthorized(
                 Mockito.eq(federationUser), Mockito.any(Operation.class),
@@ -89,7 +84,7 @@ public class AaControllerTest {
     }
 
     @Test
-    public void testAuthorizePassingOrderParam() {
+    public void testAuthorizePassingOrderParam() throws UnexpectedException {
         FederationUser federationUser = new FederationUser("fake-user", null);
         Order order = new ComputeOrder();
         Mockito.doReturn(true).when(this.authorizationPlugin).isAuthorized(
@@ -103,32 +98,42 @@ public class AaControllerTest {
         }
     }
 
-    /**
-     * This method was not implemented in 'KeystoneV3IdentityPlugin' class
-     */
     @SuppressWarnings("unchecked")
-    @Ignore
     @Test
-    public void testGetLocalToken()
-            throws UnauthorizedException, TokenCreationException, PropertyNotSpecifiedException {
+    public void testGetLocalToken() throws FogbowManagerException, UnexpectedException {
         Token localToken = Mockito.mock(Token.class);
         Mockito.doReturn(localToken).when(this.localIdentityPlugin).createToken(Mockito.anyMap());
         Token tokenGenarated = this.AaController.getLocalToken(null);
         Assert.assertEquals(localToken, tokenGenarated);
     }
 
-    @Test(expected = PropertyNotSpecifiedException.class)
-    public void testGetLocalTokenWithNoCredentials()
-            throws PropertyNotSpecifiedException, UnauthorizedException, TokenCreationException {
+    @Test(expected = UnexpectedException.class)
+    public void testGetLocalTokenThrowUnexpectedException() throws FogbowManagerException, UnexpectedException {
         FederationUser federationUser = Mockito.mock(FederationUser.class);
         LocalUserCredentialsMapperPlugin localUserCredentialsMapperPlugin =
-                new DefaultLocalUserCredentialsMapper();
+                Mockito.spy(new DefaultLocalUserCredentialsMapper());
+        Map<String, String> userCredentials =
+                localUserCredentialsMapperPlugin.getCredentials(federationUser);
+        Mockito.doReturn(userCredentials).when(localUserCredentialsMapperPlugin)
+                .getCredentials(federationUser);        
+        Mockito.doThrow(UnexpectedException.class).when(this.localIdentityPlugin)
+                .createToken(userCredentials);
+        this.AaController.getLocalToken(federationUser);
+    }
+    
+    @Test(expected = FogbowManagerException.class)
+    public void testGetLocalTokenThrowFogbowManagerException()
+            throws FogbowManagerException, UnexpectedException {
+        FederationUser federationUser = Mockito.mock(FederationUser.class);
+        LocalUserCredentialsMapperPlugin localUserCredentialsMapperPlugin =
+                Mockito.spy(new DefaultLocalUserCredentialsMapper());
         Map<String, String> userCredentials =
                 localUserCredentialsMapperPlugin.getCredentials(federationUser);
         Mockito.doReturn(userCredentials).when(localUserCredentialsMapperPlugin)
                 .getCredentials(federationUser);
-        Mockito.doThrow(PropertyNotSpecifiedException.class).when(this.AaController)
-                .getLocalToken(federationUser);
+        Mockito.doThrow(FogbowManagerException.class).when(this.localIdentityPlugin)
+                .createToken(userCredentials);
+        this.AaController.getLocalToken(federationUser);
     }
 
 }

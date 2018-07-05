@@ -18,28 +18,27 @@ import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.OrderController;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
-import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.RemoteCloudConnector;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.manager.core.models.SshTunnelConnectionData;
-import org.fogbowcloud.manager.core.models.linkedlist.ChainedList;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
+import org.fogbowcloud.manager.util.connectivity.SshTunnelConnectionData;
+import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.fogbowcloud.manager.core.plugins.cloud.LocalIdentityPlugin;
-import org.fogbowcloud.manager.utils.SshConnectivityUtil;
-import org.fogbowcloud.manager.utils.TunnelingServiceUtil;
+import org.fogbowcloud.manager.util.connectivity.SshConnectivityUtil;
+import org.fogbowcloud.manager.util.connectivity.TunnelingServiceUtil;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -67,6 +66,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
     @Before
     public void setUp() {
+        mockDB();
         HomeDir.getInstance().setPath("src/test/resources/private");
 
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
@@ -227,38 +227,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         assertEquals(OrderState.FAILED, test.getOrderState());
     }
 
-    /**
-     * Test if the fulfilled processor still running and do not change the order state if the method
-     * processFulfilledOrder throw an order state transition exception.
-     *
-     * @throws OrderStateTransitionException
-     * @throws InterruptedException
-     */
     @Test
-    public void testProcessFulfilledOrderThrowingOrderStateTransitionException()
-            throws OrderStateTransitionException, InterruptedException {
-        Order order = this.createLocalOrder();
-        order.setOrderState(OrderState.FULFILLED);
-
-        this.fulfilledOrderList.addItem(order);
-
-        Mockito.doThrow(OrderStateTransitionException.class)
-                .when(this.fulfilledProcessor)
-                .processFulfilledOrder(Mockito.any(Order.class));
-
-        this.thread = new Thread(this.fulfilledProcessor);
-        this.thread.start();
-
-        Thread.sleep(500);
-
-        Order test = this.fulfilledOrderList.getNext();
-        assertEquals(order.getInstanceId(), test.getInstanceId());
-        assertEquals(OrderState.FULFILLED, order.getOrderState());
-    }
-
-    @Test
-    public void testRunThrowableExceptionWhileTryingToProcessOrder()
-            throws InterruptedException, OrderStateTransitionException {
+    public void testRunThrowableExceptionWhileTryingToProcessOrder() throws InterruptedException, UnexpectedException {
         Order order = Mockito.mock(Order.class);
         OrderState state = null;
         order.setOrderState(state);
@@ -271,19 +241,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
         Thread.sleep(500);
-    }
-
-    @Test
-    public void testRunExceptionWhileTryingToProcessInstance() throws Exception {
-        Order order = this.createLocalOrder();
-        order.setOrderState(OrderState.FULFILLED);
-        this.fulfilledOrderList.addItem(order);
-
-        Mockito.doThrow(new OrderStateTransitionException("Any Exception"))
-                .when(this.fulfilledProcessor)
-                .processInstance(order);
-
-        this.fulfilledProcessor.processFulfilledOrder(order);
     }
 
     private Order createLocalOrder() {

@@ -3,19 +3,14 @@ package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
 import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
-import org.xmpp.packet.PacketError;
 
 import com.google.gson.Gson;
 
@@ -53,24 +48,9 @@ public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
             instanceClassNameElement.setText(instance.getClass().getName());
             
             instanceElement.setText(new Gson().toJson(instance));
-        } catch (PropertyNotSpecifiedException e) {
-            // TODO: Switch this error for an appropriate one.
-            response.setError(PacketError.Condition.internal_server_error);
-        } catch (RequestException e) {
-            // TODO: Switch this error for an appropriate one.
-            response.setError(PacketError.Condition.internal_server_error);
-        } catch (InstanceNotFoundException e) {
-            LOGGER.error("The instance does not exist.", e);
-            response.setError(PacketError.Condition.item_not_found);
-        } catch (TokenCreationException e) {
-            LOGGER.error("Error while creating token", e);
-            response.setError(PacketError.Condition.service_unavailable);
-        } catch (UnauthorizedException e) {
-            LOGGER.error("The user is not authorized to get the instance.", e);
-            response.setError(PacketError.Condition.forbidden);
-        } finally {
-            return response;
+        } catch (Exception e) {
+            XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
+        return response;
     }
-
 }

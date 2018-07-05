@@ -2,18 +2,13 @@ package org.fogbowcloud.manager.api.http;
 
 import java.util.List;
 
-import org.fogbowcloud.manager.core.intercomponent.exceptions.RemoteRequestException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.ApplicationFacade;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.manager.core.exceptions.OrderManagementException;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
-import org.fogbowcloud.manager.core.exceptions.RequestException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedException;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.models.InstanceStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,8 +26,8 @@ public class NetworkOrdersController {
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<String> createNetwork(@RequestBody NetworkOrder networkOrder,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
-        LOGGER.info("New network order request received.");
+            throws FogbowManagerException, UnexpectedException {
+        LOGGER.info("New network order request received <" + networkOrder.getId() + ">.");
 
         String networkId = ApplicationFacade.getInstance().createNetwork(networkOrder, federationTokenValue);
         return new ResponseEntity<String>(networkId, HttpStatus.CREATED);
@@ -41,26 +36,38 @@ public class NetworkOrdersController {
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<NetworkInstance>> getAllNetworks(
             @RequestHeader(required = false ,value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
+            throws Exception {
+        LOGGER.info("Get all network orders request received.");
         List<NetworkInstance> networks = ApplicationFacade.getInstance().getAllNetworks(federationTokenValue);
         return new ResponseEntity<>(networks, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/status", method = RequestMethod.GET)
+    public ResponseEntity<List<InstanceStatus>> getAllNetworksStatus(
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            throws Exception {
+        LOGGER.info("Get the status of all networks order requests received.");
+        List<InstanceStatus> networkInstanceStatus =
+                ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, InstanceType.NETWORK);
+        return new ResponseEntity<>(networkInstanceStatus, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/{networkId}", method = RequestMethod.GET)
     public ResponseEntity<NetworkInstance> getNetwork(@PathVariable String networkId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, TokenCreationException, RequestException, PropertyNotSpecifiedException, UnauthorizedException, InstanceNotFoundException, RemoteRequestException {
+            throws Exception {
+        LOGGER.info("Get request for network order <" + networkId + "> received.");
         NetworkInstance networkInstance = ApplicationFacade.getInstance().getNetwork(networkId, federationTokenValue);
-        return networkInstance == null ?  new ResponseEntity<>(networkInstance, HttpStatus.NOT_FOUND) :
-                new ResponseEntity<>(networkInstance, HttpStatus.OK);
+        return new ResponseEntity<>(networkInstance, HttpStatus.OK);
     }
 
     @RequestMapping(value = "/{networkId}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> deleteNetwork(@PathVariable String networkId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws UnauthenticatedException, UnauthorizedException, OrderManagementException {
+            throws FogbowManagerException, UnexpectedException {
+        LOGGER.info("Delete compute order <" + networkId + "> received.");
         ApplicationFacade.getInstance().deleteNetwork(networkId, federationTokenValue);
-        return new ResponseEntity<Boolean>(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<Boolean>(HttpStatus.OK);
     }
 
 }

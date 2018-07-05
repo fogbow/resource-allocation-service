@@ -1,11 +1,12 @@
 package org.fogbowcloud.manager.core.datastore;
 
 import org.fogbowcloud.manager.core.PropertiesHolder;
-import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.*;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.CloudInitUserDataBuilder;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.plugins.cloud.util.CloudInitUserDataBuilder;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -68,7 +69,7 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    public void testAddComputeOrder() {
+    public void testAddComputeOrder() throws UnexpectedException {
         DatabaseManager databaseManager = DatabaseManager.getInstance();
 
         // Check if compute order table is empty
@@ -95,7 +96,7 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    public void testUpdateComputeOrderState() {
+    public void testUpdateComputeOrderState() throws UnexpectedException {
         DatabaseManager databaseManager = DatabaseManager.getInstance();
 
         ComputeOrder computeOrder = new ComputeOrder("id", new FederationUser("fed-id", new HashMap<>()),
@@ -123,7 +124,7 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    public void testAddNetworkOrder() {
+    public void testAddNetworkOrder() throws UnexpectedException {
         DatabaseManager databaseManager = DatabaseManager.getInstance();
 
         // Check if network order table is empty
@@ -135,7 +136,7 @@ public class DatabaseManagerTest {
         // Create a new network order
         Order networkOrder = new NetworkOrder(new FederationUser("fed-id", new HashMap<>()),
                 "requestingMember", "providingMember", "gateway",
-                "address", NetworkAllocation.STATIC);
+                "address", NetworkAllocationMode.STATIC);
         networkOrder.setOrderState(OrderState.OPEN);
 
         // Add network order into database
@@ -149,12 +150,12 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    public void testUpdateNetworkOrderState() {
+    public void testUpdateNetworkOrderState() throws UnexpectedException {
         DatabaseManager databaseManager = DatabaseManager.getInstance();
 
         Order networkOrder = new NetworkOrder(new FederationUser("fed-id", new HashMap<>()),
                 "requestingMember", "providingMember", "gateway",
-                "address", NetworkAllocation.STATIC);
+                "address", NetworkAllocationMode.STATIC);
         networkOrder.setOrderState(OrderState.OPEN);
 
         databaseManager.add(networkOrder);
@@ -172,7 +173,7 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    public void testAddVolumeOrder() {
+    public void testAddVolumeOrder() throws UnexpectedException {
         DatabaseManager databaseManager = DatabaseManager.getInstance();
 
         // Check if volume order table is empty
@@ -183,7 +184,7 @@ public class DatabaseManagerTest {
 
         // Create a new volume order
         Order volumeOrder = new VolumeOrder(new FederationUser("fed-id", new HashMap<>()),
-                "requestingMember", "providingMember", 0);
+                "requestingMember", "providingMember", 0, "volume-name");
         volumeOrder.setOrderState(OrderState.OPEN);
 
         // Add volume order into database
@@ -197,11 +198,11 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    public void testUpdateVolumeOrderState() {
+    public void testUpdateVolumeOrderState() throws UnexpectedException {
         DatabaseManager databaseManager = DatabaseManager.getInstance();
 
         Order volumeOrder = new VolumeOrder(new FederationUser("fed-id", new HashMap<>()),
-                "requestingMember", "providingMember", 0);
+                "requestingMember", "providingMember", 0, "volume-name");
         volumeOrder.setOrderState(OrderState.OPEN);
 
         databaseManager.add(volumeOrder);
@@ -222,11 +223,11 @@ public class DatabaseManagerTest {
      * If a closed order do not have an instance id, it should not be recovered.
      */
     @Test
-    public void testGetClosedOrderWithoutInstanceId() {
+    public void testGetClosedOrderWithoutInstanceId() throws UnexpectedException {
         DatabaseManager databaseManager = DatabaseManager.getInstance();
 
         Order volumeOrder = new VolumeOrder(new FederationUser("fed-id", new HashMap<>()),
-                "requestingMember", "providingMember", 0);
+                "requestingMember", "providingMember", 0, "volume-name");
         volumeOrder.setOrderState(OrderState.CLOSED);
 
         databaseManager.add(volumeOrder);
@@ -240,11 +241,11 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    public void testGetClosedOrderWithInstanceId() {
+    public void testGetClosedOrderWithInstanceId() throws UnexpectedException {
         DatabaseManager databaseManager = DatabaseManager.getInstance();
 
         VolumeOrder volumeOrder = new VolumeOrder(new FederationUser("fed-id", new HashMap<>()),
-                "requestingMember", "providingMember", 0);
+                "requestingMember", "providingMember", 0, "volume-name");
         volumeOrder.setOrderState(OrderState.CLOSED);
         volumeOrder.setInstanceId("instanceId");
 

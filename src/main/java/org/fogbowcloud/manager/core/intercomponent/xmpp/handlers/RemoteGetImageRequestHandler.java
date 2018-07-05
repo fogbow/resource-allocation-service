@@ -3,16 +3,13 @@ package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
 import org.fogbowcloud.manager.core.models.images.Image;
-import org.fogbowcloud.manager.core.plugins.exceptions.TokenCreationException;
-import org.fogbowcloud.manager.core.plugins.exceptions.UnauthorizedException;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
-import org.xmpp.packet.PacketError;
 
 import com.google.gson.Gson;
 
@@ -51,18 +48,9 @@ public class RemoteGetImageRequestHandler extends AbstractQueryHandler {
             imageClassNameElement.setText(image.getClass().getName());
 
             imageElement.setText(new Gson().toJson(image));
-        } catch (PropertyNotSpecifiedException e) {
-            // TODO: Switch this error for an appropriate one.
-            response.setError(PacketError.Condition.internal_server_error);
-        } catch (TokenCreationException e) {
-            LOGGER.error("Error while creating token", e);
-            response.setError(PacketError.Condition.service_unavailable);
-        } catch (UnauthorizedException e) {
-            LOGGER.error("The user is not authorized to get quota.", e);
-            response.setError(PacketError.Condition.forbidden);
-        } finally {
-            return response;
+        } catch (Exception e) {
+            XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
+        return response;
     }
-
 }

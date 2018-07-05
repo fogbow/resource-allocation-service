@@ -15,11 +15,12 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.fogbowcloud.manager.api.http.NetworkOrdersController;
 import org.fogbowcloud.manager.core.ApplicationFacade;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
-import org.fogbowcloud.manager.core.models.orders.NetworkAllocation;
+import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,7 +64,7 @@ public class NetworkOrdersControllerTest {
     public void createdNetworkTest() throws Exception {
         PowerMockito.mockStatic(ApplicationFacade.class);
         given(ApplicationFacade.getInstance()).willReturn(this.facade);
-        String orderId = "orderId"; 
+        String orderId = "orderId";
         doReturn(orderId).when(this.facade).createNetwork(any(NetworkOrder.class), anyString());
 
         HttpHeaders headers = getHttpHeaders();
@@ -183,7 +184,7 @@ public class NetworkOrdersControllerTest {
         return headers;
     }
 
-    private NetworkOrder createNetworkOrder() {
+    private NetworkOrder createNetworkOrder() throws UnexpectedException {
     	FederationUser federationUser = new FederationUser("fake-user", null);
 
         NetworkOrder networkOrder = Mockito.spy(new NetworkOrder());
@@ -198,6 +199,6 @@ public class NetworkOrdersControllerTest {
         String address = "fake-address";
         String gateway = "fake-gateway";
         String vLan = "fake-vlan";
-        return new NetworkInstance(id, label, InstanceState.READY, address, gateway, vLan, NetworkAllocation.STATIC, null, null, null);
+        return new NetworkInstance(id, InstanceState.READY, label, address, gateway, vLan, NetworkAllocationMode.STATIC, null, null, null);
     }
 }

@@ -2,7 +2,7 @@ package org.fogbowcloud.manager.core.models.orders;
 
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,21 +12,14 @@ import java.util.UUID;
 public class ComputeOrder extends Order {
 
     private int vCPU;
-
     /** Memory attribute, must be set in MB. */
     private int memory;
-
     /** Disk attribute, must be set in GB. */
     private int disk;
-
     private String imageId;
-
     private UserData userData;
-
     private String publicKey;
-
     private ComputeAllocation actualAllocation;
-    
     private List<String> networksId;
 
     public ComputeOrder() {
@@ -34,18 +27,9 @@ public class ComputeOrder extends Order {
     }
 
     /** Creating Order with predefined Id. */
-    public ComputeOrder(
-            String id,
-            FederationUser federationUser,
-            String requestingMember,
-            String providingMember,
-            int vCPU,
-            int memory,
-            int disk,
-            String imageId,
-            UserData userData,
-            String publicKey, 
-            List<String> networksId) {
+    public ComputeOrder(String id, FederationUser federationUser, String requestingMember, String providingMember,
+                        int vCPU, int memory, int disk, String imageId, UserData userData, String publicKey,
+                        List<String> networksId) {
         super(id, federationUser, requestingMember, providingMember);
         this.vCPU = vCPU;
         this.memory = memory;
@@ -56,35 +40,11 @@ public class ComputeOrder extends Order {
         this.networksId = networksId;
     }
 
-    public ComputeOrder(
-            FederationUser federationUser,
-            String requestingMember,
-            String providingMember,
-            int vCPU,
-            int memory,
-            int disk,
-            String imageId,
-            UserData userData,
-            String publicKey,
+    public ComputeOrder(FederationUser federationUser, String requestingMember, String providingMember,
+            int vCPU, int memory, int disk, String imageId, UserData userData, String publicKey,
             List<String> networksId) {
-        this(
-                UUID.randomUUID().toString(),
-                federationUser,
-                requestingMember,
-                providingMember,
-                vCPU,
-                memory,
-                disk,
-                imageId,
-                userData,
-                publicKey,
-                networksId);
-    }
-
-    public static ComputeOrder from(ComputeOrder baseOrder) {
-        return new ComputeOrder(baseOrder.getId(), baseOrder.getFederationUser(), baseOrder.getRequestingMember(),
-                baseOrder.getProvidingMember(), baseOrder.getvCPU(), baseOrder.getMemory(), baseOrder.getDisk(),
-                baseOrder.getImageId(), baseOrder.getUserData(), baseOrder.getPublicKey(), baseOrder.getNetworksId());
+        this(UUID.randomUUID().toString(), federationUser, requestingMember, providingMember,
+                vCPU, memory, disk, imageId, userData, publicKey, networksId);
     }
 
     public ComputeAllocation getActualAllocation() {
@@ -134,5 +94,4 @@ public class ComputeOrder extends Order {
     public void setNetworksId(List<String> networksId) {
         this.networksId = networksId;
     }
-
 }

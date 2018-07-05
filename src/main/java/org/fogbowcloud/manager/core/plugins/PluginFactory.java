@@ -2,13 +2,13 @@ package org.fogbowcloud.manager.core.plugins;
 
 import java.lang.reflect.Constructor;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 
 public class PluginFactory {
 
     private static final Logger LOGGER = Logger.getLogger(PluginFactory.class.getName());
-    private static final int EXIT_ERROR_CODE = 128;
 
-    public Object createPluginInstance(String pluginClassName) {
+    public Object createPluginInstance(String pluginClassName) throws FatalErrorException {
 
         Object pluginInstance = null;
 
@@ -20,13 +20,12 @@ public class PluginFactory {
             constructor = classpath.getConstructor();
             pluginInstance = constructor.newInstance();
         } catch (ClassNotFoundException e) {
-            String msg = "No " + pluginClassName
-                    + " class under this repository. Please inform a valid class.";
-            LOGGER.fatal(msg);
-            System.exit(EXIT_ERROR_CODE);
+            String msg = "No " + pluginClassName + " class under this repository. Please inform a valid class.";
+            LOGGER.debug(msg);
+            throw new FatalErrorException(msg);
         } catch (Exception e) {
-             LOGGER.fatal(e.getMessage());
-            System.exit(EXIT_ERROR_CODE);
+            LOGGER.debug("Exception " + e.getMessage());
+            throw new FatalErrorException(e.getMessage(), e);
         }
 
         return pluginInstance;

@@ -26,18 +26,6 @@ public class Image {
         return this.name;
     }
 
-    public long getSize() {
-        return this.size;
-    }
-
-    public long getMinDisk() {
-        return this.minDisk;
-    }
-
-    public long getMinRam() {
-        return this.minRam;
-    }
-
     public String getStatus() {
         return status;
     }

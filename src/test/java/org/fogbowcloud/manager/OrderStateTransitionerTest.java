@@ -1,17 +1,12 @@
 package org.fogbowcloud.manager;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
-import org.fogbowcloud.manager.core.exceptions.OrderStateTransitionException;
-import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
+import org.fogbowcloud.manager.core.datastore.DatabaseManager;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.junit.After;
@@ -24,8 +19,14 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
+
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(SharedOrderHolders.class)
+@PrepareForTest({SharedOrderHolders.class, DatabaseManager.class})
 public class OrderStateTransitionerTest extends BaseUnitTests {
 
     private MockUtil mockUtil = new MockUtil();
@@ -60,11 +61,23 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
     }
 
     @Test
-    public void testValidTransition() throws OrderStateTransitionException {
+    public void testValidTransition() throws UnexpectedException {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 
+        DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
+        when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList());
+        when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList());
+        when(databaseManager.readActiveOrders(OrderState.FAILED)).thenReturn(new SynchronizedDoublyLinkedList());
+        when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList());
+        when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList());
+        when(databaseManager.readActiveOrders(OrderState.CLOSED)).thenReturn(new SynchronizedDoublyLinkedList());
+
+        PowerMockito.mockStatic(DatabaseManager.class);
+        given(DatabaseManager.getInstance()).willReturn(databaseManager);
+
         SharedOrderHolders orderHolders = SharedOrderHolders.getInstance();
+
         SynchronizedDoublyLinkedList openOrdersList = orderHolders.getOpenOrdersList();
         SynchronizedDoublyLinkedList spawningOrdersList = orderHolders.getSpawningOrdersList();
 
@@ -76,22 +89,8 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         assertEquals(order, spawningOrdersList.getNext());
     }
 
-    @Test
-    public void testTransitioningToTheCurrentState() {
-        SharedOrderHolders orderHolders = SharedOrderHolders.getInstance();
-        SynchronizedDoublyLinkedList openOrdersList = orderHolders.getOpenOrdersList();
-        Order order = createOrder(OrderState.OPEN);
-        openOrdersList.addItem(order);
-
-        try {
-            OrderStateTransitioner.transition(order, OrderState.OPEN);
-            fail("Transitioning to the current state should not be permitted.");
-        } catch (OrderStateTransitionException e) {
-        }
-    }
-
-    @Test(expected = RuntimeException.class)
-    public void testOriginListCannotBeFound() throws OrderStateTransitionException {
+    @Test(expected = UnexpectedException.class)
+    public void testOriginListCannotBeFound() throws UnexpectedException {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 
@@ -106,8 +105,8 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         OrderStateTransitioner.transition(order, destinationState);
     }
 
-    @Test(expected = RuntimeException.class)
-    public void testDestinationListCannotBeFound() throws OrderStateTransitionException {
+    @Test(expected = UnexpectedException.class)
+    public void testDestinationListCannotBeFound() throws UnexpectedException {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 
@@ -125,8 +124,8 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         OrderStateTransitioner.transition(order, destinationState);
     }
 
-    @Test(expected = OrderStateTransitionException.class)
-    public void testOriginListRemovalFailure() throws OrderStateTransitionException {
+    @Test(expected = UnexpectedException.class)
+    public void testOriginListRemovalFailure() throws UnexpectedException {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 

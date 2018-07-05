@@ -6,10 +6,10 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.fogbowcloud.manager.core.HomeDir;
-import org.fogbowcloud.manager.core.exceptions.PropertyNotSpecifiedException;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.utils.PropertiesUtil;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.util.PropertiesUtil;
 
 public class DefaultLocalUserCredentialsMapper implements LocalUserCredentialsMapperPlugin {
 	
@@ -18,32 +18,32 @@ public class DefaultLocalUserCredentialsMapper implements LocalUserCredentialsMa
     private static String LOCAL_TOKEN_CREDENTIALS_PREFIX = "local_token_credentials_";
 	private static final String DEFAULT_MAPPER_CONF = "default_mapper.conf";
 	
-	private Properties properties;
+    private Map<String, String> credentials;
 	
-	public DefaultLocalUserCredentialsMapper() {
-	    this.properties = new Properties();
+	public DefaultLocalUserCredentialsMapper() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
-        this.properties = PropertiesUtil.readProperties(homeDir.getPath() +
+        Properties properties = PropertiesUtil.readProperties(homeDir.getPath() +
                 File.separator + DEFAULT_MAPPER_CONF);
+        this.credentials = getDefaultLocalTokenCredentials(properties);
     }
 	
 	@Override
-	public Map<String, String> getCredentials(FederationUser federationUser) throws PropertyNotSpecifiedException {
-		return getDefaultLocalTokenCredentials(this.properties);
+	public Map<String, String> getCredentials(FederationUser federationUser) {
+        return this.credentials;
 	}
 	
     /**
      * Gets credentials with prefix in the properties (LOCAL_TOKEN_CREDENTIALS_PREFIX).
      *
      * @param properties
-     * @return
-     * @throws PropertyNotSpecifiedException
+     * @return user credentials to generate local tokens
+     * @throws FatalErrorException
      */
-    public Map<String, String> getDefaultLocalTokenCredentials(Properties properties)
-            throws PropertyNotSpecifiedException {
+    private Map<String, String> getDefaultLocalTokenCredentials(Properties properties) throws FatalErrorException {
         Map<String, String> localDefaultTokenCredentials = new HashMap<String, String>();
         if (properties == null) {
-            throw new PropertyNotSpecifiedException("Empty property map.");
+            LOGGER.debug("Empty property map.");
+            throw new FatalErrorException("Empty property map.");
         }
 
         for (Object keyProperties : properties.keySet()) {
@@ -57,7 +57,8 @@ public class DefaultLocalUserCredentialsMapper implements LocalUserCredentialsMa
         }
 
         if (localDefaultTokenCredentials.isEmpty()) {
-            throw new PropertyNotSpecifiedException("Default localidentity token credentials not found.");
+            LOGGER.debug("Credentials not found.");
+            throw new FatalErrorException("Default localidentity tokens credentials not found.");
         } else {
             return localDefaultTokenCredentials;
         }

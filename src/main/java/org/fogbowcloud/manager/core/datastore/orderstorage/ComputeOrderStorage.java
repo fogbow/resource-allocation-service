@@ -4,14 +4,15 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.datastore.commands.ComputeSQLCommands;
-import org.fogbowcloud.manager.core.models.linkedlist.SynchronizedDoublyLinkedList;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.token.FederationUser;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.util.CloudInitUserDataBuilder;
+import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.plugins.cloud.util.CloudInitUserDataBuilder;
 
 import java.lang.reflect.Type;
 import java.sql.*;
@@ -185,6 +186,8 @@ public class ComputeOrderStorage extends OrderStorage {
             } catch (SQLException e1) {
                 LOGGER.error("Couldn't rollback transaction.", e1);
             }
+        } catch (UnexpectedException e) {
+            LOGGER.error(e);
         } finally {
             closeConnection(orderStatement, connection);
         }
