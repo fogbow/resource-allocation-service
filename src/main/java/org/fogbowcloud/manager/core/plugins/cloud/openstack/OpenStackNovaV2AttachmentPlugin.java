@@ -123,7 +123,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     
     protected AttachmentInstance getInstanceFromJson(String jsonResponse) throws UnexpectedException {
     	try {
-        	JSONObject rootServer = new JSONObject(jsonResponse);
+            JSONObject rootServer = new JSONObject(jsonResponse);
         	rootServer = rootServer.getJSONObject("volumeAttachment");
         	
         	String id = rootServer.getString(ID_JSON_FIELD);
@@ -131,7 +131,8 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         	String volumeId = rootServer.getString("volumeId");
         	String device = rootServer.getString("device");
 
-            String openStackState = rootServer.getString(STATUS_JSON_FIELD);
+        	// TODO: attachment state does not came from openstack response
+            String openStackState = "";
             InstanceState fogbowState = OpenStackStateMapper.map(InstanceType.ATTACHMENT, openStackState);
 
             AttachmentInstance attachmentInstance = new AttachmentInstance(id,fogbowState, serverId, volumeId, device);

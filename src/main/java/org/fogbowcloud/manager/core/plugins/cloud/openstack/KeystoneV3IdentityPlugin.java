@@ -165,4 +165,8 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
             throw new UnexpectedException("Exception while getting tokens from json", e);
         }
     }
+    
+    protected void setClient (HttpRequestClientUtil client) {
+    	this.client = client;
+    }
 }
