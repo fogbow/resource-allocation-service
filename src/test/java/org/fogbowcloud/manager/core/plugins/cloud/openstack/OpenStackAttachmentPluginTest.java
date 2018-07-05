@@ -1,11 +1,9 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
-import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Properties;
 import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpResponseException;
@@ -23,7 +21,6 @@ import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 
 public class OpenStackAttachmentPluginTest {

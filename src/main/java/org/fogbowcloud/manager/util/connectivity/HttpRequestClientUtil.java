@@ -46,7 +46,7 @@ public class HttpRequestClientUtil {
             if (response.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
                 String message = response.getStatusLine().getReasonPhrase();
                 throw new HttpResponseException(response.getStatusLine().getStatusCode(), message); 
-            }    
+            }
             responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         } catch (HttpResponseException e) {
             throw e;

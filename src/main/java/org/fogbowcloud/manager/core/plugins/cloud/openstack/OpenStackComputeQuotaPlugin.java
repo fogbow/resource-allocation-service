@@ -48,7 +48,7 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 		return processJson(jsonResponse);
 	}
 
-	private String getJson(Token localToken) throws FogbowManagerException, UnexpectedException {
+	protected String getJson(Token localToken) throws FogbowManagerException, UnexpectedException {
 		String endpoint = this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY)
                 + COMPUTE_V2_API_ENDPOINT + SUFFIX;
 		String jsonResponse = null;

@@ -16,7 +16,6 @@ import org.fogbowcloud.manager.core.plugins.behavior.mapper.LocalUserCredentials
 import org.fogbowcloud.manager.core.plugins.cloud.LocalIdentityPlugin;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -56,16 +55,15 @@ public class AaControllerTest {
         this.AaController.authenticate(Mockito.anyString());
     }
 
-    /**
-     * Method 'isValid(String federationTokenValue)' 
-     * in 'DefaultFederationIdentityPlugin' class, 
-     * is set to always return true
-     */
-    @Ignore
-    @Test(expected = UnauthorizedRequestException.class)
+    @Test(expected = UnauthenticatedUserException.class)
     public void testAuthenticationFail() throws UnauthenticatedUserException {
-        Mockito.doThrow(UnauthorizedRequestException.class).when(this.federationIdentityPlugin)
-                .isValid(Mockito.anyString());
+        FederationIdentityPlugin federationIdentityPlugin =
+                Mockito.mock(FederationIdentityPlugin.class);
+        Mockito.doReturn(false).when(federationIdentityPlugin).isValid(Mockito.anyString());
+        Assert.assertFalse(federationIdentityPlugin.isValid(Mockito.anyString()));
+        Mockito.verify(federationIdentityPlugin).isValid(Mockito.anyString());
+        Mockito.doThrow(UnauthenticatedUserException.class).when(this.AaController)
+                .authenticate(Mockito.anyString());
         this.AaController.authenticate(Mockito.anyString());
     }
 
@@ -100,11 +98,7 @@ public class AaControllerTest {
         }
     }
 
-    /**
-     * This method was not implemented in 'KeystoneV3IdentityPlugin' class
-     */
     @SuppressWarnings("unchecked")
-    @Ignore
     @Test
     public void testGetLocalToken() throws FogbowManagerException, UnexpectedException {
         Token localToken = Mockito.mock(Token.class);
@@ -113,23 +107,33 @@ public class AaControllerTest {
         Assert.assertEquals(localToken, tokenGenarated);
     }
 
-    /**
-     * Method 'getCredentials (federationUser)' in 
-     * 'LocalUserCredentialsMapperPlugin' interface, 
-     * does not launch 'FatalErrorException'
-     */
-    @Ignore
-    @Test(expected = FatalErrorException.class)
-    public void testGetLocalTokenWithNoCredentials() throws FogbowManagerException, UnexpectedException {
+    @Test(expected = UnexpectedException.class)
+    public void testGetLocalTokenThrowUnexpectedException() throws FogbowManagerException, UnexpectedException {
         FederationUser federationUser = Mockito.mock(FederationUser.class);
         LocalUserCredentialsMapperPlugin localUserCredentialsMapperPlugin =
                 Mockito.spy(new DefaultLocalUserCredentialsMapper());
         Map<String, String> userCredentials =
-                Mockito.spy(localUserCredentialsMapperPlugin.getCredentials(federationUser));
+                localUserCredentialsMapperPlugin.getCredentials(federationUser);
+        Mockito.doReturn(userCredentials).when(localUserCredentialsMapperPlugin)
+                .getCredentials(federationUser);        
+        Mockito.doThrow(UnexpectedException.class).when(this.localIdentityPlugin)
+                .createToken(userCredentials);
+        this.AaController.getLocalToken(federationUser);
+    }
+    
+    @Test(expected = FogbowManagerException.class)
+    public void testGetLocalTokenThrowFogbowManagerException()
+            throws FogbowManagerException, UnexpectedException {
+        FederationUser federationUser = Mockito.mock(FederationUser.class);
+        LocalUserCredentialsMapperPlugin localUserCredentialsMapperPlugin =
+                Mockito.spy(new DefaultLocalUserCredentialsMapper());
+        Map<String, String> userCredentials =
+                localUserCredentialsMapperPlugin.getCredentials(federationUser);
         Mockito.doReturn(userCredentials).when(localUserCredentialsMapperPlugin)
                 .getCredentials(federationUser);
-        Mockito.doThrow(FatalErrorException.class).when(this.AaController)
-                .getLocalToken(federationUser);
+        Mockito.doThrow(FogbowManagerException.class).when(this.localIdentityPlugin)
+                .createToken(userCredentials);
+        this.AaController.getLocalToken(federationUser);
     }
 
 }
