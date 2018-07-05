@@ -38,7 +38,7 @@ public class ComputeOrderStorage extends OrderStorage {
             statement.close();
         } catch (SQLException e) {
             LOGGER.error("Error creating compute order table", e);
-            throw new SQLException(e);
+            throw e;
         } finally {
             closeConnection(statement, connection);
         }
@@ -164,7 +164,7 @@ public class ComputeOrderStorage extends OrderStorage {
                                 computeResult.getString(13))), computeResult.getString(14), networksid);
 
                 computeOrder.setInstanceId(computeResult.getString(2));
-                computeOrder.setOrderState(OrderState.fromValue(computeResult.getString(3)));
+                computeOrder.setOrderState(OrderState.valueOf(computeResult.getString(3)));
 
                 ComputeAllocation computeAllocation = new ComputeAllocation(
                         computeResult.getInt(15),

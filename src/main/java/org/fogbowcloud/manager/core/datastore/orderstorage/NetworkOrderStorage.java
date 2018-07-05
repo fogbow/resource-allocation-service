@@ -32,7 +32,7 @@ public class NetworkOrderStorage extends OrderStorage {
             statement.close();
         } catch (SQLException e) {
             LOGGER.error("Error creating network order table", e);
-            throw new SQLException(e);
+            throw e;
         } finally {
             closeConnection(statement, connection);
         }
@@ -54,7 +54,7 @@ public class NetworkOrderStorage extends OrderStorage {
 
             orderStatement.setString(8, networkOrder.getGateway());
             orderStatement.setString(9, networkOrder.getAddress());
-            orderStatement.setString(10, networkOrder.getAllocation().getValue());
+            orderStatement.setString(10, networkOrder.getAllocation().name());
             orderStatement.setTimestamp(11, new Timestamp(new Date().getTime()));
 
             orderStatement.executeUpdate();
@@ -137,10 +137,10 @@ public class NetworkOrderStorage extends OrderStorage {
                         new FederationUser(networkResult.getString(4), federationUserAttr),
                         networkResult.getString(6), networkResult.getString(7),
                         networkResult.getString(8), networkResult.getString(9),
-                        NetworkAllocationMode.fromValue(networkResult.getString(10)));
+                        NetworkAllocationMode.valueOf(networkResult.getString(10)));
 
                 networkOrder.setInstanceId(networkResult.getString(2));
-                networkOrder.setOrderState(OrderState.fromValue(networkResult.getString(3)));
+                networkOrder.setOrderState(OrderState.valueOf(networkResult.getString(3)));
 
                 synchronizedDoublyLinkedList.addItem(networkOrder);
             }

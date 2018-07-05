@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.datastore;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.datastore.orderstorage.*;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -34,7 +35,7 @@ public class DatabaseManager implements StableStorage {
                 instance = new DatabaseManager();
             } catch (SQLException e) {
                 LOGGER.error("Error instantiating database manager", e);
-                throw new Error(e);
+                throw new FatalErrorException(e.getMessage());
             }
         }
 

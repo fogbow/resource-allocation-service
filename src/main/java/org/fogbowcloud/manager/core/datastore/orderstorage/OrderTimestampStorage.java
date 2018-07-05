@@ -7,6 +7,10 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import java.sql.*;
 import java.util.Date;
 
+/**
+ * This class is used to store the time when the order change its state.
+ * Therefore, it can be useful for billing services or whatever you want.
+ */
 public class OrderTimestampStorage extends OrderStorage {
 
     private static final Logger LOGGER = Logger.getLogger(OrderTimestampStorage.class);

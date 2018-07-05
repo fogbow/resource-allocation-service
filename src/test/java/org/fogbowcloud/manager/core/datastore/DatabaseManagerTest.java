@@ -1,6 +1,7 @@
 package org.fogbowcloud.manager.core.datastore;
 
 import org.fogbowcloud.manager.core.PropertiesHolder;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.*;
@@ -56,7 +57,7 @@ public class DatabaseManagerTest {
         cleanEnviromnent();
     }
 
-    @Test(expected = Error.class)
+    @Test(expected = FatalErrorException.class)
     public void testInitializeWithErrorDataStore() {
         PropertiesHolder propertiesHolder = Mockito.mock(PropertiesHolder.class);
         when(propertiesHolder.getProperty(anyString())).thenReturn("invalid_url");

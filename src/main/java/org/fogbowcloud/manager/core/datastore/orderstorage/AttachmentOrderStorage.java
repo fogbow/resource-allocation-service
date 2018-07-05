@@ -31,7 +31,7 @@ public class AttachmentOrderStorage extends OrderStorage {
             statement.close();
         } catch (SQLException e) {
             LOGGER.error("Error creating attachment order table", e);
-            throw new SQLException(e);
+            throw e;
         } finally {
             closeConnection(statement, connection);
         }
@@ -139,7 +139,7 @@ public class AttachmentOrderStorage extends OrderStorage {
                         attachmentResult.getString(10));
 
                 attachmentOrder.setInstanceId(attachmentResult.getString(2));
-                attachmentOrder.setOrderState(OrderState.fromValue(attachmentResult.getString(3)));
+                attachmentOrder.setOrderState(OrderState.valueOf(attachmentResult.getString(3)));
 
                 synchronizedDoublyLinkedList.addItem(attachmentOrder);
             }

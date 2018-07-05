@@ -31,7 +31,7 @@ public class VolumeOrderStorage extends OrderStorage {
             statement.close();
         } catch (SQLException e) {
             LOGGER.error("Error creating volume order table", e);
-            throw new SQLException(e);
+            throw e;
         } finally {
             closeConnection(statement, connection);
         }
@@ -136,7 +136,7 @@ public class VolumeOrderStorage extends OrderStorage {
                         volumeResult.getInt(8), volumeResult.getString(9));
 
                 volumeOrder.setInstanceId(volumeResult.getString(2));
-                volumeOrder.setOrderState(OrderState.fromValue(volumeResult.getString(3)));
+                volumeOrder.setOrderState(OrderState.valueOf(volumeResult.getString(3)));
 
                 synchronizedDoublyLinkedList.addItem(volumeOrder);
             }
