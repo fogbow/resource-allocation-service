@@ -399,7 +399,7 @@ public class OpenStackV2NetworkPluginTest {
 	}
 
 	@Test
-	public void testRemoveInstanceRemoveNetworkBadRequestException() throws JSONException, IOException {
+	public void testRemoveInstanceRemoveNetworkBadRequestException() throws JSONException, IOException, UnexpectedException {
 		JSONObject portOneJsonObject = new JSONObject();
 		String networkId = "networkId";
 		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_NETWORK_ID, networkId);
@@ -513,6 +513,9 @@ public class OpenStackV2NetworkPluginTest {
 				httpResponsePostNetwork, httpResponsePostSubnet, httpResponsePutInterface);
 
 		NetworkOrder order = createEmptyOrder();
+		Mockito.doReturn(null).when(this.openStackV2NetworkPlugin).getRouterIdFromJson(Mockito.anyString());
+		Mockito.doReturn(null).when(this.openStackV2NetworkPlugin).getNetworkIdFromJson(Mockito.anyString());
+		Mockito.doReturn(null).when(this.openStackV2NetworkPlugin).getSubnetIdFromJson(Mockito.anyString());
 		this.openStackV2NetworkPlugin.requestInstance(order, this.defaultToken);
 
 		Mockito.verify(this.client, Mockito.times(4)).execute(Mockito.any(HttpUriRequest.class));
@@ -574,13 +577,15 @@ public class OpenStackV2NetworkPluginTest {
 		Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostRouter,
 				httpResponsePostNetwork, httpResponsePostSubnet, httpResponsePutInterface, httpResponseRemoveRouter,
 				httpResponseRemoveNetwork);
-
+		Mockito.doReturn(null).when(this.openStackV2NetworkPlugin).getRouterIdFromJson(Mockito.anyString());
+		Mockito.doReturn(null).when(this.openStackV2NetworkPlugin).getNetworkIdFromJson(Mockito.anyString());
+		Mockito.doReturn(null).when(this.openStackV2NetworkPlugin).getSubnetIdFromJson(Mockito.anyString());
 		NetworkOrder order = createEmptyOrder();
 		try {
 			this.openStackV2NetworkPlugin.requestInstance(order, this.defaultToken);
 			Assert.fail();
 		} catch (Exception e) {
-			throw e;
+	
 		}
 
 		Mockito.verify(this.client, Mockito.times(6)).execute(Mockito.any(HttpUriRequest.class));
