@@ -36,6 +36,7 @@ public class OrderStateTransitioner {
                 throw new UnexpectedException(message);
             }
             order.setOrderState(OrderState.OPEN);
+            
             activeOrdersMap.put(orderId, order);
             openOrdersList.addItem(order);
         }

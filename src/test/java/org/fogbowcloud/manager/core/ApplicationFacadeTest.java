@@ -5,26 +5,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.constants.Operation;
+import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
+import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
+import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
+import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
+import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
-import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
-import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
-import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
-import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
-import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -136,27 +135,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		} catch (UnauthenticatedUserException e) {
 			Assert.assertEquals(OrderState.OPEN, order.getOrderState());
 		}
-	}
-
-	/**
-	 * To attempt to remove an 'Order' null no longer throws an exception
-	 */
-	@Ignore
-	@Test(expected = FogbowManagerException.class)
-	public void testDeleteComputeOrderNullGet() throws Exception {
-		Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
-
-		Order order = createComputeOrder();
-		Mockito.doReturn(null).when(this.orderController).getOrder(Mockito.anyString(),
-				Mockito.any(FederationUser.class), Mockito.any(InstanceType.class));
-
-		Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
-
-		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class),
-				Mockito.any(Operation.class), Mockito.any(Order.class));
-
-		String federationTokenValue = "";
-		this.application.deleteCompute(order.getId(), federationTokenValue);
 	}
 
 	@Test
@@ -289,29 +267,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		} catch (UnauthorizedRequestException e) {
 			Assert.assertNull(order.getOrderState());
 		}
-	}
-
-	/**
-     * This test attempts to throw FogbowManagerException, which occurs when sending a 'null'
-     * request, something that should not be tested in this class, since the request here must go
-     * through several checks before this.
-     */
-    @Ignore
-	@Test(expected = FogbowManagerException.class)
-	public void testCreateNullComputeOrder() throws Exception {
-		ComputeOrder order = createComputeOrder();
-
-		Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
-
-		Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
-
-		Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-				Mockito.any(InstanceType.class));
-
-		Assert.assertNull(order.getOrderState());
-
-		String federationTokenValue = "";
-		this.application.createCompute(order, federationTokenValue);
 	}
 
 	
@@ -617,29 +572,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         }
     }
 
-	/**
-     * This test attempts to throw FogbowManagerException, which occurs when sending a 'null'
-     * request, something that should not be tested in this class, since the request here must go
-     * through several checks before this.
-     */
-    @Ignore
-	@Test(expected = FogbowManagerException.class)
-    public void testCreateNullVolumeOrder() throws Exception {
-        VolumeOrder order = createVolumeOrder();
-
-        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
-
-        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
-
-        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-                Mockito.any(InstanceType.class));
-
-        Assert.assertNull(order.getOrderState());
-
-        String federationTokenValue = "";
-        this.application.createVolume(order, federationTokenValue);
-    }
-
 	
 	@Test
     public void testGetVolumeOrder() throws Exception {
@@ -904,28 +836,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         } catch (UnauthenticatedUserException e) {
             Assert.assertEquals(OrderState.OPEN, order.getOrderState());
         }
-    }
-
-	/**
-	 * To attempt to remove an 'Order' null no longer throws an exception
-	 */
-	@Ignore
-	@Test(expected = FogbowManagerException.class)
-    public void testDeleteVolumeOrderNullGet() throws Exception {
-	    VolumeOrder order = createVolumeOrder();
-
-	    Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
-
-        Mockito.doReturn(null).when(this.orderController).getOrder(Mockito.anyString(), Mockito.any(FederationUser.class),
-                Mockito.any(InstanceType.class));
-
-        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
-
-        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-                Mockito.any(Order.class));
-
-        String federationTokenValue = "";
-        this.application.deleteVolume(order.getId(), federationTokenValue);
     }
 
     @Test
@@ -1329,28 +1239,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         }
     }
 
-    /**
-	 * To attempt to remove an 'Order' null no longer throws an exception
-	 */
-    @Ignore
-    @Test(expected = FogbowManagerException.class)
-    public void testDeleteNetworkOrderNullGet() throws Exception {
-        NetworkOrder order = createNetworkOrder();
-
-        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
-
-        Mockito.doReturn(null).when(this.orderController).getOrder(Mockito.anyString(), Mockito.any(FederationUser.class),
-                Mockito.any(InstanceType.class));
-
-        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
-
-        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-                Mockito.any(Order.class));
-
-        String federationTokenValue = "";
-        this.application.deleteNetwork(order.getId(), federationTokenValue);
-    }
-
     @Test
     public void testDeleteNetworkOrderUnauthorizedOperation() throws Exception {
         NetworkOrder order = createNetworkOrder();
@@ -1494,28 +1382,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         } catch (UnauthorizedRequestException e) {
             Assert.assertNull(order.getOrderState());
         }
-    }
-
-    /**
-     * This test attempts to throw FogbowManagerException, which occurs when sending a 'null'
-     * request, something that should not be tested in this class, since the request here must go
-     * through several checks before this.
-     */
-    @Ignore
-    @Test(expected = FogbowManagerException.class)
-    public void testCreateNullAttachmentOrder() throws Exception {
-        AttachmentOrder order = createAttachmentOrder();
-
-        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
-
-        Mockito.doReturn(order.getFederationUser()).when(this.aaaController).getFederationUser(Mockito.anyString());
-
-        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class),
-                Mockito.any(InstanceType.class));
-
-        Assert.assertNull(order.getOrderState());
-
-        this.application.createAttachment(order, "");
     }
 
     @Test
@@ -1765,29 +1631,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         } catch (UnauthenticatedUserException e) {
             Assert.assertEquals(OrderState.OPEN, order.getOrderState());
         }
-    }
-
-    /**
-	 * To attempt to remove an 'Order' null no longer throws an exception
-	 */
-    @Ignore
-    @Test(expected = FogbowManagerException.class)
-    public void testDeleteAttachmentOrderNullGet() throws Exception {
-        AttachmentOrder order = createAttachmentOrder();
-
-        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
-
-        Mockito.doReturn(null).when(this.orderController).getOrder(Mockito.anyString(),
-                Mockito.any(FederationUser.class), Mockito.any(InstanceType.class));
-
-        Mockito.doReturn(order.getFederationUser()).when(this.aaaController)
-                .getFederationUser(Mockito.anyString());
-
-        Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class),
-                Mockito.any(Operation.class), Mockito.any(Order.class));
-
-        String federationTokenValue = "";
-        this.application.deleteAttachment(order.getId(), federationTokenValue);
     }
 
     @Test
