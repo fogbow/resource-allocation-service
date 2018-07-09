@@ -67,6 +67,7 @@ public class OpenStackComputeQuotaPluginTest {
 	    Mockito.when(this.plugin.getJson(this.token)).thenReturn(FAKE_VALUE);
 	    Mockito.doThrow(FogbowManagerException.class).when(this.plugin).getUserQuota(this.token);
 	    Mockito.verify(this.plugin).getUserQuota(Mockito.eq(this.token));
+
 	}
 	
 	@Test (expected = FogbowManagerException.class)

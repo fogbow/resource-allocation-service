@@ -12,7 +12,6 @@ import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.instances.Instance;
@@ -65,11 +64,11 @@ public class OrderController {
         return requestedOrder;
     }
 
-    public void deleteOrder(Order order) throws UnexpectedException {
+    public void deleteOrder(Order order) throws OrderNotFoundException, UnexpectedException {
         if (order == null) {
             String message = "Cannot delete a null order.";
             LOGGER.error(message);
-            return;
+            throw new OrderNotFoundException();
         }
 
         synchronized (order) {
@@ -79,6 +78,7 @@ public class OrderController {
            } else {
                 String message = "Order [" + order.getId() + "] is already in the closed state";
                 LOGGER.error(message);
+                throw new OrderNotFoundException(message);
             }
         }
     }
