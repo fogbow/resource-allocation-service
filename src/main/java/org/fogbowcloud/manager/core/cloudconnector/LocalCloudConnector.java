@@ -80,27 +80,34 @@ public class LocalCloudConnector implements CloudConnector {
     @Override
     public void deleteInstance(Order order) throws FogbowManagerException, UnexpectedException {
 
-        if (order.getInstanceId() != null) {
-            Token localToken = this.aaController.getLocalToken(order.getFederationUser());
-            switch (order.getType()) {
-                case COMPUTE:
-                    this.computePlugin.deleteInstance(order.getInstanceId(), localToken);
-                    break;
-                case VOLUME:
-                    this.volumePlugin.deleteInstance(order.getInstanceId(), localToken);
-                    break;
-                case NETWORK:
-                    this.networkPlugin.deleteInstance(order.getInstanceId(), localToken);
-                    break;
-                case ATTACHMENT:
-                    this.attachmentPlugin.deleteInstance(order.getInstanceId(), localToken);
-                    break;
-                default:
-                    LOGGER.error("No deleteInstance plugin implemented for order " + order.getType());
-                    break;
+        try {
+            if (order.getInstanceId() != null) {
+                Token localToken = this.aaController.getLocalToken(order.getFederationUser());
+                switch (order.getType()) {
+                    case COMPUTE:
+                        this.computePlugin.deleteInstance(order.getInstanceId(), localToken);
+                        break;
+                    case VOLUME:
+                        this.volumePlugin.deleteInstance(order.getInstanceId(), localToken);
+                        break;
+                    case NETWORK:
+                        this.networkPlugin.deleteInstance(order.getInstanceId(), localToken);
+                        break;
+                    case ATTACHMENT:
+                        this.attachmentPlugin.deleteInstance(order.getInstanceId(), localToken);
+                        break;
+                    default:
+                        LOGGER.error("No deleteInstance plugin implemented for order " + order.getType());
+                        break;
+                }
+            } else {
+                LOGGER.error("Trying to delete an instance with no instanceId.");
             }
-        } else {
-            LOGGER.error("Trying to delete an instance with no instanceId.");
+        } catch (InstanceNotFoundException e) {
+            // This may happen if the fogbow-core crashed after the instance is deleted
+            // but before the new state is updated in stable storage.
+            LOGGER.warn("Instance has already been deleted");
+            return;
         }
     }
 

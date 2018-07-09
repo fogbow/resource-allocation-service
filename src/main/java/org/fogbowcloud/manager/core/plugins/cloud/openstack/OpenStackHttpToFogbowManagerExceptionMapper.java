@@ -14,7 +14,7 @@ public class OpenStackHttpToFogbowManagerExceptionMapper {
             case HttpStatus.SC_UNAUTHORIZED:
                 throw new UnauthenticatedUserException(e.getMessage(), e);
             case HttpStatus.SC_BAD_REQUEST:
-                throw new InstanceNotFoundException(e.getMessage(), e);
+                throw new InvalidParameterException(e.getMessage(), e);
             case HttpStatus.SC_NOT_FOUND:
                 throw new InstanceNotFoundException(e.getMessage(), e);
             case HttpStatus.SC_CONFLICT:

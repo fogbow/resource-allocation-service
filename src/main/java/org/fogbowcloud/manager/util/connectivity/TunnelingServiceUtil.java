@@ -26,7 +26,7 @@ public class TunnelingServiceUtil {
     private static final Logger LOGGER = Logger.getLogger(TunnelingServiceUtil.class);
 
     public static final String HTTP_PROTOCOL = "http://";
-    public static final String TOKEN_POINT = "/tokens/";
+    public static final String TOKEN_POINT = "/token/";
     public static final String END_POINT_ALL = "/all";
 
     private PoolingHttpClientConnectionManager connectionManager;
