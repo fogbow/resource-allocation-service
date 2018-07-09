@@ -39,7 +39,7 @@ public class OpenStackComputeQuotaPluginTest {
      * TODO The test must be redone using mock.
      * @throws FogbowManagerException
      */
-    @Ignore
+	@Ignore
 	@Test
 	public void testGetUserQuota() throws FogbowManagerException, UnexpectedException {		
     	Mockito.doReturn(null).when(this.plugin.getJson(this.token));

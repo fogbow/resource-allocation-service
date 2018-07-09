@@ -3,6 +3,7 @@ package org.fogbowcloud.manager.core;
 import java.util.Map;
 
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.OrderNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -64,7 +65,7 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     @Test(expected = FogbowManagerException.class)
-    public void testDeleteOrderStateClosed() throws UnexpectedException {
+    public void testDeleteOrderStateClosed() throws UnexpectedException, OrderNotFoundException {
         String orderId = getComputeOrderCreationId(OrderState.CLOSED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
@@ -72,7 +73,7 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     @Test
-    public void testDeleteOrderStateFailed() throws UnexpectedException {
+    public void testDeleteOrderStateFailed() throws UnexpectedException, OrderNotFoundException {
         String orderId = getComputeOrderCreationId(OrderState.FAILED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
@@ -87,7 +88,7 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     @Test
-    public void testDeleteOrderStateFulfilled() throws UnexpectedException {
+    public void testDeleteOrderStateFulfilled() throws UnexpectedException, OrderNotFoundException {
         String orderId = getComputeOrderCreationId(OrderState.FULFILLED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
@@ -102,7 +103,7 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     @Test
-    public void testDeleteOrderStateSpawning() throws UnexpectedException {
+    public void testDeleteOrderStateSpawning() throws UnexpectedException, OrderNotFoundException {
         String orderId = getComputeOrderCreationId(OrderState.SPAWNING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
@@ -117,7 +118,7 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     @Test
-    public void testDeleteOrderStatePending() throws UnexpectedException {
+    public void testDeleteOrderStatePending() throws UnexpectedException, OrderNotFoundException {
         String orderId = getComputeOrderCreationId(OrderState.PENDING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
@@ -132,7 +133,7 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     @Test
-    public void testDeleteOrderStateOpen() throws UnexpectedException {
+    public void testDeleteOrderStateOpen() throws UnexpectedException, OrderNotFoundException {
         String orderId = getComputeOrderCreationId(OrderState.OPEN);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
@@ -147,7 +148,7 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     @Test(expected = FogbowManagerException.class)
-    public void testDeleteNullOrder() throws UnexpectedException {
+    public void testDeleteNullOrder() throws UnexpectedException, OrderNotFoundException {
         this.ordersController.deleteOrder(null);
     }
 

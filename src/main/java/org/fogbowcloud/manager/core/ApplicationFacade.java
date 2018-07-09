@@ -1,23 +1,35 @@
 package org.fogbowcloud.manager.core;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.constants.Operation;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.models.InstanceStatus;
 import org.fogbowcloud.manager.core.models.images.Image;
-import org.fogbowcloud.manager.core.models.instances.*;
-import org.fogbowcloud.manager.core.models.orders.*;
+import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
+import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
+import org.fogbowcloud.manager.core.models.instances.Instance;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
+import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
+import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
+import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
+import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
+import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
-import org.fogbowcloud.manager.core.models.InstanceStatus;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 
 public class ApplicationFacade {
