@@ -97,18 +97,26 @@ public class SpawningProcessor implements Runnable {
             OrderStateTransitioner.transition(order, OrderState.FAILED);
         } else if (instanceState.equals(InstanceState.READY)) {
             LOGGER.debug("Processing active compute instance for order [" + order.getId() + "]");
+
             if (instanceType.equals(InstanceType.COMPUTE)) {
                 SshTunnelConnectionData sshTunnelConnectionData = this.computeInstanceConnectivity
                     .getSshTunnelConnectionData(order.getId());
+
                 if (sshTunnelConnectionData != null) {
                     boolean instanceReachable = this.computeInstanceConnectivity
                         .isInstanceReachable(sshTunnelConnectionData);
                     if (!instanceReachable) {
                         // try again later
+                        LOGGER.debug("Compute instance for order [" + order.getId() + "]" + "is not reachable yet");
                         return;
                     }
+                } else {
+                    // try again later
+                    LOGGER.debug("Tunnel connection data still unavailable");
+                    return;
                 }
             }
+
             OrderStateTransitioner.transition(order, OrderState.FULFILLED);
         }
     }
