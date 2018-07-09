@@ -17,6 +17,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +65,26 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 		this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
 	}
 
+    @Test
+    public void changeNetworkOrderIdsToNetworInstanceIdsTest() {
+        NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
+
+        Mockito.doReturn("fake-order-id").when(networkOrder).getId();
+        Mockito.doReturn("fake-instance-id").when(networkOrder).getInstanceId();
+
+        this.activeOrdersMap.put(networkOrder.getId(), networkOrder);
+
+        List<String> expectedList = new ArrayList<>();
+        expectedList.add("fake-order-id");
+
+        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
+        Mockito.doReturn(expectedList).when(computeOrder).getNetworksId();
+
+        this.application.changeNetworkOrderIdsToNetworInstanceIds(computeOrder);
+
+        Assert.assertEquals(expectedList, computeOrder.getNetworksId());
+    }
+	
 	@Test
 	public void testDeleteComputeOrder() throws Exception {
 		Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());

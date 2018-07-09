@@ -8,7 +8,6 @@ import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.constants.Operation;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.*;
@@ -29,8 +28,7 @@ public class ApplicationFacade {
     private AaController aaController;
     private OrderController orderController;
 
-    private ApplicationFacade() {
-    }
+    private ApplicationFacade() {}
 
     public static ApplicationFacade getInstance() {
         synchronized (ApplicationFacade.class) {
@@ -43,7 +41,29 @@ public class ApplicationFacade {
 
     public String createCompute(ComputeOrder order, String federationTokenValue) throws FogbowManagerException,
             UnexpectedException {
+        changeNetworkOrderIdsToNetworInstanceIds(order);        
         return activateOrder(order, federationTokenValue);
+    }
+
+    /** protected visibility for tests */
+    protected void changeNetworkOrderIdsToNetworInstanceIds(ComputeOrder order) {
+                
+        //as this content came from rest API the IDs are NetworkOrderIDs actually.
+        //since we need NetworkInstanceIDs, we need to do proper replacement
+        
+        List<String> previousNetworkOrdersId = order.getNetworksId();//based on NetworkOrderIDs        
+        List<String> newNetworkInstanceIDs = new LinkedList<String>();//based on NetworkInstanceIDs
+               
+        for (String previousID : previousNetworkOrdersId) {
+            
+            Order networkOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(previousID);
+            
+            String newInstanceId = networkOrder.getInstanceId();
+            newNetworkInstanceIDs.add(newInstanceId);      
+        }
+        
+        //after collecting the list of networkInstaceIDs, we update the ComputeOrder
+        order.setNetworksId(newNetworkInstanceIDs);
     }
 
     public List<ComputeInstance> getAllComputes(String federationTokenValue) throws Exception {
@@ -276,6 +296,7 @@ public class ApplicationFacade {
         return cloudConnector.getUserQuota(federationUser, instanceType);
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends Instance> List<T> getAllInstances(List<Order> orders, Class<T> tClass) throws Exception {
         List<T> instances = new ArrayList<>();
         for (Order order : orders) {

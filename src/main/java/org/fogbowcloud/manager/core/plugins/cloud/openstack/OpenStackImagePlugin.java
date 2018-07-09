@@ -159,16 +159,20 @@ public class OpenStackImagePlugin implements ImagePlugin {
 		return privateImages;
 	}
 	
-	private Map<String, String> getImageNameAndIdMapFromAllAvailableImages(Token localToken, String tenantId)
+	protected Map<String, String> getImageNameAndIdMapFromAllAvailableImages(Token localToken, String tenantId)
 			throws FogbowManagerException, UnexpectedException {
 		Map<String, String> imageNameIdMap = new HashMap<String, String>();
+		
 		List<JSONObject> allImages = getAllImagesJson(localToken);
+		
 		List<JSONObject> filteredImages = new ArrayList<JSONObject>();
 		filteredImages.addAll(getPublicImages(allImages));
 		filteredImages.addAll(getPrivateImagesByTenantId(allImages, tenantId));
+		
 		for (JSONObject image: filteredImages) {
 			imageNameIdMap.put(image.getString("id"), image.getString("name")); 
 		}
+		
 		return imageNameIdMap;
 	}
 }
