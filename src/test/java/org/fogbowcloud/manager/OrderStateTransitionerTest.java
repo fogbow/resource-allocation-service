@@ -49,12 +49,14 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         // Clearing the lists if we are not mocking them
         if (!mockUtil.isMock(instance)) {
             for (OrderState state : OrderState.values()) {
-                SynchronizedDoublyLinkedList ordersList = instance.getOrdersList(state);
+                if (! state.equals(OrderState.DEACTIVATED)) {
+                    SynchronizedDoublyLinkedList ordersList = instance.getOrdersList(state);
 
-                ordersList.resetPointer();
-                Order order;
-                while ((order = ordersList.getNext()) != null) {
-                    ordersList.removeItem(order);
+                    ordersList.resetPointer();
+                    Order order;
+                    while ((order = ordersList.getNext()) != null) {
+                        ordersList.removeItem(order);
+                    }
                 }
             }
         }

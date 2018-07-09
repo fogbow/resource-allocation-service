@@ -22,7 +22,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
-//@RunWith(PowerMockRunner.class)
 @PrepareForTest(DatabaseManager.class)
 public class BaseUnitTests {
 
@@ -32,9 +31,13 @@ public class BaseUnitTests {
     public void tearDown() {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         for (OrderState state : OrderState.values()) {
-            SynchronizedDoublyLinkedList ordersList = sharedOrderHolders.getOrdersList(state);
-            cleanList(ordersList);
+            if (! state.equals(OrderState.DEACTIVATED)) {
+                SynchronizedDoublyLinkedList ordersList = sharedOrderHolders.getOrdersList(state);
+                cleanList(ordersList);
+            }
+
         }
+
         Map<String, Order> activeOrderMap = sharedOrderHolders.getActiveOrdersMap();
         activeOrderMap.clear();
     }

@@ -26,7 +26,7 @@ public class OrderStorage {
         try {
             Class.forName(MANAGER_DATASTORE_SQLITE_DRIVER);
         } catch (ClassNotFoundException e) {
-            LOGGER.error("Invalid datastore driver: " + e);
+            LOGGER.error("Invalid datastore driver", e);
         }
     }
 
@@ -70,7 +70,7 @@ public class OrderStorage {
                     statement.close();
                 }
             } catch (SQLException e) {
-                LOGGER.error("Couldn't close statement");
+                LOGGER.error("Couldn't close statement", e);
             }
         }
 
@@ -80,7 +80,7 @@ public class OrderStorage {
                     connection.close();
                 }
             } catch (SQLException e) {
-                LOGGER.error("Couldn't close connection");
+                LOGGER.error("Couldn't close connection", e);
             }
         }
     }

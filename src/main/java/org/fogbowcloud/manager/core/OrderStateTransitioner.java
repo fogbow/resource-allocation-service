@@ -72,6 +72,7 @@ public class OrderStateTransitioner {
                     return;
                 }
             }
+
             doTransition(order, newState);
         }
     }
@@ -93,8 +94,8 @@ public class OrderStateTransitioner {
 
             closedOrders.removeItem(order);
 
-            // TODO: is it here? (only used for closed orders, here the resource is definitely deleted on provider)
             order.setInstanceId(null);
+            order.setOrderState(OrderState.DEACTIVATED);
             DatabaseManager databaseManager = DatabaseManager.getInstance();
             databaseManager.update(order);
         }
@@ -122,12 +123,8 @@ public class OrderStateTransitioner {
             if (origin.removeItem(order)) {
                 order.setOrderState(newState);
 
-                // TODO: Updating order in stable storage
-                // (do not update closed orders here since it still have an instance id)
-                if (! order.getOrderState().equals(OrderState.CLOSED)) {
-                    DatabaseManager databaseManager = DatabaseManager.getInstance();
-                    databaseManager.update(order);
-                }
+                DatabaseManager databaseManager = DatabaseManager.getInstance();
+                databaseManager.update(order);
 
                 destination.addItem(order);
             } else {

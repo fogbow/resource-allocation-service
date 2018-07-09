@@ -12,6 +12,7 @@ import java.sql.SQLException;
 public class DatabaseManager implements StableStorage {
 
     private static final Logger LOGGER = Logger.getLogger(DatabaseManager.class);
+    private static final String ERROR_MASSAGE = "Error instantiating database manager";
 
     private static DatabaseManager instance;
 
@@ -34,8 +35,8 @@ public class DatabaseManager implements StableStorage {
             try {
                 instance = new DatabaseManager();
             } catch (SQLException e) {
-                LOGGER.error("Error instantiating database manager", e);
-                throw new FatalErrorException(e.getMessage());
+                LOGGER.error(ERROR_MASSAGE, e);
+                throw new FatalErrorException(ERROR_MASSAGE, e);
             }
         }
 

@@ -6,5 +6,10 @@ public enum OrderState {
     SPAWNING,
     FULFILLED,
     FAILED,
-    CLOSED
+    CLOSED,
+    DEACTIVATED
+    // an order that has been closed is stored twice in stable storage:
+    // one when the order is deleted (but instanceId != null),
+    // and another when it is deactivated (when instanceId == null);
+    // we need the deactivate state so that the add in the timestamp table won't break.
 }
