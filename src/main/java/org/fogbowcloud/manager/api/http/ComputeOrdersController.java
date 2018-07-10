@@ -21,10 +21,11 @@ import org.springframework.web.bind.annotation.*;
 public class ComputeOrdersController {
 
     public static final String COMPUTE_ENDPOINT = "computes";
+	public static final String STATUS_ENDPOINT = "status";
 
-    public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
+	public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
-    private final Logger LOGGER = Logger.getLogger(ComputeOrdersController.class);
+	private final Logger LOGGER = Logger.getLogger(ComputeOrdersController.class);
 
     // HttpExceptionToErrorConditionTranslator handles the possible problems in request
     @RequestMapping(method = RequestMethod.POST)
@@ -46,7 +47,7 @@ public class ComputeOrdersController {
         return new ResponseEntity<>(computes, HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/status", method = RequestMethod.GET)
+    @RequestMapping(value = "/" + STATUS_ENDPOINT, method = RequestMethod.GET)
     public ResponseEntity<List<InstanceStatus>> getAllComputesStatus(
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
