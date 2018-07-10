@@ -48,21 +48,19 @@ public class DatabaseManager implements StableStorage {
         switch (order.getType()) {
             case COMPUTE:
                 this.computeOrderStorage.addOrder(order);
-                this.orderTimestampStorage.addOrder(order);
                 break;
             case NETWORK:
                 this.networkOrderStorage.addOrder(order);
-                this.orderTimestampStorage.addOrder(order);
                 break;
             case VOLUME:
                 this.volumeOrderStorage.addOrder(order);
-                this.orderTimestampStorage.addOrder(order);
                 break;
             case ATTACHMENT:
                 this.attachmentOrderStorage.addOrder(order);
-                this.orderTimestampStorage.addOrder(order);
                 break;
         }
+
+        this.orderTimestampStorage.addOrder(order);
     }
 
     @Override
@@ -70,21 +68,19 @@ public class DatabaseManager implements StableStorage {
         switch (order.getType()) {
             case COMPUTE:
                 this.computeOrderStorage.updateOrder(order);
-                this.orderTimestampStorage.addOrder(order);
                 break;
             case NETWORK:
                 this.networkOrderStorage.updateOrder(order);
-                this.orderTimestampStorage.addOrder(order);
                 break;
             case VOLUME:
                 this.volumeOrderStorage.updateOrder(order);
-                this.orderTimestampStorage.addOrder(order);
                 break;
             case ATTACHMENT:
                 this.attachmentOrderStorage.updateOrder(order);
-                this.orderTimestampStorage.addOrder(order);
                 break;
         }
+
+        this.orderTimestampStorage.addOrder(order);
     }
 
     @Override

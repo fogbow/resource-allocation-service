@@ -47,6 +47,8 @@ public class SharedOrderHolders {
         while ((order = ordersList.getNext()) != null) {
             activeOrdersMap.put(order.getId(), order);
         }
+
+        ordersList.resetPointer();
     }
 
     public static SharedOrderHolders getInstance() {
