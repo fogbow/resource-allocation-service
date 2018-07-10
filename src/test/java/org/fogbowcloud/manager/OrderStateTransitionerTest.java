@@ -1,15 +1,10 @@
 package org.fogbowcloud.manager;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
+import org.fogbowcloud.manager.core.datastore.DatabaseManager;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -24,8 +19,14 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
+
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(SharedOrderHolders.class)
+@PrepareForTest({SharedOrderHolders.class, DatabaseManager.class})
 public class OrderStateTransitionerTest extends BaseUnitTests {
 
     private MockUtil mockUtil = new MockUtil();
@@ -48,12 +49,14 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         // Clearing the lists if we are not mocking them
         if (!mockUtil.isMock(instance)) {
             for (OrderState state : OrderState.values()) {
-                SynchronizedDoublyLinkedList ordersList = instance.getOrdersList(state);
+                if (! state.equals(OrderState.DEACTIVATED)) {
+                    SynchronizedDoublyLinkedList ordersList = instance.getOrdersList(state);
 
-                ordersList.resetPointer();
-                Order order;
-                while ((order = ordersList.getNext()) != null) {
-                    ordersList.removeItem(order);
+                    ordersList.resetPointer();
+                    Order order;
+                    while ((order = ordersList.getNext()) != null) {
+                        ordersList.removeItem(order);
+                    }
                 }
             }
         }
@@ -64,7 +67,19 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 
+        DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
+        when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList());
+        when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList());
+        when(databaseManager.readActiveOrders(OrderState.FAILED)).thenReturn(new SynchronizedDoublyLinkedList());
+        when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList());
+        when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList());
+        when(databaseManager.readActiveOrders(OrderState.CLOSED)).thenReturn(new SynchronizedDoublyLinkedList());
+
+        PowerMockito.mockStatic(DatabaseManager.class);
+        given(DatabaseManager.getInstance()).willReturn(databaseManager);
+
         SharedOrderHolders orderHolders = SharedOrderHolders.getInstance();
+
         SynchronizedDoublyLinkedList openOrdersList = orderHolders.getOpenOrdersList();
         SynchronizedDoublyLinkedList spawningOrdersList = orderHolders.getSpawningOrdersList();
 

@@ -1,23 +1,36 @@
 package org.fogbowcloud.manager.core;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.constants.Operation;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.models.InstanceStatus;
 import org.fogbowcloud.manager.core.models.images.Image;
-import org.fogbowcloud.manager.core.models.instances.*;
-import org.fogbowcloud.manager.core.models.orders.*;
+import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
+import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
+import org.fogbowcloud.manager.core.models.instances.Instance;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
+import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
+import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
+import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
+import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
+import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
-import org.fogbowcloud.manager.core.models.InstanceStatus;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 
 public class ApplicationFacade {
@@ -29,8 +42,7 @@ public class ApplicationFacade {
     private AaController aaController;
     private OrderController orderController;
 
-    private ApplicationFacade() {
-    }
+    private ApplicationFacade() {}
 
     public static ApplicationFacade getInstance() {
         synchronized (ApplicationFacade.class) {
@@ -43,7 +55,29 @@ public class ApplicationFacade {
 
     public String createCompute(ComputeOrder order, String federationTokenValue) throws FogbowManagerException,
             UnexpectedException {
+        changeNetworkOrderIdsToNetworInstanceIds(order);        
         return activateOrder(order, federationTokenValue);
+    }
+
+    /** protected visibility for tests */
+    protected void changeNetworkOrderIdsToNetworInstanceIds(ComputeOrder order) {
+                
+        //as this content came from rest API the IDs are NetworkOrderIDs actually.
+        //since we need NetworkInstanceIDs, we need to do proper replacement
+        
+        List<String> previousNetworkOrdersId = order.getNetworksId();//based on NetworkOrderIDs        
+        List<String> newNetworkInstanceIDs = new LinkedList<String>();//based on NetworkInstanceIDs
+               
+        for (String previousID : previousNetworkOrdersId) {
+            
+            Order networkOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(previousID);
+            
+            String newInstanceId = networkOrder.getInstanceId();
+            newNetworkInstanceIDs.add(newInstanceId);      
+        }
+        
+        //after collecting the list of networkInstaceIDs, we update the ComputeOrder
+        order.setNetworksId(newNetworkInstanceIDs);
     }
 
     public List<ComputeInstance> getAllComputes(String federationTokenValue) throws Exception {
@@ -276,6 +310,7 @@ public class ApplicationFacade {
         return cloudConnector.getUserQuota(federationUser, instanceType);
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends Instance> List<T> getAllInstances(List<Order> orders, Class<T> tClass) throws Exception {
         List<T> instances = new ArrayList<>();
         for (Order order : orders) {

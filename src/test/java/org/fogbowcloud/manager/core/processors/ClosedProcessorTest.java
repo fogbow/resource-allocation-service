@@ -47,6 +47,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
 
     @Before
     public void setUp() {
+        mockDB();
         this.properties = new Properties();
         
         HomeDir.getInstance().setPath("src/test/resources/private");

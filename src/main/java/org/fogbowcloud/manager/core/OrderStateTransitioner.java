@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.datastore.DatabaseManager;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.Event;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
@@ -36,7 +37,11 @@ public class OrderStateTransitioner {
                 throw new UnexpectedException(message);
             }
             order.setOrderState(OrderState.OPEN);
-            
+
+            // Adding newly created order in stable storage
+            DatabaseManager databaseManager = DatabaseManager.getInstance();
+            databaseManager.add(order);
+
             activeOrdersMap.put(orderId, order);
             openOrdersList.addItem(order);
         }
@@ -67,6 +72,7 @@ public class OrderStateTransitioner {
                     return;
                 }
             }
+
             doTransition(order, newState);
         }
     }
@@ -85,7 +91,13 @@ public class OrderStateTransitioner {
                         "Tried to remove order %s from the active orders but it was not active", order.getId());
                 throw new UnexpectedException(message);
             }
+
             closedOrders.removeItem(order);
+
+            order.setInstanceId(null);
+            order.setOrderState(OrderState.DEACTIVATED);
+            DatabaseManager databaseManager = DatabaseManager.getInstance();
+            databaseManager.update(order);
         }
     }
 
@@ -110,6 +122,10 @@ public class OrderStateTransitioner {
         } else {
             if (origin.removeItem(order)) {
                 order.setOrderState(newState);
+
+                DatabaseManager databaseManager = DatabaseManager.getInstance();
+                databaseManager.update(order);
+
                 destination.addItem(order);
             } else {
                 String message = String.format(

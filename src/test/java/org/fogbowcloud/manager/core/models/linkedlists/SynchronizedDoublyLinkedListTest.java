@@ -8,13 +8,17 @@ import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
 public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
 
     private SynchronizedDoublyLinkedList list;
 
     @Before
     public void initialize() {
+        mockDB();
         this.list = new SynchronizedDoublyLinkedList();
     }
 

@@ -55,6 +55,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
     @Before
     public void setUp() {
+        mockDB();
         HomeDir.getInstance().setPath("src/test/resources/private");
         
         this.tunnelingService = Mockito.mock(TunnelingServiceUtil.class);

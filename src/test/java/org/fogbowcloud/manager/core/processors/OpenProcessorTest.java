@@ -40,6 +40,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     
     @Before
     public void setUp() {
+        mockDB();
         HomeDir.getInstance().setPath("src/test/resources/private");
         
         LocalCloudConnector localCloudConnector = Mockito.mock(LocalCloudConnector.class);
