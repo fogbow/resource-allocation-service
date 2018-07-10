@@ -155,13 +155,20 @@ public class ComputeOrderStorage extends OrderStorage {
 
                 Map<String, String> federationUserAttr = getFederationUserAttrFromString(computeResult.getString(5));
                 List<String> networksid = getNetworksIdFromString(computeResult.getString(18));
-
+                
+                CloudInitUserDataBuilder.FileType extraUserDataFileType = null;
+                
+                if (computeResult.getString(13) != null) {
+                    extraUserDataFileType = CloudInitUserDataBuilder.
+                            FileType.valueOf(computeResult.getString(13));
+                }
+                
                 ComputeOrder computeOrder = new ComputeOrder(computeResult.getString(1),
                         new FederationUser(computeResult.getString(4), federationUserAttr),
                         computeResult.getString(6), computeResult.getString(7), computeResult.getInt(8),
                         computeResult.getInt(9), computeResult.getInt(10), computeResult.getString(11),
-                        new UserData(computeResult.getString(12), CloudInitUserDataBuilder.FileType.valueOf(
-                                computeResult.getString(13))), computeResult.getString(14), networksid);
+                        new UserData(computeResult.getString(12), extraUserDataFileType), 
+                        computeResult.getString(14), networksid);
 
                 computeOrder.setInstanceId(computeResult.getString(2));
                 computeOrder.setOrderState(OrderState.valueOf(computeResult.getString(3)));
