@@ -18,10 +18,14 @@ public class OrderStorage {
     private static final String MANAGER_DATASTORE_SQLITE_DRIVER = "org.sqlite.JDBC";
 
     private String databaseUrl;
+    private String databaseUsername;
+    private String databasePassword;
 
     public OrderStorage() {
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         this.databaseUrl = propertiesHolder.getProperty(ConfigurationConstants.DATABASE_URL);
+        this.databaseUsername = propertiesHolder.getProperty(ConfigurationConstants.DATABASE_USERNAME);
+        this.databasePassword = propertiesHolder.getProperty(ConfigurationConstants.DATABASE_PASSWORD);
 
         try {
             Class.forName(MANAGER_DATASTORE_SQLITE_DRIVER);
@@ -56,7 +60,8 @@ public class OrderStorage {
 
     protected Connection getConnection() throws SQLException {
         try {
-            return DriverManager.getConnection(this.databaseUrl);
+            return DriverManager.getConnection(this.databaseUrl,
+                    this.databaseUsername, this.databasePassword);
         } catch (SQLException e) {
             LOGGER.error("Error while getting a new connection from the connection pool.", e);
             throw e;
