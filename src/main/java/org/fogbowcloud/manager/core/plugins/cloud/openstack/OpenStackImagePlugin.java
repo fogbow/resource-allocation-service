@@ -22,21 +22,21 @@ import org.json.JSONObject;
 
 public class OpenStackImagePlugin implements ImagePlugin {
 
-	private static final String IMAGE_GLANCEV2_URL_KEY = "openstack_glance_v2_url";
-	private static final String GLANCE_PLUGIN_CONF_FILE = "openstack-glance-image-plugin.conf";
+	public static final String IMAGE_GLANCEV2_URL_KEY = "openstack_glance_v2_url";
+	public static final String GLANCE_PLUGIN_CONF_FILE = "openstack-glance-image-plugin.conf";
 
-	private static final String SUFFIX = "images";
-	private static final String ACTIVE_STATE = "active";
-	private static final String QUERY_ACTIVE_IMAGES = "?status=" + ACTIVE_STATE;
-	private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
-	private static final String TENANT_ID = "tenantId";
+	public static final String SUFFIX = "images";
+	public static final String ACTIVE_STATE = "active";
+	public static final String QUERY_ACTIVE_IMAGES = "?status=" + ACTIVE_STATE;
+	public static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
+	public static final String TENANT_ID = "tenantId";
 	
-	private static final String ID_JSON = "id";
-	private static final String NAME_JSON = "name";
-	private static final String SIZE_JSON = "size";
-	private static final String MIN_DISK_JSON = "min_disk";
-	private static final String MIN_RAM_JSON = "min_ram";
-	private static final String STATUS = "status";
+	public static final String ID_JSON = "id";
+	public static final String NAME_JSON = "name";
+	public static final String SIZE_JSON = "size";
+	public static final String MIN_DISK_JSON = "min_disk";
+	public static final String MIN_RAM_JSON = "min_ram";
+	public static final String STATUS = "status";
 
 	private Properties properties;
 	private HttpRequestClientUtil client;
@@ -159,7 +159,7 @@ public class OpenStackImagePlugin implements ImagePlugin {
 		return privateImages;
 	}
 	
-	protected Map<String, String> getImageNameAndIdMapFromAllAvailableImages(Token localToken, String tenantId)
+	private Map<String, String> getImageNameAndIdMapFromAllAvailableImages(Token localToken, String tenantId)
 			throws FogbowManagerException, UnexpectedException {
 		Map<String, String> imageNameIdMap = new HashMap<String, String>();
 		
@@ -174,5 +174,13 @@ public class OpenStackImagePlugin implements ImagePlugin {
 		}
 		
 		return imageNameIdMap;
+	}
+	
+	protected void setClient(HttpRequestClientUtil client) {
+		this.client = client;
+	}
+	
+	protected void setProperties(Properties properties) {
+		this.properties = properties;
 	}
 }
