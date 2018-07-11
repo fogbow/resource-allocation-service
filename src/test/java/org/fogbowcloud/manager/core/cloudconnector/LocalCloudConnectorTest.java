@@ -5,6 +5,12 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.management.InstanceNotFoundException;
+
+import org.apache.commons.collections.map.HashedMap;
 import org.fogbowcloud.manager.core.AaController;
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.CloudPluginsHolder;
@@ -13,17 +19,23 @@ import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.ComputeQuotaPlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.ImagePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.fogbowcloud.manager.core.models.images.Image;
+import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
+import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
+import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -31,15 +43,20 @@ import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
+import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
+import org.fogbowcloud.manager.core.models.quotas.Quota;
+import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 
-
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({LocalCloudConnector.class})
+@PrepareForTest({DatabaseManager.class})
 public class LocalCloudConnectorTest extends BaseUnitTests {
 	
 	private static final String FAKE_INSTANCE_ID = "fake-instance-id";
+	private static final String FAKE_ORDER_ID = "fake-order-id";
+	private static final String FAKE_IMAGE_ID = "fake-image-id";
+	private static final String FAKE_IMAGE_NAME = "fake-image-name";
 	
 	private LocalCloudConnector localCloudConnector;
 	
@@ -50,8 +67,17 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	private AttachmentPlugin attachmentPlugin;
 	private NetworkPlugin networkPlugin;
 	private VolumePlugin volumePlugin;
+	private ImagePlugin imagePlugin;
+	private ComputeQuotaPlugin computeQuotaPlugin;
 	
 	private Order order;
+	private Image image;
+	private FederationUser federationUser;
+	
+	private NetworkInstance networkInstance;
+	private VolumeInstance volumeInstance;
+	private AttachmentInstance attachmentInstance;
+	private ComputeInstance computeInstance;
 	
 	@Before
     public void setUp() throws FogbowManagerException, UnexpectedException {
@@ -67,6 +93,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         PowerMockito.mockStatic(DatabaseManager.class);
         given(DatabaseManager.getInstance()).willReturn(databaseManager);
 		
+        this.federationUser = Mockito.mock(FederationUser.class);
         this.aaController = Mockito.mock(AaController.class);
         this.cloudPluginsHolder = Mockito.mock(CloudPluginsHolder.class);
         
@@ -74,23 +101,35 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         this.attachmentPlugin = Mockito.mock(AttachmentPlugin.class);
         this.networkPlugin = Mockito.mock(NetworkPlugin.class);
         this.volumePlugin = Mockito.mock(VolumePlugin.class);
+        this.imagePlugin = Mockito.mock(ImagePlugin.class);
+        this.computeQuotaPlugin = Mockito.mock(ComputeQuotaPlugin.class);
+        
+        this.networkInstance = Mockito.mock(NetworkInstance.class);
+        when(networkInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
+        
+        this.volumeInstance = Mockito.mock(VolumeInstance.class);
+        when(volumeInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
+        
+        this.attachmentInstance = Mockito.mock(AttachmentInstance.class);
+        when(attachmentInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
+        
+        this.computeInstance = Mockito.mock(ComputeInstance.class);
+        when(computeInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
+       
+        this.image = Mockito.mock(Image.class);
+        when(image.getId()).thenReturn(FAKE_IMAGE_ID);
         
         when(cloudPluginsHolder.getComputePlugin()).thenReturn(computePlugin);
         when(cloudPluginsHolder.getAttachmentPlugin()).thenReturn(attachmentPlugin);
         when(cloudPluginsHolder.getNetworkPlugin()).thenReturn(networkPlugin);
         when(cloudPluginsHolder.getVolumePlugin()).thenReturn(volumePlugin);
+        when(cloudPluginsHolder.getImagePlugin()).thenReturn(imagePlugin);
+        when(cloudPluginsHolder.getComputeQuotaPlugin()).thenReturn(computeQuotaPlugin);
         when(aaController.getLocalToken(any(FederationUser.class))).thenReturn(new Token());
         
         this.localCloudConnector = new LocalCloudConnector(aaController, cloudPluginsHolder);
         
     }
-	
-	@Test
-	@Ignore
-	public void testRequestInstanceFromNullOrder() throws FogbowManagerException, UnexpectedException {
-		this.order = null;
-		assertNull(this.localCloudConnector.requestInstance(order));
-	}
 	
 	@Test
 	public void testRequestComputeInstance() throws FogbowManagerException, UnexpectedException {
@@ -129,11 +168,190 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	public void testExceptionNullInstanceId() throws FogbowManagerException, UnexpectedException {
 		this.order = Mockito.mock(ComputeOrder.class);
 	    when(this.order.getType()).thenReturn(InstanceType.COMPUTE);
-	    when(networkPlugin.requestInstance(any(NetworkOrder.class), any(Token.class))).thenReturn(null);
+	    when(computePlugin.requestInstance(any(ComputeOrder.class), any(Token.class))).thenReturn(null);
 		this.localCloudConnector.requestInstance(order);
 	}
 	
 	
+	
+	// The order has an InstanceID, so the method getResourceInstance() is called.
+	@Test
+	public void testgetNetworkInstance() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(NetworkOrder.class);
+	    when(this.order.getType()).thenReturn(InstanceType.NETWORK);
+	    when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
+	    when(networkPlugin.getInstance(any(String.class), any(Token.class))).thenReturn(this.networkInstance);
+		assertEquals(FAKE_INSTANCE_ID, this.localCloudConnector.getInstance(order).getId());
+	}
+	
+	// The order has an InstanceID, so the method getResourceInstance() is called.
+	@Test
+	public void testgetVolumeInstance() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(VolumeOrder.class);
+	    when(this.order.getType()).thenReturn(InstanceType.VOLUME);
+	    when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
+	    when(volumePlugin.getInstance(any(String.class), any(Token.class))).thenReturn(this.volumeInstance);
+		assertEquals(FAKE_INSTANCE_ID, this.localCloudConnector.getInstance(order).getId());
+	}
+	
+	// The order has an InstanceID, so the method getResourceInstance() is called.
+	@Test
+	public void testgetAttachmentInstance() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(AttachmentOrder.class);
+	    when(this.order.getType()).thenReturn(InstanceType.ATTACHMENT);
+	    when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
+	    when(attachmentPlugin.getInstance(any(String.class), any(Token.class))).thenReturn(this.attachmentInstance);
+		assertEquals(FAKE_INSTANCE_ID, this.localCloudConnector.getInstance(order).getId());
+	}
+	
+	// The order has an InstanceID, so the method getResourceInstance() is called.
+	// addReverseTunnelInfo() is called in this case.
+	@Test
+	public void testgetComputeInstance() throws FogbowManagerException, UnexpectedException {
+		
+		LocalCloudConnector localCloudConnectorSpy = Mockito.spy(this.localCloudConnector);
+		Mockito.doNothing().when(localCloudConnectorSpy).addReverseTunnelInfo(any(String.class), any(ComputeInstance.class));
+
+		this.order = Mockito.mock(ComputeOrder.class);
+	    when(this.order.getType()).thenReturn(InstanceType.COMPUTE);
+	    when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
+	    when(computePlugin.getInstance(any(String.class), any(Token.class))).thenReturn(this.computeInstance);
+		assertEquals(FAKE_INSTANCE_ID, localCloudConnectorSpy.getInstance(order).getId());
+	}
+	
+	
+	// The order doesn't have an InstanceID, so the method an empty NetworkInstance is returned with the same id of order.
+	@Test
+	public void testgetEmptyNetworkInstance() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(NetworkOrder.class);
+		when(this.order.getType()).thenReturn(InstanceType.NETWORK);
+		when(this.order.getInstanceId()).thenReturn(null);
+		when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
+		assertEquals(FAKE_ORDER_ID, this.localCloudConnector.getInstance(order).getId());
+	}
+	
+	// The order doesn't have an InstanceID, so the method an empty VolumeInstance is returned with the same id of order.
+	@Test
+	public void testgetEmptyVolumeInstance() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(VolumeOrder.class);
+	    when(this.order.getType()).thenReturn(InstanceType.VOLUME);
+	    when(this.order.getInstanceId()).thenReturn(null);
+	    when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
+		assertEquals(FAKE_ORDER_ID, this.localCloudConnector.getInstance(order).getId());
+	}
+	
+	// The order doesn't have an InstanceID, so the method an empty AttachmentInstance is returned with the same id of order.
+	@Test
+	public void testgetEmptyAttachmentInstance() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(AttachmentOrder.class);
+	    when(this.order.getType()).thenReturn(InstanceType.ATTACHMENT);
+	    when(this.order.getInstanceId()).thenReturn(null);
+	    when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
+		assertEquals(FAKE_ORDER_ID, this.localCloudConnector.getInstance(order).getId());
+	}
+	
+	// The order doesn't have an InstanceID, so the method an empty ComputeInstance is returned with the same id of order.
+	@Test
+	public void testgetEmptyComputeInstance() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(ComputeOrder.class);
+	    when(this.order.getType()).thenReturn(InstanceType.COMPUTE);
+	    when(this.order.getInstanceId()).thenReturn(null);
+	    when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
+		assertEquals(FAKE_ORDER_ID, this.localCloudConnector.getInstance(order).getId());
+	}
+	
+	@Test
+	public void testDeleteInstanceWithoutInstanceID() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(ComputeOrder.class);
+	    when(this.order.getType()).thenReturn(InstanceType.COMPUTE);
+	    //when(computePlugin.requestInstance(any(ComputeOrder.class), any(Token.class))).thenReturn(FAKE_INSTANCE_ID);
+		this.localCloudConnector.deleteInstance(order);
+	}
+	
+	@Test
+	public void testDeleteComputeInstance() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(ComputeOrder.class);
+	    when(this.order.getType()).thenReturn(InstanceType.COMPUTE);
+	    when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
+		this.localCloudConnector.deleteInstance(order);
+	}
+	
+	@Test
+	public void testDeleteVolumeInstance() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(VolumeOrder.class);
+	    when(this.order.getType()).thenReturn(InstanceType.VOLUME);
+	    when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
+		this.localCloudConnector.deleteInstance(order);
+	}
+	
+	@Test
+	public void testDeleteNetworkInstance() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(NetworkOrder.class);
+	    when(this.order.getType()).thenReturn(InstanceType.NETWORK);
+	    when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
+		this.localCloudConnector.deleteInstance(order);
+	}
+	
+	@Test
+	public void testDeleteAttachmentInstance() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(AttachmentOrder.class);
+	    when(this.order.getType()).thenReturn(InstanceType.ATTACHMENT);
+	    when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
+		this.localCloudConnector.deleteInstance(order);
+	}
+	
+	@Test
+	public void testgetImage() throws FogbowManagerException, UnexpectedException {
+	    when(this.imagePlugin.getImage(any(String.class), any(Token.class))).thenReturn(this.image);
+		assertEquals(FAKE_IMAGE_ID, this.localCloudConnector.getImage(FAKE_IMAGE_ID, federationUser).getId());
+	}
+	
+	@Test
+	public void testgetNullImage() throws FogbowManagerException, UnexpectedException {
+	    when(this.imagePlugin.getImage(any(String.class), any(Token.class))).thenReturn(null);
+		assertNull(this.localCloudConnector.getImage(FAKE_IMAGE_ID, federationUser));
+	}
+	
+	@Test
+	public void testGetUserComputeQuota() throws FogbowManagerException, UnexpectedException {
+		
+		ComputeAllocation fakeTotalComputeAllocation = new ComputeAllocation(2, 2048, 2);
+		ComputeAllocation fakeUsedComputeAllocation = new ComputeAllocation(1, 1024, 1);
+		ComputeQuota fakeComputeQuota = new ComputeQuota(fakeTotalComputeAllocation, fakeUsedComputeAllocation);
+	    when(this.computeQuotaPlugin.getUserQuota(any(Token.class))).thenReturn(fakeComputeQuota);
+	    
+	    ComputeQuota quota = (ComputeQuota) this.localCloudConnector.getUserQuota(federationUser, InstanceType.COMPUTE);
+	    assertEquals(2, quota.getTotalQuota().getvCPU());
+	    assertEquals(2048, quota.getTotalQuota().getRam());
+	    assertEquals(2, quota.getTotalQuota().getInstances());
+	    
+	    assertEquals(1, quota.getUsedQuota().getvCPU());
+	    assertEquals(1024, quota.getUsedQuota().getRam());
+	    assertEquals(1, quota.getUsedQuota().getInstances());
+	}
+	
+	// If the instance type isn't of Compute type, an exception must be throw
+	@Test(expected = UnexpectedException.class)
+	public void testGetUserQuotaException() throws FogbowManagerException, UnexpectedException {    
+	    this.localCloudConnector.getUserQuota(federationUser, InstanceType.VOLUME);
+	
+	}
+	
+	@Test
+	public void testGetAllImages() throws FogbowManagerException, UnexpectedException {    
+	    Map<String, String> fakeMapImages = new HashMap<>();
+	    fakeMapImages.put(FAKE_IMAGE_ID, FAKE_IMAGE_NAME);
+	    when(this.imagePlugin.getAllImages(any(Token.class))).thenReturn(fakeMapImages);
+	    
+	    assertEquals(FAKE_IMAGE_NAME, this.localCloudConnector.getAllImages(federationUser).get(FAKE_IMAGE_ID));
+	    assertEquals(1, this.localCloudConnector.getAllImages(federationUser).size());
+	}
+	
+	@Test
+	public void testGetAllImagesNullReturn() throws FogbowManagerException, UnexpectedException {    
+	    when(this.imagePlugin.getAllImages(any(Token.class))).thenReturn(null);
+	    assertNull(this.localCloudConnector.getAllImages(federationUser));
+	}
 	
 	
 	

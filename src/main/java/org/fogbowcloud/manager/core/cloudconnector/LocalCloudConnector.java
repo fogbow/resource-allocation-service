@@ -200,7 +200,7 @@ public class LocalCloudConnector implements CloudConnector {
         return instance;
     }
 
-    private void addReverseTunnelInfo(String orderId, ComputeInstance computeInstance) {
+    protected void addReverseTunnelInfo(String orderId, ComputeInstance computeInstance) {
         TunnelingServiceUtil tunnelingServiceUtil = TunnelingServiceUtil.getInstance();
         SshConnectivityUtil sshConnectivityUtil = SshConnectivityUtil.getInstance();
 
