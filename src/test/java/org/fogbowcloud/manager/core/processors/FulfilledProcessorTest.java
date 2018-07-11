@@ -66,6 +66,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
     @Before
     public void setUp() {
+        mockDB();
         HomeDir.getInstance().setPath("src/test/resources/private");
 
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();

@@ -1,14 +1,7 @@
 package org.fogbowcloud.manager;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.AaController;
-import org.fogbowcloud.manager.core.ApplicationFacade;
-import org.fogbowcloud.manager.core.BehaviorPluginsHolder;
-import org.fogbowcloud.manager.core.CloudPluginsHolder;
-import org.fogbowcloud.manager.core.HomeDir;
-import org.fogbowcloud.manager.core.OrderController;
-import org.fogbowcloud.manager.core.ProcessorsThreadController;
-import org.fogbowcloud.manager.core.PropertiesHolder;
+import org.fogbowcloud.manager.core.*;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
@@ -97,5 +90,4 @@ public class Main implements ApplicationRunner {
         String homeDir = args.getSourceArgs()[0];
         return (homeDir == null ? DefaultConfigurationConstants.FOGBOW_HOME : homeDir);
     }
-
 }

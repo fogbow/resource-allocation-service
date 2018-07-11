@@ -2,6 +2,9 @@ package org.fogbowcloud.manager.core;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.fogbowcloud.manager.core.datastore.DatabaseManager;
+
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -20,13 +23,32 @@ public class SharedOrderHolders {
     private SynchronizedDoublyLinkedList closedOrders;
 
     private SharedOrderHolders() {
-        this.activeOrdersMap = new ConcurrentHashMap<String, Order>();
-        this.openOrders = new SynchronizedDoublyLinkedList();
-        this.spawningOrders = new SynchronizedDoublyLinkedList();
-        this.failedOrders = new SynchronizedDoublyLinkedList();
-        this.fulfilledOrders = new SynchronizedDoublyLinkedList();
-        this.pendingOrders = new SynchronizedDoublyLinkedList();
-        this.closedOrders = new SynchronizedDoublyLinkedList();
+        DatabaseManager databaseManager = DatabaseManager.getInstance();
+
+        this.activeOrdersMap = new ConcurrentHashMap<>();
+
+        this.openOrders = databaseManager.readActiveOrders(OrderState.OPEN);
+        addOrdersToMap(this.openOrders, this.activeOrdersMap);
+        this.spawningOrders = databaseManager.readActiveOrders(OrderState.SPAWNING);
+        addOrdersToMap(this.spawningOrders, this.activeOrdersMap);
+        this.failedOrders = databaseManager.readActiveOrders(OrderState.FAILED);
+        addOrdersToMap(this.failedOrders, this.activeOrdersMap);
+        this.fulfilledOrders = databaseManager.readActiveOrders(OrderState.FULFILLED);
+        addOrdersToMap(this.fulfilledOrders, this.activeOrdersMap);
+        this.pendingOrders = databaseManager.readActiveOrders(OrderState.PENDING);
+        addOrdersToMap(this.pendingOrders, this.activeOrdersMap);
+        this.closedOrders = databaseManager.readActiveOrders(OrderState.CLOSED);
+        addOrdersToMap(this.closedOrders, this.activeOrdersMap);
+    }
+
+    private void addOrdersToMap(SynchronizedDoublyLinkedList ordersList, Map<String, Order> activeOrdersMap) {
+        Order order;
+
+        while ((order = ordersList.getNext()) != null) {
+            activeOrdersMap.put(order.getId(), order);
+        }
+
+        ordersList.resetPointer();
     }
 
     public static SharedOrderHolders getInstance() {

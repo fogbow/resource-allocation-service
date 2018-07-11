@@ -1,33 +1,34 @@
 package org.fogbowcloud.manager.core;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-
 import org.fogbowcloud.manager.core.constants.Operation;
+import org.fogbowcloud.manager.core.datastore.DatabaseManager;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
-import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
-import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
-import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
-import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
-import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
-import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
-import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
-import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.orders.UserData;
-import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
+import org.fogbowcloud.manager.core.models.instances.*;
+import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
+import org.fogbowcloud.manager.core.models.orders.*;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(DatabaseManager.class)
 public class ApplicationFacadeTest extends BaseUnitTests {
 
 	private ApplicationFacade application;
@@ -39,18 +40,27 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 	public void setUp() throws UnauthorizedRequestException {
 		this.aaaController = Mockito.mock(AaController.class);
 		
-		@SuppressWarnings("unused")
-        Properties properties = new Properties();
-		
 		HomeDir.getInstance().setPath("src/test/resources/private");
-		PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
-		properties = propertiesHolder.getProperties();
+
+		DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
+		when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList());
+		when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList());
+		when(databaseManager.readActiveOrders(OrderState.FAILED)).thenReturn(new SynchronizedDoublyLinkedList());
+		when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList());
+		when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList());
+		when(databaseManager.readActiveOrders(OrderState.CLOSED)).thenReturn(new SynchronizedDoublyLinkedList());
+
+		doNothing().when(databaseManager).add(any(Order.class));
+		doNothing().when(databaseManager).update(any(Order.class));
+
+		PowerMockito.mockStatic(DatabaseManager.class);
+		given(DatabaseManager.getInstance()).willReturn(databaseManager);
 		
 		this.orderController = Mockito.spy(new OrderController());
 		this.application = Mockito.spy(ApplicationFacade.getInstance());
 		this.application.setAaController(this.aaaController);
 		this.application.setOrderController(this.orderController);
-		
+
 		SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 		this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
 	}

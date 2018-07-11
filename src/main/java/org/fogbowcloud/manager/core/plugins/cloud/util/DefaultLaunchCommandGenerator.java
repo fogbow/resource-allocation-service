@@ -31,10 +31,8 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
     public static final String USER_DATA_LINE_BREAKER = "[[\\n]]";
 
     private final String SSH_REVERSE_TUNNEL_SCRIPT_PATH = "bin/create-reverse-tunnel";
-    private final FileReader sshReverseTunnelScript;
 
     private final String CLOUD_CONFIG_FILE_PATH = "bin/cloud-config.cfg";
-    private final FileReader cloudConfigFile;
 
     private final String sshCommonUser;
     private final String managerSshPublicKey;
@@ -46,8 +44,6 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
     public DefaultLaunchCommandGenerator() throws FatalErrorException {
         try {
-            this.cloudConfigFile = new FileReader(new File(this.CLOUD_CONFIG_FILE_PATH));
-
             this.sshCommonUser = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.SSH_COMMON_USER_KEY,
                             DefaultConfigurationConstants.SSH_COMMON_USER);
 
@@ -57,8 +53,6 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
             this.managerSshPublicKey = IOUtils.toString(new FileInputStream(new File(managerSshPublicKeyFilePath)));
             checkPropertyNotEmpty(this.managerSshPublicKey, ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH);
-
-            this.sshReverseTunnelScript = new FileReader(this.SSH_REVERSE_TUNNEL_SCRIPT_PATH);
 
             this.reverseTunnelPrivateIP = PropertiesHolder.getInstance().
                     getProperty(ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY);
@@ -83,8 +77,14 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
     @Override
     public String createLaunchCommand(ComputeOrder order) {
         CloudInitUserDataBuilder cloudInitUserDataBuilder = CloudInitUserDataBuilder.start();
-        cloudInitUserDataBuilder.addShellScript(this.sshReverseTunnelScript);
-        cloudInitUserDataBuilder.addCloudConfig(this.cloudConfigFile);
+        try {
+            // Here, we need to instantiate the FileReader, because, once we read this file, the stream goes to the end
+            // of the file, preventing to read the file again.
+            cloudInitUserDataBuilder.addShellScript(new FileReader(this.SSH_REVERSE_TUNNEL_SCRIPT_PATH));
+            cloudInitUserDataBuilder.addCloudConfig(new FileReader(this.CLOUD_CONFIG_FILE_PATH));
+        } catch (IOException e) {
+            throw new FatalErrorException(e.getMessage());
+        }
 
         UserData userData = order.getUserData();
 

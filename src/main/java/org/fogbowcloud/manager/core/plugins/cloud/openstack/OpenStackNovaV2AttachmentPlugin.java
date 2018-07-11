@@ -131,7 +131,8 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         	String volumeId = rootServer.getString("volumeId");
         	String device = rootServer.getString("device");
 
-        	// TODO: attachment state does not came from openstack response
+        	// There is no OpenStackState for attachments; we set it to empty string to allow its mapping
+            // by the OpenStackStateMapper.map() function.
             String openStackState = "";
             InstanceState fogbowState = OpenStackStateMapper.map(InstanceType.ATTACHMENT, openStackState);
 
