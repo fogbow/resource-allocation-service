@@ -49,19 +49,19 @@ public class AaControllerTest {
     }
     
     @Test
-    public void authenticateTest() throws UnauthenticatedUserException {
+    public void testAuthenticate() throws UnauthenticatedUserException {
     	Mockito.when(this.federationIdentityPluginMock.isValid(Mockito.anyString())).thenReturn(true);
     	this.aaController.authenticate(Mockito.anyString());
     }
     
     @Test (expected = UnauthenticatedUserException.class)
-    public void authenticateWhenUnauthenticatedUserExceptionTest() throws UnauthenticatedUserException {
+    public void testAuthenticateWhenUnauthenticatedUserException() throws UnauthenticatedUserException {
     	Mockito.when(this.federationIdentityPluginMock.isValid(Mockito.anyString())).thenReturn(false);
     	this.aaController.authenticate(Mockito.anyString());
     }
     
     @Test
-    public void authorizeOnInstanceTest() throws UnauthorizedRequestException {
+    public void testAuthorizeOnInstance() throws UnauthorizedRequestException {
     	Mockito.when(this.authorizationPluginMock.isAuthorized(
     			Mockito.any(), 
     			Mockito.any(), 
@@ -70,7 +70,7 @@ public class AaControllerTest {
     }
     
     @Test
-    public void authorizeOnOrderTest() throws FogbowManagerException {
+    public void testAuthorizeOnOrder() throws FogbowManagerException {
     	Mockito.when(this.authorizationPluginMock.isAuthorized(
     			Mockito.any(), 
     			Mockito.any(), 
@@ -79,7 +79,7 @@ public class AaControllerTest {
     }
     
     @Test
-    public void authorizeTest() throws FogbowManagerException {
+    public void testAuthorize() throws FogbowManagerException {
     	Mockito.when(this.authorizationPluginMock.isAuthorized(
     			Mockito.any(), 
     			Mockito.any())).thenReturn(true);
@@ -87,7 +87,7 @@ public class AaControllerTest {
     }
     
     @Test (expected = UnauthorizedRequestException.class)
-    public void authorizeWhenUnauthorizedRequestExceptionOnInstanceTest() throws UnauthorizedRequestException {
+    public void testAuthorizeWhenUnauthorizedRequestExceptionOnInstance() throws UnauthorizedRequestException {
     	Mockito.when(this.authorizationPluginMock.isAuthorized(
     			Mockito.any(), 
     			Mockito.any(), 
@@ -96,7 +96,7 @@ public class AaControllerTest {
     }
     
     @Test (expected = UnauthorizedRequestException.class)
-    public void authorizeWhenUnauthorizedRequestExceptionOnOrderTest() throws FogbowManagerException {
+    public void testAuthorizeWhenUnauthorizedRequestExceptionOnOrder() throws FogbowManagerException {
     	Mockito.when(this.authorizationPluginMock.isAuthorized(
     			Mockito.any(), 
     			Mockito.any(), 
@@ -105,7 +105,7 @@ public class AaControllerTest {
     }
     
     @Test (expected = UnauthorizedRequestException.class)
-    public void authorizeWhenUnauthorizedRequestExceptionTest() throws FogbowManagerException {
+    public void testAuthorizeWhenUnauthorizedRequestException() throws FogbowManagerException {
     	Mockito.when(this.authorizationPluginMock.isAuthorized(
     			Mockito.any(), 
     			Mockito.any())).thenReturn(false);
@@ -113,7 +113,7 @@ public class AaControllerTest {
     }
     
     @Test
-    public void getLocalTokenTest() throws FogbowManagerException, UnexpectedException {
+    public void testGetLocalToken() throws FogbowManagerException, UnexpectedException {
     	Mockito.when(this.localUserCredentialsMapperPluginMock.getCredentials(Mockito.any())).thenReturn(new HashMap<String, String>());
     	String accessId = "accessId";
     	User user = new User("id", "name");
@@ -125,34 +125,34 @@ public class AaControllerTest {
     }
     
     @Test (expected = FogbowManagerException.class)
-    public void getLocalTokenWhenFogbowManagerExceptionTest() throws FogbowManagerException, UnexpectedException {
+    public void testGetLocalTokenWhenFogbowManagerException() throws FogbowManagerException, UnexpectedException {
     	Mockito.when(this.localUserCredentialsMapperPluginMock.getCredentials(Mockito.any())).thenReturn(new HashMap<String, String>());
     	Mockito.when(this.localIdentityPluginMock.createToken(Mockito.any())).thenThrow(new FogbowManagerException());
     	this.aaController.getLocalToken(Mockito.any());
     }
     
     @Test (expected = UnexpectedException.class)
-    public void getLocalTokenWhenUnexpectedExceptionTest() throws FogbowManagerException, UnexpectedException {
+    public void testGetLocalTokenWhenUnexpectedException() throws FogbowManagerException, UnexpectedException {
     	Mockito.when(this.localUserCredentialsMapperPluginMock.getCredentials(Mockito.any())).thenReturn(new HashMap<String, String>());
     	Mockito.when(this.localIdentityPluginMock.createToken(Mockito.any())).thenThrow(new UnexpectedException());
     	this.aaController.getLocalToken(Mockito.any());
     }
     
     @Test
-    public void getFederationUserTest() throws UnauthenticatedUserException, UnexpectedException {
+    public void testGetFederationUser() throws UnauthenticatedUserException, UnexpectedException {
     	FederationUser federationUser = new FederationUser("id", new HashMap<String, String>());
     	Mockito.when(this.federationIdentityPluginMock.getFederationUser(Mockito.anyString())).thenReturn(federationUser);
     	Assert.assertEquals(federationUser, this.aaController.getFederationUser(Mockito.anyString()));
     }
     
     @Test (expected = UnauthenticatedUserException.class)
-    public void getFederationUserUnauthenticatedUserExceptionTest() throws UnauthenticatedUserException, UnexpectedException {
+    public void testGetFederationUserUnauthenticatedUserException() throws UnauthenticatedUserException, UnexpectedException {
     	Mockito.when(this.federationIdentityPluginMock.getFederationUser(Mockito.anyString())).thenThrow(new UnauthenticatedUserException());
     	this.aaController.getFederationUser(Mockito.anyString());
     }
     
     @Test (expected = UnexpectedException.class)
-    public void getFederationUserUnexpectedExceptionTest() throws UnauthenticatedUserException, UnexpectedException {
+    public void testGetFederationUserUnexpectedException() throws UnauthenticatedUserException, UnexpectedException {
     	Mockito.when(this.federationIdentityPluginMock.getFederationUser(Mockito.anyString())).thenThrow(new UnexpectedException());
     	this.aaController.getFederationUser(Mockito.anyString());
     }
