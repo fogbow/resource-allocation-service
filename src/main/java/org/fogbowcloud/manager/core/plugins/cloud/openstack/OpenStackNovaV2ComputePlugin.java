@@ -374,6 +374,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
             int memory = -1;
             int disk = -1;
 
+            // FIXME: Here, we need to update the HardwareRequirements TreeSet, because this Set is updated only in post request.
+            // In case we try to retrieve the get, before doing a post request, the vcpu, memory and disk will be -1;
+
             HardwareRequirements hardwareRequirements = retrieveFlavorFromResponse(serverJson);
             if (hardwareRequirements != null) {
                 vCPU = hardwareRequirements.getCpu();

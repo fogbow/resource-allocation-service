@@ -22,6 +22,8 @@ public class ComputeOrdersController {
 
     public static final String COMPUTE_ENDPOINT = "computes";
 	public static final String STATUS_ENDPOINT = "status";
+	public static final String QUOTA_ENDPOINT = "quota";
+	public static final String ALLOCATION_ENDPOINT = "allocation";
 
 	public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
@@ -77,22 +79,22 @@ public class ComputeOrdersController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
     
-	@RequestMapping(value = "/quota/{memberId:.+}", method = RequestMethod.GET)
+	@RequestMapping(value = "/" + QUOTA_ENDPOINT + "/{memberId:.+}", method = RequestMethod.GET)
 	public ResponseEntity<ComputeQuota> getUserQuota(@PathVariable String memberId,
 			@RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
 
-		LOGGER.info("User quota information request for member <" + memberId + "> received.");
+		LOGGER.info("User " + QUOTA_ENDPOINT + " information request for member <" + memberId + "> received.");
 		ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(memberId, federationTokenValue);
 		return new ResponseEntity<>(quotaInstance, HttpStatus.OK);
 	}
 
-	@RequestMapping(value = "/allocation/{memberId:.+}", method = RequestMethod.GET)
+	@RequestMapping(value = "/" + ALLOCATION_ENDPOINT + "/{memberId:.+}", method = RequestMethod.GET)
 	public ResponseEntity<ComputeAllocation> getUserAllocation(@PathVariable String memberId,
 			@RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowManagerException, UnexpectedException {
 
-		LOGGER.info("User allocation information request for member <" + memberId + "> received.");
+		LOGGER.info("User " + ALLOCATION_ENDPOINT + " information request for member <" + memberId + "> received.");
 		ComputeAllocation computeAllocation =
                 ApplicationFacade.getInstance().getComputeAllocation(memberId, federationTokenValue);
 		return new ResponseEntity<>(computeAllocation, HttpStatus.OK);
