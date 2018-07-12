@@ -4,6 +4,7 @@ import java.util.Properties;
 
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
@@ -15,6 +16,7 @@ import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.util.connectivity.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
+import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -36,7 +38,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(CloudConnectorFactory.class)
+@PrepareForTest({CloudConnectorFactory.class, OrderStateTransitioner.class})
 public class FulfilledProcessorTest extends BaseUnitTests {
 
     public static final String REMOTE_MEMBER_ID = "fake-intercomponent-member";
@@ -82,7 +84,118 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         }
         super.tearDown();
     }
+    
+    @Test
+    public void testRunProcessLocalComputeOrderWithoutExternalAddresses() throws FogbowManagerException, UnexpectedException, InterruptedException {
+        Order order = this.createLocalOrder();
+        order.setOrderState(OrderState.FULFILLED);
+        this.fulfilledOrderList.addItem(order);
 
+        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        orderInstance.setState(InstanceState.READY);
+        order.setInstanceId(FAKE_INSTANCE_ID);
+
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString())).thenReturn(localCloudConnector);
+
+        Mockito.doReturn(orderInstance).when(this.localCloudConnector).getInstance(Mockito.any(Order.class));
+
+        PowerMockito.mockStatic(CloudConnectorFactory.class);
+        BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
+        
+        this.fulfilledProcessor = Mockito.spy(new FulfilledProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
+                this.tunnelingService, this.sshConnectivity,
+                DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME));
+        
+        Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.anyString())).thenReturn(null);
+
+        Assert.assertNull(this.failedOrderList.getNext());
+
+        this.thread = new Thread(this.fulfilledProcessor);
+        this.thread.start();
+        
+        Thread.sleep(500);
+        
+        Order test = this.fulfilledOrderList.getNext();
+        Assert.assertNotNull(test);
+        Assert.assertEquals(order.getInstanceId(), test.getInstanceId());
+        Assert.assertEquals(OrderState.FULFILLED, test.getOrderState());
+    }
+    
+    @Test
+    public void testRunProcessLocalWhenOrderTypeIsNotComputer() throws FogbowManagerException, UnexpectedException, InterruptedException {
+        FederationUser federationUser = Mockito.mock(FederationUser.class);
+        String requestingMember = String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
+        String providingMember = LOCAL_MEMBER_ID;
+        
+        Order order = new AttachmentOrder(federationUser, requestingMember, providingMember, "source", "target", "device");
+        order.setOrderState(OrderState.FULFILLED);
+        this.fulfilledOrderList.addItem(order);
+
+        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        orderInstance.setState(InstanceState.READY);
+        order.setInstanceId(FAKE_INSTANCE_ID);
+
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString())).thenReturn(localCloudConnector);
+
+        Mockito.doReturn(orderInstance).when(this.localCloudConnector).getInstance(Mockito.any(Order.class));
+
+        PowerMockito.mockStatic(CloudConnectorFactory.class);
+        BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
+
+        this.fulfilledProcessor = Mockito.spy(new FulfilledProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
+                this.tunnelingService, this.sshConnectivity,
+                DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME));
+
+        Assert.assertNull(this.failedOrderList.getNext());
+        
+        this.thread = new Thread(this.fulfilledProcessor);
+        this.thread.start();
+        
+        Thread.sleep(500);
+        
+        Order test = this.fulfilledOrderList.getNext();
+        Assert.assertNotNull(test);
+        Assert.assertEquals(order.getInstanceId(), test.getInstanceId());
+        Assert.assertEquals(OrderState.FULFILLED, test.getOrderState());
+    }
+    
+    @Test
+    public void testRunProcessLocalComputeOrderWhenInstanceStateIsNotReady() throws FogbowManagerException, UnexpectedException, InterruptedException {
+        Order order = this.createLocalOrder();
+        order.setOrderState(OrderState.FULFILLED);
+        this.fulfilledOrderList.addItem(order);
+
+        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        orderInstance.setState(InstanceState.DISPATCHED);
+        order.setInstanceId(FAKE_INSTANCE_ID);
+
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString())).thenReturn(localCloudConnector);
+
+        Mockito.doReturn(orderInstance).when(this.localCloudConnector).getInstance(Mockito.any(Order.class));
+
+        PowerMockito.mockStatic(CloudConnectorFactory.class);
+        BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
+
+        this.fulfilledProcessor = Mockito.spy(new FulfilledProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
+                this.tunnelingService, this.sshConnectivity,
+                DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME));
+
+        Assert.assertNull(this.failedOrderList.getNext());
+
+        this.thread = new Thread(this.fulfilledProcessor);
+        this.thread.start();
+        
+        Thread.sleep(500);
+        
+        Order test = this.fulfilledOrderList.getNext();
+        Assert.assertNotNull(test);
+        Assert.assertEquals(order.getInstanceId(), test.getInstanceId());
+        Assert.assertEquals(OrderState.FULFILLED, test.getOrderState());
+    }
+    
     @Test
     public void testRunProcessLocalComputeOrderWhenGetInstanceFailed() throws FogbowManagerException, UnexpectedException, InterruptedException {
         Order order = this.createLocalOrder();
