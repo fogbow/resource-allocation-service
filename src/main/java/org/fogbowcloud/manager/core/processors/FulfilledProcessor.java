@@ -171,6 +171,8 @@ public class FulfilledProcessor implements Runnable {
                                 OrderStateTransitioner.transition(order, OrderState.FAILED);
                                 this.connectionAttempts.remove(order.getId());
                             } else {
+                                LOGGER.info("Compute failed to make connection ("+ (nAttempts + 1) +"/"+ MAX_TRIES +")," +
+                                        " to order [" + order.getId() + "].");
                                 this.connectionAttempts.put(order.getId(), ++nAttempts);
                             }
                         }
