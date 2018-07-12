@@ -42,5 +42,7 @@ public class ConfigurationConstants {
     public static final String REVERSE_TUNNEL_HTTP_PORT_KEY = "reverse_tunnel_http_port";
 
     // HISTORY & RECOVERY DATABASE CONF
-    public static final String DATABASE_URL = "history_recovery_database_url";
+    public static final String DATABASE_URL = "jdbc_database_url";
+    public static final String DATABASE_USERNAME = "jdbc_database_username";
+    public static final String DATABASE_PASSWORD = "jdbc_database_password";
 }
