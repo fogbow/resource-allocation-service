@@ -47,7 +47,7 @@ public class OpenStackImagePluginTest {
     }
     
     @Test
-    public void getAllImagesTest() throws FogbowManagerException, UnexpectedException, HttpResponseException {  	
+    public void testGetAllImages() throws FogbowManagerException, UnexpectedException, HttpResponseException {  	
     	String tenantId = "tenant-id";
     	String imageGlancev2UrlKey = "image-url-key";
     	String endpoint = 
@@ -73,7 +73,7 @@ public class OpenStackImagePluginTest {
     }
     
     @Test
-    public void getAllImagesWithPaginationTest() throws FogbowManagerException, UnexpectedException, HttpResponseException {
+    public void testGetAllImagesWithPagination() throws FogbowManagerException, UnexpectedException, HttpResponseException {
     	String tenantId = "tenant-id";
     	String imageGlancev2UrlKey = "image-url-key";
     	String nextUrl1 = "next-url1";
@@ -225,7 +225,7 @@ public class OpenStackImagePluginTest {
     }
     
     @Test
-    public void getImageWhenStateIsNotActivatedTest() throws FogbowManagerException, UnexpectedException, HttpResponseException {
+    public void testGetImageWhenStateIsNotActivated() throws FogbowManagerException, UnexpectedException, HttpResponseException {
     	String imageId = "image-id";
     	String imageGlancev2UrlKey = "image-url-key";
     	String endpoint = 
@@ -246,7 +246,7 @@ public class OpenStackImagePluginTest {
     }
     
     @Test (expected = FogbowManagerException.class)
-    public void getImageWhenForbiddenTest() throws FogbowManagerException, UnexpectedException, HttpResponseException {
+    public void testGetImageWhenForbidden() throws FogbowManagerException, UnexpectedException, HttpResponseException {
     	String imageId = "image-id";
     	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn("");
     	HttpResponseException httpResponseException = new HttpResponseException(HttpStatus.SC_FORBIDDEN, "");
@@ -255,7 +255,7 @@ public class OpenStackImagePluginTest {
     }
     
     @Test (expected = UnexpectedException.class)
-    public void getImageWhenUnexpectedExceptionTest() throws FogbowManagerException, UnexpectedException, HttpResponseException {
+    public void testGetImageWhenUnexpectedException() throws FogbowManagerException, UnexpectedException, HttpResponseException {
     	String imageId = "image-id";
     	int unexpectedHttpStatus = -1;
     	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn("");
@@ -265,7 +265,7 @@ public class OpenStackImagePluginTest {
     }
     
     @Test (expected = FogbowManagerException.class)
-    public void getAllImagesWhenForbiddenTest() throws FogbowManagerException, UnexpectedException, HttpResponseException {
+    public void testGetAllImagesWhenForbidden() throws FogbowManagerException, UnexpectedException, HttpResponseException {
     	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn("");
     	HttpResponseException httpResponseException = new HttpResponseException(HttpStatus.SC_FORBIDDEN, "");
     	Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.anyObject())).thenThrow(httpResponseException);
@@ -273,7 +273,7 @@ public class OpenStackImagePluginTest {
     }
     
     @Test (expected = UnexpectedException.class)
-    public void getAllImagesWhenUnexpectedExceptionTest() throws FogbowManagerException, UnexpectedException, HttpResponseException {
+    public void testGetAllImagesWhenUnexpectedException() throws FogbowManagerException, UnexpectedException, HttpResponseException {
     	int unexpectedHttpStatus = -1;
     	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn("");
     	HttpResponseException httpResponseException = new HttpResponseException(unexpectedHttpStatus, "");
@@ -282,7 +282,7 @@ public class OpenStackImagePluginTest {
     }
     
     @Test (expected = FogbowManagerException.class)
-    public void getAllImagesWithPaginationWhenForbiddenTest() throws FogbowManagerException, UnexpectedException, HttpResponseException {
+    public void testGetAllImagesWithPaginationWhenForbidden() throws FogbowManagerException, UnexpectedException, HttpResponseException {
     	String tenantId = "tenant-id";
     	String imageGlancev2UrlKey = "image-url-key";
     	String nextUrl1 = "next-url1";
@@ -315,7 +315,7 @@ public class OpenStackImagePluginTest {
     }
     
     @Test (expected = UnexpectedException.class)
-    public void getAllImagesWithPaginationWhenUnexpectedExceptionTest() throws FogbowManagerException, UnexpectedException, HttpResponseException {
+    public void testGetAllImagesWithPaginationWhenUnexpectedException() throws FogbowManagerException, UnexpectedException, HttpResponseException {
     	String tenantId = "tenant-id";
     	String imageGlancev2UrlKey = "image-url-key";
     	String nextUrl1 = "next-url1";
