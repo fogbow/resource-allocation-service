@@ -93,7 +93,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
         String userId = userCredentials.get(CRED_USERNAME);
         String password = userCredentials.get(CRED_PASSWORD);
-        String name = null;
+        String name = null; 
 
         extractLdapPropertiesFromCredentials(userCredentials);
 
