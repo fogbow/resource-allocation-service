@@ -12,14 +12,21 @@ import static org.mockito.Mockito.spy;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
+import java.util.UUID;
 
 import org.apache.http.client.HttpResponseException;
+import org.apache.velocity.texen.util.PropertiesUtil;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.plugins.cloud.JSONMatcher;
 import org.fogbowcloud.manager.core.plugins.cloud.util.CloudInitUserDataBuilder;
 import org.fogbowcloud.manager.core.plugins.cloud.util.LaunchCommandGenerator;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
@@ -29,13 +36,25 @@ import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.core.models.tokens.Token.User;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSerializationContext;
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(OpenStackNovaV2ComputePlugin.class)
 public class OpenStackComputePluginTest {
 
     protected static final String FAKE_USER_DATA_FILE = "fake-extra-user-data";
@@ -56,24 +75,26 @@ public class OpenStackComputePluginTest {
             "{\"server\": {\"id\": \"fake-instance-id\", "
                     + "\"status\": \"build\", \"name\": \"host\", \"flavor\": {\"vcpus\": 1, \"ram\": 3}}}";
     protected static final String INVALID_FAKE_POST_RETURN = "invalid";
-    private static final String COMPUTE_NOVAV2_URL_KEY = "compute_novav2_url";
-    private static final String COMPUTE_NOVAV2_NETWORK_KEY = "compute_novav2_network_id";
 
     private OpenStackNovaV2ComputePlugin novaV2ComputeOpenStack;
     private Token localToken;
     private ComputeOrder computeOrder;
-    private LaunchCommandGenerator launchCommandGenerator;
-
+    private LaunchCommandGenerator launchCommandGeneratorMock;
+    private HttpRequestClientUtil httpRequestClientUtilMock;
+    private Properties propertiesMock;
+    private PropertiesHolder propertiesHolderMock;
+    
     @Before
     public void setUp() throws Exception {
-        HomeDir.getInstance().setPath("src/test/resources/private");
-        PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
-        Properties properties = propertiesHolder.getProperties();
-        properties.put(COMPUTE_NOVAV2_URL_KEY, FAKE_ENDPOINT);
-        properties.put(COMPUTE_NOVAV2_NETWORK_KEY, FAKE_NET_ID);
-
-        this.localToken = mock(Token.class);
-
+  
+        this.propertiesHolderMock = Mockito.mock(PropertiesHolder.class);
+        this.propertiesMock = Mockito.mock(Properties.class);
+        
+        Mockito.when(propertiesHolderMock.getProperties()).thenReturn(propertiesMock);
+        Mockito.when(propertiesMock.getProperty(OpenStackNovaV2ComputePlugin.COMPUTE_NOVAV2_URL_KEY)).thenReturn(FAKE_ENDPOINT);
+        
+        this.httpRequestClientUtilMock = Mockito.mock(HttpRequestClientUtil.class);
+        
         this.computeOrder =
                 new ComputeOrder(
                         null,
@@ -89,55 +110,251 @@ public class OpenStackComputePluginTest {
                         null,
                         null);
 
-        this.launchCommandGenerator = mock(LaunchCommandGenerator.class);
-
+        this.launchCommandGeneratorMock = mock(LaunchCommandGenerator.class);
+        
+        String accessId = "accessID";
+    	String tenantId = "tenant-id";
+    	Map <String, String> attributes = new HashMap<String, String>();
+    	attributes.put(OpenStackNovaV2ComputePlugin.TENANT_ID, tenantId);
+    	User user = new User("iduser", "nameuser");
+    	Date expirationTime = new Date();
+        this.localToken = new Token(accessId, user, expirationTime, attributes);
+        
+        HomeDir.getInstance().setPath("src/test/resources/private");
+        
         this.novaV2ComputeOpenStack =
-                spy(new OpenStackNovaV2ComputePlugin(properties, this.launchCommandGenerator));
+                spy(new OpenStackNovaV2ComputePlugin(this.propertiesMock, this.launchCommandGeneratorMock));
+        
+        this.novaV2ComputeOpenStack.setClient(this.httpRequestClientUtilMock);
     }
 
     @Test
     public void testRequestInstance() throws IOException, FogbowManagerException, UnexpectedException {
-        HardwareRequirements flavor = mock(HardwareRequirements.class);
-        doReturn(flavor)
-                .when(this.novaV2ComputeOpenStack)
-                .findSmallestFlavor(any(ComputeOrder.class), eq(this.localToken));
 
-        String fakeCommand = "fake-command";
-        doReturn(fakeCommand)
-                .when(this.launchCommandGenerator)
-                .createLaunchCommand(any(ComputeOrder.class));
+    	String computeNovaV2UrlKey = "compute-nova-v2-url-key";
+    	Mockito.when(
+    			this.propertiesMock.getProperty(OpenStackNovaV2ComputePlugin.COMPUTE_NOVAV2_URL_KEY)).
+    			thenReturn(computeNovaV2UrlKey);
+    
+    	String flavorEndpoint = computeNovaV2UrlKey
+                + OpenStackNovaV2ComputePlugin.COMPUTE_V2_API_ENDPOINT
+                + this.localToken.getAttributes().get(OpenStackNovaV2ComputePlugin.TENANT_ID)
+                + OpenStackNovaV2ComputePlugin.SUFFIX_ENDPOINT_FLAVORS;
+    	
+    	Mockito.when(this.httpRequestClientUtilMock.doGetRequest(flavorEndpoint, this.localToken))
+    			.thenReturn(generateJsonFlavors(10));
+    	
+    	for (int i = 0; i < 10; i++) {
+    		String flavorId = "flavor" + Integer.toString(i);
+    		String newEndpoint = flavorEndpoint + "/" + flavorId;
+    		String flavorJson = generateJsonFlavor(
+    				flavorId, 
+    				"nameflavor" + Integer.toString(i), 
+    				Integer.toString(i), 
+    				Integer.toString(i), 
+    				Integer.toString(i));
+    		Mockito.when(this.httpRequestClientUtilMock.doGetRequest(newEndpoint, this.localToken))
+    				.thenReturn(flavorJson);
+    		
+    	}
+    	
+    	int flavorSpecifications = 5;
+    	String flavorId = "flavor" + Integer.toString(flavorSpecifications);
+    	
+    	String defaultNetworkIp = "192.168.0.2";
+    	
+    	Mockito.when(this.propertiesMock.getProperty(OpenStackNovaV2ComputePlugin.DEFAULT_NETWORK_ID_KEY))
+    			.thenReturn(defaultNetworkIp);
+    	
+    	String imageId = "image-id";
+    	
+    	String publicKey = "public-key";
+    	String osKeyPairEndpoint = 
+    					computeNovaV2UrlKey
+    	                + OpenStackNovaV2ComputePlugin.COMPUTE_V2_API_ENDPOINT
+    	                + this.localToken.getAttributes().get(OpenStackNovaV2ComputePlugin.TENANT_ID)
+    	                + OpenStackNovaV2ComputePlugin.SUFFIX_ENDPOINT_KEYPAIRS;
 
-        doReturn(FAKE_ENDPOINT)
-                .when(this.novaV2ComputeOpenStack)
-                .getComputeEndpoint(anyString(), anyString());
+    	String keyName = "keyname";
+    	
+    	JSONObject rootKeypairJson = generateRootKeyPairJson(keyName, publicKey);
+    	
+    	Mockito.when(this.httpRequestClientUtilMock.doPostRequest(osKeyPairEndpoint, 
+    				this.localToken, 
+    				rootKeypairJson)).thenReturn("");
+    	
+    	        
+    	ComputeOrder computeOrder =
+                new ComputeOrder(
+                        null,
+                        null,
+                        null,
+                        flavorSpecifications,
+                        flavorSpecifications,
+                        flavorSpecifications,
+                        imageId,
+                        new UserData(
+                                FAKE_USER_DATA_FILE,
+                                CloudInitUserDataBuilder.FileType.SHELL_SCRIPT),
+                        publicKey,
+                        null);
+    	
+    	
+    	String userData = "userDataFromLauchCommand";
+    	Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(computeOrder))
+    			.thenReturn(userData);
+    	
+    	String computeEndpoint = computeNovaV2UrlKey
+                + OpenStackNovaV2ComputePlugin.COMPUTE_V2_API_ENDPOINT
+                + this.localToken.getAttributes().get(OpenStackNovaV2ComputePlugin.TENANT_ID)
+                + OpenStackNovaV2ComputePlugin.SERVERS;
+    	
+    	List <String> networksId =  new ArrayList<String>();
+    	networksId.add(defaultNetworkIp);
+    	
+    	String idKeyName = "493315b3-dd01-4b38-974f-289570f8e7ee";
+    	UUID uuidKeyName = UUID.fromString(idKeyName);
+    	
+    	String idInstanceName = "12345678-dd01-4b38-974f-289570f8e7ee";
+    	UUID uuidInstaceName = UUID.fromString(idInstanceName);
+    	
+    	PowerMockito.mockStatic(UUID.class);
+    	PowerMockito.when(UUID.randomUUID()).thenReturn(uuidKeyName, uuidInstaceName);
 
-        List<String> fakeNetIds = new ArrayList<String>();
-        fakeNetIds.add(FAKE_NET_ID);
-
-        JSONObject json =
-                this.novaV2ComputeOpenStack.generateJsonRequest(
-                        FAKE_IMAGE_ID,
-                        FAKE_FLAVOR_ID,
-                        FAKE_USER_DATA_FILE,
-                        FAKE_KEYNAME,
-                        fakeNetIds);
-        doReturn(json)
-                .when(this.novaV2ComputeOpenStack)
-                .generateJsonRequest(
-                        anyString(), anyString(), anyString(), anyString(), anyObject());
-        
-        HttpRequestClientUtil httpRequestClientUtil = Mockito.mock(HttpRequestClientUtil.class);
-        this.novaV2ComputeOpenStack.setClient(httpRequestClientUtil);
-        
-        doReturn(FAKE_POST_RETURN)
-                .when(httpRequestClientUtil)
-                .doPostRequest(eq(FAKE_ENDPOINT), eq(localToken), eq(json));
-        
-        String instanceId = novaV2ComputeOpenStack.requestInstance(computeOrder, localToken);
-
-        assertEquals(instanceId, FAKE_INSTANCE_ID);
+    	JSONObject computeJson = generateJsonRequest(imageId, flavorId, userData, idKeyName, networksId, uuidInstaceName.toString());
+    	
+    	String expectedInstanceId = "expectedInstanceId";
+    	
+    	JSONMatcher jsonMatcher = new JSONMatcher(computeJson);
+    	
+    	
+    	// TESTAR MOCKITO  MATCHER WITH STRING
+    	
+    	Mockito.when(this.httpRequestClientUtilMock.doPostRequest(Mockito.anyString(), Mockito.any(), Mockito.any()))
+    			.thenReturn(expectedInstanceId);
+    	
+//    	ArgumentCaptor<Person> argument = ArgumentCaptor.forClass(Person.class);
+//    	verify(mock).doSomething(argument.capture());
+//    	assertEquals("John", argument.getValue().getName());
+    	
+    	System.out.println(computeEndpoint);
+    	System.out.println(this.localToken);
+    	System.out.println(computeJson);
+    	
+    	String instanceId = novaV2ComputeOpenStack.requestInstance(computeOrder, this.localToken);
+    	
+    	Assert.assertEquals(expectedInstanceId, instanceId);
+    	
+    	//Mockito.when(this.httpRequestClientUtilMock.doPostRequest(endpoint, json))
+    	
+//    	localToken.setAttributes(attributes);
+//    	
+//    	HardwareRequirements flavor = mock(HardwareRequirements.class);
+//        doReturn(flavor)
+//                .when(this.novaV2ComputeOpenStack)
+//                .findSmallestFlavor(any(ComputeOrder.class), eq(this.localToken));
+//
+//        String fakeCommand = "fake-command";
+//        doReturn(fakeCommand)
+//                .when(this.launchCommandGeneratorMock)
+//                .createLaunchCommand(any(ComputeOrder.class));
+//
+//        doReturn(FAKE_ENDPOINT)
+//                .when(this.novaV2ComputeOpenStack)
+//                .getComputeEndpoint(anyString(), anyString());
+//
+//        List<String> fakeNetIds = new ArrayList<String>();
+//        fakeNetIds.add(FAKE_NET_ID);
+//
+//        JSONObject json =
+//                this.novaV2ComputeOpenStack.generateJsonRequest(
+//                        FAKE_IMAGE_ID,
+//                        FAKE_FLAVOR_ID,
+//                        FAKE_USER_DATA_FILE,
+//                        FAKE_KEYNAME,
+//                        fakeNetIds);
+//        doReturn(json)
+//                .when(this.novaV2ComputeOpenStack)
+//                .generateJsonRequest(
+//                        anyString(), anyString(), anyString(), anyString(), anyObject());
+//        
+//        HttpRequestClientUtil httpRequestClientUtil = Mockito.mock(HttpRequestClientUtil.class);
+//        this.novaV2ComputeOpenStack.setClient(httpRequestClientUtil);
+//        
+//        doReturn(FAKE_POST_RETURN)
+//                .when(httpRequestClientUtil)
+//                .doPostRequest(eq(FAKE_ENDPOINT), eq(localToken), eq(json));
+//        
+//        String instanceId = novaV2ComputeOpenStack.requestInstance(computeOrder, localToken);
+//
+//        assertEquals(instanceId, FAKE_INSTANCE_ID);
     }
-
+    
+    
+    private String generateJsonFlavors(int qtd) {
+    	Map <String, Object> jsonFlavorsMap = new HashMap<String, Object>();
+    	List<Map <String, String>> jsonArrayFlavors = new ArrayList<Map<String, String>>();
+    	for (int i = 0; i < qtd; i++) {
+    		Map <String, String> flavor = new HashMap<String, String>();
+    		flavor.put(OpenStackNovaV2ComputePlugin.ID_JSON_FIELD, "flavor" + Integer.toString(i));
+    		jsonArrayFlavors.add(flavor);
+    	}
+    	jsonFlavorsMap.put(OpenStackNovaV2ComputePlugin.FLAVOR_JSON_KEY, jsonArrayFlavors);
+    	Gson gson = new Gson();
+    	return gson.toJson(jsonFlavorsMap);
+    }
+    
+    private String generateJsonFlavor(String id, String name, String disk, String memory, String vcpu) {
+    	Map<String, Object> flavorMap = new HashMap<String, Object>();
+    	Map<String, String> flavorAttributes = new HashMap<String, String>();
+    	flavorAttributes.put(OpenStackNovaV2ComputePlugin.ID_JSON_FIELD, id);
+    	flavorAttributes.put(OpenStackNovaV2ComputePlugin.NAME_JSON_FIELD, name);
+    	flavorAttributes.put(OpenStackNovaV2ComputePlugin.DISK_JSON_FIELD, disk);
+    	flavorAttributes.put(OpenStackNovaV2ComputePlugin.MEMORY_JSON_FIELD, memory);
+    	flavorAttributes.put(OpenStackNovaV2ComputePlugin.VCPU_JSON_FIELD, vcpu);
+    	flavorMap.put(OpenStackNovaV2ComputePlugin.FLAVOR_JSON_OBJECT, flavorAttributes);
+    	return new Gson().toJson(flavorMap);
+    }
+    
+    private String generateInstaceId(String id) {
+    	Map <String, String> instanceMap = new HashMap<String, String>();
+    	instanceMap.put("ID_JSON_FIELD", id);
+    	return new Gson().toJson(instanceMap);
+    }
+    
+    private JSONObject generateRootKeyPairJson(String keyName, String publicKey) {
+    	JSONObject keypair = new JSONObject();
+    	keypair.put(OpenStackNovaV2ComputePlugin.NAME_JSON_FIELD, keyName);
+    	keypair.put(OpenStackNovaV2ComputePlugin.PUBLIC_KEY_JSON_FIELD, publicKey);
+    	JSONObject root = new JSONObject();
+    	root.put(OpenStackNovaV2ComputePlugin.KEYPAIR_JSON_FIELD, keypair);
+    	return root;
+    }
+    
+    private JSONObject generateJsonRequest(String imageId, String flavorId, String userData, String keyName, List<String> networksId, String randomUUID) {
+    	JSONObject server = new JSONObject();
+    	server.put(OpenStackNovaV2ComputePlugin.NAME_JSON_FIELD, OpenStackNovaV2ComputePlugin.FOGBOW_INSTANCE_NAME + randomUUID);
+    	server.put(OpenStackNovaV2ComputePlugin.IMAGE_JSON_FIELD, imageId);
+    	server.put(OpenStackNovaV2ComputePlugin.FLAVOR_REF_JSON_FIELD, flavorId);
+    	server.put(OpenStackNovaV2ComputePlugin.USER_DATA_JSON_FIELD, userData);
+    	
+    	JSONArray networks = new JSONArray();
+    	
+        for (String id : networksId) {
+            JSONObject netId = new JSONObject();
+            netId.put(OpenStackNovaV2ComputePlugin.UUID_JSON_FIELD, id);
+            networks.put(netId);
+        }
+        
+        server.put(OpenStackNovaV2ComputePlugin.NETWORK_JSON_FIELD, networks);
+    	
+    	server.put(OpenStackNovaV2ComputePlugin.KEY_JSON_FIELD, keyName);
+    	JSONObject root = new JSONObject();
+    	root.put(OpenStackNovaV2ComputePlugin.SERVER_JSON_FIELD, server);
+    	return root;
+    }
+    
+    
     @Test(expected = FogbowManagerException.class)
     public void testRequestInstanceIrregularSyntax() throws IOException, FogbowManagerException, UnexpectedException {
         HardwareRequirements flavor = mock(HardwareRequirements.class);

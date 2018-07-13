@@ -27,35 +27,35 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
     private static final String NOVAV2_PLUGIN_CONF_FILE = "openstack-nova-compute-plugin.conf";
 
-    private static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
-    private static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
+    protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
+    protected static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
 
-    private static final String ID_JSON_FIELD = "id";
-    private static final String NAME_JSON_FIELD = "name";
-    private static final String SERVER_JSON_FIELD = "server";
-    private static final String FLAVOR_REF_JSON_FIELD = "flavorRef";
+    protected static final String ID_JSON_FIELD = "id";
+    protected static final String NAME_JSON_FIELD = "name";
+    protected static final String SERVER_JSON_FIELD = "server";
+    protected static final String FLAVOR_REF_JSON_FIELD = "flavorRef";
     private static final String FLAVOR_JSON_FIELD = "flavor";
     private static final String FLAVOR_ID_JSON_FIELD = "id";
-    private static final String IMAGE_JSON_FIELD = "imageRef";
-    private static final String USER_DATA_JSON_FIELD = "user_data";
-    private static final String NETWORK_JSON_FIELD = "networks";
+    protected static final String IMAGE_JSON_FIELD = "imageRef";
+    protected static final String USER_DATA_JSON_FIELD = "user_data";
+    protected static final String NETWORK_JSON_FIELD = "networks";
     private static final String STATUS_JSON_FIELD = "status";
-    private static final String DISK_JSON_FIELD = "disk";
-    private static final String VCPU_JSON_FIELD = "vcpus";
-    private static final String MEMORY_JSON_FIELD = "ram";
-    private static final String FLAVOR_JSON_OBJECT = "flavor";
-    private static final String FLAVOR_JSON_KEY = "flavors";
-    private static final String KEY_JSON_FIELD = "key_name";
-    private static final String PUBLIC_KEY_JSON_FIELD = "public_key";
-    private static final String KEYPAIR_JSON_FIELD = "keypair";
-    private static final String UUID_JSON_FIELD = "uuid";
-    private static final String FOGBOW_INSTANCE_NAME = "fogbow-instance-";
-    private static final String TENANT_ID = "tenantId";
+    protected static final String DISK_JSON_FIELD = "disk";
+    protected static final String VCPU_JSON_FIELD = "vcpus";
+    protected static final String MEMORY_JSON_FIELD = "ram";
+    protected static final String FLAVOR_JSON_OBJECT = "flavor";
+    protected static final String FLAVOR_JSON_KEY = "flavors";
+    protected static final String KEY_JSON_FIELD = "key_name";
+    protected static final String PUBLIC_KEY_JSON_FIELD = "public_key";
+    protected static final String KEYPAIR_JSON_FIELD = "keypair";
+    protected static final String UUID_JSON_FIELD = "uuid";
+    protected static final String FOGBOW_INSTANCE_NAME = "fogbow-instance-";
+    protected static final String TENANT_ID = "tenantId";
 
-    private static final String SERVERS = "/servers";
-    private static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
-    private static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
-    private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
+    protected static final String SERVERS = "/servers";
+    protected static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
+    protected static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
+    protected static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
 
     private static final Logger LOGGER = Logger.getLogger(OpenStackNovaV2ComputePlugin.class);
     private static final String ADDRESS_FIELD = "addresses";
@@ -80,7 +80,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         LOGGER.debug("Creating OpenStackNovaV2ComputePlugin with properties=" + properties.toString());
         this.properties = properties;
         this.launchCommandGenerator = launchCommandGenerator;
-        instantiateOtherAttributes();
+        this.hardwareRequirements = new TreeSet<HardwareRequirements>();
     }
 
     public String requestInstance(ComputeOrder computeOrder, Token localToken)
@@ -100,7 +100,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         try {
             JSONObject json = generateJsonRequest(imageId, flavorId, userData, keyName, networksId);
             String jsonResponse = this.client.doPostRequest(endpoint, localToken, json);
-
+        	System.out.println(endpoint);
+        	System.out.println(localToken);
+        	System.out.println(json);
             instanceId = getAttFromJson(ID_JSON_FIELD, jsonResponse);
 
             synchronized (computeOrder) {
@@ -171,12 +173,12 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         this.client = new HttpRequestClientUtil();
     }
 
-    protected String getTenantId(Token localToken) {
+    private String getTenantId(Token localToken) {
         Map<String, String> tokenAttr = localToken.getAttributes();
         return tokenAttr.get(TENANT_ID);
     }
 
-    protected List<String> resolveNetworksId(ComputeOrder computeOrder) {
+    private List<String> resolveNetworksId(ComputeOrder computeOrder) {
         List<String> requestedNetworksId = new ArrayList<>();
         requestedNetworksId.addAll(computeOrder.getNetworksId());
         String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
@@ -185,7 +187,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         return requestedNetworksId;
     }
 
-    protected String getKeyName(String tenantId, Token localToken, String publicKey)
+    private String getKeyName(String tenantId, Token localToken, String publicKey)
             throws FogbowManagerException, UnexpectedException {
         String keyname = null;
 
@@ -215,7 +217,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         return keyname;
     }
 
-    protected String getComputeEndpoint(String tenantId, String suffix) {
+    private String getComputeEndpoint(String tenantId, String suffix) {
         return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY)
                 + COMPUTE_V2_API_ENDPOINT
                 + tenantId
@@ -229,7 +231,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         return jsonAttValue;
     }
 
-    protected void deleteKeyName(String tenantId, Token localToken, String keyName)
+    private void deleteKeyName(String tenantId, Token localToken, String keyName)
             throws HttpResponseException, UnavailableProviderException {
         String suffixEndpoint = SUFFIX_ENDPOINT_KEYPAIRS + "/" + keyName;
         String keynameEndpoint = getComputeEndpoint(tenantId, suffixEndpoint);
@@ -237,7 +239,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         this.client.doDeleteRequest(keynameEndpoint, localToken);
     }
 
-    protected JSONObject generateJsonRequest(
+    private JSONObject generateJsonRequest(
             String imageRef, String flavorRef, String userdata, String keyName, List<String> networksId)
             throws JSONException {
         LOGGER.debug("Generating JSON to send as the body of instance POST request");
@@ -272,17 +274,20 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
         return root;
     }
-
-    protected HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, Token localToken)
+    
+    /**
+     * Let this synchronized in order to prevent race condition while getting the first available flavor
+     */
+    private synchronized HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, Token localToken)
             throws UnexpectedException, FogbowManagerException {
         updateFlavors(localToken, computeOrder);
-
-        LOGGER.debug("Finding smallest flavor");
-
+        if (this.hardwareRequirements.size() == 0) {
+        	throw new NoAvailableResourcesException();
+        }
         return this.hardwareRequirements.first();
     }
 
-    protected synchronized void updateFlavors(Token localToken, ComputeOrder order)
+    private void updateFlavors(Token localToken, ComputeOrder order)
             throws FogbowManagerException, UnexpectedException {
         LOGGER.debug("Updating hardwareRequirements from OpenStack");
 
