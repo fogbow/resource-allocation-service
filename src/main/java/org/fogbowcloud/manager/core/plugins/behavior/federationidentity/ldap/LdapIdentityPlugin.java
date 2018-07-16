@@ -133,16 +133,16 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
         	this.ldapBase = userCredentials.get(CRED_LDAP_BASE);
         }
 
-        if (ldapUrl == null || ldapUrl.isEmpty()) {
-            ldapUrl = userCredentials.get(CRED_AUTH_URL);
+        if (this.ldapUrl == null || ldapUrl.isEmpty()) {
+            this.ldapUrl = userCredentials.get(CRED_AUTH_URL);
         }
 
-        if (privateKeyPath == null || privateKeyPath.isEmpty()) {
-            privateKeyPath = userCredentials.get(CRED_PRIVATE_KEY);
+        if (this.privateKeyPath == null || privateKeyPath.isEmpty()) {
+            this.privateKeyPath = userCredentials.get(CRED_PRIVATE_KEY);
         }
 
-        if (publicKeyPath == null || publicKeyPath.isEmpty()) {
-            publicKeyPath = userCredentials.get(CRED_PUBLIC_KEY);
+        if (this.publicKeyPath == null || publicKeyPath.isEmpty()) {
+            this.publicKeyPath = userCredentials.get(CRED_PUBLIC_KEY);
         }
     }
 
@@ -243,7 +243,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
             // Search the directory to get User Name and Domain from UID
             String filter = "(&(objectClass=inetOrgPerson)(uid={0}))";
             SearchControls ctls = new SearchControls();
-            ctls.setSearchScope(SearchControls.SUBTREE_SCOPE); 
+            ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
             ctls.setReturningAttributes(new String[0]); 
             ctls.setReturningObjFlag(true); 
             NamingEnumeration enm = ctx.search(this.ldapBase, filter, new String[] {uid}, ctls);
@@ -328,25 +328,25 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
     private void parseCredentials(Map<String, String> userCredentials) {
         String credLdapUrl = userCredentials.get(CRED_AUTH_URL);
         if (credLdapUrl != null && !credLdapUrl.isEmpty()) {
-            ldapUrl = credLdapUrl;
+            this.ldapUrl = credLdapUrl;
         }
         String credLdapBase = userCredentials.get(CRED_LDAP_BASE);
         if (credLdapBase != null && !credLdapBase.isEmpty()) {
-            ldapBase = credLdapBase;
+            this.ldapBase = credLdapBase;
         }
         String credEncryptType = userCredentials.get(CRED_LDAP_ENCRYPT);
         if (credEncryptType != null && !credEncryptType.isEmpty()) {
-            encryptType = credEncryptType;
+            this.encryptType = credEncryptType;
         }
 
         String credPrivateKeyPath = userCredentials.get(CRED_PRIVATE_KEY);
         if (credPrivateKeyPath != null && !credPrivateKeyPath.isEmpty()) {
-            privateKeyPath = credPrivateKeyPath;
+            this.privateKeyPath = credPrivateKeyPath;
         }
 
         String credPublicKeyPath = userCredentials.get(CRED_PUBLIC_KEY);
         if (credPublicKeyPath != null && !credPublicKeyPath.isEmpty()) {
-            publicKeyPath = credPublicKeyPath;
+            this.publicKeyPath = credPublicKeyPath;
         }
     }
 
