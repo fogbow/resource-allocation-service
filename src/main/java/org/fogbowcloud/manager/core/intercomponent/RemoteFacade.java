@@ -105,6 +105,7 @@ public class RemoteFacade {
 
     private void updateLocalOrder(Order localOrder, Order remoteOrder) {
         localOrder.setInstanceId(remoteOrder.getInstanceId());
+        localOrder.setCachedInstanceState(remoteOrder.getCachedInstanceState());
         if (localOrder.getType().equals(InstanceType.COMPUTE)) {
             ComputeOrder localCompute = (ComputeOrder) localOrder;
             ComputeOrder remoteCompute = (ComputeOrder) remoteOrder;
