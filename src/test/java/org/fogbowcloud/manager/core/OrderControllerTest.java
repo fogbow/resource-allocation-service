@@ -22,6 +22,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.mockito.BDDMockito.given;
@@ -112,11 +113,22 @@ public class OrderControllerTest extends BaseUnitTests {
         computeOrder.setProvidingMember(this.localMember);
         computeOrder.setOrderState(OrderState.OPEN);
 
+        ComputeOrder computeOrder2 = new ComputeOrder();
+        computeOrder2.setFederationUser(federationUser);
+        computeOrder2.setRequestingMember(this.localMember);
+        computeOrder2.setProvidingMember(this.localMember);
+        computeOrder2.setOrderState(OrderState.FULFILLED);
+
+        this.activeOrdersMap.put(computeOrder.getId(), computeOrder);
         this.openOrdersList.addItem(computeOrder);
 
-        this.ordersController.getAllOrders(federationUser, InstanceType.COMPUTE);
+        this.activeOrdersMap.put(computeOrder2.getId(), computeOrder2);
+        this.fulfilledOrdersList.addItem(computeOrder2);
 
-        Assert.assertEquals(computeOrder, this.openOrdersList.getNext());
+        List<Order> orders = this.ordersController.getAllOrders(federationUser, InstanceType.COMPUTE);
+
+        Assert.assertTrue(orders.contains(computeOrder));
+        Assert.assertTrue(orders.contains(computeOrder2));
     }
 
     @Test
@@ -187,8 +199,8 @@ public class OrderControllerTest extends BaseUnitTests {
 
         computeOrder.setActualAllocation(new ComputeAllocation(1, 2, 3));
 
-        this.fulfilledOrdersList.addItem(computeOrder);
         this.activeOrdersMap.put(computeOrder.getId(), computeOrder);
+        this.fulfilledOrdersList.addItem(computeOrder);
 
         ComputeAllocation allocation = (ComputeAllocation) this.ordersController.getUserAllocation(
                 this.localMember, federationUser, InstanceType.COMPUTE);
