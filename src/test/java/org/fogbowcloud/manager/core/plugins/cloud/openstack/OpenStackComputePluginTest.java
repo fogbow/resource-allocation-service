@@ -48,8 +48,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import com.google.gson.Gson;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(OpenStackNovaV2ComputePlugin.class)
 public class OpenStackComputePluginTest {
 
     protected static final String FAKE_USER_DATA_FILE = "fake-extra-user-data";
@@ -118,7 +116,7 @@ public class OpenStackComputePluginTest {
         HomeDir.getInstance().setPath("src/test/resources/private");
         
         this.novaV2ComputeOpenStack =
-              new OpenStackNovaV2ComputePlugin(this.propertiesMock, this.launchCommandGeneratorMock);
+              Mockito.spy(new OpenStackNovaV2ComputePlugin(this.propertiesMock, this.launchCommandGeneratorMock));
         
         this.novaV2ComputeOpenStack.setClient(this.httpRequestClientUtilMock);
     }
@@ -209,16 +207,13 @@ public class OpenStackComputePluginTest {
     	networksId.add(defaultNetworkIp);
     	
     	String idKeyName = "493315b3-dd01-4b38-974f-289570f8e7ee";
-    	UUID uuidKeyName = UUID.fromString(idKeyName);
     	
     	String idInstanceName = "12345678-dd01-4b38-974f-289570f8e7ee";
-    	UUID uuidInstaceName = UUID.fromString(idInstanceName);
     	
-    	PowerMockito.mockStatic(UUID.class);
-    	PowerMockito.when(UUID.randomUUID()).thenReturn(uuidKeyName, uuidInstaceName);
+    	doReturn(idKeyName).doReturn(idInstanceName).when(this.novaV2ComputeOpenStack).getRandomUUID();
     	
     	JSONObject computeJson =
-    			generateJsonRequest(imageId, flavorId, userData, idKeyName, networksId, uuidInstaceName.toString());
+    			generateJsonRequest(imageId, flavorId, userData, idKeyName, networksId, idInstanceName);
     	
     	String expectedInstanceId = "instance-id-00";
     	String expectedInstanceIdJson = generateInstaceId("instance-id-00");
@@ -233,7 +228,7 @@ public class OpenStackComputePluginTest {
     			argComputeJson.capture()))
     			.thenReturn(expectedInstanceIdJson);
     	
-    	String instanceId = novaV2ComputeOpenStack.requestInstance(computeOrder, this.localToken);
+    	String instanceId = this.novaV2ComputeOpenStack.requestInstance(computeOrder, this.localToken);
     	
     	Assert.assertEquals(argComputeEndpoint.getValue(), computeEndpoint);
     	Assert.assertEquals(argLocalToken.getValue(), this.localToken);

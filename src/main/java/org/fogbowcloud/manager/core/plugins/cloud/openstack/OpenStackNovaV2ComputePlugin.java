@@ -191,7 +191,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         if (publicKey != null && !publicKey.isEmpty()) {
             String osKeypairEndpoint = getComputeEndpoint(tenantId, SUFFIX_ENDPOINT_KEYPAIRS);
 
-            keyname = UUID.randomUUID().toString();
+            keyname = getRandomUUID();
             JSONObject keypair = new JSONObject();
 
             try {
@@ -242,7 +242,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         LOGGER.debug("Generating JSON to send as the body of instance POST request");
 
         JSONObject server = new JSONObject();
-        server.put(NAME_JSON_FIELD, FOGBOW_INSTANCE_NAME + UUID.randomUUID().toString());
+        server.put(NAME_JSON_FIELD, FOGBOW_INSTANCE_NAME + getRandomUUID());
         server.put(IMAGE_JSON_FIELD, imageRef);
         server.put(FLAVOR_REF_JSON_FIELD, flavorRef);
 
@@ -421,5 +421,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
     
     protected void setClient(HttpRequestClientUtil client) {
     	this.client = client;
+    }
+    
+    protected String getRandomUUID() {
+    	return UUID.randomUUID().toString();
     }
 }
