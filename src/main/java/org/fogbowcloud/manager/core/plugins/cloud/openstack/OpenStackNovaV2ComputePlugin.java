@@ -100,11 +100,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
         try {
             JSONObject json = generateJsonRequest(imageId, flavorId, userData, keyName, networksId);
             String jsonResponse = this.client.doPostRequest(endpoint, localToken, json);
-        	System.out.println(endpoint);
-        	System.out.println(localToken);
-        	System.out.println(json);
             instanceId = getAttFromJson(ID_JSON_FIELD, jsonResponse);
-
+            
             synchronized (computeOrder) {
                 ComputeAllocation actualAllocation = new ComputeAllocation(hardwareRequirements.getCpu(), hardwareRequirements.getRam(), 1);
                 computeOrder.setActualAllocation(actualAllocation);
