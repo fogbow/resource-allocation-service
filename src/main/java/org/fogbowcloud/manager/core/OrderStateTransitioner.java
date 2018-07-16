@@ -106,7 +106,7 @@ public class OrderStateTransitioner {
 
         if (currentState == newState) {
             String message = String.format("Order with id %s is already %s", order.getId(), currentState);
-            throw new UnexpectedException(message);
+            return;
         }
 
         SharedOrderHolders ordersHolder = SharedOrderHolders.getInstance();
