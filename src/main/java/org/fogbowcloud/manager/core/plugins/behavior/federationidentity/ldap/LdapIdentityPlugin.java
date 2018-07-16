@@ -93,12 +93,12 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
         String userId = userCredentials.get(CRED_USERNAME);
         String password = userCredentials.get(CRED_PASSWORD);
-        String name = null; 
 
         extractLdapPropertiesFromCredentials(userCredentials);
 
         parseCredentials(userCredentials);
 
+        String name = null; 
         try {
             name = ldapAuthenticate(userId, password);
         } catch (Exception e) {
@@ -106,7 +106,6 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
                     "Couldn't load account summary from LDAP Server.", e);
         }
 
-        Map<String, String> attributes = new HashMap<String, String>();
         Date expirationDate = new Date(new Date().getTime() + EXPIRATION_INTERVAL);
 
         try {
@@ -115,7 +114,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
             json.put(ATT_NAME, name);
             json.put(ATT_EXPIRATION_DATE, expirationDate.getTime());
 
-            String signature = createSignature(json);
+            String signature = createSignature(json); 
 
             String federationTokenValue = json.toString() + ACCESSID_SEPARATOR + signature;
 
@@ -130,8 +129,8 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
     }
 
     private void extractLdapPropertiesFromCredentials(Map<String, String> userCredentials) {
-        if (ldapBase == null || ldapBase.isEmpty()) {
-            ldapBase = userCredentials.get(CRED_LDAP_BASE);
+        if (this.ldapBase == null || this.ldapBase.isEmpty()) {
+        	this.ldapBase = userCredentials.get(CRED_LDAP_BASE);
         }
 
         if (ldapUrl == null || ldapUrl.isEmpty()) {
@@ -157,7 +156,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
             String split[] = decodedFederationTokenValue.split(ACCESSID_SEPARATOR);
             if(split == null || split.length < 2){
-                LOGGER.error("Invalid accessID: " + decodedFederationTokenValue);
+                LOGGER.error("Invalid accessID: " + decodedFederationTokenValue); 
                 throw new UnauthenticatedUserException();
             }
 
@@ -227,7 +226,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
     protected String ldapAuthenticate(String uid, String password) throws Exception {
 
         String contextFactory = "com.sun.jndi.ldap.LdapCtxFactory";
-        String securityAuthentication = "simple";
+        String securityAuthentication = "simple"; 
 
         Hashtable env = new Hashtable();
         env.put(Context.INITIAL_CONTEXT_FACTORY, contextFactory);
@@ -237,7 +236,6 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
         DirContext ctx = null;
         String name = null;
         try {
-
             password = encryptPassword(password);
 
             ctx = new InitialDirContext(env);
@@ -245,9 +243,9 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
             // Search the directory to get User Name and Domain from UID
             String filter = "(&(objectClass=inetOrgPerson)(uid={0}))";
             SearchControls ctls = new SearchControls();
-            ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-            ctls.setReturningAttributes(new String[0]);
-            ctls.setReturningObjFlag(true);
+            ctls.setSearchScope(SearchControls.SUBTREE_SCOPE); 
+            ctls.setReturningAttributes(new String[0]); 
+            ctls.setReturningObjFlag(true); 
             NamingEnumeration enm = ctx.search(this.ldapBase, filter, new String[] {uid}, ctls);
 
             String dn = null;
@@ -273,9 +271,9 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
             return name;
 
-        } finally {
-            ctx.close();
-        }
+        } catch (NamingException e) {
+			throw new FogbowManagerException("Ldap url is not provided in conf files.");
+		}
     }
 
     private String extractUserName(SearchResult result) {
