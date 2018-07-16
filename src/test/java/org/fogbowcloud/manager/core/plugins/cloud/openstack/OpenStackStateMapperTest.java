@@ -30,14 +30,25 @@ public class OpenStackStateMapperTest {
     }
 
     @Test
-    public void testComputeInvalidStatusToFailed() {
+    public void testComputeErrorStatusToFailed() {
+        InstanceType instanceType = InstanceType.COMPUTE;
+
+        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "error");
+        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "ERROR");
+
+        Assert.assertEquals(instanceState1, InstanceState.FAILED);
+        Assert.assertEquals(instanceState2, InstanceState.FAILED);
+    }
+
+    @Test
+    public void testComputeInvalidStatusToInconsistent() {
         InstanceType instanceType = InstanceType.COMPUTE;
 
         InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "invalid");
         InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "INVALID");
 
-        Assert.assertEquals(instanceState1, InstanceState.FAILED);
-        Assert.assertEquals(instanceState2, InstanceState.FAILED);
+        Assert.assertEquals(instanceState1, InstanceState.INCONSISTENT);
+        Assert.assertEquals(instanceState2, InstanceState.INCONSISTENT);
     }
 
     @Test
@@ -302,6 +313,28 @@ public class OpenStackStateMapperTest {
 
         Assert.assertEquals(instanceState1, InstanceState.FAILED);
         Assert.assertEquals(instanceState2, InstanceState.FAILED);
+    }
+
+    @Test
+    public void testVolumeInvalidStatusToInconsistent() {
+        InstanceType instanceType = InstanceType.VOLUME;
+
+        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "invalid");
+        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "INVALID");
+
+        Assert.assertEquals(instanceState1, InstanceState.INCONSISTENT);
+        Assert.assertEquals(instanceState2, InstanceState.INCONSISTENT);
+    }
+
+    @Test
+    public void testVolumeInvalidStatusToFailed() {
+        InstanceType instanceType = InstanceType.VOLUME;
+
+        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "invalid");
+        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "invalid");
+
+        Assert.assertEquals(instanceState1, InstanceState.INCONSISTENT);
+        Assert.assertEquals(instanceState2, InstanceState.INCONSISTENT);
     }
 
     @Test
