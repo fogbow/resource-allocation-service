@@ -35,6 +35,7 @@ import static org.mockito.Mockito.times;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
@@ -251,49 +252,176 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		assertEquals(FAKE_INSTANCE_ID, localCloudConnectorSpy.getInstance(order).getId());
 	}
 	
+	// If order instance is CLOSED, an exception must be throw
+	@Test(expected = org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException.class)
+	public void testGetInstanceWithClosedOrder() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(NetworkOrder.class);
+		when(this.order.getOrderState()).thenReturn(OrderState.CLOSED);
+		this.localCloudConnector.getInstance(order);
+	}
+	
+	// If order instance is DEACTIVATED, an exception must be throw
+	@Test(expected = org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException.class)
+	public void testGetInstanceWithDeactivatedOrder() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(NetworkOrder.class);
+		when(this.order.getOrderState()).thenReturn(OrderState.DEACTIVATED);
+		this.localCloudConnector.getInstance(order);
+	}
 	
 	// The order doesn't have an InstanceID, so an empty NetworkInstance is returned with the same id of order.
+	// The order state is OPEN, so the instance state must be DISPATCHED.
 	@Test
-	public void testGetEmptyNetworkInstance() throws FogbowManagerException, UnexpectedException {
+	public void testGetEmptyNetworkInstanceWithOpenOrder() throws FogbowManagerException, UnexpectedException {
 		this.order = Mockito.mock(NetworkOrder.class);
 		when(this.order.getType()).thenReturn(InstanceType.NETWORK);
 		when(this.order.getInstanceId()).thenReturn(null);
 		when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
+		when(this.order.getOrderState()).thenReturn(OrderState.OPEN);
 		assertEquals(FAKE_ORDER_ID, this.localCloudConnector.getInstance(order).getId());
-		assertNull(this.localCloudConnector.getInstance(order).getState());
+		assertEquals(InstanceState.DISPATCHED, this.localCloudConnector.getInstance(order).getState());
+	}
+	
+	// The order doesn't have an InstanceID, so an empty NetworkInstance is returned with the same id of order.
+	// The order state is PENDING, so the instance state must be DISPATCHED.
+	@Test
+	public void testGetEmptyNetworkInstanceWithPendingOrder() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(NetworkOrder.class);
+		when(this.order.getType()).thenReturn(InstanceType.NETWORK);
+		when(this.order.getInstanceId()).thenReturn(null);
+		when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
+		when(this.order.getOrderState()).thenReturn(OrderState.PENDING);
+		assertEquals(FAKE_ORDER_ID, this.localCloudConnector.getInstance(order).getId());
+		assertEquals(InstanceState.DISPATCHED, this.localCloudConnector.getInstance(order).getState());
+	}
+	
+	// The order doesn't have an InstanceID, so an empty NetworkInstance is returned with the same id of order.
+	// The order state is FAILED, so the instance state must be FAILED.
+	@Test
+	public void testGetEmptyNetworkInstanceWithFailedOrder() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(NetworkOrder.class);
+		when(this.order.getType()).thenReturn(InstanceType.NETWORK);
+		when(this.order.getInstanceId()).thenReturn(null);
+		when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
+		when(this.order.getOrderState()).thenReturn(OrderState.FAILED);
+		assertEquals(FAKE_ORDER_ID, this.localCloudConnector.getInstance(order).getId());
+		assertEquals(InstanceState.FAILED, this.localCloudConnector.getInstance(order).getState());
 	}
 	
 	// The order doesn't have an InstanceID, so an empty VolumeInstance is returned with the same id of order.
+	// The order state is OPEN, so the instance state must be DISPATCHED.
 	@Test
-	public void testGetEmptyVolumeInstance() throws FogbowManagerException, UnexpectedException {
+	public void testGetEmptyVolumeInstanceWithOpenOrder() throws FogbowManagerException, UnexpectedException {
 		this.order = Mockito.mock(VolumeOrder.class);
 	    when(this.order.getType()).thenReturn(InstanceType.VOLUME);
 	    when(this.order.getInstanceId()).thenReturn(null);
 	    when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
+	    when(this.order.getOrderState()).thenReturn(OrderState.OPEN);
 		assertEquals(FAKE_ORDER_ID, this.localCloudConnector.getInstance(order).getId());
-		assertNull(this.localCloudConnector.getInstance(order).getState());
+		assertEquals(InstanceState.DISPATCHED, this.localCloudConnector.getInstance(order).getState());
+	}
+	
+	// The order doesn't have an InstanceID, so an empty VolumeInstance is returned with the same id of order.
+	// The order state is PENDING, so the instance state must be DISPATCHED.
+	@Test
+	public void testGetEmptyVolumeInstanceWithPendingOrder() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(VolumeOrder.class);
+	    when(this.order.getType()).thenReturn(InstanceType.VOLUME);
+	    when(this.order.getInstanceId()).thenReturn(null);
+	    when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
+	    when(this.order.getOrderState()).thenReturn(OrderState.PENDING);
+		assertEquals(FAKE_ORDER_ID, this.localCloudConnector.getInstance(order).getId());
+		assertEquals(InstanceState.DISPATCHED, this.localCloudConnector.getInstance(order).getState());
+	}
+	
+	// The order doesn't have an InstanceID, so an empty VolumeInstance is returned with the same id of order.
+	// The order state is FAILED, so the instance state must be FAILED.
+	@Test
+	public void testGetEmptyVolumeInstanceWithFailedOrder() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(VolumeOrder.class);
+	    when(this.order.getType()).thenReturn(InstanceType.VOLUME);
+	    when(this.order.getInstanceId()).thenReturn(null);
+	    when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
+	    when(this.order.getOrderState()).thenReturn(OrderState.FAILED);
+		assertEquals(FAKE_ORDER_ID, this.localCloudConnector.getInstance(order).getId());
+		assertEquals(InstanceState.FAILED, this.localCloudConnector.getInstance(order).getState());
 	}
 	
 	// The order doesn't have an InstanceID, so an empty AttachmentInstance is returned with the same id of order.
+	// The order state is OPEN, so the instance state must be DISPATCHED.
 	@Test
-	public void testGetEmptyAttachmentInstance() throws FogbowManagerException, UnexpectedException {
+	public void testGetEmptyAttachmentInstanceWithOpenOrder() throws FogbowManagerException, UnexpectedException {
 		this.order = Mockito.mock(AttachmentOrder.class);
 	    when(this.order.getType()).thenReturn(InstanceType.ATTACHMENT);
 	    when(this.order.getInstanceId()).thenReturn(null);
 	    when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
+	    when(this.order.getOrderState()).thenReturn(OrderState.OPEN);
 		assertEquals(FAKE_ORDER_ID, this.localCloudConnector.getInstance(order).getId());
-		assertNull(this.localCloudConnector.getInstance(order).getState());
+		assertEquals(InstanceState.DISPATCHED, this.localCloudConnector.getInstance(order).getState());
+	}
+	
+	// The order doesn't have an InstanceID, so an empty AttachmentInstance is returned with the same id of order.
+	// The order state is PENDING, so the instance state must be DISPATCHED.
+	@Test
+	public void testGetEmptyAttachmentInstanceWithPendingOrder() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(AttachmentOrder.class);
+	    when(this.order.getType()).thenReturn(InstanceType.ATTACHMENT);
+	    when(this.order.getInstanceId()).thenReturn(null);
+	    when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
+	    when(this.order.getOrderState()).thenReturn(OrderState.PENDING);
+		assertEquals(FAKE_ORDER_ID, this.localCloudConnector.getInstance(order).getId());
+		assertEquals(InstanceState.DISPATCHED, this.localCloudConnector.getInstance(order).getState());
+	}
+	
+	// The order doesn't have an InstanceID, so an empty AttachmentInstance is returned with the same id of order.
+	// The order state is FAILED, so the instance state must be FAILED.
+	@Test
+	public void testGetEmptyAttachmentInstanceWithFailedOrder() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(AttachmentOrder.class);
+	    when(this.order.getType()).thenReturn(InstanceType.ATTACHMENT);
+	    when(this.order.getInstanceId()).thenReturn(null);
+	    when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
+	    when(this.order.getOrderState()).thenReturn(OrderState.FAILED);
+		assertEquals(FAKE_ORDER_ID, this.localCloudConnector.getInstance(order).getId());
+		assertEquals(InstanceState.FAILED, this.localCloudConnector.getInstance(order).getState());
 	}
 	
 	// The order doesn't have an InstanceID, so an empty ComputeInstance is returned with the same id of order.
+	// The order state is OPEN, so the instance state must be DISPATCHED.
 	@Test
-	public void testGetEmptyComputeInstance() throws FogbowManagerException, UnexpectedException {
+	public void testGetEmptyComputeInstanceWithOpenOrder() throws FogbowManagerException, UnexpectedException {
 		this.order = Mockito.mock(ComputeOrder.class);
 	    when(this.order.getType()).thenReturn(InstanceType.COMPUTE);
 	    when(this.order.getInstanceId()).thenReturn(null);
 	    when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
+	    when(this.order.getOrderState()).thenReturn(OrderState.OPEN);
 		assertEquals(FAKE_ORDER_ID, this.localCloudConnector.getInstance(order).getId());
-		assertNull(this.localCloudConnector.getInstance(order).getState());
+		assertEquals(InstanceState.DISPATCHED, this.localCloudConnector.getInstance(order).getState());
+	}
+	
+	// The order doesn't have an InstanceID, so an empty ComputeInstance is returned with the same id of order.
+	// The order state is PENDING, so the instance state must be DISPATCHED.
+	@Test
+	public void testGetEmptyComputeInstanceWithPendingOrder() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(ComputeOrder.class);
+	    when(this.order.getType()).thenReturn(InstanceType.COMPUTE);
+	    when(this.order.getInstanceId()).thenReturn(null);
+	    when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
+	    when(this.order.getOrderState()).thenReturn(OrderState.PENDING);
+		assertEquals(FAKE_ORDER_ID, this.localCloudConnector.getInstance(order).getId());
+		assertEquals(InstanceState.DISPATCHED, this.localCloudConnector.getInstance(order).getState());
+	}
+	
+	// The order doesn't have an InstanceID, so an empty ComputeInstance is returned with the same id of order.
+	// The order state is FAILED, so the instance state must be FAILED.
+	@Test
+	public void testGetEmptyComputeInstanceWithFailedOrder() throws FogbowManagerException, UnexpectedException {
+		this.order = Mockito.mock(ComputeOrder.class);
+	    when(this.order.getType()).thenReturn(InstanceType.COMPUTE);
+	    when(this.order.getInstanceId()).thenReturn(null);
+	    when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
+	    when(this.order.getOrderState()).thenReturn(OrderState.FAILED);
+		assertEquals(FAKE_ORDER_ID, this.localCloudConnector.getInstance(order).getId());
+		assertEquals(InstanceState.FAILED, this.localCloudConnector.getInstance(order).getState());
 	}
 	
 	@Test

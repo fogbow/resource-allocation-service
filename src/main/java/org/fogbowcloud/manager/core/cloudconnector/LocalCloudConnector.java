@@ -117,12 +117,27 @@ public class LocalCloudConnector implements CloudConnector {
         Token localToken = this.aaController.getLocalToken(order.getFederationUser());
 
         synchronized (order) {
+        	
+        	if (order.getOrderState() == OrderState.DEACTIVATED || order.getOrderState() == OrderState.CLOSED) {
+        		throw new InstanceNotFoundException();
+        	}
+        	
             String instanceId = order.getInstanceId();
 
             if (instanceId != null) {
                 instance = getResourceInstance(order, order.getType(), localToken);
+                
             } else {
+            	
                 // When there is no instance, an empty one is created with the appropriate state
+            	InstanceState instanceState = null;
+            	
+            	if (order.getOrderState() == OrderState.OPEN || order.getOrderState() == OrderState.PENDING) {
+            		instanceState = InstanceState.DISPATCHED;
+            	} else if (order.getOrderState() == OrderState.FAILED) {
+            		instanceState = InstanceState.FAILED;
+            	}
+            	
                 switch (order.getType()) {
                     case COMPUTE:
                         instance = new ComputeInstance(order.getId());
@@ -140,6 +155,8 @@ public class LocalCloudConnector implements CloudConnector {
                         String message = "Not supported order type " + order.getType();
                         throw new UnexpectedException(message);
                 }
+                
+                instance.setState(instanceState);
             }
         }
         return instance;
