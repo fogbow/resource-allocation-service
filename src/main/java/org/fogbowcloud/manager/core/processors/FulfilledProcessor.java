@@ -55,7 +55,7 @@ public class FulfilledProcessor implements Runnable {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
-        this.connectionAttempts = new HashMap();
+        this.connectionAttempts = new HashMap<>();
     }
 
     /**

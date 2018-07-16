@@ -1,5 +1,8 @@
 package org.fogbowcloud.manager.core.processors;
 
+import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.HomeDir;
@@ -47,6 +50,11 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     private static final String FAKE_SOURCE = "fake-source";
     private static final String FAKE_TARGET = "fake-target";
     private static final String FAKE_DEVICE = "fake-device";
+    
+    /** Maximum value that the thread should wait in sleep time */
+    private static final int MAX_SLEEP_TIME = 33000;
+    
+    private static final int MIN_SLEEP_TIME = 500;
 
     private ChainedList failedOrderList;
     private ChainedList fulfilledOrderList;
@@ -57,6 +65,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     private SshConnectivityUtil sshConnectivity;
     private Thread thread;
 
+    private Map<String, Integer> connectionAttempts;
+    
     @Before
     public void setUp() {
         super.mockDB();
@@ -77,6 +87,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.failedOrderList = sharedOrderHolders.getFailedOrdersList();
         
         this.thread = null;
+        
+        this.connectionAttempts = new HashMap<>();
     }
 
     @After
@@ -87,6 +99,37 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         super.tearDown();
     }
 
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testRunProcessWithExceededConnectionAttempts() throws InterruptedException, UnexpectedException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+        Order order = this.createOrder();
+        order.setOrderState(OrderState.FULFILLED);
+         
+        this.fulfilledProcessor = new FulfilledProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
+                this.tunnelingService, this.sshConnectivity,
+                DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME);
+
+        Field declaredField = this.fulfilledProcessor.getClass().getDeclaredField("connectionAttempts");
+        declaredField.setAccessible(true);
+                
+        this.connectionAttempts = (Map<String, Integer>) declaredField.get(this.fulfilledProcessor);
+        
+        for (int i = 0; i <= 1000; i++) {
+            connectionAttempts.put(createOrder().getId(), i);
+        }
+              
+        declaredField.set(this.fulfilledProcessor, this.connectionAttempts);
+        
+        Assert.assertEquals(this.connectionAttempts.size(), 1001);
+        
+        this.thread = new Thread(this.fulfilledProcessor);
+        this.thread.start();
+        
+        Thread.sleep(MIN_SLEEP_TIME);
+
+        Assert.assertEquals(this.connectionAttempts.size(), 0);
+    }
+    
     @Test
     public void testRunProcessLocalComputeOrderWithoutExternalAddresses()
             throws FogbowManagerException, UnexpectedException, InterruptedException {
@@ -109,7 +152,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
-        Thread.sleep(500);
+        Thread.sleep(MIN_SLEEP_TIME);
 
         Order test = this.fulfilledOrderList.getNext();
         Assert.assertNotNull(test);
@@ -145,7 +188,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
-        Thread.sleep(500);
+        Thread.sleep(MIN_SLEEP_TIME);
 
         Order test = this.fulfilledOrderList.getNext();
         Assert.assertNotNull(test);
@@ -172,7 +215,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
-        Thread.sleep(500);
+        Thread.sleep(MIN_SLEEP_TIME);
 
         Order test = this.fulfilledOrderList.getNext();
         Assert.assertNotNull(test);
@@ -197,7 +240,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
-        Thread.sleep(500);
+        Thread.sleep(MIN_SLEEP_TIME);
 
         Assert.assertNotNull(this.failedOrderList.getNext());
         Assert.assertNull(this.fulfilledOrderList.getNext());
@@ -232,7 +275,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
-        Thread.sleep(500);
+        Thread.sleep(MIN_SLEEP_TIME);
 
         Assert.assertNotNull(this.fulfilledOrderList.getNext());
     }
@@ -263,7 +306,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
-        Thread.sleep(500);
+        Thread.sleep(MIN_SLEEP_TIME);
 
         Order test = this.fulfilledOrderList.getNext();
         Assert.assertNotNull(test);
@@ -292,13 +335,14 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Mockito.when(this.sshConnectivity
                 .checkSSHConnectivity(Mockito.any(SshTunnelConnectionData.class)))
                 .thenReturn(false);
-
+        
         Assert.assertNull(this.failedOrderList.getNext());
-
+        
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
-        Thread.sleep(500);
+        /** here may be a false positive depending on how long the machine will take to run the test */
+        Thread.sleep(MAX_SLEEP_TIME);
 
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
@@ -331,7 +375,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
-        Thread.sleep(500);
+        Thread.sleep(MIN_SLEEP_TIME);
 
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
@@ -358,7 +402,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
-        Thread.sleep(500);
+        Thread.sleep(MIN_SLEEP_TIME);
     }
 
     @Test
@@ -378,7 +422,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
-        Thread.sleep(500);
+        Thread.sleep(MIN_SLEEP_TIME);
     }
 
     private Order createOrder() {
