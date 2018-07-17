@@ -82,21 +82,19 @@ public class LdapIdentityPluginTest {
 	
 	@SuppressWarnings("unchecked")
 	@Test(expected = InvalidCredentialsUserException.class)
-	public void testCreateTokenWithoutCredentals() throws UnauthenticatedUserException, TokenValueCreationException {
+	public void testCreateTokenWithoutCredentials() throws UnauthenticatedUserException, TokenValueCreationException {
 		this.identityPlugin.createFederationTokenValue(Mockito.anyMap());
 	}
-	
 	
 	@Test
 	public void testLdapAuthenticateWithoutLdapUrl() throws Exception {
 		try {
 			this.identityPlugin.ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
-			fail("Code above must trhow a exception");
+			fail("Code above must throw a exception.");
 		} catch (FogbowManagerException e) {
 			assertEquals(e.getMessage(), LDAP_URL_NOT_PROVIDED_ERROR_MESSAGE);
 		}
 	}
-	
 	
 	@Test
 	public void testCreateToken() throws Exception {
@@ -112,7 +110,7 @@ public class LdapIdentityPluginTest {
 		
 	}
 
-	@Test(expected=InvalidCredentialsUserException.class)
+	@Test(expected = InvalidCredentialsUserException.class)
 	public void testCreateTokenWithInvalidUserName() throws Exception {
 		doThrow(new Exception("Invalid User")).when(identityPlugin).ldapAuthenticate(Mockito.eq(name), Mockito.eq(password));
 		
@@ -132,12 +130,12 @@ public class LdapIdentityPluginTest {
 	}
 	
 	@Test(expected = UnauthenticatedUserException.class)
-	public void testGetFederailsUserWithEmptyToken() throws UnauthenticatedUserException, UnexpectedException {
+	public void testGetFederatedUserWithEmptyToken() throws UnauthenticatedUserException, UnexpectedException {
 		this.identityPlugin.getFederationUser(Mockito.anyString());
 	}
 	
 	@Test(expected = UnauthenticatedUserException.class)
-	public void testGetFederailsUserWithInvalidToken() throws UnauthenticatedUserException, UnexpectedException {
+	public void testGetFederatedUserWithInvalidToken() throws UnauthenticatedUserException, UnexpectedException {
 		String invalidToken = "InvalidJsonCredentials" + ACCESSID_SEPARATOR + "InvalidJsonCredentialsHashed";
 		
 		byte[] bytes = invalidToken.getBytes();
