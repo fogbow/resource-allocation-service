@@ -47,6 +47,7 @@ public class LdapIdentityPluginTest {
 
 	
 	private final String MOCK_SIGNATURE = "mock_signature";
+	private final String LDAP_URL_NOT_PROVIDED_ERROR_MESSAGE = "Ldap url is not provided in conf files.";
 
 	private LdapIdentityPlugin identityPlugin;
 	private Map<String, String> userCredentials;
@@ -92,16 +93,8 @@ public class LdapIdentityPluginTest {
 			this.identityPlugin.ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
 			fail("Code above must trhow a exception");
 		} catch (FogbowManagerException e) {
-			assertEquals(e.getMessage(), "Ldap url is not provided in conf files.");
+			assertEquals(e.getMessage(), LDAP_URL_NOT_PROVIDED_ERROR_MESSAGE);
 		}
-	}
-	
-	
-	@Test
-	public void testCreateFederationTokenValue() throws Exception {	
-		Mockito.doReturn(name).when(this.identityPlugin).ldapAuthenticate(Mockito.eq(name), Mockito.eq(password));
-		
-		this.identityPlugin.createFederationTokenValue(userCredentials);
 	}
 	
 	
@@ -119,17 +112,11 @@ public class LdapIdentityPluginTest {
 		
 	}
 
-	@Test
-	public void testCreateTokenFail() throws Exception {
+	@Test(expected=InvalidCredentialsUserException.class)
+	public void testCreateTokenWithInvalidUserName() throws Exception {
 		doThrow(new Exception("Invalid User")).when(identityPlugin).ldapAuthenticate(Mockito.eq(name), Mockito.eq(password));
-		try {
-			
-			identityPlugin.createFederationTokenValue(userCredentials);
-			fail();
-		} catch (Exception e) {
-			assertEquals("Couldn't load account summary from LDAP Server.", e.getMessage());
-		}
 		
+		identityPlugin.createFederationTokenValue(userCredentials);		
 	}
 	
 	@Test
@@ -144,22 +131,26 @@ public class LdapIdentityPluginTest {
 		
 	}
 	
-	@Test(expected=UnauthenticatedUserException.class)
+	@Test(expected = UnauthenticatedUserException.class)
 	public void testGetFederailsUserWithEmptyToken() throws UnauthenticatedUserException, UnexpectedException {
 		this.identityPlugin.getFederationUser(Mockito.anyString());
 	}
 	
 	@Test(expected = UnauthenticatedUserException.class)
 	public void testGetFederailsUserWithInvalidToken() throws UnauthenticatedUserException, UnexpectedException {
-		byte[] bytes = ("jsoncredential" + ACCESSID_SEPARATOR + "assigncredential").getBytes();
+		String invalidToken = "InvalidJsonCredentials" + ACCESSID_SEPARATOR + "InvalidJsonCredentialsHashed";
+		
+		byte[] bytes = invalidToken.getBytes();
 		this.identityPlugin.getFederationUser(new String(Base64.encodeBase64(bytes)));
 	}
 	
 	
 	@Test
-	public void testGetFederailsUserWithIValidToken() throws UnauthenticatedUserException, UnexpectedException {
-		String tokenValue = "{\n\t\"name\": \"user\",\n\t\"login\": \"login\"\n}";
-		byte[] bytes = (tokenValue + ACCESSID_SEPARATOR + "assigncredential").getBytes();
+	public void testGetFederatedUser() throws UnauthenticatedUserException, UnexpectedException {
+		String jsonCredentials = "{\n\t\"name\": \"user\",\n\t\"login\": \"login\"\n}";
+		String token = jsonCredentials + ACCESSID_SEPARATOR + "fake-json-credentials-hashed";
+		
+		byte[] bytes = token.getBytes();
 		
 		doReturn(true).when(this.identityPlugin).verifySign(Mockito.anyString(), Mockito.anyString());
 		FederationUser returnedUser =  this.identityPlugin.getFederationUser(new String(Base64.encodeBase64(bytes)));

@@ -145,7 +145,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
             this.publicKeyPath = userCredentials.get(CRED_PUBLIC_KEY);
         }
     }
-
+ 
     @Override
     public FederationUser getFederationUser(String federationTokenValue)
             throws UnauthenticatedUserException, UnexpectedException {
