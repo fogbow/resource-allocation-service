@@ -9,6 +9,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,14 +19,19 @@ import org.fogbowcloud.manager.api.http.ComputeOrdersController;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
+import org.fogbowcloud.manager.core.exceptions.OrderNotFoundException;
 import org.fogbowcloud.manager.core.models.InstanceStatus;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
+import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -86,11 +92,12 @@ public class ComputeOrdersControllerTest {
         int expectedStatus = HttpStatus.CREATED.value();
         assertEquals(expectedStatus, result.getResponse().getStatus());
         assertEquals(FAKE_ORDER_ID, result.getResponse().getContentAsString());
+        
+        Mockito.verify(this.facade, times(1)).createCompute(any(ComputeOrder.class), anyString());
     }
 
     // There's tests missing, that we need to implement, forcing Application Controller to throw
     // different exceptionsOLD.
-
     @Test
     public void testCreateComputeBadRequest() throws Exception {
         // Need to make a method to create a body based on parameters, also change the mock above
@@ -101,6 +108,9 @@ public class ComputeOrdersControllerTest {
         int expectedStatus = HttpStatus.BAD_REQUEST.value();
         assertEquals(expectedStatus, result.getResponse().getStatus());
         assertEquals("", result.getResponse().getContentAsString());
+        
+        // The request have problems, so the call to Facade is not executed.
+        Mockito.verify(this.facade, times(0)).createCompute(any(ComputeOrder.class), anyString());
     }
 
     @Test
@@ -117,6 +127,8 @@ public class ComputeOrdersControllerTest {
         
         assertEquals(expectedStatus, result.getResponse().getStatus());
         assertEquals(expectedResult, result.getResponse().getContentAsString());
+        
+        Mockito.verify(this.facade, times(1)).getAllComputes(anyString());
     }
 
     @Test
@@ -144,6 +156,8 @@ public class ComputeOrdersControllerTest {
         assertEquals(FAKE_ID_1, resultList.get(0).getId());
         assertEquals(FAKE_ID_2, resultList.get(1).getId());
         assertEquals(FAKE_ID_3, resultList.get(2).getId());
+        
+        Mockito.verify(this.facade, times(1)).getAllComputes(anyString());
     }
     
     @Test
@@ -161,6 +175,8 @@ public class ComputeOrdersControllerTest {
         
         String expectedResult = "[]";
         assertEquals(expectedResult, result.getResponse().getContentAsString());
+        
+        Mockito.verify(this.facade, times(1)).getAllInstancesStatus(anyString(), any(InstanceType.class));
        
     }
     
@@ -190,6 +206,8 @@ public class ComputeOrdersControllerTest {
         assertEquals(FAKE_ID_1, resultList.get(0).getInstanceId());
         assertEquals(FAKE_ID_2, resultList.get(1).getInstanceId());
         assertEquals(FAKE_ID_3, resultList.get(2).getInstanceId());
+        
+        Mockito.verify(this.facade, times(1)).getAllInstancesStatus(anyString(), any(InstanceType.class));
     }
 
     @Test
@@ -211,6 +229,8 @@ public class ComputeOrdersControllerTest {
         ComputeInstance resultComputeInstance = new Gson().fromJson(result.getResponse().getContentAsString(), ComputeInstance.class);
         assertTrue(resultComputeInstance != null);
         assertEquals(computeInstance.getId(), resultComputeInstance.getId());
+        
+        Mockito.verify(this.facade, times(1)).getCompute(anyString(), anyString());
     }
 
     @Test
@@ -224,12 +244,16 @@ public class ComputeOrdersControllerTest {
 
         int expectedStatus = HttpStatus.NOT_FOUND.value();
         assertEquals(expectedStatus, result.getResponse().getStatus());
+        
+        Mockito.verify(this.facade, times(1)).getCompute(anyString(), anyString());
     }
 
     @Test
-    public void deleteExistingCompute() throws Exception {
-        final String fakeId = "fake-Id-1";
-        String computeIdEndpoint = COMPUTE_ENDPOINT + "/" + fakeId;
+    public void testDeleteExistingCompute() throws Exception {
+        final String FAKE_ID = "fake-Id-1";
+        
+        String computeIdEndpoint = COMPUTE_ENDPOINT + "/" + FAKE_ID;
+        
         doNothing().when(this.facade).deleteCompute(anyString(), anyString());
 
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.DELETE, computeIdEndpoint, getHttpHeaders(), "");
@@ -237,7 +261,97 @@ public class ComputeOrdersControllerTest {
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
         int expectedStatus = HttpStatus.OK.value();
+        
         assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, times(1)).deleteCompute(anyString(), anyString());
+    }
+    
+    @Ignore
+    @Test
+    public void testDeleteNotFoundCompute() throws Exception {
+        final String FAKE_ID = "fake-Id-1";
+        
+        String computeIdEndpoint = COMPUTE_ENDPOINT + "/" + FAKE_ID;
+        
+        doThrow(new OrderNotFoundException()).when(this.facade).deleteCompute(anyString(), anyString());
+
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.DELETE, computeIdEndpoint, getHttpHeaders(), "");
+
+        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+        
+        System.out.println(result.getResponse().getContentAsString());
+        int expectedStatus = HttpStatus.NOT_FOUND.value();
+        
+        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, times(1)).deleteCompute(anyString(), anyString());
+    }
+    
+    @Test
+    public void testGetUserAllocation() throws Exception {
+    	
+    	final String FAKE_MEMBER_ID = "fake-member-id";
+    	final int VCPU_TOTAL = 1;
+    	final int RAM_TOTAL = 1;
+    	final int INSTANCES_TOTAL = 1;
+    	
+    	ComputeAllocation fakeComputeAllocation = new ComputeAllocation(VCPU_TOTAL, RAM_TOTAL, INSTANCES_TOTAL);
+
+        doReturn(fakeComputeAllocation).when(this.facade).getComputeAllocation(anyString(), anyString());
+        
+        final String ALLOCATION_ENDPOINT = COMPUTE_ENDPOINT + "/" + ComputeOrdersController.ALLOCATION_ENDPOINT;
+        
+        final String memberIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_MEMBER_ID;
+        
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
+        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+
+        int expectedStatus = HttpStatus.OK.value();
+        ComputeAllocation resultComputeAllocation = new Gson().fromJson(result.getResponse().getContentAsString(), ComputeAllocation.class);
+        
+        assertEquals(expectedStatus, result.getResponse().getStatus());
+        assertEquals(fakeComputeAllocation.getInstances(), resultComputeAllocation.getInstances());
+        assertEquals(fakeComputeAllocation.getRam(), resultComputeAllocation.getRam());
+        assertEquals(fakeComputeAllocation.getvCPU(), resultComputeAllocation.getvCPU());
+        
+        Mockito.verify(this.facade, times(1)).getComputeAllocation(anyString(), anyString());
+    }
+    
+    
+    @Test
+    public void testGetUserQuota() throws Exception {
+    	
+    	final String FAKE_MEMBER_ID = "fake-member-id";
+    	final int VCPU_TOTAL = 1;
+    	final int RAM_TOTAL = 1;
+    	final int INSTANCES_TOTAL = 1;
+    	
+    	ComputeAllocation fakeTotalComputeAllocation = new ComputeAllocation(VCPU_TOTAL*2, RAM_TOTAL*2, INSTANCES_TOTAL*2);
+    	ComputeAllocation fakeUsedComputeAllocation = new ComputeAllocation(VCPU_TOTAL, RAM_TOTAL, INSTANCES_TOTAL);
+    	ComputeQuota fakeUserQuota = new ComputeQuota(fakeTotalComputeAllocation, fakeUsedComputeAllocation);
+    	
+        doReturn(fakeUserQuota).when(this.facade).getComputeQuota(anyString(), anyString());
+        
+        final String QUOTA_ENDPOINT = COMPUTE_ENDPOINT + "/" + ComputeOrdersController.QUOTA_ENDPOINT;
+        
+        final String memberIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_MEMBER_ID;
+        
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
+        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+
+        int expectedStatus = HttpStatus.OK.value();
+        ComputeQuota resultComputeQuota = new Gson().fromJson(result.getResponse().getContentAsString(), ComputeQuota.class);
+        
+        assertEquals(expectedStatus, result.getResponse().getStatus());
+        
+        assertEquals(fakeUsedComputeAllocation.getInstances(), resultComputeQuota.getUsedQuota().getInstances());
+        assertEquals(fakeUsedComputeAllocation.getvCPU(), resultComputeQuota.getUsedQuota().getvCPU());
+        assertEquals(fakeUsedComputeAllocation.getRam(), resultComputeQuota.getUsedQuota().getRam());
+        
+        assertEquals(fakeTotalComputeAllocation.getInstances(), resultComputeQuota.getTotalQuota().getInstances());
+        assertEquals(fakeTotalComputeAllocation.getvCPU(), resultComputeQuota.getTotalQuota().getvCPU());
+        assertEquals(fakeTotalComputeAllocation.getRam(), resultComputeQuota.getTotalQuota().getRam());
+        
+        Mockito.verify(this.facade, times(1)).getComputeQuota(anyString(), anyString());
     }
 
     private RequestBuilder createRequestBuilder(HttpMethod method, String urlTemplate, HttpHeaders headers, String body) {
