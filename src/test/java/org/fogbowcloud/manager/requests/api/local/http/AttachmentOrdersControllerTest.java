@@ -7,10 +7,13 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.fogbowcloud.manager.api.http.AttachmentOrdersController;
-import org.fogbowcloud.manager.api.http.ComputeOrdersController;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,103 +36,118 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
-@WebMvcTest(value = AttachmentOrdersControllerTest.class, secure = false)
+@WebMvcTest(value = AttachmentOrdersController.class, secure = false)
 @PrepareForTest(ApplicationFacade.class)
 public class AttachmentOrdersControllerTest {
-	   private final String CORRECT_BODY = "{"
-	   		+ "\"source\": \"b8852ff6-ce00-45aa-898d-ddaffb5c6173\","
-	   		+ "\"target\": \"596f93c7-06a1-4621-8c9d-5330a089eafe\","
-	   		+ "\"device\": \"/dev/sdd\""
-	   		+ "}";
+	private final String ATTACHMENT_ENDPOINT = "/".concat(AttachmentOrdersController.ATTACHMENT_ENDPOINT);
+	
+    private final String CORRECT_BODY = "{"
+    		+ "\"source\": \"b8852ff6-ce00-45aa-898d-ddaffb5c6173\","
+    		+ "\"target\": \"596f93c7-06a1-4621-8c9d-5330a089eafe\","
+    		+ "\"device\": \"/dev/sdd\""
+    		+ "}";
+	
+    private final String BODY_WITH_EMPTY_PROPERTIES = "{"
+    		+ "\"source\": \"b8852ff6-ce00-45aa-898d-ddaffb5c6173\","
+    		+ "\"target\": \"596f93c7-06a1-4621-8c9d-5330a089eafe\","
+    		+ "\"device\": \"/dev/sdd\""
+    		+ "}";
+    
+    @Autowired
+    private MockMvc mockMvc;
 
-	    private final String BODY_WITH_EMPY_FIELDS = "{"
-		   		+ "\"source\": \"\","
-		   		+ "\"target\": \"\","
-		   		+ "\"device\": \"\"}";
+    private ApplicationFacade facade;
+    
+    @Before
+    public void setUp() throws FogbowManagerException {
+        this.facade = spy(ApplicationFacade.class);
+        PowerMockito.mockStatic(ApplicationFacade.class);
+        given(ApplicationFacade.getInstance()).willReturn(this.facade);
+    }
+    
+    
+    @Test
+    public void CreateAttachmenTest() throws Exception {
+        String orderId = "fake-id";
 
-	    private final String ATTACHMENT_ENDPOINT = "/".concat(AttachmentOrdersController.ATTACHMENT_ENDPOINT);
+        doReturn(orderId).when(this.facade).createAttachment(any(AttachmentOrder.class), anyString());
 
-	    @Autowired
-	    private MockMvc mockMvc;
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.POST, ATTACHMENT_ENDPOINT, getHttpHeaders(), CORRECT_BODY);
 
-	    private ApplicationFacade facade;
+        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
+        int expectedStatus = HttpStatus.CREATED.value();
+        assertEquals(expectedStatus, result.getResponse().getStatus());
+    }
+    
+    @Test
+    public void wrongBodyToPostAttachmentTest() throws Exception {
+    	// Empty json
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.POST, ATTACHMENT_ENDPOINT, getHttpHeaders(), "{}");
 
-	    @Before
-	    public void setUp() throws FogbowManagerException {
-	        this.facade = spy(ApplicationFacade.class);
-	        PowerMockito.mockStatic(ApplicationFacade.class);
-	        given(ApplicationFacade.getInstance()).willReturn(this.facade);
-	    }
+        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
-	    @Test
-	    public void createAttachementTest() throws Exception {
-	        String orderId = "fake-id";
+        int expectedStatus = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
+        assertEquals(expectedStatus, result.getResponse().getStatus());
+        
+        // Invalid json
+        
+        requestBuilder = createRequestBuilder(HttpMethod.POST, ATTACHMENT_ENDPOINT, getHttpHeaders(), "{}");
 
-	        doReturn(orderId).when(this.facade).createAttachment(any(AttachmentOrder.class), anyString());
+        result = this.mockMvc.perform(requestBuilder).andReturn();
 
-	        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.POST, ATTACHMENT_ENDPOINT, getHttpHeaders(), CORRECT_BODY);
+        expectedStatus = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
+        assertEquals(expectedStatus, result.getResponse().getStatus());
+        
+        // Json with empty properties.
+        
+        requestBuilder = createRequestBuilder(HttpMethod.POST, ATTACHMENT_ENDPOINT, getHttpHeaders(), BODY_WITH_EMPTY_PROPERTIES);
 
-	        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+        result = this.mockMvc.perform(requestBuilder).andReturn();
 
-	        int expectedStatus = HttpStatus.CREATED.value();
-	        assertEquals(expectedStatus, result.getResponse().getStatus());
-	    }
+        expectedStatus = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
+        assertEquals(expectedStatus, result.getResponse().getStatus());
+        
+    }
+    
+    @Test
+    public void getAllComputeWhenHasNoData() throws Exception {
+        List<AttachmentInstance> attachementInstanceList = new ArrayList<>();
+        doReturn(attachementInstanceList).when(this.facade).getAllComputes(anyString());
 
-	    @Test
-	    public void wrongBodyToPostComputeTest() throws Exception {
-	        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.POST, ATTACHMENT_ENDPOINT, getHttpHeaders(), "");
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, ATTACHMENT_ENDPOINT, getHttpHeaders(), "");
 
-	        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
-	        int expectedStatus = HttpStatus.BAD_REQUEST.value();
-	        assertEquals(expectedStatus, result.getResponse().getStatus());
-	        
-	        requestBuilder = createRequestBuilder(HttpMethod.POST, ATTACHMENT_ENDPOINT, getHttpHeaders(), "{}");
-
-	        result = this.mockMvc.perform(requestBuilder).andReturn();
-
-	        expectedStatus = HttpStatus.BAD_REQUEST.value();
-	        assertEquals(expectedStatus, result.getResponse().getStatus());
-	        
-	        requestBuilder = createRequestBuilder(HttpMethod.POST, ATTACHMENT_ENDPOINT, getHttpHeaders(), BODY_WITH_EMPY_FIELDS);
-
-	        result = this.mockMvc.perform(requestBuilder).andReturn();
-
-	        expectedStatus = HttpStatus.BAD_REQUEST.value();
-	        assertEquals(expectedStatus, result.getResponse().getStatus());
-	    }
-	    
-	    private RequestBuilder createRequestBuilder(HttpMethod method, String urlTemplate, HttpHeaders headers, String body) {
-	        switch (method) {
-	            case POST:
-	                return MockMvcRequestBuilders.post(urlTemplate)
-	                        .headers(headers)
-	                        .accept(MediaType.APPLICATION_JSON)
-	                        .content(body)
-	                        .contentType(MediaType.APPLICATION_JSON);
-	            case GET:
-	                return MockMvcRequestBuilders.get(urlTemplate)
-	                        .headers(headers)
-	                        .accept(MediaType.APPLICATION_JSON)
-	                        .content(body)
-	                        .contentType(MediaType.APPLICATION_JSON);
-	            case DELETE:
-	                return MockMvcRequestBuilders.delete(urlTemplate)
-	                        .headers(headers)
-	                        .accept(MediaType.APPLICATION_JSON)
-	                        .content(body)
-	                        .contentType(MediaType.APPLICATION_JSON);
-	            default:
-	                return null;
-	        }
-	        
-	    }
-
-	    private HttpHeaders getHttpHeaders() {
-	        HttpHeaders headers = new HttpHeaders();
-	        String fakeFederationTokenValue = "fake-access-id";
-	        headers.set(ComputeOrdersController.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
-	        return headers;
-	    }
+        int expectedStatus = HttpStatus.OK.value();
+        assertEquals(expectedStatus, result.getResponse().getStatus());
+    }
+    
+    private RequestBuilder createRequestBuilder(HttpMethod method, String urlTemplate, HttpHeaders headers, String body) {
+        switch (method) {
+            case POST:
+                return MockMvcRequestBuilders.post(urlTemplate)
+                        .headers(headers)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(body)
+                        .contentType(MediaType.APPLICATION_JSON);
+            case GET:
+                return MockMvcRequestBuilders.get(urlTemplate)
+                        .headers(headers)
+                        .accept(MediaType.APPLICATION_JSON);
+            case DELETE:
+                return MockMvcRequestBuilders.delete(urlTemplate)
+                        .headers(headers);
+            default:
+                return null;
+        }
+        
+    }
+    
+    private HttpHeaders getHttpHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        String fakeFederationTokenValue = "fake-access-id";
+        headers.set(AttachmentOrdersController.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
+        return headers;
+    }
 }
