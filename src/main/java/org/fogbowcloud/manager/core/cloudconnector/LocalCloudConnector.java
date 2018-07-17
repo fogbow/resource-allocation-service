@@ -130,13 +130,7 @@ public class LocalCloudConnector implements CloudConnector {
             } else {
             	
                 // When there is no instance, an empty one is created with the appropriate state
-            	InstanceState instanceState = null;
-            	
-            	if (order.getOrderState() == OrderState.OPEN || order.getOrderState() == OrderState.PENDING) {
-            		instanceState = InstanceState.DISPATCHED;
-            	} else if (order.getOrderState() == OrderState.FAILED) {
-            		instanceState = InstanceState.FAILED;
-            	}
+            	InstanceState instanceState = getInstanceStateBasedOnOrderState(order);
             	
                 switch (order.getType()) {
                     case COMPUTE:
@@ -228,6 +222,22 @@ public class LocalCloudConnector implements CloudConnector {
                 .getSshTunnelConnectionData(orderId);
 
         computeInstance.setSshTunnelConnectionData(sshTunnelConnectionData);
+    }
+    
+    private InstanceState getInstanceStateBasedOnOrderState(Order order) {
+    	
+    	InstanceState instanceState = null;
+    	
+    	// If order state is DEACTIVATED or CLOSED, an exception is throw before method call.
+    	// If order state is FULFILLED or SPAWNING, the order has an instance id, so this method is never called.
+    	
+    	if (order.getOrderState() == OrderState.OPEN || order.getOrderState() == OrderState.PENDING) {
+    		instanceState = InstanceState.DISPATCHED;
+    	} else if (order.getOrderState() == OrderState.FAILED) {
+    		instanceState = InstanceState.FAILED;
+    	}
+    	
+    	return instanceState;
     }
 
 }
