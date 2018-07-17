@@ -104,12 +104,18 @@ public class RemoteFacade {
     }
 
     private void updateLocalOrder(Order localOrder, Order remoteOrder) {
-        localOrder.setInstanceId(remoteOrder.getInstanceId());
-        localOrder.setCachedInstanceState(remoteOrder.getCachedInstanceState());
-        if (localOrder.getType().equals(InstanceType.COMPUTE)) {
-            ComputeOrder localCompute = (ComputeOrder) localOrder;
-            ComputeOrder remoteCompute = (ComputeOrder) remoteOrder;
-            localCompute.setActualAllocation(remoteCompute.getActualAllocation());
+        synchronized (localOrder) {
+            if (localOrder.getOrderState() != OrderState.PENDING) {
+                // The order has been deleted or already updated
+                return;
+            }
+            localOrder.setInstanceId(remoteOrder.getInstanceId());
+            localOrder.setCachedInstanceState(remoteOrder.getCachedInstanceState());
+            if (localOrder.getType().equals(InstanceType.COMPUTE)) {
+                ComputeOrder localCompute = (ComputeOrder) localOrder;
+                ComputeOrder remoteCompute = (ComputeOrder) remoteOrder;
+                localCompute.setActualAllocation(remoteCompute.getActualAllocation());
+            }
         }
     }
 
