@@ -117,12 +117,21 @@ public class LocalCloudConnector implements CloudConnector {
         Token localToken = this.aaController.getLocalToken(order.getFederationUser());
 
         synchronized (order) {
+        	
+        	if (order.getOrderState() == OrderState.DEACTIVATED || order.getOrderState() == OrderState.CLOSED) {
+        		throw new InstanceNotFoundException();
+        	}
+        	
             String instanceId = order.getInstanceId();
 
             if (instanceId != null) {
                 instance = getResourceInstance(order, order.getType(), localToken);
+                
             } else {
+            	
                 // When there is no instance, an empty one is created with the appropriate state
+            	InstanceState instanceState = getInstanceStateBasedOnOrderState(order);
+            	
                 switch (order.getType()) {
                     case COMPUTE:
                         instance = new ComputeInstance(order.getId());
@@ -140,6 +149,8 @@ public class LocalCloudConnector implements CloudConnector {
                         String message = "Not supported order type " + order.getType();
                         throw new UnexpectedException(message);
                 }
+                
+                instance.setState(instanceState);
             }
         }
         return instance;
@@ -200,7 +211,7 @@ public class LocalCloudConnector implements CloudConnector {
         return instance;
     }
 
-    private void addReverseTunnelInfo(String orderId, ComputeInstance computeInstance) {
+    protected void addReverseTunnelInfo(String orderId, ComputeInstance computeInstance) {
         TunnelingServiceUtil tunnelingServiceUtil = TunnelingServiceUtil.getInstance();
         SshConnectivityUtil sshConnectivityUtil = SshConnectivityUtil.getInstance();
 
@@ -211,6 +222,22 @@ public class LocalCloudConnector implements CloudConnector {
                 .getSshTunnelConnectionData(orderId);
 
         computeInstance.setSshTunnelConnectionData(sshTunnelConnectionData);
+    }
+    
+    private InstanceState getInstanceStateBasedOnOrderState(Order order) {
+    	
+    	InstanceState instanceState = null;
+    	
+    	// If order state is DEACTIVATED or CLOSED, an exception is throw before method call.
+    	// If order state is FULFILLED or SPAWNING, the order has an instance id, so this method is never called.
+    	
+    	if (order.getOrderState() == OrderState.OPEN || order.getOrderState() == OrderState.PENDING) {
+    		instanceState = InstanceState.DISPATCHED;
+    	} else if (order.getOrderState() == OrderState.FAILED) {
+    		instanceState = InstanceState.FAILED;
+    	}
+    	
+    	return instanceState;
     }
 
 }
