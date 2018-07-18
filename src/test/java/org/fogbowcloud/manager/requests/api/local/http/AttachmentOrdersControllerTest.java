@@ -10,16 +10,18 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import org.fogbowcloud.manager.api.http.AttachmentOrdersController;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
+import org.fogbowcloud.manager.core.models.InstanceStatus;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +41,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
@@ -163,6 +168,32 @@ public class AttachmentOrdersControllerTest {
 
         TypeToken<List<AttachmentInstance>> token = new TypeToken<List<AttachmentInstance>>() {};
         List<AttachmentInstance> resultList =
+                new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
+        assertTrue(resultList.size() == 3);
+    }
+    
+    @Test
+    public void getAllAttachmentsStatus() throws Exception {
+    	InstanceStatus AttachmentStatus1 = new InstanceStatus("fake-Id-1", "fake-provider", InstanceState.IN_USE);
+    	InstanceStatus AttachmentStatus2 = new InstanceStatus("fake-Id-2", "fake-provider", InstanceState.IN_USE);
+    	InstanceStatus AttachmentStatus3 = new InstanceStatus("fake-Id-3", "fake-provider", InstanceState.IN_USE);
+    	
+        List<InstanceStatus> AttachmentStatusList =
+                Arrays.asList(
+                        new InstanceStatus[] {
+                        		AttachmentStatus1, AttachmentStatus2, AttachmentStatus3
+                        });
+        doReturn(AttachmentStatusList).when(this.facade).getAllInstancesStatus(anyString(), any(InstanceType.class));
+
+        RequestBuilder requestBuilder =
+                createRequestBuilder(HttpMethod.GET, ATTACHMENT_ENDPOINT.concat("/status"), getHttpHeaders(), "");
+        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+
+        int expectedStatus = HttpStatus.OK.value();
+        assertEquals(expectedStatus, result.getResponse().getStatus());
+
+        TypeToken<List<InstanceStatus>> token = new TypeToken<List<InstanceStatus>>() {};
+        List<InstanceStatus> resultList =
                 new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
         assertTrue(resultList.size() == 3);
     }
