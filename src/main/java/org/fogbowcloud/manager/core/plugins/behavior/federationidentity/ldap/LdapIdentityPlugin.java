@@ -17,7 +17,6 @@ import java.util.Hashtable;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-
 import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -25,7 +24,6 @@ import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
-
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
@@ -89,8 +87,9 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
     public LdapIdentityPlugin() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
-        Properties properties = PropertiesUtil.
-                readProperties(homeDir.getPath() + File.separator + LDAP_PLUGIN_CONF_FILE);
+        Properties properties =
+                PropertiesUtil.readProperties(
+                        homeDir.getPath() + File.separator + LDAP_PLUGIN_CONF_FILE);
         this.ldapBase = properties.getProperty(PROP_LDAP_BASE);
         this.ldapUrl = properties.getProperty(PROP_LDAP_URL);
         this.encryptType = properties.getProperty(PROP_LDAP_ENCRYPT_TYPE);
@@ -100,7 +99,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
     @Override
     public String createFederationTokenValue(Map<String, String> userCredentials)
-        throws UnauthenticatedUserException, TokenValueCreationException {
+            throws UnauthenticatedUserException, TokenValueCreationException {
 
         String userId = userCredentials.get(CRED_USERNAME);
         String password = userCredentials.get(CRED_PASSWORD);
@@ -109,7 +108,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
         parseCredentials(userCredentials);
 
-        String name = null; 
+        String name = null;
         try {
             name = ldapAuthenticate(userId, password);
         } catch (Exception e) {
@@ -125,13 +124,17 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
             json.put(ATT_NAME, name);
             json.put(ATT_EXPIRATION_DATE, expirationDate.getTime());
 
-            String signature = createSignature(json); 
+            String signature = createSignature(json);
 
             String federationTokenValue = json.toString() + ACCESSID_SEPARATOR + signature;
 
             federationTokenValue =
-                    new String(Base64.encodeBase64(federationTokenValue.getBytes(StandardCharsets.UTF_8),
-                            false, false), StandardCharsets.UTF_8);
+                    new String(
+                            Base64.encodeBase64(
+                                    federationTokenValue.getBytes(StandardCharsets.UTF_8),
+                                    false,
+                                    false),
+                            StandardCharsets.UTF_8);
 
             return federationTokenValue;
         } catch (IOException | GeneralSecurityException e) {
@@ -141,7 +144,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
     private void extractLdapPropertiesFromCredentials(Map<String, String> userCredentials) {
         if (this.ldapBase == null || this.ldapBase.isEmpty()) {
-        	this.ldapBase = userCredentials.get(CRED_LDAP_BASE);
+            this.ldapBase = userCredentials.get(CRED_LDAP_BASE);
         }
 
         if (this.ldapUrl == null || ldapUrl.isEmpty()) {
@@ -156,18 +159,19 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
             this.publicKeyPath = userCredentials.get(CRED_PUBLIC_KEY);
         }
     }
- 
+
     @Override
     public FederationUser getFederationUser(String federationTokenValue)
             throws UnauthenticatedUserException, UnexpectedException {
 
         try {
 
-            String decodedFederationTokenValue = new String(Base64.decodeBase64(federationTokenValue), Charsets.UTF_8);
+            String decodedFederationTokenValue =
+                    new String(Base64.decodeBase64(federationTokenValue), Charsets.UTF_8);
 
             String split[] = decodedFederationTokenValue.split(ACCESSID_SEPARATOR);
-            if(split == null || split.length < 2){
-                LOGGER.error("Invalid accessID: " + decodedFederationTokenValue); 
+            if (split == null || split.length < 2) {
+                LOGGER.error("Invalid accessID: " + decodedFederationTokenValue);
                 throw new UnauthenticatedUserException();
             }
 
@@ -176,7 +180,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
             JSONObject root = new JSONObject(tokenValue);
 
-            if(!verifySign(tokenValue, signature)){
+            if (!verifySign(tokenValue, signature)) {
                 LOGGER.error("Invalid accessID: " + decodedFederationTokenValue);
                 throw new UnauthenticatedUserException();
             }
@@ -204,7 +208,8 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
         }
     }
 
-    private void checkTokenValue(String federationTokenValue) throws ExpiredTokenException, UnauthenticTokenException {
+    private void checkTokenValue(String federationTokenValue)
+            throws ExpiredTokenException, UnauthenticTokenException {
         try {
             String decodedAccessId =
                     new String(Base64.decodeBase64(federationTokenValue), StandardCharsets.UTF_8);
@@ -237,7 +242,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
     protected String ldapAuthenticate(String uid, String password) throws Exception {
 
         String contextFactory = "com.sun.jndi.ldap.LdapCtxFactory";
-        String securityAuthentication = "simple"; 
+        String securityAuthentication = "simple";
 
         Hashtable env = new Hashtable();
         env.put(Context.INITIAL_CONTEXT_FACTORY, contextFactory);
@@ -256,7 +261,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
             SearchControls ctls = new SearchControls();
             ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
             ctls.setReturningAttributes(new String[0]);
-            ctls.setReturningObjFlag(true); 
+            ctls.setReturningObjFlag(true);
             NamingEnumeration enm = ctx.search(this.ldapBase, filter, new String[] {uid}, ctls);
 
             String dn = null;
@@ -283,8 +288,8 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
             return name;
 
         } catch (NamingException e) {
-			throw new FogbowManagerException("Ldap url is not provided in conf files.");
-		}
+            throw new FogbowManagerException("Ldap url is not provided in conf files.");
+        }
     }
 
     private String extractUserName(SearchResult result) {
@@ -360,5 +365,4 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
             this.publicKeyPath = credPublicKeyPath;
         }
     }
-
 }
