@@ -190,7 +190,6 @@ public class SpawningProcessorTest extends BaseUnitTests {
         
         Instance orderInstance = spy(new ComputeInstance(FAKE_INSTANCE_ID));
         
-        /** this instance state is not inactive and not ready */
         orderInstance.setState(InstanceState.DISPATCHED);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
@@ -263,29 +262,6 @@ public class SpawningProcessorTest extends BaseUnitTests {
         assertEquals(OrderState.FAILED, test.getOrderState());
     }
     
-    @Test
-    public void testRunProcessComputeOrderWhenInstanceStateIsInactive()
-            throws InterruptedException {
-        
-        Order order = spyComputeOrder();
-        order.setOrderState(OrderState.SPAWNING);
-        this.spawningOrderList.addItem(order);
-
-        assertNull(this.fulfilledOrderList.getNext());
-
-        ComputeInstance computeOrderInstance = spy(new ComputeInstance(FAKE_INSTANCE_ID));
-        computeOrderInstance.setState(InstanceState.INACTIVE);
-        order.setInstanceId(FAKE_INSTANCE_ID);
-
-        this.thread = new Thread(this.spawningProcessor);
-        this.thread.start();
-
-        Order test = this.spawningOrderList.getNext();
-        assertNotNull(test);
-        assertEquals(order.getInstanceId(), test.getInstanceId());
-        assertEquals(OrderState.SPAWNING, test.getOrderState());
-    }
-
     private Order spyComputeOrder() {
         FederationUser federationUser = mock(FederationUser.class);
         String requestingMember = BaseUnitTests.LOCAL_MEMBER_ID;
