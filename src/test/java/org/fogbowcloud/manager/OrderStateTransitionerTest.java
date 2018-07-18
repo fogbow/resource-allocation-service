@@ -18,9 +18,7 @@ import org.mockito.internal.util.MockUtil;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
@@ -126,14 +124,16 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         OrderStateTransitioner.transition(order, destinationState);
     }
 
-    @Test(expected = UnexpectedException.class)
-    public void testOriginListRemovalFailure() throws UnexpectedException {
+    @Test
+    public void testOriginListRemovalFailure() {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 
-        SynchronizedDoublyLinkedList origin = Mockito.mock(SynchronizedDoublyLinkedList.class);
-        when(origin.removeItem(any(Order.class))).thenReturn(false);
+        SynchronizedDoublyLinkedList origin = 
+                Mockito.mock(SynchronizedDoublyLinkedList.class);
 
+        when(origin.removeItem(any(Order.class))).thenReturn(false);
+        
         SynchronizedDoublyLinkedList destination = Mockito.mock(SynchronizedDoublyLinkedList.class);
 
         SharedOrderHolders ordersHolder = Mockito.mock(SharedOrderHolders.class);
@@ -143,7 +143,14 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         PowerMockito.mockStatic(SharedOrderHolders.class);
         given(SharedOrderHolders.getInstance()).willReturn(ordersHolder);
 
+        
         Order order = createOrder(originState);
-        OrderStateTransitioner.transition(order, destinationState);
+        
+        try {
+            OrderStateTransitioner.transition(order, destinationState);
+        } catch (UnexpectedException e) {
+            fail();
+        }
+        
     }
 }
