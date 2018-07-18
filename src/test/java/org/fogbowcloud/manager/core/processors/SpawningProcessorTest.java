@@ -5,7 +5,6 @@ import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.util.connectivity.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
@@ -96,30 +95,6 @@ public class SpawningProcessorTest extends BaseUnitTests {
         super.tearDown();
     }
     
-    @SuppressWarnings("static-access")
-    @Test(expected = UnexpectedException.class)
-    public void testThrowUnexpectedExceptionWhileTryingToProcessOrder() throws Exception {
-
-        Order order = spyComputeOrder();
-        order.setOrderState(OrderState.SPAWNING);
-        this.spawningOrderList.addItem(order);
-
-        Instance orderInstance = spy(new ComputeInstance(FAKE_INSTANCE_ID));
-        orderInstance.setState(InstanceState.READY);
-        order.setInstanceId(FAKE_INSTANCE_ID);
-
-        doReturn(orderInstance).when(this.cloudConnector).getInstance(any(Order.class));
-
-        doThrow(new UnexpectedException()).when(this.spawningProcessor)
-                .processSpawningOrder(order);
-
-        this.thread = new Thread(this.spawningProcessor);
-        this.thread.start();
-        this.thread.sleep(500);
-
-        this.spawningProcessor.processSpawningOrder(order);
-    }
-    
     @Test
     public void testTryingProcessComputeOrderNotSpawning() throws Exception {
         Order order = spyComputeOrder();
@@ -139,8 +114,6 @@ public class SpawningProcessorTest extends BaseUnitTests {
         order.setOrderState(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
         
-        doReturn(false).when(order).isRequesterRemote(Mockito.anyString());
-
         Instance orderInstance = spy(new ComputeInstance(FAKE_INSTANCE_ID));
         orderInstance.setState(InstanceState.READY);
         order.setInstanceId(FAKE_INSTANCE_ID);
@@ -184,8 +157,8 @@ public class SpawningProcessorTest extends BaseUnitTests {
     
     @SuppressWarnings("static-access")
     @Test
-    public void testRunProcessWhenOrderTypeIsNotComputer() throws Exception {
-        Order order = spyAnoterInstanceType();
+    public void testRunProcessWhenOrderTypeIsNotCompute() throws Exception {
+        Order order = spyAttachmentOrder();
         order.setOrderState(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
         
@@ -209,7 +182,6 @@ public class SpawningProcessorTest extends BaseUnitTests {
         assertEquals(OrderState.FULFILLED, test.getOrderState());
     }
     
-    @SuppressWarnings("static-access")
     @Test
     public void testRunProcessComputeOrderWhenInstanceStateIsNotReady() throws Exception {
         Order order = spyComputeOrder();
@@ -226,7 +198,6 @@ public class SpawningProcessorTest extends BaseUnitTests {
         
         this.thread = new Thread(this.spawningProcessor);
         this.thread.start();
-        this.thread.sleep(500);
 
         assertNotNull(this.spawningOrderList.getNext());
         assertNull(this.fulfilledOrderList.getNext());
@@ -272,8 +243,6 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
         assertNull(this.failedOrderList.getNext());
         
-        doReturn(false).when(order).isRequesterRemote(anyString());
-        
         Instance orderInstance = spy(new ComputeInstance(FAKE_INSTANCE_ID));
         orderInstance.setState(InstanceState.FAILED);
         order.setInstanceId(FAKE_INSTANCE_ID);
@@ -294,10 +263,10 @@ public class SpawningProcessorTest extends BaseUnitTests {
         assertEquals(OrderState.FAILED, test.getOrderState());
     }
     
-    @SuppressWarnings("static-access")
     @Test
     public void testRunProcessComputeOrderWhenInstanceStateIsInactive()
             throws InterruptedException {
+        
         Order order = spyComputeOrder();
         order.setOrderState(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
@@ -310,7 +279,6 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
         this.thread = new Thread(this.spawningProcessor);
         this.thread.start();
-        this.thread.sleep(500);
 
         Order test = this.spawningOrderList.getNext();
         assertNotNull(test);
@@ -339,7 +307,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         return order;
     }
     
-    private Order spyAnoterInstanceType() {
+    private Order spyAttachmentOrder() {
         FederationUser federationUser = mock(FederationUser.class);
         String requestingMember = BaseUnitTests.LOCAL_MEMBER_ID;
         String providingMember = BaseUnitTests.LOCAL_MEMBER_ID;
