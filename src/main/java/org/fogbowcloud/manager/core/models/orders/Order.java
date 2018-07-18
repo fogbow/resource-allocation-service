@@ -81,15 +81,17 @@ public abstract class Order {
     }
 
     public InstanceState getCachedInstanceState() {
-        InstanceState instanceState;
         if (this.orderState.equals(OrderState.FAILED)) {
-            instanceState = InstanceState.FAILED;
+            // The order can go from OPEN to FAIL without ever getting an instance
+            return InstanceState.FAILED;
         } else if (this.orderState.equals(OrderState.SPAWNING)) {
-            instanceState = InstanceState.SPAWNING;
-        } else {
-            instanceState = getCachedInstanceState();
+            // Orders of ComputerOrder type may have the instance READY, but with the order still Spawning
+            // This is the case when it is checking the reachability.
+            // In this case, we want o show the instance state as SPAWNING
+            return InstanceState.SPAWNING;
         }
-        return instanceState;
+
+        return this.cachedInstanceState;
     }
 
     public void setCachedInstanceState(InstanceState cachedInstanceState) {
