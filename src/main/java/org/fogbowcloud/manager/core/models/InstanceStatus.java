@@ -21,6 +21,10 @@ public class InstanceStatus {
         this.instanceId = instanceId;
     }
 
+    public String getProvider() {
+        return provider;
+    }
+
     public InstanceState getState() {
         return state;
     }
