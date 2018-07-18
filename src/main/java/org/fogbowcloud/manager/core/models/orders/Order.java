@@ -81,7 +81,15 @@ public abstract class Order {
     }
 
     public InstanceState getCachedInstanceState() {
-        return (this.orderState.equals(OrderState.FAILED) ? InstanceState.FAILED : cachedInstanceState);
+        InstanceState instanceState;
+        if (this.orderState.equals(OrderState.FAILED)) {
+            instanceState = InstanceState.FAILED;
+        } else if (this.orderState.equals(OrderState.SPAWNING)) {
+            instanceState = InstanceState.SPAWNING;
+        } else {
+            instanceState = getCachedInstanceState();
+        }
+        return instanceState;
     }
 
     public void setCachedInstanceState(InstanceState cachedInstanceState) {

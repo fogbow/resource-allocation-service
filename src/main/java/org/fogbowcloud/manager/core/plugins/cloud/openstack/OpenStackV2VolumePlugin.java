@@ -33,6 +33,8 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	protected static final String KEY_JSON_ID = "id";
 	protected static final String SUFIX_ENDPOINT_VOLUMES = "/volumes";
 
+	protected static final String DEFAULT_VOLUME_NAME = "fogbow-volume";
+
 	private HttpRequestClientUtil client;
 	private String volumeV2APIEndpoint;
 
@@ -139,7 +141,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	protected JSONObject generateJsonEntityToCreateInstance(String size, String name) throws JSONException {
 		JSONObject volumeContent = new JSONObject();
 		volumeContent.put(KEY_JSON_SIZE, size);
-		volumeContent.put(KEY_JSON_NAME, name);
+		volumeContent.put(KEY_JSON_NAME, DEFAULT_VOLUME_NAME + "-" + name);
 
 		JSONObject volume = new JSONObject();
 		volume.put(KEY_JSON_VOLUME, volumeContent);

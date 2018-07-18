@@ -66,9 +66,9 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     protected static final String KEY_ID = "id";
 
     protected static final String DEFAULT_IP_VERSION = "4";
-    protected static final String DEFAULT_NETWORK_NAME = "network-fogbow";
-    protected static final String DEFAULT_ROUTER_NAME = "router-fogbow";
-    protected static final String DEFAULT_SUBNET_NAME = "subnet-fogbow";
+    protected static final String DEFAULT_NETWORK_NAME = "fogbow-network";
+    protected static final String DEFAULT_ROUTER_NAME = "fogbow-router";
+    protected static final String DEFAULT_SUBNET_NAME = "fogbow-subnet";
     protected static final String[] DEFAULT_DNS_NAME_SERVERS = new String[] {"8.8.8.8", "8.8.4.4"};
     protected static final String DEFAULT_NETWORK_ADDRESS = "192.168.0.1/24";
     protected static final String NETWORK_DHCP = "network:dhcp";

@@ -223,7 +223,8 @@ public class ApplicationFacade {
         List<InstanceStatus> instanceStatusList = new ArrayList<>();
         for (Order order : allOrders) {
             // The state of the instance can be inferred from the state of the order
-            InstanceStatus instanceStatus = new InstanceStatus(order.getId(), order.getCachedInstanceState());
+            InstanceStatus instanceStatus = new InstanceStatus(order.getId(), order.getProvidingMember(),
+                    order.getCachedInstanceState());
             instanceStatusList.add(instanceStatus);
         }
         return instanceStatusList;
