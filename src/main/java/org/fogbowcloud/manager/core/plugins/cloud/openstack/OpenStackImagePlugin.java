@@ -9,6 +9,7 @@ import java.util.Properties;
 
 import org.apache.http.client.HttpResponseException;
 import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
@@ -23,7 +24,6 @@ import org.json.JSONObject;
 public class OpenStackImagePlugin implements ImagePlugin {
 
 	public static final String IMAGE_GLANCEV2_URL_KEY = "openstack_glance_v2_url";
-	public static final String GLANCE_PLUGIN_CONF_FILE = "openstack-glance-image-plugin.conf";
 
 	public static final String SUFFIX = "images";
 	public static final String ACTIVE_STATE = "active";
@@ -43,8 +43,8 @@ public class OpenStackImagePlugin implements ImagePlugin {
 	
 	public OpenStackImagePlugin() throws FatalErrorException {
 		HomeDir homeDir = HomeDir.getInstance();
-		this.properties = PropertiesUtil.
-				readProperties(homeDir.getPath() + File.separator + GLANCE_PLUGIN_CONF_FILE);
+        this.properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
+                + DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
 		this.client = new HttpRequestClientUtil();
 	}
 	

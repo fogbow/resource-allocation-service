@@ -126,7 +126,6 @@ public class LocalCloudConnector implements CloudConnector {
 
             if (instanceId != null) {
                 instance = getResourceInstance(order, order.getType(), localToken);
-                
             } else {
             	
                 // When there is no instance, an empty one is created with the appropriate state
@@ -208,6 +207,7 @@ public class LocalCloudConnector implements CloudConnector {
                 throw new UnexpectedException(message);
         }
         order.setCachedInstanceState(instance.getState());
+        instance.setProvider(order.getProvidingMember());
         return instance;
     }
 

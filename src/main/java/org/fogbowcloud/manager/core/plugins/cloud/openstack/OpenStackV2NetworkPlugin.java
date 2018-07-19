@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
@@ -24,7 +25,6 @@ import org.json.JSONObject;
 
 public class OpenStackV2NetworkPlugin implements NetworkPlugin {
 
-    private static final String NEUTRON_PLUGIN_CONF_FILE = "openstack-neutron-network-plugin.conf";
     private static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
 
     private static final String MSG_LOG_ERROR_MANIPULATE_JSON =
@@ -66,9 +66,9 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     protected static final String KEY_ID = "id";
 
     protected static final String DEFAULT_IP_VERSION = "4";
-    protected static final String DEFAULT_NETWORK_NAME = "network-fogbow";
-    protected static final String DEFAULT_ROUTER_NAME = "router-fogbow";
-    protected static final String DEFAULT_SUBNET_NAME = "subnet-fogbow";
+    protected static final String DEFAULT_NETWORK_NAME = "fogbow-network";
+    protected static final String DEFAULT_ROUTER_NAME = "fogbow-router";
+    protected static final String DEFAULT_SUBNET_NAME = "fogbow-subnet";
     protected static final String[] DEFAULT_DNS_NAME_SERVERS = new String[] {"8.8.8.8", "8.8.4.4"};
     protected static final String DEFAULT_NETWORK_ADDRESS = "192.168.0.1/24";
     protected static final String NETWORK_DHCP = "network:dhcp";
@@ -84,8 +84,8 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
 
     public OpenStackV2NetworkPlugin() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
-        Properties properties = PropertiesUtil.
-                readProperties(homeDir.getPath() + File.separator + NEUTRON_PLUGIN_CONF_FILE);
+        Properties properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
+                + DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
 
         this.externalNetworkId = properties.getProperty(KEY_EXTERNAL_GATEWAY_INFO);
         this.networkV2APIEndpoint =
