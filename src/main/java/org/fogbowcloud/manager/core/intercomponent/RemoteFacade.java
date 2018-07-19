@@ -10,6 +10,7 @@ import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.constants.Operation;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -87,18 +88,34 @@ public class RemoteFacade {
         return cloudConnector.getAllImages(federationUser);
     }
 
-    public void handleRemoteEvent(Event event, Order order) throws FogbowManagerException, UnexpectedException {
+    public void handleRemoteEvent(Event event, Order remoteOrder) throws FogbowManagerException, UnexpectedException {
         // order is a java object that represents the order passed in the message
         // actualOrder is the java object that represents this order inside the current manager
-        Order actualOrder = this.orderController.getOrder(order.getId(), order.getFederationUser(), order.getType());
-        actualOrder.setInstanceId(order.getInstanceId());
+        Order localOrder = this.orderController.getOrder(remoteOrder.getId(), remoteOrder.getFederationUser(), remoteOrder.getType());
+        updateLocalOrder(localOrder, remoteOrder);
         switch (event) {
             case INSTANCE_FULFILLED:
-                OrderStateTransitioner.transition(actualOrder, OrderState.FULFILLED);
+                OrderStateTransitioner.transition(localOrder, OrderState.FULFILLED);
                 break;
             case INSTANCE_FAILED:
-                OrderStateTransitioner.transition(actualOrder, OrderState.FAILED);
+                OrderStateTransitioner.transition(localOrder, OrderState.FAILED);
                 break;
+        }
+    }
+
+    private void updateLocalOrder(Order localOrder, Order remoteOrder) {
+        synchronized (localOrder) {
+            if (localOrder.getOrderState() != OrderState.PENDING) {
+                // The order has been deleted or already updated
+                return;
+            }
+            localOrder.setInstanceId(remoteOrder.getInstanceId());
+            localOrder.setCachedInstanceState(remoteOrder.getCachedInstanceState());
+            if (localOrder.getType().equals(InstanceType.COMPUTE)) {
+                ComputeOrder localCompute = (ComputeOrder) localOrder;
+                ComputeOrder remoteCompute = (ComputeOrder) remoteOrder;
+                localCompute.setActualAllocation(remoteCompute.getActualAllocation());
+            }
         }
     }
 

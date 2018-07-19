@@ -66,9 +66,10 @@ public class OrderStateTransitioner {
                     String message = "Could not notify requesting member ["+ order.getRequestingMember() +
                             " for order " + order.getId();
                     LOGGER.warn(message);
-                    // FIXME: What should we do when the notification is not received?
-                    // Currently, it will keep trying to notify forever. Shall we give up
-                    // after a few attempts?
+                    // Keep trying to notify until the site is up again
+                    // The site admin might want to monitor the warn log in case a site never
+                    // recovers. In this case the site admin may delete the order using an
+                    // appropriate tool.
                     return;
                 }
             }
@@ -105,8 +106,9 @@ public class OrderStateTransitioner {
         OrderState currentState = order.getOrderState();
 
         if (currentState == newState) {
-            String message = String.format("Order with id %s is already %s", order.getId(), currentState);
-            throw new UnexpectedException(message);
+            // The order may have already been moved to the new state by another thread
+            // In this case, there is nothing else to be done
+            return;
         }
 
         SharedOrderHolders ordersHolder = SharedOrderHolders.getInstance();
@@ -120,6 +122,8 @@ public class OrderStateTransitioner {
             String message = String.format("Could not find destination list for state %s", newState);
             throw new UnexpectedException(message);
         } else {
+            // The order may have already been removed from the origin list by another thread
+            // In this case, there is nothing else to be done
             if (origin.removeItem(order)) {
                 order.setOrderState(newState);
 
@@ -127,10 +131,6 @@ public class OrderStateTransitioner {
                 databaseManager.update(order);
 
                 destination.addItem(order);
-            } else {
-                String message = String.format(
-                        "Could not remove order id %s from list of %s orders", order.getId(), currentState.toString());
-                throw new UnexpectedException(message);
             }
         }
     }

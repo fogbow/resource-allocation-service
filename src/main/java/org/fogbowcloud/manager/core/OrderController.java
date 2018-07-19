@@ -107,26 +107,28 @@ public class OrderController {
 
         switch (instanceType) {
             case COMPUTE:
-                List<ComputeOrder> computeOrders = new ArrayList<ComputeOrder>();
+                List<ComputeOrder> computeOrders = new ArrayList<>();
                 for (Order order : filteredOrders) {
                     computeOrders.add((ComputeOrder) order);
                 }
-                return (Allocation) getUserComputeAllocation(computeOrders);
+                return getUserComputeAllocation(computeOrders);
             default:
                 throw new UnexpectedException("Not yet implemented.");
         }
     }
 
     private ComputeAllocation getUserComputeAllocation(Collection<ComputeOrder> computeOrders) {
-
-        int vCPU = 0, ram = 0, instances = 0;
+        int vCPU = 0;
+        int ram = 0;
+        int instances = 0;
 
         for (ComputeOrder order : computeOrders) {
             ComputeAllocation actualAllocation = order.getActualAllocation();
             vCPU += actualAllocation.getvCPU();
             ram += actualAllocation.getRam();
-            instances++;
+            instances += actualAllocation.getInstances();
         }
+
         return new ComputeAllocation(vCPU, ram, instances);
     }
 }

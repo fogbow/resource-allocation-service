@@ -7,6 +7,7 @@ public class Instance {
     // Removing this attribute might require changes in the Attachment processing.
     private String id;
     private InstanceState state;
+    private String provider;
 
     public Instance(String id) {
         this.id = id;
@@ -31,6 +32,10 @@ public class Instance {
 
     public void setState(InstanceState state) {
         this.state = state;
+    }
+
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 
     // TODO: add comment explaining why we need to override these methods

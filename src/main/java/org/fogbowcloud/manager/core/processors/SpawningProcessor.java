@@ -41,9 +41,10 @@ public class SpawningProcessor implements Runnable {
     @Override
     public void run() {
         boolean isActive = true;
+        Order order = null;
         while (isActive) {
             try {
-                Order order = this.spawningOrderList.getNext();
+                order = this.spawningOrderList.getNext();
                 if (order != null) {
                     processSpawningOrder(order);
                 } else {
@@ -56,9 +57,9 @@ public class SpawningProcessor implements Runnable {
                 isActive = false;
                 LOGGER.error("Thread interrupted", e);
             } catch (UnexpectedException e) {
-                LOGGER.error(e.getMessage(), e);
+                handleError(order, e.getMessage(), e);
             } catch (Throwable e) {
-                LOGGER.error("Unexpected error", e);
+                handleError(order, "Unexpected error", e);
             }
         }
     }
@@ -119,5 +120,19 @@ public class SpawningProcessor implements Runnable {
 
             OrderStateTransitioner.transition(order, OrderState.FULFILLED);
         }
+    }
+
+    private void handleError(Order order, String message, Throwable e) {
+        LOGGER.error(message, e);
+        if (order != null) {
+            if (!order.getOrderState().equals(OrderState.FAILED)) {
+                try {
+                    OrderStateTransitioner.transition(order, OrderState.FAILED);
+                } catch (UnexpectedException e2) {
+                    LOGGER.error(message, e2);
+                }
+            }
+        }
+
     }
 }

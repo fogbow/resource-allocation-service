@@ -1,9 +1,12 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
+import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 
 public class OpenStackStateMapper {
+
+    private static final Logger LOGGER = Logger.getLogger(OpenStackStateMapper.class);
 
     public static final String ACTIVE_STATUS = "active";
     public static final String BUILD_STATUS = "build";
@@ -30,18 +33,23 @@ public class OpenStackStateMapper {
 
     public static InstanceState map(InstanceType type, String openStackState) {
 
+        openStackState = openStackState.toLowerCase();
+
         switch (type) {
             case COMPUTE:
-                switch (openStackState.toLowerCase()) {
+                switch (openStackState) {
                     case ACTIVE_STATUS:
                         return InstanceState.READY;
                     case BUILD_STATUS:
                         return InstanceState.SPAWNING;
-                    default:
+                    case ERROR_STATUS:
                         return InstanceState.FAILED;
+                    default:
+                        LOGGER.error(getDefaultLogMessage(openStackState, "OpenstackComputePlugin"));
+                        return InstanceState.INCONSISTENT;
                 }
             case NETWORK:
-                switch (openStackState.toLowerCase()) {
+                switch (openStackState) {
                     case BUILD_STATUS:
                     case DOWN_STATUS:
                         return InstanceState.INACTIVE;
@@ -50,10 +58,11 @@ public class OpenStackStateMapper {
                     case ERROR_STATUS:
                         return InstanceState.FAILED;
                     default:
+                        LOGGER.error(getDefaultLogMessage(openStackState, "OpenstackNetworkPlugin"));
                         return InstanceState.INCONSISTENT;
                 }
             case VOLUME:
-                switch (openStackState.toLowerCase()) {
+                switch (openStackState) {
                     case CREATING_STATUS:
                         return InstanceState.CREATING;
                     case AVAILABLE_STATUS:
@@ -79,14 +88,23 @@ public class OpenStackStateMapper {
                     case ERROR_RESTORING_STATUS:
                     case ERROR_STATUS:
                         return InstanceState.FAILED;
+                    default:
+                        LOGGER.error(getDefaultLogMessage(openStackState, "OpenstackVolumePlugin"));
+                        return InstanceState.INCONSISTENT;
                 }
             case ATTACHMENT:
-                switch (openStackState.toLowerCase()) {
+                switch (openStackState) {
                     default:
                         return InstanceState.READY;
                 }
             default:
+                LOGGER.error("Instance type not defined.");
                 return InstanceState.INCONSISTENT;
         }
+    }
+
+    private static String getDefaultLogMessage(String openStackState, String pluginName) {
+        return openStackState + " was not mapped to a well-defined OpenStack " +
+                "instance state when " + pluginName + " were implemented.";
     }
 }

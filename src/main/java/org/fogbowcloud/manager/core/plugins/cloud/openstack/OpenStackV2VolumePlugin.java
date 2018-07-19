@@ -5,6 +5,7 @@ import java.util.Properties;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
@@ -19,7 +20,6 @@ import org.json.JSONObject;
 
 public class OpenStackV2VolumePlugin implements VolumePlugin {
 
-	private static final String CINDER_PLUGIN_CONF_FILE = "openstack-cinder-volume-plugin.conf";
 	public static final String VOLUME_NOVAV2_URL_KEY = "openstack_cinder_url";
 
 	private final String TENANT_ID_IS_NOT_SPECIFIED_ERROR = "Tenant id is not specified.";
@@ -33,6 +33,8 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	protected static final String KEY_JSON_ID = "id";
 	protected static final String SUFIX_ENDPOINT_VOLUMES = "/volumes";
 
+	protected static final String DEFAULT_VOLUME_NAME = "fogbow-volume";
+
 	private HttpRequestClientUtil client;
 	private String volumeV2APIEndpoint;
 
@@ -40,8 +42,8 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 	public OpenStackV2VolumePlugin() throws FatalErrorException {
 		HomeDir homeDir = HomeDir.getInstance();
-		Properties properties = PropertiesUtil.
-				readProperties(homeDir.getPath() + File.separator + CINDER_PLUGIN_CONF_FILE);
+        Properties properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
+                + DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
 		this.volumeV2APIEndpoint = properties.getProperty(VOLUME_NOVAV2_URL_KEY) + V2_API_ENDPOINT;
 
 		initClient();
@@ -139,7 +141,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	protected JSONObject generateJsonEntityToCreateInstance(String size, String name) throws JSONException {
 		JSONObject volumeContent = new JSONObject();
 		volumeContent.put(KEY_JSON_SIZE, size);
-		volumeContent.put(KEY_JSON_NAME, name);
+		volumeContent.put(KEY_JSON_NAME, DEFAULT_VOLUME_NAME + "-" + name);
 
 		JSONObject volume = new JSONObject();
 		volume.put(KEY_JSON_VOLUME, volumeContent);

@@ -107,9 +107,15 @@ public class ComputeOrderStorage extends OrderStorage {
 
             orderStatement.setString(1, computeOrder.getInstanceId());
             orderStatement.setString(2, computeOrder.getOrderState().name());
-            orderStatement.setInt(3, computeOrder.getActualAllocation().getvCPU());
-            orderStatement.setInt(4, computeOrder.getActualAllocation().getRam());
-            orderStatement.setInt(5, computeOrder.getActualAllocation().getInstances());
+            if (computeOrder.getActualAllocation() == null) {
+                orderStatement.setInt(3, 0);
+                orderStatement.setInt(4, 0);
+                orderStatement.setInt(5, 0);
+            } else {
+                orderStatement.setInt(3, computeOrder.getActualAllocation().getvCPU());
+                orderStatement.setInt(4, computeOrder.getActualAllocation().getRam());
+                orderStatement.setInt(5, computeOrder.getActualAllocation().getInstances());
+            }
             orderStatement.setString(6, computeOrder.getId());
 
             orderStatement.executeUpdate();

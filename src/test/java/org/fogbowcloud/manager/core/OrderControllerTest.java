@@ -1,20 +1,20 @@
 package org.fogbowcloud.manager.core;
 
-import java.util.Map;
-
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
+import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.datastore.DatabaseManager;
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
-import org.fogbowcloud.manager.core.exceptions.OrderNotFoundException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
+import org.fogbowcloud.manager.core.models.instances.Instance;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
-import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.OrderState;
+import org.fogbowcloud.manager.core.models.orders.*;
+import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -22,13 +22,16 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.List;
+import java.util.Map;
+
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(DatabaseManager.class)
+@PrepareForTest({DatabaseManager.class, CloudConnectorFactory.class})
 public class OrderControllerTest extends BaseUnitTests {
 
     private OrderController ordersController;
@@ -99,6 +102,127 @@ public class OrderControllerTest extends BaseUnitTests {
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
         this.ordersController.deleteOrder(computeOrder);
+    }
+
+    @Test
+    public void testGetAllOrders() throws UnexpectedException {
+        FederationUser federationUser = new FederationUser("fake-id", null);
+        ComputeOrder computeOrder = new ComputeOrder();
+        computeOrder.setFederationUser(federationUser);
+        computeOrder.setRequestingMember(this.localMember);
+        computeOrder.setProvidingMember(this.localMember);
+        computeOrder.setOrderState(OrderState.OPEN);
+
+        ComputeOrder computeOrder2 = new ComputeOrder();
+        computeOrder2.setFederationUser(federationUser);
+        computeOrder2.setRequestingMember(this.localMember);
+        computeOrder2.setProvidingMember(this.localMember);
+        computeOrder2.setOrderState(OrderState.FULFILLED);
+
+        this.activeOrdersMap.put(computeOrder.getId(), computeOrder);
+        this.openOrdersList.addItem(computeOrder);
+
+        this.activeOrdersMap.put(computeOrder2.getId(), computeOrder2);
+        this.fulfilledOrdersList.addItem(computeOrder2);
+
+        List<Order> orders = this.ordersController.getAllOrders(federationUser, InstanceType.COMPUTE);
+
+        Assert.assertTrue(orders.contains(computeOrder));
+        Assert.assertTrue(orders.contains(computeOrder2));
+    }
+
+    @Test
+    public void testGetOrder() throws UnexpectedException, FogbowManagerException {
+        String orderId = getComputeOrderCreationId(OrderState.OPEN);
+        FederationUser federationUser = new FederationUser("fake-id", null);
+
+        ComputeOrder computeOrder = (ComputeOrder) this.ordersController.getOrder(
+                orderId, federationUser, InstanceType.COMPUTE);
+        Assert.assertEquals(computeOrder, this.openOrdersList.getNext());
+    }
+
+    @Test(expected = InstanceNotFoundException.class)
+    public void testGetInvalidOrder() throws FogbowManagerException {
+        this.ordersController.getOrder("invalid-order-id", null, InstanceType.COMPUTE);
+    }
+
+    @Test(expected = InstanceNotFoundException.class)
+    public void testGetOrderWithInvalidInstanceType() throws FogbowManagerException, UnexpectedException {
+        String orderId = getComputeOrderCreationId(OrderState.OPEN);
+
+        this.ordersController.getOrder(orderId, null, InstanceType.NETWORK);
+    }
+
+    @Test(expected = UnauthorizedRequestException.class)
+    public void testGetOrderWithInvalidFedUser() throws FogbowManagerException, UnexpectedException {
+        String orderId = getComputeOrderCreationId(OrderState.OPEN);
+
+        FederationUser federationUser = new FederationUser("another-id", null);
+
+        this.ordersController.getOrder(orderId, federationUser, InstanceType.COMPUTE);
+    }
+
+    @Test
+    public void testGetResourceInstance() throws Exception {
+        LocalCloudConnector localCloudConnector = Mockito.mock(LocalCloudConnector.class);
+
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        when(cloudConnectorFactory.getCloudConnector(anyString())).thenReturn(localCloudConnector);
+
+        Order order = createLocalOrder();
+        order.setOrderState(OrderState.FULFILLED);
+
+        this.fulfilledOrdersList.addItem(order);
+
+        String instanceId = "instanceid";
+        Instance orderInstance = Mockito.spy(new ComputeInstance(instanceId));
+        orderInstance.setState(InstanceState.READY);
+        order.setInstanceId(instanceId);
+
+        doReturn(orderInstance).when(localCloudConnector).getInstance(Mockito.any(Order.class));
+
+        PowerMockito.mockStatic(CloudConnectorFactory.class);
+        given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
+
+        Instance instance = this.ordersController.getResourceInstance(order);
+        Assert.assertEquals(instance, orderInstance);
+    }
+
+    @Test
+    public void testGetUserAllocation() throws UnexpectedException {
+        FederationUser federationUser = new FederationUser("fake-id", null);
+        ComputeOrder computeOrder = new ComputeOrder();
+        computeOrder.setFederationUser(federationUser);
+        computeOrder.setRequestingMember(this.localMember);
+        computeOrder.setProvidingMember(this.localMember);
+        computeOrder.setOrderState(OrderState.FULFILLED);
+
+        computeOrder.setActualAllocation(new ComputeAllocation(1, 2, 3));
+
+        this.activeOrdersMap.put(computeOrder.getId(), computeOrder);
+        this.fulfilledOrdersList.addItem(computeOrder);
+
+        ComputeAllocation allocation = (ComputeAllocation) this.ordersController.getUserAllocation(
+                this.localMember, federationUser, InstanceType.COMPUTE);
+
+        Assert.assertEquals(allocation.getInstances(), computeOrder.getActualAllocation().getInstances());
+        Assert.assertEquals(allocation.getRam(), computeOrder.getActualAllocation().getRam());
+        Assert.assertEquals(allocation.getvCPU(), computeOrder.getActualAllocation().getvCPU());
+    }
+
+    @Test(expected = UnexpectedException.class)
+    public void testGetUserAllocationInvalidInstanceType() throws UnexpectedException {
+        FederationUser federationUser = new FederationUser("fake-id", null);
+        NetworkOrder networkOrder = new NetworkOrder();
+        networkOrder.setFederationUser(federationUser);
+        networkOrder.setRequestingMember(this.localMember);
+        networkOrder.setProvidingMember(this.localMember);
+        networkOrder.setOrderState(OrderState.FULFILLED);
+
+        this.fulfilledOrdersList.addItem(networkOrder);
+        this.activeOrdersMap.put(networkOrder.getId(), networkOrder);
+
+        this.ordersController.getUserAllocation(this.localMember, federationUser, InstanceType.NETWORK);
     }
 
     @Test
@@ -216,5 +340,29 @@ public class OrderControllerTest extends BaseUnitTests {
         }
 
         return orderId;
+    }
+
+    private Order createLocalOrder() {
+        FederationUser federationUser = Mockito.mock(FederationUser.class);
+        UserData userData = Mockito.mock(UserData.class);
+        String imageName = "fake-image-name";
+        String requestingMember = "";
+        String providingMember = "";
+        String publicKey = "fake-public-key";
+
+        Order localOrder =
+                new ComputeOrder(
+                        federationUser,
+                        requestingMember,
+                        providingMember,
+                        8,
+                        1024,
+                        30,
+                        imageName,
+                        userData,
+                        publicKey,
+                        null);
+
+        return localOrder;
     }
 }
