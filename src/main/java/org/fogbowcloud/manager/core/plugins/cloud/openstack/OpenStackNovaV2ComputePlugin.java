@@ -1,9 +1,21 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TreeSet;
+import java.util.UUID;
+
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
-import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.manager.core.exceptions.NoAvailableResourcesException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.HardwareRequirements;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
@@ -14,14 +26,12 @@ import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.util.DefaultLaunchCommandGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.util.LaunchCommandGenerator;
-import org.fogbowcloud.manager.util.*;
-import org.fogbowcloud.manager.util.connectivity.*;
+import org.fogbowcloud.manager.util.PropertiesUtil;
+import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.File;
-import java.util.*;
 
 public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
@@ -75,10 +85,13 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 	}
 
 	/** Constructor used for testing only */
-	protected OpenStackNovaV2ComputePlugin(Properties properties, LaunchCommandGenerator launchCommandGenerator) {
+	protected OpenStackNovaV2ComputePlugin(Properties properties, 
+			LaunchCommandGenerator launchCommandGenerator,
+			HttpRequestClientUtil client) {
 		LOGGER.debug("Creating OpenStackNovaV2ComputePlugin with properties=" + properties.toString());
 		this.properties = properties;
 		this.launchCommandGenerator = launchCommandGenerator;
+		this.client = client;
 		this.hardwareRequirementsList = new TreeSet<HardwareRequirements>();
 	}
 
@@ -102,19 +115,17 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 			instanceId = getAttFromJson(ID_JSON_FIELD, jsonResponse);
 
 			synchronized (computeOrder) {
-				ComputeAllocation actualAllocation = new ComputeAllocation(hardwareRequirements.getCpu(),
-						hardwareRequirements.getRam(), 1);
+				ComputeAllocation actualAllocation = new ComputeAllocation(
+						hardwareRequirements.getCpu(),
+						hardwareRequirements.getRam(), 
+						1);
 				computeOrder.setActualAllocation(actualAllocation);
 			}
 		} catch (HttpResponseException e) {
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		} finally {
 			if (keyName != null) {
-				try {
-					deleteKeyName(tenantId, localToken, keyName);
-				} catch (HttpResponseException e) {
-					OpenStackHttpToFogbowManagerExceptionMapper.map(e);
-				}
+				deleteKeyName(tenantId, localToken, keyName);
 			}
 		}
 		return instanceId;
@@ -135,15 +146,16 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}
 
-		updateFlavors(localToken);
+		
 		LOGGER.debug("Getting instance from json: " + jsonResponse);
-		ComputeInstance computeInstance = getInstanceFromJson(jsonResponse);
+		ComputeInstance computeInstance = getInstanceFromJson(jsonResponse, localToken);
 
 		return computeInstance;
 	}
 
 	@Override
 	public void deleteInstance(String instanceId, Token localToken) throws FogbowManagerException, UnexpectedException {
+		LOGGER.info("Deleting instance " + instanceId + " with tokens " + localToken);
 		String endpoint = getComputeEndpoint(getTenantId(localToken), SERVERS + "/" + instanceId);
 		try {
 			this.client.doDeleteRequest(endpoint, localToken);
@@ -162,9 +174,13 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 		this.client = new HttpRequestClientUtil();
 	}
 
-	private String getTenantId(Token localToken) {
+	private String getTenantId(Token localToken) throws InvalidParameterException {
 		Map<String, String> tokenAttr = localToken.getAttributes();
-		return tokenAttr.get(TENANT_ID);
+		String tenantId = tokenAttr.get(TENANT_ID);
+		if (tenantId == null) {
+			throw new InvalidParameterException("No tenantId in local token.");
+		}
+		return tenantId;
 	}
 
 	private List<String> resolveNetworksId(ComputeOrder computeOrder) {
@@ -211,16 +227,19 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 		return jsonAttValue;
 	}
 
-	private void deleteKeyName(String tenantId, Token localToken, String keyName)
-			throws HttpResponseException, UnavailableProviderException {
+	private void deleteKeyName(String tenantId, Token localToken, String keyName) throws FogbowManagerException, UnexpectedException {
 		String suffixEndpoint = SUFFIX_ENDPOINT_KEYPAIRS + "/" + keyName;
 		String keynameEndpoint = getComputeEndpoint(tenantId, suffixEndpoint);
-
-		this.client.doDeleteRequest(keynameEndpoint, localToken);
+		
+		try {
+			this.client.doDeleteRequest(keynameEndpoint, localToken);
+		} catch (HttpResponseException e) {
+			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
+		}
 	}
 
 	private JSONObject generateJsonRequest(String imageRef, String flavorRef, String userdata, String keyName,
-			List<String> networksId) throws JSONException {
+			List<String> networksId) {
 		LOGGER.debug("Generating JSON to send as the body of instance POST request");
 
 		JSONObject server = new JSONObject();
@@ -232,19 +251,15 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 			server.put(USER_DATA_JSON_FIELD, userdata);
 		}
 
-		if (networksId != null && !networksId.isEmpty()) {
-			JSONArray networks = new JSONArray();
-
-			for (String id : networksId) {
-				JSONObject netId = new JSONObject();
-				netId.put(UUID_JSON_FIELD, id);
-				networks.put(netId);
-			}
-
-			server.put(NETWORK_JSON_FIELD, networks);
+		JSONArray networks = new JSONArray();
+		for (String id : networksId) {
+			JSONObject netId = new JSONObject();
+			netId.put(UUID_JSON_FIELD, id);
+			networks.put(netId);
 		}
-
-		if (keyName != null && !keyName.isEmpty()) {
+		server.put(NETWORK_JSON_FIELD, networks);
+	
+		if (keyName != null) {
 			server.put(KEY_JSON_FIELD, keyName);
 		}
 
@@ -256,15 +271,15 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
 	private HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, Token localToken)
 			throws UnexpectedException, FogbowManagerException {
-		updateFlavors(localToken);
-		HardwareRequirements bestFlavor = getBestFlavor(computeOrder);
+		HardwareRequirements bestFlavor = getBestFlavor(computeOrder, localToken);
 		if (bestFlavor == null) {
 			throw new NoAvailableResourcesException();
 		}
 		return bestFlavor;
 	}
 
-	private HardwareRequirements getBestFlavor(ComputeOrder computeOrder) {
+	private HardwareRequirements getBestFlavor(ComputeOrder computeOrder, Token localToken) throws FogbowManagerException, UnexpectedException {
+		updateFlavors(localToken);
 		TreeSet<HardwareRequirements> hardwareRequirementsList = getHardwareRequirementsList();
 		for (HardwareRequirements hardwareRequirements : hardwareRequirementsList) {
 			if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
@@ -280,14 +295,15 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 			throws FogbowManagerException, UnexpectedException {
 		LOGGER.debug("Updating hardwareRequirements from OpenStack");
 
-		try {
 			String tenantId = getTenantId(localToken);
-			if (tenantId == null) {
-				return;
-			}
-
 			String endpoint = getComputeEndpoint(tenantId, SUFFIX_ENDPOINT_FLAVORS);
-			String jsonResponseFlavors = this.client.doGetRequest(endpoint, localToken);
+			
+			String jsonResponseFlavors = null;
+			try {
+				jsonResponseFlavors = this.client.doGetRequest(endpoint, localToken);
+			} catch (HttpResponseException e) {
+				OpenStackHttpToFogbowManagerExceptionMapper.map(e);
+			}
 
 			List<String> flavorsId = new ArrayList<>();
 
@@ -302,29 +318,35 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
 			setHardwareRequirementsList(newHardwareRequirements);
 
-		} catch (HttpResponseException e) {
-			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
-		}
 	}
 
-	private TreeSet<HardwareRequirements> detailFlavors(String endpoint, Token localToken, List<String> flavorsId) throws UnavailableProviderException, HttpResponseException {
+	private TreeSet<HardwareRequirements> detailFlavors(String endpoint, Token localToken, List<String> flavorsId) 
+			throws FogbowManagerException, UnexpectedException 
+			{
 		TreeSet<HardwareRequirements> newHardwareRequirements = new TreeSet<>();
 		TreeSet<HardwareRequirements> flavorsCopy = new TreeSet<>(getHardwareRequirementsList());
 
 		for (String flavorId : flavorsId) {
-			boolean containsFlavor = false;
+			boolean containsFlavorForCaching = false;
 
 			for (HardwareRequirements flavor : flavorsCopy) {
 				if (flavor.getId().equals(flavorId)) {
-					containsFlavor = true;
+					containsFlavorForCaching = true;
 					newHardwareRequirements.add(flavor);
 					break;
 				}
 			}
-			if (!containsFlavor) {
+			if (!containsFlavorForCaching) {
 				String newEndpoint = endpoint + "/" + flavorId;
-				String jsonResponseSpecificFlavor = this.client.doGetRequest(newEndpoint, localToken);
-
+				
+				String jsonResponseSpecificFlavor = null;
+				
+				try {
+					jsonResponseSpecificFlavor = this.client.doGetRequest(newEndpoint, localToken);
+				} catch (HttpResponseException e) {
+					OpenStackHttpToFogbowManagerExceptionMapper.map(e);
+				}
+				
 				JSONObject specificFlavor = new JSONObject(jsonResponseSpecificFlavor)
 						.getJSONObject(FLAVOR_JSON_OBJECT);
 
@@ -341,7 +363,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 		return newHardwareRequirements;
 	}
 
-	private ComputeInstance getInstanceFromJson(String jsonResponse) throws FogbowManagerException {
+	private ComputeInstance getInstanceFromJson(String jsonResponse, Token localToken) throws FogbowManagerException, UnexpectedException {
 		JSONObject rootServer = new JSONObject(jsonResponse);
 		JSONObject serverJson = rootServer.getJSONObject(SERVER_JSON_FIELD);
 
@@ -357,16 +379,19 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 				localIpAddress = providerNetwork.optString(ADDR_FIELD);
 			}
 		}
-
 		int vCPU = -1;
 		int memory = -1;
 		int disk = -1;
-
-		HardwareRequirements hardwareRequirements = retrieveFlavorFromResponse(serverJson);
+		
+		
+		String flavorId = retrieveFlavorIdFromResponse(serverJson);
+		HardwareRequirements hardwareRequirements = getFlavorById(flavorId, localToken);
 		if (hardwareRequirements != null) {
 			vCPU = hardwareRequirements.getCpu();
 			memory = hardwareRequirements.getRam();
 			disk = hardwareRequirements.getDisk();
+		} else {
+			throw new NoAvailableResourcesException("No matching flavor");
 		}
 
 		String openStackState = serverJson.getString(STATUS_JSON_FIELD);
@@ -377,17 +402,13 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 		return computeInstance;
 	}
 
-	private HardwareRequirements retrieveFlavorFromResponse(JSONObject jsonResponse) {
-		HardwareRequirements hardwareRequirements = null;
-		if (!jsonResponse.isNull(FLAVOR_JSON_FIELD)) {
-			JSONObject flavorField = jsonResponse.optJSONObject(FLAVOR_JSON_FIELD);
-			String flavorId = flavorField.optString(FLAVOR_ID_JSON_FIELD);
-			hardwareRequirements = getFlavorById(flavorId);
-		}
-		return hardwareRequirements;
+	private String retrieveFlavorIdFromResponse(JSONObject jsonResponse) {
+		JSONObject flavorField = jsonResponse.optJSONObject(FLAVOR_JSON_FIELD);
+		return flavorField.optString(FLAVOR_ID_JSON_FIELD);
 	}
 
-	private HardwareRequirements getFlavorById(String id) {
+	private HardwareRequirements getFlavorById(String id, Token localToken) throws FogbowManagerException, UnexpectedException {
+		updateFlavors(localToken);
 		TreeSet<HardwareRequirements> flavorsCopy = new TreeSet<>(getHardwareRequirementsList());
 		for (HardwareRequirements hardwareRequirements : flavorsCopy) {
 			if (hardwareRequirements.getId().equals(id)) {
@@ -395,10 +416,6 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 			}
 		}
 		return null;
-	}
-
-	protected void setClient(HttpRequestClientUtil client) {
-		this.client = client;
 	}
 
 	protected String getRandomUUID() {
