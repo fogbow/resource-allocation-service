@@ -36,7 +36,11 @@ public class PropertiesHolder {
     }
 
     public String getProperty(String propertyName, String defaultPropertyValue) {
-        return properties.getProperty(propertyName, defaultPropertyValue);
+        String propertyValue = this.properties.getProperty(propertyName, defaultPropertyValue);
+        if (propertyValue.trim().isEmpty()) {
+            propertyValue = defaultPropertyValue;
+        }
+        return propertyValue;
     }
     
     public Properties getProperties() {
