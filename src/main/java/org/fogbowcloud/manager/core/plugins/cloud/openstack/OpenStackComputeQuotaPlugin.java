@@ -5,6 +5,7 @@ import java.util.Properties;
 
 import org.apache.http.client.HttpResponseException;
 import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
@@ -18,7 +19,6 @@ import org.json.JSONObject;
 
 public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 
-	private static final String NOVAV2_PLUGIN_CONF_FILE = "openstack-nova-quota-plugin.conf";
 	private static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
 
 	private static final String SUFFIX = "limits";
@@ -36,8 +36,8 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 
 	public OpenStackComputeQuotaPlugin() throws FatalErrorException {
 		HomeDir homeDir = HomeDir.getInstance();
-		this.properties = PropertiesUtil.
-				readProperties(homeDir.getPath() + File.separator + NOVAV2_PLUGIN_CONF_FILE);
+        this.properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
+                + DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
 
 		this.client = new HttpRequestClientUtil();
 	}

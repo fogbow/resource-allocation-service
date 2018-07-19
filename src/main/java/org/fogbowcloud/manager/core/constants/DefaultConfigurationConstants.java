@@ -12,6 +12,9 @@ public class DefaultConfigurationConstants {
     public static final String INTERCOMPONENT_CONF_FILE_NAME = "intercomponent.conf";
     public static final String CLOUD_CONF_FILE_NAME = "cloud.conf";
     public static final String BEHAVIOR_CONF_FILE_NAME = "behavior.conf";
+    
+    // CLOUD PLUGINS CONF FILES PATHS
+    public static final String OPENSTACK_CONF_FILE_NAME = "openstack.conf";
 
     // MANAGER CONF DEFAULTS
     public static final String MANAGER_SSH_PUBLIC_KEY_FILE_PATH = "manager-public-key.pem";

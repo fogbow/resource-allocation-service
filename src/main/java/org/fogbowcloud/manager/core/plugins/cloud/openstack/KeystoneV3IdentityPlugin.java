@@ -10,6 +10,7 @@ import org.apache.http.Header;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.plugins.cloud.LocalIdentityPlugin;
 import org.fogbowcloud.manager.core.models.tokens.Token;
@@ -23,7 +24,6 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
 
     private static final Logger LOGGER = Logger.getLogger(KeystoneV3IdentityPlugin.class);
 
-    private static final String KEYSTONEV3_PLUGIN_CONF_FILE = "openstack-keystone-identity-plugin.conf";
     private static final String OPENSTACK_KEYSTONE_V3_URL = "openstack_keystone_v3_url";
     private static final String X_SUBJECT_TOKEN = "X-Subject-Token";
     private static final String PASSWORD_PROP = "password";
@@ -51,8 +51,8 @@ public class KeystoneV3IdentityPlugin implements LocalIdentityPlugin {
 
     public KeystoneV3IdentityPlugin() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
-        Properties properties = PropertiesUtil.
-                readProperties(homeDir.getPath() + File.separator + KEYSTONEV3_PLUGIN_CONF_FILE);
+        Properties properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
+                + DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
 
         String identityUrl = properties.getProperty(OPENSTACK_KEYSTONE_V3_URL);
         if (isUrlValid(identityUrl)) {
