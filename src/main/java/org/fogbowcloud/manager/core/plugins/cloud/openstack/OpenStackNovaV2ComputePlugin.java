@@ -3,6 +3,7 @@ package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.HardwareRequirements;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
@@ -24,8 +25,6 @@ import java.io.File;
 import java.util.*;
 
 public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
-
-    private static final String NOVAV2_PLUGIN_CONF_FILE = "openstack-nova-compute-plugin.conf";
 
     private static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
     private static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
@@ -69,8 +68,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
     public OpenStackNovaV2ComputePlugin() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
-        this.properties = PropertiesUtil.
-                readProperties(homeDir.getPath() + File.separator + NOVAV2_PLUGIN_CONF_FILE);
+        this.properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
+                + DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
         instantiateOtherAttributes();
     }

@@ -5,6 +5,7 @@ import java.util.Properties;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
@@ -19,7 +20,6 @@ import org.json.JSONObject;
 
 public class OpenStackV2VolumePlugin implements VolumePlugin {
 
-	private static final String CINDER_PLUGIN_CONF_FILE = "openstack-cinder-volume-plugin.conf";
 	public static final String VOLUME_NOVAV2_URL_KEY = "openstack_cinder_url";
 
 	private final String TENANT_ID_IS_NOT_SPECIFIED_ERROR = "Tenant id is not specified.";
@@ -42,8 +42,8 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 	public OpenStackV2VolumePlugin() throws FatalErrorException {
 		HomeDir homeDir = HomeDir.getInstance();
-		Properties properties = PropertiesUtil.
-				readProperties(homeDir.getPath() + File.separator + CINDER_PLUGIN_CONF_FILE);
+        Properties properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
+                + DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
 		this.volumeV2APIEndpoint = properties.getProperty(VOLUME_NOVAV2_URL_KEY) + V2_API_ENDPOINT;
 
 		initClient();

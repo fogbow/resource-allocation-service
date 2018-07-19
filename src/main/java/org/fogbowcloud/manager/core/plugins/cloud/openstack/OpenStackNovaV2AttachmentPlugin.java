@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Properties;
 import org.apache.http.client.HttpResponseException;
 import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
@@ -22,11 +23,9 @@ import org.apache.log4j.Logger;
 public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
 
     private final String TENANT_ID_IS_NOT_SPECIFIED_ERROR = "Tenant id is not specified.";
-    private static final String OPENSTACK_NOVAV2_ATTACHMENT_PLUGIN_CONF = "openstack-nova-attachment-plugin.conf";
     private static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
     private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
 	private static final String ID_JSON_FIELD = "id";
-    private static final String STATUS_JSON_FIELD = "status";
     private static final String OS_VOLUME_ATTACHMENTS = "/os-volume_attachments";
     private static final String SEPARATOR_ID = " ";
     private static final String SERVERS = "/servers/";
@@ -39,8 +38,8 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     
     public OpenStackNovaV2AttachmentPlugin() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
-        this.properties = PropertiesUtil.readProperties(homeDir.getPath() +
-                File.separator + OPENSTACK_NOVAV2_ATTACHMENT_PLUGIN_CONF);
+        this.properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
+                + DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
         initClient();
     }
 
