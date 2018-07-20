@@ -20,15 +20,12 @@ import org.fogbowcloud.manager.util.connectivity.SshConnectivityUtil;
 import org.fogbowcloud.manager.util.connectivity.TunnelingServiceUtil;
 import org.junit.*;
 import org.junit.runner.RunWith;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import java.util.HashMap;
-import static org.junit.Assert.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(CloudConnectorFactory.class)
@@ -58,21 +55,22 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
         HomeDir.getInstance().setPath(TEST_PATH);
 
-        this.tunnelingService = mock(TunnelingServiceUtil.class);
-        this.sshConnectivity = mock(SshConnectivityUtil.class);
-
-        LocalCloudConnector localCloudConnector = mock(LocalCloudConnector.class);
-
-        CloudConnectorFactory cloudConnectorFactory = mock(CloudConnectorFactory.class);
-        when(cloudConnectorFactory.getCloudConnector(anyString())).thenReturn(localCloudConnector);
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
 
         PowerMockito.mockStatic(CloudConnectorFactory.class);
-        given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
+        BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
+
+        LocalCloudConnector localCloudConnector = Mockito.mock(LocalCloudConnector.class);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString()))
+                .thenReturn(localCloudConnector);
 
         this.cloudConnector = CloudConnectorFactory.getInstance()
                 .getCloudConnector(BaseUnitTests.LOCAL_MEMBER_ID);
 
-        this.spawningProcessor = spy(new SpawningProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
+        this.tunnelingService = Mockito.mock(TunnelingServiceUtil.class);
+        this.sshConnectivity = Mockito.mock(SshConnectivityUtil.class);
+
+        this.spawningProcessor = Mockito.spy(new SpawningProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
                 this.tunnelingService, this.sshConnectivity,
                 DefaultConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME));
 
@@ -93,11 +91,10 @@ public class SpawningProcessorTest extends BaseUnitTests {
         super.tearDown();
     }
 
-    // test case: If trying to process a ComputeOrder not spawning, the method
-    // processSpawningOrder() should not change OrderState to Fulfilled and
-    // should remain in its source list.
+    // test case: In calling the processSpawningOrder() method for any order other than spawning,
+    // you must not make state transition by keeping the order in your source list.
     @Test
-    public void testTryingProcessComputeOrderNotSpawning() throws Exception {
+    public void testProcessComputeOrderNotSpawning() throws Exception {
 
         // set up
         Order order = spyComputeOrder();
@@ -108,13 +105,13 @@ public class SpawningProcessorTest extends BaseUnitTests {
         this.spawningProcessor.processSpawningOrder(order);
 
         // verify
-        assertNotNull(this.openOrderList.getNext());
-        assertNull(this.fulfilledOrderList.getNext());
+        Assert.assertNotNull(this.openOrderList.getNext());
+        Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
-    // test case: If run process ComputeOrder without SSH connectivity, the method
-    // processSpawningOrder() should not change OrderState to Fulfilled and should
-    // remain in Spawning list.
+    // test case: When running thread in SpawningProcessor, if there is no SSH connectivity as the
+    // reverse tunnel, the method processSpawningOrder() must not change OrderState to Fulfilled and
+    // must remain in Spawning list.
     @SuppressWarnings("static-access")
     @Test
     public void testRunProcessComputeOrderWithoutSSHConnectivity() throws Exception {
@@ -124,15 +121,17 @@ public class SpawningProcessorTest extends BaseUnitTests {
         order.setOrderState(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
 
-        Instance orderInstance = spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
         orderInstance.setState(InstanceState.READY);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
         // exercise
-        doReturn(orderInstance).when(this.cloudConnector).getInstance(any(Order.class));
-        when(this.tunnelingService.getExternalServiceAddresses(anyString()))
+        Mockito.doReturn(orderInstance).when(this.cloudConnector)
+                .getInstance(Mockito.any(Order.class));
+        Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.anyString()))
                 .thenReturn(new HashMap<>());
-        when(this.sshConnectivity.checkSSHConnectivity(any(SshTunnelConnectionData.class)))
+        Mockito.when(this.sshConnectivity
+                .checkSSHConnectivity(Mockito.any(SshTunnelConnectionData.class)))
                 .thenReturn(false);
 
         this.thread = new Thread(this.spawningProcessor);
@@ -140,13 +139,13 @@ public class SpawningProcessorTest extends BaseUnitTests {
         this.thread.sleep(500);
 
         // verify
-        assertNotNull(this.spawningOrderList.getNext());
-        assertNull(this.fulfilledOrderList.getNext());
+        Assert.assertNotNull(this.spawningOrderList.getNext());
+        Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
-    // test case: if run process ComputeOrder without external addresses, the method
-    // processSpawningOrder() should not change OrderState to Fulfilled and should
-    // remain in Spawning list.
+    // test case: When running thread in SpawningProcessor without the external addresses of the
+    // reverse tunnel, the method processSpawningOrder() must not change OrderState to Fulfilled and
+    // must remain in Spawning list.
     @SuppressWarnings("static-access")
     @Test
     public void testRunProcessComputeOrderWithoutExternalAddresses() throws Exception {
@@ -161,21 +160,23 @@ public class SpawningProcessorTest extends BaseUnitTests {
         order.setInstanceId(FAKE_INSTANCE_ID);
 
         // exercise
-        doReturn(orderInstance).when(this.cloudConnector).getInstance(any(Order.class));
-        when(this.tunnelingService.getExternalServiceAddresses(anyString())).thenReturn(null);
+        Mockito.doReturn(orderInstance).when(this.cloudConnector)
+                .getInstance(Mockito.any(Order.class));
+        Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.anyString()))
+                .thenReturn(null);
 
         this.thread = new Thread(this.spawningProcessor);
         this.thread.start();
         this.thread.sleep(500);
 
         // verify
-        assertNotNull(this.spawningOrderList.getNext());
-        assertNull(this.fulfilledOrderList.getNext());
+        Assert.assertNotNull(this.spawningOrderList.getNext());
+        Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
-    // test case: if run process when OrderType is not Compute, the method processSpawningOrder()
-    // should change OrderState to Fulfilled adding on this list, and should be removed in the 
-    // Spawning list.
+    // test case: When running thread in the SpawningProcessor and the OrderType is not a
+    // Compute, the processSpawningOrder() method must immediately change the OrderState to
+    // Fulfilled by adding in that list, and removed from the Spawning list.
     @SuppressWarnings("static-access")
     @Test
     public void testRunProcessWhenOrderTypeIsNotCompute() throws Exception {
@@ -184,30 +185,31 @@ public class SpawningProcessorTest extends BaseUnitTests {
         Order order = spyAttachmentOrder();
         order.setOrderState(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
+        Assert.assertNull(this.fulfilledOrderList.getNext());
 
-        // assertNull(this.fulfilledOrderList.getNext());
-
-        Instance orderInstance = spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
         orderInstance.setState(InstanceState.READY);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
         // exercise
-        doReturn(orderInstance).when(this.cloudConnector).getInstance(any(Order.class));
+        Mockito.doReturn(orderInstance).when(this.cloudConnector)
+                .getInstance(Mockito.any(Order.class));
 
         this.thread = new Thread(this.spawningProcessor);
         this.thread.start();
         this.thread.sleep(500);
 
         // verify
-        assertNull(this.spawningOrderList.getNext());
-
         Order test = this.fulfilledOrderList.getNext();
-        assertNotNull(test);
-        assertEquals(order.getInstanceId(), test.getInstanceId());
-        assertEquals(OrderState.FULFILLED, test.getOrderState());
+        Assert.assertNotNull(test);
+        Assert.assertEquals(order.getInstanceId(), test.getInstanceId());
+        Assert.assertEquals(OrderState.FULFILLED, test.getOrderState());
+        Assert.assertNull(this.spawningOrderList.getNext());
     }
 
-    // test case: ...
+    // test case: When running thread in the SpawningProcessor and the InstanceState Is not
+    // Ready, the method processSpawningOrder() must not change OrderState to Fulfilled and must
+    // remain in Spawning list.
     @Test
     public void testRunProcessComputeOrderWhenInstanceStateIsNotReady() throws Exception {
 
@@ -216,22 +218,25 @@ public class SpawningProcessorTest extends BaseUnitTests {
         order.setOrderState(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
 
-        Instance orderInstance = spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
         orderInstance.setState(InstanceState.DISPATCHED);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
         // exercise
-        doReturn(orderInstance).when(this.cloudConnector).getInstance(Mockito.any(Order.class));
+        Mockito.doReturn(orderInstance).when(this.cloudConnector)
+                .getInstance(Mockito.any(Order.class));
 
         this.thread = new Thread(this.spawningProcessor);
         this.thread.start();
 
         // verify
-        assertNotNull(this.spawningOrderList.getNext());
-        assertNull(this.fulfilledOrderList.getNext());
+        Assert.assertNotNull(this.spawningOrderList.getNext());
+        Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
-    // test case:
+    // test case: When running thread in the SpawningProcessor and the InstanceState is Ready, the
+    // processSpawningOrder() method must change the OrderState to Fulfilled by adding in that list,
+    // and removed from the Spawning list.
     @SuppressWarnings("static-access")
     @Test
     public void testRunProcessComputeOrderInstanceReachable() throws Exception {
@@ -240,34 +245,35 @@ public class SpawningProcessorTest extends BaseUnitTests {
         Order order = spyComputeOrder();
         order.setOrderState(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
+        Assert.assertNull(this.fulfilledOrderList.getNext());
 
-        // assertNull(this.fulfilledOrderList.getNext());
-
-        Instance orderInstance = spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
         orderInstance.setState(InstanceState.READY);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
         // exercise
-        doReturn(orderInstance).when(this.cloudConnector).getInstance(any(Order.class));
-        when(this.tunnelingService.getExternalServiceAddresses(eq(order.getId())))
+        Mockito.doReturn(orderInstance).when(this.cloudConnector)
+                .getInstance(Mockito.any(Order.class));
+        Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.eq(order.getId())))
                 .thenReturn(new HashMap<>());
-        when(this.sshConnectivity.checkSSHConnectivity(any(SshTunnelConnectionData.class)))
-                .thenReturn(true);
+        Mockito.when(this.sshConnectivity
+                .checkSSHConnectivity(Mockito.any(SshTunnelConnectionData.class))).thenReturn(true);
 
         this.thread = new Thread(this.spawningProcessor);
         this.thread.start();
         this.thread.sleep(500);
 
         // verify
-        assertNull(this.spawningOrderList.getNext());
-
         Order test = this.fulfilledOrderList.getNext();
-        assertNotNull(test);
-        assertEquals(order.getInstanceId(), test.getInstanceId());
-        assertEquals(OrderState.FULFILLED, test.getOrderState());
+        Assert.assertNotNull(test);
+        Assert.assertEquals(order.getInstanceId(), test.getInstanceId());
+        Assert.assertEquals(OrderState.FULFILLED, test.getOrderState());
+        Assert.assertNull(this.spawningOrderList.getNext());
     }
 
-    // test case: ...
+    // test case: When running thread in the SpawningProcessor and the InstanceState is Failed,
+    // the processSpawningOrder() method must change the OrderState to Failed by adding in that
+    // list, and removed from the Spawning list.
     @SuppressWarnings("static-access")
     @Test
     public void testRunProcessComputeOrderWhenInstanceStateIsFailed() throws Exception {
@@ -276,16 +282,16 @@ public class SpawningProcessorTest extends BaseUnitTests {
         Order order = spyComputeOrder();
         order.setOrderState(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
+        Assert.assertNull(this.failedOrderList.getNext());
 
-        // assertNull(this.failedOrderList.getNext());
-
-        Instance orderInstance = spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
         orderInstance.setState(InstanceState.FAILED);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
         // exercise
-        doReturn(orderInstance).when(this.cloudConnector).getInstance(any(Order.class));
-        when(this.tunnelingService.getExternalServiceAddresses(eq(order.getId())))
+        Mockito.doReturn(orderInstance).when(this.cloudConnector)
+                .getInstance(Mockito.any(Order.class));
+        Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.eq(order.getId())))
                 .thenReturn(new HashMap<>());
 
         this.thread = new Thread(this.spawningProcessor);
@@ -293,33 +299,33 @@ public class SpawningProcessorTest extends BaseUnitTests {
         this.thread.sleep(500);
 
         // verify
-        assertNull(this.spawningOrderList.getNext());
+        Assert.assertNull(this.spawningOrderList.getNext());
 
         Order test = this.failedOrderList.getNext();
-        assertNotNull(test);
-        assertEquals(order.getInstanceId(), test.getInstanceId());
-        assertEquals(OrderState.FAILED, test.getOrderState());
+        Assert.assertNotNull(test);
+        Assert.assertEquals(order.getInstanceId(), test.getInstanceId());
+        Assert.assertEquals(OrderState.FAILED, test.getOrderState());
     }
 
     private Order spyComputeOrder() {
-        FederationUser federationUser = mock(FederationUser.class);
+        FederationUser federationUser = Mockito.mock(FederationUser.class);
         String requestingMember = BaseUnitTests.LOCAL_MEMBER_ID;
         String providingMember = BaseUnitTests.LOCAL_MEMBER_ID;
-        UserData userData = mock(UserData.class);
+        UserData userData = Mockito.mock(UserData.class);
 
-        Order order = spy(new ComputeOrder(federationUser, requestingMember, providingMember, 8,
-                1024, 30, FAKE_IMAGE_NAME, userData, FAKE_PUBLIC_KEY, null));
+        Order order = Mockito.spy(new ComputeOrder(federationUser, requestingMember,
+                providingMember, 8, 1024, 30, FAKE_IMAGE_NAME, userData, FAKE_PUBLIC_KEY, null));
 
         return order;
     }
 
     private Order spyAttachmentOrder() {
-        FederationUser federationUser = mock(FederationUser.class);
+        FederationUser federationUser = Mockito.mock(FederationUser.class);
         String requestingMember = BaseUnitTests.LOCAL_MEMBER_ID;
         String providingMember = BaseUnitTests.LOCAL_MEMBER_ID;
 
-        Order order = spy(new AttachmentOrder(federationUser, requestingMember, providingMember,
-                FAKE_SOURCE, FAKE_TARGET, FAKE_DEVICE));
+        Order order = Mockito.spy(new AttachmentOrder(federationUser, requestingMember,
+                providingMember, FAKE_SOURCE, FAKE_TARGET, FAKE_DEVICE));
 
         return order;
     }
