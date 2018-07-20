@@ -177,9 +177,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
     protected List<String> resolveNetworksId(ComputeOrder computeOrder) {
         List<String> requestedNetworksId = new ArrayList<>();
-        requestedNetworksId.addAll(computeOrder.getNetworksId());
         String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
         requestedNetworksId.add(defaultNetworkId);
+        requestedNetworksId.addAll(computeOrder.getNetworksId());
         computeOrder.setNetworksId(requestedNetworksId);
         return requestedNetworksId;
     }
