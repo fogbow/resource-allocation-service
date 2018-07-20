@@ -1,16 +1,5 @@
 package org.fogbowcloud.manager.requests.api.local.http;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,9 +17,11 @@ import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -74,97 +65,118 @@ public class ComputeOrdersControllerTest {
 
     @Before
     public void setUp() throws FogbowManagerException {
-        this.facade = spy(ApplicationFacade.class);
+        this.facade = Mockito.spy(ApplicationFacade.class);
         PowerMockito.mockStatic(ApplicationFacade.class);
-        given(ApplicationFacade.getInstance()).willReturn(this.facade);
+        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
     }
-
+    
+    // test case: Request a compute creation and test successfully return. Check the response of request
+    // and the call of facade for create the compute.
     @Test
     public void testCreateCompute() throws Exception {
-
-        doReturn(FAKE_ORDER_ID).when(this.facade).createCompute(any(ComputeOrder.class), anyString());
-
-        // Need to make a method to create a body based on parameters, also change the mock above
+    	
+    	// set up
+        Mockito.doReturn(FAKE_ORDER_ID).when(this.facade).createCompute(Mockito.any(ComputeOrder.class), Mockito.anyString());
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.POST, COMPUTE_ENDPOINT, getHttpHeaders(), CORRECT_BODY);
-
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
-        int expectedStatus = HttpStatus.CREATED.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
-        assertEquals(FAKE_ORDER_ID, result.getResponse().getContentAsString());
         
-        Mockito.verify(this.facade, times(1)).createCompute(any(ComputeOrder.class), anyString());
+        // exercise: Make the request
+        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+        
+        // verify
+        int expectedStatus = HttpStatus.CREATED.value();
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(FAKE_ORDER_ID, result.getResponse().getContentAsString());
+        
+        Mockito.verify(this.facade, Mockito.times(1)).createCompute(Mockito.any(ComputeOrder.class), Mockito.anyString());
     }
 
-    // There's tests missing, that we need to implement, forcing Application Controller to throw
-    // different exceptionsOLD.
+    // test case: Request a compute creation and test bad request return. Check the response of request
+    // and the call of facade for create the compute.
     @Test
     public void testCreateComputeBadRequest() throws Exception {
     	
+    	//set up
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.POST, COMPUTE_ENDPOINT, getHttpHeaders(), WRONG_BODY);
-
+        
+        // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
+        
+        // verify
         int expectedStatus = HttpStatus.BAD_REQUEST.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
-        assertEquals("", result.getResponse().getContentAsString());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals("", result.getResponse().getContentAsString());
         
         // The request have problems, so the call to Facade is not executed.
-        Mockito.verify(this.facade, times(0)).createCompute(any(ComputeOrder.class), anyString());
+        Mockito.verify(this.facade, Mockito.times(0)).createCompute(Mockito.any(ComputeOrder.class), Mockito.anyString());
     }
     
+    // test case: Request a compute creation with an unauthorized user. Check the response of request
+    // and the call of facade for create the compute.
     @Test
     public void testCreateComputeUnauthorizedException() throws Exception {
     	
-    	doThrow(new UnauthorizedRequestException()).when(this.facade).createCompute(any(ComputeOrder.class), anyString());
-    	
+    	// set up
+    	Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).createCompute(Mockito.any(ComputeOrder.class), Mockito.anyString());
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.POST, COMPUTE_ENDPOINT, getHttpHeaders(), CORRECT_BODY);
-
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
-        int expectedStatus = HttpStatus.FORBIDDEN.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
         
-        // The request have problems, so the call to Facade is not executed.
-        Mockito.verify(this.facade, times(1)).createCompute(any(ComputeOrder.class), anyString());
+        // exercise
+        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+        
+        // verify
+        int expectedStatus = HttpStatus.FORBIDDEN.value();
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        
+        Mockito.verify(this.facade, Mockito.times(1)).createCompute(Mockito.any(ComputeOrder.class), Mockito.anyString());
     }
     
+    // test case: Request a compute creation with an unauthenticated user. Check the response of request
+    // and the call of facade for create the compute.
     @Test
     public void testCreateComputeUnauthenticatedException() throws Exception {
     	
-    	doThrow(new UnauthenticatedUserException()).when(this.facade).createCompute(any(ComputeOrder.class), anyString());
-    	
+    	// set up
+    	Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).createCompute(Mockito.any(ComputeOrder.class), Mockito.anyString());
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.POST, COMPUTE_ENDPOINT, getHttpHeaders(), CORRECT_BODY);
-
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
-        int expectedStatus = HttpStatus.UNAUTHORIZED.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
         
-        // The request have problems, so the call to Facade is not executed.
-        Mockito.verify(this.facade, times(1)).createCompute(any(ComputeOrder.class), anyString());
+        // exercise
+        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+        
+        // verify
+        int expectedStatus = HttpStatus.UNAUTHORIZED.value();
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        
+        Mockito.verify(this.facade, Mockito.times(1)).createCompute(Mockito.any(ComputeOrder.class), Mockito.anyString());
     }
-
+    
+    // test case: Request the list of all computes when the facade returns an empty list. 
+    // Check the response of request and the call of facade for get the computes.
     @Test
     public void testGetAllComputesEmptyList() throws Exception {
+    	
+    	// set up
         List<ComputeInstance> computeInstanceList = new ArrayList<>();
-        doReturn(computeInstanceList).when(this.facade).getAllComputes(anyString());
-
+        Mockito.doReturn(computeInstanceList).when(this.facade).getAllComputes(Mockito.anyString());
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, COMPUTE_ENDPOINT, getHttpHeaders(), "");
-
+        
+        // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
+        
+        // verify
         int expectedStatus = HttpStatus.OK.value();
         String expectedResult = "[]";
         
-        assertEquals(expectedStatus, result.getResponse().getStatus());
-        assertEquals(expectedResult, result.getResponse().getContentAsString());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(expectedResult, result.getResponse().getContentAsString());
         
-        Mockito.verify(this.facade, times(1)).getAllComputes(anyString());
+        Mockito.verify(this.facade, Mockito.times(1)).getAllComputes(Mockito.anyString());
     }
-
+    
+    // test case: Request the list of all computes when the facade returns a non-empty list. 
+    // Check the response of request and the call of facade for get the computes.
     @Test
     public void testGetAllComputesWhenHasData() throws Exception {
+    	
+    	// set up
     	final String FAKE_ID_1 = "fake-Id-1";
     	final String FAKE_ID_2 = "fake-Id-2";
     	final String FAKE_ID_3 = "fake-Id-3";
@@ -174,46 +186,58 @@ public class ComputeOrdersControllerTest {
         ComputeInstance computeInstance3 = new ComputeInstance(FAKE_ID_3);
 
         List<ComputeInstance> computeInstanceList = Arrays.asList(new ComputeInstance[] {computeInstance1, computeInstance2, computeInstance3});
-        doReturn(computeInstanceList).when(this.facade).getAllComputes(anyString());
+        Mockito.doReturn(computeInstanceList).when(this.facade).getAllComputes(Mockito.anyString());
 
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, COMPUTE_ENDPOINT, getHttpHeaders(), "");
+        
+        // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
+        
+        
+        // verify
         int expectedStatus = HttpStatus.OK.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
         
         TypeToken<List<ComputeInstance>> token = new TypeToken<List<ComputeInstance>>(){};
         List<ComputeInstance> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
-        assertTrue(resultList.size() == 3);
-        assertEquals(FAKE_ID_1, resultList.get(0).getId());
-        assertEquals(FAKE_ID_2, resultList.get(1).getId());
-        assertEquals(FAKE_ID_3, resultList.get(2).getId());
+        Assert.assertTrue(resultList.size() == 3);
+        Assert.assertEquals(FAKE_ID_1, resultList.get(0).getId());
+        Assert.assertEquals(FAKE_ID_2, resultList.get(1).getId());
+        Assert.assertEquals(FAKE_ID_3, resultList.get(2).getId());
         
-        Mockito.verify(this.facade, times(1)).getAllComputes(anyString());
+        Mockito.verify(this.facade, Mockito.times(1)).getAllComputes(Mockito.anyString());
     }
     
+    // test case: Request the list of all computes status when the facade returns an empty list. 
+    // Check the response of request and the call of facade for get the computes status.
     @Test
     public void testGetAllComputeStatusEmptyList() throws Exception {
     	
-        doReturn(new ArrayList<InstanceState>()).when(this.facade).getAllInstancesStatus(anyString(), any(InstanceType.class));
-        
+    	// set up
+        Mockito.doReturn(new ArrayList<InstanceState>()).when(this.facade).getAllInstancesStatus(Mockito.anyString(), Mockito.any(InstanceType.class));
         String COMPUTE_STATUS_ENDPOINT = COMPUTE_ENDPOINT + "/" + ComputeOrdersController.STATUS_ENDPOINT;
-
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, COMPUTE_STATUS_ENDPOINT, getHttpHeaders(), "");
+        
+        // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
+        
+        // verify
         int expectedStatus = HttpStatus.OK.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
         
         String expectedResult = "[]";
-        assertEquals(expectedResult, result.getResponse().getContentAsString());
+        Assert.assertEquals(expectedResult, result.getResponse().getContentAsString());
         
-        Mockito.verify(this.facade, times(1)).getAllInstancesStatus(anyString(), any(InstanceType.class));
+        Mockito.verify(this.facade, Mockito.times(1)).getAllInstancesStatus(Mockito.anyString(), Mockito.any(InstanceType.class));
        
     }
     
+    // test case: Request the list of all computes status when the facade returns a non-empty list. 
+    // Check the response of request and the call of facade for get the computes status.
     @Test
     public void testGetAllComputeStatusWhenHasData() throws Exception {
+    	
+    	// set up
     	final String FAKE_ID_1 = "fake-Id-1";
     	final String FAKE_ID_2 = "fake-Id-2";
     	final String FAKE_ID_3 = "fake-Id-3";
@@ -223,206 +247,260 @@ public class ComputeOrdersControllerTest {
         InstanceStatus instanceStatus3 = new InstanceStatus(FAKE_ID_3, InstanceState.READY);
         
         List<InstanceStatus> computeStatusList = Arrays.asList(new InstanceStatus[] {instanceStatus1, instanceStatus2, instanceStatus3});
-        doReturn(computeStatusList).when(this.facade).getAllInstancesStatus(anyString(), any(InstanceType.class));
+        Mockito.doReturn(computeStatusList).when(this.facade).getAllInstancesStatus(Mockito.anyString(), Mockito.any(InstanceType.class));
         
         String COMPUTE_STATUS_ENDPOINT = COMPUTE_ENDPOINT + "/" + ComputeOrdersController.STATUS_ENDPOINT;
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, COMPUTE_STATUS_ENDPOINT, getHttpHeaders(), "");
+        
+        // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
+        
+        // verify
         int expectedStatus = HttpStatus.OK.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
         
         TypeToken<List<InstanceStatus>> token = new TypeToken<List<InstanceStatus>>(){};
         List<InstanceStatus> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
-        assertTrue(resultList.size() == 3);
-        assertEquals(FAKE_ID_1, resultList.get(0).getInstanceId());
-        assertEquals(FAKE_ID_2, resultList.get(1).getInstanceId());
-        assertEquals(FAKE_ID_3, resultList.get(2).getInstanceId());
+        Assert.assertTrue(resultList.size() == 3);
+        Assert.assertEquals(FAKE_ID_1, resultList.get(0).getInstanceId());
+        Assert.assertEquals(FAKE_ID_2, resultList.get(1).getInstanceId());
+        Assert.assertEquals(FAKE_ID_3, resultList.get(2).getInstanceId());
         
-        Mockito.verify(this.facade, times(1)).getAllInstancesStatus(anyString(), any(InstanceType.class));
+        Mockito.verify(this.facade, Mockito.times(1)).getAllInstancesStatus(Mockito.anyString(), Mockito.any(InstanceType.class));
     }
-
+    
+    
+    // test case: Request a compute by its id with an unauthenticated user. Check the response of request
+    // and the call of facade for get the compute.
     @Test
     public void testGetComputeByIdUnauthenticatedException() throws Exception {
+    	
+    	// set up
     	final String FAKE_ID = "fake-Id-1";
         String computeIdEndpoint = COMPUTE_ENDPOINT + "/" + FAKE_ID;
-        doThrow(new UnauthenticatedUserException()).when(this.facade).getCompute(anyString(), anyString());
+        Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).getCompute(Mockito.anyString(), Mockito.anyString());
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, computeIdEndpoint, getHttpHeaders(), "");
-
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
-        int expectedStatus = HttpStatus.UNAUTHORIZED.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
         
-        Mockito.verify(this.facade, times(1)).getCompute(anyString(), anyString());
+        // exercise
+        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+        
+        
+        // verify
+        int expectedStatus = HttpStatus.UNAUTHORIZED.value();
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        
+        Mockito.verify(this.facade, Mockito.times(1)).getCompute(Mockito.anyString(), Mockito.anyString());
     }
     
+    
+    // test case: Request a compute by its id with an unauthorized user. Check the response of request
+    // and the call of facade for get the compute.
     @Test
     public void testGetComputeByIdUnauthorizedException() throws Exception {
+    	
+    	// set up
     	final String FAKE_ID = "fake-Id-1";
         String computeIdEndpoint = COMPUTE_ENDPOINT + "/" + FAKE_ID;
-        doThrow(new UnauthorizedRequestException()).when(this.facade).getCompute(anyString(), anyString());
+        Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).getCompute(Mockito.anyString(), Mockito.anyString());
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, computeIdEndpoint, getHttpHeaders(), "");
-
+        
+        // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
+        
+        
+        // verify
         int expectedStatus = HttpStatus.FORBIDDEN.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
         
-        Mockito.verify(this.facade, times(1)).getCompute(anyString(), anyString());
-    }
-
-    @Test
-    public void testGetNotFoundComputeById() throws Exception {
-    	final String FAKE_ID = "fake-Id-1";
-        String computeIdEndpoint = COMPUTE_ENDPOINT + "/" + FAKE_ID;
-        doThrow(new InstanceNotFoundException()).when(this.facade).getCompute(anyString(), anyString());
-        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, computeIdEndpoint, getHttpHeaders(), "");
-
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
-        int expectedStatus = HttpStatus.NOT_FOUND.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
-        
-        Mockito.verify(this.facade, times(1)).getCompute(anyString(), anyString());
+        Mockito.verify(this.facade, Mockito.times(1)).getCompute(Mockito.anyString(), Mockito.anyString());
     }
     
+    // test case: Request a compute by its id when the instance is not found. Check the response of request
+    // and the call of facade for get the compute.
+    @Test
+    public void testGetNotFoundComputeById() throws Exception {
+    	
+    	// set up
+    	final String FAKE_ID = "fake-Id-1";
+        String computeIdEndpoint = COMPUTE_ENDPOINT + "/" + FAKE_ID;
+        Mockito.doThrow(new InstanceNotFoundException()).when(this.facade).getCompute(Mockito.anyString(), Mockito.anyString());
+        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, computeIdEndpoint, getHttpHeaders(), "");
+        
+        // exercise
+        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
+        
+        // verify
+        int expectedStatus = HttpStatus.NOT_FOUND.value();
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        
+        Mockito.verify(this.facade, Mockito.times(1)).getCompute(Mockito.anyString(), Mockito.anyString());
+    }
+    
+
+    // test case: Request a compute by its id and test successfully return. Check the response of request
+    // and the call of facade for get the compute.
     @Test
     public void testGetComputeById() throws Exception {
+    	
+    	// set up
     	final String FAKE_ID = "fake-Id-1";
         
         String computeIdEndpoint = COMPUTE_ENDPOINT + "/" + FAKE_ID;
         ComputeInstance computeInstance = new ComputeInstance(FAKE_ID);
-        
-        doReturn(computeInstance).when(this.facade).getCompute(anyString(), anyString());
-
+        Mockito.doReturn(computeInstance).when(this.facade).getCompute(Mockito.anyString(), Mockito.anyString());
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, computeIdEndpoint, getHttpHeaders(), "");
-
+        
+        // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
+        
+        
+        // verify
         int expectedStatus = HttpStatus.OK.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 
         ComputeInstance resultComputeInstance = new Gson().fromJson(result.getResponse().getContentAsString(), ComputeInstance.class);
-        assertTrue(resultComputeInstance != null);
-        assertEquals(computeInstance.getId(), resultComputeInstance.getId());
+        Assert.assertTrue(resultComputeInstance != null);
+        Assert.assertEquals(computeInstance.getId(), resultComputeInstance.getId());
         
-        Mockito.verify(this.facade, times(1)).getCompute(anyString(), anyString());
+        Mockito.verify(this.facade, Mockito.times(1)).getCompute(Mockito.anyString(), Mockito.anyString());
     }
-
+    
+    // test case: Delete a compute by its id and test successfully return. Check the response of request
+    // and the call of facade for delete the compute.
     @Test
     public void testDeleteExistingCompute() throws Exception {
+    	
+    	// set up
         final String FAKE_ID = "fake-Id-1";
-        
         String computeIdEndpoint = COMPUTE_ENDPOINT + "/" + FAKE_ID;
-        
-        doNothing().when(this.facade).deleteCompute(anyString(), anyString());
-
+        Mockito.doNothing().when(this.facade).deleteCompute(Mockito.anyString(), Mockito.anyString());
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.DELETE, computeIdEndpoint, getHttpHeaders(), "");
-
+        
+        // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
+        
+        // verify
         int expectedStatus = HttpStatus.OK.value();
         
-        assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, times(1)).deleteCompute(anyString(), anyString());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(1)).deleteCompute(Mockito.anyString(), Mockito.anyString());
     }
     
+    // test case: Delete a compute with unauthenticated user. Check the response of request
+    // and the call of facade for delete the compute.
     @Test
     public void testDeleteUnauthenticatedException() throws Exception {
+    	
+    	// set up
         final String FAKE_ID = "fake-Id-1";
-        
         String computeIdEndpoint = COMPUTE_ENDPOINT + "/" + FAKE_ID;
-        
-        doThrow(new UnauthenticatedUserException()).when(this.facade).deleteCompute(anyString(), anyString());
-
+        Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).deleteCompute(Mockito.anyString(), Mockito.anyString());
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.DELETE, computeIdEndpoint, getHttpHeaders(), "");
-
+        
+        // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
         
+        // verify
         int expectedStatus = HttpStatus.UNAUTHORIZED.value();
         
-        assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, times(1)).deleteCompute(anyString(), anyString());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(1)).deleteCompute(Mockito.anyString(), Mockito.anyString());
     }
     
+    // test case: Delete a compute with unauthorized user. Check the response of request
+    // and the call of facade for delete the compute.
     @Test
     public void testDeleteUnauthorizedException() throws Exception {
+    	
+    	// set up
         final String FAKE_ID = "fake-Id-1";
-        
         String computeIdEndpoint = COMPUTE_ENDPOINT + "/" + FAKE_ID;
-        
-        doThrow(new UnauthorizedRequestException()).when(this.facade).deleteCompute(anyString(), anyString());
-
+        Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).deleteCompute(Mockito.anyString(), Mockito.anyString());
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.DELETE, computeIdEndpoint, getHttpHeaders(), "");
-
+        
+        // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
         
+        // verify
         int expectedStatus = HttpStatus.FORBIDDEN.value();
         
-        assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, times(1)).deleteCompute(anyString(), anyString());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(1)).deleteCompute(Mockito.anyString(), Mockito.anyString());
     }
     
+    // test case: Delete a compute not found. Check the response of request
+    // and the call of facade for delete the compute.
     @Test
     public void testDeleteNotFoundCompute() throws Exception {
+    	
+    	// set up
         final String FAKE_ID = "fake-Id-1";
-        
         String computeIdEndpoint = COMPUTE_ENDPOINT + "/" + FAKE_ID;
-        
-        doThrow(new InstanceNotFoundException()).when(this.facade).deleteCompute(anyString(), anyString());
-
+        Mockito.doThrow(new InstanceNotFoundException()).when(this.facade).deleteCompute(Mockito.anyString(), Mockito.anyString());
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.DELETE, computeIdEndpoint, getHttpHeaders(), "");
-
+        
+        // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
         
+        // verify
         int expectedStatus = HttpStatus.NOT_FOUND.value();
         
-        assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, times(1)).deleteCompute(anyString(), anyString());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(1)).deleteCompute(Mockito.anyString(), Mockito.anyString());
     }
     
+    // test case: Request the user allocation with unauthenticated user. Check the response of request
+    // and the call of facade for get the user allocation.
     @Test
     public void testGetUserAllocationUnauthenticatedException() throws Exception {
+    	
+    	// set up
     	final String FAKE_MEMBER_ID = "fake-member-id";
-        
-        doThrow(new UnauthenticatedUserException()).when(this.facade).getComputeAllocation(anyString(), anyString());
-
+        Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).getComputeAllocation(Mockito.anyString(), Mockito.anyString());
         final String ALLOCATION_ENDPOINT = COMPUTE_ENDPOINT + "/" + ComputeOrdersController.ALLOCATION_ENDPOINT;
-        
         final String memberIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_MEMBER_ID;
-        
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
+        
+        // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
         
+        // verify
         int expectedStatus = HttpStatus.UNAUTHORIZED.value();
         
-        assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, times(1)).getComputeAllocation(anyString(), anyString());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(1)).getComputeAllocation(Mockito.anyString(), Mockito.anyString());
     }
     
+    // test case: Request the user allocation with unauthorized user. Check the response of request
+    // and the call of facade for get the user allocation.
     @Test
     public void testGetUserAllocationUnauthorizedException() throws Exception {
+    	
+    	
+    	// set up
     	final String FAKE_MEMBER_ID = "fake-member-id";
-        
-        doThrow(new UnauthorizedRequestException()).when(this.facade).getComputeAllocation(anyString(), anyString());
-
+        Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).getComputeAllocation(Mockito.anyString(), Mockito.anyString());
         final String ALLOCATION_ENDPOINT = COMPUTE_ENDPOINT + "/" + ComputeOrdersController.ALLOCATION_ENDPOINT;
-        
         final String memberIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_MEMBER_ID;
-        
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
+        
+        // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
         
+        // verify
         int expectedStatus = HttpStatus.FORBIDDEN.value();
         
-        assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, times(1)).getComputeAllocation(anyString(), anyString());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(1)).getComputeAllocation(Mockito.anyString(), Mockito.anyString());
     }
     
+    
+    // test case: Request the user allocation and test successfully return. Check the response of request
+    // and the call of facade for get the user allocation.
     @Test
     public void testGetUserAllocation() throws Exception {
     	
+    	// set up
     	final String FAKE_MEMBER_ID = "fake-member-id";
     	final int VCPU_TOTAL = 1;
     	final int RAM_TOTAL = 1;
@@ -430,30 +508,33 @@ public class ComputeOrdersControllerTest {
     	
     	ComputeAllocation fakeComputeAllocation = new ComputeAllocation(VCPU_TOTAL, RAM_TOTAL, INSTANCES_TOTAL);
 
-        doReturn(fakeComputeAllocation).when(this.facade).getComputeAllocation(anyString(), anyString());
+        Mockito.doReturn(fakeComputeAllocation).when(this.facade).getComputeAllocation(Mockito.anyString(), Mockito.anyString());
         
         final String ALLOCATION_ENDPOINT = COMPUTE_ENDPOINT + "/" + ComputeOrdersController.ALLOCATION_ENDPOINT;
-        
         final String memberIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_MEMBER_ID;
-        
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
+        
+        // set up
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
+        
+        // verify
         int expectedStatus = HttpStatus.OK.value();
         ComputeAllocation resultComputeAllocation = new Gson().fromJson(result.getResponse().getContentAsString(), ComputeAllocation.class);
         
-        assertEquals(expectedStatus, result.getResponse().getStatus());
-        assertEquals(fakeComputeAllocation.getInstances(), resultComputeAllocation.getInstances());
-        assertEquals(fakeComputeAllocation.getRam(), resultComputeAllocation.getRam());
-        assertEquals(fakeComputeAllocation.getvCPU(), resultComputeAllocation.getvCPU());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(fakeComputeAllocation.getInstances(), resultComputeAllocation.getInstances());
+        Assert.assertEquals(fakeComputeAllocation.getRam(), resultComputeAllocation.getRam());
+        Assert.assertEquals(fakeComputeAllocation.getvCPU(), resultComputeAllocation.getvCPU());
         
-        Mockito.verify(this.facade, times(1)).getComputeAllocation(anyString(), anyString());
+        Mockito.verify(this.facade, Mockito.times(1)).getComputeAllocation(Mockito.anyString(), Mockito.anyString());
     }
     
-    
+    // test case: Request the user quota and test successfully return. Check the response of request
+    // and the call of facade for get the user quota.
     @Test
     public void testGetUserQuota() throws Exception {
     	
+    	// set up
     	final String FAKE_MEMBER_ID = "fake-member-id";
     	final int VCPU_TOTAL = 1;
     	final int RAM_TOTAL = 1;
@@ -463,71 +544,76 @@ public class ComputeOrdersControllerTest {
     	ComputeAllocation fakeUsedComputeAllocation = new ComputeAllocation(VCPU_TOTAL, RAM_TOTAL, INSTANCES_TOTAL);
     	ComputeQuota fakeUserQuota = new ComputeQuota(fakeTotalComputeAllocation, fakeUsedComputeAllocation);
     	
-        doReturn(fakeUserQuota).when(this.facade).getComputeQuota(anyString(), anyString());
+        Mockito.doReturn(fakeUserQuota).when(this.facade).getComputeQuota(Mockito.anyString(), Mockito.anyString());
         
         final String QUOTA_ENDPOINT = COMPUTE_ENDPOINT + "/" + ComputeOrdersController.QUOTA_ENDPOINT;
-        
         final String memberIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_MEMBER_ID;
-        
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
+        
+        // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
+        
+        // verify
         int expectedStatus = HttpStatus.OK.value();
         ComputeQuota resultComputeQuota = new Gson().fromJson(result.getResponse().getContentAsString(), ComputeQuota.class);
         
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
         
-        assertEquals(fakeUsedComputeAllocation.getInstances(), resultComputeQuota.getUsedQuota().getInstances());
-        assertEquals(fakeUsedComputeAllocation.getvCPU(), resultComputeQuota.getUsedQuota().getvCPU());
-        assertEquals(fakeUsedComputeAllocation.getRam(), resultComputeQuota.getUsedQuota().getRam());
+        Assert.assertEquals(fakeUsedComputeAllocation.getInstances(), resultComputeQuota.getUsedQuota().getInstances());
+        Assert.assertEquals(fakeUsedComputeAllocation.getvCPU(), resultComputeQuota.getUsedQuota().getvCPU());
+        Assert.assertEquals(fakeUsedComputeAllocation.getRam(), resultComputeQuota.getUsedQuota().getRam());
         
-        assertEquals(fakeTotalComputeAllocation.getInstances(), resultComputeQuota.getTotalQuota().getInstances());
-        assertEquals(fakeTotalComputeAllocation.getvCPU(), resultComputeQuota.getTotalQuota().getvCPU());
-        assertEquals(fakeTotalComputeAllocation.getRam(), resultComputeQuota.getTotalQuota().getRam());
+        Assert.assertEquals(fakeTotalComputeAllocation.getInstances(), resultComputeQuota.getTotalQuota().getInstances());
+        Assert.assertEquals(fakeTotalComputeAllocation.getvCPU(), resultComputeQuota.getTotalQuota().getvCPU());
+        Assert.assertEquals(fakeTotalComputeAllocation.getRam(), resultComputeQuota.getTotalQuota().getRam());
         
-        Mockito.verify(this.facade, times(1)).getComputeQuota(anyString(), anyString());
+        Mockito.verify(this.facade, Mockito.times(1)).getComputeQuota(Mockito.anyString(), Mockito.anyString());
     }
     
+    
+    // test case: Request the user quota with unauthenticated user. Check the response of request
+    // and the call of facade for get the user quota.
     @Test
     public void testGetUserQuotaUnauthenticatedException() throws Exception {
     	
+    	// set up
     	final String FAKE_MEMBER_ID = "fake-member-id";
-    	
-        doThrow(new UnauthenticatedUserException()).when(this.facade).getComputeQuota(anyString(), anyString());
-        
+        Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).getComputeQuota(Mockito.anyString(), Mockito.anyString());
         final String QUOTA_ENDPOINT = COMPUTE_ENDPOINT + "/" + ComputeOrdersController.QUOTA_ENDPOINT;
-        
         final String memberIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_MEMBER_ID;
-        
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
+        
+        // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
+        
+        // verify
         int expectedStatus = HttpStatus.UNAUTHORIZED.value();
       
-        assertEquals(expectedStatus, result.getResponse().getStatus());
-        
-        Mockito.verify(this.facade, times(1)).getComputeQuota(anyString(), anyString());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(1)).getComputeQuota(Mockito.anyString(), Mockito.anyString());
     }
     
+    
+    // test case: Request the user quota with unauthorized user. Check the response of request
+    // and the call of facade for get the user quota.
     @Test
     public void testGetUserQuotaUnauthorizedException() throws Exception {
     	
+    	// set up
     	final String FAKE_MEMBER_ID = "fake-member-id";
-    	
-        doThrow(new UnauthorizedRequestException()).when(this.facade).getComputeQuota(anyString(), anyString());
-        
+        Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).getComputeQuota(Mockito.anyString(), Mockito.anyString());
         final String QUOTA_ENDPOINT = COMPUTE_ENDPOINT + "/" + ComputeOrdersController.QUOTA_ENDPOINT;
-        
         final String memberIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_MEMBER_ID;
-        
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
+        
+        // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
+        
+        // verify
         int expectedStatus = HttpStatus.FORBIDDEN.value();
       
-        assertEquals(expectedStatus, result.getResponse().getStatus());
-        
-        Mockito.verify(this.facade, times(1)).getComputeQuota(anyString(), anyString());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(1)).getComputeQuota(Mockito.anyString(), Mockito.anyString());
     }
 
     private RequestBuilder createRequestBuilder(HttpMethod method, String urlTemplate, HttpHeaders headers, String body) {
