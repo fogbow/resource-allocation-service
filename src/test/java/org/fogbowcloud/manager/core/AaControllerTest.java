@@ -48,112 +48,174 @@ public class AaControllerTest {
     	
     }
     
+    //test case: Check if authenticate method throws no exception when the federation token is valid.
     @Test
     public void testAuthenticate() throws UnauthenticatedUserException {
+    	//set up
     	Mockito.when(this.federationIdentityPluginMock.isValid(Mockito.anyString())).thenReturn(true);
+    	
+    	//exercise/verify
     	this.aaController.authenticate(Mockito.anyString());
     }
     
+    //test case: Check if authenticate method throws Unauthenticated exception when the federation token is valid. 
     @Test (expected = UnauthenticatedUserException.class)
     public void testAuthenticateWhenUnauthenticatedUserException() throws UnauthenticatedUserException {
+    	//set up
     	Mockito.when(this.federationIdentityPluginMock.isValid(Mockito.anyString())).thenReturn(false);
+    	
+    	//exercise/verify
     	this.aaController.authenticate(Mockito.anyString());
     }
     
+    //test case: Check if authenticate method throws no exception when the operation is valid.
     @Test
-    public void testAuthorizeOnInstance() throws UnauthorizedRequestException {
+    public void testAuthorizeOnInstanceType() throws UnauthorizedRequestException {
+    	//set up
     	Mockito.when(this.authorizationPluginMock.isAuthorized(
     			Mockito.any(), 
     			Mockito.any(), 
     			Mockito.any(InstanceType.class))).thenReturn(true);
+    	
+    	//exercise/verify
     	this.aaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(InstanceType.class));
     }
     
+    //test case: Check if authenticate method throws no exception when the operation is valid.
     @Test
-    public void testAuthorizeOnOrder() throws FogbowManagerException {
+    public void testAuthorizeOnOrderType() throws FogbowManagerException {
+    	//set up
     	Mockito.when(this.authorizationPluginMock.isAuthorized(
     			Mockito.any(), 
     			Mockito.any(), 
     			Mockito.any(Order.class))).thenReturn(true);
+    	
+    	//exercise/verify
     	this.aaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(Order.class));
     }
     
+    //test case: Check if authenticate method throws no exception when the operation is valid.
     @Test
     public void testAuthorize() throws FogbowManagerException {
+    	//set up
     	Mockito.when(this.authorizationPluginMock.isAuthorized(
     			Mockito.any(), 
     			Mockito.any())).thenReturn(true);
+    	
+    	//exercise/verify
     	this.aaController.authorize(Mockito.any(), Mockito.any());
     }
     
+    //test case: Check if authenticate method throws Unauthenticated exception when the federation token is valid. 
     @Test (expected = UnauthorizedRequestException.class)
-    public void testAuthorizeWhenUnauthorizedRequestExceptionOnInstance() throws UnauthorizedRequestException {
+    public void testAuthorizeWhenUnauthorizedRequestExceptionOnInstanceType() throws UnauthorizedRequestException {
+    	//set up
     	Mockito.when(this.authorizationPluginMock.isAuthorized(
     			Mockito.any(), 
     			Mockito.any(), 
     			Mockito.any(InstanceType.class))).thenReturn(false);
+    	
+    	//exercise/verify
     	this.aaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(InstanceType.class));
     }
     
+    //test case: Check if authenticate method throws Unauthenticated exception when the federation token is valid. 
     @Test (expected = UnauthorizedRequestException.class)
-    public void testAuthorizeWhenUnauthorizedRequestExceptionOnOrder() throws FogbowManagerException {
+    public void testAuthorizeWhenUnauthorizedRequestExceptionOnOrderType() throws FogbowManagerException {
+    	//set up
     	Mockito.when(this.authorizationPluginMock.isAuthorized(
     			Mockito.any(), 
     			Mockito.any(), 
     			Mockito.any(Order.class))).thenReturn(false);
+    	
+    	//exercise/verify
     	this.aaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(Order.class));
     }
     
+    //test case: Check if authenticate method throws Unauthenticated exception when the federation token is valid. 
     @Test (expected = UnauthorizedRequestException.class)
     public void testAuthorizeWhenUnauthorizedRequestException() throws FogbowManagerException {
+    	//set up
     	Mockito.when(this.authorizationPluginMock.isAuthorized(
     			Mockito.any(), 
     			Mockito.any())).thenReturn(false);
+    	
+    	//exercise/verify
     	this.aaController.authorize(Mockito.any(), Mockito.any());
     }
     
+    //test case: Check if create token is returning a valid token properly.
     @Test
     public void testGetLocalToken() throws FogbowManagerException, UnexpectedException {
+    	//set up
     	Mockito.when(this.localUserCredentialsMapperPluginMock.getCredentials(Mockito.any())).thenReturn(new HashMap<String, String>());
     	String accessId = "accessId";
     	User user = new User("id", "name");
     	Date date = new Date();
     	Map <String, String> attributes = new HashMap<String, String>();
-    	Token token = new Token(accessId, user, date, attributes);
-    	Mockito.when(this.localIdentityPluginMock.createToken(Mockito.any())).thenReturn(token);
-    	Assert.assertEquals(token, this.aaController.getLocalToken(null));
+    	Token expectedToken = new Token(accessId, user, date, attributes);
+    	Mockito.when(this.localIdentityPluginMock.createToken(Mockito.any())).thenReturn(expectedToken);
+    	
+    	//exercise
+    	Token aaControllerToken = this.aaController.getLocalToken(null);
+    	
+    	//verify
+    	Assert.assertEquals(expectedToken, aaControllerToken);
     }
     
+    //test case: Check if getLocalToken is returning FogbowManagerException from LocalIdentityPlugin properly. 
     @Test (expected = FogbowManagerException.class)
     public void testGetLocalTokenWhenFogbowManagerException() throws FogbowManagerException, UnexpectedException {
+    	//set up
     	Mockito.when(this.localUserCredentialsMapperPluginMock.getCredentials(Mockito.any())).thenReturn(new HashMap<String, String>());
     	Mockito.when(this.localIdentityPluginMock.createToken(Mockito.any())).thenThrow(new FogbowManagerException());
+    	
+    	//exercise/verify
     	this.aaController.getLocalToken(Mockito.any());
     }
     
+    //test case: Check if getLocalToken is returning UnexpectedException from LocalIdentityPlugin properly. 
     @Test (expected = UnexpectedException.class)
     public void testGetLocalTokenWhenUnexpectedException() throws FogbowManagerException, UnexpectedException {
+    	//set up 
     	Mockito.when(this.localUserCredentialsMapperPluginMock.getCredentials(Mockito.any())).thenReturn(new HashMap<String, String>());
     	Mockito.when(this.localIdentityPluginMock.createToken(Mockito.any())).thenThrow(new UnexpectedException());
+    	
+    	//exercise/verify
     	this.aaController.getLocalToken(Mockito.any());
     }
     
+    //test case: Check if federation user token is returning a valid token properly.
     @Test
     public void testGetFederationUser() throws UnauthenticatedUserException, UnexpectedException {
-    	FederationUser federationUser = new FederationUser("id", new HashMap<String, String>());
-    	Mockito.when(this.federationIdentityPluginMock.getFederationUser(Mockito.anyString())).thenReturn(federationUser);
-    	Assert.assertEquals(federationUser, this.aaController.getFederationUser(Mockito.anyString()));
+    	//set up
+    	FederationUser expectedFederationUser = new FederationUser("id", new HashMap<String, String>());
+    	Mockito.when(this.federationIdentityPluginMock.getFederationUser(Mockito.anyString())).thenReturn(expectedFederationUser);
+    	
+    	//exercise
+    	FederationUser aaFederationUser = this.aaController.getFederationUser(Mockito.anyString());
+    	
+    	//verify
+    	Assert.assertEquals(expectedFederationUser,aaFederationUser);
     }
     
+    //test case: Check if AaController is returning UnauthenticatedUserException from FederationIdentityPlugin.
     @Test (expected = UnauthenticatedUserException.class)
     public void testGetFederationUserUnauthenticatedUserException() throws UnauthenticatedUserException, UnexpectedException {
+    	//set up
     	Mockito.when(this.federationIdentityPluginMock.getFederationUser(Mockito.anyString())).thenThrow(new UnauthenticatedUserException());
+    	
+    	//exercise/verify
     	this.aaController.getFederationUser(Mockito.anyString());
     }
     
+    //test case: Check if AaController is returning UnexpectedException from FederationIdentityPlugin.
     @Test (expected = UnexpectedException.class)
     public void testGetFederationUserUnexpectedException() throws UnauthenticatedUserException, UnexpectedException {
+    	//set up
     	Mockito.when(this.federationIdentityPluginMock.getFederationUser(Mockito.anyString())).thenThrow(new UnexpectedException());
+    	
+    	//exercise/verify
     	this.aaController.getFederationUser(Mockito.anyString());
     }
 }
