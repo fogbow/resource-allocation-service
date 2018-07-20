@@ -11,6 +11,7 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.tokens.Token;
@@ -46,8 +47,10 @@ public class OpenStackImagePluginTest {
     	this.plugin.setClient(this.client);
     }
     
+    //test case: Check if getAllImages is returning all expected images from Json response properly.
     @Test
     public void testGetAllImages() throws FogbowManagerException, UnexpectedException, HttpResponseException {  	
+    	//set up
     	String tenantId = "tenant-id";
     	String imageGlancev2UrlKey = "image-url-key";
     	String endpoint = 
@@ -56,7 +59,7 @@ public class OpenStackImagePluginTest {
 	                + OpenStackImagePlugin.SUFFIX
 	                + OpenStackImagePlugin.QUERY_ACTIVE_IMAGES;
     	List<Map<String, String>> generatedImages = generateImages(tenantId, 0, 100);
-    	
+
     	String jsonResponse = getImagesJson(generatedImages);
     	
     	Token localToken = new Token();
@@ -68,12 +71,18 @@ public class OpenStackImagePluginTest {
     	
     	Map<String, String> expectedOutput = getPublicImages(generatedImages);
     	expectedOutput.putAll(getPrivateImagesFromProject(generatedImages, tenantId));
+    	
+    	//exercise
     	Map<String, String> imagePluginOutput = this.plugin.getAllImages(localToken);
+    	
+    	//verify
     	Assert.assertEquals(expectedOutput, imagePluginOutput);
     }
     
+    //test case: Check if getAllImages is returning all expected images from Json response when the request uses pagination.
     @Test
     public void testGetAllImagesWithPagination() throws FogbowManagerException, UnexpectedException, HttpResponseException {
+    	//set up
     	String tenantId = "tenant-id";
     	String imageGlancev2UrlKey = "image-url-key";
     	String nextUrl1 = "next-url1";
@@ -119,12 +128,187 @@ public class OpenStackImagePluginTest {
     	
     	expectedOutput.putAll(getPrivateImagesFromProject(generatedImages3, tenantId));
     	expectedOutput.putAll(getPublicImages(generatedImages3));
+    	
+    	//exercise
     	Map<String, String> imagePluginOutput = this.plugin.getAllImages(localToken);
     	
+    	//verify
     	Assert.assertEquals(expectedOutput, imagePluginOutput);
     	Mockito.verify(this.client, Mockito.times(1)).doGetRequest(endpoint1, localToken);
     	Mockito.verify(this.client, Mockito.times(1)).doGetRequest(endpoint2, localToken);
     	Mockito.verify(this.client, Mockito.times(1)).doGetRequest(endpoint3, localToken);
+    }
+    
+    //test case: Check if getImage is returning all expected images from Json response properly.
+    @Test
+    public void testGetImage() throws FogbowManagerException, UnexpectedException, HttpResponseException {
+    	//set up
+    	String imageId = "image-id";
+    	String imageGlancev2UrlKey = "image-url-key";
+    	String endpoint = 
+    				imageGlancev2UrlKey
+	                + OpenStackImagePlugin.COMPUTE_V2_API_ENDPOINT
+	                + OpenStackImagePlugin.SUFFIX
+	                + "/"
+	                + imageId;
+    	Image expectedImage = new Image(FAKE_IMAGE_ID, FAKE_IMAGE_NAME, FAKE_SIZE, FAKE_MIN_DISK, FAKE_MIN_RAM, OpenStackImagePlugin.ACTIVE_STATE);
+    	
+    	String jsonResponse = getImageJsonFromImage(expectedImage);
+
+    	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn(imageGlancev2UrlKey);
+    	Mockito.when(this.client.doGetRequest(endpoint, this.token)).thenReturn(jsonResponse);
+    	
+    	//exercise
+    	Image imagePluginOuput = this.plugin.getImage(imageId, this.token);
+    	
+    	//verify
+    	Assert.assertEquals(expectedImage, imagePluginOuput);
+    }
+    
+    //test case: Check if getImage returns null when the state is not ACTIVE_STATE.
+    @Test
+    public void testGetImageWhenImageStateIsNotActivated() throws FogbowManagerException, UnexpectedException, HttpResponseException {
+    	//set up
+    	String imageId = "image-id";
+    	String imageGlancev2UrlKey = "image-url-key";
+    	String endpoint = 
+    				imageGlancev2UrlKey
+	                + OpenStackImagePlugin.COMPUTE_V2_API_ENDPOINT
+	                + OpenStackImagePlugin.SUFFIX
+	                + "/"
+	                + imageId;
+    	Image image = new Image(FAKE_IMAGE_ID, FAKE_IMAGE_NAME, FAKE_SIZE, FAKE_MIN_DISK, FAKE_MIN_RAM, "it_is_not_activated");
+    	String jsonResponse = getImageJsonFromImage(image);
+
+    	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn(imageGlancev2UrlKey);
+    	Mockito.when(this.client.doGetRequest(endpoint, this.token)).thenReturn(jsonResponse);
+    	Image expectedPluginOutput = null;
+    	
+    	//exercise
+    	Image imagePluginOuput = this.plugin.getImage(imageId, this.token);
+    	
+    	//verify
+    	Assert.assertEquals(expectedPluginOutput, imagePluginOuput);
+    }
+    
+    //test case: Test if getImage throws UnauthorizedRequestException when the http requisition is SC_FORBIDDEN.
+    @Test (expected = UnauthorizedRequestException.class)
+    public void testGetImageWhenForbidden() throws FogbowManagerException, UnexpectedException, HttpResponseException {
+    	//set up
+    	String imageId = "image-id";
+    	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn("");
+    	HttpResponseException httpResponseException = new HttpResponseException(HttpStatus.SC_FORBIDDEN, "");
+    	Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.anyObject())).thenThrow(httpResponseException);
+    	
+    	//exercise/verify
+    	this.plugin.getImage(imageId, this.token);
+    }
+    
+ 	//test case: Test if testGet throws UnexpectedException when the http requisition status is unknown.
+    @Test (expected = UnexpectedException.class)
+    public void testGetImageWhenUnexpectedException() throws FogbowManagerException, UnexpectedException, HttpResponseException {
+    	//set up
+    	String imageId = "image-id";
+    	int unexpectedHttpStatus = -1;
+    	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn("");
+    	HttpResponseException httpResponseException = new HttpResponseException(unexpectedHttpStatus, "");
+    	Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.anyObject())).thenThrow(httpResponseException);
+    	
+    	//exercise/verify
+    	this.plugin.getImage(imageId, this.token);
+    }
+    
+    //test case: Test if getAllImages throws UnauthorizedRequestException when the http requisition is SC_FORBIDDEN.
+    @Test (expected = UnauthorizedRequestException.class)
+    public void testGetAllImagesWhenForbidden() throws FogbowManagerException, UnexpectedException, HttpResponseException {
+    	//set up
+    	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn("");
+    	HttpResponseException httpResponseException = new HttpResponseException(HttpStatus.SC_FORBIDDEN, "");
+    	Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.anyObject())).thenThrow(httpResponseException);
+    	
+    	//exercise/verify
+    	this.plugin.getAllImages(this.token);
+    }
+    
+    //test case: Test if getAllImages throws UnexpectedException when the http requisition status is unknown.
+    @Test (expected = UnexpectedException.class)
+    public void testGetAllImagesWhenUnexpectedException() throws FogbowManagerException, UnexpectedException, HttpResponseException {
+    	int unexpectedHttpStatus = -1;
+    	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn("");
+    	HttpResponseException httpResponseException = new HttpResponseException(unexpectedHttpStatus, "");
+    	Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.anyObject())).thenThrow(httpResponseException);
+    	this.plugin.getAllImages(this.token);
+    }
+    
+    //test case: Test if getAllImages throws UnauthorizedRequestException when the http requisition is SC_FORBIDDEN during pagination.
+    @Test (expected = UnauthorizedRequestException.class)
+    public void testGetAllImagesWithPaginationWhenForbidden() throws FogbowManagerException, UnexpectedException, HttpResponseException {
+    	//set up
+    	String tenantId = "tenant-id";
+    	String imageGlancev2UrlKey = "image-url-key";
+    	String nextUrl1 = "next-url1";
+    	
+    	String endpoint1 = 
+    				imageGlancev2UrlKey
+	                + OpenStackImagePlugin.COMPUTE_V2_API_ENDPOINT
+	                + OpenStackImagePlugin.SUFFIX
+	                + OpenStackImagePlugin.QUERY_ACTIVE_IMAGES;
+    	
+    	String endpoint2 = 
+    				imageGlancev2UrlKey
+	                + nextUrl1;
+    
+    	List<Map<String, String>> generatedImages1 = generateImages(tenantId, 0, 100);
+    
+    	String jsonResponse1 = getImagesJsonWithNext(generatedImages1, nextUrl1);
+    	
+    	Token localToken = new Token();
+    	Map<String, String> attributes = new HashMap<String, String>();
+    	attributes.put(OpenStackImagePlugin.TENANT_ID, tenantId);
+    	localToken.setAttributes(attributes);
+    	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn(imageGlancev2UrlKey);
+    	Mockito.when(this.client.doGetRequest(endpoint1, localToken)).thenReturn(jsonResponse1);
+    	HttpResponseException httpResponseException = new HttpResponseException(HttpStatus.SC_FORBIDDEN, "");
+    	Mockito.when(this.client.doGetRequest(endpoint2, localToken)).thenThrow(httpResponseException);
+    	
+    	//exercise/verify
+    	this.plugin.getAllImages(localToken);
+    }
+    
+    //test case: Test if getAllImages throws UnexpectedException when the http requisition status is unknown during pagination.
+    @Test (expected = UnexpectedException.class)
+    public void testGetAllImagesWithPaginationWhenUnexpectedException() throws FogbowManagerException, UnexpectedException, HttpResponseException {
+    	//set up
+    	String tenantId = "tenant-id";
+    	String imageGlancev2UrlKey = "image-url-key";
+    	String nextUrl1 = "next-url1";
+    	
+    	String endpoint1 = 
+    				imageGlancev2UrlKey
+	                + OpenStackImagePlugin.COMPUTE_V2_API_ENDPOINT
+	                + OpenStackImagePlugin.SUFFIX
+	                + OpenStackImagePlugin.QUERY_ACTIVE_IMAGES;
+    	
+    	String endpoint2 = 
+    				imageGlancev2UrlKey
+	                + nextUrl1;
+    
+    	List<Map<String, String>> generatedImages1 = generateImages(tenantId, 0, 100);
+    
+    	String jsonResponse1 = getImagesJsonWithNext(generatedImages1, nextUrl1);
+    	
+    	Token localToken = new Token();
+    	Map<String, String> attributes = new HashMap<String, String>();
+    	attributes.put(OpenStackImagePlugin.TENANT_ID, tenantId);
+    	localToken.setAttributes(attributes);
+    	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn(imageGlancev2UrlKey);
+    	Mockito.when(this.client.doGetRequest(endpoint1, localToken)).thenReturn(jsonResponse1);
+    	int unexpectedHttpStatus = -1;
+    	HttpResponseException httpResponseException = new HttpResponseException(unexpectedHttpStatus, "");
+    	Mockito.when(this.client.doGetRequest(endpoint2, localToken)).thenThrow(httpResponseException);
+    	
+    	//exercise/verify
+    	this.plugin.getAllImages(localToken);
     }
     
     private String getImagesJson(List<Map<String, String>> imagesList) {
@@ -141,7 +325,6 @@ public class OpenStackImagePluginTest {
     	Gson gson = new Gson();
     	return gson.toJson(jsonMap);
     }
-    
     
     private List<Map<String, String>> generateImages(String tenantId, int startId, int qtdImages){
     	String tenantId2 = tenantId + "2";
@@ -190,27 +373,6 @@ public class OpenStackImagePluginTest {
     	return imageMap;
     }
     
-    @Test
-    public void getImageTest() throws FogbowManagerException, UnexpectedException, HttpResponseException {
-    	String imageId = "image-id";
-    	String imageGlancev2UrlKey = "image-url-key";
-    	String endpoint = 
-    				imageGlancev2UrlKey
-	                + OpenStackImagePlugin.COMPUTE_V2_API_ENDPOINT
-	                + OpenStackImagePlugin.SUFFIX
-	                + "/"
-	                + imageId;
-    	Image expectedImage = new Image(FAKE_IMAGE_ID, FAKE_IMAGE_NAME, FAKE_SIZE, FAKE_MIN_DISK, FAKE_MIN_RAM, OpenStackImagePlugin.ACTIVE_STATE);
-    	
-    	String jsonResponse = getImageJsonFromImage(expectedImage);
-
-    	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn(imageGlancev2UrlKey);
-    	Mockito.when(this.client.doGetRequest(endpoint, this.token)).thenReturn(jsonResponse);
-    	
-    	Image imagePluginOuput = this.plugin.getImage(imageId, this.token);
-    	Assert.assertEquals(expectedImage, imagePluginOuput);
-    }
-    
     private String getImageJsonFromImage(Image image) {
     	Map<String, String> jsonMap = new HashMap<String, String>();
     	jsonMap.put(OpenStackImagePlugin.ID_JSON, image.getId());
@@ -223,128 +385,4 @@ public class OpenStackImagePluginTest {
     	String jsonResponse = gson.toJson(jsonMap);
     	return jsonResponse;
     }
-    
-    @Test
-    public void testGetImageWhenStateIsNotActivated() throws FogbowManagerException, UnexpectedException, HttpResponseException {
-    	String imageId = "image-id";
-    	String imageGlancev2UrlKey = "image-url-key";
-    	String endpoint = 
-    				imageGlancev2UrlKey
-	                + OpenStackImagePlugin.COMPUTE_V2_API_ENDPOINT
-	                + OpenStackImagePlugin.SUFFIX
-	                + "/"
-	                + imageId;
-    	Image image = new Image(FAKE_IMAGE_ID, FAKE_IMAGE_NAME, FAKE_SIZE, FAKE_MIN_DISK, FAKE_MIN_RAM, "it_is_not_activated");
-    	String jsonResponse = getImageJsonFromImage(image);
-
-    	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn(imageGlancev2UrlKey);
-    	Mockito.when(this.client.doGetRequest(endpoint, this.token)).thenReturn(jsonResponse);
-    	
-    	Image imagePluginOuput = this.plugin.getImage(imageId, this.token);
-    	Image expectedPluginOutput = null;
-    	Assert.assertEquals(expectedPluginOutput, imagePluginOuput);
-    }
-    
-    @Test (expected = FogbowManagerException.class)
-    public void testGetImageWhenForbidden() throws FogbowManagerException, UnexpectedException, HttpResponseException {
-    	String imageId = "image-id";
-    	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn("");
-    	HttpResponseException httpResponseException = new HttpResponseException(HttpStatus.SC_FORBIDDEN, "");
-    	Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.anyObject())).thenThrow(httpResponseException);
-    	this.plugin.getImage(imageId, this.token);
-    }
-    
-    @Test (expected = UnexpectedException.class)
-    public void testGetImageWhenUnexpectedException() throws FogbowManagerException, UnexpectedException, HttpResponseException {
-    	String imageId = "image-id";
-    	int unexpectedHttpStatus = -1;
-    	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn("");
-    	HttpResponseException httpResponseException = new HttpResponseException(unexpectedHttpStatus, "");
-    	Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.anyObject())).thenThrow(httpResponseException);
-    	this.plugin.getImage(imageId, this.token);
-    }
-    
-    @Test (expected = FogbowManagerException.class)
-    public void testGetAllImagesWhenForbidden() throws FogbowManagerException, UnexpectedException, HttpResponseException {
-    	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn("");
-    	HttpResponseException httpResponseException = new HttpResponseException(HttpStatus.SC_FORBIDDEN, "");
-    	Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.anyObject())).thenThrow(httpResponseException);
-    	this.plugin.getAllImages(this.token);
-    }
-    
-    @Test (expected = UnexpectedException.class)
-    public void testGetAllImagesWhenUnexpectedException() throws FogbowManagerException, UnexpectedException, HttpResponseException {
-    	int unexpectedHttpStatus = -1;
-    	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn("");
-    	HttpResponseException httpResponseException = new HttpResponseException(unexpectedHttpStatus, "");
-    	Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.anyObject())).thenThrow(httpResponseException);
-    	this.plugin.getAllImages(this.token);
-    }
-    
-    @Test (expected = FogbowManagerException.class)
-    public void testGetAllImagesWithPaginationWhenForbidden() throws FogbowManagerException, UnexpectedException, HttpResponseException {
-    	String tenantId = "tenant-id";
-    	String imageGlancev2UrlKey = "image-url-key";
-    	String nextUrl1 = "next-url1";
-    	
-    	String endpoint1 = 
-    				imageGlancev2UrlKey
-	                + OpenStackImagePlugin.COMPUTE_V2_API_ENDPOINT
-	                + OpenStackImagePlugin.SUFFIX
-	                + OpenStackImagePlugin.QUERY_ACTIVE_IMAGES;
-    	
-    	String endpoint2 = 
-    				imageGlancev2UrlKey
-	                + nextUrl1;
-    
-    	List<Map<String, String>> generatedImages1 = generateImages(tenantId, 0, 100);
-    
-    	String jsonResponse1 = getImagesJsonWithNext(generatedImages1, nextUrl1);
-    	
-    	Token localToken = new Token();
-    	Map<String, String> attributes = new HashMap<String, String>();
-    	attributes.put(OpenStackImagePlugin.TENANT_ID, tenantId);
-    	localToken.setAttributes(attributes);
-    	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn(imageGlancev2UrlKey);
-    	Mockito.when(this.client.doGetRequest(endpoint1, localToken)).thenReturn(jsonResponse1);
-    	
-    	HttpResponseException httpResponseException = new HttpResponseException(HttpStatus.SC_FORBIDDEN, "");
-    	Mockito.when(this.client.doGetRequest(endpoint2, localToken)).thenThrow(httpResponseException);
-    	
-    	this.plugin.getAllImages(localToken);
-    }
-    
-    @Test (expected = UnexpectedException.class)
-    public void testGetAllImagesWithPaginationWhenUnexpectedException() throws FogbowManagerException, UnexpectedException, HttpResponseException {
-    	String tenantId = "tenant-id";
-    	String imageGlancev2UrlKey = "image-url-key";
-    	String nextUrl1 = "next-url1";
-    	
-    	String endpoint1 = 
-    				imageGlancev2UrlKey
-	                + OpenStackImagePlugin.COMPUTE_V2_API_ENDPOINT
-	                + OpenStackImagePlugin.SUFFIX
-	                + OpenStackImagePlugin.QUERY_ACTIVE_IMAGES;
-    	
-    	String endpoint2 = 
-    				imageGlancev2UrlKey
-	                + nextUrl1;
-    
-    	List<Map<String, String>> generatedImages1 = generateImages(tenantId, 0, 100);
-    
-    	String jsonResponse1 = getImagesJsonWithNext(generatedImages1, nextUrl1);
-    	
-    	Token localToken = new Token();
-    	Map<String, String> attributes = new HashMap<String, String>();
-    	attributes.put(OpenStackImagePlugin.TENANT_ID, tenantId);
-    	localToken.setAttributes(attributes);
-    	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn(imageGlancev2UrlKey);
-    	Mockito.when(this.client.doGetRequest(endpoint1, localToken)).thenReturn(jsonResponse1);
-    	int unexpectedHttpStatus = -1;
-    	HttpResponseException httpResponseException = new HttpResponseException(unexpectedHttpStatus, "");
-    	Mockito.when(this.client.doGetRequest(endpoint2, localToken)).thenThrow(httpResponseException);
-    	
-    	this.plugin.getAllImages(localToken);
-    }
-    
 }
