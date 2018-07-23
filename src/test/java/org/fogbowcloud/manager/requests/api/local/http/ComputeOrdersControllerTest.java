@@ -350,7 +350,6 @@ public class ComputeOrdersControllerTest {
         // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
         
-        
         // verify
         int expectedStatus = HttpStatus.OK.value();
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
