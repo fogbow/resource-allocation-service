@@ -196,7 +196,7 @@ public class ComputeOrdersControllerTest {
         
         TypeToken<List<ComputeInstance>> token = new TypeToken<List<ComputeInstance>>(){};
         List<ComputeInstance> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
-        Assert.assertTrue(resultList.size() == 3);
+        Assert.assertEquals(3, resultList.size());
         Assert.assertEquals(FAKE_ID_1, resultList.get(0).getId());
         Assert.assertEquals(FAKE_ID_2, resultList.get(1).getId());
         Assert.assertEquals(FAKE_ID_3, resultList.get(2).getId());
