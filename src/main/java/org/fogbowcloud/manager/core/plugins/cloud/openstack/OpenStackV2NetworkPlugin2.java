@@ -1,11 +1,16 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
+import java.io.File;
+import java.util.Properties;
+import java.util.UUID;
+
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
@@ -21,20 +26,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
-
 public class OpenStackV2NetworkPlugin2 implements NetworkPlugin {
 	private static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
 
 	private static final String MSG_LOG_ERROR_MANIPULATE_JSON =
 			"An error occurred when manipulate json.";
 
-	private static final String SUFFIX_ENDPOINT_REMOVE_ROUTER_INTERFACE_ADD =
-			"remove_router_interface";
 	protected static final String SUFFIX_ENDPOINT_NETWORK = "/networks";
 	protected static final String SUFFIX_ENDPOINT_SUBNET = "/subnets";
 	protected static final String SUFFIX_ENDPOINT_ROUTER = "/routers";
@@ -256,74 +253,38 @@ public class OpenStackV2NetworkPlugin2 implements NetworkPlugin {
 	}
 
 	@Override
-	public void deleteInstance(String instanceId, Token token) throws FogbowManagerException, UnexpectedException {
-		// TODO: ensure that all the necessary tokens attributes are set.
-		String tenantId = token.getAttributes().get(TENANT_ID);
-		String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_PORTS + "?" + KEY_TENANT_ID + "=" + tenantId;
-
-		String responseStr = null;
+	public void deleteInstance(String networkId, Token token) throws FogbowManagerException, UnexpectedException {
+		boolean wasNetworkRemoved = false;
 		try {
-			responseStr = this.client.doGetRequest(endpoint, token);
-		} catch (HttpResponseException e) {
-			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
+			wasNetworkRemoved = removeNetwork(token, networkId);
+		} catch (InstanceNotFoundException e) {
+			// continue and try to delete the security group
+			wasNetworkRemoved = true;
 		}
-
-		String routerId = null;
-		List<String> subnets = new ArrayList<String>();
-		JSONObject rootServer = new JSONObject(responseStr);
-		try {
-			JSONArray routerPortsJSONArray = rootServer.optJSONArray(KEY_JSON_PORTS);
-			for (int i = 0; i < routerPortsJSONArray.length(); i++) {
-				String networkId = routerPortsJSONArray.optJSONObject(i).optString(KEY_NETWORK_ID);
-
-				if (networkId.equals(instanceId)) {
-					String deviceOwner =
-							routerPortsJSONArray.optJSONObject(i).optString(KEY_DEVICE_OWNER);
-
-					boolean thereIsInstance = deviceOwner.equals(COMPUTE_NOVA);
-					if (thereIsInstance) {
-						throw new InvalidParameterException();
-					}
-
-					if (deviceOwner.equals(NETWORK_ROUTER)) {
-						routerId = routerPortsJSONArray.optJSONObject(i).optString(KEY_DEVICE_ID);
-					}
-
-					if (!deviceOwner.equals(NETWORK_DHCP)) {
-						String subnetId =
-								routerPortsJSONArray.optJSONObject(i).optJSONArray(KEY_FIXES_IPS)
-										.optJSONObject(0).optString(KEY_JSON_SUBNET_ID);
-						subnets.add(subnetId);
-					}
-				}
-			}
-			for (String subnetId : subnets) {
-				JSONObject jsonRequest = generateJsonEntitySubnetId(subnetId);
-				if (routerId != null) {
-					endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_ROUTER + "/" + routerId
-							+ "/" + SUFFIX_ENDPOINT_REMOVE_ROUTER_INTERFACE_ADD;
-					try {
-						this.client.doPutRequest(endpoint, token, jsonRequest);
-					} catch (HttpResponseException e) {
-						OpenStackHttpToFogbowManagerExceptionMapper.map(e);
-					}
-				}
-			}
-		} catch (JSONException e) {
-			LOGGER.error(MSG_LOG_ERROR_MANIPULATE_JSON);
-			throw new UnexpectedException(MSG_LOG_ERROR_MANIPULATE_JSON, e);
-		} catch (NullPointerException e) {
-			LOGGER.error(MSG_LOG_ERROR_MANIPULATE_JSON);
-			throw new UnexpectedException(MSG_LOG_ERROR_MANIPULATE_JSON, e);
-		}
-
-		if (routerId != null) {
-			removeRouter(token, routerId);
-		}
-		if (!removeNetwork(token, instanceId)) {
-			String errorMsg = String.format("Was not possible delete network with id %s", instanceId);
+		if (!wasNetworkRemoved) {
+			String errorMsg = String.format("Was not possible delete network with id %s", networkId);
 			LOGGER.error(errorMsg);
 			throw new UnexpectedException(errorMsg);
+		}
+		
+		boolean wasSecurityGroupRemoved = removeSecurityGroup(token, networkId);		
+		if (!wasSecurityGroupRemoved) {
+			String errorMsg = String.format("Was not possible delete security group with id %s", networkId);
+			LOGGER.error(errorMsg);
+			throw new UnexpectedException(errorMsg);
+		}		
+	}
+
+	protected boolean removeSecurityGroup(Token token, String securityGroupId)
+			throws FogbowManagerException, UnexpectedException {		
+		LOGGER.debug(String.format("Removing security group %s", securityGroupId));
+		try {
+			String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES + "/" + securityGroupId;
+			this.client.doDeleteRequest(endpoint, token);
+			return true;
+		} catch (HttpResponseException e) {
+			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
+			return false;
 		}
 	}
 
@@ -397,22 +358,6 @@ public class OpenStackV2NetworkPlugin2 implements NetworkPlugin {
 		return subnetJSON;
 	}
 
-	protected String[] getRoutersFromJson(String json) throws UnexpectedException {
-		try {
-			JSONObject rootServer = new JSONObject(json);
-			JSONArray routersJSONArray = rootServer.optJSONArray(KEY_JSON_ROUTERS);
-			String[] routerIds = new String[routersJSONArray.length()];
-			for (int i = 0; i < routersJSONArray.length(); i++) {
-				routerIds[i] = routersJSONArray.optJSONObject(i).optString(KEY_ID);
-			}
-			return routerIds;
-		} catch (JSONException e) {
-			String errorMsg = String.format("Was not possible retrieve routers from json %s", json);
-			LOGGER.error(errorMsg);
-			throw new UnexpectedException(errorMsg, e);
-		}
-	}
-
 	protected String getNetworkIdFromJson(String json) throws UnexpectedException {
 		String networkId = null;
 		try {
@@ -439,34 +384,6 @@ public class OpenStackV2NetworkPlugin2 implements NetworkPlugin {
 			throw new UnexpectedException(errorMsg, e);
 		}
 		return subnetId;
-	}
-
-	protected String getRouterIdFromJson(String json) throws UnexpectedException {
-		String routerId = null;
-		try {
-			JSONObject rootServer = new JSONObject(json);
-			JSONObject networkJSONObject = rootServer.optJSONObject(KEY_JSON_ROUTER);
-			routerId = networkJSONObject.optString(KEY_ID);
-		} catch (JSONException e) {
-			String errorMsg = String.format("Was not possible retrieve router id from json %s", json);
-			LOGGER.error(errorMsg);
-			throw new UnexpectedException(errorMsg, e);
-		}
-		return routerId;
-	}
-
-	protected JSONObject generateJsonEntityToCreateRouter() throws JSONException {
-		JSONObject networkId = new JSONObject();
-		networkId.put(KEY_NETWORK_ID, this.externalNetworkId);
-
-		JSONObject routerContent = new JSONObject();
-		routerContent.put(KEY_EXTERNAL_GATEWAY_INFO, networkId);
-		routerContent.put(KEY_NAME, DEFAULT_ROUTER_NAME + "-" + UUID.randomUUID());
-
-		JSONObject router = new JSONObject();
-		router.put(KEY_JSON_ROUTER, routerContent);
-
-		return router;
 	}
 
 	protected JSONObject generateJsonEntityToCreateNetwork(String tenantId) throws JSONException {
@@ -532,31 +449,16 @@ public class OpenStackV2NetworkPlugin2 implements NetworkPlugin {
 	}
 
 	protected boolean removeNetwork(Token token, String networkId) throws UnexpectedException, FogbowManagerException {
-		boolean deleted = false;
 		String messageTemplate = "Removing network %s";
 		LOGGER.debug(String.format(messageTemplate, networkId));
 		String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK + "/" + networkId;
 		try {
 			this.client.doDeleteRequest(endpoint, token);
-			deleted = true;
+			return true;
 		} catch (HttpResponseException e) {
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
+			return false;
 		}
-		return deleted;
-	}
-
-	protected boolean removeRouter(Token token, String routerId) throws FogbowManagerException, UnexpectedException {
-		boolean deleted = false;
-		String messageTemplate = "Removing router %s";
-		LOGGER.debug(String.format(messageTemplate, routerId));
-		String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_ROUTER + "/" + routerId;
-		try {
-			this.client.doDeleteRequest(endpoint, token);
-			deleted = true;
-		} catch (HttpResponseException e) {
-			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
-		}
-		return deleted;
 	}
 
 	private void initClient() {
