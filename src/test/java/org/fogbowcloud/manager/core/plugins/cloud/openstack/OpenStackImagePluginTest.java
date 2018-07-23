@@ -1,5 +1,4 @@
-	package org.fogbowcloud.manager.core.plugins.cloud.openstack;
-
+package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,7 +38,7 @@ public class OpenStackImagePluginTest {
     @Before
     public void setUp() {
         HomeDir.getInstance().setPath("src/test/resources/private");
-        this.plugin = Mockito.spy(new OpenStackImagePlugin());
+        this.plugin = new OpenStackImagePlugin();
         this.client = Mockito.mock(HttpRequestClientUtil.class);
         this.properties = Mockito.mock(Properties.class);
         this.token = Mockito.mock(Token.class);
@@ -69,8 +68,7 @@ public class OpenStackImagePluginTest {
     	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn(imageGlancev2UrlKey);
     	Mockito.when(this.client.doGetRequest(endpoint, localToken)).thenReturn(jsonResponse);
     	
-    	Map<String, String> expectedOutput = getPublicImages(generatedImages);
-    	expectedOutput.putAll(getPrivateImagesFromProject(generatedImages, tenantId));
+    	Map<String, String> expectedOutput = generateJustPublicAndPrivateImagesFromProject(tenantId, 0, 100);
     	
     	//exercise
     	Map<String, String> imagePluginOutput = this.plugin.getAllImages(localToken);
@@ -120,14 +118,9 @@ public class OpenStackImagePluginTest {
     	Mockito.when(this.client.doGetRequest(endpoint2, localToken)).thenReturn(jsonResponse2);
     	Mockito.when(this.client.doGetRequest(endpoint3, localToken)).thenReturn(jsonResponse3);
     	
-    	Map<String, String> expectedOutput = getPublicImages(generatedImages1);
-    	expectedOutput.putAll(getPrivateImagesFromProject(generatedImages1, tenantId));
-    	
-    	expectedOutput.putAll(getPrivateImagesFromProject(generatedImages2, tenantId));
-    	expectedOutput.putAll(getPublicImages(generatedImages2));
-    	
-    	expectedOutput.putAll(getPrivateImagesFromProject(generatedImages3, tenantId));
-    	expectedOutput.putAll(getPublicImages(generatedImages3));
+    	Map<String, String> expectedOutput = generateJustPublicAndPrivateImagesFromProject(tenantId, 0, 100);
+    	expectedOutput.putAll(generateJustPublicAndPrivateImagesFromProject(tenantId, 200, 100));
+    	expectedOutput.putAll(generateJustPublicAndPrivateImagesFromProject(tenantId, 400, 100));
     	
     	//exercise
     	Map<String, String> imagePluginOutput = this.plugin.getAllImages(localToken);
@@ -159,10 +152,10 @@ public class OpenStackImagePluginTest {
     	Mockito.when(this.client.doGetRequest(endpoint, this.token)).thenReturn(jsonResponse);
     	
     	//exercise
-    	Image imagePluginOuput = this.plugin.getImage(imageId, this.token);
+    	Image imagePluginOutput = this.plugin.getImage(imageId, this.token);
     	
     	//verify
-    	Assert.assertEquals(expectedImage, imagePluginOuput);
+    	Assert.assertEquals(expectedImage, imagePluginOutput);
     }
     
     //test case: Check if getImage returns null when the state is not ACTIVE_STATE.
@@ -185,10 +178,10 @@ public class OpenStackImagePluginTest {
     	Image expectedPluginOutput = null;
     	
     	//exercise
-    	Image imagePluginOuput = this.plugin.getImage(imageId, this.token);
+    	Image imagePluginOutput = this.plugin.getImage(imageId, this.token);
     	
     	//verify
-    	Assert.assertEquals(expectedPluginOutput, imagePluginOuput);
+    	Assert.assertEquals(expectedPluginOutput, imagePluginOutput);
     }
     
     //test case: Test if getImage throws UnauthorizedRequestException when the http requisition is SC_FORBIDDEN.
@@ -353,24 +346,21 @@ public class OpenStackImagePluginTest {
     	return myList;
     }
     
-    private Map<String, String> getPublicImages(List<Map<String, String>> arrayList) {
-    	Map<String, String> imageMap = new HashMap<String, String>();
-    	for (Map<String, String> image: arrayList) {
-    		if (image.get("visibility").equals("public")) {
-    			imageMap.put(image.get("id"), image.get("name"));
+    private Map<String, String> generateJustPublicAndPrivateImagesFromProject(String tenantId, int startId, int qtdImages){
+    	String tenantId2 = tenantId + "2";
+    	Map<String, String> images = new HashMap<String, String>();
+    	qtdImages /= 2;
+    	for (int i = 0; i < qtdImages; i++) {
+    		Map <String, String> image = new HashMap<String, String>();
+    		if (i % 2 == 0 || (i % 2 != 0 && i >= qtdImages / 2)) {
+	    		image.put("visibility", i % 2 == 0? "public" : "private");
+	    		image.put("owner", i < qtdImages / 2 ? tenantId2 : tenantId);
+	    		image.put("id", "id" + Integer.toString(i + startId));
+	    		image.put("name", "name" + Integer.toString(i + startId));
+	    		images.put(image.get("id"), image.get("name"));
     		}
     	}
-    	return imageMap;
-    }
-    
-    private Map<String, String> getPrivateImagesFromProject(List<Map<String, String>> arrayList, String tenantId) {
-    	Map<String, String> imageMap = new HashMap<String, String>();
-    	for (Map<String, String> image: arrayList) {
-    		if (image.get("visibility").equals("private") && image.get("owner").equals(tenantId)) {
-    			imageMap.put(image.get("id"), image.get("name"));
-    		}
-    	}
-    	return imageMap;
+    	return images;
     }
     
     private String getImageJsonFromImage(Image image) {
