@@ -54,21 +54,28 @@ public class ImageRequestControllerTest {
         given(ApplicationFacade.getInstance()).willReturn(this.facade);
     }
 
+    // test case: Test getAllImages() when no images were found, it must return an empty JSON.
     @Test
     public void testGetAllImagesWhenHasNoData() throws Exception {
+        // set up
         Map<String, String> imagesMap = new HashMap<>();
         doReturn(imagesMap).when(this.facade).getAllImages(anyString(), anyString());
 
         RequestBuilder requestBuilder = createRequestBuilder(IMAGE_ENDPOINT, getHttpHeaders(), "");
 
+        // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
+        // verify
         int expectedStatus = HttpStatus.OK.value();
+        assertEquals("{}", result.getResponse().getContentAsString());
         assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 
+    // test case: Test getAllImages() when there are some images.
     @Test
     public void testGetAllImagesWhenHasData() throws Exception {
+        // set up
         Map<String, String> imagesMap = new HashMap<>();
         imagesMap.put("image-id1", "image-name1");
         imagesMap.put("image-id2", "image-name2");
@@ -78,8 +85,10 @@ public class ImageRequestControllerTest {
 
         RequestBuilder requestBuilder = createRequestBuilder(IMAGE_ENDPOINT, getHttpHeaders(), "");
 
+        // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
+        // verify
         int expectedStatus = HttpStatus.OK.value();
         assertEquals(expectedStatus, result.getResponse().getStatus());
 
@@ -88,8 +97,10 @@ public class ImageRequestControllerTest {
         assertTrue(resultMap.size() == 3);
     }
 
+    // test case: Test if given an existing image id, the getImage() returns that image properly.
     @Test
     public void testGetImageById() throws Exception {
+        // set up
         String fakeId = "fake-Id-1";
         String imageEndpoint = IMAGE_ENDPOINT + "/" + fakeId;
 
@@ -99,8 +110,10 @@ public class ImageRequestControllerTest {
 
         RequestBuilder requestBuilder = createRequestBuilder(imageEndpoint, getHttpHeaders(), "");
 
+        // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
+        // verify
         int expectedStatus = HttpStatus.OK.value();
         assertEquals(expectedStatus, result.getResponse().getStatus());
 
@@ -113,8 +126,10 @@ public class ImageRequestControllerTest {
         assertEquals(resultImage.getSize(), image.getSize());
     }
 
+    // test case: Test if given an invalid image id, the getImage() returns just NOT_FOUND.
     @Test
     public void testGetImageWithInvalidId() throws Exception {
+        // set up
         String fakeId = "fake-Id-1";
         String imageEndpoint = IMAGE_ENDPOINT + "/" + fakeId;
 
@@ -122,8 +137,10 @@ public class ImageRequestControllerTest {
 
         RequestBuilder requestBuilder = createRequestBuilder(imageEndpoint, getHttpHeaders(), "");
 
+        // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
+        // verify
         int expectedStatus = HttpStatus.NOT_FOUND.value();
         assertEquals(expectedStatus, result.getResponse().getStatus());
     }
