@@ -29,13 +29,8 @@ import org.json.JSONObject;
 public class OpenStackV2NetworkPlugin2 implements NetworkPlugin {
 	private static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
 
-	private static final String MSG_LOG_ERROR_MANIPULATE_JSON =
-			"An error occurred when manipulate json.";
-
 	protected static final String SUFFIX_ENDPOINT_NETWORK = "/networks";
 	protected static final String SUFFIX_ENDPOINT_SUBNET = "/subnets";
-	protected static final String SUFFIX_ENDPOINT_ROUTER = "/routers";
-	protected static final String SUFFIX_ENDPOINT_PORTS = "/ports";
 	protected static final String SUFFIX_ENDPOINT_SECURITY_GROUP_RULES = "/security-group-rules";
 	protected static final String SUFFIX_ENDPOINT_SECURITY_GROUP = "/security-groups";
 	protected static final String V2_API_ENDPOINT = "/v2.0";
@@ -44,23 +39,16 @@ public class OpenStackV2NetworkPlugin2 implements NetworkPlugin {
 	protected static final String KEY_PROVIDER_SEGMENTATION_ID = "provider:segmentation_id";
 	protected static final String KEY_EXTERNAL_GATEWAY_INFO = "external_gateway_info";
 	protected static final String KEY_DNS_NAMESERVERS = "dns_nameservers";
-	protected static final String KEY_DEVICE_OWNER = "device_owner";
-	protected static final String KEY_JSON_SUBNET_ID = "subnet_id";
 	protected static final String KEY_ENABLE_DHCP = "enable_dhcp";
 	protected static final String KEY_IP_VERSION = "ip_version";
 	protected static final String KEY_GATEWAY_IP = "gateway_ip";
-	protected static final String KEY_FIXES_IPS = "fixed_ips";
 	protected static final String KEY_TENANT_ID = "tenant_id";
-	protected static final String KEY_JSON_ROUTERS = "routers";
 	protected static final String KEY_JSON_NETWORK = "network";
 	protected static final String KEY_NETWORK_ID = "network_id";
 	protected static final String KEY_JSON_SUBNET = "subnet";
 	protected static final String KEY_SUBNETS = "subnets";
 	protected static final String KEY_SECURITY_GROUP = "security_group";
 	protected static final String KEY_SECURITY_GROUP_RULE = "security_group_rule";
-	protected static final String KEY_JSON_ROUTER = "router";
-	protected static final String KEY_JSON_PORTS = "ports";
-	protected static final String KEY_DEVICE_ID = "device_id";
 	protected static final String KEY_STATUS = "status";
 	protected static final String KEY_NAME = "name";
 	protected static final String KEY_CIDR = "cidr";
@@ -68,14 +56,9 @@ public class OpenStackV2NetworkPlugin2 implements NetworkPlugin {
 
 	protected static final String DEFAULT_IP_VERSION = "4";
 	protected static final String DEFAULT_NETWORK_NAME = "fogbow-network";
-	protected static final String DEFAULT_ROUTER_NAME = "fogbow-router";
 	protected static final String DEFAULT_SUBNET_NAME = "fogbow-subnet";
-	protected static final String DEFAULT_SECURITY_GROUP_NAME = "fogbow-sg";
 	protected static final String[] DEFAULT_DNS_NAME_SERVERS = new String[] {"8.8.8.8", "8.8.4.4"};
 	protected static final String DEFAULT_NETWORK_ADDRESS = "192.168.0.1/24";
-	protected static final String NETWORK_DHCP = "network:dhcp";
-	protected static final String COMPUTE_NOVA = "compute:nova";
-	protected static final String NETWORK_ROUTER = "network:ha_router_replicated_interface";
 
 	// security group keys
 	protected static final String DIRECTION = "direction";
@@ -89,10 +72,10 @@ public class OpenStackV2NetworkPlugin2 implements NetworkPlugin {
 	protected static final String ICMP_PROTOCOL = "icmp";
 	public static final int SSH_PORT = 22;
 	public static final int ANY_PORT = -1;
+	public static final String DEFAULT_SECURITY_GROUP_NAME = "fogbow-sg";
 
 	private HttpRequestClientUtil client;
 	private String networkV2APIEndpoint;
-	private String externalNetworkId;
 	private String[] dnsList;
 
 	private static final Logger LOGGER = Logger.getLogger(OpenStackV2NetworkPlugin.class);
@@ -102,7 +85,6 @@ public class OpenStackV2NetworkPlugin2 implements NetworkPlugin {
 		Properties properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
 				+ DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
 
-		this.externalNetworkId = properties.getProperty(KEY_EXTERNAL_GATEWAY_INFO);
 		this.networkV2APIEndpoint =
 				properties.getProperty(NETWORK_NEUTRONV2_URL_KEY)
 						+ V2_API_ENDPOINT;
@@ -291,7 +273,7 @@ public class OpenStackV2NetworkPlugin2 implements NetworkPlugin {
 			throws FogbowManagerException, UnexpectedException {		
 		LOGGER.debug(String.format("Removing security group %s", securityGroupId));
 		try {
-			String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES + "/" + securityGroupId;
+			String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP + "/" + securityGroupId;
 			this.client.doDeleteRequest(endpoint, token);
 			return true;
 		} catch (HttpResponseException e) {
@@ -384,20 +366,6 @@ public class OpenStackV2NetworkPlugin2 implements NetworkPlugin {
 		return networkId;
 	}
 
-	protected String getSubnetIdFromJson(String json) throws UnexpectedException {
-		String subnetId = null;
-		try {
-			JSONObject rootServer = new JSONObject(json);
-			JSONObject networkJSONObject = rootServer.optJSONObject(KEY_JSON_SUBNET);
-			subnetId = networkJSONObject.optString(KEY_ID);
-		} catch (JSONException e) {
-			String errorMsg = String.format("Was not possible retrieve subnet id from json %s", json);
-			LOGGER.error(errorMsg);
-			throw new UnexpectedException(errorMsg, e);
-		}
-		return subnetId;
-	}
-
 	protected JSONObject generateJsonEntityToCreateNetwork(String tenantId) throws JSONException {
 		JSONObject networkContent = new JSONObject();
 		networkContent.put(KEY_NAME, DEFAULT_NETWORK_NAME + "-" + UUID.randomUUID());
@@ -407,13 +375,6 @@ public class OpenStackV2NetworkPlugin2 implements NetworkPlugin {
 		network.put(KEY_JSON_NETWORK, networkContent);
 
 		return network;
-	}
-
-	protected JSONObject generateJsonEntitySubnetId(String subnetId) throws JSONException {
-		JSONObject subnet = new JSONObject();
-		subnet.put(KEY_JSON_SUBNET_ID, subnetId);
-
-		return subnet;
 	}
 
 	protected JSONObject generateJsonEntityToCreateSubnet(String networkId, String tenantId,
