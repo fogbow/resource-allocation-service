@@ -1,14 +1,6 @@
 package org.fogbowcloud.manager.requests.api.local.http;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +18,7 @@ import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -45,6 +38,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import junit.framework.Assert;
+
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
 @WebMvcTest(value = AttachmentOrdersController.class, secure = false)
@@ -54,71 +49,97 @@ public class AttachmentOrdersControllerTest {
             "/".concat(AttachmentOrdersController.ATTACHMENT_ENDPOINT);
 
     private final String CORRECT_BODY =
-            "{"
+            		"{"
                     + "\"source\": \"b8852ff6-ce00-45aa-898d-ddaffb5c6173\","
                     + "\"target\": \"596f93c7-06a1-4621-8c9d-5330a089eafe\","
                     + "\"device\": \"/dev/sdd\""
                     + "}";
 
     private final String BODY_WITH_EMPTY_PROPERTIES =
-            "{"
+            		"{"
                     + "\"source\": \"b8852ff6-ce00-45aa-898d-ddaffb5c6173\","
                     + "\"target\": \"596f93c7-06a1-4621-8c9d-5330a089eafe\","
                     + "\"device\": \"/dev/sdd\""
                     + "}";
 
-    @Autowired private MockMvc mockMvc;
+    @Autowired
+    private MockMvc mockMvc;
 
     private ApplicationFacade facade;
 
     @Before
     public void setUp() throws FogbowManagerException {
-        this.facade = spy(ApplicationFacade.class);
+        this.facade = Mockito.spy(ApplicationFacade.class);
         PowerMockito.mockStatic(ApplicationFacade.class);
         given(ApplicationFacade.getInstance()).willReturn(this.facade);
     }
 
+    // test case: Request a attachment creation and test successfully return. 
+    // Check the response of request and the call of facade for create the attachment.
     @Test
     public void CreateAttachmenTest() throws Exception {
+    	
+    	// set up
         String orderId = "fake-id";
-
-        doReturn(orderId)
+        Mockito.doReturn(orderId)
                 .when(this.facade)
-                .createAttachment(any(AttachmentOrder.class), anyString());
-
+                .createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());
+        
         RequestBuilder requestBuilder =
                 createRequestBuilder(
                         HttpMethod.POST, ATTACHMENT_ENDPOINT, getHttpHeaders(), CORRECT_BODY);
 
+        // exercise: Make the request
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
+        // verify
         int expectedStatus = HttpStatus.CREATED.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(orderId, result.getResponse().getContentAsString());
+        
+        Mockito.verify(this.facade, Mockito.times(1))
+        	.createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());
     }
 
+    
+    // test case: Request a attachment creation with 3 types of wrong body and test fail return
+    // Check the response of request and the call of facade for create the attachment.
     @Test
     public void wrongBodyToPostAttachmentTest() throws Exception {
-        // Empty json
+        // Case 1: Empty json
+    	// set up
         RequestBuilder requestBuilder =
-                createRequestBuilder(HttpMethod.POST, ATTACHMENT_ENDPOINT, getHttpHeaders(), "{}");
+                createRequestBuilder(HttpMethod.POST,
+                		ATTACHMENT_ENDPOINT,
+                		getHttpHeaders(),
+                		""); 
+        
 
+        // exercise: Make the request
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
-        int expectedStatus = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        // verify
+        int expectedStatus = HttpStatus.BAD_REQUEST.value();
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(0))
+    		.createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());
 
-        // Invalid json
-
+        // Case 2: Invalid json
+        // set up
         requestBuilder =
                 createRequestBuilder(HttpMethod.POST, ATTACHMENT_ENDPOINT, getHttpHeaders(), "{}");
 
+        // exercise: Make the request
         result = this.mockMvc.perform(requestBuilder).andReturn();
 
+        // verify
         expectedStatus = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(1))
+    		.createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());
 
-        // Json with empty properties.
-
+        // Case 3: Json with empty properties.
+        // set up
         requestBuilder =
                 createRequestBuilder(
                         HttpMethod.POST,
@@ -126,28 +147,47 @@ public class AttachmentOrdersControllerTest {
                         getHttpHeaders(),
                         BODY_WITH_EMPTY_PROPERTIES);
 
+        // exercise: Make the request
         result = this.mockMvc.perform(requestBuilder).andReturn();
 
+        // verify
         expectedStatus = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.atLeast(2))  // for the two tests where a non-empty body was provided
+    		.createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());
     }
 
+    // test case: Request the list of all attachments when the facade returns an empty list. 
+    // Check the response of request and the call of facade for get the attachments. 
     @Test
     public void getAllAttachmentsWhenHasNoData() throws Exception {
+    	//set up
         List<AttachmentInstance> attachementInstanceList = new ArrayList<>();
-        doReturn(attachementInstanceList).when(this.facade).getAllAttachments(anyString());
+        Mockito.doReturn(attachementInstanceList).when(this.facade).getAllAttachments(Mockito.anyString());
 
         RequestBuilder requestBuilder =
                 createRequestBuilder(HttpMethod.GET, ATTACHMENT_ENDPOINT, getHttpHeaders(), "");
 
+        // exercise: Make the request
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
+        // verify
         int expectedStatus = HttpStatus.OK.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        
+        String expectedResult = "[]";
+
+        Assert.assertEquals(expectedResult, result.getResponse().getContentAsString());
+        
+        Mockito.verify(this.facade, Mockito.times(1))
+			.getAllAttachments(Mockito.anyString());
     }
 
+    // test case: Request the list of all attachments when the facade returns an non-empty list. 
+    // Check the response of request and the call of facade for get the attachments. 
     @Test
     public void getAllAttachmentsWhenHasData() throws Exception {
+    	// set up
         AttachmentInstance AttachmentInstance1 = new AttachmentInstance("fake-Id-1");
         AttachmentInstance AttachmentInstance2 = new AttachmentInstance("fake-Id-2");
         AttachmentInstance AttachmentInstance3 = new AttachmentInstance("fake-Id-3");
@@ -157,21 +197,32 @@ public class AttachmentOrdersControllerTest {
                         new AttachmentInstance[] {
                             AttachmentInstance1, AttachmentInstance2, AttachmentInstance3
                         });
-        doReturn(AttachmentInstanceList).when(this.facade).getAllAttachments(anyString());
+        Mockito.doReturn(AttachmentInstanceList).when(this.facade)
+        	.getAllAttachments(Mockito.anyString());
 
         RequestBuilder requestBuilder =
-                createRequestBuilder(HttpMethod.GET, ATTACHMENT_ENDPOINT, getHttpHeaders(), "");
+                createRequestBuilder(HttpMethod.GET,
+                		ATTACHMENT_ENDPOINT,
+                		getHttpHeaders(), "");
+        
+        // exercise: Make the request.
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
+        // verify
         int expectedStatus = HttpStatus.OK.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 
         TypeToken<List<AttachmentInstance>> token = new TypeToken<List<AttachmentInstance>>() {};
         List<AttachmentInstance> resultList =
                 new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
-        assertTrue(resultList.size() == 3);
+        Assert.assertTrue(resultList.size() == 3);
+        
+        Mockito.verify(this.facade, Mockito.times(1))
+			.getAllAttachments(Mockito.anyString());
     }
     
+    // test case: Request the list of all attachments status when the facade returns an non-empty list. 
+    // Check the response of request and the call of facade for get the attachments status.
     @Test
     public void getAllAttachmentsStatus() throws Exception {
     	InstanceStatus AttachmentStatus1 = new InstanceStatus("fake-Id-1", "fake-provider", InstanceState.IN_USE);
@@ -183,90 +234,134 @@ public class AttachmentOrdersControllerTest {
                         new InstanceStatus[] {
                         		AttachmentStatus1, AttachmentStatus2, AttachmentStatus3
                         });
-        doReturn(AttachmentStatusList).when(this.facade).getAllInstancesStatus(anyString(), any(InstanceType.class));
+        Mockito.doReturn(AttachmentStatusList)
+        	.when(this.facade)
+        	.getAllInstancesStatus(Mockito.anyString(), Mockito.any(InstanceType.class));
 
         RequestBuilder requestBuilder =
-                createRequestBuilder(HttpMethod.GET, ATTACHMENT_ENDPOINT.concat("/status"), getHttpHeaders(), "");
+                createRequestBuilder(HttpMethod.GET,
+                		ATTACHMENT_ENDPOINT.concat("/status"),
+                		getHttpHeaders(), "");
+        
+        // exercise: Make the request
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
+        // verify
         int expectedStatus = HttpStatus.OK.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 
         TypeToken<List<InstanceStatus>> token = new TypeToken<List<InstanceStatus>>() {};
         List<InstanceStatus> resultList =
                 new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
-        assertTrue(resultList.size() == 3);
+        Assert.assertTrue(resultList.size() == 3);
+        
+        Mockito.verify(this.facade, Mockito.times(1))
+			.getAllInstancesStatus(Mockito.anyString(), Mockito.any(InstanceType.class));
     }
 
+    // test case: Request a attachment by his id and test successfully return. 
+    // Check the response of request and the call of facade for get the compute.
     @Test
     public void getAttachmentById() throws Exception {
-        String fakeId = "fake-Id-1";
+        // set up
+    	String fakeId = "fake-Id-1";
         String attachmentIdEndpoint = ATTACHMENT_ENDPOINT + "/" + fakeId;
 
         AttachmentInstance attachmentInstance = new AttachmentInstance(fakeId);
-        doReturn(attachmentInstance).when(this.facade).getAttachment(anyString(), anyString());
+        Mockito.doReturn(attachmentInstance).when(this.facade)
+        	.getAttachment(Mockito.anyString(), Mockito.anyString());
 
         RequestBuilder requestBuilder =
                 createRequestBuilder(HttpMethod.GET, attachmentIdEndpoint, getHttpHeaders(), "");
 
+        // exercise: Make the request
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
+        // verify
         int expectedStatus = HttpStatus.OK.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 
         AttachmentInstance resultAttachmentInstance =
                 new Gson()
                         .fromJson(
                                 result.getResponse().getContentAsString(),
                                 AttachmentInstance.class);
-        assertTrue(resultAttachmentInstance != null);
+        
+        Assert.assertTrue(resultAttachmentInstance != null);
+        
+        Mockito.verify(this.facade, Mockito.times(1))
+			.getAttachment(Mockito.anyString() ,Mockito.anyString());
     }
 
+    // test case: Request a attachment by his id when the instance is not found. 
+    // Check the response of request and the call of facade for get the attachment.
     @Test
     public void getNotFoundAttachmentById() throws Exception {
+    	// set up
         String fakeId = "fake-Id-1";
         String attachmentIdEndpoint = ATTACHMENT_ENDPOINT + "/" + fakeId;
-        doThrow(new InstanceNotFoundException())
+        Mockito.doThrow(new InstanceNotFoundException())
                 .when(this.facade)
-                .getAttachment(anyString(), anyString());
+                .getAttachment(Mockito.anyString(), Mockito.anyString());
+        
         RequestBuilder requestBuilder =
                 createRequestBuilder(HttpMethod.GET, attachmentIdEndpoint, getHttpHeaders(), "");
 
+        // exercise: Make the request
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
+        // verify
         int expectedStatus = HttpStatus.NOT_FOUND.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(1))
+			.getAttachment(Mockito.anyString() ,Mockito.anyString());
     }
 
+    // test case: Delete a attachment by his id and test successfully return. 
+    // Check the response of request and the call of facade for delete the attachment.
     @Test
     public void deleteExistingAttachement() throws Exception {
+    	// set up
         String fakeId = "fake-Id-1";
         String attachmentIdEndpoint = ATTACHMENT_ENDPOINT + "/" + fakeId;
-        doNothing().when(this.facade).deleteAttachment(anyString(), anyString());
+        Mockito.doNothing().when(this.facade)
+        	.deleteAttachment(Mockito.anyString(), Mockito.anyString());
 
         RequestBuilder requestBuilder =
                 createRequestBuilder(HttpMethod.DELETE, attachmentIdEndpoint, getHttpHeaders(), "");
 
+        // exercise: Make the request
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
         int expectedStatus = HttpStatus.OK.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        Mockito.verify(this.facade, Mockito.times(1))
+			.deleteAttachment(Mockito.anyString() ,Mockito.anyString());
     }
 
+    
+    // test case: Delete a not found attachment by his id and test fail return. 
+    // Check the response of request and the call of facade for delete the attachment.
     @Test
     public void deleteNotFoundAttachmentById() throws Exception {
+    	// set up
         String fakeId = "fake-Id-1";
         String attachmentIdEndpoint = ATTACHMENT_ENDPOINT + "/" + fakeId;
-        doThrow(new InstanceNotFoundException())
+        Mockito.doThrow(new InstanceNotFoundException())
                 .when(this.facade)
-                .deleteAttachment(anyString(), anyString());
+                .deleteAttachment(Mockito.anyString(), Mockito.anyString());
         RequestBuilder requestBuilder =
                 createRequestBuilder(HttpMethod.DELETE, attachmentIdEndpoint, getHttpHeaders(), "");
 
+        // exercise: Make the request
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
+        // verify
         int expectedStatus = HttpStatus.NOT_FOUND.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
+        
+        Mockito.verify(this.facade, Mockito.times(1))
+			.deleteAttachment(Mockito.anyString() ,Mockito.anyString());
     }
 
     private RequestBuilder createRequestBuilder(
