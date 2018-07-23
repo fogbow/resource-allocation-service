@@ -88,8 +88,10 @@ public class OpenStackV2NetworkPlugin2 implements NetworkPlugin {
 	protected static final String PORT_RANGE_MIN = "port_range_min";
 	protected static final String PORT_RANGE_MAX = "port_range_max";
 	protected static final String INGRESS_DIRECTION = "ingress";
-	protected static final String IPV4 = "IPv4";
+	protected static final String TCP_PROTOCOL = "tcp";
+	protected static final String ICMP_PROTOCOL = "icmp";
 	public static final int SSH_PORT = 22;
+	public static final int ANY_PORT = -1;
 
 	private HttpRequestClientUtil client;
 	private String networkV2APIEndpoint;
@@ -123,82 +125,91 @@ public class OpenStackV2NetworkPlugin2 implements NetworkPlugin {
 	public String requestInstance(NetworkOrder order, Token localToken)
 			throws FogbowManagerException, UnexpectedException {
 		String tenantId = localToken.getAttributes().get(TENANT_ID);
-		String responseStr = null;
-		JSONObject jsonRequest = null;
+		String responseStr = "";
 
-		// Creating network
+		responseStr = createNetwork(localToken, tenantId);
+		String networkId = getNetworkIdFromJson(responseStr);
+		createSubNet(order, localToken, tenantId, networkId);
+
+		responseStr = createSecurityGroup(order, localToken, tenantId, networkId);
+		String securityGroupId = getSecurityGroupIdFromJson(responseStr);
+
+		createSecurityGroupRules(order, localToken, networkId, securityGroupId);
+		return networkId;
+	}
+
+	private String createNetwork(Token localToken, String tenantId) throws FogbowManagerException, UnexpectedException {
+		String responseStr = "";
 		try {
-			jsonRequest = generateJsonEntityToCreateNetwork(tenantId);
+			JSONObject jsonRequest = generateJsonEntityToCreateNetwork(tenantId);
+			String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK;
+			responseStr = this.client.doPostRequest(endpoint, localToken, jsonRequest);
 		} catch (JSONException e) {
 			String errorMsg = "An error occurred when generating json.";
 			LOGGER.error(errorMsg, e);
 			throw new InvalidParameterException(errorMsg, e);
-		}
-		try {
-			String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK;
-			responseStr = this.client.doPostRequest(endpoint, localToken, jsonRequest);
 		} catch (HttpResponseException e) {
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}
-		String networkId = getNetworkIdFromJson(responseStr);
+		return responseStr;
+	}
 
-		// Creating subnet
+	private void createSubNet(NetworkOrder order, Token localToken, String tenantId, String networkId) throws UnexpectedException, FogbowManagerException {
 		try {
-			jsonRequest = generateJsonEntityToCreateSubnet(networkId, tenantId, order);
+			JSONObject jsonRequest = generateJsonEntityToCreateSubnet(networkId, tenantId, order);
+			String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SUBNET;
+			this.client.doPostRequest(endpoint, localToken, jsonRequest);
 		} catch (JSONException e) {
 			String errorMsg =
 					String.format("Error while trying to generate json subnet entity with networkId %s for order %s",
 							networkId, order);
 			LOGGER.error(errorMsg, e);
 			throw new InvalidParameterException(errorMsg, e);
-		}
-		try {
-			String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SUBNET;
-			responseStr = this.client.doPostRequest(endpoint, localToken, jsonRequest);
 		} catch (HttpResponseException e) {
 			removeNetwork(localToken, networkId);
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}
+	}
 
-		// Creating security group
+	private String createSecurityGroup(NetworkOrder order, Token localToken, String tenantId, String networkId) throws UnexpectedException, FogbowManagerException {
+		String responseStr = "";
 		try {
-			jsonRequest = generateJsonEntityToCreateSecurityGroup(networkId, tenantId);
-		} catch (JSONException e) {
-			String errorMsg =
-					String.format("Error while trying to generate json subnet entity with networkId %s for order %s",
-							networkId, order);
-			LOGGER.error(errorMsg, e);
-			throw new InvalidParameterException(errorMsg, e);
-		}
-		try {
+			JSONObject jsonRequest = generateJsonEntityToCreateSecurityGroup(networkId, tenantId);
 			String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP;
 			responseStr = this.client.doPostRequest(endpoint, localToken, jsonRequest);
-		} catch (HttpResponseException e) {
-			removeNetwork(localToken, networkId);
-			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
-		}
-		String securityGroupId = getSecurityGroupIdFromJson(responseStr);
-
-		// Adding security groups rules
-		try {
-			jsonRequest = generateJsonEntityToCreateSecurityGroupRule(securityGroupId, INGRESS_DIRECTION, order.getAddress(),
-					IPV4, SSH_PORT, SSH_PORT);
 		} catch (JSONException e) {
 			String errorMsg =
 					String.format("Error while trying to generate json subnet entity with networkId %s for order %s",
 							networkId, order);
 			LOGGER.error(errorMsg, e);
 			throw new InvalidParameterException(errorMsg, e);
-		}
-		try {
-			String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES;
-			responseStr = this.client.doPostRequest(endpoint, localToken, jsonRequest);
 		} catch (HttpResponseException e) {
 			removeNetwork(localToken, networkId);
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}
+		return responseStr;
+	}
 
-		return networkId;
+	private void createSecurityGroupRules(NetworkOrder order, Token localToken, String networkId, String securityGroupId)
+			throws UnexpectedException, FogbowManagerException {
+		try {
+			JSONObject jsonRequestSshRule = generateJsonEntityToCreateSecurityGroupRule(securityGroupId, INGRESS_DIRECTION,
+					order.getAddress(), TCP_PROTOCOL, SSH_PORT, SSH_PORT);
+			JSONObject jsonRequestIcmpRule = generateJsonEntityToCreateSecurityGroupRule(securityGroupId, INGRESS_DIRECTION, order.getAddress(),
+					ICMP_PROTOCOL, ANY_PORT, ANY_PORT);
+			String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES;
+			this.client.doPostRequest(endpoint, localToken, jsonRequestSshRule);
+			this.client.doPostRequest(endpoint, localToken, jsonRequestIcmpRule);
+		} catch (JSONException e) {
+			String errorMsg =
+					String.format("Error while trying to generate json subnet entity with networkId %s for order %s",
+							networkId, order);
+			LOGGER.error(errorMsg, e);
+			throw new InvalidParameterException(errorMsg, e);
+		} catch (HttpResponseException e) {
+			removeNetwork(localToken, networkId);
+			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
+		}
 	}
 
 	private String getSecurityGroupIdFromJson(String json) throws UnexpectedException {
@@ -234,9 +245,10 @@ public class OpenStackV2NetworkPlugin2 implements NetworkPlugin {
 		securityGroupObject.put(SECURITY_GROUP_ID, securityGroupId);
 		securityGroupObject.put(REMOTE_IP_PREFIX, remoteIpPrefix);
 		securityGroupObject.put(PROTOCOL, protocol);
-		securityGroupObject.put(PORT_RANGE_MIN, minPort);
-		securityGroupObject.put(PORT_RANGE_MAX, maxPort);
-
+		if (minPort > 0 && maxPort > 0) {
+			securityGroupObject.put(PORT_RANGE_MIN, minPort);
+			securityGroupObject.put(PORT_RANGE_MAX, maxPort);
+		}
 		securityGroupRule.put(KEY_SECURITY_GROUP_RULE, securityGroupObject);
 		return securityGroupRule;
 	}
