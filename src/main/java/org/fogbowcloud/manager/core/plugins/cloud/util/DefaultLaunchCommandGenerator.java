@@ -31,6 +31,7 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
     public static final String USER_DATA_LINE_BREAKER = "[[\\n]]";
 
     private final String SSH_REVERSE_TUNNEL_SCRIPT_PATH = "bin/create-reverse-tunnel";
+    private final String BRING_UP_NETWORK_INTERFACE_SCRIPT_PATH = "bin/bring-up-network-interface";
 
     private final String CLOUD_CONFIG_FILE_PATH = "bin/cloud-config.cfg";
 
@@ -82,6 +83,9 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
             // of the file, preventing to read the file again.
             cloudInitUserDataBuilder.addShellScript(new FileReader(this.SSH_REVERSE_TUNNEL_SCRIPT_PATH));
             cloudInitUserDataBuilder.addCloudConfig(new FileReader(this.CLOUD_CONFIG_FILE_PATH));
+            if (order.getNetworksId().size() > 1) {
+                cloudInitUserDataBuilder.addShellScript(new FileReader(this.BRING_UP_NETWORK_INTERFACE_SCRIPT_PATH));
+            }
         } catch (IOException e) {
             throw new FatalErrorException(e.getMessage());
         }
