@@ -37,26 +37,26 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
         SynchronizedDoublyLinkedList listFromInstanceTwo = instanceTwo.getOpenOrdersList();
 
         // verify
-        Assert.assertEquals(listFromInstanceOne, listFromInstanceTwo);
+        Assert.assertSame(listFromInstanceOne, listFromInstanceTwo);
 
         // exercise
         Order orderOne = createLocalOrder(getLocalMemberId());
         listFromInstanceOne.addItem(orderOne);
 
         // verify
-        Assert.assertEquals(listFromInstanceOne.getCurrent(), listFromInstanceTwo.getCurrent());
-        Assert.assertEquals(orderOne, listFromInstanceOne.getCurrent().getOrder());
-        Assert.assertEquals(orderOne, listFromInstanceTwo.getCurrent().getOrder());
+        Assert.assertSame(listFromInstanceOne.getCurrent(), listFromInstanceTwo.getCurrent());
+        Assert.assertSame(orderOne, listFromInstanceOne.getCurrent().getOrder());
+        Assert.assertSame(orderOne, listFromInstanceTwo.getCurrent().getOrder());
 
         // exercise
         Order orderTwo = createLocalOrder(getLocalMemberId());
         listFromInstanceTwo.addItem(orderTwo);
 
         // verify
-        Assert.assertEquals(
+        Assert.assertSame(
                 listFromInstanceOne.getCurrent().getNext(),
                 listFromInstanceTwo.getCurrent().getNext());
-        Assert.assertEquals(orderTwo, listFromInstanceOne.getCurrent().getNext().getOrder());
-        Assert.assertEquals(orderTwo, listFromInstanceTwo.getCurrent().getNext().getOrder());
+        Assert.assertSame(orderTwo, listFromInstanceOne.getCurrent().getNext().getOrder());
+        Assert.assertSame(orderTwo, listFromInstanceTwo.getCurrent().getNext().getOrder());
     }
 }
