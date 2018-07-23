@@ -7,9 +7,12 @@ import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.models.images.Image;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.BDDMockito;
+import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -28,12 +31,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
-
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
 @WebMvcTest(value = ImageRequestController.class, secure = false)
@@ -49,9 +46,9 @@ public class ImageRequestControllerTest {
 
     @Before
     public void setUp() throws FogbowManagerException {
-        this.facade = spy(ApplicationFacade.class);
+        this.facade = Mockito.spy(ApplicationFacade.class);
         PowerMockito.mockStatic(ApplicationFacade.class);
-        given(ApplicationFacade.getInstance()).willReturn(this.facade);
+        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
     }
 
     // test case: Test getAllImages() when no images were found, it must return an empty JSON.
@@ -59,7 +56,7 @@ public class ImageRequestControllerTest {
     public void testGetAllImagesWhenHasNoData() throws Exception {
         // set up
         Map<String, String> imagesMap = new HashMap<>();
-        doReturn(imagesMap).when(this.facade).getAllImages(anyString(), anyString());
+        Mockito.doReturn(imagesMap).when(this.facade).getAllImages(Mockito.anyString(), Mockito.anyString());
 
         RequestBuilder requestBuilder = createRequestBuilder(IMAGE_ENDPOINT, getHttpHeaders(), "");
 
@@ -68,8 +65,8 @@ public class ImageRequestControllerTest {
 
         // verify
         int expectedStatus = HttpStatus.OK.value();
-        assertEquals("{}", result.getResponse().getContentAsString());
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals("{}", result.getResponse().getContentAsString());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 
     // test case: Test getAllImages() when there are some images.
@@ -81,7 +78,7 @@ public class ImageRequestControllerTest {
         imagesMap.put("image-id2", "image-name2");
         imagesMap.put("image-id3", "image-name3");
 
-        doReturn(imagesMap).when(this.facade).getAllImages(anyString(), anyString());
+        Mockito.doReturn(imagesMap).when(this.facade).getAllImages(Mockito.anyString(), Mockito.anyString());
 
         RequestBuilder requestBuilder = createRequestBuilder(IMAGE_ENDPOINT, getHttpHeaders(), "");
 
@@ -90,11 +87,11 @@ public class ImageRequestControllerTest {
 
         // verify
         int expectedStatus = HttpStatus.OK.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 
         TypeToken<Map<String, String>> token = new TypeToken<Map<String, String>>(){};
         Map<String, String> resultMap = new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
-        assertTrue(resultMap.size() == 3);
+        Assert.assertEquals(3, resultMap.size());
     }
 
     // test case: Test if given an existing image id, the getImage() returns that image properly.
@@ -106,7 +103,8 @@ public class ImageRequestControllerTest {
 
         Image image = new Image(fakeId, "fake-name", 1, 1, 1, "READY");
 
-        doReturn(image).when(this.facade).getImage(anyString(), anyString(), anyString());
+        Mockito.doReturn(image).when(this.facade).getImage(Mockito.anyString(),
+                Mockito.anyString(), Mockito.anyString());
 
         RequestBuilder requestBuilder = createRequestBuilder(imageEndpoint, getHttpHeaders(), "");
 
@@ -115,15 +113,15 @@ public class ImageRequestControllerTest {
 
         // verify
         int expectedStatus = HttpStatus.OK.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 
         Image resultImage = new Gson().fromJson(result.getResponse().getContentAsString(), Image.class);
-        assertEquals(resultImage.getId(), image.getId());
-        assertEquals(resultImage.getName(), image.getName());
-        assertEquals(resultImage.getStatus(), image.getStatus());
-        assertEquals(resultImage.getMinDisk(), image.getMinDisk());
-        assertEquals(resultImage.getMinRam(), image.getMinRam());
-        assertEquals(resultImage.getSize(), image.getSize());
+        Assert.assertEquals(image.getId(), resultImage.getId());
+        Assert.assertEquals(image.getName(), resultImage.getName());
+        Assert.assertEquals(image.getStatus(), resultImage.getStatus());
+        Assert.assertEquals(image.getMinDisk(), resultImage.getMinDisk());
+        Assert.assertEquals(image.getMinRam(), resultImage.getMinRam());
+        Assert.assertEquals(image.getSize(), resultImage.getSize());
     }
 
     // test case: Test if given an invalid image id, the getImage() returns just NOT_FOUND.
@@ -133,7 +131,8 @@ public class ImageRequestControllerTest {
         String fakeId = "fake-Id-1";
         String imageEndpoint = IMAGE_ENDPOINT + "/" + fakeId;
 
-        doThrow(new InstanceNotFoundException()).when(this.facade).getImage(anyString(), anyString(), anyString());
+        Mockito.doThrow(new InstanceNotFoundException()).when(this.facade).getImage(
+                Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         RequestBuilder requestBuilder = createRequestBuilder(imageEndpoint, getHttpHeaders(), "");
 
@@ -142,7 +141,7 @@ public class ImageRequestControllerTest {
 
         // verify
         int expectedStatus = HttpStatus.NOT_FOUND.value();
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 
     private RequestBuilder createRequestBuilder(String urlTemplate, HttpHeaders headers, String body) {
