@@ -1,8 +1,5 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doReturn;
-
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
@@ -84,8 +81,10 @@ public class OpenStackV2VolumePluginTest {
         this.tokenDefault = new Token(FAKE_ACCESS_ID, tokenUser, new Date(), attributes);
     }
 
+    // test case: Check if the request in requestInstance() is executed properly with the right parameters.
     @Test
     public void testRequestInstance() throws IOException, FogbowManagerException {
+        // set up
         String url = FAKE_STORAGE_URL + V2_API_ENDPOINT + FAKE_TENANT_ID
                 + OpenStackV2VolumePlugin.SUFIX_ENDPOINT_VOLUMES;
         HttpUriRequest request = new HttpPost(url);
@@ -93,44 +92,62 @@ public class OpenStackV2VolumePluginTest {
 
         JSONObject json = this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE, FAKE_NAME);
 
-        doReturn(json).when(this.openStackV2VolumePlugin).generateJsonEntityToCreateInstance(anyString(), anyString());
+        Mockito.doReturn(json).when(this.openStackV2VolumePlugin).generateJsonEntityToCreateInstance(
+                Mockito.anyString(), Mockito.anyString());
 
         this.expectedRequest = new HttpUriRequestMatcher(request, this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE, FAKE_NAME).toString());
 
         String id = "fake-id";
         int size = 2;
         VolumeOrder order = new VolumeOrder(id, null, "", "", size, "fake-volume-name");
+
         try {
+            // exercise
             this.openStackV2VolumePlugin.requestInstance(order, this.tokenDefault);
         } catch (Exception e) {
 
         }
 
+        // verify
         Mockito.verify(this.client).execute(Mockito.argThat(this.expectedRequest));
     }
 
+    // test case: Resquesting an instance without tenant ID must return an exception.
     @Test(expected=FogbowManagerException.class)
     public void testRequestInstanceWithoutTenantId() throws FogbowManagerException, UnexpectedException {
+        // set up
         this.tokenDefault.getAttributes().clear();
+
+        // exercise
         this.openStackV2VolumePlugin.requestInstance(null, this.tokenDefault);
     }
 
+    // test case: Tests if generateJsonEntityToCreateInstance is returning the volume Json properly.
     @Test
     public void testGenerateJsonEntityToCreateInstance() {
+        // exercise
         JSONObject jsonEntity = this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE, FAKE_NAME);
+
+        // verify
         Assert.assertEquals(FAKE_SIZE, jsonEntity.getJSONObject(OpenStackV2VolumePlugin.KEY_JSON_VOLUME)
                 .getString(OpenStackV2VolumePlugin.KEY_JSON_SIZE));
     }
 
+    // test case: Tests if given a volume Json, the getInstanceFromJson() returns the right VolumeInstance.
     @Test
     public void testGetInstanceFromJson() throws FogbowManagerException, JSONException, UnexpectedException {
+        // exercise
         VolumeInstance instance = this.openStackV2VolumePlugin.getInstanceFromJson(
                 generateInstanceJsonResponse(FAKE_INSTANCE_ID).toString());
+
+        // verify
         Assert.assertEquals(FAKE_INSTANCE_ID, instance.getId());
     }
 
+    // test case: Check if the request in getInstance() is executed properly with the right parameters.
     @Test
     public void testGetInstance() throws IOException {
+        // set up
         String url = FAKE_STORAGE_URL + V2_API_ENDPOINT + FAKE_TENANT_ID
                 + OpenStackV2VolumePlugin.SUFIX_ENDPOINT_VOLUMES + "/" + FAKE_INSTANCE_ID;
         HttpUriRequest request = new HttpGet(url);
@@ -139,21 +156,29 @@ public class OpenStackV2VolumePluginTest {
         this.expectedRequest = new HttpUriRequestMatcher(request, null);
 
         try {
+            // exercise
             this.openStackV2VolumePlugin.getInstance(FAKE_INSTANCE_ID, this.tokenDefault);
         } catch (Exception e) {
         }
 
+        // verify
         Mockito.verify(this.client).execute(Mockito.argThat(this.expectedRequest));
     }
 
+    // test case: Getting an instance without a tenant ID must raise FogbowManagerException.
     @Test(expected=FogbowManagerException.class)
     public void testGetInstancesWithoutTenantId() throws Exception {
+        // set up
         this.tokenDefault.getAttributes().clear();
+
+        // exercise
         this.openStackV2VolumePlugin.getInstance(FAKE_ACCESS_ID, this.tokenDefault);
     }
 
+    // test case: Check if the request in deleteInstance() is executed properly with the right parameters.
     @Test
     public void removeInstance() throws IOException {
+        // set up
         String url = FAKE_STORAGE_URL + V2_API_ENDPOINT + FAKE_TENANT_ID
                 + OpenStackV2VolumePlugin.SUFIX_ENDPOINT_VOLUMES + "/" + FAKE_INSTANCE_ID;
         HttpUriRequest request = new HttpDelete(url);
@@ -162,16 +187,22 @@ public class OpenStackV2VolumePluginTest {
         this.expectedRequest = new HttpUriRequestMatcher(request, null);
 
         try {
+            // exercise
             this.openStackV2VolumePlugin.deleteInstance(FAKE_INSTANCE_ID, this.tokenDefault);
         } catch (Exception e) {
         }
 
+        // verify
         Mockito.verify(client).execute(Mockito.argThat(this.expectedRequest));
     }
 
+    // test case: Deleting an instance without a tenant ID must raise FogbowManagerException.
     @Test(expected=FogbowManagerException.class)
     public void testRemoveInstanceWithoutTenantId() throws Exception {
+        // set up
         this.tokenDefault.getAttributes().clear();
+
+        // exercise
         this.openStackV2VolumePlugin.deleteInstance(FAKE_INSTANCE_ID, tokenDefault);
     }
 
