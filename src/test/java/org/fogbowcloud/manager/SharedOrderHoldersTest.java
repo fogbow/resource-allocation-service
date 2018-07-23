@@ -1,20 +1,14 @@
 package org.fogbowcloud.manager;
 
-import static org.junit.Assert.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.when;
-
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.datastore.DatabaseManager;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.OrderState;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -27,39 +21,42 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
 
     @Before
     public void initialize() {
-        DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
-        when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList());
-        when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList());
-        when(databaseManager.readActiveOrders(OrderState.FAILED)).thenReturn(new SynchronizedDoublyLinkedList());
-        when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList());
-        when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList());
-        when(databaseManager.readActiveOrders(OrderState.CLOSED)).thenReturn(new SynchronizedDoublyLinkedList());
-
-        PowerMockito.mockStatic(DatabaseManager.class);
-        given(DatabaseManager.getInstance()).willReturn(databaseManager);
+        mockReadOrdersFromDataBase();
 
         this.instanceOne = SharedOrderHolders.getInstance();
         this.instanceTwo = SharedOrderHolders.getInstance();
     }
 
+    // test case: As SynchronizedDoublyLinkedList is a sigleton object, when getting the
+    // list twice (or more) it must point to the same reference, in other words,
+    // they are the same object.
     @Test
     public void testGetSameListReference() {
+        // set up
         SynchronizedDoublyLinkedList listFromInstanceOne = instanceOne.getOpenOrdersList();
         SynchronizedDoublyLinkedList listFromInstanceTwo = instanceTwo.getOpenOrdersList();
-        assertEquals(listFromInstanceOne, listFromInstanceTwo);
 
+        // verify
+        Assert.assertEquals(listFromInstanceOne, listFromInstanceTwo);
+
+        // exercise
         Order orderOne = createLocalOrder(getLocalMemberId());
         listFromInstanceOne.addItem(orderOne);
-        assertEquals(listFromInstanceOne.getCurrent(), listFromInstanceTwo.getCurrent());
-        assertEquals(orderOne, listFromInstanceOne.getCurrent().getOrder());
-        assertEquals(orderOne, listFromInstanceTwo.getCurrent().getOrder());
 
+        // verify
+        Assert.assertEquals(listFromInstanceOne.getCurrent(), listFromInstanceTwo.getCurrent());
+        Assert.assertEquals(orderOne, listFromInstanceOne.getCurrent().getOrder());
+        Assert.assertEquals(orderOne, listFromInstanceTwo.getCurrent().getOrder());
+
+        // exercise
         Order orderTwo = createLocalOrder(getLocalMemberId());
         listFromInstanceTwo.addItem(orderTwo);
-        assertEquals(
+
+        // verify
+        Assert.assertEquals(
                 listFromInstanceOne.getCurrent().getNext(),
                 listFromInstanceTwo.getCurrent().getNext());
-        assertEquals(orderTwo, listFromInstanceOne.getCurrent().getNext().getOrder());
-        assertEquals(orderTwo, listFromInstanceTwo.getCurrent().getNext().getOrder());
+        Assert.assertEquals(orderTwo, listFromInstanceOne.getCurrent().getNext().getOrder());
+        Assert.assertEquals(orderTwo, listFromInstanceTwo.getCurrent().getNext().getOrder());
     }
 }
