@@ -3,10 +3,8 @@ package org.fogbowcloud.manager.requests.api.local.http;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import org.fogbowcloud.manager.api.http.ComputeOrdersController;
 import org.fogbowcloud.manager.core.ApplicationFacade;
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
@@ -38,7 +36,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
@@ -267,8 +264,7 @@ public class ComputeOrdersControllerTest {
         
         Mockito.verify(this.facade, Mockito.times(1)).getAllInstancesStatus(Mockito.anyString(), Mockito.any(InstanceType.class));
     }
-    
-    
+        
     // test case: Request a compute by its id with an unauthenticated user. Check the response of request
     // and the call of facade for get the compute.
     @Test
@@ -333,7 +329,6 @@ public class ComputeOrdersControllerTest {
         Mockito.verify(this.facade, Mockito.times(1)).getCompute(Mockito.anyString(), Mockito.anyString());
     }
     
-
     // test case: Request a compute by its id and test successfully return. Check the response of request
     // and the call of facade for get the compute.
     @Test
@@ -489,8 +484,7 @@ public class ComputeOrdersControllerTest {
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
         Mockito.verify(this.facade, Mockito.times(1)).getComputeAllocation(Mockito.anyString(), Mockito.anyString());
     }
-    
-    
+       
     // test case: Request the user allocation and test successfully return. Check the response of request
     // and the call of facade for get the user allocation.
     @Test
@@ -565,8 +559,7 @@ public class ComputeOrdersControllerTest {
         
         Mockito.verify(this.facade, Mockito.times(1)).getComputeQuota(Mockito.anyString(), Mockito.anyString());
     }
-    
-    
+        
     // test case: Request the user quota with unauthenticated user. Check the response of request
     // and the call of facade for get the user quota.
     @Test
@@ -588,7 +581,6 @@ public class ComputeOrdersControllerTest {
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
         Mockito.verify(this.facade, Mockito.times(1)).getComputeQuota(Mockito.anyString(), Mockito.anyString());
     }
-    
     
     // test case: Request the user quota with unauthorized user. Check the response of request
     // and the call of facade for get the user quota.
