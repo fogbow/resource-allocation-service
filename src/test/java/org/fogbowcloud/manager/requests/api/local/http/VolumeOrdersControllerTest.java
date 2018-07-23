@@ -1,5 +1,7 @@
 package org.fogbowcloud.manager.requests.api.local.http;
 
+import static org.mockito.Mockito.times;
+
 import java.util.ArrayList;
 import java.util.List;
 import com.google.gson.Gson;
@@ -79,7 +81,7 @@ public class VolumeOrdersControllerTest {
         String resultVolumeId = result.getResponse().getContentAsString();
 
         // verify
-        Mockito.verify(this.facade).createVolume(Mockito.any(VolumeOrder.class),
+        Mockito.verify(this.facade, times(1)).createVolume(Mockito.any(VolumeOrder.class),
                 Mockito.anyString());
 
         Assert.assertEquals(order.getId(), resultVolumeId);
@@ -114,7 +116,7 @@ public class VolumeOrdersControllerTest {
                 new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
 
         // verify
-        Mockito.verify(this.facade).getAllVolumes(Mockito.anyString());
+        Mockito.verify(this.facade, times(1)).getAllVolumes(Mockito.anyString());
 
         Assert.assertEquals(1, resultList.size());
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
@@ -146,7 +148,7 @@ public class VolumeOrdersControllerTest {
                 new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
 
         // verify
-        Mockito.verify(this.facade).getAllVolumes(Mockito.anyString());
+        Mockito.verify(this.facade, times(1)).getAllVolumes(Mockito.anyString());
 
         Assert.assertEquals(0, resultList.size());
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
@@ -182,7 +184,7 @@ public class VolumeOrdersControllerTest {
                 .fromJson(result.getResponse().getContentAsString(), VolumeInstance.class);
 
         // verify
-        Mockito.verify(this.facade).getVolume(Mockito.anyString(), Mockito.anyString());
+        Mockito.verify(this.facade, times(1)).getVolume(Mockito.anyString(), Mockito.anyString());
 
         Assert.assertEquals(volumeInstance.getId(), resultInstance.getId());
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
@@ -213,7 +215,7 @@ public class VolumeOrdersControllerTest {
         int expectedStatus = HttpStatus.OK.value();
 
         // verify
-        Mockito.verify(this.facade).deleteVolume(Mockito.anyString(), Mockito.anyString());
+        Mockito.verify(this.facade, times(1)).deleteVolume(Mockito.anyString(), Mockito.anyString());
 
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
     }
