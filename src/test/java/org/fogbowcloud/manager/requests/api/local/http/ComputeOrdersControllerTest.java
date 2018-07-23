@@ -64,7 +64,7 @@ public class ComputeOrdersControllerTest {
     private static final String COMPUTE_ENDPOINT = "/" + ComputeOrdersController.COMPUTE_ENDPOINT;
 
     @Before
-    public void setUp() throws FogbowManagerException {
+    public void setUp() {
         this.facade = Mockito.spy(ApplicationFacade.class);
         PowerMockito.mockStatic(ApplicationFacade.class);
         BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
@@ -106,7 +106,7 @@ public class ComputeOrdersControllerTest {
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
         Assert.assertEquals("", result.getResponse().getContentAsString());
         
-        // The request have problems, so the call to Facade is not executed.
+        // The request has problems, so the call to Facade is not executed.
         Mockito.verify(this.facade, Mockito.times(0)).createCompute(Mockito.any(ComputeOrder.class), Mockito.anyString());
     }
     
@@ -193,7 +193,6 @@ public class ComputeOrdersControllerTest {
         // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
         
-        
         // verify
         int expectedStatus = HttpStatus.OK.value();
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
@@ -261,7 +260,7 @@ public class ComputeOrdersControllerTest {
         
         TypeToken<List<InstanceStatus>> token = new TypeToken<List<InstanceStatus>>(){};
         List<InstanceStatus> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
-        Assert.assertTrue(resultList.size() == 3);
+        Assert.assertEquals(3, resultList.size());
         Assert.assertEquals(FAKE_ID_1, resultList.get(0).getInstanceId());
         Assert.assertEquals(FAKE_ID_2, resultList.get(1).getInstanceId());
         Assert.assertEquals(FAKE_ID_3, resultList.get(2).getInstanceId());
@@ -284,14 +283,12 @@ public class ComputeOrdersControllerTest {
         // exercise
         MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
         
-        
         // verify
         int expectedStatus = HttpStatus.UNAUTHORIZED.value();
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
         
         Mockito.verify(this.facade, Mockito.times(1)).getCompute(Mockito.anyString(), Mockito.anyString());
     }
-    
     
     // test case: Request a compute by its id with an unauthorized user. Check the response of request
     // and the call of facade for get the compute.
@@ -359,7 +356,7 @@ public class ComputeOrdersControllerTest {
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 
         ComputeInstance resultComputeInstance = new Gson().fromJson(result.getResponse().getContentAsString(), ComputeInstance.class);
-        Assert.assertTrue(resultComputeInstance != null);
+        Assert.assertNotNull(resultComputeInstance);
         Assert.assertEquals(computeInstance.getId(), resultComputeInstance.getId());
         
         Mockito.verify(this.facade, Mockito.times(1)).getCompute(Mockito.anyString(), Mockito.anyString());
