@@ -40,41 +40,56 @@ public class OpenStackComputeQuotaPluginTest {
 		token.setAttributes(attributes);
 		token.setAccessId("");
 	}
-	
+
+	// test case: Tests if getTotalQuota(), getUsedQuota() and getAvailableQuota() returns the right quotas.
     @Test
     public void getUserQuotaTest() throws FogbowManagerException, UnexpectedException {
+	    // set up
         ComputeAllocation allocationTotal = new ComputeAllocation(64, 46080, 20);
         ComputeAllocation allocationUsed = new ComputeAllocation(6, 12288, 6);
         ComputeAllocation allocationAvailable = new ComputeAllocation(58, 33792, 14);
 
         Mockito.doReturn(FAKE_JSON_RESPONSE).when(this.plugin).getJson(this.token);
 
-        Assert.assertEquals(allocationTotal.getvCPU(), this.plugin.getUserQuota(this.token).getTotalQuota().getvCPU());
-        Assert.assertEquals(allocationTotal.getRam(), this.plugin.getUserQuota(this.token).getTotalQuota().getRam());
-        Assert.assertEquals(allocationTotal.getInstances(), this.plugin.getUserQuota(this.token).getTotalQuota().getInstances());
+        // exercise
+        ComputeAllocation totalQuota = this.plugin.getUserQuota(this.token).getTotalQuota();
+        ComputeAllocation usedQuota = this.plugin.getUserQuota(this.token).getUsedQuota();
+        ComputeAllocation availableQuota = this.plugin.getUserQuota(this.token).getAvailableQuota();
+
+        // verify
+        Assert.assertEquals(allocationTotal.getvCPU(), totalQuota.getvCPU());
+        Assert.assertEquals(allocationTotal.getRam(), totalQuota.getRam());
+        Assert.assertEquals(allocationTotal.getInstances(), totalQuota.getInstances());
         
-        Assert.assertEquals(allocationUsed.getvCPU(), this.plugin.getUserQuota(this.token).getUsedQuota().getvCPU());
-        Assert.assertEquals(allocationUsed.getRam(), this.plugin.getUserQuota(this.token).getUsedQuota().getRam());
-        Assert.assertEquals(allocationUsed.getInstances(), this.plugin.getUserQuota(this.token).getUsedQuota().getInstances());
+        Assert.assertEquals(allocationUsed.getvCPU(), usedQuota.getvCPU());
+        Assert.assertEquals(allocationUsed.getRam(), usedQuota.getRam());
+        Assert.assertEquals(allocationUsed.getInstances(), usedQuota.getInstances());
         
-        Assert.assertEquals(allocationAvailable.getvCPU(), this.plugin.getUserQuota(this.token).getAvailableQuota().getvCPU());
-        Assert.assertEquals(allocationAvailable.getRam(), this.plugin.getUserQuota(this.token).getAvailableQuota().getRam());
-        Assert.assertEquals(allocationAvailable.getInstances(), this.plugin.getUserQuota(this.token).getAvailableQuota().getInstances());
+        Assert.assertEquals(allocationAvailable.getvCPU(), availableQuota.getvCPU());
+        Assert.assertEquals(allocationAvailable.getRam(), availableQuota.getRam());
+        Assert.assertEquals(allocationAvailable.getInstances(), availableQuota.getInstances());
     }
-	
+
+    // test case: Verify getUserQuota() when it raises FogbowManagerException.
 	@Test (expected = FogbowManagerException.class)
 	public void getUserQuotaThrowFogbowManagerExceptionTest() throws FogbowManagerException, UnexpectedException {
+	    // set up
 	    Mockito.when(this.plugin.getJson(this.token)).thenReturn(FAKE_VALUE);
 	    Mockito.doThrow(FogbowManagerException.class).when(this.plugin).getUserQuota(this.token);
+
+	    // verify
 	    Mockito.verify(this.plugin).getUserQuota(Mockito.eq(this.token));
 
 	}
-	
-	@Test (expected = FogbowManagerException.class)
+
+    // test case: Verify getUserQuota() when it raises UnexpectedException.
+    @Test (expected = FogbowManagerException.class)
     public void getUserQuotaThrowUnexpectedExceptionTest() throws FogbowManagerException, UnexpectedException {
-        Mockito.when(this.plugin.getJson(this.token)).thenReturn(FAKE_VALUE);
+        // set up
+	    Mockito.when(this.plugin.getJson(this.token)).thenReturn(FAKE_VALUE);
         Mockito.doThrow(UnexpectedException.class).when(this.plugin).getUserQuota(this.token);
+
+        // verify
         Mockito.verify(this.plugin).getUserQuota(Mockito.eq(this.token));
     }
-	
 }
