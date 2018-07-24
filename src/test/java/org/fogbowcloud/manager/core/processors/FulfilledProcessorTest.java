@@ -1,6 +1,5 @@
 package org.fogbowcloud.manager.core.processors;
 
-import java.util.HashMap;
 import java.util.Properties;
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.HomeDir;
@@ -65,6 +64,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
     @Before
     public void setUp() {
+        //TODO
         super.mockDB();
 
         HomeDir.getInstance().setPath(TEST_PATH);
@@ -83,8 +83,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.failedOrderList = sharedOrderHolders.getFailedOrdersList();
 
         this.thread = null;
-
-        new HashMap<>();
     }
 
     @After
@@ -98,7 +96,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     // test case: When running thread in FulfilledProcessor without the external addresses of the
     // reverse tunnel, the method processFulfilledOrder() must not change OrderState to Failed and
     // must remain in Fulfilled list.
-    @SuppressWarnings("static-access")
     @Test
     public void testRunProcessLocalComputeOrderWithoutExternalAddresses()
             throws FogbowManagerException, UnexpectedException, InterruptedException {
@@ -109,7 +106,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
-        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
         orderInstance.setState(InstanceState.READY);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
@@ -124,7 +121,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.thread.sleep(DEFAULT_SLEEP_TIME);
 
         // verify
-        Mockito.verify(this.tunnelingService).getExternalServiceAddresses(Mockito.anyString());
+        Mockito.verify(this.tunnelingService, Mockito.times(1)).getExternalServiceAddresses(Mockito.anyString());
 
         Assert.assertNotNull(this.fulfilledOrderList.getNext());
         Assert.assertNull(this.failedOrderList.getNext());
@@ -151,7 +148,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
-        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
         orderInstance.setState(InstanceState.READY);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
@@ -179,7 +176,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
-        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
         orderInstance.setState(InstanceState.DISPATCHED);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
@@ -197,7 +194,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     // test case: When running thread in the FulfilledProcessor and the InstanceState is Failed,
     // the processFulfilledOrder() method must change the OrderState to Failed by adding in that
     // list, and removed from the Fulfilled list.
-    @SuppressWarnings("static-access")
     @Test
     public void testRunProcessLocalComputeOrderWhenInstanceStateIsFailed()
             throws FogbowManagerException, UnexpectedException, InterruptedException {
@@ -241,8 +237,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.fulfilledProcessor.processFulfilledOrder(order);
 
         // verify
+        Assert.assertEquals(order, this.failedOrderList.getNext());
         Assert.assertNull(this.fulfilledOrderList.getNext());
-        Assert.assertNotNull(this.failedOrderList.getNext());
     }
 
     // test case: When running thread in the FulfilledProcessor without a LocalMember, the method
@@ -258,23 +254,22 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
-        this.fulfilledProcessor = Mockito.spy(new FulfilledProcessor(REMOTE_MEMBER_ID,
+        this.fulfilledProcessor = new FulfilledProcessor(REMOTE_MEMBER_ID,
                 this.tunnelingService, this.sshConnectivity,
-                DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME));
+                DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME);
 
         // exercise
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
         // verify
-        Assert.assertNotNull(this.fulfilledOrderList.getNext());
+        Assert.assertEquals(order, this.fulfilledOrderList.getNext());
         Assert.assertNull(this.failedOrderList.getNext());
     }
 
     // test case: When running thread in the FulfilledProcessor and the InstanceState is Ready, the
     // method processFulfilledOrder() must not change OrderState to Failed and must remain in
     // Fulfilled list.
-    @SuppressWarnings("static-access")
     @Test
     public void testRunProcessLocalComputeOrderInstanceReachable() throws Exception {
 
@@ -284,7 +279,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
-        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
         orderInstance.setState(InstanceState.READY);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
@@ -298,7 +293,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.thread.sleep(DEFAULT_SLEEP_TIME);
 
         // verify
-        Mockito.verify(this.sshConnectivity)
+        Mockito.verify(this.sshConnectivity, Mockito.times(1))
                 .checkSSHConnectivity(Mockito.any(SshTunnelConnectionData.class));
 
         Assert.assertNotNull(this.fulfilledOrderList.getNext());
@@ -308,7 +303,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     // test case: When running thread in the FulfilledProcessor and the InstanceState is not Ready,
     // the processFulfilledOrder() method must change the OrderState to Failed by adding in that
     // list, and removed from the Fulfilled list.
-    @SuppressWarnings("static-access")
     @Test
     public void testRunProcessLocalComputeOrderInstanceNotReachable() throws Exception {
 
@@ -318,7 +312,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
-        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
         orderInstance.setState(InstanceState.READY);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
@@ -348,7 +342,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     // test case: When running thread in the FulfilledProcessor and the InstanceState is Failed,
     // the processFulfilledOrder() method must change the OrderState to Failed by adding in that
     // list, and removed from the Fulfilled list.
-    @SuppressWarnings("static-access")
     @Test
     public void testRunProcessLocalComputeOrderInstanceFailed() throws Exception {
 
@@ -358,7 +351,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
-        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
         orderInstance.setState(InstanceState.FAILED);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
@@ -379,7 +372,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
     // test case: When running thread in the FulfilledProcessor with OrderState Null must throw a
     // ThrowableException.
-    @SuppressWarnings("static-access")
     @Test
     public void testRunThrowableExceptionWhileTryingToProcessOrderStateNull()
             throws InterruptedException, UnexpectedException {
@@ -401,12 +393,11 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.thread.sleep(DEFAULT_SLEEP_TIME);
 
         // verify
-        Mockito.verify(this.fulfilledProcessor).processFulfilledOrder(order);
+        Mockito.verify(this.fulfilledProcessor, Mockito.times(1)).processFulfilledOrder(order);
     }
 
     // test case: When running thread in the FulfilledProcessor with OrderState Null must throw a
     // UnexpectedException.
-    @SuppressWarnings("static-access")
     @Test
     public void testThrowUnexpectedExceptionWhileTryingToProcessOrder()
             throws InterruptedException, UnexpectedException {
@@ -418,17 +409,17 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.fulfilledOrderList.addItem(order);
 
         spyFulfiledProcessor();
-
-        // exercise
+       
         Mockito.doThrow(new UnexpectedException()).when(this.fulfilledProcessor)
                 .processFulfilledOrder(order);
 
+        // exercise
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
         this.thread.sleep(DEFAULT_SLEEP_TIME);
 
         // verify
-        Mockito.verify(this.fulfilledProcessor).processFulfilledOrder(order);
+        Mockito.verify(this.fulfilledProcessor, Mockito.times(1)).processFulfilledOrder(order);
     }
 
     private Order createOrder() {
