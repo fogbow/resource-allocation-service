@@ -50,7 +50,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
     /** Maximum value that the thread should wait in sleep time */
     private static final int MAX_SLEEP_TIME = 33000;
-
     private static final int DEFAULT_SLEEP_TIME = 500;
 
     private ChainedList failedOrderList;
@@ -118,7 +117,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
-        this.thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(DEFAULT_SLEEP_TIME);
 
         // verify
         Mockito.verify(this.tunnelingService, Mockito.times(1)).getExternalServiceAddresses(Mockito.anyString());
@@ -210,7 +209,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
-        this.thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(DEFAULT_SLEEP_TIME);
 
         // verify
         Order test = this.failedOrderList.getNext();
@@ -290,7 +289,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
-        this.thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(DEFAULT_SLEEP_TIME);
 
         // verify
         Mockito.verify(this.sshConnectivity, Mockito.times(1))
@@ -329,7 +328,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         /**
          * here may be a false positive depending on how long the machine will take to run the test
          */
-        this.thread.sleep(MAX_SLEEP_TIME);
+        Thread.sleep(MAX_SLEEP_TIME);
 
         // verify
         Order test = this.failedOrderList.getNext();
@@ -360,7 +359,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         // exercise
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
-        this.thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(DEFAULT_SLEEP_TIME);
 
         // verify
         Order test = this.failedOrderList.getNext();
@@ -390,7 +389,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
-        this.thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(DEFAULT_SLEEP_TIME);
 
         // verify
         Mockito.verify(this.fulfilledProcessor, Mockito.times(1)).processFulfilledOrder(order);
@@ -416,7 +415,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         // exercise
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
-        this.thread.sleep(DEFAULT_SLEEP_TIME);
+        Thread.sleep(DEFAULT_SLEEP_TIME);
 
         // verify
         Mockito.verify(this.fulfilledProcessor, Mockito.times(1)).processFulfilledOrder(order);
