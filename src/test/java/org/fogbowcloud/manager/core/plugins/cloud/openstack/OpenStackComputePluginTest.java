@@ -101,19 +101,18 @@ public class OpenStackComputePluginTest {
         
         HomeDir.getInstance().setPath("src/test/resources/private");
         
-        this.computePlugin =
-              Mockito.spy(new OpenStackNovaV2ComputePlugin(this.propertiesMock, this.launchCommandGeneratorMock, this.httpRequestClientUtilMock));
-    	this.osKeyPairEndpoint = computeNovaV2UrlKey + OpenStackNovaV2ComputePlugin.COMPUTE_V2_API_ENDPOINT
-    			+ this.localToken.getAttributes().get(OpenStackNovaV2ComputePlugin.TENANT_ID)
-    			+ OpenStackNovaV2ComputePlugin.SUFFIX_ENDPOINT_KEYPAIRS;
-    	this.computeEndpoint = computeNovaV2UrlKey
-                + OpenStackNovaV2ComputePlugin.COMPUTE_V2_API_ENDPOINT
-                + this.localToken.getAttributes().get(OpenStackNovaV2ComputePlugin.TENANT_ID)
-                + OpenStackNovaV2ComputePlugin.SERVERS;
-    	this.flavorEndpoint = this.computeNovaV2UrlKey + OpenStackNovaV2ComputePlugin.COMPUTE_V2_API_ENDPOINT
-    			+ this.localToken.getAttributes().get(OpenStackNovaV2ComputePlugin.TENANT_ID)
-    			+ OpenStackNovaV2ComputePlugin.SUFFIX_ENDPOINT_FLAVORS;
-    	
+		this.computePlugin = Mockito.spy(new OpenStackNovaV2ComputePlugin(this.propertiesMock,
+				this.launchCommandGeneratorMock, this.httpRequestClientUtilMock));
+		this.osKeyPairEndpoint = computeNovaV2UrlKey + OpenStackNovaV2ComputePlugin.COMPUTE_V2_API_ENDPOINT
+				+ this.localToken.getAttributes().get(OpenStackNovaV2ComputePlugin.TENANT_ID)
+				+ OpenStackNovaV2ComputePlugin.SUFFIX_ENDPOINT_KEYPAIRS;
+		this.computeEndpoint = computeNovaV2UrlKey + OpenStackNovaV2ComputePlugin.COMPUTE_V2_API_ENDPOINT
+				+ this.localToken.getAttributes().get(OpenStackNovaV2ComputePlugin.TENANT_ID)
+				+ OpenStackNovaV2ComputePlugin.SERVERS;
+		this.flavorEndpoint = this.computeNovaV2UrlKey + OpenStackNovaV2ComputePlugin.COMPUTE_V2_API_ENDPOINT
+				+ this.localToken.getAttributes().get(OpenStackNovaV2ComputePlugin.TENANT_ID)
+				+ OpenStackNovaV2ComputePlugin.SUFFIX_ENDPOINT_FLAVORS;
+
 		Mockito.when(this.propertiesMock.getProperty(OpenStackNovaV2ComputePlugin.COMPUTE_NOVAV2_URL_KEY))
 				.thenReturn(this.computeNovaV2UrlKey);
 		Mockito.when(this.propertiesMock.getProperty(OpenStackNovaV2ComputePlugin.DEFAULT_NETWORK_ID_KEY))
