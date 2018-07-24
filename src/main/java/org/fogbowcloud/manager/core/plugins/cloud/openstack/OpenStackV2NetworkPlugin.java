@@ -189,7 +189,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         }
     }
 
-    private String getSecurityGroupIdFromJson(String json) throws UnexpectedException {
+    protected String getSecurityGroupIdFromJson(String json) throws UnexpectedException {
         String securityGroupId = null;
         try {
             JSONObject rootServer = new JSONObject(json);
@@ -285,7 +285,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         }
     }
 
-    private String retrieveSecurityGroupId(String networkId, Token token) throws FogbowManagerException, UnexpectedException {
+    protected String retrieveSecurityGroupId(String networkId, Token token) throws FogbowManagerException, UnexpectedException {
         String securityGroupName = DEFAULT_SECURITY_GROUP_NAME + "-" + networkId;
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP + "?" + QUERY_NAME + "=" + securityGroupName;
         String responseStr = null;
