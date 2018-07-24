@@ -69,7 +69,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     
     @Before
     public void setUp() {
-        super.mockDB();
+        super.mockReadOrdersFromDataBase();
         
         HomeDir.getInstance().setPath(TEST_PATH);
 
