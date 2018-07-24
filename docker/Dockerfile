@@ -19,11 +19,11 @@ WORKDIR /root
 
 # Installing Manager
 RUN \
-  git clone https://github.com/fogbow/fogbow-manager-core.git && \
-  (cd fogbow-manager-core && git checkout integrate-code && mvn install -Dmaven.test.skip=true)
+  git clone https://github.com/fogbow/resource-allocation-service.git && \
+  (cd resource-allocation-service && git checkout integrate-code && mvn install -Dmaven.test.skip=true)
 
 # Define working directory.
-WORKDIR /root/fogbow-manager-core
+WORKDIR /root/resource-allocation-service
   
 RUN \
   mkdir -p src/main/resources/private

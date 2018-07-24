@@ -9,6 +9,7 @@ import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.constants.Operation;
 import org.fogbowcloud.manager.core.models.images.Image;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -92,7 +93,7 @@ public class RemoteFacade {
         // order is a java object that represents the order passed in the message
         // actualOrder is the java object that represents this order inside the current manager
         Order localOrder = this.orderController.getOrder(remoteOrder.getId(), remoteOrder.getFederationUser(), remoteOrder.getType());
-        updateLocalOrder(localOrder, remoteOrder);
+        updateLocalOrder(localOrder, remoteOrder, event);
         switch (event) {
             case INSTANCE_FULFILLED:
                 OrderStateTransitioner.transition(localOrder, OrderState.FULFILLED);
@@ -103,14 +104,18 @@ public class RemoteFacade {
         }
     }
 
-    private void updateLocalOrder(Order localOrder, Order remoteOrder) {
+    private void updateLocalOrder(Order localOrder, Order remoteOrder, Event event) {
         synchronized (localOrder) {
             if (localOrder.getOrderState() != OrderState.PENDING) {
                 // The order has been deleted or already updated
                 return;
             }
             localOrder.setInstanceId(remoteOrder.getInstanceId());
-            localOrder.setCachedInstanceState(remoteOrder.getCachedInstanceState());
+            if (event.equals(Event.INSTANCE_FULFILLED)) {
+                localOrder.setCachedInstanceState(InstanceState.READY);
+            } else if (event.equals(Event.INSTANCE_FAILED)) {
+                localOrder.setCachedInstanceState(InstanceState.FAILED);
+            }
             if (localOrder.getType().equals(InstanceType.COMPUTE)) {
                 ComputeOrder localCompute = (ComputeOrder) localOrder;
                 ComputeOrder remoteCompute = (ComputeOrder) remoteOrder;

@@ -18,7 +18,7 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
 
     @Before
     public void initialize() {
-        mockDB();
+        mockReadOrdersFromDataBase();
         this.list = new SynchronizedDoublyLinkedList();
     }
 
