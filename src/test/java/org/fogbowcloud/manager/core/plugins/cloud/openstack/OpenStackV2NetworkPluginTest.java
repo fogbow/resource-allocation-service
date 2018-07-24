@@ -77,21 +77,6 @@ public class OpenStackV2NetworkPluginTest {
 	}
 
 	@Test
-	public void testGenerateJsonEntityToCreateRouter() throws JSONException {
-		JSONObject generateJsonEntityToCreateRouter = this.openStackV2NetworkPlugin.generateJsonEntityToCreateRouter();
-
-		JSONObject routerJsonObject = generateJsonEntityToCreateRouter
-				.optJSONObject(OpenStackV2NetworkPlugin.KEY_JSON_ROUTER);
-
-		Assert.assertEquals(DEFAULT_GATEWAY_INFO,
-				routerJsonObject.optJSONObject(OpenStackV2NetworkPlugin.KEY_EXTERNAL_GATEWAY_INFO)
-						.optString(OpenStackV2NetworkPlugin.KEY_NETWORK_ID));
-
-		Assert.assertTrue(routerJsonObject.optString(OpenStackV2NetworkPlugin.KEY_NAME)
-				.contains(OpenStackV2NetworkPlugin.DEFAULT_ROUTER_NAME));
-	}
-
-	@Test
 	public void testGenerateJsonEntityToCreateNetwork() throws JSONException {
 		JSONObject generateJsonEntityToCreateNetwork = this.openStackV2NetworkPlugin
 				.generateJsonEntityToCreateNetwork(DEFAULT_TENANT_ID);
@@ -199,26 +184,6 @@ public class OpenStackV2NetworkPluginTest {
 	}
 
 	@Test
-	public void testGenerateJsonEntitySubnetId() throws JSONException {
-		String subnetId = "subnet";
-		JSONObject generateJsonEntitySubnetId = this.openStackV2NetworkPlugin.generateJsonEntitySubnetId(subnetId);
-
-		Assert.assertEquals(subnetId,
-				generateJsonEntitySubnetId.optString(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET_ID));
-	}
-
-	@Test
-	public void testGetRouterIdFromJson() throws JSONException, UnexpectedException {
-		String routerId = "routerId00";
-		JSONObject routerContentJsonObject = new JSONObject();
-		routerContentJsonObject.put(OpenStackV2NetworkPlugin.KEY_ID, routerId);
-
-		JSONObject routerJsonObject = new JSONObject();
-		routerJsonObject.put(OpenStackV2NetworkPlugin.KEY_JSON_ROUTER, routerContentJsonObject);
-		Assert.assertEquals(routerId, this.openStackV2NetworkPlugin.getRouterIdFromJson(routerJsonObject.toString()));
-	}
-
-	@Test
 	public void testGetNetworkIdFromJson() throws JSONException, UnexpectedException {
 		String networkId = "networkId00";
 		JSONObject networkContentJsonObject = new JSONObject();
@@ -228,17 +193,6 @@ public class OpenStackV2NetworkPluginTest {
 		networkJsonObject.put(OpenStackV2NetworkPlugin.KEY_JSON_NETWORK, networkContentJsonObject);
 		Assert.assertEquals(networkId,
 				this.openStackV2NetworkPlugin.getNetworkIdFromJson(networkJsonObject.toString()));
-	}
-
-	@Test
-	public void testGetSubnetIdFromJson() throws JSONException, UnexpectedException {
-		String subnetId = "subnetId00";
-		JSONObject subnetContentJsonObject = new JSONObject();
-		subnetContentJsonObject.put(OpenStackV2NetworkPlugin.KEY_ID, subnetId);
-
-		JSONObject subnetJsonObject = new JSONObject();
-		subnetJsonObject.put(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET, subnetContentJsonObject);
-		Assert.assertEquals(subnetId, this.openStackV2NetworkPlugin.getSubnetIdFromJson(subnetJsonObject.toString()));
 	}
 
 	@Test
@@ -291,23 +245,17 @@ public class OpenStackV2NetworkPluginTest {
 		JSONObject portOneJsonObject = new JSONObject();
 		String networkId = "networkId";
 		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_NETWORK_ID, networkId);
-		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_OWNER, NETWORK_HA_ROUTER_REPLICATED_INTERFACE);
 
-		String routerId = "routerId";
-		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_ID, routerId);
 		JSONArray subnetsjsonArray = new JSONArray();
 		JSONObject subnetObject = new JSONObject();
 
 		String subnetId = "subnetId";
-		subnetObject.put(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET_ID, subnetId);
 		subnetsjsonArray.put(0, subnetObject);
-		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_FIXES_IPS, subnetsjsonArray);
 
 		JSONArray portsArrayJsonObject = new JSONArray();
 		portsArrayJsonObject.put(0, portOneJsonObject);
 
 		JSONObject portsJsonObject = new JSONObject();
-		portsJsonObject.put(OpenStackV2NetworkPlugin.KEY_JSON_PORTS, portsArrayJsonObject);
 
 		HttpResponse httpResponseGetPorts = createHttpResponse(portsJsonObject.toString(), HttpStatus.SC_OK);
 		HttpResponse httpResponsePutRemoveInterface = createHttpResponse("", HttpStatus.SC_OK);
@@ -326,16 +274,8 @@ public class OpenStackV2NetworkPluginTest {
 		JSONObject portOneJsonObject = new JSONObject();
 		String networkId = "networkId";
 		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_NETWORK_ID, networkId);
-		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_OWNER, NETWORK_HA_ROUTER_REPLICATED_INTERFACE);
-
-		String routerId = "routerId";
-		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_ID, routerId);
-
-		JSONArray portsArrayJsonObject = new JSONArray();
-		portsArrayJsonObject.put(0, portOneJsonObject);
 
 		JSONObject portsJsonObject = new JSONObject();
-		portsJsonObject.put(OpenStackV2NetworkPlugin.KEY_JSON_PORTS, portsArrayJsonObject);
 
 		HttpResponse httpResponseGetPorts = createHttpResponse(portsJsonObject.toString(), HttpStatus.SC_OK);
 		Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponseGetPorts);
@@ -357,23 +297,16 @@ public class OpenStackV2NetworkPluginTest {
 		JSONObject portOneJsonObject = new JSONObject();
 		String networkId = "networkId";
 		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_NETWORK_ID, networkId);
-		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_OWNER, NETWORK_HA_ROUTER_REPLICATED_INTERFACE);
-
-		String routerId = "routerId";
-		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_ID, routerId);
 
 		JSONArray subnetsjsonArray = new JSONArray();
 		JSONObject subnetObject = new JSONObject();
 		String subnetId = "subnetId";
-		subnetObject.put(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET_ID, subnetId);
 		subnetsjsonArray.put(0, subnetObject);
-		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_FIXES_IPS, subnetsjsonArray);
 
 		JSONArray portsArrayJsonObject = new JSONArray();
 		portsArrayJsonObject.put(0, portOneJsonObject);
 
 		JSONObject portsJsonObject = new JSONObject();
-		portsJsonObject.put(OpenStackV2NetworkPlugin.KEY_JSON_PORTS, portsArrayJsonObject);
 
 		HttpResponse httpResponseGetPorts = createHttpResponse(portsJsonObject.toString(), HttpStatus.SC_OK);
 		HttpResponse httpResponseDeleteRouter = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
@@ -398,23 +331,16 @@ public class OpenStackV2NetworkPluginTest {
 		JSONObject portOneJsonObject = new JSONObject();
 		String networkId = "networkId";
 		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_NETWORK_ID, networkId);
-		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_OWNER, NETWORK_HA_ROUTER_REPLICATED_INTERFACE);
-
-		String routerId = "routerId";
-		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_ID, routerId);
 
 		JSONArray subnetsjsonArray = new JSONArray();
 		JSONObject subnetObject = new JSONObject();
 		String subnetId = "subnetId";
-		subnetObject.put(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET_ID, subnetId);
 		subnetsjsonArray.put(0, subnetObject);
-		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_FIXES_IPS, subnetsjsonArray);
 
 		JSONArray portsArrayJsonObject = new JSONArray();
 		portsArrayJsonObject.put(0, portOneJsonObject);
 
 		JSONObject portsJsonObject = new JSONObject();
-		portsJsonObject.put(OpenStackV2NetworkPlugin.KEY_JSON_PORTS, portsArrayJsonObject);
 
 		HttpResponse httpResponseGetPorts = createHttpResponse(portsJsonObject.toString(), HttpStatus.SC_OK);
 		HttpResponse httpResponsePutInterface = createHttpResponse("", HttpStatus.SC_OK);
@@ -443,21 +369,16 @@ public class OpenStackV2NetworkPluginTest {
 		// generate ports json response
 		JSONObject portOneJsonObject = new JSONObject();
 		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_NETWORK_ID, networkId);
-		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_OWNER, NETWORK_HA_ROUTER_REPLICATED_INTERFACE);
-		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_DEVICE_ID, routerId);
 
 		JSONArray subnetsjsonArray = new JSONArray();
 		JSONObject subnetObject = new JSONObject();
 		String subnetId = "subnetId";
-		subnetObject.put(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET_ID, subnetId);
 		subnetsjsonArray.put(0, subnetObject);
-		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_FIXES_IPS, subnetsjsonArray);
 
 		JSONArray portsArrayJsonObject = new JSONArray();
 		portsArrayJsonObject.put(0, portOneJsonObject);
 
 		JSONObject portsJsonObject = new JSONObject();
-		portsJsonObject.put(OpenStackV2NetworkPlugin.KEY_JSON_PORTS, portsArrayJsonObject);
 
 		// mock
 		HttpResponse httpResponseGetPorts = createHttpResponse(portsJsonObject.toString(), HttpStatus.SC_OK);
@@ -491,8 +412,6 @@ public class OpenStackV2NetworkPluginTest {
 		this.openStackV2NetworkPlugin.deleteInstance(networkId, this.defaultToken);
 
 		// check
-		Mockito.verify(this.openStackV2NetworkPlugin, Mockito.times(1)).removeRouter(Mockito.any(Token.class),
-				Mockito.eq(routerId));
 		Mockito.verify(this.openStackV2NetworkPlugin, Mockito.times(1)).removeNetwork(Mockito.any(Token.class),
 				Mockito.eq(networkId));
 	}
@@ -507,9 +426,7 @@ public class OpenStackV2NetworkPluginTest {
 				httpResponsePostNetwork, httpResponsePostSubnet, httpResponsePutInterface);
 
 		NetworkOrder order = createEmptyOrder();
-		Mockito.doReturn(null).when(this.openStackV2NetworkPlugin).getRouterIdFromJson(Mockito.anyString());
 		Mockito.doReturn(null).when(this.openStackV2NetworkPlugin).getNetworkIdFromJson(Mockito.anyString());
-		Mockito.doReturn(null).when(this.openStackV2NetworkPlugin).getSubnetIdFromJson(Mockito.anyString());
 		this.openStackV2NetworkPlugin.requestInstance(order, this.defaultToken);
 
 		Mockito.verify(this.client, Mockito.times(4)).execute(Mockito.any(HttpUriRequest.class));
@@ -535,7 +452,6 @@ public class OpenStackV2NetworkPluginTest {
 				httpResponsePostNetwork, httpResponseRemoveRouter);
 
 		NetworkOrder order = createEmptyOrder();
-		Mockito.doReturn(null).when(this.openStackV2NetworkPlugin).getRouterIdFromJson(Mockito.anyString());
 		try {
 			this.openStackV2NetworkPlugin.requestInstance(order, this.defaultToken);
 			Assert.fail();
@@ -571,9 +487,7 @@ public class OpenStackV2NetworkPluginTest {
 		Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostRouter,
 				httpResponsePostNetwork, httpResponsePostSubnet, httpResponsePutInterface, httpResponseRemoveRouter,
 				httpResponseRemoveNetwork);
-		Mockito.doReturn(null).when(this.openStackV2NetworkPlugin).getRouterIdFromJson(Mockito.anyString());
 		Mockito.doReturn(null).when(this.openStackV2NetworkPlugin).getNetworkIdFromJson(Mockito.anyString());
-		Mockito.doReturn(null).when(this.openStackV2NetworkPlugin).getSubnetIdFromJson(Mockito.anyString());
 		NetworkOrder order = createEmptyOrder();
 		try {
 			this.openStackV2NetworkPlugin.requestInstance(order, this.defaultToken);
