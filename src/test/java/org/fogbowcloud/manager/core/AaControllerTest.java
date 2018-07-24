@@ -165,7 +165,7 @@ public class AaControllerTest {
     	Mockito.verify(this.localUserCredentialsMapperPluginMock, Mockito.times(1)).getCredentials(federationUser);
     }
     
-    //test case: Check if getLocalToken is properly forwading FogbowManagerException thrown by LocalIdentityPlugin. 
+    //test case: Check if getLocalToken is properly forwarding FogbowManagerException thrown by LocalIdentityPlugin.
     @Test (expected = FogbowManagerException.class)
     public void testGetLocalTokenWhenFogbowManagerException() throws FogbowManagerException, UnexpectedException {
     	//set up
