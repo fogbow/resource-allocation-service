@@ -823,8 +823,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		// exercise
 	    this.localCloudConnector.getUserQuota(federationUser, InstanceType.VOLUME);
 	}
-	
-	
+
 	// test case: If the instance type isn't of Compute type, an exception must be throw
 	@Test(expected = UnexpectedException.class)
 	public void testGetUserAttachmentQuotaException() throws FogbowManagerException, UnexpectedException { 
@@ -832,7 +831,6 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		// exercise
 	    this.localCloudConnector.getUserQuota(federationUser, InstanceType.ATTACHMENT);
 	}
-	
 	
 	// test case: If the instance type isn't of Compute type, an exception must be throw
 	@Test(expected = UnexpectedException.class)
@@ -860,7 +858,6 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	    Mockito.verify(imagePlugin, times(1)).getAllImages(Mockito.any(Token.class));
 	}
 	
-	
 	// test case: The return of getAllImages must be null. Image plugin must be called.
 	@Test
 	public void testGetAllImagesNullReturn() throws FogbowManagerException, UnexpectedException {
@@ -876,7 +873,4 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	    Mockito.verify(imagePlugin, times(1)).getAllImages(Mockito.any(Token.class));
 	}
 	
-	
-	
-
 }
