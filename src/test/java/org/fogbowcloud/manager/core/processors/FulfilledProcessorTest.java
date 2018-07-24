@@ -64,9 +64,9 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
     @Before
     public void setUp() {
-        //TODO
-        super.mockDB();
 
+        super.mockReadOrdersFromDataBase();
+        
         HomeDir.getInstance().setPath(TEST_PATH);
 
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
