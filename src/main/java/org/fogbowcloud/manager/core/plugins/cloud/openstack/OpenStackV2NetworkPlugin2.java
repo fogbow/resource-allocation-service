@@ -8,11 +8,7 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
@@ -38,7 +34,8 @@ public class OpenStackV2NetworkPlugin2 implements NetworkPlugin {
 	protected static final String TENANT_ID = "tenantId";
 	protected static final String KEY_PROVIDER_SEGMENTATION_ID = "provider:segmentation_id";
 	protected static final String KEY_EXTERNAL_GATEWAY_INFO = "external_gateway_info";
-	protected static final String KEY_DNS_NAMESERVERS = "dns_nameservers";
+	public static final String QUERY_NAME = "name";
+	protected static final String KEY_DNS_NAMESERVERS = "dns_" + QUERY_NAME + "servers";
 	protected static final String KEY_ENABLE_DHCP = "enable_dhcp";
 	protected static final String KEY_IP_VERSION = "ip_version";
 	protected static final String KEY_GATEWAY_IP = "gateway_ip";
@@ -48,9 +45,10 @@ public class OpenStackV2NetworkPlugin2 implements NetworkPlugin {
 	protected static final String KEY_JSON_SUBNET = "subnet";
 	protected static final String KEY_SUBNETS = "subnets";
 	protected static final String KEY_SECURITY_GROUP = "security_group";
+	protected static final String KEY_SECURITY_GROUPS = "security_groups";
 	protected static final String KEY_SECURITY_GROUP_RULE = "security_group_rule";
 	protected static final String KEY_STATUS = "status";
-	protected static final String KEY_NAME = "name";
+	protected static final String KEY_NAME = QUERY_NAME;
 	protected static final String KEY_CIDR = "cidr";
 	protected static final String KEY_ID = "id";
 
@@ -205,6 +203,21 @@ public class OpenStackV2NetworkPlugin2 implements NetworkPlugin {
 		return securityGroupId;
 	}
 
+	private String getSecurityGroupIdFromResponseJson(String json) throws UnexpectedException {
+		String securityGroupId = null;
+		try {
+			JSONObject response = new JSONObject(json);
+			JSONArray securityGroupJSONArray = response.optJSONArray(KEY_SECURITY_GROUPS);
+			JSONObject securityGroup = securityGroupJSONArray.optJSONObject(0);
+			securityGroupId = securityGroup.optString(KEY_ID);
+		} catch (JSONException e) {
+			String errorMsg = String.format("Was not possible retrieve network id from json %s", json);
+			LOGGER.error(errorMsg);
+			throw new UnexpectedException(errorMsg, e);
+		}
+		return securityGroupId;
+	}
+
 	private JSONObject generateJsonEntityToCreateSecurityGroup(String networkId, String tenantId) {
 		JSONObject securityGroup = new JSONObject();
 		JSONObject securityGroupObject = new JSONObject();
@@ -248,25 +261,41 @@ public class OpenStackV2NetworkPlugin2 implements NetworkPlugin {
 
 	@Override
 	public void deleteInstance(String networkId, Token token) throws FogbowManagerException, UnexpectedException {
-		boolean wasNetworkRemoved = false;
 		try {
-			wasNetworkRemoved = removeNetwork(token, networkId);
+			removeNetwork(token, networkId);
 		} catch (InstanceNotFoundException e) {
 			// continue and try to delete the security group
-			wasNetworkRemoved = true;
-		}
-		if (!wasNetworkRemoved) {
+			String msg = String.format("Network with id %s not found, trying to delete security group with",
+					networkId);
+			LOGGER.warn(msg);
+		} catch (UnexpectedException | FogbowManagerException e) {
 			String errorMsg = String.format("Was not possible delete network with id %s", networkId);
 			LOGGER.error(errorMsg);
-			throw new UnexpectedException(errorMsg);
+			throw e;
 		}
-		
-		boolean wasSecurityGroupRemoved = removeSecurityGroup(token, networkId);		
-		if (!wasSecurityGroupRemoved) {
-			String errorMsg = String.format("Was not possible delete security group with id %s", networkId);
+
+		String securityGroupId = retrieveSecurityGroupId(networkId, token);
+
+		try {
+			removeSecurityGroup(token, securityGroupId);
+		} catch (UnexpectedException | FogbowManagerException e) {
+			String errorMsg = String.format("Was not possible delete security group with id %s", securityGroupId);
 			LOGGER.error(errorMsg);
-			throw new UnexpectedException(errorMsg);
+			throw e;
 		}		
+	}
+
+	private String retrieveSecurityGroupId(String networkId, Token token) throws FogbowManagerException, UnexpectedException {
+		String securityGroupName = DEFAULT_SECURITY_GROUP_NAME + "-" + networkId;
+		String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP + "?" + QUERY_NAME + "=" + securityGroupName;
+		String responseStr = null;
+		try {
+			responseStr = this.client.doGetRequest(endpoint, token);
+		} catch (HttpResponseException e) {
+			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
+		}
+		return getSecurityGroupIdFromResponseJson(responseStr);
+
 	}
 
 	protected boolean removeSecurityGroup(Token token, String securityGroupId)
