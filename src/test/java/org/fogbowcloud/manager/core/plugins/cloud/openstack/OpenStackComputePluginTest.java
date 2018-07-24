@@ -42,14 +42,13 @@ import com.google.gson.Gson;
 
 public class OpenStackComputePluginTest {
 
-    private OpenStackNovaV2ComputePlugin computePlugin;
-    private Token localToken;
-    private LaunchCommandGenerator launchCommandGeneratorMock;
-    private HttpRequestClientUtil httpRequestClientUtilMock;
-    private Properties propertiesMock;
-    private PropertiesHolder propertiesHolderMock;
-    
-	private ArgumentCaptor<String> argString  = ArgumentCaptor.forClass(String.class);
+	private OpenStackNovaV2ComputePlugin computePlugin;
+	private Token localToken;
+	private LaunchCommandGenerator launchCommandGeneratorMock;
+	private HttpRequestClientUtil httpRequestClientUtilMock;
+	private Properties propertiesMock;
+	private PropertiesHolder propertiesHolderMock;
+	private ArgumentCaptor<String> argString = ArgumentCaptor.forClass(String.class);
 	private ArgumentCaptor<Token> argToken = ArgumentCaptor.forClass(Token.class);
 	private ArgumentCaptor<JSONObject> argJson = ArgumentCaptor.forClass(JSONObject.class);
 	private final String defaultNetworkIp = "192.168.0.2";
@@ -59,11 +58,12 @@ public class OpenStackComputePluginTest {
 	private final String bestFlavorId = "best-flavor";
 	private final int bestCpu = 2;
 	private final int bestMemory = 1024;
+	
 	private final int bestDisk = 8;
 	private final String networkId = "192.1.2.3";
 	private final String userData = "userDataFromLauchCommand";
 	private final JSONObject rootKeypairJson = generateRootKeyPairJson(idKeyName, publicKey);
-	private final List <String> networksId =  new ArrayList<String>();
+	private final List<String> networksId = new ArrayList<String>();
 	private final List<String> responseNetworkIds = new ArrayList<String>(networksId);
 	private final String idInstanceName = "12345678-dd01-4b38-974f-289570f8e7ee";
 	private final String expectedInstanceId = "instance-id-00";
