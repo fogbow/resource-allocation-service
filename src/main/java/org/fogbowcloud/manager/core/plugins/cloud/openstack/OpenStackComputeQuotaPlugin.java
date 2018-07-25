@@ -24,12 +24,12 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 	private static final String SUFFIX = "limits";
 	private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
 	
-	private static final String MAX_TOTAL_CORES_JSON = "maxTotalCores";
-	private static final String TOTAL_CORES_USED_JSON = "totalCoresUsed";
-	private static final String MAX_TOTAL_RAM_SIZE_JSON = "maxTotalRAMSize";
-	private static final String TOTAL_RAM_USED_JSON = "totalRAMUsed";
-	private static final String MAX_TOTAL_INSTANCES_JSON = "maxTotalInstances";
-	private static final String TOTAL_INSTANCES_USED_JSON = "totalInstancesUsed";
+	protected static final String MAX_TOTAL_CORES_JSON = "maxTotalCores";
+	protected static final String TOTAL_CORES_USED_JSON = "totalCoresUsed";
+	protected static final String MAX_TOTAL_RAM_SIZE_JSON = "maxTotalRAMSize";
+	protected static final String TOTAL_RAM_USED_JSON = "totalRAMUsed";
+	protected static final String MAX_TOTAL_INSTANCES_JSON = "maxTotalInstances";
+	protected static final String TOTAL_INSTANCES_USED_JSON = "totalInstancesUsed";
 	
 	private Properties properties;
 	private HttpRequestClientUtil client;
@@ -44,29 +44,35 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 	
 	@Override
 	public ComputeQuota getUserQuota(Token localToken) throws FogbowManagerException, UnexpectedException {
-		String jsonResponse = getJson(localToken);
+		String jsonResponse = getQuotaJson(localToken);
 		return processJson(jsonResponse);
 	}
 
-	protected String getJson(Token localToken) throws FogbowManagerException, UnexpectedException {
+	protected String getQuotaJson(Token localToken) throws FogbowManagerException, UnexpectedException {
 		String endpoint = this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY)
                 + COMPUTE_V2_API_ENDPOINT + SUFFIX;
+
 		String jsonResponse = null;
+
 		try {
 			jsonResponse = this.client.doGetRequest(endpoint, localToken);
 		} catch (HttpResponseException e) {
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}
+
 		return jsonResponse;
 	}
 	
 	private ComputeQuota processJson(String jsonStr) throws UnexpectedException {
 		try {
 			JSONObject jsonObject = (JSONObject) JSONUtil.getValue(jsonStr, "limits", "absolute");
+
 			ComputeAllocation totalQuota = new ComputeAllocation(jsonObject.getInt(MAX_TOTAL_CORES_JSON),
 					jsonObject.getInt(MAX_TOTAL_RAM_SIZE_JSON), jsonObject.getInt(MAX_TOTAL_INSTANCES_JSON));
+
 			ComputeAllocation usedQuota = new ComputeAllocation(jsonObject.getInt(TOTAL_CORES_USED_JSON),
 					jsonObject.getInt(TOTAL_RAM_USED_JSON),	jsonObject.getInt(TOTAL_INSTANCES_USED_JSON));
+
 			ComputeQuota computeQuota =	new ComputeQuota(totalQuota, usedQuota);
 			
 			return computeQuota;
@@ -74,5 +80,4 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 			throw new UnexpectedException(e.getMessage(), e);
 		}
 	}
-	
 }
