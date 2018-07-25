@@ -109,7 +109,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         createSubNet(order, localToken, tenantId, networkId);
 
         responseStr = createSecurityGroup(order, localToken, tenantId, networkId);
-        String securityGroupId = getSecurityGroupIdFromJson(responseStr);
+        String securityGroupId = getSecurityGroupIdFromPostResponse(responseStr);
 
         createSecurityGroupRules(order, localToken, networkId, securityGroupId);
         return networkId;
@@ -185,17 +185,18 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
             throw new InvalidParameterException(errorMsg, e);
         } catch (HttpResponseException e) {
             removeNetwork(localToken, networkId);
+            removeSecurityGroup(localToken, securityGroupId);
             OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
     }
 
-    protected String getSecurityGroupIdFromJson(String json) throws UnexpectedException {
+    protected String getSecurityGroupIdFromPostResponse(String json) throws UnexpectedException {
         String securityGroupId = null;
         try {
             JSONObject rootServer = new JSONObject(json);
             JSONObject securityGroupJSONObject = rootServer.optJSONObject(KEY_SECURITY_GROUP);
             securityGroupId = securityGroupJSONObject.optString(KEY_ID);
-        } catch (JSONException e) {
+        } catch (NullPointerException | JSONException e) {
             String errorMsg = String.format("Was not possible retrieve network id from json %s", json);
             LOGGER.error(errorMsg);
             throw new UnexpectedException(errorMsg, e);
@@ -203,14 +204,14 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         return securityGroupId;
     }
 
-    private String getSecurityGroupIdFromResponseJson(String json) throws UnexpectedException {
+    protected String getSecurityGroupIdFromGetResponse(String json) throws UnexpectedException {
         String securityGroupId = null;
         try {
             JSONObject response = new JSONObject(json);
             JSONArray securityGroupJSONArray = response.optJSONArray(KEY_SECURITY_GROUPS);
             JSONObject securityGroup = securityGroupJSONArray.optJSONObject(0);
             securityGroupId = securityGroup.optString(KEY_ID);
-        } catch (JSONException e) {
+        } catch (NullPointerException | JSONException e) {
             String errorMsg = String.format("Was not possible retrieve network id from json %s", json);
             LOGGER.error(errorMsg);
             throw new UnexpectedException(errorMsg, e);
@@ -294,7 +295,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
-        return getSecurityGroupIdFromResponseJson(responseStr);
+        return getSecurityGroupIdFromGetResponse(responseStr);
 
     }
 
