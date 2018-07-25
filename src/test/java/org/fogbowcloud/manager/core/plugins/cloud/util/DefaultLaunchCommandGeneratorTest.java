@@ -21,11 +21,11 @@ public class DefaultLaunchCommandGeneratorTest {
 
     private DefaultLaunchCommandGenerator launchCommandGenerator;
 
-    private String managerPublicKeyFilePath = "src/test/resources/fake-manager-public-key";
-    private String reverseTunnelPrivateIp = "fake-private-ip";
-    private String reverseTunnelHttpPort = "fake-http-port";
-
-    private String extraUserDataFile = "fake-extra-user-data-file";
+    private final static String MANAGER_PUBLIC_KEY_FILE_PATH = "src/test/resources/fake-manager-public-key";
+    private final static String REVERSE_TUNNEL_PRIVATE_IP = "fake-private-ip";
+    private final static String REVERSE_TUNNEL_HTTP_PORT = "fake-http-port";
+    private final static String EXTRA_USER_DATA_FILE = "fake-extra-user-data-file";
+    
     private CloudInitUserDataBuilder.FileType extraUserDataFileType =
             CloudInitUserDataBuilder.FileType.SHELL_SCRIPT;
 
@@ -36,90 +36,127 @@ public class DefaultLaunchCommandGeneratorTest {
         this.properties = propertiesHolder.getProperties();
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
         this.properties.setProperty(
-                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, this.managerPublicKeyFilePath);
+                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, MANAGER_PUBLIC_KEY_FILE_PATH);
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
-                this.reverseTunnelPrivateIp);
+                REVERSE_TUNNEL_PRIVATE_IP);
         this.properties.setProperty(
-                ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, this.reverseTunnelHttpPort);
+                ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, REVERSE_TUNNEL_HTTP_PORT);
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
     }
-
+    
+    // test case: Check the creation of a not empty command from an order.
     @Test
     public void testCreateLaunchCommand() {
+    	
+    	// set up
         ComputeOrder order = this.createComputeOrder();
+        
+        // exercise
         String command = this.launchCommandGenerator.createLaunchCommand(order);
-
+        
+        // verify
         Assert.assertFalse(command.trim().isEmpty());
     }
-
+    
+    // test case: Check the creation of a not empty command from an order without public key.
     @Test
     public void testCreateLaunchCommandWithoutUserPublicKey() {
+    	
+    	// set up
         ComputeOrder order = this.createComputeOrderWithoutPublicKey();
+        
+        // exercise
         String command = this.launchCommandGenerator.createLaunchCommand(order);
-
+        
+        // verify
         Assert.assertFalse(command.trim().isEmpty());
     }
-
+    
+    // test case: Check the creation of a not empty command from an order without extra user data
     @Test
     public void testCreateLaunchCommandWithoutExtraUserData() {
+    	
+    	// set up
         ComputeOrder order = this.createComputeOrderWithoutExtraUserData();
+        
+        // exercise
         String command = this.launchCommandGenerator.createLaunchCommand(order);
-
+        
+        // verify
         Assert.assertFalse(command.trim().isEmpty());
     }
-
+    
+    // test case: Check the addition of extra user data.
     @Test
     public void testAddExtraUserData() {
+    	
+    	// set up
         CloudInitUserDataBuilder cloudInitUserDataBuilder = CloudInitUserDataBuilder.start();
-
+        
+        // exercise
         this.launchCommandGenerator.addExtraUserData(
-                cloudInitUserDataBuilder, this.extraUserDataFile, this.extraUserDataFileType);
-
+                cloudInitUserDataBuilder, EXTRA_USER_DATA_FILE, this.extraUserDataFileType);
+        
+        // verify
         String userData = cloudInitUserDataBuilder.buildUserData();
-
         Assert.assertTrue(userData.contains(this.extraUserDataFileType.getMimeType()));
-        Assert.assertTrue(userData.contains(this.extraUserDataFile));
+        Assert.assertTrue(userData.contains(EXTRA_USER_DATA_FILE));
     }
-
+    
+    // test case: Check the addition of extra user data with a null data file content. 
+    // extra user data is added only if data file content and data file type are not null.
     @Test
-    public void testAddExtraUserDataWithDataFileNull() {
+    public void testAddExtraUserDataWithDataFileContentNull() {
+    	
+    	// set up
         CloudInitUserDataBuilder cloudInitUserDataBuilder = CloudInitUserDataBuilder.start();
-
+        
+        // exercise
         this.launchCommandGenerator.addExtraUserData(
                 cloudInitUserDataBuilder, null, this.extraUserDataFileType);
-
+        
+        // verify
         String userData = cloudInitUserDataBuilder.buildUserData();
-
         Assert.assertFalse(userData.contains(this.extraUserDataFileType.getMimeType()));
-        Assert.assertFalse(userData.contains(this.extraUserDataFile));
+        Assert.assertFalse(userData.contains(EXTRA_USER_DATA_FILE));
     }
-
+    
+    // test case: Check the addition of extra user data with a null data file type. 
+    // extra user data is added only if data file content and data file type are not null.
     @Test
     public void testAddExtraUserDataWithDataFileTypeNull() {
+    	
+    	// set up
         CloudInitUserDataBuilder cloudInitUserDataBuilder = CloudInitUserDataBuilder.start();
-
+        
+        
+        // exercise
         this.launchCommandGenerator.addExtraUserData(
-                cloudInitUserDataBuilder, this.extraUserDataFile, null);
+                cloudInitUserDataBuilder, EXTRA_USER_DATA_FILE, null);
 
+        // verify
         String userData = cloudInitUserDataBuilder.buildUserData();
-
         Assert.assertFalse(userData.contains(this.extraUserDataFileType.getMimeType()));
-        Assert.assertFalse(userData.contains(this.extraUserDataFile));
+        Assert.assertFalse(userData.contains(EXTRA_USER_DATA_FILE));
     }
-
+    
+    
+    // test case: Test the application of token replacements in mime string.
     @Test
     public void testApplyTokensReplacements() {
+    	
+    	// set up
         ComputeOrder order = this.createComputeOrder();
 
         String mimeString = "";
         String expectedMimeString = "";
 
         mimeString += DefaultLaunchCommandGenerator.TOKEN_HOST + System.lineSeparator();
-        expectedMimeString += this.reverseTunnelPrivateIp + System.lineSeparator();
+        expectedMimeString += REVERSE_TUNNEL_PRIVATE_IP + System.lineSeparator();
 
         mimeString += DefaultLaunchCommandGenerator.TOKEN_HOST_HTTP_PORT + System.lineSeparator();
-        expectedMimeString += this.reverseTunnelHttpPort + System.lineSeparator();
+        expectedMimeString += REVERSE_TUNNEL_HTTP_PORT + System.lineSeparator();
 
         mimeString += DefaultLaunchCommandGenerator.TOKEN_ID + System.lineSeparator();
         expectedMimeString += order.getId() + System.lineSeparator();
@@ -135,105 +172,92 @@ public class DefaultLaunchCommandGeneratorTest {
         mimeString +=
                 DefaultLaunchCommandGenerator.TOKEN_USER_SSH_PUBLIC_KEY + System.lineSeparator();
         expectedMimeString += order.getPublicKey() + System.lineSeparator();
-
+        
+        // exercise
         String replacedMimeString =
                 this.launchCommandGenerator.applyTokensReplacements(order, mimeString);
-
+        
+        // verify
         Assert.assertEquals(expectedMimeString, replacedMimeString);
     }
-
+    
+    // test case: An exception must be thrown when the manager ssh public key file path is empty.   
     @Test(expected = FatalErrorException.class)
     public void testPropertiesWithoutManagerSshPublicKeyFilePath() throws Exception {
+    	
+    	// set up
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
         this.properties.setProperty(
                 ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, "");
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
-                this.reverseTunnelPrivateIp);
+                REVERSE_TUNNEL_PRIVATE_IP);
         this.properties.setProperty(
-                ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, this.reverseTunnelHttpPort);
+                ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, REVERSE_TUNNEL_HTTP_PORT);
+        
+        // exercise
         new DefaultLaunchCommandGenerator();
     }
-
+    
+    // test case: An exception must be thrown when the reverse tunnel private address key is empty.
     @Test(expected = FatalErrorException.class)
     public void testPropertiesWithoutReverseTunnelPrivateAddress() throws Exception {
+    	
+    	// set up
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
         this.properties.setProperty(
-                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, this.managerPublicKeyFilePath);
+                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, MANAGER_PUBLIC_KEY_FILE_PATH);
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY, "");
         this.properties.setProperty(
-                ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, this.reverseTunnelHttpPort);
+                ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, REVERSE_TUNNEL_HTTP_PORT);
+        
+        // exercise
         new DefaultLaunchCommandGenerator();
     }
-
+    
+    
+    // test case: An exception must be thrown when the reverse tunnel http port key is empty.
     @Test(expected = FatalErrorException.class)
     public void testPropertiesWithoutReverseTunnelHttpPort() throws Exception {
+    	
+    	// set up
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
         this.properties.setProperty(
-                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, this.managerPublicKeyFilePath);
+                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, MANAGER_PUBLIC_KEY_FILE_PATH);
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
-                this.reverseTunnelPrivateIp);
+                REVERSE_TUNNEL_PRIVATE_IP);
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, "");
+        
+        // exercise
         new DefaultLaunchCommandGenerator();
     }
-
+    
+    // test case: The path to manager ssh public key doesn't exist, so a fatal error exception must be thrown
     @Test(expected = FatalErrorException.class)
-    public void testManagerSshPublicKeyPathEmpty()
-            throws FatalErrorException {
-        this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
-        this.properties.setProperty(ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, "");
-        this.properties.setProperty(
-                ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
-                this.reverseTunnelPrivateIp);
-        this.properties.setProperty(
-                ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, this.reverseTunnelHttpPort);
-        new DefaultLaunchCommandGenerator();
-    }
-
-    @Test(expected = FatalErrorException.class)
-    public void testManagerSshPublicKeyEmpty() throws FatalErrorException {
+    public void testPropertiesWithWrongManagerSshPublicKeyFilePath() throws FatalErrorException {
+    	
+    	// set up
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
         String emptyManagerPublicKeyFilePath = "src/test/resources/fake-empty-manager-public-key";
+        
         this.properties.setProperty(
                 ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, emptyManagerPublicKeyFilePath);
         this.properties.setProperty(
                 ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
-                this.reverseTunnelPrivateIp);
+                REVERSE_TUNNEL_PRIVATE_IP);
         this.properties.setProperty(
-                ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, this.reverseTunnelHttpPort);
-        new DefaultLaunchCommandGenerator();
-    }
-
-    @Test(expected = FatalErrorException.class)
-    public void testReverseTunnelPrivateIpEmpty()
-            throws FatalErrorException {
-        this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
-        this.properties.setProperty(
-                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, this.managerPublicKeyFilePath);
-        this.properties.setProperty(ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY, "");
-        this.properties.setProperty(
-                ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, this.reverseTunnelHttpPort);
-        new DefaultLaunchCommandGenerator();
-    }
-
-    @Test(expected = FatalErrorException.class)
-    public void testReverseHttpPortIpEmpty() throws FatalErrorException {
-        this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
-        this.properties.setProperty(
-                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, this.managerPublicKeyFilePath);
-        this.properties.setProperty(
-                ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
-                this.reverseTunnelPrivateIp);
-        this.properties.setProperty(ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, "");
+                ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, REVERSE_TUNNEL_HTTP_PORT);
+        
+        // exercise
         new DefaultLaunchCommandGenerator();
     }
 
     private ComputeOrder createComputeOrder() {
         FederationUser federationUser = Mockito.mock(FederationUser.class);
-        UserData userData = new UserData(this.extraUserDataFile, this.extraUserDataFileType);
+        UserData userData = new UserData(EXTRA_USER_DATA_FILE, this.extraUserDataFileType);
         String imageName = "fake-image-name";
         String requestingMember =
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
@@ -283,7 +307,7 @@ public class DefaultLaunchCommandGeneratorTest {
 
     private ComputeOrder createComputeOrderWithoutPublicKey() {
     	FederationUser federationUser = Mockito.mock(FederationUser.class);
-        UserData userData = new UserData(this.extraUserDataFile, this.extraUserDataFileType);
+        UserData userData = new UserData(EXTRA_USER_DATA_FILE, this.extraUserDataFileType);
         String imageName = "fake-image-name";
         String requestingMember =
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
