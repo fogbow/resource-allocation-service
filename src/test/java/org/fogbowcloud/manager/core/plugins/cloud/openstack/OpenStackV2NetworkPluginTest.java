@@ -102,7 +102,6 @@ public class OpenStackV2NetworkPluginTest {
 		verify(this.client, times(5)).execute(any(HttpUriRequest.class));
 	}
 
-
 	//test case: Tests if an exception will be thrown in case that openstack raise an error in network request.
 	@Test
 	public void testRequestInstancePostNetworkError() throws IOException, UnexpectedException {
@@ -340,7 +339,6 @@ public class OpenStackV2NetworkPluginTest {
 
 	//deleteInstance tests
 
-
 	//test case: Tests remove instance, it must execute a http client exactly 3 times
 	@Test
 	public void testRemoveInstance() throws IOException, JSONException, FogbowManagerException, UnexpectedException {
@@ -385,72 +383,6 @@ public class OpenStackV2NetworkPluginTest {
 		verify(this.client, times(1)).execute(any(HttpUriRequest.class));
 		verify(this.openStackV2NetworkPlugin, never()).retrieveSecurityGroupId(anyString(), any(Token.class));
 		verify(this.openStackV2NetworkPlugin, never()).removeSecurityGroup(any(Token.class), anyString());
-	}
-
-	//test case:
-	@Ignore
-	@Test
-	public void testRemoveInstanceNullPointerException() throws JSONException, IOException {
-		//set up
-		JSONObject portOneJsonObject = new JSONObject();
-		String networkId = "networkId";
-		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_NETWORK_ID, networkId);
-
-		JSONObject portsJsonObject = new JSONObject();
-
-		HttpResponse httpResponseGetPorts = createHttpResponse(portsJsonObject.toString(), HttpStatus.SC_OK);
-		when(this.client.execute(any(HttpUriRequest.class))).thenReturn(httpResponseGetPorts);
-
-		//exercise
-		try {
-			this.openStackV2NetworkPlugin.deleteInstance(networkId, this.defaultToken);
-			fail();
-		} catch (UnexpectedException e) {
-			// TODO: check error message
-		} catch (Exception e) {
-			fail();
-		}
-
-		//verify
-		verify(this.client, times(1)).execute(any(HttpUriRequest.class));
-	}
-
-	//test case:
-	@Ignore
-	@Test
-	public void testRemoveInstanceRemoveNetworkBadRequestException() throws JSONException, IOException, UnexpectedException {
-		JSONObject portOneJsonObject = new JSONObject();
-		String networkId = "networkId";
-		String securityGroupId = "fake-sg-id";
-		JSONObject securityGroupResponse = createSecurityGroupGetResponse(securityGroupId);
-		portOneJsonObject.put(OpenStackV2NetworkPlugin.KEY_NETWORK_ID, networkId);
-
-		JSONArray subnetsjsonArray = new JSONArray();
-		JSONObject subnetObject = new JSONObject();
-		String subnetId = "subnetId";
-		subnetsjsonArray.put(0, subnetObject);
-
-		JSONArray portsArrayJsonObject = new JSONArray();
-		portsArrayJsonObject.put(0, portOneJsonObject);
-
-		JSONObject portsJsonObject = new JSONObject();
-
-		HttpResponse httpResponseDeleteNetwork = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
-		HttpResponse httpResponseGetSecurityGroup = createHttpResponse(securityGroupResponse.toString(), HttpStatus.SC_BAD_REQUEST);
-		HttpResponse httpResponseDeleteSecurityGroup = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
-		when(this.client.execute(any(HttpUriRequest.class))).thenReturn(httpResponseDeleteNetwork,
-				httpResponseGetSecurityGroup, httpResponseDeleteSecurityGroup);
-
-		try {
-			this.openStackV2NetworkPlugin.deleteInstance(networkId, this.defaultToken);
-			fail();
-		} catch (FogbowManagerException e) {
-			// TODO: check error message
-		} catch (Exception e) {
-			fail();
-		}
-
-		verify(client, times(4)).execute(any(HttpUriRequest.class));
 	}
 
 	private NetworkOrder createNetworkOrder(String networkId, String address, String gateway,
