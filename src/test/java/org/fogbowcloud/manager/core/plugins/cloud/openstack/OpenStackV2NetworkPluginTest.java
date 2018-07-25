@@ -33,12 +33,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import org.mockito.Mockito;
 
 public class OpenStackV2NetworkPluginTest {
 
@@ -62,9 +60,9 @@ public class OpenStackV2NetworkPluginTest {
         this.properties = propertiesHolder.getProperties();
         this.properties.put(OpenStackV2NetworkPlugin.KEY_EXTERNAL_GATEWAY_INFO, DEFAULT_GATEWAY_INFO);
         this.properties.put(NETWORK_NEUTRONV2_URL_KEY, DEFAULT_NETWORK_URL);
-		this.openStackV2NetworkPlugin = spy(new OpenStackV2NetworkPlugin());
+		this.openStackV2NetworkPlugin = Mockito.spy(new OpenStackV2NetworkPlugin());
 
-		this.client = mock(HttpClient.class);
+		this.client = Mockito.mock(HttpClient.class);
 		this.httpRequestClientUtil = new HttpRequestClientUtil(this.client);
 		this.openStackV2NetworkPlugin.setClient(this.httpRequestClientUtil);
 
@@ -75,7 +73,7 @@ public class OpenStackV2NetworkPluginTest {
 
 	@After
 	public void validate() {
-		validateMockitoUsage();
+		Mockito.validateMockitoUsage();
 	}
 
 	//requestInstance tests
@@ -89,17 +87,17 @@ public class OpenStackV2NetworkPluginTest {
 		HttpResponse httpResponsePostSecurityGroup = createHttpResponse("", HttpStatus.SC_OK);
 		HttpResponse httpResponsePostSshRule = createHttpResponse("", HttpStatus.SC_OK);
 		HttpResponse httpResponsePostIcmpRule = createHttpResponse("", HttpStatus.SC_OK);
-		when(this.client.execute(any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork,
+		Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork,
 				httpResponsePostSubnet, httpResponsePostSecurityGroup, httpResponsePostSshRule, httpResponsePostIcmpRule);
-		doReturn("fake-sg-id").when(this.openStackV2NetworkPlugin).getSecurityGroupIdFromJson(anyString());
-		doReturn(null).when(this.openStackV2NetworkPlugin).getNetworkIdFromJson(anyString());
+		Mockito.doReturn("fake-sg-id").when(this.openStackV2NetworkPlugin).getSecurityGroupIdFromJson(Mockito.anyString());
+		Mockito.doReturn(null).when(this.openStackV2NetworkPlugin).getNetworkIdFromJson(Mockito.anyString());
 		NetworkOrder order = createEmptyOrder();
 
 		//exercise
 		this.openStackV2NetworkPlugin.requestInstance(order, this.defaultToken);
 
 		//verify
-		verify(this.client, times(5)).execute(any(HttpUriRequest.class));
+		Mockito.verify(this.client, Mockito.times(5)).execute(Mockito.any(HttpUriRequest.class));
 	}
 
 	//test case: Tests if an exception will be thrown in case that openstack raise an error in network request.
@@ -107,21 +105,21 @@ public class OpenStackV2NetworkPluginTest {
 	public void testRequestInstancePostNetworkError() throws IOException, UnexpectedException {
 		//set up
 		HttpResponse httpResponsePostNetwork = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
-		when(this.client.execute(any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork);
+		Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork);
 		NetworkOrder order = createEmptyOrder();
 
 		//exercise
 		try {
 			this.openStackV2NetworkPlugin.requestInstance(order, this.defaultToken);
-			fail();
+			Assert.fail();
 		} catch (FogbowManagerException e) {
 			// Throws an exception, as expected
 		} catch (Exception e) {
-			fail();
+			Assert.fail();
 		}
 
 		//verify
-		verify(this.client, times(1)).execute(any(HttpUriRequest.class));
+		Mockito.verify(this.client, Mockito.times(1)).execute(Mockito.any(HttpUriRequest.class));
 	}
 
 	//test case: Tests if an exception will be thrown in case that openstack raise an error when requesting for a new subnet.
@@ -131,7 +129,7 @@ public class OpenStackV2NetworkPluginTest {
 		HttpResponse httpResponsePostNetwork = createHttpResponse("", HttpStatus.SC_OK);
 		HttpResponse httpResponsePostSubnet = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
 		HttpResponse httpResponseRemoveNetwork = createHttpResponse("", HttpStatus.SC_OK);
-		when(this.client.execute(any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork,
+		Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork,
 				httpResponsePostSubnet, httpResponseRemoveNetwork);
 		NetworkOrder order = createEmptyOrder();
 
@@ -139,7 +137,7 @@ public class OpenStackV2NetworkPluginTest {
 		this.openStackV2NetworkPlugin.requestInstance(order, this.defaultToken);
 
 		//verify
-		verify(this.client, times(3)).execute(any(HttpUriRequest.class));
+		Mockito.verify(this.client, Mockito.times(3)).execute(Mockito.any(HttpUriRequest.class));
 	}
 
 	//test case: Tests if the json to request network was generated as expected
@@ -152,8 +150,8 @@ public class OpenStackV2NetworkPluginTest {
 		//verify
 		JSONObject networkJsonObject = generateJsonEntityToCreateNetwork
 				.optJSONObject(OpenStackV2NetworkPlugin.KEY_JSON_NETWORK);
-		assertEquals(DEFAULT_TENANT_ID, networkJsonObject.optString(OpenStackV2NetworkPlugin.KEY_TENANT_ID));
-		assertTrue(networkJsonObject.optString(OpenStackV2NetworkPlugin.KEY_NAME)
+		Assert.assertEquals(DEFAULT_TENANT_ID, networkJsonObject.optString(OpenStackV2NetworkPlugin.KEY_TENANT_ID));
+		Assert.assertTrue(networkJsonObject.optString(OpenStackV2NetworkPlugin.KEY_NAME)
 				.contains(OpenStackV2NetworkPlugin.DEFAULT_NETWORK_NAME));
 	}
 
@@ -169,9 +167,9 @@ public class OpenStackV2NetworkPluginTest {
 		this.openStackV2NetworkPlugin.setDNSList(this.properties);
 
 		//verify
-		assertEquals(2, this.openStackV2NetworkPlugin.getDnsList().length);
-		assertEquals(dnsOne, this.openStackV2NetworkPlugin.getDnsList()[0]);
-		assertEquals(dnsTwo, this.openStackV2NetworkPlugin.getDnsList()[1]);
+		Assert.assertEquals(2, this.openStackV2NetworkPlugin.getDnsList().length);
+		Assert.assertEquals(dnsOne, this.openStackV2NetworkPlugin.getDnsList()[0]);
+		Assert.assertEquals(dnsTwo, this.openStackV2NetworkPlugin.getDnsList()[1]);
 	}
 
 	//test case: Tests if the json to request subnet was generated as expected
@@ -194,17 +192,17 @@ public class OpenStackV2NetworkPluginTest {
 		//verify
 		JSONObject subnetJsonObject = generateJsonEntityToCreateSubnet
 				.optJSONObject(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET);
-		assertEquals(DEFAULT_TENANT_ID, subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_TENANT_ID));
-		assertTrue(subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_NAME)
+		Assert.assertEquals(DEFAULT_TENANT_ID, subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_TENANT_ID));
+		Assert.assertTrue(subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_NAME)
 				.contains(OpenStackV2NetworkPlugin.DEFAULT_SUBNET_NAME));
-		assertEquals(order.getId(), subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_NETWORK_ID));
-		assertEquals(order.getAddress(), subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_CIDR));
-		assertEquals(order.getGateway(), subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_GATEWAY_IP));
-		assertEquals(true, subnetJsonObject.optBoolean(OpenStackV2NetworkPlugin.KEY_ENABLE_DHCP));
-		assertEquals(OpenStackV2NetworkPlugin.DEFAULT_IP_VERSION,
+		Assert.assertEquals(order.getId(), subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_NETWORK_ID));
+		Assert.assertEquals(order.getAddress(), subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_CIDR));
+		Assert.assertEquals(order.getGateway(), subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_GATEWAY_IP));
+		Assert.assertEquals(true, subnetJsonObject.optBoolean(OpenStackV2NetworkPlugin.KEY_ENABLE_DHCP));
+		Assert.assertEquals(OpenStackV2NetworkPlugin.DEFAULT_IP_VERSION,
 				subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_IP_VERSION));
-		assertEquals(dnsOne, subnetJsonObject.optJSONArray(OpenStackV2NetworkPlugin.KEY_DNS_NAMESERVERS).get(0));
-		assertEquals(dnsTwo, subnetJsonObject.optJSONArray(OpenStackV2NetworkPlugin.KEY_DNS_NAMESERVERS).get(1));
+		Assert.assertEquals(dnsOne, subnetJsonObject.optJSONArray(OpenStackV2NetworkPlugin.KEY_DNS_NAMESERVERS).get(0));
+		Assert.assertEquals(dnsTwo, subnetJsonObject.optJSONArray(OpenStackV2NetworkPlugin.KEY_DNS_NAMESERVERS).get(1));
 	}
 
 	//test case: Tests if the json to request subnet was generated as expected, when address is not provided.
@@ -221,7 +219,7 @@ public class OpenStackV2NetworkPluginTest {
 		//verify
 		JSONObject subnetJsonObject = generateJsonEntityToCreateSubnet
 				.optJSONObject(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET);
-		assertEquals(OpenStackV2NetworkPlugin.DEFAULT_NETWORK_ADDRESS,
+		Assert.assertEquals(OpenStackV2NetworkPlugin.DEFAULT_NETWORK_ADDRESS,
 				subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_CIDR));
 	}
 
@@ -239,9 +237,9 @@ public class OpenStackV2NetworkPluginTest {
 		//verify
 		JSONObject subnetJsonObject = generateJsonEntityToCreateSubnet
 				.optJSONObject(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET);
-		assertEquals(OpenStackV2NetworkPlugin.DEFAULT_DNS_NAME_SERVERS[0],
+		Assert.assertEquals(OpenStackV2NetworkPlugin.DEFAULT_DNS_NAME_SERVERS[0],
 				subnetJsonObject.optJSONArray(OpenStackV2NetworkPlugin.KEY_DNS_NAMESERVERS).get(0));
-		assertEquals(OpenStackV2NetworkPlugin.DEFAULT_DNS_NAME_SERVERS[1],
+		Assert.assertEquals(OpenStackV2NetworkPlugin.DEFAULT_DNS_NAME_SERVERS[1],
 				subnetJsonObject.optJSONArray(OpenStackV2NetworkPlugin.KEY_DNS_NAMESERVERS).get(1));
 	}
 
@@ -259,7 +257,7 @@ public class OpenStackV2NetworkPluginTest {
 		//verify
 		JSONObject subnetJsonObject = generateJsonEntityToCreateSubnet
 				.optJSONObject(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET);
-		assertEquals(false, subnetJsonObject.optBoolean(OpenStackV2NetworkPlugin.KEY_ENABLE_DHCP));
+		Assert.assertEquals(false, subnetJsonObject.optBoolean(OpenStackV2NetworkPlugin.KEY_ENABLE_DHCP));
 	}
 
 	//test case: Tests if the json to request subnet was generated as expected, when gateway is not provided.
@@ -276,7 +274,7 @@ public class OpenStackV2NetworkPluginTest {
 		//verify
 		JSONObject subnetJsonObject = generateJsonEntityToCreateSubnet
 				.optJSONObject(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET);
-		assertTrue(subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_GATEWAY_IP).isEmpty());
+		Assert.assertTrue(subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_GATEWAY_IP).isEmpty());
 	}
 
 	//getInstance tests
@@ -294,7 +292,7 @@ public class OpenStackV2NetworkPluginTest {
 		networkJsonObject.put(OpenStackV2NetworkPlugin.KEY_JSON_NETWORK, networkContentJsonObject);
 
 		//verify
-		assertEquals(networkId,
+		Assert.assertEquals(networkId,
 				this.openStackV2NetworkPlugin.getNetworkIdFromJson(networkJsonObject.toString()));
 	}
 
@@ -320,20 +318,20 @@ public class OpenStackV2NetworkPluginTest {
 
 		HttpResponse httpResponseGetNetwork = createHttpResponse(networkJsonObject.toString(), HttpStatus.SC_OK);
 		HttpResponse httpResponseGetSubnet = createHttpResponse(subnetJsonObject.toString(), HttpStatus.SC_OK);
-		when(this.client.execute(any(HttpUriRequest.class))).thenReturn(httpResponseGetNetwork,
+		Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponseGetNetwork,
 				httpResponseGetSubnet);
 
 		//exercise
 		NetworkInstance instance = this.openStackV2NetworkPlugin.getInstance("instanceId00", this.defaultToken);
 
 		//verify
-		assertEquals(networkId, instance.getId());
-		assertEquals(networkName, instance.getLabel());
-		assertEquals(vlan, instance.getvLAN());
-		assertEquals(InstanceState.READY, instance.getState());
-		assertEquals(gatewayIp, instance.getGateway());
-		assertEquals(cidr, instance.getAddress());
-		assertEquals(NetworkAllocationMode.DYNAMIC, instance.getAllocation());
+		Assert.assertEquals(networkId, instance.getId());
+		Assert.assertEquals(networkName, instance.getLabel());
+		Assert.assertEquals(vlan, instance.getvLAN());
+		Assert.assertEquals(InstanceState.READY, instance.getState());
+		Assert.assertEquals(gatewayIp, instance.getGateway());
+		Assert.assertEquals(cidr, instance.getAddress());
+		Assert.assertEquals(NetworkAllocationMode.DYNAMIC, instance.getAllocation());
 	}
 
 
@@ -350,14 +348,14 @@ public class OpenStackV2NetworkPluginTest {
 		HttpResponse httpResponseDeleteNetwork = createHttpResponse("", HttpStatus.SC_OK);
 		HttpResponse httpResponseGetSecurityGroupId = createHttpResponse(securityGroupResponse.toString(), HttpStatus.SC_OK);
 		HttpResponse httpResponseSecurityGroup = createHttpResponse("", HttpStatus.SC_OK);
-		when(this.client.execute(any(HttpUriRequest.class))).thenReturn(httpResponseDeleteNetwork,
+		Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponseDeleteNetwork,
 				httpResponseGetSecurityGroupId, httpResponseSecurityGroup);
 
 		//exercise
 		this.openStackV2NetworkPlugin.deleteInstance(networkId, this.defaultToken);
 
 		//verify
-		verify(this.client, times(3)).execute(any(HttpUriRequest.class));
+		Mockito.verify(this.client, Mockito.times(3)).execute(Mockito.any(HttpUriRequest.class));
 	}
 
 	//test: Tests a delete in a network which has compute attached to it
@@ -367,29 +365,31 @@ public class OpenStackV2NetworkPluginTest {
 		String networkId = "networkId";
 
 		HttpResponse httpResponseDeleteRouter = createHttpResponse("", HttpStatus.SC_FORBIDDEN);
-		when(this.client.execute(any(HttpUriRequest.class))).thenReturn(httpResponseDeleteRouter);
+		Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponseDeleteRouter);
 
 		//exercise
 		try {
 			this.openStackV2NetworkPlugin.deleteInstance(networkId, this.defaultToken);
-			fail();
+			Assert.fail();
 		} catch (UnauthorizedRequestException e) {
 			// TODO: check error message
 		} catch (Exception e) {
-			fail();
+			Assert.fail();
 		}
 
 		// verify
-		verify(this.client, times(1)).execute(any(HttpUriRequest.class));
-		verify(this.openStackV2NetworkPlugin, never()).retrieveSecurityGroupId(anyString(), any(Token.class));
-		verify(this.openStackV2NetworkPlugin, never()).removeSecurityGroup(any(Token.class), anyString());
+		Mockito.verify(this.client, Mockito.times(1)).execute(Mockito.any(HttpUriRequest.class));
+		Mockito.verify(this.openStackV2NetworkPlugin, Mockito.never()).retrieveSecurityGroupId(
+				Mockito.anyString(), Mockito.any(Token.class));
+		Mockito.verify(this.openStackV2NetworkPlugin, Mockito.never()).removeSecurityGroup(
+				Mockito.any(Token.class), Mockito.anyString());
 	}
 
 	private NetworkOrder createNetworkOrder(String networkId, String address, String gateway,
 			NetworkAllocationMode allocation) {
 		String requestingMember = "fake-requesting-member";
 		String providingMember = "fake-providing-member";
-		NetworkOrder order = new NetworkOrder(networkId, mock(FederationUser.class), requestingMember, providingMember,
+		NetworkOrder order = new NetworkOrder(networkId, Mockito.mock(FederationUser.class), requestingMember, providingMember,
 				gateway, address, allocation);
 		return order;
 	}
@@ -399,13 +399,13 @@ public class OpenStackV2NetworkPluginTest {
 	}
 
 	private HttpResponse createHttpResponse(String content, int httpStatus) throws IOException {
-		HttpResponse httpResponse = mock(HttpResponse.class);
-		HttpEntity httpEntity = mock(HttpEntity.class);
+		HttpResponse httpResponse = Mockito.mock(HttpResponse.class);
+		HttpEntity httpEntity = Mockito.mock(HttpEntity.class);
 		InputStream inputStrem = new ByteArrayInputStream(content.getBytes(UTF_8));
-		when(httpEntity.getContent()).thenReturn(inputStrem);
-		when(httpResponse.getEntity()).thenReturn(httpEntity);
+		Mockito.when(httpEntity.getContent()).thenReturn(inputStrem);
+		Mockito.when(httpResponse.getEntity()).thenReturn(httpEntity);
 		StatusLine statusLine = new BasicStatusLine(new ProtocolVersion("", 0, 0), httpStatus, "");
-		when(httpResponse.getStatusLine()).thenReturn(statusLine);
+		Mockito.when(httpResponse.getStatusLine()).thenReturn(statusLine);
 		return httpResponse;
 	}
 
