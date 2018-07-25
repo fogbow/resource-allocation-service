@@ -59,23 +59,8 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 
-        DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
-        Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN))
-                .thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING))
-                .thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED))
-                .thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED))
-                .thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING))
-                .thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.CLOSED))
-                .thenReturn(new SynchronizedDoublyLinkedList());
-
-        PowerMockito.mockStatic(DatabaseManager.class);
-        BDDMockito.given(DatabaseManager.getInstance()).willReturn(databaseManager);
-
+        super.mockReadOrdersFromDataBase();
+        
         SharedOrderHolders orderHolders = SharedOrderHolders.getInstance();
 
         SynchronizedDoublyLinkedList openOrdersList = orderHolders.getOpenOrdersList();
@@ -89,13 +74,6 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         OrderStateTransitioner.transition(order, destinationState);
 
         // verify
-        Mockito.verify(databaseManager, Mockito.times(1)).readActiveOrders(OrderState.OPEN);
-        Mockito.verify(databaseManager, Mockito.times(1)).readActiveOrders(OrderState.SPAWNING);
-        Mockito.verify(databaseManager, Mockito.times(1)).readActiveOrders(OrderState.FAILED);
-        Mockito.verify(databaseManager, Mockito.times(1)).readActiveOrders(OrderState.FULFILLED);
-        Mockito.verify(databaseManager, Mockito.times(1)).readActiveOrders(OrderState.PENDING);
-        Mockito.verify(databaseManager, Mockito.times(1)).readActiveOrders(OrderState.CLOSED);
-
         Assert.assertEquals(order, spawningOrdersList.getNext());
         Assert.assertNull(openOrdersList.getNext());
     }
