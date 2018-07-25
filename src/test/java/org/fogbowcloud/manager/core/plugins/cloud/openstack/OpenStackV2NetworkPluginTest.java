@@ -1,6 +1,7 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -15,11 +16,13 @@ import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.message.BasicStatusLine;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.QuotaExceededException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
@@ -29,6 +32,7 @@ import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
+import org.json.HTTP;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,6 +40,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 
 public class OpenStackV2NetworkPluginTest {
@@ -63,7 +68,7 @@ public class OpenStackV2NetworkPluginTest {
 		this.openStackV2NetworkPlugin = Mockito.spy(new OpenStackV2NetworkPlugin());
 
 		this.client = Mockito.mock(HttpClient.class);
-		this.httpRequestClientUtil = new HttpRequestClientUtil(this.client);
+		this.httpRequestClientUtil = Mockito.spy(new HttpRequestClientUtil(this.client));
 		this.openStackV2NetworkPlugin.setClient(this.httpRequestClientUtil);
 
 		Map<String, String> attributes = new HashMap<String, String>();
@@ -337,25 +342,36 @@ public class OpenStackV2NetworkPluginTest {
 
 	//deleteInstance tests
 
-	//test case: Tests remove instance, it must execute a http client exactly 3 times
+	//test case: Tests remove instance, it must execute a http client exactly 3 times: 1 GetRequest, 2 DeleteRequests
 	@Test
 	public void testRemoveInstance() throws IOException, JSONException, FogbowManagerException, UnexpectedException {
 		//set up
 		String networkId = "networkId";
 		String securityGroupId = "fake-sg-id";
 		JSONObject securityGroupResponse = createSecurityGroupGetResponse(securityGroupId);
+		String suffixEndpointNetwork = OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_NETWORK + "/" + networkId;
+		String suffixEndpointGetSG = OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP + "?" +
+				OpenStackV2NetworkPlugin.QUERY_NAME + "=" + OpenStackV2NetworkPlugin.DEFAULT_SECURITY_GROUP_NAME + "-"
+				+ networkId;
+		String suffixEndpointDeleteSG = OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP + "/" + securityGroupId;
 
-		HttpResponse httpResponseDeleteNetwork = createHttpResponse("", HttpStatus.SC_OK);
-		HttpResponse httpResponseGetSecurityGroupId = createHttpResponse(securityGroupResponse.toString(), HttpStatus.SC_OK);
-		HttpResponse httpResponseSecurityGroup = createHttpResponse("", HttpStatus.SC_OK);
-		Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponseDeleteNetwork,
-				httpResponseGetSecurityGroupId, httpResponseSecurityGroup);
+		Mockito.doNothing().when(this.httpRequestClientUtil).doDeleteRequest(
+				Mockito.endsWith(suffixEndpointNetwork), Mockito.eq(this.defaultToken));
+		Mockito.doReturn(securityGroupResponse.toString()).when(this.httpRequestClientUtil).doGetRequest(
+				Mockito.endsWith(suffixEndpointGetSG), Mockito.eq(this.defaultToken));
+		Mockito.doNothing().when(this.httpRequestClientUtil).doDeleteRequest(
+				Mockito.endsWith(suffixEndpointDeleteSG), Mockito.eq(this.defaultToken));
 
 		//exercise
 		this.openStackV2NetworkPlugin.deleteInstance(networkId, this.defaultToken);
 
 		//verify
-		Mockito.verify(this.client, Mockito.times(3)).execute(Mockito.any(HttpUriRequest.class));
+		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doDeleteRequest(
+				Mockito.endsWith(suffixEndpointNetwork), Mockito.eq(this.defaultToken));
+		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doGetRequest(
+				Mockito.endsWith(suffixEndpointGetSG), Mockito.eq(this.defaultToken));
+		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doDeleteRequest(
+				Mockito.endsWith(suffixEndpointDeleteSG) , Mockito.eq(this.defaultToken));
 	}
 
 	//test: Tests a delete in a network which has compute attached to it
@@ -363,26 +379,99 @@ public class OpenStackV2NetworkPluginTest {
 	public void testRemoveNetworkWithInstanceAssociated() throws JSONException, IOException, FogbowManagerException, UnexpectedException {
 		//set up
 		String networkId = "networkId";
+		String suffixEndpointNetwork = OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_NETWORK + "/" + networkId;
 
-		HttpResponse httpResponseDeleteRouter = createHttpResponse("", HttpStatus.SC_FORBIDDEN);
-		Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponseDeleteRouter);
+		Mockito.doThrow(new HttpResponseException(HttpStatus.SC_CONFLICT, "conflict")).when(this.httpRequestClientUtil)
+				.doDeleteRequest(Mockito.endsWith(suffixEndpointNetwork), Mockito.eq(this.defaultToken));
 
 		//exercise
 		try {
 			this.openStackV2NetworkPlugin.deleteInstance(networkId, this.defaultToken);
 			Assert.fail();
-		} catch (UnauthorizedRequestException e) {
+		} catch (FogbowManagerException e) {
 			// TODO: check error message
 		} catch (Exception e) {
 			Assert.fail();
 		}
 
 		// verify
-		Mockito.verify(this.client, Mockito.times(1)).execute(Mockito.any(HttpUriRequest.class));
-		Mockito.verify(this.openStackV2NetworkPlugin, Mockito.never()).retrieveSecurityGroupId(
-				Mockito.anyString(), Mockito.any(Token.class));
-		Mockito.verify(this.openStackV2NetworkPlugin, Mockito.never()).removeSecurityGroup(
-				Mockito.any(Token.class), Mockito.anyString());
+		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doDeleteRequest(
+				Mockito.anyString() , Mockito.eq(this.defaultToken));
+		Mockito.verify(this.httpRequestClientUtil, Mockito.never()).doGetRequest(
+				Mockito.anyString(), Mockito.eq(this.defaultToken));
+	}
+
+	// test case: throws an exception when try to delete the security group
+	@Test(expected=FogbowManagerException.class)
+	public void deleteInstanceExceptionSecurityGroupDeletionTest() throws FogbowManagerException, UnexpectedException, IOException {
+		// set up
+		String networkId = "networkId";
+		String securityGroupId = "fake-sg-id";
+		JSONObject securityGroupResponse = createSecurityGroupGetResponse(securityGroupId);
+		String suffixEndpointNetwork = OpenStackV2NetworkPlugin2.SUFFIX_ENDPOINT_NETWORK +
+				File.separator + networkId;
+		String suffixEndpointGetSG = OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP + "?" +
+				OpenStackV2NetworkPlugin.QUERY_NAME + "=" + OpenStackV2NetworkPlugin.DEFAULT_SECURITY_GROUP_NAME + "-"
+				+ networkId;
+		String suffixEndpointSecurityGroup = OpenStackV2NetworkPlugin2.SUFFIX_ENDPOINT_SECURITY_GROUP +
+				File.separator + securityGroupId;
+
+		// network deletion ok
+		Mockito.doNothing().when(this.httpRequestClientUtil)
+				.doDeleteRequest(Mockito.endsWith(suffixEndpointNetwork), Mockito.eq(this.defaultToken));
+		// retrieving securityGroupId ok
+		Mockito.doReturn(securityGroupResponse.toString()).when(this.httpRequestClientUtil).doGetRequest(
+				Mockito.endsWith(suffixEndpointGetSG), Mockito.eq(this.defaultToken));
+		// security group deletion not ok
+		Mockito.doThrow(new HttpResponseException(org.apache.commons.httpclient.HttpStatus.SC_BAD_REQUEST, "")).when(this.httpRequestClientUtil)
+				.doDeleteRequest(Mockito.endsWith(suffixEndpointSecurityGroup), Mockito.eq(this.defaultToken));
+
+		// exercise
+		this.openStackV2NetworkPlugin.deleteInstance(networkId, this.defaultToken);
+
+		// verify
+		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doDeleteRequest(
+				Mockito.endsWith(suffixEndpointNetwork), Mockito.eq(this.defaultToken));
+		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doGetRequest(
+				Mockito.endsWith(suffixEndpointGetSG), Mockito.eq(this.defaultToken));
+		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doDeleteRequest(
+				Mockito.endsWith(suffixEndpointSecurityGroup) , Mockito.eq(this.defaultToken));
+	}
+
+	// test case: throws a "notFoundInstance" exception and continue try to delete the security group
+	@Test
+	public void deleteInstanceNotFoundNetworkExceptionTest() throws FogbowManagerException, UnexpectedException, IOException {
+		// set up
+		String networkId = "networkId";
+		String securityGroupId = "fake-sg-id";
+		JSONObject securityGroupResponse = createSecurityGroupGetResponse(securityGroupId);
+		String suffixEndpointNetwork = OpenStackV2NetworkPlugin2.SUFFIX_ENDPOINT_NETWORK +
+				File.separator + networkId;
+		String suffixEndpointGetSG = OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP + "?" +
+				OpenStackV2NetworkPlugin.QUERY_NAME + "=" + OpenStackV2NetworkPlugin.DEFAULT_SECURITY_GROUP_NAME + "-"
+				+ networkId;
+		String suffixEndpointSecurityGroup = OpenStackV2NetworkPlugin2.SUFFIX_ENDPOINT_SECURITY_GROUP +
+				File.separator + securityGroupId;
+
+		// network deletion not ok and return nof found
+		Mockito.doThrow(new HttpResponseException(org.apache.commons.httpclient.HttpStatus.SC_NOT_FOUND, "")).when(this.httpRequestClientUtil)
+				.doDeleteRequest(Mockito.endsWith(suffixEndpointNetwork), Mockito.eq(this.defaultToken));
+		// retrieved securityGroupId ok
+		Mockito.doReturn(securityGroupResponse.toString()).when(this.httpRequestClientUtil).doGetRequest(
+				Mockito.endsWith(suffixEndpointGetSG), Mockito.eq(this.defaultToken));
+		// security group deletion ok
+		Mockito.doNothing().when(this.httpRequestClientUtil).doDeleteRequest(Mockito.endsWith(suffixEndpointSecurityGroup), Mockito.eq(this.defaultToken));
+
+		// exercise
+		this.openStackV2NetworkPlugin.deleteInstance(networkId, this.defaultToken);
+
+		// verify
+		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doDeleteRequest(
+				Mockito.endsWith(suffixEndpointNetwork), Mockito.eq(this.defaultToken));
+		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doGetRequest(
+				Mockito.endsWith(suffixEndpointGetSG), Mockito.eq(this.defaultToken));
+		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doDeleteRequest(
+				Mockito.endsWith(suffixEndpointSecurityGroup) , Mockito.eq(this.defaultToken));
 	}
 
 	private NetworkOrder createNetworkOrder(String networkId, String address, String gateway,
