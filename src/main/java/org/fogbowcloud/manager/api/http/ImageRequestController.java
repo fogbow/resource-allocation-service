@@ -1,18 +1,13 @@
 package org.fogbowcloud.manager.api.http;
 
-import java.util.Map;
-
-import org.fogbowcloud.manager.core.exceptions.*;
+import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.models.images.Image;
-import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping(value = ImageRequestController.IMAGE_ENDPOINT)
@@ -22,7 +17,7 @@ public class ImageRequestController {
 
     public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
-    private final String MEMBER_ID_HEADER_KEY = "memberId";
+    public static final String MEMBER_ID_HEADER_KEY = "memberId";
 
     private final Logger LOGGER = Logger.getLogger(ImageRequestController.class);
 

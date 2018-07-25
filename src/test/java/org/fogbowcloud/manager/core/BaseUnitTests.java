@@ -91,7 +91,7 @@ public class BaseUnitTests {
         return localOrder;
     }
 
-    public void mockDB() {
+    public void mockReadOrdersFromDataBase() {
         DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
         when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList());
         when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList());
