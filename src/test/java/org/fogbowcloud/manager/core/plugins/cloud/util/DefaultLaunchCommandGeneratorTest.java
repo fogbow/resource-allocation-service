@@ -181,7 +181,7 @@ public class DefaultLaunchCommandGeneratorTest {
         Assert.assertEquals(expectedMimeString, replacedMimeString);
     }
     
-    // test case: An exception must be thrown because the manager ssh public key file path is empty.   
+    // test case: An exception must be thrown when the manager ssh public key file path is empty.   
     @Test(expected = FatalErrorException.class)
     public void testPropertiesWithoutManagerSshPublicKeyFilePath() throws Exception {
     	
@@ -199,7 +199,7 @@ public class DefaultLaunchCommandGeneratorTest {
         new DefaultLaunchCommandGenerator();
     }
     
-    // test case: An exception must be thrown because the reverse tunnel private address key is empty.
+    // test case: An exception must be thrown when the reverse tunnel private address key is empty.
     @Test(expected = FatalErrorException.class)
     public void testPropertiesWithoutReverseTunnelPrivateAddress() throws Exception {
     	
@@ -217,7 +217,7 @@ public class DefaultLaunchCommandGeneratorTest {
     }
     
     
-    // test case: An exception must be thrown because the reverse tunnel http port key is empty.
+    // test case: An exception must be thrown when the reverse tunnel http port key is empty.
     @Test(expected = FatalErrorException.class)
     public void testPropertiesWithoutReverseTunnelHttpPort() throws Exception {
     	
