@@ -263,7 +263,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
                     // if this is not the default network, we need to open SSH port, and also ICMP connection.
                     JSONArray securityGroup = new JSONArray();
                     JSONObject securityGroupName = new JSONObject();
-                    String securityGroupProperty = OpenStackV2NetworkPlugin2.DEFAULT_SECURITY_GROUP_NAME + "-" + id;
+                    String securityGroupProperty = OpenStackV2NetworkPlugin.DEFAULT_SECURITY_GROUP_NAME + "-" + id;
                     securityGroupName.put(NAME_JSON_FIELD, securityGroupProperty);
                     securityGroup.put(securityGroupName);
                     server.put(SECURITY_JSON_FIELD, securityGroup);
