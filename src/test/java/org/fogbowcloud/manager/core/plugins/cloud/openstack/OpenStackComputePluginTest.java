@@ -88,15 +88,15 @@ public class OpenStackComputePluginTest {
         this.httpRequestClientUtilMock = Mockito.mock(HttpRequestClientUtil.class);
         this.launchCommandGeneratorMock = mock(LaunchCommandGenerator.class);
         this.networksId.add(privateNetworkId);
-		this.responseNetworkIds.add(defaultNetworkId);
-		this.responseNetworkIds.add(privateNetworkId);
+        this.responseNetworkIds.add(defaultNetworkId);
+        this.responseNetworkIds.add(privateNetworkId);
 
         String accessId = "accessID";
-    	String tenantId = "tenant-id";
-    	Map <String, String> attributes = new HashMap<String, String>();
-    	attributes.put(OpenStackNovaV2ComputePlugin.TENANT_ID, tenantId);
-    	User user = new User("iduser", "nameuser");
-    	Date expirationTime = new Date();
+        String tenantId = "tenant-id";
+        Map <String, String> attributes = new HashMap<String, String>();
+        attributes.put(OpenStackNovaV2ComputePlugin.TENANT_ID, tenantId);
+        User user = new User("iduser", "nameuser");
+        Date expirationTime = new Date();
         this.localToken = new Token(accessId, user, expirationTime, attributes);
         
         HomeDir.getInstance().setPath("src/test/resources/private");
@@ -692,7 +692,7 @@ public class OpenStackComputePluginTest {
     }
     
     private JSONObject generateJsonRequest(String imageId, String flavorId, String userData, String keyName, List<String> networksId, String randomUUID) {
-	    JSONObject server = new JSONObject();
+    	JSONObject server = new JSONObject();
     	server.put(OpenStackNovaV2ComputePlugin.NAME_JSON_FIELD, OpenStackNovaV2ComputePlugin.FOGBOW_INSTANCE_NAME + randomUUID);
     	server.put(OpenStackNovaV2ComputePlugin.IMAGE_JSON_FIELD, imageId);
     	server.put(OpenStackNovaV2ComputePlugin.FLAVOR_REF_JSON_FIELD, flavorId);

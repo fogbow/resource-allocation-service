@@ -34,7 +34,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     protected static final String TENANT_ID = "tenantId";
     protected static final String KEY_PROVIDER_SEGMENTATION_ID = "provider:segmentation_id";
     protected static final String KEY_EXTERNAL_GATEWAY_INFO = "external_gateway_info";
-    public static final String QUERY_NAME = "name";
+    protected static final String QUERY_NAME = "name";
     protected static final String KEY_DNS_NAMESERVERS = "dns_" + QUERY_NAME + "servers";
     protected static final String KEY_ENABLE_DHCP = "enable_dhcp";
     protected static final String KEY_IP_VERSION = "ip_version";
@@ -58,7 +58,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     protected static final String[] DEFAULT_DNS_NAME_SERVERS = new String[] {"8.8.8.8", "8.8.4.4"};
     protected static final String DEFAULT_NETWORK_ADDRESS = "192.168.0.1/24";
 
-    // security group keys
+    // security group properties
     protected static final String DIRECTION = "direction";
     protected static final String SECURITY_GROUP_ID = "security_group_id";
     protected static final String REMOTE_IP_PREFIX = "remote_ip_prefix";
@@ -68,8 +68,8 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     protected static final String INGRESS_DIRECTION = "ingress";
     protected static final String TCP_PROTOCOL = "tcp";
     protected static final String ICMP_PROTOCOL = "icmp";
-    public static final int SSH_PORT = 22;
-    public static final int ANY_PORT = -1;
+    protected static final int SSH_PORT = 22;
+    protected static final int ANY_PORT = -1;
     public static final String DEFAULT_SECURITY_GROUP_NAME = "fogbow-sg";
 
     private HttpRequestClientUtil client;
