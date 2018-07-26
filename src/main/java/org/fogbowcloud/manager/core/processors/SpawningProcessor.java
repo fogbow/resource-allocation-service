@@ -135,4 +135,11 @@ public class SpawningProcessor implements Runnable {
         }
 
     }
+    
+    /** this method used only for testing */
+    protected void setComputeInstanceConnectivity(
+            ComputeInstanceConnectivityUtil computeInstanceConnectivity) {
+        this.computeInstanceConnectivity = computeInstanceConnectivity;
+    }
+    
 }

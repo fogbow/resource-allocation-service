@@ -1,8 +1,5 @@
 package org.fogbowcloud.manager.core.processors;
 
-import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.HomeDir;
@@ -50,11 +47,10 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     private static final String FAKE_SOURCE = "fake-source";
     private static final String FAKE_TARGET = "fake-target";
     private static final String FAKE_DEVICE = "fake-device";
-    
+
     /** Maximum value that the thread should wait in sleep time */
     private static final int MAX_SLEEP_TIME = 33000;
-    
-    private static final int MIN_SLEEP_TIME = 500;
+    private static final int DEFAULT_SLEEP_TIME = 500;
 
     private ChainedList failedOrderList;
     private ChainedList fulfilledOrderList;
@@ -65,16 +61,15 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     private SshConnectivityUtil sshConnectivity;
     private Thread thread;
 
-    private Map<String, Integer> connectionAttempts;
-    
     @Before
     public void setUp() {
-        super.mockDB();
+
+        super.mockReadOrdersFromDataBase();
         
         HomeDir.getInstance().setPath(TEST_PATH);
 
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
-        
+
         this.properties = propertiesHolder.getProperties();
         this.properties.put(ConfigurationConstants.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 
@@ -85,10 +80,8 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrderList = sharedOrderHolders.getFulfilledOrdersList();
         this.failedOrderList = sharedOrderHolders.getFailedOrdersList();
-        
+
         this.thread = null;
-        
-        this.connectionAttempts = new HashMap<>();
     }
 
     @After
@@ -99,296 +92,290 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         super.tearDown();
     }
 
-    @SuppressWarnings("unchecked")
-    @Test
-    public void testRunProcessWithExceededConnectionAttempts() throws InterruptedException, UnexpectedException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
-        Order order = this.createOrder();
-        order.setOrderState(OrderState.FULFILLED);
-         
-        this.fulfilledProcessor = new FulfilledProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
-                this.tunnelingService, this.sshConnectivity,
-                DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME);
-
-        Field declaredField = this.fulfilledProcessor.getClass().getDeclaredField("connectionAttempts");
-        declaredField.setAccessible(true);
-                
-        this.connectionAttempts = (Map<String, Integer>) declaredField.get(this.fulfilledProcessor);
-        
-        for (int i = 0; i <= 1000; i++) {
-            connectionAttempts.put(createOrder().getId(), i);
-        }
-              
-        declaredField.set(this.fulfilledProcessor, this.connectionAttempts);
-        
-        Assert.assertEquals(this.connectionAttempts.size(), 1001);
-        
-        this.thread = new Thread(this.fulfilledProcessor);
-        this.thread.start();
-        
-        Thread.sleep(MIN_SLEEP_TIME);
-
-        Assert.assertEquals(this.connectionAttempts.size(), 0);
-    }
-    
+    // test case: When running thread in FulfilledProcessor without the external addresses of the
+    // reverse tunnel, the method processFulfilledOrder() must not change OrderState to Failed and
+    // must remain in Fulfilled list.
     @Test
     public void testRunProcessLocalComputeOrderWithoutExternalAddresses()
             throws FogbowManagerException, UnexpectedException, InterruptedException {
-        
+
+        // set up
         Order order = this.createOrder();
         order.setOrderState(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
+        Assert.assertNull(this.failedOrderList.getNext());
 
-        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
         orderInstance.setState(InstanceState.READY);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
         mockCloudConnectorFactory(orderInstance);
 
+        // exercise
         Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.anyString()))
                 .thenReturn(null);
 
-        Assert.assertNull(this.failedOrderList.getNext());
-
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
+        Thread.sleep(DEFAULT_SLEEP_TIME);
 
-        Thread.sleep(MIN_SLEEP_TIME);
+        // verify
+        Mockito.verify(this.tunnelingService, Mockito.times(1)).getExternalServiceAddresses(Mockito.anyString());
 
-        Order test = this.fulfilledOrderList.getNext();
-        Assert.assertNotNull(test);
-        Assert.assertEquals(order.getInstanceId(), test.getInstanceId());
-        Assert.assertEquals(OrderState.FULFILLED, test.getOrderState());
+        Assert.assertNotNull(this.fulfilledOrderList.getNext());
+        Assert.assertNull(this.failedOrderList.getNext());
     }
 
+    // test case: When running thread in the FulfilledProcessor and the OrderType is not a
+    // Compute, the method processFulfilledOrder() must not change OrderState to Failed and
+    // must remain in Fulfilled list.
     @Test
     public void testRunProcessLocalWhenOrderTypeIsNotComputer()
             throws FogbowManagerException, UnexpectedException, InterruptedException {
 
+        // set up
         FederationUser federationUser = Mockito.mock(FederationUser.class);
         String providingMember = LOCAL_MEMBER_ID;
-        
         String requestingMember =
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
 
         Order order = new AttachmentOrder(federationUser, requestingMember, providingMember,
                 FAKE_SOURCE, FAKE_TARGET, FAKE_DEVICE);
-        
-        order.setOrderState(OrderState.FULFILLED);
-        
-        this.fulfilledOrderList.addItem(order);
 
-        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        order.setOrderState(OrderState.FULFILLED);
+
+        this.fulfilledOrderList.addItem(order);
+        Assert.assertNull(this.failedOrderList.getNext());
+
+        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
         orderInstance.setState(InstanceState.READY);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
         mockCloudConnectorFactory(orderInstance);
 
-        Assert.assertNull(this.failedOrderList.getNext());
-
+        // exercise
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
-        Thread.sleep(MIN_SLEEP_TIME);
-
-        Order test = this.fulfilledOrderList.getNext();
-        Assert.assertNotNull(test);
-        Assert.assertEquals(order.getInstanceId(), test.getInstanceId());
-        Assert.assertEquals(OrderState.FULFILLED, test.getOrderState());
+        // verify
+        Assert.assertNotNull(this.fulfilledOrderList.getNext());
+        Assert.assertNull(this.failedOrderList.getNext());
     }
 
+    // test case: When running thread in the FulfilledProcessor and the InstanceState Is not
+    // Ready, the method processFulfilledOrder() must not change OrderState to Failed and must
+    // remain in Fulfilled list.
     @Test
     public void testRunProcessLocalComputeOrderWhenInstanceStateIsNotReady()
             throws FogbowManagerException, UnexpectedException, InterruptedException {
-        
+
+        // set up
         Order order = this.createOrder();
         order.setOrderState(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
+        Assert.assertNull(this.failedOrderList.getNext());
 
-        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
         orderInstance.setState(InstanceState.DISPATCHED);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
         mockCloudConnectorFactory(orderInstance);
 
-        Assert.assertNull(this.failedOrderList.getNext());
-
+        // exercise
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
-        Thread.sleep(MIN_SLEEP_TIME);
-
-        Order test = this.fulfilledOrderList.getNext();
-        Assert.assertNotNull(test);
-        Assert.assertEquals(order.getInstanceId(), test.getInstanceId());
-        Assert.assertEquals(OrderState.FULFILLED, test.getOrderState());
-    }
-
-    @Test
-    public void testRunProcessLocalComputeOrderWhenGetInstanceFailed()
-            throws FogbowManagerException, UnexpectedException, InterruptedException {
-        
-        Order order = this.createOrder();
-        order.setOrderState(OrderState.FULFILLED);
-        this.fulfilledOrderList.addItem(order);
-
-        Mockito.doReturn(null).when(this.localCloudConnector).getInstance(Mockito.any(Order.class));
-
-        Assert.assertNull(this.failedOrderList.getNext());
-
-        spyFulfiledProcessor();
-
-        this.thread = new Thread(this.fulfilledProcessor);
-        this.thread.start();
-
-        Thread.sleep(MIN_SLEEP_TIME);
-
-        Assert.assertNotNull(this.failedOrderList.getNext());
-        Assert.assertNull(this.fulfilledOrderList.getNext());
-    }
-
-    @Test
-    public void testProcessComputeOrderNotFulfilled()
-            throws FogbowManagerException, UnexpectedException, InterruptedException {
-        
-        Order order = this.createOrder();
-        order.setOrderState(OrderState.FAILED);
-        this.failedOrderList.addItem(order);
-
-        spyFulfiledProcessor();
-
-        this.fulfilledProcessor.processFulfilledOrder(order);
-        Assert.assertNotNull(this.failedOrderList.getNext());
-    }
-
-    @Test
-    public void testRunProcessLocalComputeOrderWithoutLocalMember()
-            throws FogbowManagerException, UnexpectedException, InterruptedException {
-        
-        Order order = this.createOrder();
-        order.setOrderState(OrderState.FULFILLED);
-        this.fulfilledOrderList.addItem(order);
-
-        this.fulfilledProcessor = Mockito.spy(new FulfilledProcessor(REMOTE_MEMBER_ID,
-                this.tunnelingService, this.sshConnectivity,
-                DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME));
-
-        this.thread = new Thread(this.fulfilledProcessor);
-        this.thread.start();
-
-        Thread.sleep(MIN_SLEEP_TIME);
-
+        // verify
         Assert.assertNotNull(this.fulfilledOrderList.getNext());
+        Assert.assertNull(this.failedOrderList.getNext());
     }
 
-    /**
-     * Test if a fulfilled order of an active localidentity compute instance has not being changed
-     * to failed if SSH connectivity is reachable.
-     *
-     * @throws InterruptedException
-     */
+    // test case: When running thread in the FulfilledProcessor and the InstanceState is Failed,
+    // the processFulfilledOrder() method must change the OrderState to Failed by adding in that
+    // list, and removed from the Fulfilled list.
     @Test
-    public void testRunProcessLocalComputeOrderInstanceReachable() throws Exception {
+    public void testRunProcessLocalComputeOrderWhenInstanceStateIsFailed()
+            throws FogbowManagerException, UnexpectedException, InterruptedException {
+
+        // set up
         Order order = this.createOrder();
         order.setOrderState(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
-
-        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
-        orderInstance.setState(InstanceState.READY);
-        order.setInstanceId(FAKE_INSTANCE_ID);
-
-        mockCloudConnectorFactory(orderInstance);
-
-        Mockito.when(this.sshConnectivity
-                .checkSSHConnectivity(Mockito.any(SshTunnelConnectionData.class))).thenReturn(true);
-
         Assert.assertNull(this.failedOrderList.getNext());
+
+        // exercise
+        Mockito.doReturn(null).when(this.localCloudConnector).getInstance(Mockito.any(Order.class));
+        spyFulfiledProcessor();
 
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
+        Thread.sleep(DEFAULT_SLEEP_TIME);
 
-        Thread.sleep(MIN_SLEEP_TIME);
-
-        Order test = this.fulfilledOrderList.getNext();
-        Assert.assertNotNull(test);
-        Assert.assertEquals(order.getInstanceId(), test.getInstanceId());
-        Assert.assertEquals(OrderState.FULFILLED, test.getOrderState());
-    }
-
-    /**
-     * Test if a fulfilled order of an active localidentity compute instance is changed to failed if
-     * SSH connectivity is not reachable.
-     *
-     * @throws InterruptedException
-     */
-    @Test
-    public void testRunProcessLocalComputeOrderInstanceNotReachable() throws Exception {
-        Order order = this.createOrder();
-        order.setOrderState(OrderState.FULFILLED);
-        this.fulfilledOrderList.addItem(order);
-
-        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
-        orderInstance.setState(InstanceState.READY);
-        order.setInstanceId(FAKE_INSTANCE_ID);
-
-        mockCloudConnectorFactory(orderInstance);
-
-        Mockito.when(this.sshConnectivity
-                .checkSSHConnectivity(Mockito.any(SshTunnelConnectionData.class)))
-                .thenReturn(false);
-        
-        Assert.assertNull(this.failedOrderList.getNext());
-        
-        this.thread = new Thread(this.fulfilledProcessor);
-        this.thread.start();
-
-        /** here may be a false positive depending on how long the machine will take to run the test */
-        Thread.sleep(MAX_SLEEP_TIME);
-
-        Assert.assertNull(this.fulfilledOrderList.getNext());
-
+        // verify
         Order test = this.failedOrderList.getNext();
         Assert.assertNotNull(test);
         Assert.assertEquals(order.getInstanceId(), test.getInstanceId());
         Assert.assertEquals(OrderState.FAILED, test.getOrderState());
+        Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
-    /**
-     * Test if a fulfilled order of a failed localidentity compute instance is definitely changed to
-     * failed.
-     *
-     * @throws InterruptedException
-     */
+    // test case: In calling the processFulfilledOrder() method for any order other than Fulfilled,
+    // you must not make state transition by keeping the order in your source list.
     @Test
-    public void testRunProcessLocalComputeOrderInstanceFailed() throws Exception {
+    public void testProcessComputeOrderNotFulfilled()
+            throws FogbowManagerException, UnexpectedException, InterruptedException {
+
+        // set up
+        Order order = this.createOrder();
+        order.setOrderState(OrderState.FAILED);
+        this.failedOrderList.addItem(order);
+        Assert.assertNull(this.fulfilledOrderList.getNext());
+
+        // exercise
+        spyFulfiledProcessor();
+        this.fulfilledProcessor.processFulfilledOrder(order);
+
+        // verify
+        Assert.assertEquals(order, this.failedOrderList.getNext());
+        Assert.assertNull(this.fulfilledOrderList.getNext());
+    }
+
+    // test case: When running thread in the FulfilledProcessor without a LocalMember, the method
+    // processFulfilledOrder() must not change OrderState to Failed and must remain in Fulfilled
+    // list.
+    @Test
+    public void testRunProcessLocalComputeOrderWithoutLocalMember()
+            throws FogbowManagerException, UnexpectedException, InterruptedException {
+
+        // set up
         Order order = this.createOrder();
         order.setOrderState(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
+        Assert.assertNull(this.failedOrderList.getNext());
 
-        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
+        this.fulfilledProcessor = new FulfilledProcessor(REMOTE_MEMBER_ID,
+                this.tunnelingService, this.sshConnectivity,
+                DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME);
+
+        // exercise
+        this.thread = new Thread(this.fulfilledProcessor);
+        this.thread.start();
+
+        // verify
+        Assert.assertEquals(order, this.fulfilledOrderList.getNext());
+        Assert.assertNull(this.failedOrderList.getNext());
+    }
+
+    // test case: When running thread in the FulfilledProcessor and the InstanceState is Ready, the
+    // method processFulfilledOrder() must not change OrderState to Failed and must remain in
+    // Fulfilled list.
+    @Test
+    public void testRunProcessLocalComputeOrderInstanceReachable() throws Exception {
+
+        // set up
+        Order order = this.createOrder();
+        order.setOrderState(OrderState.FULFILLED);
+        this.fulfilledOrderList.addItem(order);
+        Assert.assertNull(this.failedOrderList.getNext());
+
+        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+        orderInstance.setState(InstanceState.READY);
+        order.setInstanceId(FAKE_INSTANCE_ID);
+
+        // exercise
+        mockCloudConnectorFactory(orderInstance);
+        Mockito.when(this.sshConnectivity
+                .checkSSHConnectivity(Mockito.any(SshTunnelConnectionData.class))).thenReturn(true);
+
+        this.thread = new Thread(this.fulfilledProcessor);
+        this.thread.start();
+        Thread.sleep(DEFAULT_SLEEP_TIME);
+
+        // verify
+        Mockito.verify(this.sshConnectivity, Mockito.times(1))
+                .checkSSHConnectivity(Mockito.any(SshTunnelConnectionData.class));
+
+        Assert.assertNotNull(this.fulfilledOrderList.getNext());
+        Assert.assertNull(this.failedOrderList.getNext());
+    }
+
+    // test case: When running thread in the FulfilledProcessor and the InstanceState is not Ready,
+    // the processFulfilledOrder() method must change the OrderState to Failed by adding in that
+    // list, and removed from the Fulfilled list.
+    @Test
+    public void testRunProcessLocalComputeOrderInstanceNotReachable() throws Exception {
+
+        // set up
+        Order order = this.createOrder();
+        order.setOrderState(OrderState.FULFILLED);
+        this.fulfilledOrderList.addItem(order);
+        Assert.assertNull(this.failedOrderList.getNext());
+
+        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+        orderInstance.setState(InstanceState.READY);
+        order.setInstanceId(FAKE_INSTANCE_ID);
+
+        mockCloudConnectorFactory(orderInstance);
+
+        // exercise
+        Mockito.when(this.sshConnectivity
+                .checkSSHConnectivity(Mockito.any(SshTunnelConnectionData.class)))
+                .thenReturn(false);
+
+        this.thread = new Thread(this.fulfilledProcessor);
+        this.thread.start();
+
+        /**
+         * here may be a false positive depending on how long the machine will take to run the test
+         */
+        Thread.sleep(MAX_SLEEP_TIME);
+
+        // verify
+        Order test = this.failedOrderList.getNext();
+        Assert.assertNotNull(test);
+        Assert.assertEquals(order.getInstanceId(), test.getInstanceId());
+        Assert.assertEquals(OrderState.FAILED, test.getOrderState());
+        Assert.assertNull(this.fulfilledOrderList.getNext());
+    }
+
+    // test case: When running thread in the FulfilledProcessor and the InstanceState is Failed,
+    // the processFulfilledOrder() method must change the OrderState to Failed by adding in that
+    // list, and removed from the Fulfilled list.
+    @Test
+    public void testRunProcessLocalComputeOrderInstanceFailed() throws Exception {
+
+        // set up
+        Order order = this.createOrder();
+        order.setOrderState(OrderState.FULFILLED);
+        this.fulfilledOrderList.addItem(order);
+        Assert.assertNull(this.failedOrderList.getNext());
+
+        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
         orderInstance.setState(InstanceState.FAILED);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
         mockCloudConnectorFactory(orderInstance);
 
-        Assert.assertNull(this.failedOrderList.getNext());
-
+        // exercise
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
+        Thread.sleep(DEFAULT_SLEEP_TIME);
 
-        Thread.sleep(MIN_SLEEP_TIME);
-
-        Assert.assertNull(this.fulfilledOrderList.getNext());
-
+        // verify
         Order test = this.failedOrderList.getNext();
         Assert.assertNotNull(test);
         Assert.assertEquals(order.getInstanceId(), test.getInstanceId());
         Assert.assertEquals(OrderState.FAILED, test.getOrderState());
+        Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
+    // test case: When running thread in the FulfilledProcessor with OrderState Null must throw a
+    // ThrowableException.
     @Test
-    public void testRunThrowableExceptionWhileTryingToProcessOrder()
+    public void testRunThrowableExceptionWhileTryingToProcessOrderStateNull()
             throws InterruptedException, UnexpectedException {
-        
+
+        // set up
         Order order = Mockito.mock(Order.class);
         OrderState state = null;
         order.setOrderState(state);
@@ -396,58 +383,67 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         spyFulfiledProcessor();
 
+        // exercise
         Mockito.doThrow(new RuntimeException()).when(this.fulfilledProcessor)
                 .processFulfilledOrder(order);
 
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
+        Thread.sleep(DEFAULT_SLEEP_TIME);
 
-        Thread.sleep(MIN_SLEEP_TIME);
+        // verify
+        Mockito.verify(this.fulfilledProcessor, Mockito.times(1)).processFulfilledOrder(order);
     }
 
+    // test case: When running thread in the FulfilledProcessor with OrderState Null must throw a
+    // UnexpectedException.
     @Test
     public void testThrowUnexpectedExceptionWhileTryingToProcessOrder()
             throws InterruptedException, UnexpectedException {
-        
+
+        // set up
         Order order = Mockito.mock(Order.class);
         OrderState state = null;
         order.setOrderState(state);
         this.fulfilledOrderList.addItem(order);
 
         spyFulfiledProcessor();
-
+       
         Mockito.doThrow(new UnexpectedException()).when(this.fulfilledProcessor)
                 .processFulfilledOrder(order);
 
+        // exercise
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
+        Thread.sleep(DEFAULT_SLEEP_TIME);
 
-        Thread.sleep(MIN_SLEEP_TIME);
+        // verify
+        Mockito.verify(this.fulfilledProcessor, Mockito.times(1)).processFulfilledOrder(order);
     }
 
     private Order createOrder() {
         FederationUser federationUser = Mockito.mock(FederationUser.class);
         UserData userData = Mockito.mock(UserData.class);
-        
+
         String requestingMember =
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
-        
+
         String providingMember =
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
 
-        Order order = new ComputeOrder(federationUser, requestingMember, providingMember, 8,
-                1024, 30, FAKE_IMAGE_NAME, userData, FAKE_PUBLIC_KEY, null);
-        
+        Order order = new ComputeOrder(federationUser, requestingMember, providingMember, 8, 1024,
+                30, FAKE_IMAGE_NAME, userData, FAKE_PUBLIC_KEY, null);
+
         return order;
     }
 
     private void mockCloudConnectorFactory(Instance orderInstance)
             throws FogbowManagerException, UnexpectedException {
-        
+
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
         Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString()))
                 .thenReturn(localCloudConnector);
-        
+
         Mockito.doReturn(orderInstance).when(this.localCloudConnector)
                 .getInstance(Mockito.any(Order.class));
 

@@ -1,16 +1,9 @@
 package org.fogbowcloud.manager.requests.api.local.http;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.fogbowcloud.manager.api.http.VolumeOrdersController;
@@ -19,9 +12,11 @@ import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -45,8 +40,10 @@ public class VolumeOrdersControllerTest {
 
     private static final String CORRECT_BODY =
             "{\"federationToken\": null, \"requestingMember\":\"req-member\", \"providingMember\":\"prov-member\", \"volumeSize\": 1}";
-
     private static final String VOLUME_END_POINT = "/" + VolumeOrdersController.VOLUME_ENDPOINT;
+    private static final String FAKE_FEDERATION_TOKEN_VALUE = "fake-access-id";
+    private static final String FAKE_USER = "fake-user";
+    private static final String FAKE_ID = "fake-id";
 
     private ApplicationFacade facade;
 
@@ -55,137 +52,184 @@ public class VolumeOrdersControllerTest {
 
     @Before
     public void setUp() {
-        this.facade = spy(ApplicationFacade.class);
+        this.facade = Mockito.spy(ApplicationFacade.class);
     }
 
+    // test case: When calling the createVolume() method, it must return a ID of the Order and to
+    // confirm the HttpStatus as Created.
     @Test
     public void createdVolumeTest() throws Exception {
+
+        // set up
         VolumeOrder order = createVolumeOrder();
 
         PowerMockito.mockStatic(ApplicationFacade.class);
-        given(ApplicationFacade.getInstance()).willReturn(this.facade);
-        doReturn(order.getId()).when(this.facade).createVolume(any(VolumeOrder.class), anyString());
+        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+
+        // exercise
+        Mockito.doReturn(order.getId()).when(this.facade)
+                .createVolume(Mockito.any(VolumeOrder.class), Mockito.anyString());
 
         HttpHeaders headers = getHttpHeaders();
 
         MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.post(VOLUME_END_POINT)
-                .headers(headers)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(CORRECT_BODY)
+                .headers(headers).accept(MediaType.APPLICATION_JSON).content(CORRECT_BODY)
                 .contentType(MediaType.APPLICATION_JSON)).andReturn();
 
         int expectedStatus = HttpStatus.CREATED.value();
 
         String resultVolumeId = result.getResponse().getContentAsString();
 
-        assertEquals(order.getId(), resultVolumeId);
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        // verify
+        Mockito.verify(this.facade, times(1)).createVolume(Mockito.any(VolumeOrder.class),
+                Mockito.anyString());
+
+        Assert.assertEquals(order.getId(), resultVolumeId);
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 
+    // test case: When calling the getAllVolumes() method after adding instances, it must return a
+    // list of the VolumeInstances and to confirm the HttpStatus as Ok.
     @Test
     public void getAllVolumesTest() throws Exception {
+
+        // set up
         List<VolumeInstance> volumeInstances = new ArrayList<>();
         VolumeInstance instance = createVolumeInstance();
         volumeInstances.add(instance);
 
         PowerMockito.mockStatic(ApplicationFacade.class);
-        given(ApplicationFacade.getInstance()).willReturn(this.facade);
-        doReturn(volumeInstances).when(this.facade).getAllVolumes(anyString());
+        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+
+        // exercise
+        Mockito.doReturn(volumeInstances).when(this.facade).getAllVolumes(Mockito.anyString());
 
         HttpHeaders headers = getHttpHeaders();
 
         MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(VOLUME_END_POINT)
-                .headers(headers)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andReturn();
+                .headers(headers).contentType(MediaType.APPLICATION_JSON)).andReturn();
 
         int expectedStatus = HttpStatus.OK.value();
 
-        TypeToken<List<VolumeInstance>> token = new TypeToken<List<VolumeInstance>>(){};
-        List<VolumeInstance> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
+        TypeToken<List<VolumeInstance>> token = new TypeToken<List<VolumeInstance>>() {};
+        List<VolumeInstance> resultList =
+                new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
 
-        assertEquals(1, resultList.size());
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        // verify
+        Mockito.verify(this.facade, times(1)).getAllVolumes(Mockito.anyString());
+
+        Assert.assertEquals(1, resultList.size());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 
+    // test case: When calling the getAllVolumes() method without adding instances, it must return a
+    // empty list and to confirm the HttpStatus as Ok.
     @Test
     public void getAllVolumesWithEmptyListTest() throws Exception {
+
+        // set up
         List<VolumeInstance> volumeInstances = new ArrayList<>();
 
         PowerMockito.mockStatic(ApplicationFacade.class);
-        given(ApplicationFacade.getInstance()).willReturn(this.facade);
-        doReturn(volumeInstances).when(this.facade).getAllVolumes(anyString());
+        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+
+        // exercise
+        Mockito.doReturn(volumeInstances).when(this.facade).getAllVolumes(Mockito.anyString());
 
         HttpHeaders headers = getHttpHeaders();
 
         MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(VOLUME_END_POINT)
-                .headers(headers)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andReturn();
+                .headers(headers).contentType(MediaType.APPLICATION_JSON)).andReturn();
 
         int expectedStatus = HttpStatus.OK.value();
 
-        TypeToken<List<VolumeInstance>> token = new TypeToken<List<VolumeInstance>>(){};
-        List<VolumeInstance> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
+        TypeToken<List<VolumeInstance>> token = new TypeToken<List<VolumeInstance>>() {};
+        List<VolumeInstance> resultList =
+                new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
 
-        assertEquals(0, resultList.size());
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        // verify
+        Mockito.verify(this.facade, times(1)).getAllVolumes(Mockito.anyString());
+
+        Assert.assertEquals(0, resultList.size());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 
+    // test case: When calling the getVolume() method, it must return a VolumeInstance and to
+    // confirm the HttpStatus as Ok.
     @Test
     public void getVolumeTest() throws Exception {
+
+        // set up
         VolumeInstance volumeInstance = createVolumeInstance();
 
         String volumeId = volumeInstance.getId();
 
         PowerMockito.mockStatic(ApplicationFacade.class);
-        given(ApplicationFacade.getInstance()).willReturn(this.facade);
-        doReturn(volumeInstance).when(this.facade).getVolume(anyString(), anyString());
+        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+
+        // exercise
+        Mockito.doReturn(volumeInstance).when(this.facade).getVolume(Mockito.anyString(),
+                Mockito.anyString());
 
         HttpHeaders headers = getHttpHeaders();
 
-        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(VOLUME_END_POINT + "/" + volumeId)
-                .headers(headers)
-                .contentType(MediaType.APPLICATION_JSON))
+        MvcResult result = this.mockMvc
+                .perform(MockMvcRequestBuilders.get(VOLUME_END_POINT + "/" + volumeId)
+                .headers(headers).contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
         int expectedStatus = HttpStatus.OK.value();
 
-        VolumeInstance resultInstance = new Gson().fromJson(result.getResponse().getContentAsString(), VolumeInstance.class);
-        assertEquals(volumeInstance.getId(), resultInstance.getId());
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        VolumeInstance resultInstance = new Gson()
+                .fromJson(result.getResponse().getContentAsString(), VolumeInstance.class);
+
+        // verify
+        Mockito.verify(this.facade, times(1)).getVolume(Mockito.anyString(), Mockito.anyString());
+
+        Assert.assertEquals(volumeInstance.getId(), resultInstance.getId());
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 
+    // test case: When calling the deleteVolume() method, it must to receive the HttpStatus as Ok.
     @Test
     public void deleteVolumeTest() throws Exception {
+
+        // set up
         VolumeOrder volumeOrder = createVolumeOrder();
         String volumeId = volumeOrder.getId();
 
         PowerMockito.mockStatic(ApplicationFacade.class);
-        given(ApplicationFacade.getInstance()).willReturn(this.facade);
-        doNothing().when(this.facade).deleteVolume(anyString(), anyString());
+        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
+
+        // exercise
+        Mockito.doNothing().when(this.facade).deleteVolume(Mockito.anyString(),
+                Mockito.anyString());
 
         HttpHeaders headers = getHttpHeaders();
 
-        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.delete(VOLUME_END_POINT + "/" + volumeId)
-                .headers(headers)
-                .contentType(MediaType.APPLICATION_JSON))
+        MvcResult result = this.mockMvc
+                .perform(MockMvcRequestBuilders.delete(VOLUME_END_POINT + "/" + volumeId)
+                .headers(headers).contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
         int expectedStatus = HttpStatus.OK.value();
 
-        assertEquals(expectedStatus, result.getResponse().getStatus());
+        // verify
+        Mockito.verify(this.facade, times(1)).deleteVolume(Mockito.anyString(), Mockito.anyString());
+
+        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 
     private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        String fakeFederationTokenValue = "fake-access-id";
-        headers.set(VolumeOrdersController.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
+        headers.set(VolumeOrdersController.FEDERATION_TOKEN_VALUE_HEADER_KEY,
+                FAKE_FEDERATION_TOKEN_VALUE);
+        
         return headers;
     }
 
     private VolumeOrder createVolumeOrder() throws UnexpectedException {
-    	FederationUser federationUser = new FederationUser("fake-user", null);
+        FederationUser federationUser = new FederationUser(FAKE_USER, null);
 
         VolumeOrder volumeOrder = Mockito.spy(new VolumeOrder());
         volumeOrder.setFederationUser(federationUser);
@@ -194,8 +238,7 @@ public class VolumeOrdersControllerTest {
     }
 
     private VolumeInstance createVolumeInstance() {
-        String id = "fake-id";
-        return new VolumeInstance(id);
+        return new VolumeInstance(FAKE_ID);
     }
 
 }
