@@ -10,6 +10,7 @@ import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.fogbowcloud.manager.core.plugins.cloud.util.CloudInitUserDataBuilder;
 import org.junit.*;
 import org.junit.runner.RunWith;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -18,10 +19,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.HashMap;
-
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(PropertiesHolder.class)
@@ -42,14 +39,14 @@ public class DatabaseManagerTest {
     @Before
     public void setUp() {
         PropertiesHolder propertiesHolder = Mockito.mock(PropertiesHolder.class);
-        when(propertiesHolder.getProperty(anyString())).thenReturn(DATABASE_URL);
+        Mockito.when(propertiesHolder.getProperty(Mockito.anyString())).thenReturn(DATABASE_URL);
 
         PowerMockito.mockStatic(PropertiesHolder.class);
-        given(PropertiesHolder.getInstance()).willReturn(propertiesHolder);
+        BDDMockito.given(PropertiesHolder.getInstance()).willReturn(propertiesHolder);
     }
 
     /**
-     * Remove database file and reset database manager.
+     * Remove database file and reset the database manager.
      */
     @After
     public void tearDown() throws NoSuchFieldException, IllegalAccessException {
@@ -57,47 +54,52 @@ public class DatabaseManagerTest {
         cleanEnviromnent();
     }
 
+    // test case: Trying to initialize the datastore when an invalid database URL is passed.
     @Test(expected = FatalErrorException.class)
-    public void testInitializeWithErrorDataStore() {
+    public void testInitializeDataStoreWithError() {
+        // set up
         PropertiesHolder propertiesHolder = Mockito.mock(PropertiesHolder.class);
-        when(propertiesHolder.getProperty(anyString())).thenReturn("invalid_url");
+        Mockito.when(propertiesHolder.getProperty(Mockito.anyString())).thenReturn("invalid_url");
 
         PowerMockito.mockStatic(PropertiesHolder.class);
-        given(PropertiesHolder.getInstance()).willReturn(propertiesHolder);
+        BDDMockito.given(PropertiesHolder.getInstance()).willReturn(propertiesHolder);
 
-        // It should raise an exception since the database path is an invalid one
+        // exercise: it should raise an exception since the database path is an invalid one
         DatabaseManager.getInstance();
     }
 
+    // test case: Tests if a new compute order is added properly in the database.
     @Test
     public void testAddComputeOrder() throws UnexpectedException {
+        // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
 
-        // Check if compute order table is empty
-        SynchronizedDoublyLinkedList synchronizedDoublyLinkedList =
-                databaseManager.readActiveOrders(OrderState.OPEN);
-
-        Assert.assertEquals(0, getListSize(synchronizedDoublyLinkedList));
-
-        // Create a new compute order
         Order computeOrder = new ComputeOrder(new FederationUser("fed-id", new HashMap<>()),
                 "requestingMember", "providingMember", 8, 1024,
                 30, "fake_image_name", new UserData("extraUserDataFile",
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), "fake_public_key", null);
         computeOrder.setOrderState(OrderState.OPEN);
 
-        // Add compute order into database
+        SynchronizedDoublyLinkedList synchronizedDoublyLinkedList =
+                databaseManager.readActiveOrders(OrderState.OPEN);
+
+        // verify
+        Assert.assertEquals(0, getListSize(synchronizedDoublyLinkedList));
+
+        // exercise
         databaseManager.add(computeOrder);
 
-        // Check if compute order table has the new order
         synchronizedDoublyLinkedList =
                 databaseManager.readActiveOrders(OrderState.OPEN);
 
+        // verify
         Assert.assertEquals(1, getListSize(synchronizedDoublyLinkedList));
     }
 
+    // test case: Tests if a stored compute order is updated properly in the database.
     @Test
     public void testUpdateComputeOrderState() throws UnexpectedException {
+        // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
 
         ComputeOrder computeOrder = new ComputeOrder("id", new FederationUser("fed-id", new HashMap<>()),
@@ -111,6 +113,7 @@ public class DatabaseManagerTest {
         computeOrder.setOrderState(OrderState.FULFILLED);
         computeOrder.setActualAllocation(new ComputeAllocation(10, 10,10));
 
+        // exercise
         databaseManager.update(computeOrder);
 
         SynchronizedDoublyLinkedList synchronizedDoublyLinkedList =
@@ -118,40 +121,44 @@ public class DatabaseManagerTest {
 
         ComputeOrder result = (ComputeOrder) synchronizedDoublyLinkedList.getNext();
 
+        // verify
         Assert.assertEquals(result.getOrderState(), OrderState.FULFILLED);
         Assert.assertEquals(result.getActualAllocation().getRam(), 10);
         Assert.assertEquals(result.getActualAllocation().getvCPU(), 10);
         Assert.assertEquals(result.getActualAllocation().getInstances(), 10);
     }
 
+    // test case: Tests if a new network order is added properly in the database.
     @Test
     public void testAddNetworkOrder() throws UnexpectedException {
+        // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
 
-        // Check if network order table is empty
-        SynchronizedDoublyLinkedList synchronizedDoublyLinkedList =
-                databaseManager.readActiveOrders(OrderState.OPEN);
-
-        Assert.assertEquals(0, getListSize(synchronizedDoublyLinkedList));
-
-        // Create a new network order
         Order networkOrder = new NetworkOrder(new FederationUser("fed-id", new HashMap<>()),
                 "requestingMember", "providingMember", "gateway",
                 "address", NetworkAllocationMode.STATIC);
         networkOrder.setOrderState(OrderState.OPEN);
 
-        // Add network order into database
+        SynchronizedDoublyLinkedList synchronizedDoublyLinkedList =
+                databaseManager.readActiveOrders(OrderState.OPEN);
+
+        // verify
+        Assert.assertEquals(0, getListSize(synchronizedDoublyLinkedList));
+
+        // exercise
         databaseManager.add(networkOrder);
 
-        // Check if network order table has the new order
         synchronizedDoublyLinkedList =
                 databaseManager.readActiveOrders(OrderState.OPEN);
 
+        // verify
         Assert.assertEquals(1, getListSize(synchronizedDoublyLinkedList));
     }
 
+    // test case: Tests if a stored network order is updated properly in the database.
     @Test
     public void testUpdateNetworkOrderState() throws UnexpectedException {
+        // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
 
         Order networkOrder = new NetworkOrder(new FederationUser("fed-id", new HashMap<>()),
@@ -163,6 +170,7 @@ public class DatabaseManagerTest {
 
         networkOrder.setOrderState(OrderState.FULFILLED);
 
+        // exercise
         databaseManager.update(networkOrder);
 
         SynchronizedDoublyLinkedList synchronizedDoublyLinkedList =
@@ -170,36 +178,40 @@ public class DatabaseManagerTest {
 
         Order result = synchronizedDoublyLinkedList.getNext();
 
+        // verify
         Assert.assertEquals(result.getOrderState(), OrderState.FULFILLED);
     }
 
+    // test case: Tests if a new volume order is added properly in the database.
     @Test
     public void testAddVolumeOrder() throws UnexpectedException {
+        // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
 
-        // Check if volume order table is empty
-        SynchronizedDoublyLinkedList synchronizedDoublyLinkedList =
-                databaseManager.readActiveOrders(OrderState.OPEN);
-
-        Assert.assertEquals(0, getListSize(synchronizedDoublyLinkedList));
-
-        // Create a new volume order
         Order volumeOrder = new VolumeOrder(new FederationUser("fed-id", new HashMap<>()),
                 "requestingMember", "providingMember", 0, "volume-name");
         volumeOrder.setOrderState(OrderState.OPEN);
 
-        // Add volume order into database
+        SynchronizedDoublyLinkedList synchronizedDoublyLinkedList =
+                databaseManager.readActiveOrders(OrderState.OPEN);
+
+        // verify
+        Assert.assertEquals(0, getListSize(synchronizedDoublyLinkedList));
+
+        // exercise
         databaseManager.add(volumeOrder);
 
-        // Check if volume order table has the new order
         synchronizedDoublyLinkedList =
                 databaseManager.readActiveOrders(OrderState.OPEN);
 
+        // verify
         Assert.assertEquals(1, getListSize(synchronizedDoublyLinkedList));
     }
 
+    // test case: Tests if a stored volume order is updated properly in the database.
     @Test
     public void testUpdateVolumeOrderState() throws UnexpectedException {
+        // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
 
         Order volumeOrder = new VolumeOrder(new FederationUser("fed-id", new HashMap<>()),
@@ -210,6 +222,7 @@ public class DatabaseManagerTest {
 
         volumeOrder.setOrderState(OrderState.FULFILLED);
 
+        // exercise
         databaseManager.update(volumeOrder);
 
         SynchronizedDoublyLinkedList synchronizedDoublyLinkedList =
@@ -217,14 +230,15 @@ public class DatabaseManagerTest {
 
         Order result = synchronizedDoublyLinkedList.getNext();
 
+        // verify
         Assert.assertEquals(result.getOrderState(), OrderState.FULFILLED);
     }
 
-    /**
-     * If a closed order do not have an instance id, it should not be recovered.
-     */
+
+    // test case: If a closed order do not have an instance id, it should not be recovered.
     @Test
     public void testGetClosedOrderWithoutInstanceId() throws UnexpectedException {
+        // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
 
         Order volumeOrder = new VolumeOrder(new FederationUser("fed-id", new HashMap<>()),
@@ -233,16 +247,21 @@ public class DatabaseManagerTest {
 
         databaseManager.add(volumeOrder);
 
-        Assert.assertEquals(volumeOrder.getInstanceId(), null);
+        // verify
+        Assert.assertNull(volumeOrder.getInstanceId());
 
+        // exercise
         SynchronizedDoublyLinkedList synchronizedDoublyLinkedList =
                 databaseManager.readActiveOrders(OrderState.CLOSED);
 
+        // verify
         Assert.assertEquals(0, getListSize(synchronizedDoublyLinkedList));
     }
 
+    // test case: If a closed order has an instance id, it should be recovered.
     @Test
     public void testGetClosedOrderWithInstanceId() throws UnexpectedException {
+        // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
 
         VolumeOrder volumeOrder = new VolumeOrder(new FederationUser("fed-id", new HashMap<>()),
@@ -252,9 +271,14 @@ public class DatabaseManagerTest {
 
         databaseManager.add(volumeOrder);
 
+        // verify
+        Assert.assertNotNull(volumeOrder.getInstanceId());
+
+        // exercise
         SynchronizedDoublyLinkedList synchronizedDoublyLinkedList =
                 databaseManager.readActiveOrders(OrderState.CLOSED);
 
+        // verify
         Assert.assertEquals(1, getListSize(synchronizedDoublyLinkedList));
     }
 

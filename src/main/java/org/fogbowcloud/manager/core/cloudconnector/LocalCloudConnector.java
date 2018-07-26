@@ -100,8 +100,6 @@ public class LocalCloudConnector implements CloudConnector {
                         LOGGER.error("No deleteInstance plugin implemented for order " + order.getType());
                         break;
                 }
-            } else {
-                LOGGER.error("Trying to delete an instance with no instanceId.");
             }
         } catch (InstanceNotFoundException e) {
             // This may happen if the fogbow-core crashed after the instance is deleted
