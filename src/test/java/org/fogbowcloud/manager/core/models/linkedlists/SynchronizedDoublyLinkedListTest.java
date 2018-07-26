@@ -1,8 +1,6 @@
 package org.fogbowcloud.manager.core.models.linkedlists;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import org.junit.Assert;
 
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -22,12 +20,14 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
         this.list = new SynchronizedDoublyLinkedList();
     }
 
+    // test case: Adding an element to the list should reflect on getHead()
+    // getCurrent() and getTail().
     @Test
     public void testAddFirst() {
         // verify
-        assertNull(this.list.getHead());
-        assertNull(this.list.getCurrent());
-        assertNull(this.list.getTail());
+        Assert.assertNull(this.list.getHead());
+        Assert.assertNull(this.list.getCurrent());
+        Assert.assertNull(this.list.getTail());
 
         // set up
         Order order = createLocalOrder(getLocalMemberId());
@@ -36,15 +36,17 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
         this.list.addItem(order);
 
         // verify
-        assertEquals(order, this.list.getHead().getOrder());
-        assertEquals(order, this.list.getCurrent().getOrder());
-        assertEquals(order, this.list.getTail().getOrder());
+        Assert.assertEquals(order, this.list.getHead().getOrder());
+        Assert.assertEquals(order, this.list.getCurrent().getOrder());
+        Assert.assertEquals(order, this.list.getTail().getOrder());
     }
 
+    // test case: When a new element is added to the list and the current pointer
+    // already points to the end of it, a newly added element should be the next element.
     @Test
     public void testAddOrder() {
         // verify
-        assertNull(this.list.getHead());
+        Assert.assertNull(this.list.getHead());
 
         // set up
         Order orderOne = createLocalOrder(getLocalMemberId());
@@ -56,10 +58,10 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
         this.list.addItem(orderTwo);
 
         // verify
-        assertEquals(orderOne, this.list.getNext());
-        assertEquals(orderTwo, this.list.getNext());
+        Assert.assertEquals(orderOne, this.list.getNext());
+        Assert.assertEquals(orderTwo, this.list.getNext());
         // Next node of the second order is null.
-        assertNull(this.list.getNext());
+        Assert.assertNull(this.list.getNext());
 
         // exercise
         this.list.addItem(orderThree);
@@ -67,30 +69,33 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
         // verify
         // addItem() should have fixed this.current to point to the newly item added
         // to the tail of the list.
-        assertEquals(orderThree, this.list.getNext());
+        Assert.assertEquals(orderThree, this.list.getNext());
     }
 
+    // test case: Adding a null element to the list should throw an IllegalArgumentException.
     @Test
     public void testAddNullOrder() {
         // verify
-        assertNull(this.list.getHead());
+        Assert.assertNull(this.list.getHead());
 
         // set up
         Order orderNull = null;
         try {
-            // exericse
+            // exercise
             this.list.addItem(orderNull);
-            fail("Null order should not be added.");
+            Assert.fail("Null order should not be added.");
         } catch (IllegalArgumentException e) {
             // verify
-            assertEquals("Attempting to add a null order.", e.getMessage());
+            Assert.assertEquals("Attempting to add a null order.", e.getMessage());
         }
     }
 
+    // test case: Navigating the list once, reseting the pointer and navigating again should
+    // produce the same order of visited elements.
     @Test
     public void testResetPointer() {
         // verify
-        assertNull(this.list.getHead());
+        Assert.assertNull(this.list.getHead());
 
         // set up
         Order orderOne = createLocalOrder(getLocalMemberId());
@@ -101,40 +106,43 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
         this.list.addItem(orderTwo);
 
         // verify
-        assertEquals(orderOne, this.list.getNext());
-        assertEquals(orderTwo, this.list.getNext());
-        assertNull(this.list.getNext());
+        Assert.assertEquals(orderOne, this.list.getNext());
+        Assert.assertEquals(orderTwo, this.list.getNext());
+        Assert.assertNull(this.list.getNext());
 
         // exercise
         this.list.resetPointer();
 
         // verify
-        assertEquals(orderOne, this.list.getNext());
-        assertEquals(orderTwo, this.list.getNext());
-        assertNull(this.list.getNext());
+        Assert.assertEquals(orderOne, this.list.getNext());
+        Assert.assertEquals(orderTwo, this.list.getNext());
+        Assert.assertNull(this.list.getNext());
     }
 
+    // test case: Removing a null order should throw an IllegalArgumentException.
     @Test
     public void testRemoveNullOrder() {
         // verify
-        assertNull(this.list.getHead());
+        Assert.assertNull(this.list.getHead());
 
         // set up
         Order orderNull = null;
         try {
             // exercise
             this.list.removeItem(orderNull);
-            fail("Null order should not be removed.");
+            Assert.fail("Null order should not be removed.");
         } catch (IllegalArgumentException e) {
             // verify
-            assertEquals("Attempting to remove a null order.", e.getMessage());
+            Assert.assertEquals("Attempting to remove a null order.", e.getMessage());
         }
     }
 
+    // test case: Searching for an element that was added to the list should
+    // return that element.
     @Test
     public void testFindNodeToRemove() {
         // verify
-        assertNull(this.list.getHead());
+        Assert.assertNull(this.list.getHead());
 
         // set up
         Order orderOne = createLocalOrder(getLocalMemberId());
@@ -151,17 +159,19 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
         Node nodeToRemove = this.list.findNodeToRemove(orderTwo);
 
         // verify
-        assertEquals(orderOne, this.list.getHead().getOrder());
-        assertEquals(orderTwo, nodeToRemove.getOrder());
-        assertEquals(orderOne, nodeToRemove.getPrevious().getOrder());
-        assertEquals(orderThree, nodeToRemove.getNext().getOrder());
-        assertEquals(orderFour, this.list.getTail().getOrder());
+        Assert.assertEquals(orderOne, this.list.getHead().getOrder());
+        Assert.assertEquals(orderTwo, nodeToRemove.getOrder());
+        Assert.assertEquals(orderOne, nodeToRemove.getPrevious().getOrder());
+        Assert.assertEquals(orderThree, nodeToRemove.getNext().getOrder());
+        Assert.assertEquals(orderFour, this.list.getTail().getOrder());
     }
 
+    // test case: Removing an element that is the head of the list should
+    // update the references of the pointers head and current.
     @Test
     public void testRemoveItemOnHead() {
         // verify
-        assertNull(this.list.getHead());
+        Assert.assertNull(this.list.getHead());
 
         // set up
         Order orderOne = createLocalOrder(getLocalMemberId());
@@ -176,29 +186,31 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
         this.list.addItem(orderFour);
 
         // verify
-        assertEquals(orderOne, this.list.getHead().getOrder());
-        assertEquals(orderFour, this.list.getTail().getOrder());
+        Assert.assertEquals(orderOne, this.list.getHead().getOrder());
+        Assert.assertEquals(orderFour, this.list.getTail().getOrder());
 
-        assertEquals(orderOne, this.list.getCurrent().getOrder());
+        Assert.assertEquals(orderOne, this.list.getCurrent().getOrder());
 
         // exercise
         this.list.removeItem(orderOne);
 
         // verify
-        assertEquals(orderTwo, this.list.getCurrent().getOrder());
-        assertEquals(orderTwo, this.list.getHead().getOrder());
-        assertNull(this.list.getHead().getPrevious());
-        assertEquals(orderFour, this.list.getTail().getOrder());
-        assertEquals(orderTwo, this.list.getNext());
-        assertEquals(orderThree, this.list.getNext());
-        assertEquals(orderFour, this.list.getNext());
-        assertNull(this.list.getNext());
+        Assert.assertEquals(orderTwo, this.list.getCurrent().getOrder());
+        Assert.assertEquals(orderTwo, this.list.getHead().getOrder());
+        Assert.assertNull(this.list.getHead().getPrevious());
+        Assert.assertEquals(orderFour, this.list.getTail().getOrder());
+        Assert.assertEquals(orderTwo, this.list.getNext());
+        Assert.assertEquals(orderThree, this.list.getNext());
+        Assert.assertEquals(orderFour, this.list.getNext());
+        Assert.assertNull(this.list.getNext());
     }
 
+    // test case: Removing an element that is the tail of the list should update
+    // the tail pointer of the list.
     @Test
     public void testRemoveItemOnTail() {
         // verify
-        assertNull(this.list.getHead());
+        Assert.assertNull(this.list.getHead());
 
         // set up
         Order orderOne = createLocalOrder(getLocalMemberId());
@@ -211,24 +223,26 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
         this.list.addItem(orderThree);
 
         // verify
-        assertEquals(orderOne, this.list.getHead().getOrder());
-        assertEquals(orderThree, this.list.getTail().getOrder());
+        Assert.assertEquals(orderOne, this.list.getHead().getOrder());
+        Assert.assertEquals(orderThree, this.list.getTail().getOrder());
 
         // exercise
         this.list.removeItem(orderThree);
 
         // verify
-        assertEquals(orderOne, this.list.getHead().getOrder());
-        assertEquals(orderTwo, this.list.getTail().getOrder());
-        assertEquals(orderOne, this.list.getNext());
-        assertEquals(orderTwo, this.list.getNext());
-        assertNull(this.list.getNext());
+        Assert.assertEquals(orderOne, this.list.getHead().getOrder());
+        Assert.assertEquals(orderTwo, this.list.getTail().getOrder());
+        Assert.assertEquals(orderOne, this.list.getNext());
+        Assert.assertEquals(orderTwo, this.list.getNext());
+        Assert.assertNull(this.list.getNext());
     }
 
+    // test case: A list containing one element should have the head, current,
+    // tail and next pointers to null.
     @Test
     public void testRemoveItemOneElementOnList() {
         // verify
-        assertNull(this.list.getHead());
+        Assert.assertNull(this.list.getHead());
 
         // set up
         Order orderOne = createLocalOrder(getLocalMemberId());
@@ -237,24 +251,26 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
         this.list.addItem(orderOne);
 
         // verify
-        assertEquals(orderOne, this.list.getHead().getOrder());
-        assertEquals(orderOne, this.list.getCurrent().getOrder());
-        assertEquals(orderOne, this.list.getTail().getOrder());
+        Assert.assertEquals(orderOne, this.list.getHead().getOrder());
+        Assert.assertEquals(orderOne, this.list.getCurrent().getOrder());
+        Assert.assertEquals(orderOne, this.list.getTail().getOrder());
 
         // exercise
         this.list.removeItem(orderOne);
 
         // verify
-        assertNull(this.list.getHead());
-        assertNull(this.list.getCurrent());
-        assertNull(this.list.getTail());
-        assertNull(this.list.getNext());
+        Assert.assertNull(this.list.getHead());
+        Assert.assertNull(this.list.getCurrent());
+        Assert.assertNull(this.list.getTail());
+        Assert.assertNull(this.list.getNext());
     }
 
+    // test case: Removing elements from the middle of the list should keep
+    // its consistency. E.g.: removing 2 from [1, 2, 3] should produce [1, 3].
     @Test
     public void testRemoveItem() throws Exception {
         // verify
-        assertNull(this.list.getHead());
+        Assert.assertNull(this.list.getHead());
 
         // set up
         Order orderOne = createLocalOrder(getLocalMemberId());
@@ -270,29 +286,31 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
         this.list.removeItem(orderThree);
 
         // verify
-        assertEquals(orderOne, this.list.getHead().getOrder());
-        assertEquals(orderFour, this.list.getTail().getOrder());
-        assertEquals(orderOne, this.list.getNext());
-        assertEquals(orderTwo, this.list.getNext());
-        assertEquals(orderFour, this.list.getNext());
-        assertNull(this.list.getNext());
+        Assert.assertEquals(orderOne, this.list.getHead().getOrder());
+        Assert.assertEquals(orderFour, this.list.getTail().getOrder());
+        Assert.assertEquals(orderOne, this.list.getNext());
+        Assert.assertEquals(orderTwo, this.list.getNext());
+        Assert.assertEquals(orderFour, this.list.getNext());
+        Assert.assertNull(this.list.getNext());
 
         // exercise
         this.list.resetPointer();
         this.list.removeItem(orderTwo);
 
         // verify
-        assertEquals(orderOne, this.list.getHead().getOrder());
-        assertEquals(orderFour, this.list.getTail().getOrder());
-        assertEquals(orderOne, this.list.getNext());
-        assertEquals(orderFour, this.list.getNext());
-        assertNull(this.list.getNext());
+        Assert.assertEquals(orderOne, this.list.getHead().getOrder());
+        Assert.assertEquals(orderFour, this.list.getTail().getOrder());
+        Assert.assertEquals(orderOne, this.list.getNext());
+        Assert.assertEquals(orderFour, this.list.getNext());
+        Assert.assertNull(this.list.getNext());
     }
 
+    // test case: A list that had all of its elements removed should behave like
+    // a newly created list.
     @Test
     public void testReinitializingList() {
         // verify
-        assertNull(this.list.getHead());
+        Assert.assertNull(this.list.getHead());
 
         // set up
         Order orderOne = createLocalOrder(getLocalMemberId());
@@ -302,29 +320,29 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
         this.list.addItem(orderOne);
 
         // verify
-        assertEquals(orderOne, this.list.getHead().getOrder());
-        assertEquals(orderOne, this.list.getCurrent().getOrder());
-        assertEquals(orderOne, this.list.getTail().getOrder());
-        assertEquals(orderOne, this.list.getNext());
-        assertNull(this.list.getNext());
+        Assert.assertEquals(orderOne, this.list.getHead().getOrder());
+        Assert.assertEquals(orderOne, this.list.getCurrent().getOrder());
+        Assert.assertEquals(orderOne, this.list.getTail().getOrder());
+        Assert.assertEquals(orderOne, this.list.getNext());
+        Assert.assertNull(this.list.getNext());
 
         // exercise
         this.list.removeItem(orderOne);
 
         // verify
-        assertNull(this.list.getHead());
-        assertNull(this.list.getCurrent());
-        assertNull(this.list.getTail());
-        assertNull(this.list.getNext());
+        Assert.assertNull(this.list.getHead());
+        Assert.assertNull(this.list.getCurrent());
+        Assert.assertNull(this.list.getTail());
+        Assert.assertNull(this.list.getNext());
 
         // exercise
         this.list.addItem(orderTwo);
 
         // verify
-        assertEquals(orderTwo, this.list.getHead().getOrder());
-        assertEquals(orderTwo, this.list.getCurrent().getOrder());
-        assertEquals(orderTwo, this.list.getTail().getOrder());
-        assertEquals(orderTwo, this.list.getNext());
-        assertNull(this.list.getNext());
+        Assert.assertEquals(orderTwo, this.list.getHead().getOrder());
+        Assert.assertEquals(orderTwo, this.list.getCurrent().getOrder());
+        Assert.assertEquals(orderTwo, this.list.getTail().getOrder());
+        Assert.assertEquals(orderTwo, this.list.getNext());
+        Assert.assertNull(this.list.getNext());
     }
 }
