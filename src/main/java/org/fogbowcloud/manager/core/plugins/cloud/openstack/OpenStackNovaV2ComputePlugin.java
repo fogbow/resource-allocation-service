@@ -187,6 +187,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 	private List<String> resolveNetworksId(ComputeOrder computeOrder) {
 		List<String> requestedNetworksId = new ArrayList<>();
 		String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+		//We add the default network before any other network, because the order is very important to Openstack
+		//request. Openstack will configure the routes to the external network by the first network found on request body.
 		requestedNetworksId.add(defaultNetworkId);
         requestedNetworksId.addAll(computeOrder.getNetworksId());
 		computeOrder.setNetworksId(requestedNetworksId);
@@ -257,16 +259,16 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 			JSONObject netId = new JSONObject();
 			netId.put(UUID_JSON_FIELD, id);
 			networks.put(netId);
-                String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
-                if (!id.equals(defaultNetworkId)) {
-                    // if this is not the default network, we need to open SSH port, and also ICMP connection.
-                    JSONArray securityGroup = new JSONArray();
-                    JSONObject securityGroupName = new JSONObject();
-                    String securityGroupProperty = OpenStackV2NetworkPlugin.DEFAULT_SECURITY_GROUP_NAME + "-" + id;
-                    securityGroupName.put(NAME_JSON_FIELD, securityGroupProperty);
-                    securityGroup.put(securityGroupName);
-                    server.put(SECURITY_JSON_FIELD, securityGroup);
-                }
+            String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+            if (!id.equals(defaultNetworkId)) {
+                // if this is not the default network, we need to open SSH port, and also ICMP connection.
+                JSONArray securityGroup = new JSONArray();
+                JSONObject securityGroupName = new JSONObject();
+                String securityGroupProperty = OpenStackV2NetworkPlugin.DEFAULT_SECURITY_GROUP_NAME + "-" + id;
+                securityGroupName.put(NAME_JSON_FIELD, securityGroupProperty);
+                securityGroup.put(securityGroupName);
+                server.put(SECURITY_JSON_FIELD, securityGroup);
+            }
 		}
 		server.put(NETWORK_JSON_FIELD, networks);
 	
