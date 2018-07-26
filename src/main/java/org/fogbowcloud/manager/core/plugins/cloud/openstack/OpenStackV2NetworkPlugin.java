@@ -194,10 +194,10 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         String securityGroupId = null;
         try {
             JSONObject rootServer = new JSONObject(json);
-            JSONObject securityGroupJSONObject = rootServer.optJSONObject(KEY_SECURITY_GROUP);
-            securityGroupId = securityGroupJSONObject.optString(KEY_ID);
-        } catch (NullPointerException | JSONException e) {
-            String errorMsg = String.format("Was not possible retrieve network id from json %s", json);
+            JSONObject securityGroupJSONObject = rootServer.getJSONObject(KEY_SECURITY_GROUP);
+            securityGroupId = securityGroupJSONObject.getString(KEY_ID);
+        } catch (JSONException e) {
+            String errorMsg = String.format("It was not possible retrieve network id from json %s", json);
             LOGGER.error(errorMsg);
             throw new UnexpectedException(errorMsg, e);
         }
@@ -208,11 +208,11 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         String securityGroupId = null;
         try {
             JSONObject response = new JSONObject(json);
-            JSONArray securityGroupJSONArray = response.optJSONArray(KEY_SECURITY_GROUPS);
+            JSONArray securityGroupJSONArray = response.getJSONArray(KEY_SECURITY_GROUPS);
             JSONObject securityGroup = securityGroupJSONArray.optJSONObject(0);
-            securityGroupId = securityGroup.optString(KEY_ID);
-        } catch (NullPointerException | JSONException e) {
-            String errorMsg = String.format("Was not possible retrieve network id from json %s", json);
+            securityGroupId = securityGroup.getString(KEY_ID);
+        } catch (JSONException e) {
+            String errorMsg = String.format("It was not possible retrieve network id from json %s", json);
             LOGGER.error(errorMsg);
             throw new UnexpectedException(errorMsg, e);
         }
@@ -270,7 +270,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
                     networkId);
             LOGGER.warn(msg);
         } catch (UnexpectedException | FogbowManagerException e) {
-            String errorMsg = String.format("Was not possible delete network with id %s", networkId);
+            String errorMsg = String.format("It was not possible delete network with id %s", networkId);
             LOGGER.error(errorMsg);
             throw e;
         }
@@ -280,7 +280,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         try {
             removeSecurityGroup(token, securityGroupId);
         } catch (UnexpectedException | FogbowManagerException e) {
-            String errorMsg = String.format("Was not possible delete security group with id %s", securityGroupId);
+            String errorMsg = String.format("It was not possible delete security group with id %s", securityGroupId);
             LOGGER.error(errorMsg);
             throw e;
         }
@@ -329,7 +329,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
             label = networkJSONObject.optString(KEY_NAME);
             subnetId = networkJSONObject.optJSONArray(KEY_SUBNETS).optString(0);
         } catch (JSONException e) {
-            String errorMsg = String.format("Was not possible to get network informations from json %s", json);
+            String errorMsg = String.format("It was not possible to get network informations from json %s", json);
             LOGGER.error(errorMsg, e);
             throw new InvalidParameterException(errorMsg, e);
         }
@@ -352,7 +352,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
                 address = subnetJSONObject.optString(KEY_CIDR);
             }
         } catch (JSONException e) {
-            String errorMsg = String.format("Was not possible to get network informations from json %s", json);
+            String errorMsg = String.format("It was not possible to get network informations from json %s", json);
             LOGGER.error(errorMsg, e);
             throw new InvalidParameterException(errorMsg, e);
         }
@@ -389,7 +389,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
             JSONObject networkJSONObject = rootServer.optJSONObject(KEY_JSON_NETWORK);
             networkId = networkJSONObject.optString(KEY_ID);
         } catch (JSONException e) {
-            String errorMsg = String.format("Was not possible retrieve network id from json %s", json);
+            String errorMsg = String.format("It was not possible retrieve network id from json %s", json);
             LOGGER.error(errorMsg);
             throw new UnexpectedException(errorMsg, e);
         }

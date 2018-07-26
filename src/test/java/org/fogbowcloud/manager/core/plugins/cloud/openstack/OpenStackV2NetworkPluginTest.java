@@ -657,10 +657,14 @@ public class OpenStackV2NetworkPluginTest {
 	@Test(expected = UnexpectedException.class)
 	public void testErrorToRetrieveSecurityGroupIdFromGetResponse() throws UnexpectedException {
 		//set up
-		JSONObject response = new JSONObject();
 		JSONObject securityGroup = new JSONObject();
 		securityGroup.put(OpenStackV2NetworkPlugin.KEY_TENANT_ID, "fake-tenant-id");
 		securityGroup.put(OpenStackV2NetworkPlugin.KEY_NAME, "fake-name");
+
+		JSONArray securityGroups = new JSONArray();
+		securityGroups.put(securityGroup);
+		JSONObject response = new JSONObject();
+		response.put(OpenStackV2NetworkPlugin.KEY_SECURITY_GROUPS, securityGroups);
 
 		//exercise
 		this.openStackV2NetworkPlugin.getSecurityGroupIdFromGetResponse(response.toString());
