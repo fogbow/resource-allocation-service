@@ -9,342 +9,383 @@ public class OpenStackStateMapperTest {
 
     @Test
     public void testComputeActiveStatusToReady() {
+        // set up
         InstanceType instanceType = InstanceType.COMPUTE;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "active");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "ACTIVE");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.ACTIVE_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.READY);
-        Assert.assertEquals(instanceState2, InstanceState.READY);
+        // verify
+        Assert.assertEquals(InstanceState.READY, instanceState);
     }
 
     @Test
     public void testComputeBuildStatusToSpawning() {
+        // set up
         InstanceType instanceType = InstanceType.COMPUTE;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "build");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "BUILD");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.BUILD_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.SPAWNING);
-        Assert.assertEquals(instanceState2, InstanceState.SPAWNING);
+        // verify
+        Assert.assertEquals(InstanceState.SPAWNING, instanceState);
     }
 
     @Test
     public void testComputeErrorStatusToFailed() {
+        // set up
         InstanceType instanceType = InstanceType.COMPUTE;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "error");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "ERROR");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.ERROR_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.FAILED);
-        Assert.assertEquals(instanceState2, InstanceState.FAILED);
+        // verify
+        Assert.assertEquals(InstanceState.FAILED, instanceState);
     }
 
     @Test
     public void testComputeInvalidStatusToInconsistent() {
+        // set up
         InstanceType instanceType = InstanceType.COMPUTE;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "invalid");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, "invalid");
         InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "INVALID");
 
-        Assert.assertEquals(instanceState1, InstanceState.INCONSISTENT);
-        Assert.assertEquals(instanceState2, InstanceState.INCONSISTENT);
+        // verify
+        Assert.assertEquals(InstanceState.INCONSISTENT, instanceState);
+        Assert.assertEquals(InstanceState.INCONSISTENT, instanceState2);
     }
 
     @Test
     public void testNetworkBuildStatusToInactive() {
+        // set up
         InstanceType instanceType = InstanceType.NETWORK;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "build");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "BUILD");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.BUILD_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.INACTIVE);
-        Assert.assertEquals(instanceState2, InstanceState.INACTIVE);
+        // verify
+        Assert.assertEquals(InstanceState.INACTIVE, instanceState);
     }
 
     @Test
     public void testNetworkDownStatusToInactive() {
+        // set up
         InstanceType instanceType = InstanceType.NETWORK;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "down");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "DOWN");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.DOWN_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.INACTIVE);
-        Assert.assertEquals(instanceState2, InstanceState.INACTIVE);
+        // verify
+        Assert.assertEquals(InstanceState.INACTIVE, instanceState);
     }
 
     @Test
     public void testNetworkActiveStatusToReady() {
+        // set up
         InstanceType instanceType = InstanceType.NETWORK;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "active");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "ACTIVE");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.ACTIVE_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.READY);
-        Assert.assertEquals(instanceState2, InstanceState.READY);
+        // verify
+        Assert.assertEquals(InstanceState.READY, instanceState);
     }
 
     @Test
     public void testNetworkErrorStatusToFailed() {
+        // set up
         InstanceType instanceType = InstanceType.NETWORK;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "error");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "ERROR");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.ERROR_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.FAILED);
-        Assert.assertEquals(instanceState2, InstanceState.FAILED);
+        // verify
+        Assert.assertEquals(InstanceState.FAILED, instanceState);
     }
 
     @Test
     public void testNetworkInvalidStatusToFailed() {
+        // set up
         InstanceType instanceType = InstanceType.NETWORK;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "invalid");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, "invalid");
         InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "INVALID");
 
-        Assert.assertEquals(instanceState1, InstanceState.INCONSISTENT);
-        Assert.assertEquals(instanceState2, InstanceState.INCONSISTENT);
+        // verify
+        Assert.assertEquals(InstanceState.INCONSISTENT, instanceState);
+        Assert.assertEquals(InstanceState.INCONSISTENT, instanceState2);
     }
 
     @Test
     public void testVolumeCreatingStatusToCreating() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "creating");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "CREATING");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.CREATING_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.CREATING);
-        Assert.assertEquals(instanceState2, InstanceState.CREATING);
+        // verify
+        Assert.assertEquals(InstanceState.CREATING, instanceState);
     }
 
     @Test
     public void testVolumeAvailableStatusToReady() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "available");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "AVAILABLE");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.AVAILABLE_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.READY);
-        Assert.assertEquals(instanceState2, InstanceState.READY);
+        // verify
+        Assert.assertEquals(InstanceState.READY, instanceState);
     }
 
     @Test
     public void testVolumeDetachingStatusToUnavailable() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "detaching");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "DETACHING");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.DETACHING_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.UNAVAILABLE);
-        Assert.assertEquals(instanceState2, InstanceState.UNAVAILABLE);
+        // verify
+        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
     }
 
     @Test
     public void testVolumeMaintenceStatusToUnavailable() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "maintenance");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "MAINTENANCE");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.MAINTENANCE_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.UNAVAILABLE);
-        Assert.assertEquals(instanceState2, InstanceState.UNAVAILABLE);
+        // verify
+        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
     }
 
     @Test
     public void testVolumeDeletingStatusToUnavailable() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "deleting");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "DELETING");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.DELETING_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.UNAVAILABLE);
-        Assert.assertEquals(instanceState2, InstanceState.UNAVAILABLE);
+        // verify
+        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
     }
 
     @Test
     public void testVolumeAwaitingTransferStatusToUnavailable() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "awaiting-transfer");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "AWAITING-TRANSFER");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.AWAITING_TRANSFER_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.UNAVAILABLE);
-        Assert.assertEquals(instanceState2, InstanceState.UNAVAILABLE);
+        // verify
+        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
     }
 
     @Test
     public void testVolumeBackingUpStatusToUnavailable() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "backing-up");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "BACKING-UP");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.BACKING_UP_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.UNAVAILABLE);
-        Assert.assertEquals(instanceState2, InstanceState.UNAVAILABLE);
+        // verify
+        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
     }
 
     @Test
     public void testVolumeRestoringBackupStatusToUnavailable() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "restoring-backup");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "RESTORING-BACKUP");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.RESTORING_BACKUP_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.UNAVAILABLE);
-        Assert.assertEquals(instanceState2, InstanceState.UNAVAILABLE);
+        // verify
+        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
     }
 
     @Test
     public void testVolumeDownloadingStatusToUnavailable() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "downloading");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "DOWNLOADING");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.DOWNLOADING_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.UNAVAILABLE);
-        Assert.assertEquals(instanceState2, InstanceState.UNAVAILABLE);
+        // verify
+        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
     }
 
     @Test
     public void testVolumeUploadingStatusToUnavailable() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "uploading");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "UPLOADING");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.UPLOADING_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.UNAVAILABLE);
-        Assert.assertEquals(instanceState2, InstanceState.UNAVAILABLE);
+        // verify
+        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
     }
 
     @Test
     public void testVolumeRetypingStatusToUnavailable() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "retyping");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "RETYPING");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.RETYPING_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.UNAVAILABLE);
-        Assert.assertEquals(instanceState2, InstanceState.UNAVAILABLE);
+        // verify
+        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
     }
 
     @Test
     public void testVolumeExtendingStatusToUnavailable() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "extending");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "EXTENDING");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.EXTENDING_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.UNAVAILABLE);
-        Assert.assertEquals(instanceState2, InstanceState.UNAVAILABLE);
+        // verify
+        Assert.assertEquals(InstanceState.UNAVAILABLE, instanceState);
     }
 
     @Test
     public void testVolumeAttachingStatusToUnavailable() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "attaching");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "ATTACHING");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.ATTACHING_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.ATTACHING);
-        Assert.assertEquals(instanceState2, InstanceState.ATTACHING);
+        // verify
+        Assert.assertEquals(InstanceState.ATTACHING, instanceState);
     }
 
     @Test
     public void testVolumeInUseStatusToUnavailable() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "in-use");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "IN-USE");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.IN_USE_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.IN_USE);
-        Assert.assertEquals(instanceState2, InstanceState.IN_USE);
+        // verify
+        Assert.assertEquals(InstanceState.IN_USE, instanceState);
     }
 
     @Test
     public void testVolumeErrorBackingUpStatusToFailed() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "error_backing-up");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "ERROR_BACKING-UP");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.ERROR_BACKING_UP_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.FAILED);
-        Assert.assertEquals(instanceState2, InstanceState.FAILED);
+        // verify
+        Assert.assertEquals(InstanceState.FAILED, instanceState);
     }
 
     @Test
     public void testVolumeErrorDeletingStatusToFailed() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "error_deleting");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "ERROR_DELETING");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.ERROR_DELETING_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.FAILED);
-        Assert.assertEquals(instanceState2, InstanceState.FAILED);
+        // verify
+        Assert.assertEquals(InstanceState.FAILED, instanceState);
     }
 
     @Test
     public void testVolumeErrorExtendingStatusToFailed() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "error_extending");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "ERROR_EXTENDING");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.ERROR_EXTENDING_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.FAILED);
-        Assert.assertEquals(instanceState2, InstanceState.FAILED);
+        // verify
+        Assert.assertEquals(InstanceState.FAILED, instanceState);
     }
 
     @Test
     public void testVolumeErrorRestoringStatusToFailed() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "error_restoring");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "ERROR_RESTORING");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.ERROR_RESTORING_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.FAILED);
-        Assert.assertEquals(instanceState2, InstanceState.FAILED);
+        // verify
+        Assert.assertEquals(InstanceState.FAILED, instanceState);
     }
 
     @Test
     public void testVolumeErrorStatusToFailed() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "error");
-        InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "ERROR");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, OpenStackStateMapper.ERROR_STATUS);
 
-        Assert.assertEquals(instanceState1, InstanceState.FAILED);
-        Assert.assertEquals(instanceState2, InstanceState.FAILED);
+        // verify
+        Assert.assertEquals(InstanceState.FAILED, instanceState);
     }
 
     @Test
     public void testVolumeInvalidStatusToInconsistent() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "invalid");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, "invalid");
         InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "INVALID");
 
-        Assert.assertEquals(instanceState1, InstanceState.INCONSISTENT);
-        Assert.assertEquals(instanceState2, InstanceState.INCONSISTENT);
+        // verify
+        Assert.assertEquals(InstanceState.INCONSISTENT, instanceState);
+        Assert.assertEquals(InstanceState.INCONSISTENT, instanceState2);
     }
 
     @Test
     public void testVolumeInvalidStatusToFailed() {
+        // set up
         InstanceType instanceType = InstanceType.VOLUME;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "invalid");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, "invalid");
         InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "invalid");
 
-        Assert.assertEquals(instanceState1, InstanceState.INCONSISTENT);
-        Assert.assertEquals(instanceState2, InstanceState.INCONSISTENT);
+        // verify
+        Assert.assertEquals(InstanceState.INCONSISTENT, instanceState);
+        Assert.assertEquals(InstanceState.INCONSISTENT, instanceState2);
     }
 
     @Test
     public void testAttachmentAnyStatusToReady() {
+        // set up
         InstanceType instanceType = InstanceType.ATTACHMENT;
 
-        InstanceState instanceState1 = OpenStackStateMapper.map(instanceType, "any_state");
+        // exercise
+        InstanceState instanceState = OpenStackStateMapper.map(instanceType, "any_state");
         InstanceState instanceState2 = OpenStackStateMapper.map(instanceType, "ANY_STATE");
 
-        Assert.assertEquals(instanceState1, InstanceState.READY);
-        Assert.assertEquals(instanceState2, InstanceState.READY);
+        // verify
+        Assert.assertEquals(InstanceState.READY, instanceState);
+        Assert.assertEquals(InstanceState.READY, instanceState2);
     }
 }

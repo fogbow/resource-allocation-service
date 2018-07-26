@@ -10,18 +10,16 @@ import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedL
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.mockito.internal.util.MockUtil;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import static org.junit.Assert.*;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({SharedOrderHolders.class, DatabaseManager.class})
@@ -29,12 +27,6 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
 
     private MockUtil mockUtil = new MockUtil();
 
-    private Order createOrder(OrderState orderState) {
-        Order order = createLocalOrder(getLocalMemberId());
-        order.setOrderState(orderState);
-        return order;
-    }
-    
     @Before
     public void setUp() {
         HomeDir.getInstance().setPath("src/test/resources/private");
@@ -46,36 +38,29 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
 
         // Clearing the lists if we are not mocking them
         if (!mockUtil.isMock(instance)) {
-            for (OrderState state : OrderState.values()) {
-                if (! state.equals(OrderState.DEACTIVATED)) {
-                    SynchronizedDoublyLinkedList ordersList = instance.getOrdersList(state);
-
-                    ordersList.resetPointer();
-                    Order order;
-                    while ((order = ordersList.getNext()) != null) {
-                        ordersList.removeItem(order);
-                    }
-                }
-            }
+            super.tearDown();
         }
     }
 
+    private Order createOrder(OrderState orderState) {
+        Order order = createLocalOrder(getLocalMemberId());
+        order.setOrderState(orderState);
+        return order;
+    }
+
+    // test case: When calling the transition() method, it must change the state of Order
+    // passed per parameter to a specific OrderState. This Order defined originally with Open, will
+    // be change to the Spawning state, removing of the open orders list, and adding in the spawning
+    // orders list.
     @Test
-    public void testValidTransition() throws UnexpectedException {
+    public void testTransitionToChangeOrderStateOpenToSpawning() throws UnexpectedException {
+
+        // set up
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 
-        DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
-        when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList());
-        when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList());
-        when(databaseManager.readActiveOrders(OrderState.FAILED)).thenReturn(new SynchronizedDoublyLinkedList());
-        when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList());
-        when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList());
-        when(databaseManager.readActiveOrders(OrderState.CLOSED)).thenReturn(new SynchronizedDoublyLinkedList());
-
-        PowerMockito.mockStatic(DatabaseManager.class);
-        given(DatabaseManager.getInstance()).willReturn(databaseManager);
-
+        super.mockReadOrdersFromDataBase();
+        
         SharedOrderHolders orderHolders = SharedOrderHolders.getInstance();
 
         SynchronizedDoublyLinkedList openOrdersList = orderHolders.getOpenOrdersList();
@@ -83,74 +68,63 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
 
         Order order = createOrder(originState);
         openOrdersList.addItem(order);
+        Assert.assertNull(spawningOrdersList.getNext());
 
+        // exercise
         OrderStateTransitioner.transition(order, destinationState);
-        assertNull(openOrdersList.getNext());
-        assertEquals(order, spawningOrdersList.getNext());
+
+        // verify
+        Assert.assertEquals(order, spawningOrdersList.getNext());
+        Assert.assertNull(openOrdersList.getNext());
     }
 
-    @Test(expected = UnexpectedException.class)
+    // test case: When calling the transition() method and the origin list of the 'Order' is Null,
+    // will be throws an unexpected exception.
+    @Test(expected = UnexpectedException.class) // verify
     public void testOriginListCannotBeFound() throws UnexpectedException {
+
+        // set up
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 
-        // origin list will fail to be found
+        // Origin list will fail to be found
         SharedOrderHolders ordersHolder = Mockito.mock(SharedOrderHolders.class);
-        when(ordersHolder.getOrdersList(originState)).thenReturn(null);
 
         PowerMockito.mockStatic(SharedOrderHolders.class);
-        given(SharedOrderHolders.getInstance()).willReturn(ordersHolder);
+        BDDMockito.given(SharedOrderHolders.getInstance()).willReturn(ordersHolder);
+
+        Mockito.when(ordersHolder.getOrdersList(originState)).thenReturn(null);
 
         Order order = createOrder(originState);
+
+        // exercise
         OrderStateTransitioner.transition(order, destinationState);
     }
 
-    @Test(expected = UnexpectedException.class)
+    // test case: When calling the transition() method and the destination list of the 'Order' is
+    // Null, will be throws an unexpected exception.
+    @Test(expected = UnexpectedException.class) // verify
     public void testDestinationListCannotBeFound() throws UnexpectedException {
+
+        // set up
         OrderState originState = OrderState.OPEN;
         OrderState destinationState = OrderState.SPAWNING;
 
         SharedOrderHolders ordersHolder = Mockito.mock(SharedOrderHolders.class);
-        when(ordersHolder.getOrdersList(originState))
+
+        PowerMockito.mockStatic(SharedOrderHolders.class);
+        BDDMockito.given(SharedOrderHolders.getInstance()).willReturn(ordersHolder);
+
+        Mockito.when(ordersHolder.getOrdersList(originState))
                 .thenReturn(new SynchronizedDoublyLinkedList());
 
-        // destination list will fail to be found
-        when(ordersHolder.getOrdersList(destinationState)).thenReturn(null);
-
-        PowerMockito.mockStatic(SharedOrderHolders.class);
-        given(SharedOrderHolders.getInstance()).willReturn(ordersHolder);
+        // Destination list will fail to be found
+        Mockito.when(ordersHolder.getOrdersList(destinationState)).thenReturn(null);
 
         Order order = createOrder(originState);
+
+        // exercise
         OrderStateTransitioner.transition(order, destinationState);
     }
 
-    @Test
-    public void testOriginListRemovalFailure() {
-        OrderState originState = OrderState.OPEN;
-        OrderState destinationState = OrderState.SPAWNING;
-
-        SynchronizedDoublyLinkedList origin = 
-                Mockito.mock(SynchronizedDoublyLinkedList.class);
-
-        when(origin.removeItem(any(Order.class))).thenReturn(false);
-        
-        SynchronizedDoublyLinkedList destination = Mockito.mock(SynchronizedDoublyLinkedList.class);
-
-        SharedOrderHolders ordersHolder = Mockito.mock(SharedOrderHolders.class);
-        when(ordersHolder.getOrdersList(originState)).thenReturn(origin);
-        when(ordersHolder.getOrdersList(destinationState)).thenReturn(destination);
-
-        PowerMockito.mockStatic(SharedOrderHolders.class);
-        given(SharedOrderHolders.getInstance()).willReturn(ordersHolder);
-
-        
-        Order order = createOrder(originState);
-        
-        try {
-            OrderStateTransitioner.transition(order, destinationState);
-        } catch (UnexpectedException e) {
-            fail();
-        }
-        
-    }
 }
