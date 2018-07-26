@@ -18,6 +18,7 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.boot.test.autoconfigure.web.servlet.MockMvcPrint;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,29 +52,29 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         this.aaaController = Mockito.mock(AaController.class);
 
         HomeDir.getInstance().setPath("src/test/resources/private");
-
-        DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
-        Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN))
-                .thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING))
-                .thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED))
-                .thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED))
-                .thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING))
-                .thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.CLOSED))
-                .thenReturn(new SynchronizedDoublyLinkedList());
-
-        Mockito.doNothing().when(databaseManager).add(Matchers.any(Order.class));
-        Mockito.doNothing().when(databaseManager).update(Matchers.any(Order.class));
-
-        PowerMockito.mockStatic(DatabaseManager.class);
-        BDDMockito.given(DatabaseManager.getInstance()).willReturn(databaseManager);
+        super.mockReadOrdersFromDataBase(); //TODO
+//        DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
+//        Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN))
+//                .thenReturn(new SynchronizedDoublyLinkedList());
+//        Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING))
+//                .thenReturn(new SynchronizedDoublyLinkedList());
+//        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED))
+//                .thenReturn(new SynchronizedDoublyLinkedList());
+//        Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED))
+//                .thenReturn(new SynchronizedDoublyLinkedList());
+//        Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING))
+//                .thenReturn(new SynchronizedDoublyLinkedList());
+//        Mockito.when(databaseManager.readActiveOrders(OrderState.CLOSED))
+//                .thenReturn(new SynchronizedDoublyLinkedList());
+//
+//        Mockito.doNothing().when(databaseManager).add(Matchers.any(Order.class));
+//        Mockito.doNothing().when(databaseManager).update(Matchers.any(Order.class));
+//
+//        PowerMockito.mockStatic(DatabaseManager.class);
+//        BDDMockito.given(DatabaseManager.getInstance()).willReturn(databaseManager);
 
         this.orderController = Mockito.spy(new OrderController());
-        this.application = Mockito.spy(ApplicationFacade.getInstance());
+        this.application = ApplicationFacade.getInstance();
         this.application.setAaController(this.aaaController);
         this.application.setOrderController(this.orderController);
 
@@ -94,11 +95,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         this.activeOrdersMap.put(networkOrder.getId(), networkOrder);
 
+        List<String> networkIdList = new ArrayList<>();
+        networkIdList.add(FAKE_ORDER_ID);
+        
+        ComputeOrder computeOrder = new ComputeOrder();
+        computeOrder.setNetworksId(networkIdList);
+        
         List<String> expectedList = new ArrayList<>();
-        expectedList.add(FAKE_ORDER_ID);
-
-        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
-        Mockito.doReturn(expectedList).when(computeOrder).getNetworksId();
+        expectedList.add(FAKE_INSTANCE_ID);
 
         // exercise
         this.application.changeNetworkOrderIdsToNetworInstanceIds(computeOrder);
@@ -115,11 +119,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         Order order = createComputeOrder();
         OrderStateTransitioner.activateOrder(order);
-
+        
         Mockito.doReturn(order.getFederationUser()).when(this.aaaController)
                 .getFederationUser(Mockito.anyString());
 
-        Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
+        Mockito.doNothing().when(this.aaaController).authenticate(FEDERATION_TOKEN_VALUE);
 
         Mockito.doNothing().when(this.aaaController).authorize(Mockito.any(FederationUser.class),
                 Mockito.any(Operation.class), Mockito.any(Order.class));
@@ -128,6 +132,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         this.application.deleteCompute(order.getId(), FEDERATION_TOKEN_VALUE);
 
         // verify
+        Mockito.verify(this.aaaController, Mockito.times(1)).authenticate(FEDERATION_TOKEN_VALUE);
+        Mockito.verify(this.aaaController, Mockito.times(1)).authorize(Mockito.any(FederationUser.class), Mockito.any(Operation.class), Mockito.any(Order.class));
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
