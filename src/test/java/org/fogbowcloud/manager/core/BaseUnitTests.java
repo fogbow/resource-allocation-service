@@ -10,29 +10,32 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+
 import org.junit.After;
+
+import org.mockito.BDDMockito;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
+
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
 
 @PrepareForTest(DatabaseManager.class)
 public class BaseUnitTests {
 
     public static final String LOCAL_MEMBER_ID = "fake-localidentity-member";
 
+    /**
+     * Clears the orders from the lists on the SharedOrderHolders instance.
+     */
     @After
     public void tearDown() {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         for (OrderState state : OrderState.values()) {
-            if (! state.equals(OrderState.DEACTIVATED)) {
+            if (!state.equals(OrderState.DEACTIVATED)) {
                 SynchronizedDoublyLinkedList ordersList = sharedOrderHolders.getOrdersList(state);
                 cleanList(ordersList);
             }
-
         }
 
         Map<String, Order> activeOrderMap = sharedOrderHolders.getActiveOrdersMap();
@@ -91,19 +94,22 @@ public class BaseUnitTests {
         return localOrder;
     }
 
+    /**
+     * Mocks the behavior of the database as if there was no order in any state.
+     */
     public void mockReadOrdersFromDataBase() {
         DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
-        when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList());
-        when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList());
-        when(databaseManager.readActiveOrders(OrderState.FAILED)).thenReturn(new SynchronizedDoublyLinkedList());
-        when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList());
-        when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList());
-        when(databaseManager.readActiveOrders(OrderState.CLOSED)).thenReturn(new SynchronizedDoublyLinkedList());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED)).thenReturn(new SynchronizedDoublyLinkedList());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.CLOSED)).thenReturn(new SynchronizedDoublyLinkedList());
 
-        doNothing().when(databaseManager).add(any(Order.class));
-        doNothing().when(databaseManager).update(any(Order.class));
+        Mockito.doNothing().when(databaseManager).add(Matchers.any(Order.class));
+        Mockito.doNothing().when(databaseManager).update(Matchers.any(Order.class));
 
         PowerMockito.mockStatic(DatabaseManager.class);
-        given(DatabaseManager.getInstance()).willReturn(databaseManager);
+        BDDMockito.given(DatabaseManager.getInstance()).willReturn(databaseManager);
     }
 }
