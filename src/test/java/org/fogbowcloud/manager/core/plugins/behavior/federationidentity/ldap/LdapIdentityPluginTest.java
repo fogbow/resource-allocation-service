@@ -119,7 +119,7 @@ public class LdapIdentityPluginTest {
     @Test(expected = InvalidCredentialsUserException.class)
     public void testCreateTokenWithInvalidUserName() throws Exception {
     	// set up
-        Mockito.doThrow(new Exception("Invalid User"))
+        Mockito.doThrow(new FogbowManagerException("Invalid User"))
                 .when(this.identityPlugin)
                 .ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
 
