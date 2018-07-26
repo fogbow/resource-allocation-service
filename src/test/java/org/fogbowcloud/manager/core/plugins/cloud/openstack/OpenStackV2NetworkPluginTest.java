@@ -107,11 +107,7 @@ public class OpenStackV2NetworkPluginTest {
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP),
 						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
 		Mockito.doReturn(SECURITY_GROUP_ID).when(this.openStackV2NetworkPlugin).getSecurityGroupIdFromPostResponse(Mockito.anyString());
-		//post ssh rule
-		Mockito.doReturn("").when(this.httpRequestClientUtil)
-				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES),
-						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
-		//post icmp rule
+		//post ssh and icmp rule
 		Mockito.doReturn("").when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES),
 						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
