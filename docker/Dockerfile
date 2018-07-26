@@ -28,4 +28,4 @@ WORKDIR /root/resource-allocation-service
 RUN \
   mkdir -p src/main/resources/private
   
-CMD bash bin/start-service > log.out 2> log.err && tail -f /dev/null &
+CMD bash bin/start-service > log.out 2> log.err && tail -f /dev/null
