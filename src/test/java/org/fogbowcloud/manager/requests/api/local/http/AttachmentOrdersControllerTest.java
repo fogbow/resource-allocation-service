@@ -159,7 +159,7 @@ public class AttachmentOrdersControllerTest {
         // verify
         int expectedStatus = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, Mockito.atLeast(2))  // for the two tests where a non-empty body was provided
+        Mockito.verify(this.facade, Mockito.times(1))
     		.createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());
     }
 
@@ -287,7 +287,7 @@ public class AttachmentOrdersControllerTest {
                                 result.getResponse().getContentAsString(),
                                 AttachmentInstance.class);
         
-        Assert.assertEquals(attachmentIdEndpoint, resultAttachmentInstance);
+        Assert.assertEquals(attachmentInstance, resultAttachmentInstance);
         
         Mockito.verify(this.facade, Mockito.times(1))
 			.getAttachment(Mockito.anyString() ,Mockito.anyString());
