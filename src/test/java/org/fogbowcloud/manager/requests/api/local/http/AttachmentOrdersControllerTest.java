@@ -1,6 +1,6 @@
 package org.fogbowcloud.manager.requests.api.local.http;
 
-import static org.mockito.BDDMockito.given;
+import org.mockito.BDDMockito;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,7 +38,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
@@ -71,13 +71,13 @@ public class AttachmentOrdersControllerTest {
     public void setUp() throws FogbowManagerException {
         this.facade = Mockito.spy(ApplicationFacade.class);
         PowerMockito.mockStatic(ApplicationFacade.class);
-        given(ApplicationFacade.getInstance()).willReturn(this.facade);
+        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
     }
 
-    // test case: Request a attachment creation and test successfully return. 
-    // Check the response of request and the call of facade for create the attachment.
+    // test case: Request an attachment creation and test successfully return. 
+    // Check if the request response is compatible with the value produced by facade.
     @Test
-    public void CreateAttachmenTest() throws Exception {
+    public void testCreateAttachment() throws Exception {
     	
     	// set up
         String orderId = "fake-id";
@@ -101,11 +101,10 @@ public class AttachmentOrdersControllerTest {
         	.createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());
     }
 
-    
-    // test case: Request a attachment creation with 3 types of wrong body and test fail return
-    // Check the response of request and the call of facade for create the attachment.
+    // test case: Request an attachment creation with 3 types of wrong body and test fail return
+    // Check if the correct http status is being sent in the request response
     @Test
-    public void wrongBodyToPostAttachmentTest() throws Exception {
+    public void testPostAttachmentWrongBody() throws Exception {
         // Case 1: Empty json
     	// set up
         RequestBuilder requestBuilder =
@@ -158,9 +157,9 @@ public class AttachmentOrdersControllerTest {
     }
 
     // test case: Request the list of all attachments when the facade returns an empty list. 
-    // Check the response of request and the call of facade for get the attachments. 
+    // Check if the request response is compatible with the value produced by facade. 
     @Test
-    public void getAllAttachmentsWhenHasNoData() throws Exception {
+    public void testGetAllAttachmentsWhenHasNoData() throws Exception {
     	//set up
         List<AttachmentInstance> attachementInstanceList = new ArrayList<>();
         Mockito.doReturn(attachementInstanceList).when(this.facade).getAllAttachments(Mockito.anyString());
@@ -184,9 +183,9 @@ public class AttachmentOrdersControllerTest {
     }
 
     // test case: Request the list of all attachments when the facade returns an non-empty list. 
-    // Check the response of request and the call of facade for get the attachments. 
+    // Check if the request response is compatible with the value produced by facade.
     @Test
-    public void getAllAttachmentsWhenHasData() throws Exception {
+    public void testGetAllAttachmentsWhenHasData() throws Exception {
     	// set up
         AttachmentInstance AttachmentInstance1 = new AttachmentInstance("fake-Id-1");
         AttachmentInstance AttachmentInstance2 = new AttachmentInstance("fake-Id-2");
@@ -215,16 +214,16 @@ public class AttachmentOrdersControllerTest {
         TypeToken<List<AttachmentInstance>> token = new TypeToken<List<AttachmentInstance>>() {};
         List<AttachmentInstance> resultList =
                 new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
-        Assert.assertTrue(resultList.size() == 3);
+        Assert.assertEquals(3, resultList.size());
         
         Mockito.verify(this.facade, Mockito.times(1))
 			.getAllAttachments(Mockito.anyString());
     }
     
     // test case: Request the list of all attachments status when the facade returns an non-empty list. 
-    // Check the response of request and the call of facade for get the attachments status.
+    // Check if the request response is compatible with the value produced by facade.
     @Test
-    public void getAllAttachmentsStatus() throws Exception {
+    public void testGetAllAttachmentsStatus() throws Exception {
     	InstanceStatus AttachmentStatus1 = new InstanceStatus("fake-Id-1", "fake-provider", InstanceState.IN_USE);
     	InstanceStatus AttachmentStatus2 = new InstanceStatus("fake-Id-2", "fake-provider", InstanceState.IN_USE);
     	InstanceStatus AttachmentStatus3 = new InstanceStatus("fake-Id-3", "fake-provider", InstanceState.IN_USE);
@@ -253,16 +252,16 @@ public class AttachmentOrdersControllerTest {
         TypeToken<List<InstanceStatus>> token = new TypeToken<List<InstanceStatus>>() {};
         List<InstanceStatus> resultList =
                 new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
-        Assert.assertTrue(resultList.size() == 3);
+        Assert.assertEquals(3, resultList.size());
         
         Mockito.verify(this.facade, Mockito.times(1))
 			.getAllInstancesStatus(Mockito.anyString(), Mockito.any(InstanceType.class));
     }
 
-    // test case: Request a attachment by his id and test successfully return. 
-    // Check the response of request and the call of facade for get the compute.
+    // test case: Request an attachment by his id and test successfully return. 
+    // Check if the request response is compatible with the value produced by facade.
     @Test
-    public void getAttachmentById() throws Exception {
+    public void testGetAttachmentById() throws Exception {
         // set up
     	String fakeId = "fake-Id-1";
         String attachmentIdEndpoint = ATTACHMENT_ENDPOINT + "/" + fakeId;
@@ -287,16 +286,16 @@ public class AttachmentOrdersControllerTest {
                                 result.getResponse().getContentAsString(),
                                 AttachmentInstance.class);
         
-        Assert.assertTrue(resultAttachmentInstance != null);
+        Assert.assertEquals(attachmentIdEndpoint, resultAttachmentInstance);
         
         Mockito.verify(this.facade, Mockito.times(1))
 			.getAttachment(Mockito.anyString() ,Mockito.anyString());
     }
 
-    // test case: Request a attachment by his id when the instance is not found. 
-    // Check the response of request and the call of facade for get the attachment.
+    // test case: Request an attachment by his id when the instance is not found. 
+    // Check if the request response is compatible with the value produced by facade.
     @Test
-    public void getNotFoundAttachmentById() throws Exception {
+    public void testGetNotFoundAttachmentById() throws Exception {
     	// set up
         String fakeId = "fake-Id-1";
         String attachmentIdEndpoint = ATTACHMENT_ENDPOINT + "/" + fakeId;
@@ -317,10 +316,10 @@ public class AttachmentOrdersControllerTest {
 			.getAttachment(Mockito.anyString() ,Mockito.anyString());
     }
 
-    // test case: Delete a attachment by his id and test successfully return. 
-    // Check the response of request and the call of facade for delete the attachment.
+    // test case: Delete an attachment by his id and test successfully return. 
+    // Check if the request response is compatible with the value produced by facade.
     @Test
-    public void deleteExistingAttachement() throws Exception {
+    public void testDeleteExistingAttachment() throws Exception {
     	// set up
         String fakeId = "fake-Id-1";
         String attachmentIdEndpoint = ATTACHMENT_ENDPOINT + "/" + fakeId;
@@ -343,7 +342,7 @@ public class AttachmentOrdersControllerTest {
     // test case: Delete a not found attachment by his id and test fail return. 
     // Check the response of request and the call of facade for delete the attachment.
     @Test
-    public void deleteNotFoundAttachmentById() throws Exception {
+    public void testDeleteNotFoundAttachment() throws Exception {
     	// set up
         String fakeId = "fake-Id-1";
         String attachmentIdEndpoint = ATTACHMENT_ENDPOINT + "/" + fakeId;
