@@ -1,10 +1,5 @@
 package org.fogbowcloud.manager.core.plugins.behavior.federationidentity.ldap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doReturn;
-
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
@@ -25,6 +20,7 @@ import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.RSAUtil;
 import org.json.JSONObject;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,7 +48,7 @@ public class LdapIdentityPluginTest {
 
     @Before
     public void setUp()
-            throws InvalidKeyException, NoSuchAlgorithmException, SignatureException,
+            throws InvalidKeyException, NoSuchAlgorithmException,
                     UnsupportedEncodingException, IOException, GeneralSecurityException {
         Properties properties = Mockito.spy(Properties.class);
 
@@ -63,7 +59,7 @@ public class LdapIdentityPluginTest {
         this.identityPlugin = Mockito.spy(new LdapIdentityPlugin());
 
         properties.put(IDENTITY_URL_KEY, KEYSTONE_URL);
-        doReturn(MOCK_SIGNATURE)
+        Mockito.doReturn(MOCK_SIGNATURE)
                 .when(identityPlugin)
                 .createSignature(Mockito.any(JSONObject.class));
 
@@ -75,8 +71,7 @@ public class LdapIdentityPluginTest {
     }
 
     
-    // test case: the create token method must to throw a exception when call him with
-    // a credentials map empty 
+    // test case: the create token method throws an exception when one pass an empty map
     @SuppressWarnings("unchecked")
     @Test(expected = InvalidCredentialsUserException.class)
     public void testCreateTokenWithoutCredentials()
@@ -86,7 +81,7 @@ public class LdapIdentityPluginTest {
         this.identityPlugin.createFederationTokenValue(Mockito.anyMap());
     }
 
-    // test case: authentication with invalids credentials must throw a exception.
+    // test case: authentication with invalids credentials must throws an exception.
     @Test(expected = FogbowManagerException.class)
     public void testLdapAuthenticateWithoutLdapUrl() throws Exception {
     	// exercise/verify: try to get authentication with invalids user id and password.
@@ -108,13 +103,13 @@ public class LdapIdentityPluginTest {
         String decodedAccessId = decodeAccessId(token);
 
         // verify
-        assertTrue(decodedAccessId.contains(name));
-        assertTrue(decodedAccessId.contains(userName));
-        assertTrue(decodedAccessId.contains(MOCK_SIGNATURE));
+        Assert.assertTrue(decodedAccessId.contains(name));
+        Assert.assertTrue(decodedAccessId.contains(userName));
+        Assert.assertTrue(decodedAccessId.contains(MOCK_SIGNATURE));
     }
 
     
-    // test case: create authentication token must to throw a exception when ldap can not
+    // test case: create authentication token must to throws an exception when ldap can not
     // authenticate passed credentials.
     @Test(expected = InvalidCredentialsUserException.class)
     public void testCreateTokenWithInvalidUserName() throws Exception {
@@ -123,7 +118,7 @@ public class LdapIdentityPluginTest {
                 .when(this.identityPlugin)
                 .ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
 
-        // exercise/verify: try create a token, must to throw a exception because
+        // exercise/verify: try create a token, must to throws an exception because
         // LDAP will not authenticate the user.
         this.identityPlugin.createFederationTokenValue(this.userCredentials);
     }
@@ -143,12 +138,12 @@ public class LdapIdentityPluginTest {
         String tokenA = this.identityPlugin.createFederationTokenValue(this.userCredentials);
 
         // verify
-        assertFalse(this.identityPlugin.isValid(tokenA));
+        Assert.assertFalse(this.identityPlugin.isValid(tokenA));
     }
 
     
     // test case: try to get federated user info with a empty token,
-    // should throw a exception.
+    // should throws an exception.
     @Test(expected = UnauthenticatedUserException.class)
     public void testGetFederatedUserWithEmptyToken()
             throws UnauthenticatedUserException, UnexpectedException {
@@ -158,7 +153,7 @@ public class LdapIdentityPluginTest {
     }
 
     // test case: try to get federated user info with a invalid token,
-    // should throw a exception.
+    // should throws an exception.
     @Test(expected = UnauthenticatedUserException.class)
     public void testGetFederatedUserWithInvalidToken()
             throws UnauthenticatedUserException, UnexpectedException {
@@ -197,7 +192,7 @@ public class LdapIdentityPluginTest {
                 this.identityPlugin.getFederationUser(new String(Base64.encodeBase64(bytes)));
 
         // exercise: compares if the returned user info is the expected
-        assertEquals(user, returnedUser);
+        Assert.assertEquals(user, returnedUser);
     }
 
     private String decodeAccessId(String accessId) {
