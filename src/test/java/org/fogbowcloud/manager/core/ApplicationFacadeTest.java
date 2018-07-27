@@ -58,10 +58,10 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
     }
 
-    // test case: When calling the method changeNetworkOrderIdsToNetworInstanceIds(), it must change
-    // the collection of OrderIDs by NetworkInstacesIDs.
+    // test case: When calling the method changeNetworkOrderIdsToNetworkInstanceIds(), it must change
+    // the collection of OrderIDs by NetworkInstancesIDs.
     @Test
-    public void changeNetworkOrderIdsToNetworInstanceIdsTest() {
+    public void testChangeNetworkOrderIdsToNetworkInstanceIds() {
 
         // set up
         NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
@@ -85,6 +85,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Assert.assertEquals(expectedList, computeOrder.getNetworksId());
+        //FIXME: I think we cannot mock the return of the computerOrder.getNetworkId. This is the behaviour we want to
+        // check. One option is to not use a mock for it or to use and to check we called the set method
     }
 
     // test case: When calling the method deleteCompute(), the Order passed per parameter must
@@ -113,12 +115,16 @@ public class ApplicationFacadeTest extends BaseUnitTests {
                 Mockito.any(Order.class));
 
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
+        //FIXME: we are missing verifies
     }
 
     // test case: When try calling the deleteCompute() method without authentication, it must
     // throw UnauthenticatedUserException and the Order remains in the same state.
     @Test
     public void testDeleteComputeOrderWithoutAuthentication() throws Exception {
+
+        //FIXME: improve both the name of the test and the case. I think we are testing how be behave when
+        //the authentication method throws an exception not "WithoutAuthentication"
 
         // set up
         Order order = createComputeOrder();
@@ -144,7 +150,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     // test case: Check if deleteCompute is properly forwarding the exception thrown by
     // getFederationUser, in this case the Order must remains in the same state.
     @Test
-    public void testDeleteComputeOrderWhenGetFederationUserThrowsAnException() throws Exception {
+    public void testDeleteComputeOrderWithUnauthenticatedUserExceptionInGetFederationUser() throws Exception {
 
         // set up
         Order order = createComputeOrder();
@@ -171,7 +177,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     // test case: When try calling the deleteCompute() method with an operation not authorized, it
     // must throw UnauthorizedRequestException and the Order remains in the same state.
     @Test
-    public void testDeleteComputeOrderWithOperationNotAuthorized() throws Exception {
+    public void testDeleteComputeOrderWithOperationNotAuthorizedException() throws Exception {
 
         // set up
         Order order = createComputeOrder();
@@ -226,13 +232,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
                 Mockito.any(FederationUser.class), Mockito.any(Operation.class),
                 Mockito.any(Order.class));
 
+        //FIXME: we are missing the assert before the exercise
         Assert.assertEquals(OrderState.OPEN, order.getOrderState());
     }
 
     // test case: When try calling the createCompute() method without
     // authentication, it must throw UnauthenticatedUserException.
     @Test
-    public void testCreateComputeOrderWithoutAuthentication() throws Exception {
+    public void testCreateComputeOrderWithUnauthenticatedUserException() throws Exception {
 
         // set up
         ComputeOrder order = createComputeOrder();
@@ -256,7 +263,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     // test case: Check if createCompute is properly forwarding the exception thrown by
     // getFederationUser.
     @Test
-    public void testCreateComputeOrderWhenGetFederationUserThrowsAnException() throws Exception {
+    public void testCreateComputeOrderWithUnauthenticatedUserExceptionInGetFederationUser() throws Exception {
 
         // set up
         ComputeOrder order = createComputeOrder();
@@ -283,7 +290,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     // test case: When try calling the createCompute() method with an operation not authorized, it
     // must throw UnauthorizedRequestException.
     @Test
-    public void testCreateComputeOrderWithOperationNotAuthorized() throws Exception {
+    public void testCreateComputeOrderWithOperationNotAuthorizedException() throws Exception {
 
         // set up
         ComputeOrder order = createComputeOrder();
