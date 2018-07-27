@@ -28,7 +28,6 @@ import static org.junit.Assert.assertNull;
 public class ClosedProcessorTest extends BaseUnitTests {
 
     private ClosedProcessor closedProcessor;
-    private AaController aaController;
     
     @SuppressWarnings("unused")
     private RemoteCloudConnector remoteCloudConnector;
@@ -75,8 +74,6 @@ public class ClosedProcessorTest extends BaseUnitTests {
 
         OrderStateTransitioner.activateOrder(localOrder);
 		OrderStateTransitioner.transition(localOrder, OrderState.CLOSED);
-
-        Mockito.doNothing().when(this.localCloudConnector).deleteInstance(Mockito.any(Order.class));
 
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
         Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString())).thenReturn(localCloudConnector);
