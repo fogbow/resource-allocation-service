@@ -52,6 +52,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 	protected static final String DISK_JSON_FIELD = "disk";
 	protected static final String VCPU_JSON_FIELD = "vcpus";
 	protected static final String MEMORY_JSON_FIELD = "ram";
+	protected static final String SECURITY_JSON_FIELD = "security_groups";
 	protected static final String FLAVOR_JSON_OBJECT = "flavor";
 	protected static final String FLAVOR_JSON_KEY = "flavors";
 	protected static final String KEY_JSON_FIELD = "key_name";
@@ -185,9 +186,11 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
 	private List<String> resolveNetworksId(ComputeOrder computeOrder) {
 		List<String> requestedNetworksId = new ArrayList<>();
-		requestedNetworksId.addAll(computeOrder.getNetworksId());
 		String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+		//We add the default network before any other network, because the order is very important to Openstack
+		//request. Openstack will configure the routes to the external network by the first network found on request body.
 		requestedNetworksId.add(defaultNetworkId);
+		requestedNetworksId.addAll(computeOrder.getNetworksId());
 		computeOrder.setNetworksId(requestedNetworksId);
 		return requestedNetworksId;
 	}
@@ -256,6 +259,16 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 			JSONObject netId = new JSONObject();
 			netId.put(UUID_JSON_FIELD, id);
 			networks.put(netId);
+			String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+			if (!id.equals(defaultNetworkId)) {
+				// if this is not the default network, we need to open SSH port, and also ICMP connection.
+				JSONArray securityGroup = new JSONArray();
+				JSONObject securityGroupName = new JSONObject();
+				String securityGroupProperty = OpenStackV2NetworkPlugin.DEFAULT_SECURITY_GROUP_NAME + "-" + id;
+				securityGroupName.put(NAME_JSON_FIELD, securityGroupProperty);
+				securityGroup.put(securityGroupName);
+				server.put(SECURITY_JSON_FIELD, securityGroup);
+			}
 		}
 		server.put(NETWORK_JSON_FIELD, networks);
 	

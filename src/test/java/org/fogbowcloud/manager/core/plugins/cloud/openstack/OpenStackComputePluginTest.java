@@ -51,16 +51,16 @@ public class OpenStackComputePluginTest {
 	private ArgumentCaptor<String> argString = ArgumentCaptor.forClass(String.class);
 	private ArgumentCaptor<Token> argToken = ArgumentCaptor.forClass(Token.class);
 	private ArgumentCaptor<JSONObject> argJson = ArgumentCaptor.forClass(JSONObject.class);
-	private final String defaultNetworkIp = "192.168.0.2";
+	private final String defaultNetworkId = "fake-default-network-id";
 	private final String imageId = "image-id";
 	private final String publicKey = "public-key";
 	private final String idKeyName = "493315b3-dd01-4b38-974f-289570f8e7ee";
 	private final String bestFlavorId = "best-flavor";
 	private final int bestCpu = 2;
 	private final int bestMemory = 1024;
-	
+
 	private final int bestDisk = 8;
-	private final String networkId = "192.1.2.3";
+	private final String privateNetworkId = "fake-private-network-id";
 	private final String userData = "userDataFromLauchCommand";
 	private final JSONObject rootKeypairJson = generateRootKeyPairJson(idKeyName, publicKey);
 	private final List<String> networksId = new ArrayList<String>();
@@ -87,16 +87,16 @@ public class OpenStackComputePluginTest {
         this.propertiesMock = Mockito.mock(Properties.class);
         this.httpRequestClientUtilMock = Mockito.mock(HttpRequestClientUtil.class);
         this.launchCommandGeneratorMock = mock(LaunchCommandGenerator.class);
-        this.networksId.add(networkId);
-    	this.responseNetworkIds.add(networkId);
-    	this.responseNetworkIds.add(defaultNetworkIp);
-    	
+        this.networksId.add(privateNetworkId);
+        this.responseNetworkIds.add(defaultNetworkId);
+        this.responseNetworkIds.add(privateNetworkId);
+
         String accessId = "accessID";
-    	String tenantId = "tenant-id";
-    	Map <String, String> attributes = new HashMap<String, String>();
-    	attributes.put(OpenStackNovaV2ComputePlugin.TENANT_ID, tenantId);
-    	User user = new User("iduser", "nameuser");
-    	Date expirationTime = new Date();
+        String tenantId = "tenant-id";
+        Map <String, String> attributes = new HashMap<String, String>();
+        attributes.put(OpenStackNovaV2ComputePlugin.TENANT_ID, tenantId);
+        User user = new User("iduser", "nameuser");
+        Date expirationTime = new Date();
         this.localToken = new Token(accessId, user, expirationTime, attributes);
         
         HomeDir.getInstance().setPath("src/test/resources/private");
@@ -116,7 +116,7 @@ public class OpenStackComputePluginTest {
 		Mockito.when(this.propertiesMock.getProperty(OpenStackNovaV2ComputePlugin.COMPUTE_NOVAV2_URL_KEY))
 				.thenReturn(this.computeNovaV2UrlKey);
 		Mockito.when(this.propertiesMock.getProperty(OpenStackNovaV2ComputePlugin.DEFAULT_NETWORK_ID_KEY))
-				.thenReturn(defaultNetworkIp);
+				.thenReturn(defaultNetworkId);
 		Mockito.when(propertiesHolderMock.getProperties()).thenReturn(propertiesMock);
     }
     
@@ -535,7 +535,7 @@ public class OpenStackComputePluginTest {
 		List<String> networksId = null;
 		ComputeOrder computeOrder = new ComputeOrder(null, null, null, bestCpu, bestMemory, bestDisk, imageId, null,
 				publicKey, networksId);
-		responseNetworkIds.remove(this.networkId);
+		responseNetworkIds.remove(this.privateNetworkId);
 
 		JSONObject computeJson = generateJsonRequest(imageId, bestFlavorId, userData, idKeyName, responseNetworkIds,
 				idInstanceName);
@@ -705,9 +705,17 @@ public class OpenStackComputePluginTest {
             netId.put(OpenStackNovaV2ComputePlugin.UUID_JSON_FIELD, id);
             networks.put(netId);
         }
-        
         server.put(OpenStackNovaV2ComputePlugin.NETWORK_JSON_FIELD, networks);
-    	
+
+        if (networksId.size() > 1) {
+	        JSONArray securityGroups = new JSONArray();
+	        JSONObject securityGroup = new JSONObject();
+	        String securityGroupName = OpenStackV2NetworkPlugin.DEFAULT_SECURITY_GROUP_NAME + "-" + this.privateNetworkId;
+	        securityGroup.put(OpenStackNovaV2ComputePlugin.NAME_JSON_FIELD, securityGroupName);
+	        securityGroups.put(securityGroup);
+	        server.put(OpenStackNovaV2ComputePlugin.SECURITY_JSON_FIELD, securityGroups);
+        }
+
         if (keyName != null) {
         	server.put(OpenStackNovaV2ComputePlugin.KEY_JSON_FIELD, keyName);
         }
