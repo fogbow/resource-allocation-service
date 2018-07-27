@@ -20,8 +20,11 @@ import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.apache.log4j.Logger;
 
 public class OpenStackImagePlugin implements ImagePlugin {
+
+	private static final Logger LOGGER = Logger.getLogger(OpenStackImagePlugin.class);
 
 	public static final String IMAGE_GLANCEV2_URL_KEY = "openstack_glance_v2_url";
 
@@ -59,6 +62,7 @@ public class OpenStackImagePlugin implements ImagePlugin {
 	public Image getImage(String imageId, Token localToken) throws FogbowManagerException, UnexpectedException {
 		JSONObject imageJsonObject = getJsonObjectImage(imageId, localToken);
 		String status = imageJsonObject.optString(STATUS);
+		LOGGER.debug("getImage returned status: " + status);
 		if (status.equals(ACTIVE_STATE)) {
 			Image image = new Image(
 					imageJsonObject.getString(ID_JSON),
