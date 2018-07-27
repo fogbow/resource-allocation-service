@@ -22,9 +22,7 @@ public class LdapLocalIdentityPluginTest {
 
     private static final String IDENTITY_URL_KEY = "identity_url";
     private final String KEYSTONE_URL = "http://localhost:0000";
-
     private final String MOCK_SIGNATURE = "mock_signature";
-
     private LdapIdentityPlugin ldapStoneIdentity;
     private final String name = "ldapUser";
     private final String password = "ldapUserPass";
@@ -38,10 +36,6 @@ public class LdapLocalIdentityPluginTest {
         Properties properties = propertiesHolder.getProperties();
         properties.put(IDENTITY_URL_KEY, this.KEYSTONE_URL);
         this.ldapStoneIdentity = Mockito.spy(new LdapIdentityPlugin());
-        Mockito.doReturn(this.MOCK_SIGNATURE)
-                .when(this.ldapStoneIdentity)
-                .createSignature(Mockito.any(JSONObject.class));
-
         this.userCredentials.put(LdapIdentityPlugin.CRED_USERNAME, this.name);
         this.userCredentials.put(LdapIdentityPlugin.CRED_PASSWORD, this.password);
         this.userCredentials.put(LdapIdentityPlugin.CRED_AUTH_URL, "ldapUrl");
@@ -49,15 +43,16 @@ public class LdapLocalIdentityPluginTest {
         this.userCredentials.put(LdapIdentityPlugin.CRED_LDAP_ENCRYPT, "");
         this.userCredentials.put(LdapIdentityPlugin.CRED_PRIVATE_KEY, "private_key_path");
         this.userCredentials.put(LdapIdentityPlugin.CRED_PUBLIC_KEY, "public_key_path");
+		Mockito.doReturn(this.MOCK_SIGNATURE).when(this.ldapStoneIdentity)
+				.createSignature(Mockito.any(JSONObject.class));
     }
     
-    //test case: check if the access id information is correct when the user credentials are correct.
+    //test case: check if the access id information is correct when creating a token with the correct user credentials.
     @Test
     public void testCreateToken() throws Exception {
     	//set up
-        Mockito.doReturn(this.userName)
-                .when(this.ldapStoneIdentity)
-                .ldapAuthenticate(Mockito.eq(this.name), Mockito.eq(this.password));
+		Mockito.doReturn(this.userName).when(this.ldapStoneIdentity).ldapAuthenticate(Mockito.eq(this.name),
+				Mockito.eq(this.password));
         
         //exercise
         String federationTokenValue = this.ldapStoneIdentity.createFederationTokenValue(userCredentials);
@@ -85,28 +80,23 @@ public class LdapLocalIdentityPluginTest {
     @Test
     public void testGetTokenInvalidAccessId() throws Exception {
     	//set up
-        Mockito.doReturn(this.userName)
-                .when(this.ldapStoneIdentity)
-                .ldapAuthenticate(Mockito.eq(this.name), Mockito.eq(this.password));
-        String tokenValueA = this.ldapStoneIdentity.createFederationTokenValue(this.userCredentials);
-        String decodedAccessId = decodeAccessId(tokenValueA);
-        String split[] = decodedAccessId.split(LdapIdentityPlugin.ACCESSID_SEPARATOR);
-        String signature = split[1];
-        String newAccessId =
-                "{name:\"nome\", expirationDate:\"" + (new Date(new Date().getTime() + TimeUnit.DAYS.toMillis(365))).getTime() + "\"}"
-                        + LdapIdentityPlugin.ACCESSID_SEPARATOR
-                        + signature;
-        newAccessId =
-                new String(
-                        Base64.encodeBase64(
-                                newAccessId.getBytes(StandardCharsets.UTF_8), false, false),
-                        StandardCharsets.UTF_8);
+		Mockito.doReturn(this.userName).when(this.ldapStoneIdentity).ldapAuthenticate(Mockito.eq(this.name),
+				Mockito.eq(this.password));
+		String tokenValueA = this.ldapStoneIdentity.createFederationTokenValue(this.userCredentials);
+		String decodedAccessId = decodeAccessId(tokenValueA);
+		String split[] = decodedAccessId.split(LdapIdentityPlugin.ACCESSID_SEPARATOR);
+		String signature = split[1];
+		Date actualDate = new Date(new Date().getTime() + TimeUnit.DAYS.toMillis(365));
+		String newAccessId = "{name:\"nome\", expirationDate:\"" + actualDate.getTime() + "\"}"
+				+ LdapIdentityPlugin.ACCESSID_SEPARATOR + signature;
+		newAccessId = new String(Base64.encodeBase64(newAccessId.getBytes(StandardCharsets.UTF_8), false, false),
+				StandardCharsets.UTF_8);
 
         //exercise/verify
         Assert.assertFalse(this.ldapStoneIdentity.isValid(newAccessId));
     }
 
-    public String decodeAccessId(String accessId) {
+    private String decodeAccessId(String accessId) {
         return new String(Base64.decodeBase64(accessId), StandardCharsets.UTF_8);
     }
 }
