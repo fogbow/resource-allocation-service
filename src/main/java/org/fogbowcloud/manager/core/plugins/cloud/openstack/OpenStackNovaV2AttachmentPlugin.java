@@ -23,7 +23,7 @@ import org.apache.log4j.Logger;
 public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
 
     private final String TENANT_ID_IS_NOT_SPECIFIED_ERROR = "Tenant id is not specified.";
-    private static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
+    protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
     private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
 	private static final String ID_JSON_FIELD = "id";
     private static final String OS_VOLUME_ATTACHMENTS = "/os-volume_attachments";
@@ -181,5 +181,9 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
 
     protected void setClient(HttpRequestClientUtil client) {
         this.client = client;
+    }
+    
+    protected void setProperties(Properties properties) {
+        this.properties = properties;
     }
 }
