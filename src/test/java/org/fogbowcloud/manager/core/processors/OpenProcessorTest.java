@@ -66,7 +66,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         super.tearDown();
     }
     
-    //test case: test if the open processor is setting to spawning an open localidentity order when the request
+    //test case: test if the open processor is setting to spawning an open order when the request
     //instance method of instance provider returns an instance.
     @Test
     public void testProcessOpenLocalOrder() throws Exception {
@@ -98,7 +98,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         assertSame(localOrder, spawningOrdersList.getNext());
     }
 
-    //test case: test if the open processor is setting to failed an open localidentity order when the request instance
+    //test case: test if the open processor is setting to failed an open order when the request instance
     //method of instance provider returns a null instance.
     @Test
     public void testProcessOpenLocalOrderWithNullInstance() throws Exception {
@@ -129,7 +129,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         assertEquals(localOrder, failedOrdersList.getNext());
     }
 
-    //test case: test if the open processor is setting to failed an open localidentity order when the request instance
+    //test case: test if the open processor is setting to failed an open order when the request instance
     //method of instance provider throws an exception.
     @Test
     public void testProcessLocalOpenOrderRequestingException() throws Exception {
@@ -209,7 +209,7 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         Thread.sleep(500);        	
         
-        //veirfy
+        //verify
         assertEquals(OrderState.FAILED, remoteOrder.getOrderState());
 
         // test if the open order list is empty and
