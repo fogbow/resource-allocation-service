@@ -101,11 +101,10 @@ public class AttachmentOrdersControllerTest {
         	.createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());
     }
 
-    // test case: Request an attachment creation with 3 types of wrong body and test fail return
+    // test case: Request an attachment creation without request body and test fail return
     // Check if the correct http status is being sent in the request response
     @Test
-    public void testPostAttachmentWrongBody() throws Exception {
-        // Case 1: Empty json
+    public void testPostAttachmentEmptyBody() throws Exception {
     	// set up
         RequestBuilder requestBuilder =
                 createRequestBuilder(HttpMethod.POST,
@@ -122,24 +121,32 @@ public class AttachmentOrdersControllerTest {
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
         Mockito.verify(this.facade, Mockito.times(0))
     		.createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());
-
-        // Case 2: Invalid json
+    }
+    
+    // test case: Request an attachment creation with request body without properties and test fail return
+    // Check if the correct http status is being sent in the request response
+    @Test
+    public void testPostAttachmentEmptyJson() throws Exception {
         // set up
-        requestBuilder =
+    	RequestBuilder requestBuilder =
                 createRequestBuilder(HttpMethod.POST, ATTACHMENT_ENDPOINT, getHttpHeaders(), "{}");
 
         // exercise: Make the request
-        result = this.mockMvc.perform(requestBuilder).andReturn();
+    	MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
         // verify
-        expectedStatus = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
+        int expectedStatus = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
         Mockito.verify(this.facade, Mockito.times(1))
     		.createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());
-
-        // Case 3: Json with empty properties.
+    }
+    
+    // test case: Request an attachment creation with request body without property values and test fail return
+    // Check if the correct http status is being sent in the request response
+    @Test
+    public void testPostAttachmentBodyWithoutProperties() throws Exception {
         // set up
-        requestBuilder =
+    	RequestBuilder requestBuilder =
                 createRequestBuilder(
                         HttpMethod.POST,
                         ATTACHMENT_ENDPOINT,
@@ -147,10 +154,10 @@ public class AttachmentOrdersControllerTest {
                         BODY_WITH_EMPTY_PROPERTIES);
 
         // exercise: Make the request
-        result = this.mockMvc.perform(requestBuilder).andReturn();
+    	MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
 
         // verify
-        expectedStatus = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
+        int expectedStatus = HttpStatus.UNSUPPORTED_MEDIA_TYPE.value();
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
         Mockito.verify(this.facade, Mockito.atLeast(2))  // for the two tests where a non-empty body was provided
     		.createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());
