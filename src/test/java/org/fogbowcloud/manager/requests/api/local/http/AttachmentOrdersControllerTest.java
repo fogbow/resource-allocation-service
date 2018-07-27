@@ -168,8 +168,8 @@ public class AttachmentOrdersControllerTest {
     @Test
     public void testGetAllAttachmentsWhenHasNoData() throws Exception {
     	//set up
-        List<AttachmentInstance> attachementInstanceList = new ArrayList<>();
-        Mockito.doReturn(attachementInstanceList).when(this.facade).getAllAttachments(Mockito.anyString());
+        List<AttachmentInstance> attachmentInstanceList = new ArrayList<>();
+        Mockito.doReturn(attachmentInstanceList).when(this.facade).getAllAttachments(Mockito.anyString());
 
         RequestBuilder requestBuilder =
                 createRequestBuilder(HttpMethod.GET, ATTACHMENT_ENDPOINT, getHttpHeaders(), "");
@@ -199,10 +199,7 @@ public class AttachmentOrdersControllerTest {
         AttachmentInstance AttachmentInstance3 = new AttachmentInstance("fake-Id-3");
 
         List<AttachmentInstance> AttachmentInstanceList =
-                Arrays.asList(
-                        new AttachmentInstance[] {
-                            AttachmentInstance1, AttachmentInstance2, AttachmentInstance3
-                        });
+                Arrays.asList(AttachmentInstance1, AttachmentInstance2, AttachmentInstance3);
         Mockito.doReturn(AttachmentInstanceList).when(this.facade)
         	.getAllAttachments(Mockito.anyString());
 
@@ -236,10 +233,7 @@ public class AttachmentOrdersControllerTest {
     	InstanceStatus AttachmentStatus3 = new InstanceStatus("fake-Id-3", "fake-provider", InstanceState.IN_USE);
     	
         List<InstanceStatus> AttachmentStatusList =
-                Arrays.asList(
-                        new InstanceStatus[] {
-                        		AttachmentStatus1, AttachmentStatus2, AttachmentStatus3
-                        });
+                Arrays.asList(AttachmentStatus1, AttachmentStatus2, AttachmentStatus3);
         Mockito.doReturn(AttachmentStatusList)
         	.when(this.facade)
         	.getAllInstancesStatus(Mockito.anyString(), Mockito.any(InstanceType.class));
