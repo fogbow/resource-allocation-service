@@ -239,7 +239,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    protected String ldapAuthenticate(String uid, String password) throws Exception {
+    protected String ldapAuthenticate(String uid, String password) throws NoSuchAlgorithmException, UnsupportedEncodingException, FogbowManagerException {
 
         String contextFactory = "com.sun.jndi.ldap.LdapCtxFactory";
         String securityAuthentication = "simple";

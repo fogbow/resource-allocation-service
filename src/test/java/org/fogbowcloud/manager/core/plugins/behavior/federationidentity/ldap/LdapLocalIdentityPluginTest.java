@@ -8,6 +8,7 @@ import java.util.Properties;
 import org.apache.commons.codec.binary.Base64;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
 import org.json.JSONObject;
 import org.junit.Assert;
@@ -81,7 +82,7 @@ public class LdapLocalIdentityPluginTest {
         userCredentials.put(LdapIdentityPlugin.CRED_PRIVATE_KEY, "private_key_path");
         userCredentials.put(LdapIdentityPlugin.CRED_PUBLIC_KEY, "public_key_path");
 
-        Mockito.doThrow(new Exception("Invalid User"))
+        Mockito.doThrow(new FogbowManagerException("Invalid User"))
                 .when(ldapStoneIdentity)
                 .ldapAuthenticate(Mockito.eq(name), Mockito.eq(password));
         try {
