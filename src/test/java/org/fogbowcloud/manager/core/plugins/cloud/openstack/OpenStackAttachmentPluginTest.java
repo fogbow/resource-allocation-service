@@ -112,8 +112,8 @@ public class OpenStackAttachmentPluginTest {
         this.openStackAttachmentPlugin.deleteInstance(this.instanceId, this.localToken);
         
         //verify
-        Assert.assertEquals(this.argString.getValue(), expectedEndpoint);
-        Assert.assertEquals(this.argToken.getValue().toString(), this.localToken.toString());
+        Assert.assertEquals(expectedEndpoint, this.argString.getValue());
+        Assert.assertEquals(this.localToken.toString(), this.argToken.getValue().toString());
     }
     
     //test case: Check if requestInstance is properly forwading UnauthorizedRequestException thrown by deleteInstance when Forbidden (403).
@@ -142,11 +142,11 @@ public class OpenStackAttachmentPluginTest {
 		AttachmentInstance attachmentInstance = this.openStackAttachmentPlugin.getInstance(instanceId, this.localToken);
         
         //verify
-        Assert.assertEquals(attachmentInstance.getDevice(), FAKE_DEVICE);
-        Assert.assertEquals(attachmentInstance.getServerId(), FAKE_SERVER_ID);
-        Assert.assertEquals(attachmentInstance.getVolumeId(), FAKE_VOLUME_ID);
-        Assert.assertEquals(attachmentInstance.getId(), FAKE_INSTANCE_ID);
-        Assert.assertEquals(attachmentInstance.getState(), expectedFogbowState);
+        Assert.assertEquals(FAKE_DEVICE, attachmentInstance.getDevice());
+        Assert.assertEquals(FAKE_SERVER_ID, attachmentInstance.getServerId());
+        Assert.assertEquals(FAKE_VOLUME_ID, attachmentInstance.getVolumeId());
+        Assert.assertEquals(FAKE_INSTANCE_ID, attachmentInstance.getId());
+        Assert.assertEquals(expectedFogbowState, attachmentInstance.getState());
     }
     
     //test case: Check if getInstance is properly forwading UnexpectedException thrown by getInstance.
