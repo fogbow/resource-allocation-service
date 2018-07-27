@@ -40,7 +40,7 @@ public class HttpExceptionToErrorConditionTranslatorTest {
 	private final String computeEndpoint = "/" + ComputeOrdersController.COMPUTE_ENDPOINT;
 
 	@Before
-	public void setUp() throws FogbowManagerException {
+	public void setUp() {
 		this.facade = spy(ApplicationFacade.class);
 		PowerMockito.mockStatic(ApplicationFacade.class);
 		given(ApplicationFacade.getInstance()).willReturn(this.facade);
