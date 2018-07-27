@@ -87,7 +87,6 @@ public class HttpExceptionToErrorConditionTranslator extends ResponseEntityExcep
         return new ResponseEntity<>(errorDetails, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
     }
 
-    // FIXME: Check when/if this exception can be thrown; do we need to handle it? Should this be mapped to unauthorized?
     @Override
     public final ResponseEntity<Object> handleServletRequestBindingException(
             ServletRequestBindingException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {

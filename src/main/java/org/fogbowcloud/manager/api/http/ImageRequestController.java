@@ -1,5 +1,7 @@
 package org.fogbowcloud.manager.api.http;
 
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.models.images.Image;

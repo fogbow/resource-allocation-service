@@ -2,14 +2,12 @@ package org.fogbowcloud.manager.api.http;
 
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.ApplicationFacade;
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.models.InstanceStatus;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
-import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.models.InstanceStatus;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,7 +30,7 @@ public class AttachmentOrdersController {
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<String> createAttachment(@RequestBody AttachmentOrder attachmentOrder,
         @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws FogbowManagerException, UnexpectedException {
+            throws Exception {
         LOGGER.info("New attachment order request received <" + attachmentOrder.getId() + ">.");
 
         String attachmentId = ApplicationFacade.getInstance().createAttachment(attachmentOrder, federationTokenValue);
@@ -72,9 +70,9 @@ public class AttachmentOrdersController {
     @RequestMapping(value = "/{attachmentId}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> deleteAttachment(@PathVariable String attachmentId,
         @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws FogbowManagerException, UnexpectedException {
+            throws Exception {
         LOGGER.info("Delete attachment order <" + attachmentId + "> received.");
         ApplicationFacade.getInstance().deleteAttachment(attachmentId, federationTokenValue);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

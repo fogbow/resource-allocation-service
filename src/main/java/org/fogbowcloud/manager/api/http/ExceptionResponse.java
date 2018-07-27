@@ -1,7 +1,5 @@
 package org.fogbowcloud.manager.api.http;
 
-import org.springframework.http.HttpStatus;
-
 public class ExceptionResponse {
 
     private String message;
