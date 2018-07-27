@@ -85,7 +85,7 @@ public class OpenStackAttachmentPluginTest {
         Assert.assertEquals(FAKE_INSTANCE_ID, instanceId);
     }
     
-    //test case: Check if requestInstance is properly forwading UnexpectedException thrown by doPostRequest.
+    //test case: Check if requestInstance is properly forwarding UnexpectedException thrown by doPostRequest.
 	@Test(expected = UnexpectedException.class)
 	public void testRequestInstanceThrowsUnexpectedException()
             throws FogbowManagerException, HttpResponseException, UnexpectedException {
@@ -116,7 +116,7 @@ public class OpenStackAttachmentPluginTest {
         Assert.assertEquals(this.localToken.toString(), this.argToken.getValue().toString());
     }
     
-    //test case: Check if requestInstance is properly forwading UnauthorizedRequestException thrown by deleteInstance when Forbidden (403).
+    //test case: Check if requestInstance is properly forwarding UnauthorizedRequestException thrown by deleteInstance when Forbidden (403).
     @Test(expected = FogbowManagerException.class)
     public void testDeleteInstanceThrowsUnauthorizedRequestExceptionWhenForbidden() throws HttpResponseException, FogbowManagerException, UnexpectedException {
     	//set up
@@ -149,7 +149,7 @@ public class OpenStackAttachmentPluginTest {
         Assert.assertEquals(expectedFogbowState, attachmentInstance.getState());
     }
     
-    //test case: Check if getInstance is properly forwading UnexpectedException thrown by getInstance.
+    //test case: Check if getInstance is properly forwarding UnexpectedException thrown by getInstance.
     @Test(expected = UnexpectedException.class)
     public void testGetInstanceThrowsUnexpectedException()
             throws FogbowManagerException, HttpResponseException, UnexpectedException {
