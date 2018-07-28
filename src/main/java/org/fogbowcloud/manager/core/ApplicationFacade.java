@@ -61,7 +61,7 @@ public class ApplicationFacade {
     /** protected visibility for tests */
     protected void changeNetworkOrderIdsToNetworInstanceIds(ComputeOrder order) {
                 
-        //as this content came from rest API the IDs are NetworkOrderIDs actually.
+        //as this content came from rest API the IDs are actually NetworkOrderIDs.
         //since we need NetworkInstanceIDs, we need to do proper replacement
         
         List<String> previousNetworkOrdersId = order.getNetworksId();//based on NetworkOrderIDs        

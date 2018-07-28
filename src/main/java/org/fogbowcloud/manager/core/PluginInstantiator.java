@@ -30,7 +30,7 @@ public class PluginInstantiator {
     /**
      * THERE ARE ONLY TWO CALLEES ALLOWED TO CALL THIS METHOD: 
      * i) test code; and 
-     * ii) below getInstance method.
+     * ii) this.getInstance method.
      */
     protected PluginInstantiator() {
         HomeDir homeDir = HomeDir.getInstance();
