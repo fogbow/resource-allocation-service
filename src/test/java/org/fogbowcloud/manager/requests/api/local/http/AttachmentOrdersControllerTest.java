@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.requests.api.local.http;
 
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.mockito.BDDMockito;
 
 import java.util.ArrayList;
@@ -13,7 +14,6 @@ import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.models.InstanceStatus;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.junit.Before;
 import org.junit.Test;
@@ -236,7 +236,7 @@ public class AttachmentOrdersControllerTest {
                 Arrays.asList(AttachmentStatus1, AttachmentStatus2, AttachmentStatus3);
         Mockito.doReturn(AttachmentStatusList)
         	.when(this.facade)
-        	.getAllInstancesStatus(Mockito.anyString(), Mockito.any(InstanceType.class));
+        	.getAllInstancesStatus(Mockito.anyString(), Mockito.any(ResourceType.class));
 
         RequestBuilder requestBuilder =
                 createRequestBuilder(HttpMethod.GET,
@@ -256,7 +256,7 @@ public class AttachmentOrdersControllerTest {
         Assert.assertEquals(3, resultList.size());
         
         Mockito.verify(this.facade, Mockito.times(1))
-			.getAllInstancesStatus(Mockito.anyString(), Mockito.any(InstanceType.class));
+			.getAllInstancesStatus(Mockito.anyString(), Mockito.any(ResourceType.class));
     }
 
     // test case: Request an attachment by his id and test successfully return. 

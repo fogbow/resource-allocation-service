@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.ApplicationFacade;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.apache.log4j.Logger;
@@ -53,7 +53,7 @@ public class VolumeOrdersController {
             throws Exception {
         LOGGER.info("Get the status of all volume order requests received.");
         List<InstanceStatus> volumeInstanceStatus =
-                ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, InstanceType.VOLUME);
+                ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.VOLUME);
         return new ResponseEntity<>(volumeInstanceStatus, HttpStatus.OK);
     }
 

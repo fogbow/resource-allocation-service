@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.authentication.AuthenticationPlugin;
@@ -66,23 +66,10 @@ public class AaControllerTest {
     	Mockito.when(this.authorizationPluginMock.isAuthorized(
     			Mockito.any(), 
     			Mockito.any(), 
-    			Mockito.any(InstanceType.class))).thenReturn(true);
+    			Mockito.any(ResourceType.class))).thenReturn(true);
     	
     	//exercise/verify
-    	this.aaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(InstanceType.class));
-    }
-    
-    //test case: Check if authorize method throws no exception when the operation is valid.
-    @Test
-    public void testAuthorizeOnOrderType() throws FogbowManagerException {
-    	//set up
-    	Mockito.when(this.authorizationPluginMock.isAuthorized(
-    			Mockito.any(), 
-    			Mockito.any(), 
-    			Mockito.any(InstanceType.class))).thenReturn(true);
-    	
-    	//exercise/verify
-    	this.aaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(InstanceType.class));
+    	this.aaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(ResourceType.class));
     }
     
     //test case: Check if authorize method throws no exception when the operation is valid.
@@ -91,10 +78,11 @@ public class AaControllerTest {
     	//set up
     	Mockito.when(this.authorizationPluginMock.isAuthorized(
     			Mockito.any(), 
-    			Mockito.any())).thenReturn(true);
+    			Mockito.any(), 
+    			Mockito.any(ResourceType.class))).thenReturn(true);
     	
     	//exercise/verify
-    	this.aaController.authorize(Mockito.any(), Mockito.any());
+    	this.aaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(ResourceType.class));
     }
     
     //test case: Check if authorize method throws Unauthenticated exception when the federation token is invalid. 
@@ -104,23 +92,10 @@ public class AaControllerTest {
     	Mockito.when(this.authorizationPluginMock.isAuthorized(
     			Mockito.any(), 
     			Mockito.any(), 
-    			Mockito.any(InstanceType.class))).thenReturn(false);
+    			Mockito.any(ResourceType.class))).thenReturn(false);
     	
     	//exercise/verify
-    	this.aaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(InstanceType.class));
-    }
-    
-    //test case: Check if authorize method throws Unauthenticated exception when the federation token is invalid. 
-    @Test (expected = UnauthorizedRequestException.class)
-    public void testAuthorizeWhenUnauthorizedRequestExceptionOnOrderType() throws FogbowManagerException {
-    	//set up
-    	Mockito.when(this.authorizationPluginMock.isAuthorized(
-    			Mockito.any(), 
-    			Mockito.any(), 
-    			Mockito.any(InstanceType.class))).thenReturn(false);
-    	
-    	//exercise/verify
-    	this.aaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(InstanceType.class));
+    	this.aaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(ResourceType.class));
     }
     
     //test case: Check if authorize method throws Unauthenticated exception when the federation token is invalid. 
@@ -129,10 +104,11 @@ public class AaControllerTest {
     	//set up
     	Mockito.when(this.authorizationPluginMock.isAuthorized(
     			Mockito.any(), 
-    			Mockito.any())).thenReturn(false);
+    			Mockito.any(), 
+    			Mockito.any(ResourceType.class))).thenReturn(false);
     	
     	//exercise/verify
-    	this.aaController.authorize(Mockito.any(), Mockito.any());
+    	this.aaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(ResourceType.class));
     }
     
     //test case: Check if getLocalToken() is returning a valid token.

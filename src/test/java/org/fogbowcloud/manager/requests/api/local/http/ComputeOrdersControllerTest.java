@@ -11,7 +11,7 @@ import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.models.InstanceStatus;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
@@ -210,7 +210,7 @@ public class ComputeOrdersControllerTest {
     public void testGetAllComputeStatusEmptyList() throws Exception {
     	
     	// set up
-        Mockito.doReturn(new ArrayList<InstanceState>()).when(this.facade).getAllInstancesStatus(Mockito.anyString(), Mockito.any(InstanceType.class));
+        Mockito.doReturn(new ArrayList<InstanceState>()).when(this.facade).getAllInstancesStatus(Mockito.anyString(), Mockito.any(ResourceType.class));
         String COMPUTE_STATUS_ENDPOINT = COMPUTE_ENDPOINT + "/" + ComputeOrdersController.STATUS_ENDPOINT;
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, COMPUTE_STATUS_ENDPOINT, getHttpHeaders(), "");
         
@@ -224,7 +224,7 @@ public class ComputeOrdersControllerTest {
         String expectedResult = "[]";
         Assert.assertEquals(expectedResult, result.getResponse().getContentAsString());
         
-        Mockito.verify(this.facade, Mockito.times(1)).getAllInstancesStatus(Mockito.anyString(), Mockito.any(InstanceType.class));
+        Mockito.verify(this.facade, Mockito.times(1)).getAllInstancesStatus(Mockito.anyString(), Mockito.any(ResourceType.class));
        
     }
     
@@ -244,7 +244,7 @@ public class ComputeOrdersControllerTest {
         InstanceStatus instanceStatus3 = new InstanceStatus(FAKE_ID_3, FAKE_PROVIDER, InstanceState.READY);
         
         List<InstanceStatus> computeStatusList = Arrays.asList(new InstanceStatus[] {instanceStatus1, instanceStatus2, instanceStatus3});
-        Mockito.doReturn(computeStatusList).when(this.facade).getAllInstancesStatus(Mockito.anyString(), Mockito.any(InstanceType.class));
+        Mockito.doReturn(computeStatusList).when(this.facade).getAllInstancesStatus(Mockito.anyString(), Mockito.any(ResourceType.class));
         
         String COMPUTE_STATUS_ENDPOINT = COMPUTE_ENDPOINT + "/" + ComputeOrdersController.STATUS_ENDPOINT;
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, COMPUTE_STATUS_ENDPOINT, getHttpHeaders(), "");
@@ -263,7 +263,7 @@ public class ComputeOrdersControllerTest {
         Assert.assertEquals(FAKE_ID_2, resultList.get(1).getInstanceId());
         Assert.assertEquals(FAKE_ID_3, resultList.get(2).getInstanceId());
         
-        Mockito.verify(this.facade, Mockito.times(1)).getAllInstancesStatus(Mockito.anyString(), Mockito.any(InstanceType.class));
+        Mockito.verify(this.facade, Mockito.times(1)).getAllInstancesStatus(Mockito.anyString(), Mockito.any(ResourceType.class));
     }
         
     // test case: Request a compute by its id with an unauthenticated user. Check the response of request

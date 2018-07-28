@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.ApplicationFacade;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
@@ -55,7 +55,7 @@ public class ComputeOrdersController {
             throws Exception {
         LOGGER.info("Get the status of all compute order requests received.");
         List<InstanceStatus> computeInstanceStatus =
-                ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, InstanceType.COMPUTE);
+                ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.COMPUTE);
         return new ResponseEntity<>(computeInstanceStatus, HttpStatus.OK);
     }
 

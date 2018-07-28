@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.AaController;
 import org.fogbowcloud.manager.core.CloudPluginsHolder;
 import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.*;
 import org.fogbowcloud.manager.core.models.orders.*;
@@ -153,16 +154,16 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public Quota getUserQuota(FederationUser federationUser, InstanceType instanceType) throws
+    public Quota getUserQuota(FederationUser federationUser, ResourceType resourceType) throws
             FogbowManagerException, UnexpectedException {
 
         Token localToken = this.aaController.getLocalToken(federationUser);
 
-        switch (instanceType) {
+        switch (resourceType) {
             case COMPUTE:
                 return this.computeQuotaPlugin.getUserQuota(localToken);
             default:
-                throw new UnexpectedException("Not yet implemented quota endpoint for " + instanceType);
+                throw new UnexpectedException("Not yet implemented quota endpoint for " + resourceType);
         }
     }
 
@@ -180,12 +181,12 @@ public class LocalCloudConnector implements CloudConnector {
         return this.imagePlugin.getImage(imageId, localToken);
     }
 
-    private Instance getResourceInstance(Order order, InstanceType instanceType, Token localToken)
+    private Instance getResourceInstance(Order order, ResourceType resourceType, Token localToken)
             throws FogbowManagerException, UnexpectedException {
         Instance instance;
         String instanceId = order.getInstanceId();
 
-        switch (instanceType) {
+        switch (resourceType) {
             case COMPUTE:
                 instance = this.computePlugin.getInstance(instanceId, localToken);
                 break;

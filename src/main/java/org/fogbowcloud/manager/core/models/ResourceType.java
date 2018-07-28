@@ -1,14 +1,15 @@
-package org.fogbowcloud.manager.core.models.instances;
+package org.fogbowcloud.manager.core.models;
 
-public enum InstanceType {
+public enum ResourceType {
     COMPUTE("compute"),
     NETWORK("network"),
     VOLUME("volume"),
-    ATTACHMENT("attachment");
+    ATTACHMENT("attachment"),
+    IMAGE("image");
 
     private String value;
 
-    private InstanceType(String value) {
+    private ResourceType(String value) {
         this.value = value;
     }
 

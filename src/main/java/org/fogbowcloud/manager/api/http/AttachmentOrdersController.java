@@ -6,7 +6,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.models.InstanceStatus;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,7 +53,7 @@ public class AttachmentOrdersController {
             throws Exception {
         LOGGER.info("Get the status of all attachment order requests received.");
         List<InstanceStatus> attachmentInstanceStatus =
-                ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, InstanceType.ATTACHMENT);
+                ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.ATTACHMENT);
         return new ResponseEntity<>(attachmentInstanceStatus, HttpStatus.OK);
     }
 

@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.ApplicationFacade;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
 import org.apache.log4j.Logger;
@@ -48,7 +48,7 @@ public class NetworkOrdersController {
             throws Exception {
         LOGGER.info("Get the status of all networks order requests received.");
         List<InstanceStatus> networkInstanceStatus =
-                ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, InstanceType.NETWORK);
+                ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.NETWORK);
         return new ResponseEntity<>(networkInstanceStatus, HttpStatus.OK);
     }
 

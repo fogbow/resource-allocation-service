@@ -8,7 +8,7 @@ import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.tokens.KeystoneV3TokenGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
@@ -127,7 +127,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 			
 			String name = volumeJson.optString(KEY_JSON_NAME);
 			String statusOpenstack = volumeJson.optString(KEY_JSON_STATUS);
-			InstanceState fogbowState = OpenStackStateMapper.map(InstanceType.VOLUME, statusOpenstack);
+			InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.VOLUME, statusOpenstack);
 			String sizeStr = volumeJson.optString(KEY_JSON_SIZE);
 			int size = Integer.valueOf(sizeStr);
 

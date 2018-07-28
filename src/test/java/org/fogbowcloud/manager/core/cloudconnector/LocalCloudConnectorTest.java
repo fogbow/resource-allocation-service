@@ -8,6 +8,7 @@ import org.fogbowcloud.manager.core.CloudPluginsHolder;
 import org.fogbowcloud.manager.core.datastore.DatabaseManager;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.models.instances.*;
 import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputeQuotaPlugin;
@@ -26,13 +27,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import static org.mockito.Mockito.times;
 
 import org.fogbowcloud.manager.core.models.images.Image;
-import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
-import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
-import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
-import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
-import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -139,7 +134,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(ComputeOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.COMPUTE);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.COMPUTE);
 	    Mockito.when(computePlugin.requestInstance(Mockito.any(ComputeOrder.class), Mockito.any(Token.class))).thenReturn(FAKE_INSTANCE_ID);
 		
 	    // exercise
@@ -159,7 +154,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(AttachmentOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.ATTACHMENT);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);
 	    Mockito.when(attachmentPlugin.requestInstance(Mockito.any(AttachmentOrder.class), Mockito.any(Token.class))).thenReturn(FAKE_INSTANCE_ID);
 		
 	    //exercise
@@ -179,7 +174,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(VolumeOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.VOLUME);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.VOLUME);
 	    Mockito.when(volumePlugin.requestInstance(Mockito.any(VolumeOrder.class), Mockito.any(Token.class))).thenReturn(FAKE_INSTANCE_ID);
 	    
 	    //exercise
@@ -200,7 +195,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(NetworkOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.NETWORK);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.NETWORK);
 	    Mockito.when(networkPlugin.requestInstance(Mockito.any(NetworkOrder.class), Mockito.any(Token.class))).thenReturn(FAKE_INSTANCE_ID);
 	    
 	    //exercise
@@ -220,7 +215,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(ComputeOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.COMPUTE);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.COMPUTE);
 	    Mockito.when(computePlugin.requestInstance(Mockito.any(ComputeOrder.class), Mockito.any(Token.class))).thenReturn(null);
 		
 		// exercise
@@ -233,7 +228,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(NetworkOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.NETWORK);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.NETWORK);
 	    Mockito.when(networkPlugin.requestInstance(Mockito.any(NetworkOrder.class), Mockito.any(Token.class))).thenReturn(null);
 		
 	    // exercise
@@ -246,7 +241,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(AttachmentOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.ATTACHMENT);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);
 	    Mockito.when(attachmentPlugin.requestInstance(Mockito.any(AttachmentOrder.class), Mockito.any(Token.class))).thenReturn(null);
 		
 	    // exercise
@@ -259,7 +254,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(VolumeOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.VOLUME);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.VOLUME);
 	    Mockito.when(volumePlugin.requestInstance(Mockito.any(VolumeOrder.class), Mockito.any(Token.class))).thenReturn(null);
 		
 	    // exercise
@@ -272,7 +267,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(NetworkOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.NETWORK);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.NETWORK);
 	    Mockito.when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
 	    Mockito.when(networkPlugin.getInstance(Mockito.any(String.class), Mockito.any(Token.class))).thenReturn(this.networkInstance);
 	    
@@ -293,7 +288,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		//set up
 		this.order = Mockito.mock(VolumeOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.VOLUME);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.VOLUME);
 	    Mockito.when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
 	    Mockito.when(volumePlugin.getInstance(Mockito.any(String.class), Mockito.any(Token.class))).thenReturn(this.volumeInstance);
 	    
@@ -314,7 +309,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(AttachmentOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.ATTACHMENT);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);
 	    Mockito.when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
 	    Mockito.when(attachmentPlugin.getInstance(Mockito.any(String.class), Mockito.any(Token.class))).thenReturn(this.attachmentInstance);
 		
@@ -340,7 +335,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		LocalCloudConnector localCloudConnectorSpy = Mockito.spy(this.localCloudConnector);
 
 		this.order = Mockito.mock(ComputeOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.COMPUTE);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.COMPUTE);
 	    Mockito.when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
 	    Mockito.when(computePlugin.getInstance(Mockito.any(String.class), Mockito.any(Token.class))).thenReturn(this.computeInstance);
 	        
@@ -386,7 +381,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(NetworkOrder.class);
-		Mockito.when(this.order.getType()).thenReturn(InstanceType.NETWORK);
+		Mockito.when(this.order.getType()).thenReturn(ResourceType.NETWORK);
 		Mockito.when(this.order.getInstanceId()).thenReturn(null);
 		Mockito.when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
 		Mockito.when(this.order.getOrderState()).thenReturn(OrderState.OPEN);
@@ -410,7 +405,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(NetworkOrder.class);
-		Mockito.when(this.order.getType()).thenReturn(InstanceType.NETWORK);
+		Mockito.when(this.order.getType()).thenReturn(ResourceType.NETWORK);
 		Mockito.when(this.order.getInstanceId()).thenReturn(null);
 		Mockito.when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
 		Mockito.when(this.order.getOrderState()).thenReturn(OrderState.PENDING);
@@ -434,7 +429,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(NetworkOrder.class);
-		Mockito.when(this.order.getType()).thenReturn(InstanceType.NETWORK);
+		Mockito.when(this.order.getType()).thenReturn(ResourceType.NETWORK);
 		Mockito.when(this.order.getInstanceId()).thenReturn(null);
 		Mockito.when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
 		Mockito.when(this.order.getOrderState()).thenReturn(OrderState.FAILED);
@@ -458,7 +453,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(VolumeOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.VOLUME);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.VOLUME);
 	    Mockito.when(this.order.getInstanceId()).thenReturn(null);
 	    Mockito.when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
 	    Mockito.when(this.order.getOrderState()).thenReturn(OrderState.OPEN);
@@ -482,7 +477,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		//set up
 		this.order = Mockito.mock(VolumeOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.VOLUME);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.VOLUME);
 	    Mockito.when(this.order.getInstanceId()).thenReturn(null);
 	    Mockito.when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
 	    Mockito.when(this.order.getOrderState()).thenReturn(OrderState.PENDING);
@@ -506,7 +501,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(VolumeOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.VOLUME);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.VOLUME);
 	    Mockito.when(this.order.getInstanceId()).thenReturn(null);
 	    Mockito.when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
 	    Mockito.when(this.order.getOrderState()).thenReturn(OrderState.FAILED);
@@ -530,7 +525,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(AttachmentOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.ATTACHMENT);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);
 	    Mockito.when(this.order.getInstanceId()).thenReturn(null);
 	    Mockito.when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
 	    Mockito.when(this.order.getOrderState()).thenReturn(OrderState.OPEN);
@@ -554,7 +549,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(AttachmentOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.ATTACHMENT);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);
 	    Mockito.when(this.order.getInstanceId()).thenReturn(null);
 	    Mockito.when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
 	    Mockito.when(this.order.getOrderState()).thenReturn(OrderState.PENDING);
@@ -578,7 +573,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(AttachmentOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.ATTACHMENT);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);
 	    Mockito.when(this.order.getInstanceId()).thenReturn(null);
 	    Mockito.when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
 	    Mockito.when(this.order.getOrderState()).thenReturn(OrderState.FAILED);
@@ -602,7 +597,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(ComputeOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.COMPUTE);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.COMPUTE);
 	    Mockito.when(this.order.getInstanceId()).thenReturn(null);
 	    Mockito.when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
 	    Mockito.when(this.order.getOrderState()).thenReturn(OrderState.OPEN);
@@ -626,7 +621,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(ComputeOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.COMPUTE);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.COMPUTE);
 	    Mockito.when(this.order.getInstanceId()).thenReturn(null);
 	    Mockito.when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
 	    Mockito.when(this.order.getOrderState()).thenReturn(OrderState.PENDING);
@@ -650,7 +645,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(ComputeOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.COMPUTE);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.COMPUTE);
 	    Mockito.when(this.order.getInstanceId()).thenReturn(null);
 	    Mockito.when(this.order.getId()).thenReturn(FAKE_ORDER_ID);
 	    Mockito.when(this.order.getOrderState()).thenReturn(OrderState.FAILED);
@@ -673,7 +668,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(ComputeOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.COMPUTE);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.COMPUTE);
 	    
 	    // exercise
 	    this.localCloudConnector.deleteInstance(order);
@@ -691,7 +686,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(ComputeOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.COMPUTE);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.COMPUTE);
 	    Mockito.when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
 	    
 	    // exercise
@@ -710,7 +705,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(VolumeOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.VOLUME);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.VOLUME);
 	    Mockito.when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
 	    
 	    // exercise
@@ -729,7 +724,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(NetworkOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.NETWORK);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.NETWORK);
 	    Mockito.when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
 	    
 	    // exercise
@@ -748,7 +743,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// set up
 		this.order = Mockito.mock(AttachmentOrder.class);
-	    Mockito.when(this.order.getType()).thenReturn(InstanceType.ATTACHMENT);
+	    Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);
 	    Mockito.when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
 	    
 	    // exercise
@@ -803,7 +798,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	    Mockito.when(this.computeQuotaPlugin.getUserQuota(Mockito.any(Token.class))).thenReturn(fakeComputeQuota);
 	    
 	    // exercise
-	    ComputeQuota quota = (ComputeQuota) this.localCloudConnector.getUserQuota(federationUser, InstanceType.COMPUTE);
+	    ComputeQuota quota = (ComputeQuota) this.localCloudConnector.getUserQuota(federationUser, ResourceType.COMPUTE);
 	    
 	    // verify
 	    Assert.assertEquals(VCPU_TOTAL, quota.getTotalQuota().getvCPU());
@@ -820,7 +815,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	public void testGetUserVolumeQuotaException() throws FogbowManagerException, UnexpectedException { 
 		
 		// exercise
-	    this.localCloudConnector.getUserQuota(federationUser, InstanceType.VOLUME);
+	    this.localCloudConnector.getUserQuota(federationUser, ResourceType.VOLUME);
 	}
 
 	// test case: If the instance type isn't of Compute type, an exception must be throw
@@ -828,7 +823,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	public void testGetUserAttachmentQuotaException() throws FogbowManagerException, UnexpectedException { 
 		
 		// exercise
-	    this.localCloudConnector.getUserQuota(federationUser, InstanceType.ATTACHMENT);
+	    this.localCloudConnector.getUserQuota(federationUser, ResourceType.ATTACHMENT);
 	}
 	
 	// test case: If the instance type isn't of Compute type, an exception must be throw
@@ -836,7 +831,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	public void testGetUserNetworkQuotaException() throws FogbowManagerException, UnexpectedException {
 		
 		// exercise
-	    this.localCloudConnector.getUserQuota(federationUser, InstanceType.NETWORK);
+	    this.localCloudConnector.getUserQuota(federationUser, ResourceType.NETWORK);
 	}
 	
 	// test case: Getting all images. Image plugin must be called

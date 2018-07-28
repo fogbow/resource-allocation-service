@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.core.cloudconnector;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
@@ -39,14 +39,14 @@ public interface CloudConnector {
      Instance getInstance(Order order) throws Exception;
 
     /**
-     * Gets the quota of the federation user for instanceType.
+     * Gets the quota of the federation user for resourceType.
      *
      * @return the quota associated to the user
      * @param federationUser the attributes of the federation user
-     * @param instanceType the type of instance for which the quota was requested
+     * @param resourceType the type of instance for which the quota was requested
      * @throws FogbowManagerException
      */
-     Quota getUserQuota(FederationUser federationUser, InstanceType instanceType) throws Exception;
+     Quota getUserQuota(FederationUser federationUser, ResourceType resourceType) throws Exception;
 
     /**
      * Gets the list of images that the federation user can see in the target cloud.

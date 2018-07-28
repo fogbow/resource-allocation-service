@@ -7,7 +7,7 @@ import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -81,7 +81,7 @@ public class SpawningProcessor implements Runnable {
      */
     private void processInstance(Order order) throws Exception {
         Instance instance = this.localCloudConnector.getInstance(order);
-        InstanceType instanceType = order.getType();
+        ResourceType resourceType = order.getType();
 
         InstanceState instanceState = instance.getState();
 

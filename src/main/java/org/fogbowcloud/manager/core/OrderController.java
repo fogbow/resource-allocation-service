@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
@@ -28,15 +28,15 @@ public class OrderController {
         this.orderHolders = SharedOrderHolders.getInstance();
     }
 
-    public List<Order> getAllOrders(FederationUser federationUser, InstanceType instanceType) {
+    public List<Order> getAllOrders(FederationUser federationUser, ResourceType resourceType) {
         Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
 
-        // Filter all orders of instanceType from federationUser that are not closed (closed orders have been deleted by
+        // Filter all orders of resourceType from federationUser that are not closed (closed orders have been deleted by
         // the user and should not be seen; they will disappear from the system as soon as the closedProcessor thread
         // process them).
         List<Order> requestedOrders =
                 orders.stream()
-                        .filter(order -> order.getType().equals(instanceType))
+                        .filter(order -> order.getType().equals(resourceType))
                         .filter(order -> order.getFederationUser().equals(federationUser))
                         .filter(order -> !order.getOrderState().equals(OrderState.CLOSED))
                         .collect(Collectors.toList());
@@ -44,7 +44,7 @@ public class OrderController {
         return requestedOrders;
     }
 
-    public Order getOrder(String orderId, FederationUser federationUser, InstanceType instanceType)
+    public Order getOrder(String orderId, FederationUser requester, ResourceType resourceType)
             throws FogbowManagerException {
         Order requestedOrder = this.orderHolders.getActiveOrdersMap().get(orderId);
 
@@ -52,12 +52,12 @@ public class OrderController {
             throw new InstanceNotFoundException();
         }
 
-        if (!requestedOrder.getType().equals(instanceType)) {
+        if (!requestedOrder.getType().equals(resourceType)) {
             throw new InstanceNotFoundException();
         }
 
         FederationUser orderOwner = requestedOrder.getFederationUser();
-        if (!orderOwner.getId().equals(federationUser.getId())) {
+        if (!orderOwner.getId().equals(requester.getId())) {
             throw new UnauthorizedRequestException();
         }
 
@@ -93,19 +93,19 @@ public class OrderController {
         }
     }
 
-    public Allocation getUserAllocation(String memberId, FederationUser federationUser, InstanceType instanceType)
+    public Allocation getUserAllocation(String memberId, FederationUser federationUser, ResourceType resourceType)
             throws UnexpectedException {
 
         Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
 
         List<Order> filteredOrders = orders.stream()
-                .filter(order -> order.getType().equals(instanceType))
+                .filter(order -> order.getType().equals(resourceType))
                 .filter(order -> order.getOrderState().equals(OrderState.FULFILLED))
                 .filter(order -> order.isProviderLocal(memberId))
                 .filter(order -> order.getFederationUser().equals(federationUser))
                 .collect(Collectors.toList());
 
-        switch (instanceType) {
+        switch (resourceType) {
             case COMPUTE:
                 List<ComputeOrder> computeOrders = new ArrayList<>();
                 for (Order order : filteredOrders) {

@@ -20,7 +20,7 @@ import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.HardwareRequirements;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.tokens.Token;
@@ -408,7 +408,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 		}
 
 		String openStackState = serverJson.getString(STATUS_JSON_FIELD);
-		InstanceState fogbowState = OpenStackStateMapper.map(InstanceType.COMPUTE, openStackState);
+		InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.COMPUTE, openStackState);
 
 		ComputeInstance computeInstance = new ComputeInstance(id, fogbowState, hostName, vCPU, memory, disk,
 				localIpAddress);

@@ -2,7 +2,7 @@ package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 
 public class OpenStackStateMapper {
 
@@ -31,7 +31,7 @@ public class OpenStackStateMapper {
     protected static final String RETYPING_STATUS = "retyping";
     protected static final String EXTENDING_STATUS = "extending";
 
-    public static InstanceState map(InstanceType type, String openStackState) {
+    public static InstanceState map(ResourceType type, String openStackState) {
 
         openStackState = openStackState.toLowerCase();
 

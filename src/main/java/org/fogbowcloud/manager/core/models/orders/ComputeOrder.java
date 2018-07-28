@@ -1,6 +1,6 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 
@@ -76,8 +76,8 @@ public class ComputeOrder extends Order {
     }
 
     @Override
-    public InstanceType getType() {
-        return InstanceType.COMPUTE;
+    public ResourceType getType() {
+        return ResourceType.COMPUTE;
     }
 
     public String getPublicKey() {

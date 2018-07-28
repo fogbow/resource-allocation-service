@@ -10,7 +10,7 @@ import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.constants.Operation;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
@@ -44,37 +44,37 @@ public class RemoteFacade {
         OrderStateTransitioner.activateOrder(order);
     }
 
-    public Instance getResourceInstance(String orderId, FederationUser federationUser, InstanceType instanceType) throws
+    public Instance getResourceInstance(String orderId, FederationUser federationUser, ResourceType resourceType) throws
             Exception {
 
-        Order order = this.orderController.getOrder(orderId, federationUser, instanceType);
+        Order order = this.orderController.getOrder(orderId, federationUser, resourceType);
         this.aaController.authorize(federationUser, Operation.GET, order.getType());
 
         return this.orderController.getResourceInstance(order);
     }
 
-    public void deleteOrder(String orderId, FederationUser federationUser, InstanceType instanceType)
+    public void deleteOrder(String orderId, FederationUser federationUser, ResourceType resourceType)
             throws FogbowManagerException, UnexpectedException {
 
-        Order order = this.orderController.getOrder(orderId, federationUser, instanceType);
+        Order order = this.orderController.getOrder(orderId, federationUser, resourceType);
         this.aaController.authorize(federationUser, Operation.DELETE, order.getType());
 
         this.orderController.deleteOrder(order);
     }
 
-    public Quota getUserQuota(String memberId, FederationUser federationUser, InstanceType instanceType) throws
+    public Quota getUserQuota(String memberId, FederationUser federationUser, ResourceType resourceType) throws
             Exception {
 
-        this.aaController.authorize(federationUser, Operation.GET_USER_QUOTA, instanceType);
+        this.aaController.authorize(federationUser, Operation.GET_USER_QUOTA, resourceType);
 
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
-        return cloudConnector.getUserQuota(federationUser, instanceType);
+        return cloudConnector.getUserQuota(federationUser, resourceType);
     }
 
     public Image getImage(String memberId, String imageId, FederationUser federationUser) throws
             Exception {
 
-        this.aaController.authorize(federationUser, Operation.GET_IMAGE);
+        this.aaController.authorize(federationUser, Operation.GET_IMAGE, ResourceType.IMAGE);
 
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return cloudConnector.getImage(imageId, federationUser);
@@ -83,7 +83,7 @@ public class RemoteFacade {
     public Map<String, String> getAllImages(String memberId, FederationUser federationUser) throws
             Exception {
 
-        this.aaController.authorize(federationUser, Operation.GET_ALL_IMAGES);
+        this.aaController.authorize(federationUser, Operation.GET_ALL_IMAGES, ResourceType.IMAGE);
 
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return cloudConnector.getAllImages(federationUser);
@@ -116,7 +116,7 @@ public class RemoteFacade {
             } else if (event.equals(Event.INSTANCE_FAILED)) {
                 localOrder.setCachedInstanceState(InstanceState.FAILED);
             }
-            if (localOrder.getType().equals(InstanceType.COMPUTE)) {
+            if (localOrder.getType().equals(ResourceType.COMPUTE)) {
                 ComputeOrder localCompute = (ComputeOrder) localOrder;
                 ComputeOrder remoteCompute = (ComputeOrder) remoteOrder;
                 localCompute.setActualAllocation(remoteCompute.getActualAllocation());

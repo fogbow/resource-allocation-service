@@ -24,7 +24,7 @@ import org.fogbowcloud.manager.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.models.tokens.Token.User;
@@ -156,7 +156,7 @@ public class OpenStackComputePluginTest {
     @Test
     public void testGetInstance() throws FogbowManagerException, UnexpectedException, HttpResponseException {
     	// set up
-    	InstanceState fogbowState = OpenStackStateMapper.map(InstanceType.COMPUTE, openstackStateActive);
+    	InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.COMPUTE, openstackStateActive);
     	String newComputeEndpoint = this.computeEndpoint + "/" + instanceId;
     	String computeInstanceJson = generateComputeInstanceJson(instanceId, hostName, localIpAddress, flavorId, openstackStateActive);
     	ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, fogbowState, hostName, vCPU, ram, disk, localIpAddress);
@@ -366,7 +366,7 @@ public class OpenStackComputePluginTest {
     @Test
     public void testGetInstanceWhenThereIsNoAddressFieldOnResponse() throws FogbowManagerException, UnexpectedException, HttpResponseException {
     	// set up
-    	InstanceState fogbowState = OpenStackStateMapper.map(InstanceType.COMPUTE, openstackStateActive);
+    	InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.COMPUTE, openstackStateActive);
     	String localIpAddress = null;
     	String newComputeEndpoint = this.computeEndpoint + "/" + instanceId;
     	ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, fogbowState, hostName, vCPU, ram, disk, "");
@@ -391,7 +391,7 @@ public class OpenStackComputePluginTest {
     @Test
     public void testGetInstanceWhenThereIsNoProviderNetworkFieldOnResponse() throws FogbowManagerException, UnexpectedException, HttpResponseException {
     	// set up
-    	InstanceState fogbowState = OpenStackStateMapper.map(InstanceType.COMPUTE, openstackStateActive);
+    	InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.COMPUTE, openstackStateActive);
     	String newComputeEndpoint = this.computeEndpoint + "/" + instanceId;
     	String computeInstanceJson = generateComputeInstanceJsonWithoutProviderNetworkField(instanceId, hostName, localIpAddress, flavorId, openstackStateActive);
     	ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, fogbowState, hostName, vCPU, ram, disk, "");

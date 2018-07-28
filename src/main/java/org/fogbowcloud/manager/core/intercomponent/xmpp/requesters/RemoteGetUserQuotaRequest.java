@@ -8,7 +8,7 @@ import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppErrorConditionToExce
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.xmpp.packet.IQ;
@@ -20,13 +20,13 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
 
     private String federationMemberId;
     private FederationUser federationUser;
-    private InstanceType instanceType;
+    private ResourceType resourceType;
 
     public RemoteGetUserQuotaRequest(String federationMemberId,
-                                     FederationUser federationUser, InstanceType instanceType) {
+                                     FederationUser federationUser, ResourceType resourceType) {
         this.federationMemberId = federationMemberId;
         this.federationUser = federationUser;
-        this.instanceType = instanceType;
+        this.resourceType = resourceType;
     }
 
     @Override
@@ -53,7 +53,7 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
         userElement.setText(new Gson().toJson(this.federationUser));
 
         Element orderTypeElement = queryElement.addElement(IqElement.INSTANCE_TYPE.toString());
-        orderTypeElement.setText(this.instanceType.toString());
+        orderTypeElement.setText(this.resourceType.toString());
 
         return iq;
     }

@@ -2,7 +2,7 @@ package org.fogbowcloud.manager.core.models.orders;
 
 import java.util.UUID;
 
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 
 public class AttachmentOrder extends Order {
@@ -75,7 +75,7 @@ public class AttachmentOrder extends Order {
     }
 
     @Override
-    public InstanceType getType() {
-        return InstanceType.ATTACHMENT;
+    public ResourceType getType() {
+        return ResourceType.ATTACHMENT;
     }
 }

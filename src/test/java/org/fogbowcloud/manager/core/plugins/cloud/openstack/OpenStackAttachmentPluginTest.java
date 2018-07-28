@@ -13,7 +13,7 @@ import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.tokens.Token;
@@ -136,7 +136,7 @@ public class OpenStackAttachmentPluginTest {
 		Mockito.doReturn(FAKE_GET_REQUEST_BODY).when(this.client).doGetRequest(Mockito.anyString(),
 				Mockito.eq(this.localToken));
 		String openStackState = "";
-        InstanceState expectedFogbowState = OpenStackStateMapper.map(InstanceType.ATTACHMENT, openStackState);
+        InstanceState expectedFogbowState = OpenStackStateMapper.map(ResourceType.ATTACHMENT, openStackState);
         
 		//exercise
 		AttachmentInstance attachmentInstance = this.openStackAttachmentPlugin.getInstance(instanceId, this.localToken);

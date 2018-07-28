@@ -14,13 +14,8 @@ import org.fogbowcloud.manager.core.constants.Operation;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.InstanceStatus;
 import org.fogbowcloud.manager.core.models.images.Image;
-import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
-import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
-import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
-import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
-import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
+import org.fogbowcloud.manager.core.models.instances.*;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
@@ -80,13 +75,13 @@ public class ApplicationFacade {
     }
 
     public List<ComputeInstance> getAllComputes(String federationTokenValue) throws Exception {
-        List<Order> allOrders = getAllOrders(federationTokenValue, InstanceType.COMPUTE);
+        List<Order> allOrders = getAllOrders(federationTokenValue, ResourceType.COMPUTE);
         return getAllInstances(allOrders, ComputeInstance.class);
     }
 
     public ComputeInstance getCompute(String orderId, String federationTokenValue) throws Exception {
         ComputeInstance instance = (ComputeInstance)
-                getResourceInstance(orderId, federationTokenValue, InstanceType.COMPUTE);
+                getResourceInstance(orderId, federationTokenValue, ResourceType.COMPUTE);
         // The user believes that the order id is actually the instance id.
         // So we need to set the instance id accordingly before returning the instance.
         instance.setId(orderId);
@@ -95,16 +90,16 @@ public class ApplicationFacade {
 
     public void deleteCompute(String computeId, String federationTokenValue) throws FogbowManagerException,
             UnexpectedException {
-        deleteOrder(computeId, federationTokenValue, InstanceType.COMPUTE);
+        deleteOrder(computeId, federationTokenValue, ResourceType.COMPUTE);
     }
 
     public ComputeAllocation getComputeAllocation(String memberId, String federationTokenValue)
             throws FogbowManagerException, UnexpectedException {
-        return (ComputeAllocation) getUserAllocation(memberId, federationTokenValue, InstanceType.COMPUTE);
+        return (ComputeAllocation) getUserAllocation(memberId, federationTokenValue, ResourceType.COMPUTE);
     }
 
     public ComputeQuota getComputeQuota(String memberId, String federationTokenValue) throws Exception {
-        return (ComputeQuota) getUserQuota(memberId, federationTokenValue, InstanceType.COMPUTE);
+        return (ComputeQuota) getUserQuota(memberId, federationTokenValue, ResourceType.COMPUTE);
     }
 
     public String createVolume(VolumeOrder volumeOrder, String federationTokenValue) throws FogbowManagerException,
@@ -113,13 +108,13 @@ public class ApplicationFacade {
     }
 
     public List<VolumeInstance> getAllVolumes(String federationTokenValue) throws Exception {
-        List<Order> allOrders = getAllOrders(federationTokenValue, InstanceType.VOLUME);
+        List<Order> allOrders = getAllOrders(federationTokenValue, ResourceType.VOLUME);
         return getAllInstances(allOrders, VolumeInstance.class);
     }
 
     public VolumeInstance getVolume(String orderId, String federationTokenValue) throws Exception {
         VolumeInstance instance = (VolumeInstance)
-                getResourceInstance(orderId, federationTokenValue, InstanceType.VOLUME);
+                getResourceInstance(orderId, federationTokenValue, ResourceType.VOLUME);
         // The user believes that the order id is actually the instance id.
         // So we need to set the instance id accordingly before returning the instance.
         instance.setId(orderId);
@@ -128,7 +123,7 @@ public class ApplicationFacade {
 
     public void deleteVolume(String orderId, String federationTokenValue) throws FogbowManagerException,
             UnexpectedException {
-        deleteOrder(orderId, federationTokenValue, InstanceType.VOLUME);
+        deleteOrder(orderId, federationTokenValue, ResourceType.VOLUME);
     }
 
     public String createNetwork(NetworkOrder networkOrder, String federationTokenValue) throws FogbowManagerException,
@@ -137,13 +132,13 @@ public class ApplicationFacade {
     }
 
     public List<NetworkInstance> getAllNetworks(String federationTokenValue) throws Exception {
-        List<Order> allOrders = getAllOrders(federationTokenValue, InstanceType.NETWORK);
+        List<Order> allOrders = getAllOrders(federationTokenValue, ResourceType.NETWORK);
         return getAllInstances(allOrders, NetworkInstance.class);
     }
 
     public NetworkInstance getNetwork(String orderId, String federationTokenValue) throws Exception {
         NetworkInstance instance = (NetworkInstance)
-                getResourceInstance(orderId, federationTokenValue, InstanceType.NETWORK);
+                getResourceInstance(orderId, federationTokenValue, ResourceType.NETWORK);
         // The user believes that the order id is actually the instance id.
         // So we need to set the instance id accordingly before returning the instance.
         instance.setId(orderId);
@@ -152,7 +147,7 @@ public class ApplicationFacade {
 
     public void deleteNetwork(String orderId, String federationTokenValue) throws FogbowManagerException,
             UnexpectedException {
-        deleteOrder(orderId, federationTokenValue, InstanceType.NETWORK);
+        deleteOrder(orderId, federationTokenValue, ResourceType.NETWORK);
     }
 
     public String createAttachment(AttachmentOrder attachmentOrder, String federationTokenValue) throws
@@ -169,17 +164,17 @@ public class ApplicationFacade {
 
     public List<AttachmentInstance> getAllAttachments(String federationTokenValue) throws
             Exception {
-        List<Order> allOrders = getAllOrders(federationTokenValue, InstanceType.ATTACHMENT);
+        List<Order> allOrders = getAllOrders(federationTokenValue, ResourceType.ATTACHMENT);
         return getAllInstances(allOrders, AttachmentInstance.class);
     }
 
     public AttachmentInstance getAttachment(String orderId, String federationTokenValue) throws Exception {
-        return (AttachmentInstance) getResourceInstance(orderId, federationTokenValue, InstanceType.ATTACHMENT);
+        return (AttachmentInstance) getResourceInstance(orderId, federationTokenValue, ResourceType.ATTACHMENT);
     }
 
     public void deleteAttachment(String orderId, String federationTokenValue) throws FogbowManagerException,
             UnexpectedException {
-        deleteOrder(orderId, federationTokenValue, InstanceType.ATTACHMENT);
+        deleteOrder(orderId, federationTokenValue, ResourceType.ATTACHMENT);
     }
 
     public Map<String, String> getAllImages(String memberId, String federationTokenValue) throws Exception {
@@ -190,7 +185,7 @@ public class ApplicationFacade {
         }
 
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
-        this.aaController.authorize(federationUser, Operation.GET_ALL_IMAGES);
+        this.aaController.authorize(federationUser, Operation.GET_ALL_IMAGES, ResourceType.IMAGE);
 
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return cloudConnector.getAllImages(federationUser);
@@ -205,19 +200,19 @@ public class ApplicationFacade {
         }
 
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
-        this.aaController.authorize(federationUser, Operation.GET_IMAGE);
+        this.aaController.authorize(federationUser, Operation.GET_IMAGE, ResourceType.IMAGE);
 
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return (Image) cloudConnector.getImage(imageId, federationUser);
     }
 
-    public List<InstanceStatus> getAllInstancesStatus(String federationTokenValue, InstanceType instanceType) throws
+    public List<InstanceStatus> getAllInstancesStatus(String federationTokenValue, ResourceType resourceType) throws
             Exception {
-        List<Order> allOrders = getAllOrders(federationTokenValue, instanceType);
-        return getInstancesStatus(allOrders, instanceType);
+        List<Order> allOrders = getAllOrders(federationTokenValue, resourceType);
+        return getInstancesStatus(allOrders, resourceType);
     }
 
-    private List<InstanceStatus> getInstancesStatus(List<Order> allOrders, InstanceType instanceType)
+    private List<InstanceStatus> getInstancesStatus(List<Order> allOrders, ResourceType resourceType)
             throws UnexpectedException {
         List<InstanceStatus> instanceStatusList = new ArrayList<>();
         for (Order order : allOrders) {
@@ -257,56 +252,56 @@ public class ApplicationFacade {
         return order.getId();
     }
 
-    private void deleteOrder(String orderId, String federationTokenValue, InstanceType instanceType) throws
+    private void deleteOrder(String orderId, String federationTokenValue, ResourceType resourceType) throws
             FogbowManagerException, UnexpectedException {
         this.aaController.authenticate(federationTokenValue);
 
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
-        Order order = this.orderController.getOrder(orderId, federationUser, instanceType);
+        Order order = this.orderController.getOrder(orderId, federationUser, resourceType);
         this.aaController.authorize(federationUser, Operation.DELETE, order.getType());
 
         this.orderController.deleteOrder(order);
     }
 
-    private List<Order> getAllOrders(String federationTokenValue, InstanceType instanceType) 
+    private List<Order> getAllOrders(String federationTokenValue, ResourceType resourceType)
     		throws UnauthenticatedUserException, InvalidParameterException, UnauthorizedRequestException  {
         this.aaController.authenticate(federationTokenValue);
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
-        this.aaController.authorize(federationUser, Operation.GET_ALL, instanceType);
+        this.aaController.authorize(federationUser, Operation.GET_ALL, resourceType);
 
-        return this.orderController.getAllOrders(federationUser, instanceType);
+        return this.orderController.getAllOrders(federationUser, resourceType);
     }
 
-    private Instance getResourceInstance(String orderId, String federationTokenValue, InstanceType instanceType)
+    private Instance getResourceInstance(String orderId, String federationTokenValue, ResourceType resourceType)
             throws Exception {
         this.aaController.authenticate(federationTokenValue);
 
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
-        Order order = this.orderController.getOrder(orderId, federationUser, instanceType);
+        Order order = this.orderController.getOrder(orderId, federationUser, resourceType);
         this.aaController.authorize(federationUser, Operation.GET, order.getType());
 
         return this.orderController.getResourceInstance(order);
     }
 
-    private Allocation getUserAllocation(String memberId, String federationTokenValue, InstanceType instanceType)
+    private Allocation getUserAllocation(String memberId, String federationTokenValue, ResourceType resourceType)
             throws FogbowManagerException, UnexpectedException {
 
         this.aaController.authenticate(federationTokenValue);
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
-        this.aaController.authorize(federationUser, Operation.GET_USER_ALLOCATION, instanceType);
+        this.aaController.authorize(federationUser, Operation.GET_USER_ALLOCATION, resourceType);
 
-        return this.orderController.getUserAllocation(memberId, federationUser, instanceType);
+        return this.orderController.getUserAllocation(memberId, federationUser, resourceType);
     }
 
-    private Quota getUserQuota(String memberId, String federationTokenValue, InstanceType instanceType)
+    private Quota getUserQuota(String memberId, String federationTokenValue, ResourceType resourceType)
             throws Exception {
 
         this.aaController.authenticate(federationTokenValue);
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
-        this.aaController.authorize(federationUser, Operation.GET_USER_QUOTA, instanceType);
+        this.aaController.authorize(federationUser, Operation.GET_USER_QUOTA, resourceType);
 
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
-        return cloudConnector.getUserQuota(federationUser, instanceType);
+        return cloudConnector.getUserQuota(federationUser, resourceType);
     }
 
     @SuppressWarnings("unchecked")

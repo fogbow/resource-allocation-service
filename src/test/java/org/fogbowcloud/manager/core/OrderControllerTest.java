@@ -7,7 +7,7 @@ import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.*;
@@ -121,7 +121,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.fulfilledOrdersList.addItem(computeOrder2);
 
         // exercise
-        List<Order> orders = this.ordersController.getAllOrders(federationUser, InstanceType.COMPUTE);
+        List<Order> orders = this.ordersController.getAllOrders(federationUser, ResourceType.COMPUTE);
 
         // verify
         Assert.assertTrue(orders.contains(computeOrder));
@@ -140,7 +140,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
         // exercise
         ComputeOrder computeOrder = (ComputeOrder) this.ordersController.getOrder(
-                orderId, federationUser, InstanceType.COMPUTE);
+                orderId, federationUser, ResourceType.COMPUTE);
 
         // verify
         Assert.assertEquals(computeOrder, this.openOrdersList.getNext());
@@ -155,10 +155,10 @@ public class OrderControllerTest extends BaseUnitTests {
         FederationUser federationUser = new FederationUser("fake-user", attributes);
 
         // exercise
-        this.ordersController.getOrder("invalid-order-id", federationUser, InstanceType.COMPUTE);
+        this.ordersController.getOrder("invalid-order-id", federationUser, ResourceType.COMPUTE);
     }
 
-    // test case: Getting an order passing a different InstanceType must raise InstanceNotFoundException.
+    // test case: Getting an order passing a different ResourceType must raise InstanceNotFoundException.
     @Test(expected = InstanceNotFoundException.class)
     public void testGetOrderWithInvalidInstanceType() throws FogbowManagerException, UnexpectedException {
         // set up
@@ -168,7 +168,7 @@ public class OrderControllerTest extends BaseUnitTests {
         FederationUser federationUser = new FederationUser("fake-user", attributes);
 
         // exercise
-        this.ordersController.getOrder(orderId, federationUser, InstanceType.NETWORK);
+        this.ordersController.getOrder(orderId, federationUser, ResourceType.NETWORK);
     }
 
     // test case: Getting order with when invalid federationUser (any fedUser with another ID)
@@ -182,7 +182,7 @@ public class OrderControllerTest extends BaseUnitTests {
         FederationUser federationUser = new FederationUser("another-id", attributes);
 
         // exercise
-        this.ordersController.getOrder(orderId, federationUser, InstanceType.COMPUTE);
+        this.ordersController.getOrder(orderId, federationUser, ResourceType.COMPUTE);
     }
 
     // test case: Checks if given an order getResourceInstance() returns its instance.
@@ -236,7 +236,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
         // exercise
         ComputeAllocation allocation = (ComputeAllocation) this.ordersController.getUserAllocation(
-                this.localMember, federationUser, InstanceType.COMPUTE);
+                this.localMember, federationUser, ResourceType.COMPUTE);
 
         // verify
         Assert.assertEquals(computeOrder.getActualAllocation().getInstances(), allocation.getInstances());
@@ -245,7 +245,7 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     // test case: Tests if getUserAllocation() throws UnexpectedException when there is no any order
-    // with the InstanceType specified.
+    // with the ResourceType specified.
     @Test(expected = UnexpectedException.class)
     public void testGetUserAllocationWithInvalidInstanceType() throws UnexpectedException, InvalidParameterException {
         // set up
@@ -262,7 +262,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.activeOrdersMap.put(networkOrder.getId(), networkOrder);
 
         // exercise
-        this.ordersController.getUserAllocation(this.localMember, federationUser, InstanceType.NETWORK);
+        this.ordersController.getUserAllocation(this.localMember, federationUser, ResourceType.NETWORK);
     }
 
     // test case: Checks if deleting a failed order, this one will be moved to the closed orders list.

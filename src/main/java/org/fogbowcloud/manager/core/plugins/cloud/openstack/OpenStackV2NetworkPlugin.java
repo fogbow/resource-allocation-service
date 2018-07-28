@@ -10,7 +10,7 @@ import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
 import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
@@ -359,7 +359,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
 
         NetworkInstance instance = null;
         if (networkId != null) {
-            InstanceState fogbowState = OpenStackStateMapper.map(InstanceType.NETWORK, instanceState);
+            InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.NETWORK, instanceState);
             instance = new NetworkInstance(networkId, fogbowState, label, address, gateway,
                     vlan, allocation, null, null, null);
         }

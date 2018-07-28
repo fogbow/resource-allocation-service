@@ -1,7 +1,7 @@
 package org.fogbowcloud.manager.core.models.orders;
 
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 
 public abstract class Order {
@@ -106,7 +106,7 @@ public abstract class Order {
         return !this.requestingMember.equals(localMemberId);
     }
 
-    public abstract InstanceType getType();
+    public abstract ResourceType getType();
 
     // TODO: add a comment to explain why we need to override these methods
     @Override

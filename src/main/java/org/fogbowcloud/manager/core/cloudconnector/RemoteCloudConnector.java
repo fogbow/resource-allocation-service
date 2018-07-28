@@ -4,7 +4,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.requesters.*;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
@@ -44,10 +44,10 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public Quota getUserQuota(FederationUser federationUser, InstanceType instanceType) throws Exception {
+    public Quota getUserQuota(FederationUser federationUser, ResourceType resourceType) throws Exception {
 
         RemoteGetUserQuotaRequest remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.destinationMember,
-                federationUser, instanceType);
+                federationUser, resourceType);
         Quota quota = remoteGetUserQuotaRequest.send();
         return quota;
     }

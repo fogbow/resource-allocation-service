@@ -8,7 +8,7 @@ import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
@@ -133,7 +133,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         	// There is no OpenStackState for attachments; we set it to empty string to allow its mapping
             // by the OpenStackStateMapper.map() function.
             String openStackState = "";
-            InstanceState fogbowState = OpenStackStateMapper.map(InstanceType.ATTACHMENT, openStackState);
+            InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.ATTACHMENT, openStackState);
 
             AttachmentInstance attachmentInstance = new AttachmentInstance(id,fogbowState, serverId, volumeId, device);
         	return attachmentInstance;

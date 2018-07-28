@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.core;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.constants.Operation;
-import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.authentication.AuthenticationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
@@ -41,16 +41,9 @@ public class AaController {
         }
     }
 
-    public void authorize(FederationUser federationUser, Operation operation, InstanceType type)
+    public void authorize(FederationUser federationUser, Operation operation, ResourceType type)
             throws UnauthorizedRequestException {
         if (!this.authorizationPlugin.isAuthorized(federationUser, operation, type)) {
-            throw new UnauthorizedRequestException();
-        }
-    }
-    
-    public void authorize(FederationUser federationUser, Operation operation)
-            throws UnauthorizedRequestException {
-        if (!this.authorizationPlugin.isAuthorized(federationUser, operation)) {
             throw new UnauthorizedRequestException();
         }
     }
