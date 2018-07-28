@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.behavior.federationidentity.ldap;
+package org.fogbowcloud.manager.core.plugins.behavior.authentication.ldap;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +30,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
-import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
+import org.fogbowcloud.manager.core.plugins.behavior.authentication.AuthenticationPlugin;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.RSAUtil;
 import org.json.JSONException;
@@ -40,7 +40,7 @@ import org.json.JSONObject;
  * FIXME: BY THE FACT THAT THIS CODE IS NATURALLY COMPLEX, IS NECESSARY TO WRITE A DOCUMENTATION FOR
  * THIS CODE.
  */
-public class LdapIdentityPlugin implements FederationIdentityPlugin {
+public class LdapIdentityPlugin implements AuthenticationPlugin {
 
     private static final Logger LOGGER = Logger.getLogger(LdapIdentityPlugin.class);
 
@@ -90,7 +90,6 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
         this.publicKeyPath = properties.getProperty(PUBLIC_KEY_PATH);
     }
 
-    @Override
     public String createFederationTokenValue(Map<String, String> userCredentials)
             throws UnauthenticatedUserException, TokenValueCreationException {
 

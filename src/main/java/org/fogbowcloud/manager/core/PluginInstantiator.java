@@ -10,7 +10,7 @@ import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.plugins.PluginFactory;
 import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
-import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
+import org.fogbowcloud.manager.core.plugins.behavior.authentication.AuthenticationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
@@ -85,9 +85,9 @@ public class PluginInstantiator {
                 this.pluginFactory.createPluginInstance(className);
     }
 
-    public FederationIdentityPlugin getFederationIdentityPlugin() {
+    public AuthenticationPlugin getFederationIdentityPlugin() {
         String className = this.properties.getProperty(ConfigurationConstants.FEDERATION_IDENTITY_PLUGIN_CLASS_KEY);
-        return (FederationIdentityPlugin)
+        return (AuthenticationPlugin)
                 this.pluginFactory.createPluginInstance(className);
     }
 

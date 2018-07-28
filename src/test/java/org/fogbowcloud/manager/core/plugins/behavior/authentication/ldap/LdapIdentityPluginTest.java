@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.behavior.federationidentity.ldap;
+package org.fogbowcloud.manager.core.plugins.behavior.authentication.ldap;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;

@@ -1,20 +1,14 @@
-package org.fogbowcloud.manager.core.plugins.behavior.federationidentity;
+package org.fogbowcloud.manager.core.plugins.behavior.authentication;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 
-public class DefaultFederationIdentityPlugin implements FederationIdentityPlugin {
+public class DefaultAuthenticationPlugin implements AuthenticationPlugin {
     
-    public DefaultFederationIdentityPlugin() {}
-    
-    @Override
-    public String createFederationTokenValue(Map<String, String> userCredentials) {
-        return "fake-tokens";
-    }
+    public DefaultAuthenticationPlugin() {}
 
     @Override
     public FederationUser getFederationUser(String federationTokenValue) throws InvalidParameterException {

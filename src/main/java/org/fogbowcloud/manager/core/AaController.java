@@ -5,7 +5,7 @@ import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.constants.Operation;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
-import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
+import org.fogbowcloud.manager.core.plugins.behavior.authentication.AuthenticationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.fogbowcloud.manager.core.models.tokens.Token;
@@ -14,12 +14,12 @@ public class AaController {
 
     private static final Logger LOGGER = Logger.getLogger(AaController.class);
 
-    private FederationIdentityPlugin federationIdentityPlugin;
+    private AuthenticationPlugin authenticationPlugin;
     private AuthorizationPlugin authorizationPlugin;
     private FederationToLocalMapperPlugin federationToLocalMapperPlugin;
 
     public AaController(BehaviorPluginsHolder behaviorPluginsHolder) {
-        this.federationIdentityPlugin = behaviorPluginsHolder.getFederationIdentityPlugin();
+        this.authenticationPlugin = behaviorPluginsHolder.getAuthenticationPlugin();
         this.federationToLocalMapperPlugin = behaviorPluginsHolder.getFederationToLocalMapperPlugin();
         this.authorizationPlugin = behaviorPluginsHolder.getAuthorizationPlugin();
     }
@@ -28,7 +28,7 @@ public class AaController {
             throws UnauthenticatedUserException, InvalidParameterException {
         LOGGER.debug(
                 "Trying to get the federationidentity tokens by federationidentity tokens id: " + federationTokenValue);
-        return this.federationIdentityPlugin.getFederationUser(federationTokenValue);
+        return this.authenticationPlugin.getFederationUser(federationTokenValue);
     }
 
     public Token getLocalToken(FederationUser federationUser) throws FogbowManagerException, UnexpectedException {
@@ -36,7 +36,7 @@ public class AaController {
     }
 
     public void authenticate(String federationTokenId) throws UnauthenticatedUserException {
-        if (!this.federationIdentityPlugin.isValid(federationTokenId)) {
+        if (!this.authenticationPlugin.isValid(federationTokenId)) {
             throw new UnauthenticatedUserException();
         }
     }

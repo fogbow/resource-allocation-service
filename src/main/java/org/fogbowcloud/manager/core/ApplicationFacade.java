@@ -183,9 +183,7 @@ public class ApplicationFacade {
     }
 
     public Map<String, String> getAllImages(String memberId, String federationTokenValue) throws Exception {
-        LOGGER.debug("getAllImages: " + memberId + " token: " + federationTokenValue);
         this.aaController.authenticate(federationTokenValue);
-        LOGGER.debug("getAllImages: request authenticated");
 
         if(memberId == null) {
             memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
@@ -193,7 +191,6 @@ public class ApplicationFacade {
 
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
         this.aaController.authorize(federationUser, Operation.GET_ALL_IMAGES);
-        LOGGER.debug("getAllImages: request authorized");
 
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return cloudConnector.getAllImages(federationUser);
@@ -243,7 +240,6 @@ public class ApplicationFacade {
     private String activateOrder(Order order, String federationTokenValue) throws FogbowManagerException,
             UnexpectedException {
 
-        LOGGER.info("Normalizing the new compute order request received");
         this.aaController.authenticate(federationTokenValue);
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
         this.aaController.authorize(federationUser, Operation.CREATE, order.getType());
