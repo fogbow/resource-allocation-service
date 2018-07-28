@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.core;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
-import org.fogbowcloud.manager.core.plugins.behavior.mapper.LocalUserCredentialsMapperPlugin;
+import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.*;
 import org.junit.Assert;
 import org.junit.Before;
@@ -61,16 +61,16 @@ public class PluginInstantiatorTest {
         Assert.assertEquals(expected_federation_identity_class_value, plugin.getClass().getName());
     }
 
-    // test case: Tests if getLocalUserCredentialsMapperPlugin() returns StubLocalUserCredentialsMapperPlugin
+    // test case: Tests if getFederationToLocalMapperPlugin() returns StubFederationToLocalMapperPlugin
     // as the plugin class name.
     @Test
     public void testCreateLocalUserCredentialsMapperPluginInstance() {
         // set up
         String expected_local_user_credentials_mapper_class_value =
-                "org.fogbowcloud.manager.core.stubs.StubLocalUserCredentialsMapperPlugin";
+                "org.fogbowcloud.manager.core.stubs.StubFederationToLocalMapperPlugin";
 
         // exercise
-        LocalUserCredentialsMapperPlugin plugin = this.pluginInstantiator.getLocalUserCredentialsMapperPlugin();
+        FederationToLocalMapperPlugin plugin = this.pluginInstantiator.getLocalUserCredentialsMapperPlugin();
 
         // verify
         Assert.assertEquals(expected_local_user_credentials_mapper_class_value, plugin.getClass().getName());
@@ -116,20 +116,6 @@ public class PluginInstantiatorTest {
 
         // verify
         Assert.assertEquals(expected_compute_quota_plugin_class_value, plugin.getClass().getName());
-    }
-
-    // test case: Tests if getLocalIdentityPlugin() returns StubLocalIdentityPlugin as the plugin class name.
-    @Test
-    public void testCreateLocalIdentityPluginInstance() {
-        // set up
-        String expected_local_identity_class_value =
-                "org.fogbowcloud.manager.core.stubs.StubLocalIdentityPlugin";
-
-        // exercise
-        LocalIdentityPlugin plugin = this.pluginInstantiator.getLocalIdentityPlugin();
-
-        // verify
-        Assert.assertEquals(expected_local_identity_class_value, plugin.getClass().getName());
     }
 
     // test case: Tests if getNetworkPlugin() returns StubNetworkPlugin as the plugin class name.

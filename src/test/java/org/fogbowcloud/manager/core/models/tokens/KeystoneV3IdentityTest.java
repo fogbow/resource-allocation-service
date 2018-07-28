@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.openstack;
+package org.fogbowcloud.manager.core.models.tokens;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -27,6 +27,7 @@ import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.manager.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.models.tokens.KeystoneV3TokenGenerator;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONArray;
@@ -40,7 +41,7 @@ public class KeystoneV3IdentityTest {
 
     @SuppressWarnings("unused")
     private final String KEYSTONE_URL = "http://localhost:0000";
-    private KeystoneV3IdentityPlugin keystoneV3Identity;
+    private KeystoneV3TokenGenerator keystoneV3Identity;
     private HttpRequestClientUtil httpRequestClientUtil;
     private HttpClient client;
     
@@ -64,7 +65,7 @@ public class KeystoneV3IdentityTest {
         HomeDir.getInstance().setPath("src/test/resources/private");
         this.client = Mockito.spy(HttpClient.class);
         this.httpRequestClientUtil = Mockito.spy(new HttpRequestClientUtil(this.client));
-        this.keystoneV3Identity = Mockito.spy(new KeystoneV3IdentityPlugin());
+        this.keystoneV3Identity = Mockito.spy(new KeystoneV3TokenGenerator());
         this.keystoneV3Identity.setClient(this.httpRequestClientUtil);
     }
     
@@ -73,10 +74,10 @@ public class KeystoneV3IdentityTest {
     public void testCreateToken() throws JSONException, ClientProtocolException, IOException, UnexpectedException, FogbowManagerException {
     	//set up
         Map<String, String> credentials = new HashMap<String, String>();
-        credentials.put(KeystoneV3IdentityPlugin.USER_ID, userId);
-        credentials.put(KeystoneV3IdentityPlugin.PASSWORD, userPass);
-        credentials.put(KeystoneV3IdentityPlugin.TENANT_ID, projectName);
-        credentials.put(KeystoneV3IdentityPlugin.PROJECT_ID, projectId);
+        credentials.put(KeystoneV3TokenGenerator.USER_ID, userId);
+        credentials.put(KeystoneV3TokenGenerator.PASSWORD, userPass);
+        credentials.put(KeystoneV3TokenGenerator.TENANT_ID, projectName);
+        credentials.put(KeystoneV3TokenGenerator.PROJECT_ID, projectId);
 
         HttpResponse httpResponse = Mockito.mock(HttpResponse.class);
         HttpEntity httpEntity = Mockito.mock(HttpEntity.class);
@@ -124,10 +125,10 @@ public class KeystoneV3IdentityTest {
     public void testRequestMountJson() throws JSONException {
     	//set up
         Map<String, String> credentials = new HashMap<String, String>();
-        credentials.put(KeystoneV3IdentityPlugin.USER_ID, userId);
-        credentials.put(KeystoneV3IdentityPlugin.PASSWORD, userPass);
-        credentials.put(KeystoneV3IdentityPlugin.TENANT_ID, tenantId);
-        credentials.put(KeystoneV3IdentityPlugin.PROJECT_ID, projectId);
+        credentials.put(KeystoneV3TokenGenerator.USER_ID, userId);
+        credentials.put(KeystoneV3TokenGenerator.PASSWORD, userPass);
+        credentials.put(KeystoneV3TokenGenerator.TENANT_ID, tenantId);
+        credentials.put(KeystoneV3TokenGenerator.PROJECT_ID, projectId);
         
         //exercise
         JSONObject json = this.keystoneV3Identity.mountJson(credentials);
@@ -162,10 +163,10 @@ public class KeystoneV3IdentityTest {
             throws JSONException, ClientProtocolException, IOException, UnexpectedException, FogbowManagerException {
     	//set up
         Map<String, String> credentials = new HashMap<String, String>();
-        credentials.put(KeystoneV3IdentityPlugin.USER_ID, userId);
-        credentials.put(KeystoneV3IdentityPlugin.PASSWORD, userPass);
-        credentials.put(KeystoneV3IdentityPlugin.TENANT_ID, projectName);
-        credentials.put(KeystoneV3IdentityPlugin.PROJECT_ID, projectId);
+        credentials.put(KeystoneV3TokenGenerator.USER_ID, userId);
+        credentials.put(KeystoneV3TokenGenerator.PASSWORD, userPass);
+        credentials.put(KeystoneV3TokenGenerator.TENANT_ID, projectName);
+        credentials.put(KeystoneV3TokenGenerator.PROJECT_ID, projectId);
 
         HttpResponse httpResponse = Mockito.mock(HttpResponse.class);
         HttpEntity httpEntity = Mockito.mock(HttpEntity.class);

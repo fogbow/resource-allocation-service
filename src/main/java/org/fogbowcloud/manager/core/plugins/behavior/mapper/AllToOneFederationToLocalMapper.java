@@ -8,30 +8,38 @@ import java.util.Properties;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.KeystoneV3TokenGenerator;
+import org.fogbowcloud.manager.core.models.tokens.LocalTokenGenerator;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 
-public class DefaultLocalUserCredentialsMapper implements LocalUserCredentialsMapperPlugin {
+public class AllToOneFederationToLocalMapper implements FederationToLocalMapperPlugin {
 	
-    private static final Logger LOGGER = Logger.getLogger(DefaultLocalUserCredentialsMapper.class);
+    private static final Logger LOGGER = Logger.getLogger(AllToOneFederationToLocalMapper.class);
     
     private static String LOCAL_TOKEN_CREDENTIALS_PREFIX = "local_token_credentials_";
 	private static final String DEFAULT_MAPPER_CONF = "default_mapper.conf";
 	
     private Map<String, String> credentials;
+
+    private LocalTokenGenerator localTokenGenerator;
 	
-	public DefaultLocalUserCredentialsMapper() throws FatalErrorException {
+	public AllToOneFederationToLocalMapper() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
         Properties properties = PropertiesUtil.readProperties(homeDir.getPath() +
                 File.separator + DEFAULT_MAPPER_CONF);
         this.credentials = getDefaultLocalTokenCredentials(properties);
+        this.localTokenGenerator = getLocalIdentityPlugin(properties);
     }
-	
-	@Override
-	public Map<String, String> getCredentials(FederationUser federationUser) {
-        return this.credentials;
-	}
-	
+
+    @Override
+    public Token getToken(FederationUser user) throws UnexpectedException, FogbowManagerException {
+	    return localTokenGenerator.createToken(this.credentials);
+    }
+
     /**
      * Gets credentials with prefix in the properties (LOCAL_TOKEN_CREDENTIALS_PREFIX).
      *
@@ -64,8 +72,13 @@ public class DefaultLocalUserCredentialsMapper implements LocalUserCredentialsMa
         }
     }
 
-    private static String normalizeKeyProperties(String keyPropertiesStr) {
+    private String normalizeKeyProperties(String keyPropertiesStr) {
         return keyPropertiesStr.replace(LOCAL_TOKEN_CREDENTIALS_PREFIX, "");
-    }	
+    }
 
+    // ToDo: This method needs to get a property that defines which LocalTokenGenerator should be used
+    // For the time being, we set KeystoneV3 statically.
+    private LocalTokenGenerator getLocalIdentityPlugin(Properties properties) {
+        return new KeystoneV3TokenGenerator();
+    }
 }

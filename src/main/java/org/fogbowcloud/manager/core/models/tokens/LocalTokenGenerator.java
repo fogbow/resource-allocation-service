@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud;
+package org.fogbowcloud.manager.core.models.tokens;
 
 import java.util.Map;
 
@@ -6,7 +6,7 @@ import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 
-public interface LocalIdentityPlugin {
+public interface LocalTokenGenerator {
 
     /**
      * Creates a tokens based on the user's credentials.

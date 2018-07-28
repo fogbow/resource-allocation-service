@@ -116,43 +116,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Assert.assertNotNull(this.fulfilledOrderList.getNext());
         Assert.assertNull(this.failedOrderList.getNext());
     }
-
-    // test case: When running thread in the FulfilledProcessor and the OrderType is not a
-    // Compute, the method processFulfilledOrder() must not change OrderState to Failed and
-    // must remain in Fulfilled list.
-    @Test
-    public void testRunProcessLocalWhenOrderTypeIsNotComputer()
-            throws FogbowManagerException, UnexpectedException, InterruptedException {
-
-        // set up
-        FederationUser federationUser = Mockito.mock(FederationUser.class);
-        String providingMember = LOCAL_MEMBER_ID;
-        String requestingMember =
-                String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
-
-        Order order = new AttachmentOrder(federationUser, requestingMember, providingMember,
-                FAKE_SOURCE, FAKE_TARGET, FAKE_DEVICE);
-
-        order.setOrderState(OrderState.FULFILLED);
-
-        this.fulfilledOrderList.addItem(order);
-        Assert.assertNull(this.failedOrderList.getNext());
-
-        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
-        orderInstance.setState(InstanceState.READY);
-        order.setInstanceId(FAKE_INSTANCE_ID);
-
-        mockCloudConnectorFactory(orderInstance);
-
-        // exercise
-        this.thread = new Thread(this.fulfilledProcessor);
-        this.thread.start();
-
-        // verify
-        Assert.assertNotNull(this.fulfilledOrderList.getNext());
-        Assert.assertNull(this.failedOrderList.getNext());
-    }
-
+    
     // test case: When running thread in the FulfilledProcessor and the InstanceState is Failed,
     // the processFulfilledOrder() method must change the OrderState to Failed by adding in that
     // list, and removed from the Fulfilled list.

@@ -9,6 +9,7 @@ import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
+import org.fogbowcloud.manager.core.models.tokens.KeystoneV3TokenGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
@@ -52,7 +53,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	@Override
 	public String requestInstance(VolumeOrder order, Token localToken)
 			throws FogbowManagerException, UnexpectedException {
-		String tenantId = localToken.getAttributes().get(KeystoneV3IdentityPlugin.TENANT_ID);
+		String tenantId = localToken.getAttributes().get(KeystoneV3TokenGenerator.TENANT_ID);
 		if (tenantId == null) {
 			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 			throw new UnauthenticatedUserException(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
@@ -83,7 +84,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	@Override
 	public VolumeInstance getInstance(String storageOrderInstanceId, Token localToken)
 			throws FogbowManagerException, UnexpectedException {
-		String tenantId = localToken.getAttributes().get(KeystoneV3IdentityPlugin.TENANT_ID);
+		String tenantId = localToken.getAttributes().get(KeystoneV3TokenGenerator.TENANT_ID);
 		if (tenantId == null) {
 			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 			throw new UnauthenticatedUserException(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
@@ -103,7 +104,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	@Override
 	public void deleteInstance(String storageOrderInstanceId, Token localToken)
 			throws FogbowManagerException, UnexpectedException {
-		String tenantId = localToken.getAttributes().get(KeystoneV3IdentityPlugin.TENANT_ID);
+		String tenantId = localToken.getAttributes().get(KeystoneV3TokenGenerator.TENANT_ID);
 		if (tenantId == null) {
 			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 			throw new UnauthenticatedUserException(TENANT_ID_IS_NOT_SPECIFIED_ERROR);

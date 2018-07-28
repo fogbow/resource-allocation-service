@@ -2,18 +2,18 @@ package org.fogbowcloud.manager.core;
 
 import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
-import org.fogbowcloud.manager.core.plugins.behavior.mapper.LocalUserCredentialsMapperPlugin;
+import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 
 public class BehaviorPluginsHolder {
 
     private AuthorizationPlugin authorizationPlugin;
     private FederationIdentityPlugin federationIdentityPlugin;
-    private LocalUserCredentialsMapperPlugin localUserCredentialsMapperPlugin;
+    private FederationToLocalMapperPlugin federationToLocalMapperPlugin;
 
     public BehaviorPluginsHolder(PluginInstantiator instantiationInitService) {
         this.authorizationPlugin = instantiationInitService.getAuthorizationPlugin();
         this.federationIdentityPlugin = instantiationInitService.getFederationIdentityPlugin();
-        this.localUserCredentialsMapperPlugin = instantiationInitService.getLocalUserCredentialsMapperPlugin();
+        this.federationToLocalMapperPlugin = instantiationInitService.getLocalUserCredentialsMapperPlugin();
     }
 
     public AuthorizationPlugin getAuthorizationPlugin() {
@@ -24,7 +24,7 @@ public class BehaviorPluginsHolder {
         return this.federationIdentityPlugin;
     }
 
-    public LocalUserCredentialsMapperPlugin getLocalUserCredentialsMapperPlugin() {
-        return this.localUserCredentialsMapperPlugin;
+    public FederationToLocalMapperPlugin getFederationToLocalMapperPlugin() {
+        return this.federationToLocalMapperPlugin;
     }
 }

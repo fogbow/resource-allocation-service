@@ -11,11 +11,10 @@ import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.plugins.PluginFactory;
 import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
-import org.fogbowcloud.manager.core.plugins.behavior.mapper.LocalUserCredentialsMapperPlugin;
+import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.ImagePlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.LocalIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputeQuotaPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
@@ -65,12 +64,6 @@ public class PluginInstantiator {
                 this.pluginFactory.createPluginInstance(className);
     }
 
-    public LocalIdentityPlugin getLocalIdentityPlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.LOCAL_IDENTITY_PLUGIN_CLASS_KEY);
-        return (LocalIdentityPlugin)
-                this.pluginFactory.createPluginInstance(className);
-    }
-
     public NetworkPlugin getNetworkPlugin() {
         String className = this.properties.getProperty(ConfigurationConstants.NETWORK_PLUGIN_CLASS_KEY);
         return (NetworkPlugin) this.pluginFactory.createPluginInstance(className);
@@ -98,10 +91,10 @@ public class PluginInstantiator {
                 this.pluginFactory.createPluginInstance(className);
     }
 
-    public LocalUserCredentialsMapperPlugin getLocalUserCredentialsMapperPlugin() {
+    public FederationToLocalMapperPlugin getLocalUserCredentialsMapperPlugin() {
         String className = this.properties.getProperty(
                 ConfigurationConstants.LOCAL_USER_CREDENTIALS_MAPPER_PLUGIN_CLASS_KEY);
-        return (LocalUserCredentialsMapperPlugin)
+        return (FederationToLocalMapperPlugin)
                 this.pluginFactory.createPluginInstance(className);
     }
 

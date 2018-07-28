@@ -1,15 +1,12 @@
 package org.fogbowcloud.manager.core;
 
-import java.util.Map;
-
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.constants.Operation;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
-import org.fogbowcloud.manager.core.plugins.behavior.mapper.LocalUserCredentialsMapperPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.LocalIdentityPlugin;
+import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 
@@ -18,14 +15,12 @@ public class AaController {
     private static final Logger LOGGER = Logger.getLogger(AaController.class);
 
     private FederationIdentityPlugin federationIdentityPlugin;
-    private LocalIdentityPlugin localIdentityPlugin;
     private AuthorizationPlugin authorizationPlugin;
-    private LocalUserCredentialsMapperPlugin localUserCredentialsMapperPlugin;
+    private FederationToLocalMapperPlugin federationToLocalMapperPlugin;
 
-    public AaController(LocalIdentityPlugin localIdentityPlugin, BehaviorPluginsHolder behaviorPluginsHolder) {
-        this.localIdentityPlugin = localIdentityPlugin;
+    public AaController(BehaviorPluginsHolder behaviorPluginsHolder) {
         this.federationIdentityPlugin = behaviorPluginsHolder.getFederationIdentityPlugin();
-        this.localUserCredentialsMapperPlugin = behaviorPluginsHolder.getLocalUserCredentialsMapperPlugin();
+        this.federationToLocalMapperPlugin = behaviorPluginsHolder.getFederationToLocalMapperPlugin();
         this.authorizationPlugin = behaviorPluginsHolder.getAuthorizationPlugin();
     }
 
@@ -37,8 +32,7 @@ public class AaController {
     }
 
     public Token getLocalToken(FederationUser federationUser) throws FogbowManagerException, UnexpectedException {
-    	Map<String, String> userCredentials = this.localUserCredentialsMapperPlugin.getCredentials(federationUser);
-        return this.localIdentityPlugin.createToken(userCredentials);
+        return this.federationToLocalMapperPlugin.getToken(federationUser);
     }
 
     public void authenticate(String federationTokenId) throws UnauthenticatedUserException {
@@ -59,12 +53,5 @@ public class AaController {
         if (!this.authorizationPlugin.isAuthorized(federationUser, operation)) {
             throw new UnauthorizedRequestException();
         }
-    }    
-
-//    public void authorize(FederationUser federationUser, Operation operation, String instanceId)
-//            throws FogbowManagerException {
-//        if (!this.authorizationPlugin.isAuthorized(federationUser, operation, instanceId)) {
-//            throw new UnauthorizedRequestException();
-//        }
-//    }
+    }
 }
