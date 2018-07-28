@@ -64,11 +64,11 @@ public class OrderController {
         return requestedOrder;
     }
 
-    public void deleteOrder(Order order) throws OrderNotFoundException, UnexpectedException {
+    public void deleteOrder(Order order) throws InstanceNotFoundException, UnexpectedException {
         if (order == null) {
             String message = "Cannot delete a null order.";
             LOGGER.error(message);
-            throw new OrderNotFoundException();
+            throw new InstanceNotFoundException();
         }
 
         synchronized (order) {
@@ -78,7 +78,7 @@ public class OrderController {
            } else {
                 String message = "Order [" + order.getId() + "] is already in the closed state";
                 LOGGER.error(message);
-                throw new OrderNotFoundException(message);
+                throw new InstanceNotFoundException(message);
             }
         }
     }

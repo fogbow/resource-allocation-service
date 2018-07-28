@@ -85,7 +85,8 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: A closed order cannot be deleted, so it must raise a FogbowManagerException.
     @Test(expected = FogbowManagerException.class)
-    public void testDeleteOrderStateClosed() throws UnexpectedException, InvalidParameterException, OrderNotFoundException {
+    public void testDeleteOrderStateClosed() throws UnexpectedException, InvalidParameterException,
+            InstanceNotFoundException {
         // exercise
         String orderId = getComputeOrderCreationId(OrderState.CLOSED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -266,7 +267,8 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: Checks if deleting a failed order, this one will be moved to the closed orders list.
     @Test
-    public void testDeleteOrderStateFailed() throws UnexpectedException, InvalidParameterException, OrderNotFoundException {
+    public void testDeleteOrderStateFailed() throws UnexpectedException, InvalidParameterException,
+            InstanceNotFoundException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.FAILED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -290,7 +292,8 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: Checks if deleting a fulfiled order, this one will be moved to the closed orders list.
     @Test
-    public void testDeleteOrderStateFulfilled() throws UnexpectedException, InvalidParameterException, OrderNotFoundException {
+    public void testDeleteOrderStateFulfilled() throws UnexpectedException, InvalidParameterException,
+            InstanceNotFoundException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.FULFILLED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -313,7 +316,8 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: Checks if deleting a spawning order, this one will be moved to the closed orders list.
     @Test
-    public void testDeleteOrderStateSpawning() throws UnexpectedException, InvalidParameterException, OrderNotFoundException {
+    public void testDeleteOrderStateSpawning() throws UnexpectedException, InvalidParameterException,
+            InstanceNotFoundException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.SPAWNING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -336,7 +340,8 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: Checks if deleting a pending order, this one will be moved to the closed orders list.
     @Test
-    public void testDeleteOrderStatePending() throws UnexpectedException, InvalidParameterException, OrderNotFoundException {
+    public void testDeleteOrderStatePending() throws UnexpectedException, InvalidParameterException,
+            InstanceNotFoundException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.PENDING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -359,7 +364,8 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: Checks if deleting a open order, this one will be moved to the closed orders list.
     @Test
-    public void testDeleteOrderStateOpen() throws UnexpectedException, InvalidParameterException, OrderNotFoundException {
+    public void testDeleteOrderStateOpen() throws UnexpectedException, InvalidParameterException,
+            InstanceNotFoundException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.OPEN);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -382,7 +388,8 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: Deleting a null order must return a FogbowManagerException.
     @Test(expected = FogbowManagerException.class)
-    public void testDeleteNullOrder() throws UnexpectedException, OrderNotFoundException {
+    public void testDeleteNullOrder() throws UnexpectedException,
+            InstanceNotFoundException {
         // exercise
         this.ordersController.deleteOrder(null);
     }
