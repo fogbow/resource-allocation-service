@@ -75,7 +75,7 @@ public class Main implements ApplicationRunner {
             processorsThreadController.startManagerThreads();
 
         } catch (FatalErrorException errorException) {
-            LOGGER.fatal( errorException.getMessage(), errorException);
+            LOGGER.fatal(errorException.getMessage(), errorException);
             System.exit(1);
         } catch (ComponentException componentException) {
             LOGGER.fatal("Unable to connect to XMPP, check XMPP configuration file.", componentException);

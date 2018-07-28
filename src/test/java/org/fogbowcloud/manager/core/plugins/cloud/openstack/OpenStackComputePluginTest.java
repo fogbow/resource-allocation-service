@@ -173,7 +173,6 @@ public class OpenStackComputePluginTest {
     	Assert.assertEquals(expectedComputeInstance.getLocalIpAddress(), pluginComputeInstance.getLocalIpAddress());
     	Assert.assertEquals(expectedComputeInstance.getDisk(), pluginComputeInstance.getDisk());
     	Assert.assertEquals(expectedComputeInstance.getRam(), pluginComputeInstance.getRam());
-    	Assert.assertEquals(expectedComputeInstance.getSshTunnelConnectionData(), pluginComputeInstance.getSshTunnelConnectionData());
     	Assert.assertEquals(expectedComputeInstance.getState(), pluginComputeInstance.getState());
     	Assert.assertEquals(expectedComputeInstance.getvCPU(), pluginComputeInstance.getvCPU());
     }
@@ -384,7 +383,6 @@ public class OpenStackComputePluginTest {
     	Assert.assertEquals(expectedComputeInstance.getLocalIpAddress(), pluginComputeInstance.getLocalIpAddress());
     	Assert.assertEquals(expectedComputeInstance.getDisk(), pluginComputeInstance.getDisk());
     	Assert.assertEquals(expectedComputeInstance.getRam(), pluginComputeInstance.getRam());
-    	Assert.assertEquals(expectedComputeInstance.getSshTunnelConnectionData(), pluginComputeInstance.getSshTunnelConnectionData());
     	Assert.assertEquals(expectedComputeInstance.getState(), pluginComputeInstance.getState());
     	Assert.assertEquals(expectedComputeInstance.getvCPU(), pluginComputeInstance.getvCPU());
     }
@@ -410,7 +408,6 @@ public class OpenStackComputePluginTest {
     	Assert.assertEquals(expectedComputeInstance.getLocalIpAddress(), pluginComputeInstance.getLocalIpAddress());
     	Assert.assertEquals(expectedComputeInstance.getDisk(), pluginComputeInstance.getDisk());
     	Assert.assertEquals(expectedComputeInstance.getRam(), pluginComputeInstance.getRam());
-    	Assert.assertEquals(expectedComputeInstance.getSshTunnelConnectionData(), pluginComputeInstance.getSshTunnelConnectionData());
     	Assert.assertEquals(expectedComputeInstance.getState(), pluginComputeInstance.getState());
     	Assert.assertEquals(expectedComputeInstance.getvCPU(), pluginComputeInstance.getvCPU());
     }

@@ -1,7 +1,5 @@
 package org.fogbowcloud.manager.core.models.instances;
 
-import org.fogbowcloud.manager.util.connectivity.SshTunnelConnectionData;
-
 // TODO: We need to discuss about these attributes
 public class ComputeInstance extends Instance {
 
@@ -12,7 +10,6 @@ public class ComputeInstance extends Instance {
     /** Disk attribute, must be set in GB. */
     private int disk;
     private String localIpAddress;
-    private SshTunnelConnectionData sshTunnelConnectionData;
 
     public ComputeInstance(String id, InstanceState state, String hostName, int vCPU, int ram, int disk,
                            String localIpAddress) {
@@ -28,10 +25,6 @@ public class ComputeInstance extends Instance {
         super(id);
     }
 
-    public void setSshTunnelConnectionData(SshTunnelConnectionData sshTunnelConnectionData) {
-        this.sshTunnelConnectionData = sshTunnelConnectionData;
-    }
-    
     public int getDisk() {
         return this.disk;
     }
@@ -47,11 +40,7 @@ public class ComputeInstance extends Instance {
     public int getRam() {
         return this.ram;
     }
-    
-    public SshTunnelConnectionData getSshTunnelConnectionData() {
-        return this.sshTunnelConnectionData;
-    }
-    
+
     public int getvCPU() {
         return this.vCPU;
     }

@@ -338,7 +338,6 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 		
 		// Avoid to test addReverseTunnelInfoMethod behaviour 
 		LocalCloudConnector localCloudConnectorSpy = Mockito.spy(this.localCloudConnector);
-		Mockito.doNothing().when(localCloudConnectorSpy).addReverseTunnelInfo(Mockito.any(String.class), Mockito.any(ComputeInstance.class));
 
 		this.order = Mockito.mock(ComputeOrder.class);
 	    Mockito.when(this.order.getType()).thenReturn(InstanceType.COMPUTE);

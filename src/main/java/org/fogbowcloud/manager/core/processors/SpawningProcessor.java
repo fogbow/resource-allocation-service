@@ -8,30 +8,22 @@ import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
-import org.fogbowcloud.manager.util.connectivity.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.util.connectivity.ComputeInstanceConnectivityUtil;
-import org.fogbowcloud.manager.util.connectivity.SshConnectivityUtil;
-import org.fogbowcloud.manager.util.connectivity.TunnelingServiceUtil;
 
 public class SpawningProcessor implements Runnable {
 
     private static final Logger LOGGER = Logger.getLogger(SpawningProcessor.class);
 
     private ChainedList spawningOrderList;
-    private ComputeInstanceConnectivityUtil computeInstanceConnectivity;
 
     private Long sleepTime;
 
     private CloudConnector localCloudConnector;
 
-    public SpawningProcessor(String memberId, TunnelingServiceUtil tunnelingService,
-                             SshConnectivityUtil sshConnectivity, String sleepTimeStr) {
-        this.computeInstanceConnectivity =
-            new ComputeInstanceConnectivityUtil(tunnelingService, sshConnectivity);
+    public SpawningProcessor(String memberId, String sleepTimeStr) {
         this.localCloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();
@@ -98,26 +90,6 @@ public class SpawningProcessor implements Runnable {
             OrderStateTransitioner.transition(order, OrderState.FAILED);
         } else if (instanceState.equals(InstanceState.READY)) {
             LOGGER.debug("Processing active compute instance for order [" + order.getId() + "]");
-
-            if (instanceType.equals(InstanceType.COMPUTE)) {
-                SshTunnelConnectionData sshTunnelConnectionData = this.computeInstanceConnectivity
-                    .getSshTunnelConnectionData(order.getId());
-
-                if (sshTunnelConnectionData != null) {
-                    boolean instanceReachable = this.computeInstanceConnectivity
-                        .isInstanceReachable(sshTunnelConnectionData);
-                    if (!instanceReachable) {
-                        // try again later
-                        LOGGER.debug("Compute instance for order [" + order.getId() + "]" + "is not reachable yet");
-                        return;
-                    }
-                } else {
-                    // try again later
-                    LOGGER.debug("Tunnel connection data still unavailable");
-                    return;
-                }
-            }
-
             OrderStateTransitioner.transition(order, OrderState.FULFILLED);
         }
     }
@@ -135,11 +107,4 @@ public class SpawningProcessor implements Runnable {
         }
 
     }
-    
-    /** this method used only for testing */
-    protected void setComputeInstanceConnectivity(
-            ComputeInstanceConnectivityUtil computeInstanceConnectivity) {
-        this.computeInstanceConnectivity = computeInstanceConnectivity;
-    }
-    
 }

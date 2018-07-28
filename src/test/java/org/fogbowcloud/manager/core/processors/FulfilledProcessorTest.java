@@ -12,7 +12,6 @@ import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.util.connectivity.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -22,8 +21,6 @@ import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
-import org.fogbowcloud.manager.util.connectivity.SshConnectivityUtil;
-import org.fogbowcloud.manager.util.connectivity.TunnelingServiceUtil;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -49,7 +46,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     private static final String FAKE_DEVICE = "fake-device";
 
     /** Maximum value that the thread should wait in sleep time */
-    private static final int MAX_SLEEP_TIME = 33000;
+    private static final int MAX_SLEEP_TIME = 30000;
     private static final int DEFAULT_SLEEP_TIME = 500;
 
     private ChainedList failedOrderList;
@@ -57,8 +54,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     private FulfilledProcessor fulfilledProcessor;
     private LocalCloudConnector localCloudConnector;
     private Properties properties;
-    private TunnelingServiceUtil tunnelingService;
-    private SshConnectivityUtil sshConnectivity;
     private Thread thread;
 
     @Before
@@ -74,8 +69,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.properties.put(ConfigurationConstants.XMPP_JID_KEY, BaseUnitTests.LOCAL_MEMBER_ID);
 
         this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
-        this.tunnelingService = Mockito.mock(TunnelingServiceUtil.class);
-        this.sshConnectivity = Mockito.mock(SshConnectivityUtil.class);
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrderList = sharedOrderHolders.getFulfilledOrdersList();
@@ -112,16 +105,11 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         mockCloudConnectorFactory(orderInstance);
 
         // exercise
-        Mockito.when(this.tunnelingService.getExternalServiceAddresses(Mockito.anyString()))
-                .thenReturn(null);
-
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
         Thread.sleep(DEFAULT_SLEEP_TIME);
 
         // verify
-        Mockito.verify(this.tunnelingService, Mockito.times(1)).getExternalServiceAddresses(Mockito.anyString());
-
         Assert.assertNotNull(this.fulfilledOrderList.getNext());
         Assert.assertNull(this.failedOrderList.getNext());
     }
@@ -254,7 +242,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.failedOrderList.getNext());
 
         this.fulfilledProcessor = new FulfilledProcessor(REMOTE_MEMBER_ID,
-                this.tunnelingService, this.sshConnectivity,
+                //this.tunnelingService, this.sshConnectivity,
                 DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME);
 
         // exercise
@@ -284,17 +272,11 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         // exercise
         mockCloudConnectorFactory(orderInstance);
-        Mockito.when(this.sshConnectivity
-                .checkSSHConnectivity(Mockito.any(SshTunnelConnectionData.class))).thenReturn(true);
-
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
         Thread.sleep(DEFAULT_SLEEP_TIME);
 
         // verify
-        Mockito.verify(this.sshConnectivity, Mockito.times(1))
-                .checkSSHConnectivity(Mockito.any(SshTunnelConnectionData.class));
-
         Assert.assertNotNull(this.fulfilledOrderList.getNext());
         Assert.assertNull(this.failedOrderList.getNext());
     }
@@ -312,16 +294,12 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.failedOrderList.getNext());
 
         Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
-        orderInstance.setState(InstanceState.READY);
+        orderInstance.setState(InstanceState.FAILED);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
         mockCloudConnectorFactory(orderInstance);
 
         // exercise
-        Mockito.when(this.sshConnectivity
-                .checkSSHConnectivity(Mockito.any(SshTunnelConnectionData.class)))
-                .thenReturn(false);
-
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
 
@@ -455,7 +433,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
     private void spyFulfiledProcessor() {
         this.fulfilledProcessor = Mockito.spy(new FulfilledProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
-                this.tunnelingService, this.sshConnectivity,
+                //this.tunnelingService, this.sshConnectivity,
                 DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME));
     }
 

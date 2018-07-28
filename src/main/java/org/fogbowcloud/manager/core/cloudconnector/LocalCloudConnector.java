@@ -16,10 +16,6 @@ import org.fogbowcloud.manager.core.plugins.cloud.ImagePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputeQuotaPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
-import org.fogbowcloud.manager.util.connectivity.ComputeInstanceConnectivityUtil;
-import org.fogbowcloud.manager.util.connectivity.SshConnectivityUtil;
-import org.fogbowcloud.manager.util.connectivity.SshTunnelConnectionData;
-import org.fogbowcloud.manager.util.connectivity.TunnelingServiceUtil;
 
 import java.util.Map;
 
@@ -189,7 +185,6 @@ public class LocalCloudConnector implements CloudConnector {
         switch (instanceType) {
             case COMPUTE:
                 instance = this.computePlugin.getInstance(instanceId, localToken);
-                addReverseTunnelInfo(order.getId(), (ComputeInstance) instance);
                 break;
             case NETWORK:
                 instance = this.networkPlugin.getInstance(instanceId, localToken);
@@ -207,19 +202,6 @@ public class LocalCloudConnector implements CloudConnector {
         order.setCachedInstanceState(instance.getState());
         instance.setProvider(order.getProvidingMember());
         return instance;
-    }
-
-    protected void addReverseTunnelInfo(String orderId, ComputeInstance computeInstance) {
-        TunnelingServiceUtil tunnelingServiceUtil = TunnelingServiceUtil.getInstance();
-        SshConnectivityUtil sshConnectivityUtil = SshConnectivityUtil.getInstance();
-
-        ComputeInstanceConnectivityUtil computeInstanceConnectivity =
-                new ComputeInstanceConnectivityUtil(tunnelingServiceUtil, sshConnectivityUtil);
-
-        SshTunnelConnectionData sshTunnelConnectionData = computeInstanceConnectivity
-                .getSshTunnelConnectionData(orderId);
-
-        computeInstance.setSshTunnelConnectionData(sshTunnelConnectionData);
     }
     
     private InstanceState getInstanceStateBasedOnOrderState(Order order) {

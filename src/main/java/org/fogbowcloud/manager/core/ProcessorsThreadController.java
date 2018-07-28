@@ -7,8 +7,6 @@ import org.fogbowcloud.manager.core.processors.ClosedProcessor;
 import org.fogbowcloud.manager.core.processors.FulfilledProcessor;
 import org.fogbowcloud.manager.core.processors.OpenProcessor;
 import org.fogbowcloud.manager.core.processors.SpawningProcessor;
-import org.fogbowcloud.manager.util.connectivity.SshConnectivityUtil;
-import org.fogbowcloud.manager.util.connectivity.TunnelingServiceUtil;
 
 public class ProcessorsThreadController {
 
@@ -31,20 +29,13 @@ public class ProcessorsThreadController {
                 getProperty(ConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME_KEY,
                         DefaultConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME);
 
-        TunnelingServiceUtil tunnelingServiceUtil = TunnelingServiceUtil.getInstance();
-        SshConnectivityUtil sshConnectivityUtil = SshConnectivityUtil.getInstance();
-
-        SpawningProcessor spawningProcessor =
-                new SpawningProcessor(localMemberId, tunnelingServiceUtil,
-                        sshConnectivityUtil, spawningOrdersProcSleepTimeStr);
+        SpawningProcessor spawningProcessor = new SpawningProcessor(localMemberId, spawningOrdersProcSleepTimeStr);
 
         String fulfilledOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
                 getProperty(ConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME_KEY,
                         DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME);
 
-        FulfilledProcessor fulfilledProcessor =
-                new FulfilledProcessor(localMemberId, tunnelingServiceUtil,
-                        sshConnectivityUtil, fulfilledOrdersProcSleepTimeStr);
+        FulfilledProcessor fulfilledProcessor = new FulfilledProcessor(localMemberId, fulfilledOrdersProcSleepTimeStr);
 
         String closedOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
                 getProperty(ConfigurationConstants.CLOSED_ORDERS_SLEEP_TIME_KEY,

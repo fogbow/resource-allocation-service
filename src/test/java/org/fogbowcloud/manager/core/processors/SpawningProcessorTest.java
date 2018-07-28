@@ -6,7 +6,6 @@ import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.util.connectivity.SshTunnelConnectionData;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
@@ -18,9 +17,6 @@ import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
-import org.fogbowcloud.manager.util.connectivity.ComputeInstanceConnectivityUtil;
-import org.fogbowcloud.manager.util.connectivity.SshConnectivityUtil;
-import org.fogbowcloud.manager.util.connectivity.TunnelingServiceUtil;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
@@ -45,12 +41,8 @@ public class SpawningProcessorTest extends BaseUnitTests {
     private ChainedList openOrderList;
     private ChainedList spawningOrderList;
     private CloudConnector cloudConnector;
-    private ComputeInstanceConnectivityUtil computeInstanceConnectivity;
     private SpawningProcessor spawningProcessor;
-    private SshConnectivityUtil sshConnectivity;
-    private SshTunnelConnectionData sshTunnelConnectionData;
     private Thread thread;
-    private TunnelingServiceUtil tunnelingService;
 
     @Before
     public void setUp() {
@@ -70,20 +62,9 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
         this.cloudConnector = CloudConnectorFactory.getInstance()
                 .getCloudConnector(BaseUnitTests.LOCAL_MEMBER_ID);
-
-        this.tunnelingService = Mockito.mock(TunnelingServiceUtil.class);
-        this.sshConnectivity = Mockito.mock(SshConnectivityUtil.class);
-
-        this.computeInstanceConnectivity =
-                Mockito.spy(new ComputeInstanceConnectivityUtil(this.tunnelingService, this.sshConnectivity));
-        
-        this.sshTunnelConnectionData = Mockito.mock(SshTunnelConnectionData.class);
         
         this.spawningProcessor = Mockito.spy(new SpawningProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
-                this.tunnelingService, this.sshConnectivity,
                 DefaultConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME));
-        
-        this.spawningProcessor.setComputeInstanceConnectivity(this.computeInstanceConnectivity);
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();
@@ -117,75 +98,6 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
         // verify
         Assert.assertEquals(order, this.openOrderList.getNext());
-        Assert.assertNull(this.fulfilledOrderList.getNext());
-    }
-
-    // test case: When running thread in SpawningProcessor, if there is no SSH connectivity as the
-    // reverse tunnel, the method processSpawningOrder() must not change OrderState to Fulfilled and
-    // must remain in Spawning list.
-    @SuppressWarnings("static-access")
-    @Test
-    public void testRunProcessComputeOrderWithoutSSHConnectivity() throws Exception {
-
-        // set up
-        Order order = createComputeOrder();
-        order.setOrderState(OrderState.SPAWNING);
-        this.spawningOrderList.addItem(order);
-        String orderId = order.getId();
-
-        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
-        orderInstance.setState(InstanceState.READY);
-        order.setInstanceId(FAKE_INSTANCE_ID);
-
-        Mockito.doReturn(orderInstance).when(this.cloudConnector)
-                .getInstance(Mockito.any(Order.class));
-
-        Mockito.doReturn(this.sshTunnelConnectionData).when(this.computeInstanceConnectivity)
-                .getSshTunnelConnectionData(Mockito.eq(orderId));
-
-        Mockito.when(
-                this.computeInstanceConnectivity.isInstanceReachable(this.sshTunnelConnectionData))
-                .thenReturn(false);
-
-        // exercise
-        this.thread = new Thread(this.spawningProcessor);
-        this.thread.start();
-        this.thread.sleep(DEFAULT_SLEEP_TIME);
-
-        // verify
-        Assert.assertEquals(order, this.spawningOrderList.getNext());
-        Assert.assertNull(this.fulfilledOrderList.getNext());
-    }
-
-    // test case: When running thread in SpawningProcessor without the external addresses of the
-    // reverse tunnel, the method processSpawningOrder() must not change OrderState to Fulfilled and
-    // must remain in Spawning list.
-    @SuppressWarnings("static-access")
-    @Test
-    public void testRunProcessComputeOrderWithoutExternalAddresses() throws Exception {
-
-        // set up
-        Order order = createComputeOrder();
-        order.setOrderState(OrderState.SPAWNING);
-        this.spawningOrderList.addItem(order);
-
-        Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
-        orderInstance.setState(InstanceState.READY);
-        order.setInstanceId(FAKE_INSTANCE_ID);
-
-        Mockito.doReturn(orderInstance).when(this.cloudConnector)
-                .getInstance(Mockito.any(Order.class));
-
-        Mockito.when(this.computeInstanceConnectivity.getSshTunnelConnectionData(order.getId()))
-                .thenReturn(null);
-
-        // exercise
-        this.thread = new Thread(this.spawningProcessor);
-        this.thread.start();
-        this.thread.sleep(DEFAULT_SLEEP_TIME);
-
-        // verify
-        Assert.assertEquals(order, this.spawningOrderList.getNext());
         Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
@@ -291,7 +203,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.spawningOrderList.getNext());
     }
 
-    // test case: When running thread in the SpawningProcessor and the InstanceState Is not
+    // test case: When running thread in the SpawningProcessor and the InstanceState is not
     // Ready, the method processSpawningOrder() must not change OrderState to Fulfilled and must
     // remain in Spawning list.
     @Test
@@ -339,10 +251,6 @@ public class SpawningProcessorTest extends BaseUnitTests {
         Mockito.doReturn(orderInstance).when(this.cloudConnector)
                 .getInstance(Mockito.any(Order.class));
         
-        Mockito.doReturn(this.sshTunnelConnectionData).when(this.computeInstanceConnectivity).getSshTunnelConnectionData(Mockito.eq(orderId));
-        
-        Mockito.when(this.computeInstanceConnectivity.isInstanceReachable(this.sshTunnelConnectionData)).thenReturn(true);
-        
         // exercise
         this.thread = new Thread(this.spawningProcessor);
         this.thread.start();
@@ -376,14 +284,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
         Mockito.doReturn(orderInstance).when(this.cloudConnector)
                 .getInstance(Mockito.any(Order.class));
-        
-        Mockito.doReturn(this.sshTunnelConnectionData).when(this.computeInstanceConnectivity).getSshTunnelConnectionData(Mockito.eq(orderId));
-        
-        Mockito.when(this.computeInstanceConnectivity.getSshTunnelConnectionData(order.getId()))
-                .thenReturn(this.sshTunnelConnectionData);
 
-        this.spawningProcessor.setComputeInstanceConnectivity(this.computeInstanceConnectivity);
-        
         // exercise
         this.thread = new Thread(this.spawningProcessor);
         this.thread.start();
