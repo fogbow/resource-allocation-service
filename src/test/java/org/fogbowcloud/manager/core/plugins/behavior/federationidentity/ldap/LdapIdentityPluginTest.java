@@ -7,11 +7,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.codec.binary.Base64;
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
-import org.fogbowcloud.manager.core.exceptions.InvalidCredentialsUserException;
-import org.fogbowcloud.manager.core.exceptions.TokenValueCreationException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.RSAUtil;
@@ -133,7 +129,7 @@ public class LdapIdentityPluginTest {
     // test case: try to get federated user info with an empty token throws an exception.
     @Test(expected = UnauthenticatedUserException.class)
     public void testGetFederatedUserWithEmptyToken()
-            throws UnauthenticatedUserException, UnexpectedException {
+            throws UnauthenticatedUserException, InvalidParameterException {
     	
     	// exercise/verify: try to get federated user info
         this.identityPlugin.getFederationUser(Mockito.anyString());
@@ -142,7 +138,7 @@ public class LdapIdentityPluginTest {
     // test case: try to get federated user info with a invalid token throws an exception.
     @Test(expected = UnauthenticatedUserException.class)
     public void testGetFederatedUserWithInvalidToken()
-            throws UnauthenticatedUserException, UnexpectedException {
+            throws UnauthenticatedUserException, InvalidParameterException {
         // set up
     	String invalidToken =
                 "InvalidJsonCredentials" +
@@ -157,7 +153,7 @@ public class LdapIdentityPluginTest {
 
     // test case: try to get federated user info with a valid token returns the user information correctly.
     @Test
-    public void testGetFederatedUser() throws UnauthenticatedUserException, UnexpectedException {
+    public void testGetFederatedUser() throws UnauthenticatedUserException, InvalidParameterException {
         // set up
     	String jsonCredentials = "{\n\t\"name\": \"user\",\n\t\"login\": \"login\"\n}";
         String token = jsonCredentials + ACCESSID_SEPARATOR + "fake-json-credentials-hashed";

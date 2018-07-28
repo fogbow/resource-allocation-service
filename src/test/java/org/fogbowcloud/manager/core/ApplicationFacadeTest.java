@@ -1693,7 +1693,9 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     private NetworkOrder createNetworkOrder() throws Exception {
-        FederationUser federationUser = new FederationUser(FAKE_USER, new HashMap<>());
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
+        FederationUser federationUser = new FederationUser(FAKE_USER, attributes);
         NetworkOrder order = new NetworkOrder(federationUser, FAKE_MEMBER_ID, FAKE_MEMBER_ID,
                 FAKE_GATEWAY, FAKE_ADDRESS, NetworkAllocationMode.STATIC);
 
@@ -1706,7 +1708,9 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     private VolumeOrder createVolumeOrder() throws Exception {
-        FederationUser federationUser = new FederationUser(FAKE_USER, new HashMap<>());
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
+        FederationUser federationUser = new FederationUser(FAKE_USER, attributes);
         VolumeOrder order = new VolumeOrder(federationUser, FAKE_MEMBER_ID, FAKE_MEMBER_ID, 1,
                 FAKE_VOLUME_NAME);
 
@@ -1719,7 +1723,9 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     private ComputeOrder createComputeOrder() throws Exception {
-        FederationUser federationUser = new FederationUser(FAKE_USER, new HashMap<>());
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
+        FederationUser federationUser = new FederationUser(FAKE_USER, attributes);
 
         ComputeOrder order = new ComputeOrder(federationUser, FAKE_MEMBER_ID, FAKE_MEMBER_ID, 2, 2,
                 30, FAKE_IMAGE_NAME, new UserData(), FAKE_PUBLIC_KEY, null);
@@ -1735,7 +1741,9 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     private AttachmentOrder createAttachmentOrder() throws Exception {
-        FederationUser federationUser = new FederationUser(FAKE_USER, new HashMap<>());
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
+        FederationUser federationUser = new FederationUser(FAKE_USER, attributes);
 
         ComputeOrder computeOrder = new ComputeOrder();
         ComputeInstance computeInstance = new ComputeInstance(FAKE_SOURCE_ID);

@@ -11,10 +11,7 @@ import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.Operation;
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
-import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.InstanceStatus;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
@@ -276,7 +273,7 @@ public class ApplicationFacade {
     }
 
     private List<Order> getAllOrders(String federationTokenValue, InstanceType instanceType) 
-    		throws UnauthenticatedUserException, UnexpectedException, UnauthorizedRequestException  {
+    		throws UnauthenticatedUserException, InvalidParameterException, UnauthorizedRequestException  {
         this.aaController.authenticate(federationTokenValue);
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
         this.aaController.authorize(federationUser, Operation.GET_ALL, instanceType);

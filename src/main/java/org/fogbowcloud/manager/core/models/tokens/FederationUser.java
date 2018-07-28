@@ -1,6 +1,6 @@
 package org.fogbowcloud.manager.core.models.tokens;
 
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 
 import java.util.Map;
 
@@ -12,14 +12,13 @@ public class FederationUser {
 
     private Map<String, String> attributes;
 
-    public FederationUser(String id, Map<String, String> attributes) throws UnexpectedException {
+    public FederationUser(String id, Map<String, String> attributes) throws InvalidParameterException {
         this.id = id;
         this.attributes = attributes;
 
-        // TODO remove these comments, when we have time to fix all the tests that will break
-//         if (this.attributes.get(MANDATORY_NAME_ATTRIBUTE) == null) {
-//            throw new UnexpectedException("Mandatory name attribute not defined for federation user.");
-//         }
+        if (this.attributes.get(MANDATORY_NAME_ATTRIBUTE) == null) {
+            throw new InvalidParameterException("Mandatory name attribute not defined for federation user.");
+        }
     }
 
     public String getId() {

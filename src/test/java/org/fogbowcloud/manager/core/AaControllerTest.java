@@ -4,10 +4,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
-import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.instances.InstanceType;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
@@ -189,9 +186,11 @@ public class AaControllerTest {
     
     //test case: Check if federation user token is returning a valid token properly.
     @Test
-    public void testGetFederationUser() throws UnauthenticatedUserException, UnexpectedException {
+    public void testGetFederationUser() throws UnauthenticatedUserException, InvalidParameterException {
     	//set up
-    	FederationUser expectedFederationUser = new FederationUser("id", new HashMap<String, String>());
+		Map<String, String> attributes = new HashMap<String, String>();
+		attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
+    	FederationUser expectedFederationUser = new FederationUser("id", attributes);
     	Mockito.when(this.federationIdentityPluginMock.getFederationUser(Mockito.anyString())).thenReturn(expectedFederationUser);
     	
     	//exercise
@@ -201,9 +200,9 @@ public class AaControllerTest {
     	Assert.assertEquals(expectedFederationUser,aaFederationUser);
     }
     
-    //test case: Check if AaController is properly forwading UnauthenticatedUserException thrown by FederationIdentityPlugin. 
+    //test case: Check if AaController is properly forwarding UnauthenticatedUserException thrown by FederationIdentityPlugin.
     @Test (expected = UnauthenticatedUserException.class)
-    public void testGetFederationUserUnauthenticatedUserException() throws UnauthenticatedUserException, UnexpectedException {
+    public void testGetFederationUserUnauthenticatedUserException() throws UnauthenticatedUserException, InvalidParameterException {
     	//set up
     	Mockito.when(this.federationIdentityPluginMock.getFederationUser(Mockito.anyString())).thenThrow(new UnauthenticatedUserException());
     	
@@ -211,11 +210,11 @@ public class AaControllerTest {
     	this.aaController.getFederationUser(Mockito.anyString());
     }
     
-    //test case: Check if AaController is properly forwading UnexpectedException thrown by FederationIdentityPlugin. 
-    @Test (expected = UnexpectedException.class)
-    public void testGetFederationUserUnexpectedException() throws UnauthenticatedUserException, UnexpectedException {
+    //test case: Check if AaController is properly forwarding InvalidParameterException thrown by FederationIdentityPlugin.
+    @Test (expected = InvalidParameterException.class)
+    public void testGetFederationUserUnexpectedException() throws UnauthenticatedUserException, InvalidParameterException {
     	//set up
-    	Mockito.when(this.federationIdentityPluginMock.getFederationUser(Mockito.anyString())).thenThrow(new UnexpectedException());
+    	Mockito.when(this.federationIdentityPluginMock.getFederationUser(Mockito.anyString())).thenThrow(new InvalidParameterException());
     	
     	//exercise/verify
     	this.aaController.getFederationUser(Mockito.anyString());

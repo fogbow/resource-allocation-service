@@ -1,5 +1,7 @@
 package org.fogbowcloud.manager.core.processors;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.HomeDir;
@@ -10,6 +12,7 @@ import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
@@ -85,11 +88,11 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         super.tearDown();
     }
 
-    // test case: When running thread in FulfilledProcessor without the external addresses of the
-    // reverse tunnel, the method processFulfilledOrder() must not change OrderState to Failed and
-    // must remain in Fulfilled list.
+    // test case: When running thread in FulfilledProcessor, if the instance state is Ready,
+    // the method processFulfilledOrder() must not change OrderState to Failed and the order
+    // must remain in the Fulfilled list.
     @Test
-    public void testRunProcessLocalComputeOrderWithoutExternalAddresses()
+    public void testRunProcessLocalComputeOrderWithInstanceReady()
             throws FogbowManagerException, UnexpectedException, InterruptedException {
 
         // set up
@@ -137,34 +140,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
         orderInstance.setState(InstanceState.READY);
-        order.setInstanceId(FAKE_INSTANCE_ID);
-
-        mockCloudConnectorFactory(orderInstance);
-
-        // exercise
-        this.thread = new Thread(this.fulfilledProcessor);
-        this.thread.start();
-
-        // verify
-        Assert.assertNotNull(this.fulfilledOrderList.getNext());
-        Assert.assertNull(this.failedOrderList.getNext());
-    }
-
-    // test case: When running thread in the FulfilledProcessor and the InstanceState Is not
-    // Ready, the method processFulfilledOrder() must not change OrderState to Failed and must
-    // remain in Fulfilled list.
-    @Test
-    public void testRunProcessLocalComputeOrderWhenInstanceStateIsNotReady()
-            throws FogbowManagerException, UnexpectedException, InterruptedException {
-
-        // set up
-        Order order = this.createOrder();
-        order.setOrderState(OrderState.FULFILLED);
-        this.fulfilledOrderList.addItem(order);
-        Assert.assertNull(this.failedOrderList.getNext());
-
-        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
-        orderInstance.setState(InstanceState.DISPATCHED);
         order.setInstanceId(FAKE_INSTANCE_ID);
 
         mockCloudConnectorFactory(orderInstance);
@@ -242,7 +217,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.failedOrderList.getNext());
 
         this.fulfilledProcessor = new FulfilledProcessor(REMOTE_MEMBER_ID,
-                //this.tunnelingService, this.sshConnectivity,
                 DefaultConfigurationConstants.FULFILLED_ORDERS_SLEEP_TIME);
 
         // exercise
@@ -400,7 +374,15 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     private Order createOrder() {
-        FederationUser federationUser = Mockito.mock(FederationUser.class);
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
+        FederationUser federationUser = null;
+        try {
+            federationUser = new FederationUser("fake-user", attributes);
+        } catch (InvalidParameterException e) {
+            e.printStackTrace();
+        }
+
         UserData userData = Mockito.mock(UserData.class);
 
         String requestingMember =

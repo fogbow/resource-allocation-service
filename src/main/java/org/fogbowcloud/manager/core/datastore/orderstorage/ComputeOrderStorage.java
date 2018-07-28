@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.datastore.commands.ComputeSQLCommands;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -199,7 +200,7 @@ public class ComputeOrderStorage extends OrderStorage {
             } catch (SQLException e1) {
                 LOGGER.error("Couldn't rollback transaction.", e1);
             }
-        } catch (UnexpectedException e) {
+        } catch (InvalidParameterException e) {
             LOGGER.error(e);
         } finally {
             closeConnection(orderStatement, connection);

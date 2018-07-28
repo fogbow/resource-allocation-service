@@ -23,6 +23,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -84,7 +85,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: A closed order cannot be deleted, so it must raise a FogbowManagerException.
     @Test(expected = FogbowManagerException.class)
-    public void testDeleteOrderStateClosed() throws UnexpectedException, OrderNotFoundException {
+    public void testDeleteOrderStateClosed() throws UnexpectedException, InvalidParameterException, OrderNotFoundException {
         // exercise
         String orderId = getComputeOrderCreationId(OrderState.CLOSED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -95,9 +96,11 @@ public class OrderControllerTest extends BaseUnitTests {
     // test case: Checks if getAllOrders() returns exactly the same orders that
     // were added on the lists.
     @Test
-    public void testGetAllOrders() throws UnexpectedException {
+    public void testGetAllOrders() throws InvalidParameterException {
         // set up
-        FederationUser federationUser = new FederationUser("fake-id", null);
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
+        FederationUser federationUser = new FederationUser("fake-id", attributes);
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setFederationUser(federationUser);
         computeOrder.setRequestingMember(this.localMember);
@@ -130,7 +133,9 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testGetOrder() throws UnexpectedException, FogbowManagerException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.OPEN);
-        FederationUser federationUser = new FederationUser("fake-id", null);
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
+        FederationUser federationUser = new FederationUser("fake-id", attributes);
 
         // exercise
         ComputeOrder computeOrder = (ComputeOrder) this.ordersController.getOrder(
@@ -143,8 +148,13 @@ public class OrderControllerTest extends BaseUnitTests {
     // test case: Getting order with when federationUser is null must throw InstanceNotFoundException.
     @Test(expected = InstanceNotFoundException.class)
     public void testGetInvalidOrder() throws FogbowManagerException {
+        // setup
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
+        FederationUser federationUser = new FederationUser("fake-user", attributes);
+
         // exercise
-        this.ordersController.getOrder("invalid-order-id", null, InstanceType.COMPUTE);
+        this.ordersController.getOrder("invalid-order-id", federationUser, InstanceType.COMPUTE);
     }
 
     // test case: Getting an order passing a different InstanceType must raise InstanceNotFoundException.
@@ -152,18 +162,23 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testGetOrderWithInvalidInstanceType() throws FogbowManagerException, UnexpectedException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.OPEN);
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
+        FederationUser federationUser = new FederationUser("fake-user", attributes);
 
         // exercise
-        this.ordersController.getOrder(orderId, null, InstanceType.NETWORK);
+        this.ordersController.getOrder(orderId, federationUser, InstanceType.NETWORK);
     }
 
     // test case: Getting order with when invalid federationUser (any fedUser with another ID)
     // must throw InstanceNotFoundException.
     @Test(expected = UnauthorizedRequestException.class)
-    public void testGetOrderWithInvalidFedUser() throws FogbowManagerException, UnexpectedException {
+    public void testGetOrderWithInvalidFedUser() throws FogbowManagerException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.OPEN);
-        FederationUser federationUser = new FederationUser("another-id", null);
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "another-name");
+        FederationUser federationUser = new FederationUser("another-id", attributes);
 
         // exercise
         this.ordersController.getOrder(orderId, federationUser, InstanceType.COMPUTE);
@@ -202,9 +217,11 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: Tests if getUserAllocation() returns the ComputeAllocation properly.
     @Test
-    public void testGetUserAllocation() throws UnexpectedException {
+    public void testGetUserAllocation() throws UnexpectedException, InvalidParameterException {
         // set up
-        FederationUser federationUser = new FederationUser("fake-id", null);
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
+        FederationUser federationUser = new FederationUser("fake-user", attributes);
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setFederationUser(federationUser);
         computeOrder.setRequestingMember(this.localMember);
@@ -229,9 +246,11 @@ public class OrderControllerTest extends BaseUnitTests {
     // test case: Tests if getUserAllocation() throws UnexpectedException when there is no any order
     // with the InstanceType specified.
     @Test(expected = UnexpectedException.class)
-    public void testGetUserAllocationWithInvalidInstanceType() throws UnexpectedException {
+    public void testGetUserAllocationWithInvalidInstanceType() throws UnexpectedException, InvalidParameterException {
         // set up
-        FederationUser federationUser = new FederationUser("fake-id", null);
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
+        FederationUser federationUser = new FederationUser("fake-user", attributes);
         NetworkOrder networkOrder = new NetworkOrder();
         networkOrder.setFederationUser(federationUser);
         networkOrder.setRequestingMember(this.localMember);
@@ -247,7 +266,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: Checks if deleting a failed order, this one will be moved to the closed orders list.
     @Test
-    public void testDeleteOrderStateFailed() throws UnexpectedException, OrderNotFoundException {
+    public void testDeleteOrderStateFailed() throws UnexpectedException, InvalidParameterException, OrderNotFoundException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.FAILED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -271,7 +290,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: Checks if deleting a fulfiled order, this one will be moved to the closed orders list.
     @Test
-    public void testDeleteOrderStateFulfilled() throws UnexpectedException, OrderNotFoundException {
+    public void testDeleteOrderStateFulfilled() throws UnexpectedException, InvalidParameterException, OrderNotFoundException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.FULFILLED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -294,7 +313,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: Checks if deleting a spawning order, this one will be moved to the closed orders list.
     @Test
-    public void testDeleteOrderStateSpawning() throws UnexpectedException, OrderNotFoundException {
+    public void testDeleteOrderStateSpawning() throws UnexpectedException, InvalidParameterException, OrderNotFoundException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.SPAWNING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -317,7 +336,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: Checks if deleting a pending order, this one will be moved to the closed orders list.
     @Test
-    public void testDeleteOrderStatePending() throws UnexpectedException, OrderNotFoundException {
+    public void testDeleteOrderStatePending() throws UnexpectedException, InvalidParameterException, OrderNotFoundException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.PENDING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -340,7 +359,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: Checks if deleting a open order, this one will be moved to the closed orders list.
     @Test
-    public void testDeleteOrderStateOpen() throws UnexpectedException, OrderNotFoundException {
+    public void testDeleteOrderStateOpen() throws UnexpectedException, InvalidParameterException, OrderNotFoundException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.OPEN);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -368,10 +387,12 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.deleteOrder(null);
     }
 
-    private String getComputeOrderCreationId(OrderState orderState) throws UnexpectedException {
+    private String getComputeOrderCreationId(OrderState orderState) throws InvalidParameterException {
         String orderId;
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
+        FederationUser federationUser = new FederationUser("fake-id", attributes);
 
-        FederationUser federationUser = new FederationUser("fake-id", null);
         ComputeOrder computeOrder = Mockito.spy(new ComputeOrder());
         computeOrder.setFederationUser(federationUser);
         computeOrder.setRequestingMember(this.localMember);

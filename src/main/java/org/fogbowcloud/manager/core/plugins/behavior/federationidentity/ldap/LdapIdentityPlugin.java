@@ -28,14 +28,7 @@ import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
-import org.fogbowcloud.manager.core.exceptions.ExpiredTokenException;
-import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
-import org.fogbowcloud.manager.core.exceptions.InvalidCredentialsUserException;
-import org.fogbowcloud.manager.core.exceptions.TokenValueCreationException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticTokenException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
 import org.fogbowcloud.manager.util.PropertiesUtil;
@@ -162,7 +155,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin {
 
     @Override
     public FederationUser getFederationUser(String federationTokenValue)
-            throws UnauthenticatedUserException, UnexpectedException {
+            throws UnauthenticatedUserException, InvalidParameterException {
 
         try {
 

@@ -31,7 +31,7 @@ public class AaController {
     }
 
     public FederationUser getFederationUser(String federationTokenValue)
-            throws UnauthenticatedUserException, UnexpectedException {
+            throws UnauthenticatedUserException, InvalidParameterException {
         LOGGER.debug(
                 "Trying to get the federationidentity tokens by federationidentity tokens id: " + federationTokenValue);
         return this.federationIdentityPlugin.getFederationUser(federationTokenValue);

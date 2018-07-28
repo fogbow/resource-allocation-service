@@ -1,11 +1,15 @@
 package org.fogbowcloud.manager.requests.api.local.http;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.fogbowcloud.manager.api.http.NetworkOrdersController;
 import org.fogbowcloud.manager.core.ApplicationFacade;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
@@ -205,8 +209,10 @@ public class NetworkOrdersControllerTest {
         return headers;
     }
 
-    private NetworkOrder createNetworkOrder() throws UnexpectedException {
-    	FederationUser federationUser = new FederationUser("fake-user", null);
+    private NetworkOrder createNetworkOrder() throws InvalidParameterException {
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
+        FederationUser federationUser = new FederationUser("fake-user", attributes);
 
         NetworkOrder networkOrder = Mockito.spy(new NetworkOrder());
         networkOrder.setFederationUser(federationUser);

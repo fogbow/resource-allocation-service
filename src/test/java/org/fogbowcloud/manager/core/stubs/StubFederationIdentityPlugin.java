@@ -1,6 +1,8 @@
 package org.fogbowcloud.manager.core.stubs;
 
 import java.util.Map;
+
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.TokenValueCreationException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
@@ -23,7 +25,7 @@ public class StubFederationIdentityPlugin implements FederationIdentityPlugin {
 
     @Override
     public FederationUser getFederationUser(String federationTokenValue)
-            throws UnauthenticatedUserException, UnexpectedException {
+            throws UnauthenticatedUserException, InvalidParameterException {
         return null;
     }
 

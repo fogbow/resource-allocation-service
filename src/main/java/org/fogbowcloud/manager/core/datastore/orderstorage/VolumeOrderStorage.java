@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.datastore.orderstorage;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.datastore.commands.VolumeSQLCommands;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -151,7 +152,7 @@ public class VolumeOrderStorage extends OrderStorage {
             } catch (SQLException e1) {
                 LOGGER.error("Couldn't rollback transaction.", e1);
             }
-        } catch (UnexpectedException e) {
+        } catch (InvalidParameterException e) {
             LOGGER.error(e);
         } finally {
             closeConnection(orderStatement, connection);
