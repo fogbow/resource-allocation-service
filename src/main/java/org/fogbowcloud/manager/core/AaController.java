@@ -10,7 +10,6 @@ import org.fogbowcloud.manager.core.plugins.behavior.authorization.Authorization
 import org.fogbowcloud.manager.core.plugins.behavior.federationidentity.FederationIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.LocalUserCredentialsMapperPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.LocalIdentityPlugin;
-import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 
@@ -62,10 +61,10 @@ public class AaController {
         }
     }    
 
-    public void authorize(FederationUser federationUser, Operation operation, Order order)
-            throws FogbowManagerException {
-        if (!this.authorizationPlugin.isAuthorized(federationUser, operation, order)) {
-            throw new UnauthorizedRequestException();
-        }
-    }
+//    public void authorize(FederationUser federationUser, Operation operation, String instanceId)
+//            throws FogbowManagerException {
+//        if (!this.authorizationPlugin.isAuthorized(federationUser, operation, instanceId)) {
+//            throw new UnauthorizedRequestException();
+//        }
+//    }
 }

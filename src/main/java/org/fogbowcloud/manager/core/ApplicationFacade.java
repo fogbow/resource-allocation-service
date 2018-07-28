@@ -246,7 +246,7 @@ public class ApplicationFacade {
         LOGGER.info("Normalizing the new compute order request received");
         this.aaController.authenticate(federationTokenValue);
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
-        this.aaController.authorize(federationUser, Operation.CREATE, order);
+        this.aaController.authorize(federationUser, Operation.CREATE, order.getType());
         order.setId(UUID.randomUUID().toString());
         order.setFederationUser(federationUser);
         order.setCachedInstanceState(InstanceState.DISPATCHED);
@@ -267,7 +267,7 @@ public class ApplicationFacade {
 
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
         Order order = this.orderController.getOrder(orderId, federationUser, instanceType);
-        this.aaController.authorize(federationUser, Operation.DELETE, order);
+        this.aaController.authorize(federationUser, Operation.DELETE, order.getType());
 
         this.orderController.deleteOrder(order);
     }
@@ -287,7 +287,7 @@ public class ApplicationFacade {
 
         FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
         Order order = this.orderController.getOrder(orderId, federationUser, instanceType);
-        this.aaController.authorize(federationUser, Operation.GET, order);
+        this.aaController.authorize(federationUser, Operation.GET, order.getType());
 
         return this.orderController.getResourceInstance(order);
     }

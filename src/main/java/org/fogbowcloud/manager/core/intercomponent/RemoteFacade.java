@@ -40,7 +40,7 @@ public class RemoteFacade {
     }
 
     public void activateOrder(Order order) throws FogbowManagerException, UnexpectedException {
-        this.aaController.authorize(order.getFederationUser(), Operation.CREATE, order);
+        this.aaController.authorize(order.getFederationUser(), Operation.CREATE, order.getType());
         OrderStateTransitioner.activateOrder(order);
     }
 
@@ -48,7 +48,7 @@ public class RemoteFacade {
             Exception {
 
         Order order = this.orderController.getOrder(orderId, federationUser, instanceType);
-        this.aaController.authorize(federationUser, Operation.GET, order);
+        this.aaController.authorize(federationUser, Operation.GET, order.getType());
 
         return this.orderController.getResourceInstance(order);
     }
@@ -57,7 +57,7 @@ public class RemoteFacade {
             throws FogbowManagerException, UnexpectedException {
 
         Order order = this.orderController.getOrder(orderId, federationUser, instanceType);
-        this.aaController.authorize(federationUser, Operation.DELETE, order);
+        this.aaController.authorize(federationUser, Operation.DELETE, order.getType());
 
         this.orderController.deleteOrder(order);
     }

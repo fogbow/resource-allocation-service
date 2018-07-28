@@ -85,10 +85,10 @@ public class AaControllerTest {
     	Mockito.when(this.authorizationPluginMock.isAuthorized(
     			Mockito.any(), 
     			Mockito.any(), 
-    			Mockito.any(Order.class))).thenReturn(true);
+    			Mockito.any(InstanceType.class))).thenReturn(true);
     	
     	//exercise/verify
-    	this.aaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(Order.class));
+    	this.aaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(InstanceType.class));
     }
     
     //test case: Check if authorize method throws no exception when the operation is valid.
@@ -123,10 +123,10 @@ public class AaControllerTest {
     	Mockito.when(this.authorizationPluginMock.isAuthorized(
     			Mockito.any(), 
     			Mockito.any(), 
-    			Mockito.any(Order.class))).thenReturn(false);
+    			Mockito.any(InstanceType.class))).thenReturn(false);
     	
     	//exercise/verify
-    	this.aaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(Order.class));
+    	this.aaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(InstanceType.class));
     }
     
     //test case: Check if authorize method throws Unauthenticated exception when the federation token is invalid. 
