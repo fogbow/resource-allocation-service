@@ -37,11 +37,6 @@ public class OrderStateTransitioner {
                 throw new UnexpectedException(message);
             }
             order.setOrderState(OrderState.OPEN);
-
-            // Adding newly created order in stable storage
-            DatabaseManager databaseManager = DatabaseManager.getInstance();
-            databaseManager.add(order);
-
             activeOrdersMap.put(orderId, order);
             openOrdersList.addItem(order);
         }
@@ -94,8 +89,6 @@ public class OrderStateTransitioner {
             closedOrders.removeItem(order);
             order.setInstanceId(null);
             order.setOrderState(OrderState.DEACTIVATED);
-            DatabaseManager databaseManager = DatabaseManager.getInstance();
-            databaseManager.update(order);
         }
     }
 
@@ -123,10 +116,6 @@ public class OrderStateTransitioner {
             // In this case, there is nothing else to be done
             if (origin.removeItem(order)) {
                 order.setOrderState(newState);
-
-                DatabaseManager databaseManager = DatabaseManager.getInstance();
-                databaseManager.update(order);
-
                 destination.addItem(order);
             }
         }

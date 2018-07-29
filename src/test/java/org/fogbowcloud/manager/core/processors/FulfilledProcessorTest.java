@@ -97,7 +97,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = this.createOrder();
-        order.setOrderState(OrderState.FULFILLED);
+        order.setOrderStateInTestMode(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
@@ -126,7 +126,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = this.createOrder();
-        order.setOrderState(OrderState.FULFILLED);
+        order.setOrderStateInTestMode(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
@@ -154,7 +154,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = this.createOrder();
-        order.setOrderState(OrderState.FAILED);
+        order.setOrderStateInTestMode(OrderState.FAILED);
         this.failedOrderList.addItem(order);
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
@@ -176,7 +176,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = this.createOrder();
-        order.setOrderState(OrderState.FULFILLED);
+        order.setOrderStateInTestMode(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
@@ -200,7 +200,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = this.createOrder();
-        order.setOrderState(OrderState.FULFILLED);
+        order.setOrderStateInTestMode(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
@@ -227,7 +227,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = this.createOrder();
-        order.setOrderState(OrderState.FULFILLED);
+        order.setOrderStateInTestMode(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
@@ -262,7 +262,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = this.createOrder();
-        order.setOrderState(OrderState.FULFILLED);
+        order.setOrderStateInTestMode(OrderState.FULFILLED);
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
@@ -294,7 +294,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         // set up
         Order order = Mockito.mock(Order.class);
         OrderState state = null;
-        order.setOrderState(state);
+        order.setOrderStateInTestMode(state);
         this.fulfilledOrderList.addItem(order);
 
         spyFulfiledProcessor();
@@ -320,7 +320,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         // set up
         Order order = Mockito.mock(Order.class);
         OrderState state = null;
-        order.setOrderState(state);
+        order.setOrderStateInTestMode(state);
         this.fulfilledOrderList.addItem(order);
 
         spyFulfiledProcessor();

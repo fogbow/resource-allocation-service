@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.models.orders;
 
+import org.fogbowcloud.manager.core.datastore.DatabaseManager;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
@@ -44,8 +45,24 @@ public abstract class Order {
         return this.orderState;
     }
 
+    public synchronized void setOrderStateInRecoveryMode(OrderState state) {
+        this.orderState = state;
+    }
+
+    public synchronized void setOrderStateInTestMode(OrderState state) {
+        this.orderState = state;
+    }
+
     public synchronized void setOrderState(OrderState state) {
         this.orderState = state;
+        DatabaseManager databaseManager = DatabaseManager.getInstance();
+        if (state.equals(OrderState.OPEN)) {
+            // Adding in stable storage newly created order
+            databaseManager.add(this);
+        } else {
+            // Updating in stable storage already existing order
+            databaseManager.update(this);
+        }
     }
 
     public FederationUser getFederationUser() {

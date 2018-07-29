@@ -178,7 +178,7 @@ public class ComputeOrderStorage extends OrderStorage {
                         computeResult.getString(14), networksid);
 
                 computeOrder.setInstanceId(computeResult.getString(2));
-                computeOrder.setOrderState(OrderState.valueOf(computeResult.getString(3)));
+                computeOrder.setOrderStateInRecoveryMode(OrderState.valueOf(computeResult.getString(3)));
 
                 ComputeAllocation computeAllocation = new ComputeAllocation(
                         computeResult.getInt(15),

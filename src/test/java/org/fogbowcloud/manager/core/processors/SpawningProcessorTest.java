@@ -90,7 +90,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = createComputeOrder();
-        order.setOrderState(OrderState.OPEN);
+        order.setOrderStateInTestMode(OrderState.OPEN);
         this.openOrderList.addItem(order);
 
         // exercise
@@ -111,7 +111,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         // set up
         Order order = new NetworkOrder();
         order.setRequestingMember(BaseUnitTests.LOCAL_MEMBER_ID);
-        order.setOrderState(OrderState.SPAWNING);
+        order.setOrderStateInTestMode(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
@@ -145,7 +145,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         // set up
         Order order = new VolumeOrder();
         order.setRequestingMember(BaseUnitTests.LOCAL_MEMBER_ID);
-        order.setOrderState(OrderState.SPAWNING);
+        order.setOrderStateInTestMode(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
@@ -179,7 +179,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         // set up
         Order order = new AttachmentOrder();
         order.setRequestingMember(BaseUnitTests.LOCAL_MEMBER_ID);
-        order.setOrderState(OrderState.SPAWNING);
+        order.setOrderStateInTestMode(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
@@ -211,7 +211,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = createComputeOrder();
-        order.setOrderState(OrderState.SPAWNING);
+        order.setOrderStateInTestMode(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
 
         Instance orderInstance = Mockito.spy(new ComputeInstance(FAKE_INSTANCE_ID));
@@ -239,7 +239,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = createComputeOrder();
-        order.setOrderState(OrderState.SPAWNING);
+        order.setOrderStateInTestMode(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
         Assert.assertNull(this.fulfilledOrderList.getNext());
         String orderId = order.getId();
@@ -273,7 +273,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = createComputeOrder();
-        order.setOrderState(OrderState.SPAWNING);
+        order.setOrderStateInTestMode(OrderState.SPAWNING);
         this.spawningOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
         String orderId = order.getId();

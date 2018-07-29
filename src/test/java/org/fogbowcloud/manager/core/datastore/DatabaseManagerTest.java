@@ -83,7 +83,7 @@ public class DatabaseManagerTest {
                 "requestingMember", "providingMember", 8, 1024,
                 30, "fake_image_name", new UserData("extraUserDataFile",
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), "fake_public_key", null);
-        computeOrder.setOrderState(OrderState.OPEN);
+        computeOrder.setOrderStateInTestMode(OrderState.OPEN);
 
         SynchronizedDoublyLinkedList synchronizedDoublyLinkedList =
                 databaseManager.readActiveOrders(OrderState.OPEN);
@@ -114,11 +114,11 @@ public class DatabaseManagerTest {
                 "requestingMember", "providingMember", 8, 1024,
                 30, "fake_image_name", new UserData("extraUserDataFile",
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), "fake_public_key", null);
-        computeOrder.setOrderState(OrderState.OPEN);
+        computeOrder.setOrderStateInTestMode(OrderState.OPEN);
 
         databaseManager.add(computeOrder);
 
-        computeOrder.setOrderState(OrderState.FULFILLED);
+        computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
         computeOrder.setActualAllocation(new ComputeAllocation(10, 10,10));
 
         // exercise
@@ -148,7 +148,7 @@ public class DatabaseManagerTest {
         Order networkOrder = new NetworkOrder(federationUser,
                 "requestingMember", "providingMember", "gateway",
                 "address", NetworkAllocationMode.STATIC);
-        networkOrder.setOrderState(OrderState.OPEN);
+        networkOrder.setOrderStateInTestMode(OrderState.OPEN);
 
         SynchronizedDoublyLinkedList synchronizedDoublyLinkedList =
                 databaseManager.readActiveOrders(OrderState.OPEN);
@@ -178,11 +178,11 @@ public class DatabaseManagerTest {
         Order networkOrder = new NetworkOrder(federationUser,
                 "requestingMember", "providingMember", "gateway",
                 "address", NetworkAllocationMode.STATIC);
-        networkOrder.setOrderState(OrderState.OPEN);
+        networkOrder.setOrderStateInTestMode(OrderState.OPEN);
 
         databaseManager.add(networkOrder);
 
-        networkOrder.setOrderState(OrderState.FULFILLED);
+        networkOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 
         // exercise
         databaseManager.update(networkOrder);
@@ -207,7 +207,7 @@ public class DatabaseManagerTest {
 
         Order volumeOrder = new VolumeOrder(federationUser,
                 "requestingMember", "providingMember", 0, "volume-name");
-        volumeOrder.setOrderState(OrderState.OPEN);
+        volumeOrder.setOrderStateInTestMode(OrderState.OPEN);
 
         SynchronizedDoublyLinkedList synchronizedDoublyLinkedList =
                 databaseManager.readActiveOrders(OrderState.OPEN);
@@ -236,11 +236,11 @@ public class DatabaseManagerTest {
 
         Order volumeOrder = new VolumeOrder(federationUser,
                 "requestingMember", "providingMember", 0, "volume-name");
-        volumeOrder.setOrderState(OrderState.OPEN);
+        volumeOrder.setOrderStateInTestMode(OrderState.OPEN);
 
         databaseManager.add(volumeOrder);
 
-        volumeOrder.setOrderState(OrderState.FULFILLED);
+        volumeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 
         // exercise
         databaseManager.update(volumeOrder);
@@ -266,7 +266,7 @@ public class DatabaseManagerTest {
 
         Order volumeOrder = new VolumeOrder(federationUser,
                 "requestingMember", "providingMember", 0, "volume-name");
-        volumeOrder.setOrderState(OrderState.CLOSED);
+        volumeOrder.setOrderStateInTestMode(OrderState.CLOSED);
 
         databaseManager.add(volumeOrder);
 
@@ -292,7 +292,7 @@ public class DatabaseManagerTest {
 
         VolumeOrder volumeOrder = new VolumeOrder(federationUser,
                 "requestingMember", "providingMember", 0, "volume-name");
-        volumeOrder.setOrderState(OrderState.CLOSED);
+        volumeOrder.setOrderStateInTestMode(OrderState.CLOSED);
         volumeOrder.setInstanceId("instanceId");
 
         databaseManager.add(volumeOrder);

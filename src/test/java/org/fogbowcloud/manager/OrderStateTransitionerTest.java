@@ -44,7 +44,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
 
     private Order createOrder(OrderState orderState) {
         Order order = createLocalOrder(getLocalMemberId());
-        order.setOrderState(orderState);
+        order.setOrderStateInTestMode(orderState);
         return order;
     }
 

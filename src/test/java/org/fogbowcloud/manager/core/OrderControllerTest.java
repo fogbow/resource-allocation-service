@@ -106,14 +106,14 @@ public class OrderControllerTest extends BaseUnitTests {
         computeOrder.setFederationUser(federationUser);
         computeOrder.setRequestingMember(this.localMember);
         computeOrder.setProvidingMember(this.localMember);
-        computeOrder.setOrderState(OrderState.FULFILLED);
+        computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
         computeOrder.setCachedInstanceState(InstanceState.READY);
 
         ComputeOrder computeOrder2 = new ComputeOrder();
         computeOrder2.setFederationUser(federationUser);
         computeOrder2.setRequestingMember(this.localMember);
         computeOrder2.setProvidingMember(this.localMember);
-        computeOrder2.setOrderState(OrderState.FAILED);
+        computeOrder2.setOrderStateInTestMode(OrderState.FAILED);
         computeOrder2.setCachedInstanceState(InstanceState.FAILED);
 
         this.activeOrdersMap.put(computeOrder.getId(), computeOrder);
@@ -205,7 +205,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString())).thenReturn(localCloudConnector);
 
         Order order = createLocalOrder();
-        order.setOrderState(OrderState.FULFILLED);
+        order.setOrderStateInTestMode(OrderState.FULFILLED);
 
         this.fulfilledOrdersList.addItem(order);
         this.activeOrdersMap.put(order.getId(), order);
@@ -238,7 +238,7 @@ public class OrderControllerTest extends BaseUnitTests {
         computeOrder.setFederationUser(federationUser);
         computeOrder.setRequestingMember(this.localMember);
         computeOrder.setProvidingMember(this.localMember);
-        computeOrder.setOrderState(OrderState.FULFILLED);
+        computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 
         computeOrder.setActualAllocation(new ComputeAllocation(1, 2, 3));
 
@@ -267,7 +267,7 @@ public class OrderControllerTest extends BaseUnitTests {
         networkOrder.setFederationUser(federationUser);
         networkOrder.setRequestingMember(this.localMember);
         networkOrder.setProvidingMember(this.localMember);
-        networkOrder.setOrderState(OrderState.FULFILLED);
+        networkOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 
         this.fulfilledOrdersList.addItem(networkOrder);
         this.activeOrdersMap.put(networkOrder.getId(), networkOrder);
@@ -414,7 +414,7 @@ public class OrderControllerTest extends BaseUnitTests {
         computeOrder.setFederationUser(federationUser);
         computeOrder.setRequestingMember(this.localMember);
         computeOrder.setProvidingMember(this.localMember);
-        computeOrder.setOrderState(orderState);
+        computeOrder.setOrderStateInTestMode(orderState);
 
         orderId = computeOrder.getId();
 

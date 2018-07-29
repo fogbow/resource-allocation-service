@@ -137,7 +137,7 @@ public class VolumeOrderStorage extends OrderStorage {
                         volumeResult.getInt(8), volumeResult.getString(9));
 
                 volumeOrder.setInstanceId(volumeResult.getString(2));
-                volumeOrder.setOrderState(OrderState.valueOf(volumeResult.getString(3)));
+                volumeOrder.setOrderStateInRecoveryMode(OrderState.valueOf(volumeResult.getString(3)));
 
                 synchronizedDoublyLinkedList.addItem(volumeOrder);
             }

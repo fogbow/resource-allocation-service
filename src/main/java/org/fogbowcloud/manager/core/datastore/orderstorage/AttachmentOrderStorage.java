@@ -140,7 +140,7 @@ public class AttachmentOrderStorage extends OrderStorage {
                         attachmentResult.getString(10));
 
                 attachmentOrder.setInstanceId(attachmentResult.getString(2));
-                attachmentOrder.setOrderState(OrderState.valueOf(attachmentResult.getString(3)));
+                attachmentOrder.setOrderStateInRecoveryMode(OrderState.valueOf(attachmentResult.getString(3)));
 
                 synchronizedDoublyLinkedList.addItem(attachmentOrder);
             }

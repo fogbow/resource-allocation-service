@@ -141,7 +141,7 @@ public class NetworkOrderStorage extends OrderStorage {
                         NetworkAllocationMode.valueOf(networkResult.getString(10)));
 
                 networkOrder.setInstanceId(networkResult.getString(2));
-                networkOrder.setOrderState(OrderState.valueOf(networkResult.getString(3)));
+                networkOrder.setOrderStateInRecoveryMode(OrderState.valueOf(networkResult.getString(3)));
 
                 synchronizedDoublyLinkedList.addItem(networkOrder);
             }

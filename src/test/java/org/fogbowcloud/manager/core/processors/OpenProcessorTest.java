@@ -229,7 +229,7 @@ public class OpenProcessorTest extends BaseUnitTests {
 
         OrderStateTransitioner.activateOrder(order);
 
-        order.setOrderState(OrderState.PENDING);
+        order.setOrderStateInTestMode(OrderState.PENDING);
         
         //exercise
         this.thread = new Thread(this.openProcessor);
@@ -327,7 +327,7 @@ public class OpenProcessorTest extends BaseUnitTests {
 
             Thread.sleep(500);
 
-            localOrder.setOrderState(OrderState.CLOSED);
+            localOrder.setOrderStateInTestMode(OrderState.CLOSED);
         }
 
         Thread.sleep(500);
@@ -365,7 +365,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         synchronized (localOrder) {
             Thread.sleep(1000);
             assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
-            localOrder.setOrderState(OrderState.OPEN);
+            localOrder.setOrderStateInTestMode(OrderState.OPEN);
         }
         
         //verify
