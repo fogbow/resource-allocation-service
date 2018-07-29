@@ -60,8 +60,7 @@ public class Main implements ApplicationRunner {
             PacketSenderHolder.init(xmppComponentManager);
             CloudConnectorFactory cloudConnectorFactory = CloudConnectorFactory.getInstance();
             cloudConnectorFactory.setLocalMemberId(localMemberId);
-            cloudConnectorFactory.setAaController(aaController);
-            cloudConnectorFactory.setOrderController(orderController);
+            cloudConnectorFactory.setMapperPlugin(behaviorPluginsHolder.getFederationToLocalMapperPlugin());
             cloudConnectorFactory.setCloudPluginsHolder(cloudPluginsHolder);
 
             // Setting up order processors and starting threads

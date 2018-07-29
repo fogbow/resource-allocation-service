@@ -2,15 +2,14 @@ package org.fogbowcloud.manager.core.cloudconnector;
 
 import org.fogbowcloud.manager.core.AaController;
 import org.fogbowcloud.manager.core.CloudPluginsHolder;
-import org.fogbowcloud.manager.core.OrderController;
+import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 
 public class CloudConnectorFactory {
 
     private static CloudConnectorFactory instance;
 
     private String localMemberId;
-    private AaController aaController;
-    private OrderController orderController;
+    private FederationToLocalMapperPlugin mapperPlugin;
     private CloudPluginsHolder cloudPluginsHolder;
 
     public static synchronized CloudConnectorFactory getInstance() {
@@ -24,8 +23,7 @@ public class CloudConnectorFactory {
         CloudConnector cloudConnector;
 
         if (memberId.equals(this.localMemberId)) {
-                cloudConnector = new LocalCloudConnector(this.aaController,
-                        this.cloudPluginsHolder);
+                cloudConnector = new LocalCloudConnector(this.mapperPlugin, this.cloudPluginsHolder);
         } else {
                 cloudConnector = new RemoteCloudConnector(memberId);
         }
@@ -33,12 +31,8 @@ public class CloudConnectorFactory {
         return cloudConnector;
     }
 
-    public void setAaController(AaController aaController) {
-        this.aaController = aaController;
-    }
-
-    public void setOrderController(OrderController orderController) {
-        this.orderController = orderController;
+    public void setMapperPlugin(FederationToLocalMapperPlugin mapperPlugin) {
+        this.mapperPlugin = mapperPlugin;
     }
 
     public void setCloudPluginsHolder(CloudPluginsHolder cloudPluginsHolder) {

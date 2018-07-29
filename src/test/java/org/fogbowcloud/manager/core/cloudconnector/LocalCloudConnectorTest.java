@@ -9,6 +9,7 @@ import org.fogbowcloud.manager.core.datastore.DatabaseManager;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.*;
+import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputeQuotaPlugin;
@@ -88,7 +89,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         BDDMockito.given(DatabaseManager.getInstance()).willReturn(databaseManager);
 		
         // mocking class attributes
-        AaController aaController = Mockito.mock(AaController.class);
+        FederationToLocalMapperPlugin mapperPlugin = Mockito.mock(FederationToLocalMapperPlugin.class);
         CloudPluginsHolder cloudPluginsHolder = Mockito.mock(CloudPluginsHolder.class);  
         
         this.federationUser = Mockito.mock(FederationUser.class);
@@ -122,10 +123,10 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(cloudPluginsHolder.getVolumePlugin()).thenReturn(volumePlugin);
         Mockito.when(cloudPluginsHolder.getImagePlugin()).thenReturn(imagePlugin);
         Mockito.when(cloudPluginsHolder.getComputeQuotaPlugin()).thenReturn(computeQuotaPlugin);
-        Mockito.when(aaController.getLocalToken(Mockito.any(FederationUser.class))).thenReturn(new Token());
+        Mockito.when(mapperPlugin.getToken(Mockito.any(FederationUser.class))).thenReturn(new Token());
         
         // starting the object we want to test
-        this.localCloudConnector = new LocalCloudConnector(aaController, cloudPluginsHolder);      
+        this.localCloudConnector = new LocalCloudConnector(mapperPlugin, cloudPluginsHolder);
     }
 	
 	// test case: Request a compute instance when the plugin returns a correct id
