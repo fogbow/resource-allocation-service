@@ -209,11 +209,10 @@ public class ApplicationFacade {
     public List<InstanceStatus> getAllInstancesStatus(String federationTokenValue, ResourceType resourceType) throws
             Exception {
         List<Order> allOrders = getAllOrders(federationTokenValue, resourceType);
-        return getInstancesStatus(allOrders, resourceType);
+        return getInstancesStatus(allOrders);
     }
 
-    private List<InstanceStatus> getInstancesStatus(List<Order> allOrders, ResourceType resourceType)
-            throws UnexpectedException {
+    private List<InstanceStatus> getInstancesStatus(List<Order> allOrders) {
         List<InstanceStatus> instanceStatusList = new ArrayList<>();
         for (Order order : allOrders) {
             // The state of the instance can be inferred from the state of the order
