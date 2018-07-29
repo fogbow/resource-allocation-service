@@ -92,7 +92,8 @@ public class RemoteFacade {
     public void handleRemoteEvent(Event event, Order remoteOrder) throws FogbowManagerException, UnexpectedException {
         // order is a java object that represents the order passed in the message
         // actualOrder is the java object that represents this order inside the current manager
-        Order localOrder = this.orderController.getOrder(remoteOrder.getId(), remoteOrder.getFederationUser(), remoteOrder.getType());
+        Order localOrder = this.orderController.getOrder(remoteOrder.getId(), remoteOrder.getFederationUser(),
+                remoteOrder.getType());
         updateLocalOrder(localOrder, remoteOrder, event);
         switch (event) {
             case INSTANCE_FULFILLED:
@@ -124,11 +125,11 @@ public class RemoteFacade {
         }
     }
 
-    public void setAaController(AaController AaController) {
+    public synchronized void setAaController(AaController AaController) {
         this.aaController = AaController;
     }
 
-    public void setOrderController(OrderController orderController) {
+    public synchronized void setOrderController(OrderController orderController) {
         this.orderController = orderController;
     }
 }

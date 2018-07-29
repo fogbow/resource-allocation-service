@@ -224,11 +224,11 @@ public class ApplicationFacade {
         return instanceStatusList;
     }
 
-    public void setAaController(AaController aaController) {
+    public synchronized void setAaController(AaController aaController) {
         this.aaController = aaController;
     }
 
-    public void setOrderController(OrderController orderController) {
+    public synchronized void setOrderController(OrderController orderController) {
         this.orderController = orderController;
     }
 
@@ -319,6 +319,5 @@ public class ApplicationFacade {
             }
         }
         return instances;
-
     }
 }
