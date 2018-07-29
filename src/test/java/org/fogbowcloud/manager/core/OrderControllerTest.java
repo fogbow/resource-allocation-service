@@ -16,6 +16,7 @@ import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
@@ -90,7 +91,7 @@ public class OrderControllerTest extends BaseUnitTests {
         String orderId = getComputeOrderCreationId(OrderState.CLOSED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
-        this.ordersController.deleteOrder(computeOrder);
+        this.ordersController.deleteOrder(orderId);
     }
 
     // test case: Checks if getInstancesStatus() returns exactly the same list of instances that
@@ -145,8 +146,7 @@ public class OrderControllerTest extends BaseUnitTests {
         FederationUser federationUser = new FederationUser("fake-id", attributes);
 
         // exercise
-        ComputeOrder computeOrder = (ComputeOrder) this.ordersController.getOrder(
-                orderId, federationUser, ResourceType.COMPUTE);
+        ComputeOrder computeOrder = (ComputeOrder) this.ordersController.getOrder(orderId);
 
         // verify
         Assert.assertEquals(computeOrder, this.openOrdersList.getNext());
@@ -161,10 +161,12 @@ public class OrderControllerTest extends BaseUnitTests {
         FederationUser federationUser = new FederationUser("fake-user", attributes);
 
         // exercise
-        this.ordersController.getOrder("invalid-order-id", federationUser, ResourceType.COMPUTE);
+        this.ordersController.getOrder("invalid-order-id");
     }
 
     // test case: Getting an order passing a different ResourceType must raise InstanceNotFoundException.
+    // ToDO: The refactor in ApplicationFacade moved the this logic out from OrderController; this test should be moved elsewhere.
+    @Ignore
     @Test(expected = InstanceNotFoundException.class)
     public void testGetOrderWithInvalidInstanceType() throws FogbowManagerException, UnexpectedException {
         // set up
@@ -174,11 +176,13 @@ public class OrderControllerTest extends BaseUnitTests {
         FederationUser federationUser = new FederationUser("fake-user", attributes);
 
         // exercise
-        this.ordersController.getOrder(orderId, federationUser, ResourceType.NETWORK);
+        this.ordersController.getOrder(orderId);
     }
 
     // test case: Getting order with when invalid federationUser (any fedUser with another ID)
     // must throw InstanceNotFoundException.
+    // ToDO: The refactor in ApplicationFacade moved the this logic out from OrderController; this test should be moved elsewhere.
+    @Ignore
     @Test(expected = UnauthorizedRequestException.class)
     public void testGetOrderWithInvalidFedUser() throws FogbowManagerException {
         // set up
@@ -188,7 +192,7 @@ public class OrderControllerTest extends BaseUnitTests {
         FederationUser federationUser = new FederationUser("another-id", attributes);
 
         // exercise
-        this.ordersController.getOrder(orderId, federationUser, ResourceType.COMPUTE);
+        this.ordersController.getOrder(orderId);
     }
 
     // test case: Checks if given an order getResourceInstance() returns its instance.
@@ -204,6 +208,7 @@ public class OrderControllerTest extends BaseUnitTests {
         order.setOrderState(OrderState.FULFILLED);
 
         this.fulfilledOrdersList.addItem(order);
+        this.activeOrdersMap.put(order.getId(), order);
 
         String instanceId = "instanceid";
         Instance orderInstance = Mockito.spy(new ComputeInstance(instanceId));
@@ -216,7 +221,7 @@ public class OrderControllerTest extends BaseUnitTests {
         BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
 
         //exercise
-        Instance instance = this.ordersController.getResourceInstance(order);
+        Instance instance = this.ordersController.getResourceInstance(order.getId());
 
         // verify
         Assert.assertEquals(orderInstance, instance);
@@ -284,7 +289,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertNull(this.closedOrdersList.getNext());
 
         // exercise
-        this.ordersController.deleteOrder(computeOrder);
+        this.ordersController.deleteOrder(orderId);
 
         // verify
         Order order = this.closedOrdersList.getNext();
@@ -309,7 +314,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertNull(this.closedOrdersList.getNext());
 
         // exercise
-        this.ordersController.deleteOrder(computeOrder);
+        this.ordersController.deleteOrder(orderId);
 
         // verify
         Order order = this.closedOrdersList.getNext();
@@ -333,7 +338,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertNull(this.closedOrdersList.getNext());
 
         // exercise
-        this.ordersController.deleteOrder(computeOrder);
+        this.ordersController.deleteOrder(orderId);
 
         // verify
         Order order = this.closedOrdersList.getNext();
@@ -357,7 +362,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertNull(this.closedOrdersList.getNext());
 
         // exercise
-        this.ordersController.deleteOrder(computeOrder);
+        this.ordersController.deleteOrder(orderId);
 
         // verify
         Order order = this.closedOrdersList.getNext();
@@ -381,7 +386,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertNull(this.closedOrdersList.getNext());
 
         // exercise
-        this.ordersController.deleteOrder(computeOrder);
+        this.ordersController.deleteOrder(orderId);
 
         // verify
         Order order = this.closedOrdersList.getNext();
@@ -394,8 +399,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: Deleting a null order must return a FogbowManagerException.
     @Test(expected = FogbowManagerException.class)
-    public void testDeleteNullOrder() throws UnexpectedException,
-            InstanceNotFoundException {
+    public void testDeleteNullOrder() throws UnexpectedException, InstanceNotFoundException, InvalidParameterException {
         // exercise
         this.ordersController.deleteOrder(null);
     }

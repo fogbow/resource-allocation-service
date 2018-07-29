@@ -3,13 +3,16 @@ package org.fogbowcloud.manager.core;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.models.InstanceStatus;
 import org.fogbowcloud.manager.core.models.ResourceType;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
@@ -29,33 +32,35 @@ public class OrderController {
         this.orderHolders = SharedOrderHolders.getInstance();
     }
 
-    public Order getOrder(String orderId, FederationUser requester, ResourceType resourceType)
-            throws FogbowManagerException {
-        Order requestedOrder = this.orderHolders.getActiveOrdersMap().get(orderId);
+    public String activateOrder(Order order) throws UnexpectedException {
+        // Set order fields that have not been provided by the requester
+        order.setId(UUID.randomUUID().toString());
+        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        order.setRequestingMember(localMemberId);
+        if (order.getProvidingMember() == null) {
+            order.setProvidingMember(localMemberId);
+        }
+        // Set an initial state for the instance that is yet to be created in the cloud
+        order.setCachedInstanceState(InstanceState.DISPATCHED);
+        // Add order to the poll of active orders and to the OPEN linked list
+        OrderStateTransitioner.activateOrder(order);
+        return order.getId();
+    }
 
+    public Order getOrder(String orderId) throws InstanceNotFoundException {
+        Order requestedOrder = this.orderHolders.getActiveOrdersMap().get(orderId);
+        String msg = (requestedOrder == null ? "null" : requestedOrder.toString());
+        LOGGER.debug("getting order " + orderId + " returned " + msg);
         if (requestedOrder == null) {
             throw new InstanceNotFoundException();
         }
-
-        if (!requestedOrder.getType().equals(resourceType)) {
-            throw new InstanceNotFoundException();
-        }
-
-        FederationUser orderOwner = requestedOrder.getFederationUser();
-        if (!orderOwner.getId().equals(requester.getId())) {
-            throw new UnauthorizedRequestException();
-        }
-
         return requestedOrder;
     }
 
-    public void deleteOrder(Order order) throws InstanceNotFoundException, UnexpectedException {
-        if (order == null) {
-            String message = "Cannot delete a null order.";
-            LOGGER.error(message);
-            throw new InstanceNotFoundException();
-        }
-
+    public void deleteOrder(String orderId) throws InstanceNotFoundException, UnexpectedException,
+            InvalidParameterException {
+        if (orderId == null) throw new InvalidParameterException("No instance id informed");
+        Order order = getOrder(orderId);
         synchronized (order) {
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.CLOSED)) {
@@ -68,10 +73,10 @@ public class OrderController {
         }
     }
 
-    public Instance getResourceInstance(Order order) throws Exception {
-        LOGGER.info("Get resource instance from order with id <" + order.getId() + "> received");
+    public Instance getResourceInstance(String orderId) throws Exception {
+        if (orderId == null) throw new InvalidParameterException("No instance id informed");
+        Order order = getOrder(orderId);
         synchronized (order) {
-
             CloudConnector cloudConnector =
                     CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
             return cloudConnector.getInstance(order);
@@ -102,6 +107,19 @@ public class OrderController {
         }
     }
 
+    public List<InstanceStatus> getInstancesStatus(FederationUser federationUser, ResourceType resourceType) {
+        List<InstanceStatus> instanceStatusList = new ArrayList<>();
+        List<Order> allOrders = getAllOrders(federationUser, resourceType);
+        for (Order order : allOrders) {
+            // The state of the instance can be inferred from the state of the order
+            InstanceStatus instanceStatus = new InstanceStatus(order.getId(), order.getProvidingMember(),
+                    order.getCachedInstanceState());
+            instanceStatusList.add(instanceStatus);
+            LOGGER.debug("getInstancesStatus: orderId " + order.getId() + " provider " + order.getProvidingMember() + " status " + order.getCachedInstanceState());
+        }
+        return instanceStatusList;
+    }
+
     private ComputeAllocation getUserComputeAllocation(Collection<ComputeOrder> computeOrders) {
         int vCPU = 0;
         int ram = 0;
@@ -115,19 +133,6 @@ public class OrderController {
         }
 
         return new ComputeAllocation(vCPU, ram, instances);
-    }
-
-    public List<InstanceStatus> getInstancesStatus(FederationUser federationUser, ResourceType resourceType) {
-        List<InstanceStatus> instanceStatusList = new ArrayList<>();
-        List<Order> allOrders = getAllOrders(federationUser, resourceType);
-        for (Order order : allOrders) {
-            // The state of the instance can be inferred from the state of the order
-            InstanceStatus instanceStatus = new InstanceStatus(order.getId(), order.getProvidingMember(),
-                    order.getCachedInstanceState());
-            instanceStatusList.add(instanceStatus);
-            LOGGER.debug("getInstancesStatus: orderId " + order.getId() + " provider " + order.getProvidingMember() + " status " + order.getCachedInstanceState());
-        }
-        return instanceStatusList;
     }
 
     private List<Order> getAllOrders(FederationUser federationUser, ResourceType resourceType) {

@@ -340,7 +340,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         ComputeInstance computeInstanceExcepted = new ComputeInstance(FAKE_INSTANCE_ID);
 
         Mockito.doReturn(computeInstanceExcepted).when(this.orderController)
-                .getResourceInstance(Mockito.eq(order));
+                .getResourceInstance(Mockito.eq(order.getId()));
 
         // exercise
         ComputeInstance computeInstance =
@@ -348,7 +348,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.orderController, Mockito.times(1))
-                .getResourceInstance(Mockito.eq(order));
+                .getResourceInstance(Mockito.eq(order.getId()));
 
         Assert.assertSame(computeInstanceExcepted, computeInstance);
     }
@@ -840,7 +840,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         NetworkInstance networkInstanceExcepted = new NetworkInstance("");
         Mockito.doReturn(networkInstanceExcepted).when(this.orderController)
-                .getResourceInstance(Mockito.eq(order));
+                .getResourceInstance(Mockito.eq(order.getId()));
 
         Mockito.doNothing().when(this.aaaController).authenticate(Mockito.anyString());
 
@@ -853,7 +853,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // verify
         Mockito.verify(this.orderController, Mockito.times(1))
-                .getResourceInstance(Mockito.eq(order));
+                .getResourceInstance(Mockito.eq(order.getId()));
 
         Assert.assertSame(networkInstanceExcepted, actualInstance);
     }
@@ -1314,7 +1314,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         NetworkInstance networtkInstanceExcepted = new NetworkInstance(order.getId());
         Mockito.doReturn(networtkInstanceExcepted).when(this.orderController)
-                .getResourceInstance(Mockito.eq(order));
+                .getResourceInstance(Mockito.eq(order.getId()));
         order.setInstanceId(networtkInstanceExcepted.getId());
 
         return order;
@@ -1329,7 +1329,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         VolumeInstance volumeInstanceExcepted = new VolumeInstance(order.getId());
         Mockito.doReturn(volumeInstanceExcepted).when(this.orderController)
-                .getResourceInstance(Mockito.eq(order));
+                .getResourceInstance(Mockito.eq(order.getId()));
         order.setInstanceId(volumeInstanceExcepted.getId());
 
         return order;
@@ -1346,7 +1346,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         ComputeInstance computeInstanceExcepted = new ComputeInstance(order.getId());
 
         Mockito.doReturn(computeInstanceExcepted).when(this.orderController)
-                .getResourceInstance(Mockito.eq(order));
+                .getResourceInstance(Mockito.eq(order.getId()));
 
         order.setInstanceId(computeInstanceExcepted.getId());
 
@@ -1376,7 +1376,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         AttachmentInstance attachmentInstanceExcepted = new AttachmentInstance(order.getId());
 
         Mockito.doReturn(attachmentInstanceExcepted).when(this.orderController)
-                .getResourceInstance(Mockito.eq(order));
+                .getResourceInstance(Mockito.eq(order.getId()));
         order.setInstanceId(attachmentInstanceExcepted.getId());
 
         return order;

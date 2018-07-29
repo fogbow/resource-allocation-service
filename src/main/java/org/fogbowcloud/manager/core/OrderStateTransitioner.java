@@ -73,7 +73,6 @@ public class OrderStateTransitioner {
                     return;
                 }
             }
-
             doTransition(order, newState);
         }
     }
@@ -92,9 +91,7 @@ public class OrderStateTransitioner {
                         "Tried to remove order %s from the active orders but it was not active", order.getId());
                 throw new UnexpectedException(message);
             }
-
             closedOrders.removeItem(order);
-
             order.setInstanceId(null);
             order.setOrderState(OrderState.DEACTIVATED);
             DatabaseManager databaseManager = DatabaseManager.getInstance();
