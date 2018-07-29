@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins;
+package org.fogbowcloud.manager.core;
 
 import java.lang.reflect.Constructor;
 import org.apache.log4j.Logger;

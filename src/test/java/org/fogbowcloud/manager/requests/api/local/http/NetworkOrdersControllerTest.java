@@ -83,66 +83,6 @@ public class NetworkOrdersControllerTest {
         Mockito.verify(this.facade, Mockito.times(1)).createNetwork(Mockito.any(NetworkOrder.class), Mockito.anyString());
     }
     
-    // test case: Get all network instances
-    @Test
-    public void getAllNetworksTest() throws Exception {
-    	
-    	// set up
-        List<NetworkInstance> networkInstances = new ArrayList<>();
-        NetworkInstance instance = createNetworkInstance();
-        networkInstances.add(instance);
-
-        PowerMockito.mockStatic(ApplicationFacade.class);
-        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
-        Mockito.doReturn(networkInstances).when(this.facade).getAllNetworks(Mockito.anyString());
-        
-        HttpHeaders headers = getHttpHeaders();
-
-        // exercise
-        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(NETWORK_END_POINT)
-                .headers(headers)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andReturn();
-        
-        // verify
-        int expectedStatus = HttpStatus.OK.value();
-        TypeToken<List<NetworkInstance>> token = new TypeToken<List<NetworkInstance>>(){};
-        List<NetworkInstance> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
-        Assert.assertEquals(1, resultList.size());
-        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, Mockito.times(1)).getAllNetworks(Mockito.anyString());
-        
-    }
-    
-    // test case: Get all network instances when the facade returns an empty list
-    @Test
-    public void getAllNetworksWithEmptyListTest() throws Exception {
-    	
-    	// set up
-        List<NetworkInstance> networkInstances = new ArrayList<>();
-        PowerMockito.mockStatic(ApplicationFacade.class);
-        BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
-        Mockito.doReturn(networkInstances).when(this.facade).getAllNetworks(Mockito.anyString());
-
-        HttpHeaders headers = getHttpHeaders();
-        
-        // exercise
-        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(NETWORK_END_POINT)
-                .headers(headers)
-                .contentType(MediaType.APPLICATION_JSON))
-                .andReturn();
-        
-        // verify
-        int expectedStatus = HttpStatus.OK.value();
-
-        TypeToken<List<NetworkInstance>> token = new TypeToken<List<NetworkInstance>>(){};
-        List<NetworkInstance> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
-        Assert.assertEquals(0, resultList.size());
-        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, Mockito.times(1)).getAllNetworks(Mockito.anyString());
-    }
-    
-    
     // test case: Get a network instance
     @Test
     public void getNetworkTest() throws Exception {

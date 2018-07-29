@@ -33,15 +33,6 @@ public class NetworkOrdersController {
         return new ResponseEntity<String>(networkId, HttpStatus.CREATED);
     }
 
-    @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<NetworkInstance>> getAllNetworks(
-            @RequestHeader(required = false ,value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
-        LOGGER.info("Get all network orders request received.");
-        List<NetworkInstance> networks = ApplicationFacade.getInstance().getAllNetworks(federationTokenValue);
-        return new ResponseEntity<>(networks, HttpStatus.OK);
-    }
-
     @RequestMapping(value = "/status", method = RequestMethod.GET)
     public ResponseEntity<List<InstanceStatus>> getAllNetworksStatus(
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)

@@ -33,7 +33,7 @@ public abstract class Order {
     }
 
     public String getId() {
-        return id;
+        return this.id;
     }
 
     public void setId(String id) {
@@ -41,7 +41,7 @@ public abstract class Order {
     }
 
     public synchronized OrderState getOrderState() {
-        return orderState;
+        return this.orderState;
     }
 
     public synchronized void setOrderState(OrderState state) {
@@ -49,7 +49,7 @@ public abstract class Order {
     }
 
     public FederationUser getFederationUser() {
-        return federationUser;
+        return this.federationUser;
     }
 
     public void setFederationUser(FederationUser federationUser) {
@@ -57,7 +57,7 @@ public abstract class Order {
     }
 
     public String getRequestingMember() {
-        return requestingMember;
+        return this.requestingMember;
     }
 
     public void setRequestingMember(String requestingMember) {
@@ -65,7 +65,7 @@ public abstract class Order {
     }
 
     public String getProvidingMember() {
-        return providingMember;
+        return this.providingMember;
     }
 
     public void setProvidingMember(String providingMember) {
@@ -73,7 +73,7 @@ public abstract class Order {
     }
 
     public String getInstanceId() {
-        return instanceId;
+        return this.instanceId;
     }
 
     public synchronized void setInstanceId(String instanceId) {
@@ -108,12 +108,11 @@ public abstract class Order {
 
     public abstract ResourceType getType();
 
-    // TODO: add a comment to explain why we need to override these methods
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
         return result;
     }
 
@@ -123,16 +122,16 @@ public abstract class Order {
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
         Order other = (Order) obj;
-        if (id == null) {
-            if (other.id != null) return false;
-        } else if (!id.equals(other.id)) return false;
+        if (this.id == null) {
+            if (other.getId() != null) return false;
+        } else if (!this.id.equals(other.getId())) return false;
         return true;
     }
 
     @Override
     public String toString() {
-        return "Order [id=" + id + ", orderState=" + orderState + ", federationUser=" + federationUser
-                + ", requestingMember=" + requestingMember + ", providingMember=" + providingMember
-                + ", instanceId=" + instanceId + "]";
+        return "Order [id=" + this.id + ", orderState=" + this.orderState + ", federationUser=" + this.federationUser
+                + ", requestingMember=" + this.requestingMember + ", providingMember=" + this.providingMember
+                + ", instanceId=" + this.instanceId + "]";
     }
 }

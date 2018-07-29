@@ -144,66 +144,7 @@ public class ComputeOrdersControllerTest {
         
         Mockito.verify(this.facade, Mockito.times(1)).createCompute(Mockito.any(ComputeOrder.class), Mockito.anyString());
     }
-    
-    // test case: Request the list of all computes when the facade returns an empty list. 
-    // Check the response of request and the call of facade for get the computes.
-    @Test
-    public void testGetAllComputesEmptyList() throws Exception {
-    	
-    	// set up
-        List<ComputeInstance> computeInstanceList = new ArrayList<>();
-        Mockito.doReturn(computeInstanceList).when(this.facade).getAllComputes(Mockito.anyString());
-        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, COMPUTE_ENDPOINT, getHttpHeaders(), "");
-        
-        // exercise
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-        
-        // verify
-        int expectedStatus = HttpStatus.OK.value();
-        String expectedResult = "[]";
-        
-        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Assert.assertEquals(expectedResult, result.getResponse().getContentAsString());
-        
-        Mockito.verify(this.facade, Mockito.times(1)).getAllComputes(Mockito.anyString());
-    }
-    
-    // test case: Request the list of all computes when the facade returns a non-empty list. 
-    // Check the response of request and the call of facade for get the computes.
-    @Test
-    public void testGetAllComputesWhenHasData() throws Exception {
-    	
-    	// set up
-    	final String FAKE_ID_1 = "fake-Id-1";
-    	final String FAKE_ID_2 = "fake-Id-2";
-    	final String FAKE_ID_3 = "fake-Id-3";
-    	
-        ComputeInstance computeInstance1 = new ComputeInstance(FAKE_ID_1);
-        ComputeInstance computeInstance2 = new ComputeInstance(FAKE_ID_2);
-        ComputeInstance computeInstance3 = new ComputeInstance(FAKE_ID_3);
 
-        List<ComputeInstance> computeInstanceList = Arrays.asList(new ComputeInstance[] {computeInstance1, computeInstance2, computeInstance3});
-        Mockito.doReturn(computeInstanceList).when(this.facade).getAllComputes(Mockito.anyString());
-
-        RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, COMPUTE_ENDPOINT, getHttpHeaders(), "");
-        
-        // exercise
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-        
-        // verify
-        int expectedStatus = HttpStatus.OK.value();
-        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        
-        TypeToken<List<ComputeInstance>> token = new TypeToken<List<ComputeInstance>>(){};
-        List<ComputeInstance> resultList = new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
-        Assert.assertEquals(3, resultList.size());
-        Assert.assertEquals(FAKE_ID_1, resultList.get(0).getId());
-        Assert.assertEquals(FAKE_ID_2, resultList.get(1).getId());
-        Assert.assertEquals(FAKE_ID_3, resultList.get(2).getId());
-        
-        Mockito.verify(this.facade, Mockito.times(1)).getAllComputes(Mockito.anyString());
-    }
-    
     // test case: Request the list of all computes status when the facade returns an empty list. 
     // Check the response of request and the call of facade for get the computes status.
     @Test

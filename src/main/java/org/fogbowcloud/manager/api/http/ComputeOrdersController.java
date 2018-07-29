@@ -40,15 +40,6 @@ public class ComputeOrdersController {
         return new ResponseEntity<String>(computeId, HttpStatus.CREATED);
     }
 
-    @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<ComputeInstance>> getAllComputes(
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
-        LOGGER.info("Get all compute order requests received.");
-        List<ComputeInstance> computes = ApplicationFacade.getInstance().getAllComputes(federationTokenValue);
-        return new ResponseEntity<>(computes, HttpStatus.OK);
-    }
-
     @RequestMapping(value = "/" + STATUS_ENDPOINT, method = RequestMethod.GET)
     public ResponseEntity<List<InstanceStatus>> getAllComputesStatus(
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)

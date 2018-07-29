@@ -50,19 +50,14 @@ public class Main implements ApplicationRunner {
             String xmppJid = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_JID_KEY);
             String xmppPassword = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_PASSWORD_KEY);
             String xmppServerIp = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_SERVER_IP_KEY);
-            int xmppServerPort =
-                    Integer.parseInt(PropertiesHolder.getInstance().
+            int xmppServerPort = Integer.parseInt(PropertiesHolder.getInstance().
                             getProperty(ConfigurationConstants.XMPP_SERVER_PORT_KEY));
             long xmppTimeout =
                     Long.parseLong(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_TIMEOUT_KEY));
-
             XmppComponentManager xmppComponentManager = new XmppComponentManager(xmppJid, xmppPassword, xmppServerIp,
                     xmppServerPort, xmppTimeout);
-
             xmppComponentManager.connect();
-
             PacketSenderHolder.init(xmppComponentManager);
-
             CloudConnectorFactory cloudConnectorFactory = CloudConnectorFactory.getInstance();
             cloudConnectorFactory.setLocalMemberId(localMemberId);
             cloudConnectorFactory.setAaController(aaController);

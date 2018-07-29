@@ -37,16 +37,6 @@ public class AttachmentOrdersController {
         return new ResponseEntity<String>(attachmentId, HttpStatus.CREATED);
     }
 
-    @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<AttachmentInstance>> getAllAttachments(
-        @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
-        LOGGER.info("Get all attachment order requests received.");
-        List<AttachmentInstance> attachmentInstance =
-                ApplicationFacade.getInstance().getAllAttachments(federationTokenValue);
-        return new ResponseEntity<>(attachmentInstance, HttpStatus.OK);
-    }
-
     @RequestMapping(value = "/status", method = RequestMethod.GET)
     public ResponseEntity<List<InstanceStatus>> getAllAttachmentsStatus(
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)

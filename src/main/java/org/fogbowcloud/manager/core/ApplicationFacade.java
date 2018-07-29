@@ -1,6 +1,5 @@
 package org.fogbowcloud.manager.core;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +46,14 @@ public class ApplicationFacade {
         }
     }
 
+    public synchronized void setAaController(AaController aaController) {
+        this.aaController = aaController;
+    }
+
+    public synchronized void setOrderController(OrderController orderController) {
+        this.orderController = orderController;
+    }
+
     public String createCompute(ComputeOrder order, String federationTokenValue) throws FogbowManagerException,
             UnexpectedException {
         changeNetworkOrderIdsToNetworInstanceIds(order);        
@@ -72,11 +79,6 @@ public class ApplicationFacade {
         
         //after collecting the list of networkInstaceIDs, we update the ComputeOrder
         order.setNetworksId(newNetworkInstanceIDs);
-    }
-
-    public List<ComputeInstance> getAllComputes(String federationTokenValue) throws Exception {
-        List<Order> allOrders = getAllOrders(federationTokenValue, ResourceType.COMPUTE);
-        return getAllInstances(allOrders, ComputeInstance.class);
     }
 
     public ComputeInstance getCompute(String orderId, String federationTokenValue) throws Exception {
@@ -107,11 +109,6 @@ public class ApplicationFacade {
         return activateOrder(volumeOrder, federationTokenValue);
     }
 
-    public List<VolumeInstance> getAllVolumes(String federationTokenValue) throws Exception {
-        List<Order> allOrders = getAllOrders(federationTokenValue, ResourceType.VOLUME);
-        return getAllInstances(allOrders, VolumeInstance.class);
-    }
-
     public VolumeInstance getVolume(String orderId, String federationTokenValue) throws Exception {
         VolumeInstance instance = (VolumeInstance)
                 getResourceInstance(orderId, federationTokenValue, ResourceType.VOLUME);
@@ -129,11 +126,6 @@ public class ApplicationFacade {
     public String createNetwork(NetworkOrder networkOrder, String federationTokenValue) throws FogbowManagerException,
             UnexpectedException {
         return activateOrder(networkOrder, federationTokenValue);
-    }
-
-    public List<NetworkInstance> getAllNetworks(String federationTokenValue) throws Exception {
-        List<Order> allOrders = getAllOrders(federationTokenValue, ResourceType.NETWORK);
-        return getAllInstances(allOrders, NetworkInstance.class);
     }
 
     public NetworkInstance getNetwork(String orderId, String federationTokenValue) throws Exception {
@@ -162,12 +154,6 @@ public class ApplicationFacade {
         return activateOrder(attachmentOrder, federationTokenValue);
     }
 
-    public List<AttachmentInstance> getAllAttachments(String federationTokenValue) throws
-            Exception {
-        List<Order> allOrders = getAllOrders(federationTokenValue, ResourceType.ATTACHMENT);
-        return getAllInstances(allOrders, AttachmentInstance.class);
-    }
-
     public AttachmentInstance getAttachment(String orderId, String federationTokenValue) throws Exception {
         return (AttachmentInstance) getResourceInstance(orderId, federationTokenValue, ResourceType.ATTACHMENT);
     }
@@ -177,66 +163,39 @@ public class ApplicationFacade {
         deleteOrder(orderId, federationTokenValue, ResourceType.ATTACHMENT);
     }
 
+
     public Map<String, String> getAllImages(String memberId, String federationTokenValue) throws Exception {
-        this.aaController.authenticate(federationTokenValue);
+        FederationUser federationUser = authenticateAndAuthorize(federationTokenValue, Operation.GET_ALL_IMAGES,
+                ResourceType.IMAGE);
 
         if(memberId == null) {
             memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         }
-
-        FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
-        this.aaController.authorize(federationUser, Operation.GET_ALL_IMAGES, ResourceType.IMAGE);
-
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return cloudConnector.getAllImages(federationUser);
     }
 
     public Image getImage(String memberId, String imageId, String federationTokenValue) throws Exception {
 
-        this.aaController.authenticate(federationTokenValue);
+        FederationUser federationUser = authenticateAndAuthorize(federationTokenValue, Operation.GET_IMAGE,
+                ResourceType.IMAGE);
 
         if(memberId == null) {
             memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         }
-
-        FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
-        this.aaController.authorize(federationUser, Operation.GET_IMAGE, ResourceType.IMAGE);
-
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return (Image) cloudConnector.getImage(imageId, federationUser);
     }
 
     public List<InstanceStatus> getAllInstancesStatus(String federationTokenValue, ResourceType resourceType) throws
-            Exception {
-        List<Order> allOrders = getAllOrders(federationTokenValue, resourceType);
-        return getInstancesStatus(allOrders);
-    }
-
-    private List<InstanceStatus> getInstancesStatus(List<Order> allOrders) {
-        List<InstanceStatus> instanceStatusList = new ArrayList<>();
-        for (Order order : allOrders) {
-            // The state of the instance can be inferred from the state of the order
-            InstanceStatus instanceStatus = new InstanceStatus(order.getId(), order.getProvidingMember(),
-                    order.getCachedInstanceState());
-            instanceStatusList.add(instanceStatus);
-        }
-        return instanceStatusList;
-    }
-
-    public synchronized void setAaController(AaController aaController) {
-        this.aaController = aaController;
-    }
-
-    public synchronized void setOrderController(OrderController orderController) {
-        this.orderController = orderController;
+            UnauthenticatedUserException, InvalidParameterException, UnauthorizedRequestException {
+        FederationUser federationUser = authenticateAndAuthorize(federationTokenValue, Operation.GET_ALL, resourceType);
+        return this.orderController.getInstancesStatus(federationUser, resourceType);
     }
 
     private String activateOrder(Order order, String federationTokenValue) throws FogbowManagerException,
             UnexpectedException {
-
-        this.aaController.authenticate(federationTokenValue);
-        FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
-        this.aaController.authorize(federationUser, Operation.CREATE, order.getType());
+        FederationUser federationUser = authenticateAndAuthorize(federationTokenValue, Operation.CREATE, order.getType());
         order.setId(UUID.randomUUID().toString());
         order.setFederationUser(federationUser);
         order.setCachedInstanceState(InstanceState.DISPATCHED);
@@ -253,70 +212,61 @@ public class ApplicationFacade {
 
     private void deleteOrder(String orderId, String federationTokenValue, ResourceType resourceType) throws
             FogbowManagerException, UnexpectedException {
-        this.aaController.authenticate(federationTokenValue);
+        FederationUser federationUser = authenticateAndAuthorize(federationTokenValue, Operation.DELETE, resourceType, orderId);
 
-        FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
         Order order = this.orderController.getOrder(orderId, federationUser, resourceType);
-        this.aaController.authorize(federationUser, Operation.DELETE, order.getType());
 
         this.orderController.deleteOrder(order);
     }
 
-    private List<Order> getAllOrders(String federationTokenValue, ResourceType resourceType)
-    		throws UnauthenticatedUserException, InvalidParameterException, UnauthorizedRequestException  {
-        this.aaController.authenticate(federationTokenValue);
-        FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
-        this.aaController.authorize(federationUser, Operation.GET_ALL, resourceType);
-
-        return this.orderController.getAllOrders(federationUser, resourceType);
-    }
-
     private Instance getResourceInstance(String orderId, String federationTokenValue, ResourceType resourceType)
             throws Exception {
-        this.aaController.authenticate(federationTokenValue);
+        FederationUser federationUser = authenticateAndAuthorize(federationTokenValue, Operation.GET, resourceType, orderId);
 
-        FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
         Order order = this.orderController.getOrder(orderId, federationUser, resourceType);
-        this.aaController.authorize(federationUser, Operation.GET, order.getType());
 
         return this.orderController.getResourceInstance(order);
     }
 
     private Allocation getUserAllocation(String memberId, String federationTokenValue, ResourceType resourceType)
             throws FogbowManagerException, UnexpectedException {
-
-        this.aaController.authenticate(federationTokenValue);
-        FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
-        this.aaController.authorize(federationUser, Operation.GET_USER_ALLOCATION, resourceType);
-
+        FederationUser federationUser = authenticateAndAuthorize(federationTokenValue,
+                Operation.GET_USER_ALLOCATION, resourceType);
         return this.orderController.getUserAllocation(memberId, federationUser, resourceType);
     }
 
     private Quota getUserQuota(String memberId, String federationTokenValue, ResourceType resourceType)
             throws Exception {
-
-        this.aaController.authenticate(federationTokenValue);
-        FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
-        this.aaController.authorize(federationUser, Operation.GET_USER_QUOTA, resourceType);
-
+        FederationUser federationUser = authenticateAndAuthorize(federationTokenValue,
+                Operation.GET_USER_QUOTA, resourceType);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return cloudConnector.getUserQuota(federationUser, resourceType);
     }
 
-    @SuppressWarnings("unchecked")
-    private <T extends Instance> List<T> getAllInstances(List<Order> orders, Class<T> tClass) throws Exception {
-        List<T> instances = new ArrayList<>();
-        for (Order order : orders) {
-            Instance instance = this.orderController.getResourceInstance(order);
-            // The user believes that the order id is actually the instance id.
-            // So we need to set the instance id accordingly before returning the instance.
-            instance.setId(order.getId());
-            if (tClass.isInstance(order)) {
-                instances.add(tClass.cast(instance));
-            } else {
-                instances.add((T) instance);
-            }
-        }
-        return instances;
+    private FederationUser authenticateAndAuthorize(String federationTokenValue, Operation operation, ResourceType type)
+            throws UnauthenticatedUserException, UnauthorizedRequestException, InvalidParameterException {
+        // Authenticate user based on the token received
+        this.aaController.authenticate(federationTokenValue);
+        // Get authenticated user attributes from token
+        FederationUser federationUser = this.aaController.getFederationUser(federationTokenValue);
+        // Authorize the user based on user's attributes, requested operation and resource type
+        this.aaController.authorize(federationUser, operation, type);
+        return federationUser;
     }
+
+    private FederationUser authenticateAndAuthorize(String federationTokenValue, Operation operation, ResourceType type,
+                                          String orderId) throws FogbowManagerException {
+        // Authenticate user and get authorization to perform generic operation on the type of resource
+        FederationUser requester = authenticateAndAuthorize(federationTokenValue, operation, type);
+        // Check if requested type matches order type
+        Order order = this.orderController.getOrder(orderId, requester, type);
+        if (!order.getType().equals(type)) throw new InstanceNotFoundException("Mismatching resource type");
+        // Check whether requester owns order
+        FederationUser orderOwner = order.getFederationUser();
+        if (!orderOwner.getId().equals(requester.getId())) {
+            throw new UnauthorizedRequestException("Requester does not own order");
+        }
+        return requester;
+    }
+
 }

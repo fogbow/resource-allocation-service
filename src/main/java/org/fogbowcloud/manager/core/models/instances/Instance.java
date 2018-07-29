@@ -1,10 +1,6 @@
 package org.fogbowcloud.manager.core.models.instances;
 
 public class Instance {
-
-    // TODO: the id should not be empty. Is necessary to check it in the constructor method.
-    // TODO: check above comment; it seems that instead, we can get rid of this id attribute altogether.
-    // Removing this attribute might require changes in the Attachment processing.
     private String id;
     private InstanceState state;
     private String provider;
@@ -19,7 +15,7 @@ public class Instance {
     }
 
     public String getId() {
-        return id;
+        return this.id;
     }
 
     public void setId(String id) {
@@ -27,7 +23,7 @@ public class Instance {
     }
 
     public InstanceState getState() {
-        return state;
+        return this.state;
     }
 
     public void setState(InstanceState state) {
@@ -38,12 +34,11 @@ public class Instance {
         this.provider = provider;
     }
 
-    // TODO: add comment explaining why we need to override these methods
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
         return result;
     }
 
@@ -53,9 +48,9 @@ public class Instance {
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
         Instance other = (Instance) obj;
-        if (id == null) {
-            if (other.id != null) return false;
-        } else if (!id.equals(other.id)) return false;
+        if (this.id == null) {
+            if (other.getId() != null) return false;
+        } else if (!this.id.equals(other.getId())) return false;
         return true;
     }
 }

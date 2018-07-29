@@ -4,6 +4,7 @@ import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.datastore.DatabaseManager;
 import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.models.InstanceStatus;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
@@ -30,9 +31,7 @@ import java.util.Map;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({DatabaseManager.class, CloudConnectorFactory.class})
 public class OrderControllerTest extends BaseUnitTests {
-
     private OrderController ordersController;
-
     private Map<String, Order> activeOrdersMap;
     private ChainedList openOrdersList;
     private ChainedList pendingOrdersList;
@@ -94,10 +93,10 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.deleteOrder(computeOrder);
     }
 
-    // test case: Checks if getAllOrders() returns exactly the same orders that
+    // test case: Checks if getInstancesStatus() returns exactly the same list of instances that
     // were added on the lists.
     @Test
-    public void testGetAllOrders() throws InvalidParameterException {
+    public void testGetAllInstancesStatus() throws InvalidParameterException {
         // set up
         Map<String, String> attributes = new HashMap<String, String>();
         attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
@@ -106,26 +105,33 @@ public class OrderControllerTest extends BaseUnitTests {
         computeOrder.setFederationUser(federationUser);
         computeOrder.setRequestingMember(this.localMember);
         computeOrder.setProvidingMember(this.localMember);
-        computeOrder.setOrderState(OrderState.OPEN);
+        computeOrder.setOrderState(OrderState.FULFILLED);
+        computeOrder.setCachedInstanceState(InstanceState.READY);
 
         ComputeOrder computeOrder2 = new ComputeOrder();
         computeOrder2.setFederationUser(federationUser);
         computeOrder2.setRequestingMember(this.localMember);
         computeOrder2.setProvidingMember(this.localMember);
-        computeOrder2.setOrderState(OrderState.FULFILLED);
+        computeOrder2.setOrderState(OrderState.FAILED);
+        computeOrder2.setCachedInstanceState(InstanceState.FAILED);
 
         this.activeOrdersMap.put(computeOrder.getId(), computeOrder);
-        this.openOrdersList.addItem(computeOrder);
+        this.fulfilledOrdersList.addItem(computeOrder);
 
         this.activeOrdersMap.put(computeOrder2.getId(), computeOrder2);
-        this.fulfilledOrdersList.addItem(computeOrder2);
+        this.failedOrdersList.addItem(computeOrder2);
+
+        InstanceStatus statusOrder = new InstanceStatus(computeOrder.getId(), computeOrder.getProvidingMember(),
+                computeOrder.getCachedInstanceState());
+        InstanceStatus statusOrder2 = new InstanceStatus(computeOrder2.getId(), computeOrder2.getProvidingMember(),
+                computeOrder2.getCachedInstanceState());
 
         // exercise
-        List<Order> orders = this.ordersController.getAllOrders(federationUser, ResourceType.COMPUTE);
+        List<InstanceStatus> instances = this.ordersController.getInstancesStatus(federationUser, ResourceType.COMPUTE);
 
         // verify
-        Assert.assertTrue(orders.contains(computeOrder));
-        Assert.assertTrue(orders.contains(computeOrder2));
+        Assert.assertTrue(instances.contains(statusOrder));
+        Assert.assertTrue(instances.contains(statusOrder2));
     }
 
     // test case: Checks if getOrder() returns exactly the same order that

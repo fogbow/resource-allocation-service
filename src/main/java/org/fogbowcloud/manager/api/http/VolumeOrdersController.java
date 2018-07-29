@@ -38,15 +38,6 @@ public class VolumeOrdersController {
         return new ResponseEntity<String>(volumeId, HttpStatus.CREATED);
     }
 
-    @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<VolumeInstance>> getAllVolumes(
-        @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
-        LOGGER.info("Get all volume order requests received.");
-        List<VolumeInstance> volumes = ApplicationFacade.getInstance().getAllVolumes(federationTokenValue);
-        return new ResponseEntity<>(volumes, HttpStatus.OK);
-    }
-
     @RequestMapping(value = "/status", method = RequestMethod.GET)
     public ResponseEntity<List<InstanceStatus>> getAllVolumesStatus(
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)

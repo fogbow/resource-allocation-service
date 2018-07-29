@@ -163,67 +163,6 @@ public class AttachmentOrdersControllerTest {
     		.createAttachment(Mockito.any(AttachmentOrder.class), Mockito.anyString());
     }
 
-    // test case: Request the list of all attachments when the facade returns an empty list. 
-    // Check if the request response is compatible with the value produced by facade. 
-    @Test
-    public void testGetAllAttachmentsWhenHasNoData() throws Exception {
-    	//set up
-        List<AttachmentInstance> attachmentInstanceList = new ArrayList<>();
-        Mockito.doReturn(attachmentInstanceList).when(this.facade).getAllAttachments(Mockito.anyString());
-
-        RequestBuilder requestBuilder =
-                createRequestBuilder(HttpMethod.GET, ATTACHMENT_ENDPOINT, getHttpHeaders(), "");
-
-        // exercise: Make the request
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
-        // verify
-        int expectedStatus = HttpStatus.OK.value();
-        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        
-        String expectedResult = "[]";
-
-        Assert.assertEquals(expectedResult, result.getResponse().getContentAsString());
-        
-        Mockito.verify(this.facade, Mockito.times(1))
-			.getAllAttachments(Mockito.anyString());
-    }
-
-    // test case: Request the list of all attachments when the facade returns an non-empty list. 
-    // Check if the request response is compatible with the value produced by facade.
-    @Test
-    public void testGetAllAttachmentsWhenHasData() throws Exception {
-    	// set up
-        AttachmentInstance AttachmentInstance1 = new AttachmentInstance("fake-Id-1");
-        AttachmentInstance AttachmentInstance2 = new AttachmentInstance("fake-Id-2");
-        AttachmentInstance AttachmentInstance3 = new AttachmentInstance("fake-Id-3");
-
-        List<AttachmentInstance> AttachmentInstanceList =
-                Arrays.asList(AttachmentInstance1, AttachmentInstance2, AttachmentInstance3);
-        Mockito.doReturn(AttachmentInstanceList).when(this.facade)
-        	.getAllAttachments(Mockito.anyString());
-
-        RequestBuilder requestBuilder =
-                createRequestBuilder(HttpMethod.GET,
-                		ATTACHMENT_ENDPOINT,
-                		getHttpHeaders(), "");
-        
-        // exercise: Make the request.
-        MvcResult result = this.mockMvc.perform(requestBuilder).andReturn();
-
-        // verify
-        int expectedStatus = HttpStatus.OK.value();
-        Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-
-        TypeToken<List<AttachmentInstance>> token = new TypeToken<List<AttachmentInstance>>() {};
-        List<AttachmentInstance> resultList =
-                new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
-        Assert.assertEquals(3, resultList.size());
-        
-        Mockito.verify(this.facade, Mockito.times(1))
-			.getAllAttachments(Mockito.anyString());
-    }
-    
     // test case: Request the list of all attachments status when the facade returns an non-empty list. 
     // Check if the request response is compatible with the value produced by facade.
     @Test

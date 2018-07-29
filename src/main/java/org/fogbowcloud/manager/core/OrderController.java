@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
+import org.fogbowcloud.manager.core.models.InstanceStatus;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
@@ -26,22 +27,6 @@ public class OrderController {
 
     public OrderController() {
         this.orderHolders = SharedOrderHolders.getInstance();
-    }
-
-    public List<Order> getAllOrders(FederationUser federationUser, ResourceType resourceType) {
-        Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
-
-        // Filter all orders of resourceType from federationUser that are not closed (closed orders have been deleted by
-        // the user and should not be seen; they will disappear from the system as soon as the closedProcessor thread
-        // process them).
-        List<Order> requestedOrders =
-                orders.stream()
-                        .filter(order -> order.getType().equals(resourceType))
-                        .filter(order -> order.getFederationUser().equals(federationUser))
-                        .filter(order -> !order.getOrderState().equals(OrderState.CLOSED))
-                        .collect(Collectors.toList());
-
-        return requestedOrders;
     }
 
     public Order getOrder(String orderId, FederationUser requester, ResourceType resourceType)
@@ -130,6 +115,34 @@ public class OrderController {
         }
 
         return new ComputeAllocation(vCPU, ram, instances);
+    }
+
+    public List<InstanceStatus> getInstancesStatus(FederationUser federationUser, ResourceType resourceType) {
+        List<InstanceStatus> instanceStatusList = new ArrayList<>();
+        List<Order> allOrders = getAllOrders(federationUser, resourceType);
+        for (Order order : allOrders) {
+            // The state of the instance can be inferred from the state of the order
+            InstanceStatus instanceStatus = new InstanceStatus(order.getId(), order.getProvidingMember(),
+                    order.getCachedInstanceState());
+            instanceStatusList.add(instanceStatus);
+            LOGGER.debug("getInstancesStatus: orderId " + order.getId() + " provider " + order.getProvidingMember() + " status " + order.getCachedInstanceState());
+        }
+        return instanceStatusList;
+    }
+
+    private List<Order> getAllOrders(FederationUser federationUser, ResourceType resourceType) {
+        Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
+
+        // Filter all orders of resourceType from federationUser that are not closed (closed orders have been deleted by
+        // the user and should not be seen; they will disappear from the system as soon as the closedProcessor thread
+        // process them).
+        List<Order> requestedOrders =
+                orders.stream()
+                        .filter(order -> order.getType().equals(resourceType))
+                        .filter(order -> order.getFederationUser().equals(federationUser))
+                        .filter(order -> !order.getOrderState().equals(OrderState.CLOSED))
+                        .collect(Collectors.toList());
+        return requestedOrders;
     }
 }
 
