@@ -2,7 +2,6 @@ package org.fogbowcloud.manager.core.exceptions;
 
 public class FatalErrorException extends RuntimeException {
     private static final long serialVersionUID = 1L;
-
     private static final String DEFAULT_MESSAGE = "Fatal error exception";
 
     public FatalErrorException() {

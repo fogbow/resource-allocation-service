@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.exceptions;
 
 public class UnauthenticTokenException extends UnauthenticatedUserException {
-
     private static final long serialVersionUID = 1L;
     private static final String message = "Unauthentic tokens exception";
 

@@ -1,9 +1,7 @@
 package org.fogbowcloud.manager.core.exceptions;
 
 public class UnauthenticatedUserException extends FogbowManagerException {
-
     private static final long serialVersionUID = 1L;
-
     private static final String DEFAULT_MESSAGE = "Unauthenticated error";
 
     public UnauthenticatedUserException() {

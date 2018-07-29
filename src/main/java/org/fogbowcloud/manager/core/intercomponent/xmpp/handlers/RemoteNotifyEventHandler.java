@@ -1,6 +1,5 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 
-
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;

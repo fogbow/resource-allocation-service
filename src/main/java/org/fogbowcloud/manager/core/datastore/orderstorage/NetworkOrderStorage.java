@@ -3,7 +3,6 @@ package org.fogbowcloud.manager.core.datastore.orderstorage;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.datastore.commands.NetworkSQLCommands;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;

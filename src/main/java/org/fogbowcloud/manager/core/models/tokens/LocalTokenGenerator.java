@@ -4,7 +4,6 @@ import java.util.Map;
 
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
-import org.fogbowcloud.manager.core.models.tokens.Token;
 
 public interface LocalTokenGenerator {
 

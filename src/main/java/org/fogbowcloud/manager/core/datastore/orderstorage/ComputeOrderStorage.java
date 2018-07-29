@@ -5,7 +5,6 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.datastore.commands.ComputeSQLCommands;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
