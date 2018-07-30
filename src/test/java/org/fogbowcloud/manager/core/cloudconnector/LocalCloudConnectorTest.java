@@ -1,10 +1,15 @@
 package org.fogbowcloud.manager.core.cloudconnector;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.fogbowcloud.manager.core.AaController;
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.CloudPluginsHolder;
+import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.datastore.DatabaseManager;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
@@ -49,6 +54,8 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	private static final String FAKE_ORDER_ID = "fake-order-id";
 	private static final String FAKE_IMAGE_ID = "fake-image-id";
 	private static final String FAKE_IMAGE_NAME = "fake-image-name";
+	private static final String FAKE_SOURCE_ID = "fake-source-id";
+	private static final String FAKE_TARGET_ID = "fake-target-id";
 	private static final int VCPU_TOTAL = 2;
 	private static final int RAM_TOTAL = 2048;
 	private static final int INSTANCES_TOTAL = 2;
@@ -128,7 +135,36 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         // starting the object we want to test
         this.localCloudConnector = new LocalCloudConnector(mapperPlugin, cloudPluginsHolder);
     }
-	
+
+	// test case: When calling the method getNetworkInstanceIdsFromNetworkOrderIds(), it must return
+	// the collection of NetworkInstancesIds corresponding to the list of NetworkOrderIds in the order received.
+	@Test
+	public void testGetNetworkInstanceIdsFromNetworkOrderIds() {
+		// set up
+		NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
+
+		Mockito.doReturn(FAKE_ORDER_ID).when(networkOrder).getId();
+		Mockito.doReturn(FAKE_INSTANCE_ID).when(networkOrder).getInstanceId();
+
+		SharedOrderHolders.getInstance().getActiveOrdersMap().put(networkOrder.getId(), networkOrder);
+
+		List<String> networkOrderIdsList = new ArrayList<>();
+		networkOrderIdsList.add(FAKE_ORDER_ID);
+
+		ComputeOrder computeOrder = new ComputeOrder();
+		computeOrder.setNetworksId(networkOrderIdsList);
+
+		List<String> expectedList = new ArrayList<>();
+		expectedList.add(FAKE_INSTANCE_ID);
+
+		// exercise 1
+		List<String> returnedList = this.localCloudConnector.getNetworkInstanceIdsFromNetworkOrderIds(computeOrder);
+
+		// verify
+		Assert.assertEquals(expectedList, returnedList);
+	}
+
+
 	// test case: Request a compute instance when the plugin returns a correct id
 	@Test
 	public void testRequestComputeInstance() throws FogbowManagerException, UnexpectedException {
@@ -154,9 +190,15 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	public void testRequestAttachmentInstance() throws FogbowManagerException, UnexpectedException {
 		
 		// set up
+		ComputeOrder source = Mockito.mock(ComputeOrder.class);
+		VolumeOrder target = Mockito.mock(VolumeOrder.class);
+		SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_SOURCE_ID, source);
+		SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_TARGET_ID, target);
 		this.order = Mockito.mock(AttachmentOrder.class);
+		Mockito.when(((AttachmentOrder) this.order).getSource()).thenReturn(FAKE_SOURCE_ID);
+		Mockito.when(((AttachmentOrder) this.order).getTarget()).thenReturn(FAKE_TARGET_ID);
 	    Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);
-	    Mockito.when(attachmentPlugin.requestInstance(Mockito.any(AttachmentOrder.class), Mockito.any(Token.class))).thenReturn(FAKE_INSTANCE_ID);
+		Mockito.when(attachmentPlugin.requestInstance(Mockito.any(AttachmentOrder.class), Mockito.any(Token.class))).thenReturn(FAKE_INSTANCE_ID);
 		
 	    //exercise
 	    String returnedInstanceId = this.localCloudConnector.requestInstance(order);
@@ -167,6 +209,12 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	    Mockito.verify(volumePlugin, times(0)).requestInstance(Mockito.any(VolumeOrder.class), Mockito.any(Token.class));
 	    Mockito.verify(attachmentPlugin, times(1)).requestInstance(Mockito.any(AttachmentOrder.class), Mockito.any(Token.class));
 	    Mockito.verify(networkPlugin, times(0)).requestInstance(Mockito.any(NetworkOrder.class), Mockito.any(Token.class));
+
+		// exercise
+		this.localCloudConnector.requestInstance(order);
+
+		// tear down
+		SharedOrderHolders.getInstance().getActiveOrdersMap().clear();
 	}
 	
 	// test case: Request a volume instance Mockito.when the plugin returns a correct id
@@ -239,14 +287,22 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	// test case: If plugin returns a null instance id, the method requestInstance() must throw an exception
 	@Test(expected = UnexpectedException.class)
 	public void testExceptionNullAttachmentInstanceId() throws FogbowManagerException, UnexpectedException {
-		
 		// set up
+		ComputeOrder source = Mockito.mock(ComputeOrder.class);
+		VolumeOrder target = Mockito.mock(VolumeOrder.class);
+		SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_SOURCE_ID, source);
+		SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_TARGET_ID, target);
 		this.order = Mockito.mock(AttachmentOrder.class);
+		Mockito.when(((AttachmentOrder) this.order).getSource()).thenReturn(FAKE_SOURCE_ID);
+		Mockito.when(((AttachmentOrder) this.order).getTarget()).thenReturn(FAKE_TARGET_ID);
 	    Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);
 	    Mockito.when(attachmentPlugin.requestInstance(Mockito.any(AttachmentOrder.class), Mockito.any(Token.class))).thenReturn(null);
 		
 	    // exercise
 	    this.localCloudConnector.requestInstance(order);
+
+	    // tear down
+		SharedOrderHolders.getInstance().getActiveOrdersMap().clear();
 	}
 	
 	// test case: If plugin returns a null instance id, the method requestInstance() must throw an exception

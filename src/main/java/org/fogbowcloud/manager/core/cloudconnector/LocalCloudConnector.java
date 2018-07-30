@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.cloudconnector;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.CloudPluginsHolder;
+import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.images.Image;
@@ -18,6 +19,8 @@ import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputeQuotaPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 public class LocalCloudConnector implements CloudConnector {
@@ -48,8 +51,23 @@ public class LocalCloudConnector implements CloudConnector {
         Token localToken = this.mapperPlugin.getToken(order.getFederationUser());
         switch (order.getType()) {
             case COMPUTE:
+                // As the order parameter came from the rest API, the NetworkInstanceIds in the order are actually
+                // NetworkOrderIds, since these are the Ids that are known to users/applications using the API.
+                // Thus, before requesting the plugin to create the Compute, we need to replace NetworkOrderIds by
+                // NetworkInstanceIds, which are contained in the respective NetworkOrder.
+                // We save the list of NetworkOrderIds in the original order, to restore these values, after
+                // the Compute instance is requested in the cloud.
                 ComputeOrder computeOrder = (ComputeOrder) order;
-                requestInstance = this.computePlugin.requestInstance(computeOrder, localToken);
+                List<String> savedNetworkOrderIds = computeOrder.getNetworksId();
+                List<String> networkInstanceIds = getNetworkInstanceIdsFromNetworkOrderIds(computeOrder);
+                computeOrder.setNetworksId(networkInstanceIds);
+                try {
+                    requestInstance = this.computePlugin.requestInstance(computeOrder, localToken);
+                    computeOrder.setNetworksId(savedNetworkOrderIds);
+                } catch (Throwable e) {
+                    computeOrder.setNetworksId(savedNetworkOrderIds);
+                    throw e;
+                }
                 break;
             case NETWORK:
                 NetworkOrder networkOrder = (NetworkOrder) order;
@@ -60,8 +78,29 @@ public class LocalCloudConnector implements CloudConnector {
                 requestInstance = this.volumePlugin.requestInstance(volumeOrder, localToken);
                 break;
             case ATTACHMENT:
+                // As the order parameter came from the rest API, the Source and Target fields are actually
+                // ComputeOrder and VolumeOrder Ids, since these are the Ids that are known to users/applications
+                // using the API. Thus, before requesting the plugin to create the Attachment, we need to replace
+                // The ComputeOrderId of the source by its corresponding ComputeInstanceId, and the VolumeOrderId
+                // of the target by its corresponding VolumeInstanceId.
+                // We save the Order Ids in the original order, to restore these values, after the Attachment is
+                // requested in the cloud.
                 AttachmentOrder attachmentOrder = (AttachmentOrder) order;
-                requestInstance = this.attachmentPlugin.requestInstance(attachmentOrder, localToken);
+                String savedSource = attachmentOrder.getSource();
+                String savedTarget = attachmentOrder.getTarget();
+                Order sourceOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedSource);
+                Order targetOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedTarget);
+                attachmentOrder.setSource(sourceOrder.getInstanceId());
+                attachmentOrder.setTarget(targetOrder.getInstanceId());
+                try {
+                    requestInstance = this.attachmentPlugin.requestInstance(attachmentOrder, localToken);
+                    attachmentOrder.setSource(savedSource);
+                    attachmentOrder.setTarget(savedTarget);
+                } catch (Throwable e) {
+                    attachmentOrder.setSource(savedSource);
+                    attachmentOrder.setTarget(savedTarget);
+                    throw e;
+                }
                 break;
             default:
                 String message = "No requestInstance plugin implemented for order " + order.getType();
@@ -172,6 +211,19 @@ public class LocalCloudConnector implements CloudConnector {
             throws FogbowManagerException, UnexpectedException {
         Token localToken = this.mapperPlugin.getToken(federationUser);
         return this.imagePlugin.getImage(imageId, localToken);
+    }
+
+    /** protected visibility for tests */
+    protected List<String> getNetworkInstanceIdsFromNetworkOrderIds(ComputeOrder order) {
+        List<String> networkOrdersId = order.getNetworksId();
+        List<String> networkInstanceIDs = new LinkedList<String>();
+
+        for (String orderId : networkOrdersId) {
+            Order networkOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
+            String instanceId = networkOrder.getInstanceId();
+            networkInstanceIDs.add(instanceId);
+        }
+        return networkInstanceIDs;
     }
 
     private Instance getResourceInstance(Order order, ResourceType resourceType, Token localToken)

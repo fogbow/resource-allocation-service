@@ -67,7 +67,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
-        return getAttachmentIdJson(responseStr);
+        return attachmentOrder.getSource() + SEPARATOR_ID + attachmentOrder.getTarget();
     }
     
     @Override
@@ -99,10 +99,10 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     	
     	String[] separatorInstanceId = instanceId.split(SEPARATOR_ID);
     	
-    	/** this variable refers to computeInstanceId received in the first part of the vector */
+    	// this variable refers to computeInstanceId received in the first part of the vector
     	String serverId = separatorInstanceId[0];
     	
-    	/** this variable refers to volumeInstanceId received in the second part of the vector */
+    	// this variable refers to volumeInstanceId received in the second part of the vector
     	String volumeId = separatorInstanceId[1];
         
         String requestEndpoint = getPrefixEndpoint(tenantId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + "/" + volumeId;
