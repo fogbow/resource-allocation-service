@@ -32,10 +32,10 @@ public class OrderController {
         this.orderHolders = SharedOrderHolders.getInstance();
     }
 
-    public String activateOrder(Order order) throws UnexpectedException {
+    public String setAndActivateOrder(Order order) throws UnexpectedException {
+        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         // Set order fields that have not been provided by the requester
         order.setId(UUID.randomUUID().toString());
-        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         order.setRequestingMember(localMemberId);
         if (order.getProvidingMember() == null) {
             order.setProvidingMember(localMemberId);

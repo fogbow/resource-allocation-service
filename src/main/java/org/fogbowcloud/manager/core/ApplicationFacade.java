@@ -172,7 +172,7 @@ public class ApplicationFacade {
             UnexpectedException {
         FederationUser requester = authenticateAndAuthorize(federationTokenValue, Operation.CREATE, order.getType());
         order.setFederationUser(requester);
-        return this.orderController.activateOrder(order);
+        return this.orderController.setAndActivateOrder(order);
     }
 
     private Instance getResourceInstance(String orderId, String federationTokenValue, ResourceType resourceType)

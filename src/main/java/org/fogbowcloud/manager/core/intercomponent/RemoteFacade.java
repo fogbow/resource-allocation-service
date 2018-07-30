@@ -46,45 +46,33 @@ public class RemoteFacade {
 
     public Instance getResourceInstance(String orderId, FederationUser federationUser, ResourceType resourceType) throws
             Exception {
-
-        Order order = this.orderController.getOrder(orderId);
-        this.aaController.authorize(federationUser, Operation.GET, order.getType());
-
+        this.aaController.authorize(federationUser, Operation.GET, resourceType);
         return this.orderController.getResourceInstance(orderId);
     }
 
     public void deleteOrder(String orderId, FederationUser federationUser, ResourceType resourceType)
             throws FogbowManagerException, UnexpectedException {
-
-        Order order = this.orderController.getOrder(orderId);
-        this.aaController.authorize(federationUser, Operation.DELETE, order.getType());
-
+        this.aaController.authorize(federationUser, Operation.DELETE, resourceType);
         this.orderController.deleteOrder(orderId);
     }
 
     public Quota getUserQuota(String memberId, FederationUser federationUser, ResourceType resourceType) throws
             Exception {
-
         this.aaController.authorize(federationUser, Operation.GET_USER_QUOTA, resourceType);
-
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return cloudConnector.getUserQuota(federationUser, resourceType);
     }
 
     public Image getImage(String memberId, String imageId, FederationUser federationUser) throws
             Exception {
-
         this.aaController.authorize(federationUser, Operation.GET_IMAGE, ResourceType.IMAGE);
-
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return cloudConnector.getImage(imageId, federationUser);
     }
 
     public Map<String, String> getAllImages(String memberId, FederationUser federationUser) throws
             Exception {
-
         this.aaController.authorize(federationUser, Operation.GET_ALL_IMAGES, ResourceType.IMAGE);
-
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return cloudConnector.getAllImages(federationUser);
     }
@@ -92,8 +80,7 @@ public class RemoteFacade {
     public void handleRemoteEvent(Event event, Order remoteOrder) throws FogbowManagerException, UnexpectedException {
         // order is a java object that represents the order passed in the message
         // actualOrder is the java object that represents this order inside the current manager
-        Order localOrder = this.orderController.getOrder(remoteOrder.getId()
-        );
+        Order localOrder = this.orderController.getOrder(remoteOrder.getId());
         updateLocalOrder(localOrder, remoteOrder, event);
         switch (event) {
             case INSTANCE_FULFILLED:
