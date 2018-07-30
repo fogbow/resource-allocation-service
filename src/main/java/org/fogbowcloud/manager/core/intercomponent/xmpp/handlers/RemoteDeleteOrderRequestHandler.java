@@ -15,11 +15,10 @@ import org.xmpp.packet.IQ;
 public class RemoteDeleteOrderRequestHandler extends AbstractQueryHandler {
     private static final Logger LOGGER = Logger.getLogger(RemoteDeleteOrderRequestHandler.class);
 
-    private RemoteFacade remoteFacade;
+    public static final String REMOTE_DELETE_ORDER = RemoteMethod.REMOTE_DELETE_ORDER.toString();
 
     public RemoteDeleteOrderRequestHandler() {
-        super(RemoteMethod.REMOTE_DELETE_ORDER.toString());
-        remoteFacade = RemoteFacade.getInstance();
+        super(REMOTE_DELETE_ORDER);
     }
 
     @Override
@@ -37,7 +36,7 @@ public class RemoteDeleteOrderRequestHandler extends AbstractQueryHandler {
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            this.remoteFacade.deleteOrder(orderId, federationUser, resourceType);
+            RemoteFacade.getInstance().deleteOrder(orderId, federationUser, resourceType);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }

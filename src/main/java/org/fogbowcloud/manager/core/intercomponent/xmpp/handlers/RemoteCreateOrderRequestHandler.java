@@ -16,8 +16,10 @@ public class RemoteCreateOrderRequestHandler extends AbstractQueryHandler {
 
     private static final Logger LOGGER = Logger.getLogger(RemoteCreateOrderRequestHandler.class);
 
+    public static final String REMOTE_CREATE_ORDER = RemoteMethod.REMOTE_CREATE_ORDER.toString();
+
     public RemoteCreateOrderRequestHandler() {
-        super(RemoteMethod.REMOTE_CREATE_ORDER.toString());
+        super(REMOTE_CREATE_ORDER);
     }
 
     @Override

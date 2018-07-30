@@ -18,13 +18,12 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
 
     private static final Logger LOGGER = Logger.getLogger(RemoteGetUserQuotaRequest.class);
 
-    private String federationMemberId;
+    private String provider;
     private FederationUser federationUser;
     private ResourceType resourceType;
 
-    public RemoteGetUserQuotaRequest(String federationMemberId,
-                                     FederationUser federationUser, ResourceType resourceType) {
-        this.federationMemberId = federationMemberId;
+    public RemoteGetUserQuotaRequest(String provider, FederationUser federationUser, ResourceType resourceType) {
+        this.provider = provider;
         this.federationUser = federationUser;
         this.resourceType = resourceType;
     }
@@ -34,20 +33,20 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
         IQ iq = createIq();
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
-        XmppErrorConditionToExceptionTranslator.handleError(response, this.federationMemberId);
+        XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
         Quota quota = getUserQuotaFromResponse(response);
         return quota;
     }
 
     private IQ createIq() {
         IQ iq = new IQ(IQ.Type.get);
-        iq.setTo(this.federationMemberId);
+        iq.setTo(this.provider);
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_USER_QUOTA.toString());
 
         Element memberIdElement = iq.getElement().addElement(IqElement.MEMBER_ID.toString());
-        memberIdElement.setText(new Gson().toJson(this.federationMemberId));
+        memberIdElement.setText(new Gson().toJson(this.provider));
 
         Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());
         userElement.setText(new Gson().toJson(this.federationUser));

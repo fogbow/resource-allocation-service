@@ -16,12 +16,12 @@ public class RemoteGetImageRequest implements RemoteRequest<Image> {
 
     private static final Logger LOGGER = Logger.getLogger(RemoteGetImageRequest.class);
 
-    private String federationMemberId;
+    private String provider;
     private String imageId;
     private FederationUser federationUser;
 
-    public RemoteGetImageRequest(String federationMemberId, String imageId, FederationUser federationUser) {
-        this.federationMemberId = federationMemberId;
+    public RemoteGetImageRequest(String provider, String imageId, FederationUser federationUser) {
+        this.provider = provider;
         this.imageId = imageId;
         this.federationUser = federationUser;
     }
@@ -31,20 +31,20 @@ public class RemoteGetImageRequest implements RemoteRequest<Image> {
         IQ iq = createIq();
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
-        XmppErrorConditionToExceptionTranslator.handleError(response, this.federationMemberId);
+        XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
         Image image = getImageFromResponse(response);
         return image;
     }
 
     private IQ createIq() {
         IQ iq = new IQ(IQ.Type.get);
-        iq.setTo(this.federationMemberId);
+        iq.setTo(this.provider);
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_IMAGE.toString());
 
         Element memberIdElement = queryElement.addElement(IqElement.MEMBER_ID.toString());
-        memberIdElement.setText(this.federationMemberId);
+        memberIdElement.setText(this.provider);
 
         Element imageIdElement = queryElement.addElement(IqElement.IMAGE_ID.toString());
         imageIdElement.setText(this.imageId);

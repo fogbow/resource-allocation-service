@@ -16,11 +16,11 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
 
     private static final Logger LOGGER = Logger.getLogger(RemoteGetAllImagesRequest.class);
 
-    private String federationMemberId;
+    private String provider;
     private FederationUser federationUser;
 
-    public RemoteGetAllImagesRequest(String federationMemberId, FederationUser federationUser) {
-        this.federationMemberId = federationMemberId;
+    public RemoteGetAllImagesRequest(String provider, FederationUser federationUser) {
+        this.provider = provider;
         this.federationUser = federationUser;
     }
 
@@ -29,20 +29,20 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
         IQ iq = createIq();
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
-        XmppErrorConditionToExceptionTranslator.handleError(response, this.federationMemberId);
+        XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
         HashMap<String, String> imagesMap = getImageFromResponse(response);
         return imagesMap;
     }
 
     private IQ createIq() {
         IQ iq = new IQ(IQ.Type.get);
-        iq.setTo(this.federationMemberId);
+        iq.setTo(this.provider);
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_ALL_IMAGES.toString());
 
         Element memberIdElement = queryElement.addElement(IqElement.MEMBER_ID.toString());
-        memberIdElement.setText(this.federationMemberId);
+        memberIdElement.setText(this.provider);
 
         Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
         userElement.setText(new Gson().toJson(this.federationUser));
