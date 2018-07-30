@@ -81,12 +81,7 @@ public class ApplicationFacade {
     }
 
     public ComputeInstance getCompute(String orderId, String federationTokenValue) throws Exception {
-        ComputeInstance instance = (ComputeInstance)
-                getResourceInstance(orderId, federationTokenValue, ResourceType.COMPUTE);
-        // The user believes that the order id is actually the instance id.
-        // So we need to set the instance id accordingly before returning the instance.
-        instance.setId(orderId);
-        return instance;
+        return (ComputeInstance) getResourceInstance(orderId, federationTokenValue, ResourceType.COMPUTE);
     }
 
     public void deleteCompute(String computeId, String federationTokenValue) throws FogbowManagerException,
@@ -109,12 +104,7 @@ public class ApplicationFacade {
     }
 
     public VolumeInstance getVolume(String orderId, String federationTokenValue) throws Exception {
-        VolumeInstance instance = (VolumeInstance)
-                getResourceInstance(orderId, federationTokenValue, ResourceType.VOLUME);
-        // The user believes that the order id is actually the instance id.
-        // So we need to set the instance id accordingly before returning the instance.
-        instance.setId(orderId);
-        return instance;
+        return (VolumeInstance) getResourceInstance(orderId, federationTokenValue, ResourceType.VOLUME);
     }
 
     public void deleteVolume(String orderId, String federationTokenValue) throws FogbowManagerException,
@@ -128,12 +118,7 @@ public class ApplicationFacade {
     }
 
     public NetworkInstance getNetwork(String orderId, String federationTokenValue) throws Exception {
-        NetworkInstance instance = (NetworkInstance)
-                getResourceInstance(orderId, federationTokenValue, ResourceType.NETWORK);
-        // The user believes that the order id is actually the instance id.
-        // So we need to set the instance id accordingly before returning the instance.
-        instance.setId(orderId);
-        return instance;
+        return (NetworkInstance) getResourceInstance(orderId, federationTokenValue, ResourceType.NETWORK);
     }
 
     public void deleteNetwork(String orderId, String federationTokenValue) throws FogbowManagerException,

@@ -119,10 +119,11 @@ public class LocalCloudConnector implements CloudConnector {
             String instanceId = order.getInstanceId();
             if (instanceId != null) {
                 instance = getResourceInstance(order, order.getType(), localToken);
+                // The user believes that the order id is actually the instance id.
+                // So we need to set the instance id accordingly before returning the instance.
+                instance.setId(order.getId());
             } else {
                 // When there is no instance, an empty one is created with the appropriate state
-            	InstanceState instanceState = getInstanceStateBasedOnOrderState(order);
-            	
                 switch (order.getType()) {
                     case COMPUTE:
                         instance = new ComputeInstance(order.getId());
@@ -140,6 +141,7 @@ public class LocalCloudConnector implements CloudConnector {
                         String message = "Not supported order type " + order.getType();
                         throw new UnexpectedException(message);
                 }
+                InstanceState instanceState = getInstanceStateBasedOnOrderState(order);
                 instance.setState(instanceState);
             }
         }
