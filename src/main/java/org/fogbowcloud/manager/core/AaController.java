@@ -16,23 +16,15 @@ public class AaController {
 
     private AuthenticationPlugin authenticationPlugin;
     private AuthorizationPlugin authorizationPlugin;
-    private FederationToLocalMapperPlugin federationToLocalMapperPlugin;
 
     public AaController(BehaviorPluginsHolder behaviorPluginsHolder) {
         this.authenticationPlugin = behaviorPluginsHolder.getAuthenticationPlugin();
-        this.federationToLocalMapperPlugin = behaviorPluginsHolder.getFederationToLocalMapperPlugin();
         this.authorizationPlugin = behaviorPluginsHolder.getAuthorizationPlugin();
     }
 
     public FederationUser getFederationUser(String federationTokenValue)
             throws UnauthenticatedUserException, InvalidParameterException {
-        LOGGER.debug(
-                "Trying to get the federationidentity tokens by federationidentity tokens id: " + federationTokenValue);
         return this.authenticationPlugin.getFederationUser(federationTokenValue);
-    }
-
-    public Token getLocalToken(FederationUser federationUser) throws FogbowManagerException, UnexpectedException {
-        return this.federationToLocalMapperPlugin.getToken(federationUser);
     }
 
     public void authenticate(String federationTokenId) throws UnauthenticatedUserException {
