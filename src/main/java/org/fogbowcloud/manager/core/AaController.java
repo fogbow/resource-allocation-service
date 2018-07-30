@@ -1,18 +1,13 @@
 package org.fogbowcloud.manager.core;
 
-import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.constants.Operation;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.authentication.AuthenticationPlugin;
-import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
-import org.fogbowcloud.manager.core.models.tokens.Token;
 
 public class AaController {
-
-    private static final Logger LOGGER = Logger.getLogger(AaController.class);
 
     private AuthenticationPlugin authenticationPlugin;
     private AuthorizationPlugin authorizationPlugin;
