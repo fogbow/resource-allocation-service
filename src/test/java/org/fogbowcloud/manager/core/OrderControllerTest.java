@@ -10,7 +10,6 @@ import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
-import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.*;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
@@ -32,6 +31,7 @@ import java.util.Map;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({DatabaseManager.class, CloudConnectorFactory.class})
 public class OrderControllerTest extends BaseUnitTests {
+    
     private OrderController ordersController;
     private Map<String, Order> activeOrdersMap;
     private ChainedList openOrdersList;
@@ -47,19 +47,7 @@ public class OrderControllerTest extends BaseUnitTests {
         HomeDir.getInstance().setPath("src/test/resources/private");
 
         // mocking database to return empty instances of SynchronizedDoublyLinkedList.
-        DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
-        Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.CLOSED)).thenReturn(new SynchronizedDoublyLinkedList());
-
-        Mockito.doNothing().when(databaseManager).add(Mockito.any(Order.class));
-        Mockito.doNothing().when(databaseManager).update(Mockito.any(Order.class));
-
-        PowerMockito.mockStatic(DatabaseManager.class);
-        BDDMockito.given(DatabaseManager.getInstance()).willReturn(databaseManager);
+        super.mockReadOrdersFromDataBase();
 
         this.ordersController = new OrderController();
 
