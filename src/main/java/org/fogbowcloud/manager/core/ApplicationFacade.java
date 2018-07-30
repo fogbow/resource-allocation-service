@@ -126,8 +126,8 @@ public class ApplicationFacade {
     private String activateOrder(Order order, String federationTokenValue) throws FogbowManagerException,
             UnexpectedException {
         FederationUser requester = authenticateAndAuthorize(federationTokenValue, Operation.CREATE, order.getType());
-        order.setFederationUser(requester);
-        return this.orderController.setAndActivateOrder(order);
+        this.orderController.setEmptyFieldsAndActivateOrder(order, requester);
+        return order.getId();
     }
 
     private Instance getResourceInstance(String orderId, String federationTokenValue, ResourceType resourceType)

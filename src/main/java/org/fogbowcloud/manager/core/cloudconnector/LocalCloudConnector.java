@@ -63,10 +63,10 @@ public class LocalCloudConnector implements CloudConnector {
                 computeOrder.setNetworksId(networkInstanceIds);
                 try {
                     requestInstance = this.computePlugin.requestInstance(computeOrder, localToken);
-                    computeOrder.setNetworksId(savedNetworkOrderIds);
                 } catch (Throwable e) {
-                    computeOrder.setNetworksId(savedNetworkOrderIds);
                     throw e;
+                } finally {
+                    computeOrder.setNetworksId(savedNetworkOrderIds);
                 }
                 break;
             case NETWORK:
@@ -94,12 +94,11 @@ public class LocalCloudConnector implements CloudConnector {
                 attachmentOrder.setTarget(targetOrder.getInstanceId());
                 try {
                     requestInstance = this.attachmentPlugin.requestInstance(attachmentOrder, localToken);
-                    attachmentOrder.setSource(savedSource);
-                    attachmentOrder.setTarget(savedTarget);
                 } catch (Throwable e) {
+                    throw e;
+                } finally {
                     attachmentOrder.setSource(savedSource);
                     attachmentOrder.setTarget(savedTarget);
-                    throw e;
                 }
                 break;
             default:

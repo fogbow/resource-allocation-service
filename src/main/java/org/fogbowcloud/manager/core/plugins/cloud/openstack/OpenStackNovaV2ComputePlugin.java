@@ -120,6 +120,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 						hardwareRequirements.getCpu(),
 						hardwareRequirements.getRam(), 
 						1);
+				// When the ComputeOrder is remote, this field must be copied into its local counterpart
+				// that is updated when the requestingMember receives the reply from the providingMember
+				// (see RemoteFacade.java)
 				computeOrder.setActualAllocation(actualAllocation);
 			}
 		} catch (HttpResponseException e) {
