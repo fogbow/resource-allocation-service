@@ -15,7 +15,6 @@ import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
@@ -23,7 +22,6 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +29,12 @@ import java.util.Map;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({DatabaseManager.class, CloudConnectorFactory.class})
 public class OrderControllerTest extends BaseUnitTests {
+
+    private static final String RESOURCES_PATH_TEST = "src/test/resources/private";
+    private static final String FAKE_NAME = "fake-name";
+    private static final String FAKE_ID = "fake-id";
+    private static final String FAKE_IMAGE_NAME = "fake-image-name";
+    private static final String FAKE_PUBLIC_KEY = "fake-public-key";
     
     private OrderController ordersController;
     private Map<String, Order> activeOrdersMap;
@@ -44,7 +48,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
     @Before
     public void setUp() {
-        HomeDir.getInstance().setPath("src/test/resources/private");
+        HomeDir.getInstance().setPath(RESOURCES_PATH_TEST);
 
         // mocking database to return empty instances of SynchronizedDoublyLinkedList.
         super.mockReadOrdersFromDataBase();
@@ -63,22 +67,31 @@ public class OrderControllerTest extends BaseUnitTests {
         this.closedOrdersList = sharedOrderHolders.getClosedOrdersList();
     }
 
-    // test case: There is no matching method in the 'OrdersController' class.
-    @Test(expected = UnexpectedException.class)
-    public void testFailedNewOrderRequestOrderIsNull() throws UnexpectedException {
-    	// exercise
-        Order order = null;
-    	OrderStateTransitioner.activateOrder(order);
+    // test case: When pass an Order with id null, it must raise an InvalidParameterException.
+    @Test(expected = InvalidParameterException.class) // verify
+    public void testDeleteOrderThrowsInvalidParameterException()
+            throws InstanceNotFoundException, InvalidParameterException, UnexpectedException {
+        
+        // set up
+        Order order = Mockito.mock(Order.class);
+        String orderId = order.getId();
+        
+        // verify
+        Assert.assertNull(orderId);
+
+        // exercise
+        this.ordersController.deleteOrder(orderId);
     }
 
-    // test case: A closed order cannot be deleted, so it must raise a FogbowManagerException.
-    @Test(expected = FogbowManagerException.class)
-    public void testDeleteOrderStateClosed() throws UnexpectedException, InvalidParameterException,
-            InstanceNotFoundException {
-        // exercise
+    // test case: when try to delete an Order closed, it must raise an InstanceNotFoundException.
+    @Test(expected = InstanceNotFoundException.class) // verify
+    public void testDeleteOrderThrowsInstanceNotFoundException()
+            throws InvalidParameterException, InstanceNotFoundException, UnexpectedException {
+        
+        // set up
         String orderId = getComputeOrderCreationId(OrderState.CLOSED);
-        ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
+        // exercise
         this.ordersController.deleteOrder(orderId);
     }
 
@@ -110,13 +123,14 @@ public class OrderControllerTest extends BaseUnitTests {
         this.activeOrdersMap.put(computeOrder2.getId(), computeOrder2);
         this.failedOrdersList.addItem(computeOrder2);
 
-        InstanceStatus statusOrder = new InstanceStatus(computeOrder.getId(), computeOrder.getProvidingMember(),
-                computeOrder.getCachedInstanceState());
-        InstanceStatus statusOrder2 = new InstanceStatus(computeOrder2.getId(), computeOrder2.getProvidingMember(),
-                computeOrder2.getCachedInstanceState());
+        InstanceStatus statusOrder = new InstanceStatus(computeOrder.getId(),
+                computeOrder.getProvidingMember(), computeOrder.getCachedInstanceState());
+        InstanceStatus statusOrder2 = new InstanceStatus(computeOrder2.getId(),
+                computeOrder2.getProvidingMember(), computeOrder2.getCachedInstanceState());
 
         // exercise
-        List<InstanceStatus> instances = this.ordersController.getInstancesStatus(federationUser, ResourceType.COMPUTE);
+        List<InstanceStatus> instances =
+                this.ordersController.getInstancesStatus(federationUser, ResourceType.COMPUTE);
 
         // verify
         Assert.assertTrue(instances.contains(statusOrder));
@@ -129,9 +143,6 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testGetOrder() throws UnexpectedException, FogbowManagerException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.OPEN);
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-id", attributes);
 
         // exercise
         ComputeOrder computeOrder = (ComputeOrder) this.ordersController.getOrder(orderId);
@@ -140,44 +151,15 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(computeOrder, this.openOrdersList.getNext());
     }
 
-    // test case: Getting order with when federationUser is null must throw InstanceNotFoundException.
-    @Test(expected = InstanceNotFoundException.class)
-    public void testGetInvalidOrder() throws FogbowManagerException {
-        // setup
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
-
-        // exercise
-        this.ordersController.getOrder("invalid-order-id");
-    }
-
-    // test case: Getting an order passing a different ResourceType must raise InstanceNotFoundException.
-    // ToDO: The refactor in ApplicationFacade moved the this logic out from OrderController; this test should be moved elsewhere.
-    @Ignore
-    @Test(expected = InstanceNotFoundException.class)
-    public void testGetOrderWithInvalidInstanceType() throws FogbowManagerException, UnexpectedException {
+    // test case: Get a not active Order, must throw InstanceNotFoundException.
+    @Test(expected = InstanceNotFoundException.class) // verify
+    public void testGetOrderNotActive() throws InstanceNotFoundException {
         // set up
-        String orderId = getComputeOrderCreationId(OrderState.OPEN);
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
-
-        // exercise
-        this.ordersController.getOrder(orderId);
-    }
-
-    // test case: Getting order with when invalid federationUser (any fedUser with another ID)
-    // must throw InstanceNotFoundException.
-    // ToDO: The refactor in ApplicationFacade moved the this logic out from OrderController; this test should be moved elsewhere.
-    @Ignore
-    @Test(expected = UnauthorizedRequestException.class)
-    public void testGetOrderWithInvalidFedUser() throws FogbowManagerException {
-        // set up
-        String orderId = getComputeOrderCreationId(OrderState.OPEN);
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "another-name");
-        FederationUser federationUser = new FederationUser("another-id", attributes);
+        Order order = createLocalOrder();
+        String orderId = order.getId();
+        
+        // verify
+        Assert.assertNull(this.activeOrdersMap.get(orderId));
 
         // exercise
         this.ordersController.getOrder(orderId);
@@ -190,7 +172,8 @@ public class OrderControllerTest extends BaseUnitTests {
         LocalCloudConnector localCloudConnector = Mockito.mock(LocalCloudConnector.class);
 
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString())).thenReturn(localCloudConnector);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString()))
+                .thenReturn(localCloudConnector);
 
         Order order = createLocalOrder();
         order.setOrderStateInTestMode(OrderState.FULFILLED);
@@ -203,12 +186,13 @@ public class OrderControllerTest extends BaseUnitTests {
         orderInstance.setState(InstanceState.READY);
         order.setInstanceId(instanceId);
 
-        Mockito.doReturn(orderInstance).when(localCloudConnector).getInstance(Mockito.any(Order.class));
+        Mockito.doReturn(orderInstance).when(localCloudConnector)
+                .getInstance(Mockito.any(Order.class));
 
         PowerMockito.mockStatic(CloudConnectorFactory.class);
         BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
 
-        //exercise
+        // exercise
         Instance instance = this.ordersController.getResourceInstance(order.getId());
 
         // verify
@@ -234,11 +218,12 @@ public class OrderControllerTest extends BaseUnitTests {
         this.fulfilledOrdersList.addItem(computeOrder);
 
         // exercise
-        ComputeAllocation allocation = (ComputeAllocation) this.ordersController.getUserAllocation(
-                this.localMember, federationUser, ResourceType.COMPUTE);
+        ComputeAllocation allocation = (ComputeAllocation) this.ordersController
+                .getUserAllocation(this.localMember, federationUser, ResourceType.COMPUTE);
 
         // verify
-        Assert.assertEquals(computeOrder.getActualAllocation().getInstances(), allocation.getInstances());
+        Assert.assertEquals(computeOrder.getActualAllocation().getInstances(),
+                allocation.getInstances());
         Assert.assertEquals(computeOrder.getActualAllocation().getRam(), allocation.getRam());
         Assert.assertEquals(computeOrder.getActualAllocation().getvCPU(), allocation.getvCPU());
     }
@@ -246,7 +231,8 @@ public class OrderControllerTest extends BaseUnitTests {
     // test case: Tests if getUserAllocation() throws UnexpectedException when there is no any order
     // with the ResourceType specified.
     @Test(expected = UnexpectedException.class)
-    public void testGetUserAllocationWithInvalidInstanceType() throws UnexpectedException, InvalidParameterException {
+    public void testGetUserAllocationWithInvalidInstanceType()
+            throws UnexpectedException, InvalidParameterException {
         // set up
         Map<String, String> attributes = new HashMap<String, String>();
         attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
@@ -261,13 +247,15 @@ public class OrderControllerTest extends BaseUnitTests {
         this.activeOrdersMap.put(networkOrder.getId(), networkOrder);
 
         // exercise
-        this.ordersController.getUserAllocation(this.localMember, federationUser, ResourceType.NETWORK);
+        this.ordersController.getUserAllocation(this.localMember, federationUser,
+                ResourceType.NETWORK);
     }
 
-    // test case: Checks if deleting a failed order, this one will be moved to the closed orders list.
+    // test case: Checks if deleting a failed order, this one will be moved to the closed orders
+    // list.
     @Test
-    public void testDeleteOrderStateFailed() throws UnexpectedException, InvalidParameterException,
-            InstanceNotFoundException {
+    public void testDeleteOrderStateFailed()
+            throws UnexpectedException, InvalidParameterException, InstanceNotFoundException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.FAILED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -289,10 +277,11 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
-    // test case: Checks if deleting a fulfiled order, this one will be moved to the closed orders list.
+    // test case: Checks if deleting a fulfiled order, this one will be moved to the closed orders
+    // list.
     @Test
-    public void testDeleteOrderStateFulfilled() throws UnexpectedException, InvalidParameterException,
-            InstanceNotFoundException {
+    public void testDeleteOrderStateFulfilled()
+            throws UnexpectedException, InvalidParameterException, InstanceNotFoundException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.FULFILLED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -313,10 +302,11 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
-    // test case: Checks if deleting a spawning order, this one will be moved to the closed orders list.
+    // test case: Checks if deleting a spawning order, this one will be moved to the closed orders
+    // list.
     @Test
-    public void testDeleteOrderStateSpawning() throws UnexpectedException, InvalidParameterException,
-            InstanceNotFoundException {
+    public void testDeleteOrderStateSpawning()
+            throws UnexpectedException, InvalidParameterException, InstanceNotFoundException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.SPAWNING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -337,10 +327,11 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
-    // test case: Checks if deleting a pending order, this one will be moved to the closed orders list.
+    // test case: Checks if deleting a pending order, this one will be moved to the closed orders
+    // list.
     @Test
-    public void testDeleteOrderStatePending() throws UnexpectedException, InvalidParameterException,
-            InstanceNotFoundException {
+    public void testDeleteOrderStatePending()
+            throws UnexpectedException, InvalidParameterException, InstanceNotFoundException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.PENDING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -363,8 +354,8 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: Checks if deleting a open order, this one will be moved to the closed orders list.
     @Test
-    public void testDeleteOrderStateOpen() throws UnexpectedException, InvalidParameterException,
-            InstanceNotFoundException {
+    public void testDeleteOrderStateOpen()
+            throws UnexpectedException, InvalidParameterException, InstanceNotFoundException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.OPEN);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -386,17 +377,19 @@ public class OrderControllerTest extends BaseUnitTests {
     }
 
     // test case: Deleting a null order must return a FogbowManagerException.
-    @Test(expected = FogbowManagerException.class)
-    public void testDeleteNullOrder() throws UnexpectedException, InstanceNotFoundException, InvalidParameterException {
+    @Test(expected = FogbowManagerException.class) // verify
+    public void testDeleteNullOrder()
+            throws UnexpectedException, InstanceNotFoundException, InvalidParameterException {
         // exercise
         this.ordersController.deleteOrder(null);
     }
 
-    private String getComputeOrderCreationId(OrderState orderState) throws InvalidParameterException {
+    private String getComputeOrderCreationId(OrderState orderState)
+            throws InvalidParameterException {
         String orderId;
         Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-id", attributes);
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, FAKE_NAME);
+        FederationUser federationUser = new FederationUser(FAKE_ID, attributes);
 
         ComputeOrder computeOrder = Mockito.spy(new ComputeOrder());
         computeOrder.setFederationUser(federationUser);
@@ -426,6 +419,8 @@ public class OrderControllerTest extends BaseUnitTests {
                 break;
             case CLOSED:
                 this.closedOrdersList.addItem(computeOrder);
+            default:
+                break;
         }
 
         return orderId;
@@ -434,23 +429,13 @@ public class OrderControllerTest extends BaseUnitTests {
     private Order createLocalOrder() {
         FederationUser federationUser = Mockito.mock(FederationUser.class);
         UserData userData = Mockito.mock(UserData.class);
-        String imageName = "fake-image-name";
-        String requestingMember = "";
-        String providingMember = "";
-        String publicKey = "fake-public-key";
+        String imageName = FAKE_IMAGE_NAME;
+        String requestingMember = this.localMember;
+        String providingMember = this.localMember;
+        String publicKey = FAKE_PUBLIC_KEY;
 
-        Order localOrder =
-                new ComputeOrder(
-                        federationUser,
-                        requestingMember,
-                        providingMember,
-                        8,
-                        1024,
-                        30,
-                        imageName,
-                        userData,
-                        publicKey,
-                        null);
+        Order localOrder = new ComputeOrder(federationUser, requestingMember, providingMember, 8,
+                1024, 30, imageName, userData, publicKey, null);
 
         return localOrder;
     }
