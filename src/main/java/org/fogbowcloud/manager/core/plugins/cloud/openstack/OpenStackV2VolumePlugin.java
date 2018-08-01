@@ -11,6 +11,9 @@ import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.tokens.KeystoneV3TokenGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.CreateRequest;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.CreateResponse;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.CreateResponse.VolumeParameters;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.tokens.Token;
@@ -21,19 +24,12 @@ import org.json.JSONObject;
 
 public class OpenStackV2VolumePlugin implements VolumePlugin {
 
-	public static final String VOLUME_NOVAV2_URL_KEY = "openstack_cinder_url";
-
 	private final String TENANT_ID_IS_NOT_SPECIFIED_ERROR = "Tenant id is not specified.";
 
 	private final String V2_API_ENDPOINT = "/v2/";
-
-	protected static final String KEY_JSON_VOLUME = "volume";
-	protected static final String KEY_JSON_STATUS = "status";
-	protected static final String KEY_JSON_SIZE = "size";
-	protected static final String KEY_JSON_NAME = "name";
-	protected static final String KEY_JSON_ID = "id";
 	protected static final String SUFIX_ENDPOINT_VOLUMES = "/volumes";
-
+	
+	public static final String VOLUME_NOVAV2_URL_KEY = "openstack_cinder_url";
 	protected static final String DEFAULT_VOLUME_NAME = "fogbow-volume";
 
 	private HttpRequestClientUtil client;
@@ -58,11 +54,11 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 			throw new UnauthenticatedUserException(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 		}
-		String size = String.valueOf(order.getVolumeSize());
-		String name = order.getVolumeName();
 
 		JSONObject jsonRequest = null;
 		try {
+			String size = String.valueOf(order.getVolumeSize());
+			String name = order.getVolumeName();
 			jsonRequest = generateJsonEntityToCreateInstance(size, name);
 		} catch (JSONException e) {
 			String errorMsg = "An error occurred when generating json.";
@@ -121,16 +117,14 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 	protected VolumeInstance getInstanceFromJson(String json) throws UnexpectedException {
 		try {
-			JSONObject rootServer = new JSONObject(json);
-			JSONObject volumeJson = rootServer.getJSONObject(KEY_JSON_VOLUME);
-			String id = volumeJson.getString(KEY_JSON_ID);
+			CreateResponse createResponse = new CreateResponse().fromJson(json);
+			VolumeParameters volumeParameters = createResponse.getVolumeParameters();
+			String id = volumeParameters.getId();
+			String name = volumeParameters.getName();
+			String status = volumeParameters.getStatus();
+			InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.VOLUME, status);
+			int size = volumeParameters.getSize();
 			
-			String name = volumeJson.optString(KEY_JSON_NAME);
-			String statusOpenstack = volumeJson.optString(KEY_JSON_STATUS);
-			InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.VOLUME, statusOpenstack);
-			String sizeStr = volumeJson.optString(KEY_JSON_SIZE);
-			int size = Integer.valueOf(sizeStr);
-
 			return new VolumeInstance(id, fogbowState, name, size);
 		} catch (Exception e) {
 			String errorMsg = "There was an exception while getting volume instance.";
@@ -140,14 +134,15 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	}
 
 	protected JSONObject generateJsonEntityToCreateInstance(String size, String name) throws JSONException {
-		JSONObject volumeContent = new JSONObject();
-		volumeContent.put(KEY_JSON_SIZE, size);
-		volumeContent.put(KEY_JSON_NAME, DEFAULT_VOLUME_NAME + "-" + name);
-
-		JSONObject volume = new JSONObject();
-		volume.put(KEY_JSON_VOLUME, volumeContent);
+		CreateRequest createRequest = 
+				new CreateRequest().new Builder()
+				.name(name)
+				.size(size)
+				.build();
 		
-		return volume;
+		String jsonStr = createRequest.toJson();
+		JSONObject volumeJsonObject = new JSONObject(jsonStr);		
+		return volumeJsonObject;
 	}	
 	
 	private void initClient() {
