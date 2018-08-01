@@ -101,8 +101,6 @@ public class RemoteFacade {
             // The Order fields that have been changed remotely, need to be copied to the local Order.
             // Check the several cloud plugins to see which fields are changed.
             // The exception is the instanceId, which is only required at the providing member side.
-            // Letting the instanceId null avoids the local resource-allocation-service from trying
-            // to delete in the local cloud the instance that only exists in the remote one.
             localOrder.setCachedInstanceState(remoteOrder.getCachedInstanceState());
             if (localOrder.getType().equals(ResourceType.COMPUTE)) {
                 ComputeOrder localCompute = (ComputeOrder) localOrder;
