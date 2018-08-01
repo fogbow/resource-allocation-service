@@ -12,8 +12,8 @@ import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.tokens.KeystoneV3TokenGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
 import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.CreateRequest;
-import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.CreateResponse;
-import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.CreateResponse.VolumeParameters;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.VolumeResponse;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.VolumeResponse.VolumeParameters;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.tokens.Token;
@@ -117,7 +117,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 	protected VolumeInstance getInstanceFromJson(String json) throws UnexpectedException {
 		try {
-			CreateResponse createResponse = new CreateResponse().fromJson(json);
+			VolumeResponse createResponse = new VolumeResponse().fromJson(json);
 			VolumeParameters volumeParameters = createResponse.getVolumeParameters();
 			String id = volumeParameters.getId();
 			String name = volumeParameters.getName();

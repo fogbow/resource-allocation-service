@@ -7,14 +7,14 @@ import com.google.gson.annotations.SerializedName;
 /**
  * Documentation: https://developer.openstack.org/api-ref/block-storage/v2/
  */
-public class CreateResponse {
+public class VolumeResponse {
 
 	@SerializedName(OpenstackApiConstants.Volume.VOLUME_KEY_JSON)
 	private VolumeParameters volumeParameters;
 	
-	public CreateResponse() {}
+	public VolumeResponse() {}
 	
-	private CreateResponse(VolumeParameters volume) {
+	private VolumeResponse(VolumeParameters volume) {
 		this.volumeParameters = volume;
 	}	
 	
@@ -77,9 +77,9 @@ public class CreateResponse {
             return this;
         }        
         
-        public CreateResponse build() {
+        public VolumeResponse build() {
             VolumeParameters volumeParameters = new VolumeParameters(this);
-			return new CreateResponse(volumeParameters);
+			return new VolumeResponse(volumeParameters);
         }        
 		
 	}
@@ -88,8 +88,8 @@ public class CreateResponse {
 		return this.volumeParameters;
 	}
 	
-	public CreateResponse fromJson(String jsonStr) {
-		return GsonHolder.getInstance().fromJson(jsonStr, CreateResponse.class);
+	public VolumeResponse fromJson(String jsonStr) {
+		return GsonHolder.getInstance().fromJson(jsonStr, VolumeResponse.class);
 	}
 	
 }
