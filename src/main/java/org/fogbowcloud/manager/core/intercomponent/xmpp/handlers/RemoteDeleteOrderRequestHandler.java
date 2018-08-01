@@ -23,6 +23,8 @@ public class RemoteDeleteOrderRequestHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
+        LOGGER.info("Received request for order: " + iq.getID());
+
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
         Element remoteOrderIdElement = queryElement.element(IqElement.ORDER_ID.toString());
         String orderId = remoteOrderIdElement.getText();
