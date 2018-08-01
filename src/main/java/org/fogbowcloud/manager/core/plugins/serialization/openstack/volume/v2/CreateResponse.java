@@ -4,6 +4,9 @@ import org.fogbowcloud.manager.core.plugins.serialization.GsonHolder;
 
 import com.google.gson.annotations.SerializedName;
 
+/**
+ * Documentation: https://developer.openstack.org/api-ref/block-storage/v2/
+ */
 public class CreateResponse {
 
 	@SerializedName(OpenstackApiConstants.Volume.VOLUME_KEY_JSON)

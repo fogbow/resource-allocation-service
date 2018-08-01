@@ -6,9 +6,7 @@ import org.fogbowcloud.manager.core.plugins.serialization.JsonSerializable;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * 
  * Documentation: https://developer.openstack.org/api-ref/block-storage/v2/
- * 
  */
 public class CreateRequest implements JsonSerializable {
 
