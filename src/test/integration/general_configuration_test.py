@@ -10,6 +10,7 @@ class GeneralConfigurations:
   status_endpoint = 'status'
   max_tries = 6
   sleep_time_secs = 15
+  providingMember = 'providingMember'
 
   #http status
   ok_status = 200
@@ -20,6 +21,7 @@ class GeneralConfigurations:
   type_compute = 'compute'
   type_network = 'network'
   type_volume = 'volume'
+  type_attachment = 'attachment'
 
   #compute attributes
   computes_endpoint = 'computes/'
@@ -45,3 +47,9 @@ class GeneralConfigurations:
   volumes_endpoint = 'volumes/'
   volume_size = 1
   max_volumes = 1
+
+  #attachment attributes
+  attachments_endpoint = 'attachments/'
+  source = 'source'
+  target = 'target'
+  max_attachment = 1

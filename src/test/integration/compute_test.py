@@ -91,6 +91,7 @@ class ComputeTests:
     response_get_allocation = cls.get_allocation(GeneralConfigurations.local_member)
     allocation = response_get_allocation.json()
     if cls.empty_allocation(allocation):
+      CommonMethods.delete_multiple_orders(orders_id, GeneralConfigurations.type_compute)
       print('Test get local allocation: Failed, allocation already in use, trying next test')
       return
     if allocation['instances'] == GeneralConfigurations.max_computes:
@@ -187,6 +188,7 @@ class ComputeTests:
     order_id = response.text
     get_response = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_compute)
     if (get_response.status_code == GeneralConfigurations.not_found_status):
+      CommonMethods.delete_order(order_id, GeneralConfigurations.type_compute)
       print('Test Failed. Trying next test')
       return
     CommonMethods.delete_order(order_id, GeneralConfigurations.type_compute)

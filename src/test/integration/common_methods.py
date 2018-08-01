@@ -7,10 +7,12 @@ class CommonMethods:
   url_computes= GeneralConfigurations.base_url + GeneralConfigurations.computes_endpoint
   url_networks= GeneralConfigurations.base_url + GeneralConfigurations.networks_endpoint
   url_volumes= GeneralConfigurations.base_url + GeneralConfigurations.volumes_endpoint
+  url_attachments= GeneralConfigurations.base_url + GeneralConfigurations.attachments_endpoint
 
   data_compute = {'vCPU': GeneralConfigurations.vCPU, 'memory': GeneralConfigurations.memory, 'disk': GeneralConfigurations.disk, 'providingMember': GeneralConfigurations.local_member, 'imageId': GeneralConfigurations.imageId, 'publicKey': GeneralConfigurations.publicKey}
   data_network = {'address': GeneralConfigurations.address, 'allocation': GeneralConfigurations.allocation}
   data_volume = {'volumeSize': GeneralConfigurations.volume_size}
+  data_attachment = {'device':'/dev/sdd'}
 
   @classmethod
   def wait_instance_ready(cls, order_id, order_type):
@@ -44,6 +46,11 @@ class CommonMethods:
       merged_data.update(optional_attributes)
       response = requests.post(cls.url_volumes, json= merged_data, headers= GeneralConfigurations.json_header)
       return response
+    elif order_type == GeneralConfigurations.type_attachment:
+      merged_data = cls.data_attachment.copy()
+      merged_data.update(optional_attributes)
+      response = requests.post(cls.url_attachments, json= merged_data, headers= GeneralConfigurations.json_header)
+      return response
 
   @classmethod
   def post_multiple_orders(cls, optional_attributes, amount, order_type):
@@ -64,6 +71,8 @@ class CommonMethods:
       return requests.get(cls.url_networks + order_id)
     elif order_type == GeneralConfigurations.type_volume:
       return requests.get(cls.url_volumes + order_id)
+    elif order_type == GeneralConfigurations.type_attachment:
+      return requests.get(cls.url_attachments + order_id)
 
   @classmethod
   def get_all_order(cls, order_type):
@@ -73,6 +82,8 @@ class CommonMethods:
       return requests.get(cls.url_networks + GeneralConfigurations.status_endpoint)
     elif order_type == GeneralConfigurations.type_volume:
       return requests.get(cls.url_volumes + GeneralConfigurations.status_endpoint)
+    elif order_type == GeneralConfigurations.type_attachment:
+      return requests.get(cls.url_attachments + GeneralConfigurations.status_endpoint)
 
   @classmethod
   def delete_order(cls, order_id, order_type):
@@ -82,6 +93,8 @@ class CommonMethods:
       return requests.delete(cls.url_networks + order_id)
     elif order_type == GeneralConfigurations.type_volume:
       return requests.delete(cls.url_volumes + order_id)
+    elif order_type == GeneralConfigurations.type_attachment:
+      return requests.delete(cls.url_attachments + order_id)
 
   @classmethod
   def delete_multiple_orders(cls, orders_id, order_type):

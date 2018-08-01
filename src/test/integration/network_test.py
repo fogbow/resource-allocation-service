@@ -8,8 +8,8 @@ class NetworkTests:
   @classmethod
   def test_networks(cls):
     cls.test_post_local_networks()
-    cls.test_get_local_network()
-    cls.test_get_all_local_compute()
+    cls.test_get_by_id_local_network()
+    cls.test_get_all_local_networks()
     cls.test_delete_local_network()
 
   #Post tests
@@ -29,7 +29,7 @@ class NetworkTests:
 
   # Get tests
   @classmethod
-  def test_get_local_network(cls):
+  def test_get_by_id_local_network(cls):
     extra_data = {}
     fake_id = 'fake-id'
     response_get = CommonMethods.get_order_by_id(fake_id, GeneralConfigurations.type_network)
@@ -53,7 +53,8 @@ class NetworkTests:
     CommonMethods.delete_order(order_id, GeneralConfigurations.type_network)
 
   @classmethod
-  def test_get_all_local_compute(cls):
+  def test_get_all_local_networks(cls):
+    time.sleep(60)
     response_get = CommonMethods.get_all_order(GeneralConfigurations.type_network)
     if response_get.status_code != GeneralConfigurations.ok_status or response_get.text != '[]':
       print('Test get all networks: Failed')
@@ -68,7 +69,7 @@ class NetworkTests:
     if not (response_get.status_code != GeneralConfigurations.ok_status or response_get.text == '[]' or len(response_get.json()) != GeneralConfigurations.max_networks):
       test_ok = True
     if test_ok:
-      print('Test get all local compute: Ok. Removing networks')
+      print('Test get all local networks: Ok. Removing networks')
     else:
       print('Test get all networks: Failed. Removing networks')
     CommonMethods.delete_multiple_orders(orders_id, GeneralConfigurations.type_network)
