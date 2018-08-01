@@ -5,8 +5,6 @@ from common_methods import CommonMethods
 
 class ComputeTests:
 
-  computes_url = GeneralConfigurations.base_url + GeneralConfigurations.computes_endpoint
-
   @classmethod
   def test_computes(cls):
     cls.test_post_local_compute()

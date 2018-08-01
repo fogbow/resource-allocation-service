@@ -5,14 +5,12 @@ from common_methods import CommonMethods
 
 class NetworkTests:
 
-  networks_url = GeneralConfigurations.base_url + GeneralConfigurations.networks_endpoint
-
   @classmethod
   def test_networks(cls):
-    #cls.test_post_local_networks()
-    #cls.test_get_local_network()
+    cls.test_post_local_networks()
+    cls.test_get_local_network()
     cls.test_get_all_local_compute()
-    #cls.test_delete_local_network()
+    cls.test_delete_local_network()
 
   #Post tests
   @classmethod

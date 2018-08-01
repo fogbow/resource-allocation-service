@@ -43,3 +43,5 @@ class GeneralConfigurations:
 
   #volume attributes
   volumes_endpoint = 'volumes/'
+  volume_size = 1
+  max_volumes = 1

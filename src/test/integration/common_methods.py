@@ -10,7 +10,7 @@ class CommonMethods:
 
   data_compute = {'vCPU': GeneralConfigurations.vCPU, 'memory': GeneralConfigurations.memory, 'disk': GeneralConfigurations.disk, 'providingMember': GeneralConfigurations.local_member, 'imageId': GeneralConfigurations.imageId, 'publicKey': GeneralConfigurations.publicKey}
   data_network = {'address': GeneralConfigurations.address, 'allocation': GeneralConfigurations.allocation}
-  data_volume = {}
+  data_volume = {'volumeSize': GeneralConfigurations.volume_size}
 
   @classmethod
   def wait_instance_ready(cls, order_id, order_type):
