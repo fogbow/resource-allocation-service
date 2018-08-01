@@ -56,7 +56,7 @@ public class OpenStackV2NetworkPluginTest {
 	private static final String SUFFIX_ENDPOINT_DELETE_SECURITY_GROUP = OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP +
 			File.separator + SECURITY_GROUP_ID;
 	private static final String SUFFIX_ENDPOINT_GET_SECURITY_GROUP = OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP + "?" +
-			OpenStackV2NetworkPlugin.QUERY_NAME + "=" + OpenStackV2NetworkPlugin.DEFAULT_SECURITY_GROUP_NAME + "-"
+			OpenStackV2NetworkPlugin.QUERY_NAME + "=" + OpenStackV2NetworkPlugin.SECURITY_GROUP_PREFIX + "-"
 			+ NETWORK_ID;
 
 	private OpenStackV2NetworkPlugin openStackV2NetworkPlugin;
@@ -525,7 +525,7 @@ public class OpenStackV2NetworkPluginTest {
 		JSONObject securityGroupResponse = createSecurityGroupGetResponse(SECURITY_GROUP_ID);
 		String suffixEndpointNetwork = OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_NETWORK + "/" + NETWORK_ID;
 		String suffixEndpointGetSG = OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP + "?" +
-				OpenStackV2NetworkPlugin.QUERY_NAME + "=" + OpenStackV2NetworkPlugin.DEFAULT_SECURITY_GROUP_NAME + "-"
+				OpenStackV2NetworkPlugin.QUERY_NAME + "=" + OpenStackV2NetworkPlugin.SECURITY_GROUP_PREFIX + "-"
 				+ NETWORK_ID;
 		String suffixEndpointDeleteSG = OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP + "/" + SECURITY_GROUP_ID;
 

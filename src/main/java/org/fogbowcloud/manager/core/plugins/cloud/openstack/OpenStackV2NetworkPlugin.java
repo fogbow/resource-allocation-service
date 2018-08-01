@@ -70,7 +70,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     protected static final String ICMP_PROTOCOL = "icmp";
     protected static final int SSH_PORT = 22;
     protected static final int ANY_PORT = -1;
-    public static final String DEFAULT_SECURITY_GROUP_NAME = "fogbow-sg";
+    public static final String SECURITY_GROUP_PREFIX = "fogbow-sg";
 
     private HttpRequestClientUtil client;
     private String networkV2APIEndpoint;
@@ -222,7 +222,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     private JSONObject generateJsonEntityToCreateSecurityGroup(String networkId, String tenantId) {
         JSONObject securityGroup = new JSONObject();
         JSONObject securityGroupObject = new JSONObject();
-        securityGroupObject.put(KEY_NAME, DEFAULT_SECURITY_GROUP_NAME + "-" + networkId);
+        securityGroupObject.put(KEY_NAME, SECURITY_GROUP_PREFIX + "-" + networkId);
         securityGroupObject.put(KEY_TENANT_ID, tenantId);
         securityGroup.put(KEY_SECURITY_GROUP, securityGroupObject);
         return securityGroup;
@@ -287,7 +287,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     }
 
     protected String retrieveSecurityGroupId(String networkId, Token token) throws FogbowManagerException, UnexpectedException {
-        String securityGroupName = DEFAULT_SECURITY_GROUP_NAME + "-" + networkId;
+        String securityGroupName = SECURITY_GROUP_PREFIX + "-" + networkId;
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP + "?" + QUERY_NAME + "=" + securityGroupName;
         String responseStr = null;
         try {

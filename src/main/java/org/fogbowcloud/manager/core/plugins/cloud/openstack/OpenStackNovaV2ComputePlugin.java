@@ -12,11 +12,7 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
-import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.manager.core.exceptions.NoAvailableResourcesException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.HardwareRequirements;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
@@ -27,6 +23,7 @@ import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.util.DefaultLaunchCommandGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.util.LaunchCommandGenerator;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.computev2.*;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
@@ -101,7 +98,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 		LOGGER.debug("Requesting instance with tokens=" + localToken);
 
 		HardwareRequirements hardwareRequirements = findSmallestFlavor(computeOrder, localToken);
-		String flavorId = hardwareRequirements.getId();
+		String flavorId = hardwareRequirements.getFlavorId();
 		String tenantId = getTenantId(localToken);
 		List<String> networksId = resolveNetworksId(computeOrder);
 		String imageId = computeOrder.getImageId();
@@ -111,9 +108,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 		String instanceId = null;
 
 		try {
-			JSONObject json = generateJsonRequest(imageId, flavorId, userData, keyName, networksId);
-			String jsonResponse = this.client.doPostRequest(endpoint, localToken, json);
-			instanceId = getAttFromJson(ID_JSON_FIELD, jsonResponse);
+			instanceId = doRequestInstance(localToken, flavorId, networksId, imageId, userData, keyName, endpoint);
 
 			synchronized (computeOrder) {
 				ComputeAllocation actualAllocation = new ComputeAllocation(
@@ -135,6 +130,16 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 		return instanceId;
 	}
 
+	private String doRequestInstance(Token localToken, String flavorId, List<String> networksId, String imageId, String userData, String keyName, String endpoint) throws UnavailableProviderException, HttpResponseException {
+		CreateRequest createBody = getRequestBody(imageId, flavorId, userData, keyName, networksId);
+
+		JSONObject json = new JSONObject(createBody.toJson());
+		String response = this.client.doPostRequest(endpoint, localToken, json);
+		CreateResponse createResponse = CreateResponse.fromJson(response);
+
+		return createResponse.getId();
+	}
+
 	@Override
 	public ComputeInstance getInstance(String instanceId, Token localToken)
 			throws FogbowManagerException, UnexpectedException {
@@ -150,10 +155,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}
 
-		
 		LOGGER.debug("Getting instance from json: " + jsonResponse);
-		ComputeInstance computeInstance = getInstanceFromJson(jsonResponse, localToken);
 
+		ComputeInstance computeInstance = instanceFromJson(jsonResponse, localToken);
 		return computeInstance;
 	}
 
@@ -190,6 +194,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 	private List<String> resolveNetworksId(ComputeOrder computeOrder) {
 		List<String> requestedNetworksId = new ArrayList<>();
 		String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+
 		//We add the default network before any other network, because the order is very important to Openstack
 		//request. Openstack will configure the routes to the external network by the first network found on request body.
 		requestedNetworksId.add(defaultNetworkId);
@@ -200,89 +205,73 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
 	private String getKeyName(String tenantId, Token localToken, String publicKey)
 			throws FogbowManagerException, UnexpectedException {
-		String keyname = null;
+		String keyName = null;
 
 		if (publicKey != null && !publicKey.isEmpty()) {
 			String osKeypairEndpoint = getComputeEndpoint(tenantId, SUFFIX_ENDPOINT_KEYPAIRS);
 
-			keyname = getRandomUUID();
-			JSONObject keypair = new JSONObject();
-			
-			keypair.put(NAME_JSON_FIELD, keyname);
-			keypair.put(PUBLIC_KEY_JSON_FIELD, publicKey);
-			JSONObject root = new JSONObject();
-			root.put(KEYPAIR_JSON_FIELD, keypair);
+			keyName = getRandomUUID();
+			CreateOsKeypairRequest request = new CreateOsKeypairRequest.Builder()
+					.name(keyName)
+					.publicKey(publicKey)
+					.build();
+
+			JSONObject body = new JSONObject(request.toJson());
 			try {
-				this.client.doPostRequest(osKeypairEndpoint, localToken, root);
+				this.client.doPostRequest(osKeypairEndpoint, localToken, body);
 			} catch (HttpResponseException e) {
 				OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 			}
 		}
 
-		return keyname;
+		return keyName;
 	}
 
 	private String getComputeEndpoint(String tenantId, String suffix) {
 		return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + tenantId + suffix;
 	}
 
-	private String getAttFromJson(String attName, String jsonStr) throws JSONException {
-		JSONObject root = new JSONObject(jsonStr);
-		JSONObject serveJson = root.getJSONObject(SERVER_JSON_FIELD);
-		String jsonAttValue = serveJson.getString(attName);
-		return jsonAttValue;
-	}
-
 	private void deleteKeyName(String tenantId, Token localToken, String keyName) throws FogbowManagerException, UnexpectedException {
 		String suffixEndpoint = SUFFIX_ENDPOINT_KEYPAIRS + "/" + keyName;
-		String keynameEndpoint = getComputeEndpoint(tenantId, suffixEndpoint);
+		String keyNameEndpoint = getComputeEndpoint(tenantId, suffixEndpoint);
 		
 		try {
-			this.client.doDeleteRequest(keynameEndpoint, localToken);
+			this.client.doDeleteRequest(keyNameEndpoint, localToken);
 		} catch (HttpResponseException e) {
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}
 	}
 
-	private JSONObject generateJsonRequest(String imageRef, String flavorRef, String userdata, String keyName,
-			List<String> networksId) {
-		LOGGER.debug("Generating JSON to send as the body of instance POST request");
+	private CreateRequest getRequestBody(String imageRef, String flavorRef, String userdata, String keyName,
+									 List<String> networksIds) {
+		List<CreateRequest.ServerParameters.Network> networks = new ArrayList<>();
+		List<CreateRequest.ServerParameters.SecurityGroup> securityGroups = new ArrayList<>();
+		for (String networkId : networksIds) {
+			networks.add(new CreateRequest.ServerParameters.Network(networkId));
 
-		JSONObject server = new JSONObject();
-		server.put(NAME_JSON_FIELD, FOGBOW_INSTANCE_NAME + getRandomUUID());
-		server.put(IMAGE_JSON_FIELD, imageRef);
-		server.put(FLAVOR_REF_JSON_FIELD, flavorRef);
-
-		if (userdata != null) {
-			server.put(USER_DATA_JSON_FIELD, userdata);
-		}
-
-		JSONArray networks = new JSONArray();
-		for (String id : networksId) {
-			JSONObject netId = new JSONObject();
-			netId.put(UUID_JSON_FIELD, id);
-			networks.put(netId);
 			String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
-			if (!id.equals(defaultNetworkId)) {
-				// if this is not the default network, we need to open SSH port, and also ICMP connection.
-				JSONArray securityGroup = new JSONArray();
-				JSONObject securityGroupName = new JSONObject();
-				String securityGroupProperty = OpenStackV2NetworkPlugin.DEFAULT_SECURITY_GROUP_NAME + "-" + id;
-				securityGroupName.put(NAME_JSON_FIELD, securityGroupProperty);
-				securityGroup.put(securityGroupName);
-				server.put(SECURITY_JSON_FIELD, securityGroup);
+			if (!networkId.equals(defaultNetworkId)) {
+				String prefix = OpenStackV2NetworkPlugin.SECURITY_GROUP_PREFIX;
+				String securityGroupName = prefix + "-" + networkId;
+				securityGroups.add(new CreateRequest.ServerParameters.SecurityGroup(securityGroupName));
 			}
 		}
-		server.put(NETWORK_JSON_FIELD, networks);
-	
-		if (keyName != null) {
-			server.put(KEY_JSON_FIELD, keyName);
-		}
 
-		JSONObject root = new JSONObject();
-		root.put(SERVER_JSON_FIELD, server);
+		// do not specify security groups if no additional network was given
+		securityGroups = securityGroups.size() == 0 ? null : securityGroups;
 
-		return root;
+		String name = FOGBOW_INSTANCE_NAME + getRandomUUID();
+		CreateRequest createRequest = new CreateRequest.Builder()
+				.name(name)
+				.imageReference(imageRef)
+				.flavorReference(flavorRef)
+				.userData(userdata)
+				.keyName(keyName)
+				.networks(networks)
+				.securityGroups(securityGroups)
+				.build();
+
+		return createRequest;
 	}
 
 	private HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, Token localToken)
@@ -336,98 +325,88 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
 	}
 
-	private TreeSet<HardwareRequirements> detailFlavors(String endpoint, Token localToken, List<String> flavorsId) 
+	private TreeSet<HardwareRequirements> detailFlavors(String endpoint, Token localToken, List<String> flavorsIds)
 			throws FogbowManagerException, UnexpectedException 
 			{
 		TreeSet<HardwareRequirements> newHardwareRequirements = new TreeSet<>();
 		TreeSet<HardwareRequirements> flavorsCopy = new TreeSet<>(getHardwareRequirementsList());
 
-		for (String flavorId : flavorsId) {
+		for (String flavorId : flavorsIds) {
 			boolean containsFlavorForCaching = false;
 
 			for (HardwareRequirements flavor : flavorsCopy) {
-				if (flavor.getId().equals(flavorId)) {
+				if (flavor.getFlavorId().equals(flavorId)) {
 					containsFlavorForCaching = true;
 					newHardwareRequirements.add(flavor);
 					break;
 				}
 			}
+
 			if (!containsFlavorForCaching) {
 				String newEndpoint = endpoint + "/" + flavorId;
 				
-				String jsonResponseSpecificFlavor = null;
+				String getJsonResponse = null;
 				
 				try {
-					jsonResponseSpecificFlavor = this.client.doGetRequest(newEndpoint, localToken);
+					getJsonResponse = this.client.doGetRequest(newEndpoint, localToken);
 				} catch (HttpResponseException e) {
 					OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 				}
-				
-				JSONObject specificFlavor = new JSONObject(jsonResponseSpecificFlavor)
-						.getJSONObject(FLAVOR_JSON_OBJECT);
 
-				String id = specificFlavor.getString(ID_JSON_FIELD);
-				String name = specificFlavor.getString(NAME_JSON_FIELD);
-				int disk = specificFlavor.getInt(DISK_JSON_FIELD);
-				int ram = specificFlavor.getInt(MEMORY_JSON_FIELD);
-				int vcpus = specificFlavor.getInt(VCPU_JSON_FIELD);
+				GetFlavorResponse getFlavorResponse = GetFlavorResponse.fromJson(getJsonResponse);
 
-				newHardwareRequirements.add(new HardwareRequirements(name, id, vcpus, ram, disk));
+				String id = getFlavorResponse.getId();
+				String name = getFlavorResponse.getName();
+				int disk = getFlavorResponse.getDisk();
+				int memory = getFlavorResponse.getMemory();
+				int vcpusCount = getFlavorResponse.getVcpusCount();
+
+				newHardwareRequirements.add(new HardwareRequirements(name, id, vcpusCount, memory, disk));
 			}
 		}
 
 		return newHardwareRequirements;
 	}
 
-	private ComputeInstance getInstanceFromJson(String jsonResponse, Token localToken) throws FogbowManagerException, UnexpectedException {
-		JSONObject rootServer = new JSONObject(jsonResponse);
-		JSONObject serverJson = rootServer.getJSONObject(SERVER_JSON_FIELD);
+	private ComputeInstance instanceFromJson(String getRawResponse, Token localToken) throws FogbowManagerException, UnexpectedException {
+		GetResponse getResponse = GetResponse.fromJson(getRawResponse);
 
-		String id = serverJson.getString(ID_JSON_FIELD);
-		String hostName = serverJson.getString(NAME_JSON_FIELD);
-		String localIpAddress = "";
-
-		if (!serverJson.isNull(ADDRESS_FIELD)) {
-			JSONObject addressField = serverJson.optJSONObject(ADDRESS_FIELD);
-			if (!addressField.isNull(PROVIDER_NETWORK_FIELD)) {
-				JSONArray providerNetworkArray = addressField.optJSONArray(PROVIDER_NETWORK_FIELD);
-				JSONObject providerNetwork = (JSONObject) providerNetworkArray.get(0);
-				localIpAddress = providerNetwork.optString(ADDR_FIELD);
-			}
-		}
-		int vCPU = -1;
-		int memory = -1;
-		int disk = -1;
-		
-		
-		String flavorId = retrieveFlavorIdFromResponse(serverJson);
+		String flavorId = getResponse.getFlavor().getId();
 		HardwareRequirements hardwareRequirements = getFlavorById(flavorId, localToken);
-		if (hardwareRequirements != null) {
-			vCPU = hardwareRequirements.getCpu();
-			memory = hardwareRequirements.getRam();
-			disk = hardwareRequirements.getDisk();
-		} else {
+
+		if (hardwareRequirements == null) {
 			throw new NoAvailableResourcesException("No matching flavor");
 		}
 
-		String openStackState = serverJson.getString(STATUS_JSON_FIELD);
+		int vcpusCount = hardwareRequirements.getCpu();
+		int memory = hardwareRequirements.getRam();
+		int disk = hardwareRequirements.getDisk();
+
+		String openStackState = getResponse.getStatus();
 		InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.COMPUTE, openStackState);
 
-		ComputeInstance computeInstance = new ComputeInstance(id, fogbowState, hostName, vCPU, memory, disk,
-				localIpAddress);
-		return computeInstance;
-	}
+		String instanceId = getResponse.getId();
+		String hostName = getResponse.getName();
 
-	private String retrieveFlavorIdFromResponse(JSONObject jsonResponse) {
-		JSONObject flavorField = jsonResponse.optJSONObject(FLAVOR_JSON_FIELD);
-		return flavorField.optString(FLAVOR_ID_JSON_FIELD);
+		GetResponse.Server.Addresses addressesContainer = getResponse.getAddresses();
+
+		String address = "";
+		if (addressesContainer != null) {
+			GetResponse.Server.Addresses.Address[] addresses = addressesContainer.getProviderAddresses();
+			boolean firstAddressEmpty = addresses == null || addresses.length == 0 || addresses[0].getAddress() == null;
+			address = firstAddressEmpty ? "" : addresses[0].getAddress();
+		}
+
+		ComputeInstance computeInstance = new ComputeInstance(instanceId,
+				fogbowState, hostName, vcpusCount, memory, disk, address);
+		return computeInstance;
 	}
 
 	private HardwareRequirements getFlavorById(String id, Token localToken) throws FogbowManagerException, UnexpectedException {
 		updateFlavors(localToken);
 		TreeSet<HardwareRequirements> flavorsCopy = new TreeSet<>(getHardwareRequirementsList());
 		for (HardwareRequirements hardwareRequirements : flavorsCopy) {
-			if (hardwareRequirements.getId().equals(id)) {
+			if (hardwareRequirements.getFlavorId().equals(id)) {
 				return hardwareRequirements;
 			}
 		}

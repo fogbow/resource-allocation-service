@@ -54,7 +54,7 @@ function doPostCompute {
 ### Get compute functions
 
 function testGetNonExistentCompute {
-  local fakeInstanceId="non-existent-instance-id"
+  local fakeInstanceId="non-existent-instance-flavorId"
   local responseStatus=$(doGetComputeReturningStatus $fakeInstanceId)
   if [ $responseStatus -eq $notFoundHttpStatus ]; then
     echo "Test ok."
@@ -136,7 +136,7 @@ function testDeleteCompute {
 }
 
 function testDeleteNonExistentCompute {
-  local fakeInstanceId="non-existent-instance-id"
+  local fakeInstanceId="non-existent-instance-flavorId"
   deleteStatus=$(doDeleteComputeReturningStatus $fakeInstanceId)
   if [ $deleteStatus -eq $notFoundHttpStatus ]; then
     echo "Test ok."
@@ -185,7 +185,7 @@ function testDeleteNetwork {
 }
 
 function testDeleteNonExistentNetwork {
-  local fakeInstanceId="non-existent-instance-id"
+  local fakeInstanceId="non-existent-instance-flavorId"
   deleteStatus=$(doDeleteNetworkReturningStatus $fakeInstanceId)
   sleep $sleepTimeSecs
   if [ $deleteStatus -eq $notFoundHttpStatus ]; then
@@ -241,7 +241,7 @@ function doPostNetwork {
 ### Get network functions
 
 function testGetNonExistentNetwork {
-  local fakeInstanceId="non-existent-instance-id"
+  local fakeInstanceId="non-existent-instance-flavorId"
   local responseStatus=$(doGetNetworkReturningStatus $fakeInstanceId)
   if [ $responseStatus -eq $notFoundHttpStatus ]; then
       echo "Test ok."
@@ -289,7 +289,7 @@ function testDeleteVolume {
 }
 
 function testDeleteNonExistentVolume {
-  local fakeInstanceId="non-existent-instance-id"
+  local fakeInstanceId="non-existent-instance-flavorId"
   deleteStatus=$(doDeleteVolumeReturningStatus $fakeInstanceId)
   sleep $sleepTimeSecs
   if [ $deleteStatus -eq $notFoundHttpStatus ]; then
@@ -343,7 +343,7 @@ function doPostVolume {
 ### Get volume functions
 
 function testGetNonExistentVolume {
-  local fakeInstanceId="non-existent-instance-id"
+  local fakeInstanceId="non-existent-instance-flavorId"
   local responseStatus=$(doGetVolumeReturningStatus $fakeInstanceId)
   if [ $responseStatus -eq $notFoundHttpStatus ]; then
       echo "Test ok."
@@ -437,7 +437,7 @@ function waitForInstacesToBeReady {
 ### Get attachment functions
 
 function testGetNonExistentAttachment {
-  local fakeInstanceId="non-existent-instance-id"
+  local fakeInstanceId="non-existent-instance-flavorId"
   local responseStatus=$(doGetAttachmentReturningStatus $fakeInstanceId)
   if [ $responseStatus -eq $notFoundHttpStatus ]; then
       echo "Test ok."
@@ -485,7 +485,7 @@ function testDeleteAttachment {
 }
 
 function testDeleteNonExistentAttachment {
-  local fakeInstanceId="non-existent-instance-id"
+  local fakeInstanceId="non-existent-instance-flavorId"
   deleteStatus=$(doDeleteAttachmentReturningStatus $fakeInstanceId)
   sleep $sleepTimeSecs
   if [ $deleteStatus -eq $notFoundHttpStatus ]; then

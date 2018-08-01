@@ -7,7 +7,7 @@ public class HardwareRequirements implements Comparable<HardwareRequirements> {
     private final int MEM_VALUE_RELEVANCE = 1;
 
     private String name;
-    private String id;
+    private String flavorId;
 
     /** Number of cores of the CPU. */
     private int cpu;
@@ -16,12 +16,12 @@ public class HardwareRequirements implements Comparable<HardwareRequirements> {
     /** Disk in GB. */
     private int disk;
 
-    public HardwareRequirements(String name, String id, int cpu, int ram, int disk) {
+    public HardwareRequirements(String name, String flavorId, int cpu, int ram, int disk) {
         this.setName(name);
         this.setCpu(cpu);
         this.setRam(ram);
         this.setDisk(disk);
-        this.setId(id);
+        this.setFlavorId(flavorId);
     }
 
     public String getName() {
@@ -32,12 +32,12 @@ public class HardwareRequirements implements Comparable<HardwareRequirements> {
         this.name = name;
     }
 
-    public String getId() {
-        return id;
+    public String getFlavorId() {
+        return flavorId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setFlavorId(String flavorId) {
+        this.flavorId = flavorId;
     }
 
     public int getCpu() {
@@ -71,12 +71,12 @@ public class HardwareRequirements implements Comparable<HardwareRequirements> {
 
         HardwareRequirements hardwareRequirements = (HardwareRequirements) o;
 
-        return id != null ? id.equals(hardwareRequirements.id) : hardwareRequirements.id == null;
+        return flavorId != null ? flavorId.equals(hardwareRequirements.flavorId) : hardwareRequirements.flavorId == null;
     }
 
     @Override
     public int hashCode() {
-        return id != null ? id.hashCode() : 0;
+        return flavorId != null ? flavorId.hashCode() : 0;
     }
 
     @Override
