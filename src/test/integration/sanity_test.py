@@ -5,9 +5,10 @@ from network_test import NetworkTests
 
 print('###### Starting tests ######')
 print()
-print('### Compute tests ###')
-#We can change methods to be static in ComputeTests, this way we don't need to instatiate this object
-ComputeTests.test_computes()
-print()
+#print('### Compute tests ###')
+#ComputeTests.test_computes()
+#print('### Compute tests are over ###')
+#print()
 print('### Network tests ###')
 NetworkTests.test_networks()
+print('### Network tests are over ###')
