@@ -32,10 +32,11 @@ public class OrderController {
         this.orderHolders = SharedOrderHolders.getInstance();
     }
 
-    public String setAndActivateOrder(Order order) throws UnexpectedException {
-        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+    public void setEmptyFieldsAndActivateOrder(Order order, FederationUser federationUser) throws UnexpectedException {
         // Set order fields that have not been provided by the requester
         order.setId(UUID.randomUUID().toString());
+        order.setFederationUser(federationUser);
+        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         order.setRequestingMember(localMemberId);
         if (order.getProvidingMember() == null) {
             order.setProvidingMember(localMemberId);
@@ -44,7 +45,6 @@ public class OrderController {
         order.setCachedInstanceState(InstanceState.DISPATCHED);
         // Add order to the poll of active orders and to the OPEN linked list
         OrderStateTransitioner.activateOrder(order);
-        return order.getId();
     }
 
     public Order getOrder(String orderId) throws InstanceNotFoundException {

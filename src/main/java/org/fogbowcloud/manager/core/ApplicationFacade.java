@@ -1,6 +1,5 @@
 package org.fogbowcloud.manager.core;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -55,29 +54,7 @@ public class ApplicationFacade {
 
     public String createCompute(ComputeOrder order, String federationTokenValue) throws FogbowManagerException,
             UnexpectedException {
-        changeNetworkOrderIdsToNetworInstanceIds(order);        
         return activateOrder(order, federationTokenValue);
-    }
-
-    /** protected visibility for tests */
-    protected void changeNetworkOrderIdsToNetworInstanceIds(ComputeOrder order) {
-                
-        //as this content came from rest API the IDs are actually NetworkOrderIDs.
-        //since we need NetworkInstanceIDs, we need to do proper replacement
-        
-        List<String> previousNetworkOrdersId = order.getNetworksId();//based on NetworkOrderIDs        
-        List<String> newNetworkInstanceIDs = new LinkedList<String>();//based on NetworkInstanceIDs
-               
-        for (String previousID : previousNetworkOrdersId) {
-            
-            Order networkOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(previousID);
-            
-            String newInstanceId = networkOrder.getInstanceId();
-            newNetworkInstanceIDs.add(newInstanceId);      
-        }
-        
-        //after collecting the list of networkInstaceIDs, we update the ComputeOrder
-        order.setNetworksId(newNetworkInstanceIDs);
     }
 
     public ComputeInstance getCompute(String orderId, String federationTokenValue) throws Exception {
@@ -128,13 +105,6 @@ public class ApplicationFacade {
 
     public String createAttachment(AttachmentOrder attachmentOrder, String federationTokenValue) throws
             FogbowManagerException, UnexpectedException {
-        // The request to create an attachment sent by the user carries OrderIds, instead of instanceIds, which is what
-        // is needed by the attachment plugin to do the attachment in the cloud. Thus, before activating the order,
-        // we need to map orderIds into the corresponding instanceIds.
-        Order sourceOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(attachmentOrder.getSource());
-        Order targetOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(attachmentOrder.getTarget());
-        attachmentOrder.setSource(sourceOrder.getInstanceId());
-        attachmentOrder.setTarget(targetOrder.getInstanceId());
         return activateOrder(attachmentOrder, federationTokenValue);
     }
 
@@ -156,8 +126,8 @@ public class ApplicationFacade {
     private String activateOrder(Order order, String federationTokenValue) throws FogbowManagerException,
             UnexpectedException {
         FederationUser requester = authenticateAndAuthorize(federationTokenValue, Operation.CREATE, order.getType());
-        order.setFederationUser(requester);
-        return this.orderController.setAndActivateOrder(order);
+        this.orderController.setEmptyFieldsAndActivateOrder(order, requester);
+        return order.getId();
     }
 
     private Instance getResourceInstance(String orderId, String federationTokenValue, ResourceType resourceType)

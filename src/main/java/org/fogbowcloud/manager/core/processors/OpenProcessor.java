@@ -41,8 +41,6 @@ public class OpenProcessor implements Runnable {
                     processOpenOrder(order);
                 } else {
                     this.openOrdersList.resetPointer();
-                    LOGGER.debug("There is no open order to be processed, sleeping for "
-                            + this.sleepTime + " milliseconds");
                     Thread.sleep(this.sleepTime);
                 }
             } catch (InterruptedException e) {

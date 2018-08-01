@@ -15,9 +15,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
@@ -57,37 +55,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
-    }
-
-    // test case: When calling the method changeNetworkOrderIdsToNetworkInstanceIds(), it must change
-    // the collection of OrderIDs by NetworkInstancesIDs.
-    @Test
-    public void testChangeNetworkOrderIdsToNetworkInstanceIds() {
-
-        // set up
-        NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
-
-        Mockito.doReturn(FAKE_ORDER_ID).when(networkOrder).getId();
-        Mockito.doReturn(FAKE_INSTANCE_ID).when(networkOrder).getInstanceId();
-
-        this.activeOrdersMap.put(networkOrder.getId(), networkOrder);
-
-        List<String> networkIdList = new ArrayList<>();
-        networkIdList.add(FAKE_ORDER_ID);
-
-        ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setNetworksId(networkIdList);
-
-        List<String> expectedList = new ArrayList<>();
-        expectedList.add(FAKE_INSTANCE_ID);
-
-        // exercise
-        this.application.changeNetworkOrderIdsToNetworInstanceIds(computeOrder);
-
-        // verify
-        Assert.assertEquals(expectedList, computeOrder.getNetworksId());
-        //FIXME: I think we cannot mock the return of the computerOrder.getNetworkId. This is the behaviour we want to
-        // check. One option is to not use a mock for it or to use and to check we called the set method
     }
 
     // test case: When calling the method deleteCompute(), the Order passed per parameter must
