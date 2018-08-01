@@ -17,9 +17,9 @@ class GeneralConfigurations:
 	created_status = 201
 
 	#order type
-	compute = 'compute'
-	network = 'network'
-	volume = 'volume'
+	type_compute = 'compute'
+	type_network = 'network'
+	type_volume = 'volume'
 
 	#compute attributes
 	computes_endpoint = 'computes/'
@@ -32,7 +32,7 @@ class GeneralConfigurations:
 	vCPU = 1
 	memory = 1024
 	disk = 8
-	publicKey = 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCYBZoM6Za/x02OWdPOElGmuEevpCCAeObDxufVlqNKW7EpYlrEend9ulzvz6f2FVxM7NqLAskZ0tElBf4vnCPdwhkVB0pWxc8NReZ+B2eA7gdUXn0t8mDiCybOkAcoTbxMO88cyo/f1e7g+AxxGzeg5FwKjcQIr25u3xn/m2ICJO0Jzflyxx/Hu9d2uFBqA1UHOLJRSUT95NXWZoHhZS+KFHZsh2IFHpBapaE1CloYObfL+nYCB6fMlu457LUUpkghk4lqWQhL0WaElmUsevQJ/Z8KVcJVNkCyq0iAHA1jO8VuFnTHxEB0J4+kVF6yebOghOexu5QvOci8E/cn6+sr gustavolocal@sapupara-pc-154'
+	publicKey = ''
 	imageId = '9b672abd-67f7-463e-b926-a87adbc80860'
 
 	#network attributes
