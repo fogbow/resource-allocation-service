@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
@@ -50,15 +51,13 @@ public class RemoteCreateOrderRequestHandlerTest {
     public void setUp() {
         this.remoteCreateOrderRequestHandler = new RemoteCreateOrderRequestHandler();
 
-        this.packetSender = Mockito.mock(PacketSender.class);
-
-        PowerMockito.mockStatic(PacketSenderHolder.class);
-        BDDMockito.given(PacketSenderHolder.getPacketSender()).willReturn(this.packetSender);
-
         this.remoteFacade = Mockito.mock(RemoteFacade.class);
-
         PowerMockito.mockStatic(RemoteFacade.class);
         BDDMockito.given(RemoteFacade.getInstance()).willReturn(this.remoteFacade);
+        
+        this.packetSender = Mockito.mock(PacketSender.class);
+        PowerMockito.mockStatic(PacketSenderHolder.class);
+        BDDMockito.given(PacketSenderHolder.getPacketSender()).willReturn(this.packetSender);
     }
 
     // test case: When call the handle method passing an IQ request, it must return the Order from
@@ -66,13 +65,8 @@ public class RemoteCreateOrderRequestHandlerTest {
     @Test
     public void testHandleWithValidIQ() throws FogbowManagerException, UnexpectedException {
         // set up
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put("user-name", "fogbow");
-
-        FederationUser federationUser = new FederationUser("fake-id", attributes);
-
-        this.order = new ComputeOrder(federationUser, "requestingMember", "providingmember", 1, 2,
-                3, "imageId", null, "publicKey", new ArrayList<>());
+        FederationUser federationUser = createFederationUser();
+        String orderId = createOrder(federationUser);
 
         Mockito.doNothing().when(this.remoteFacade).activateOrder(Mockito.eq(this.order));
 
@@ -82,9 +76,9 @@ public class RemoteCreateOrderRequestHandlerTest {
         IQ result = this.remoteCreateOrderRequestHandler.handle(iq);
 
         // verify
-        String orderId = order.getId();
-        String orderProvidingMember = order.getProvidingMember();
-        String expected = String.format(TAG_RESULT_IQ, orderId, orderProvidingMember);
+        String providingMember = order.getProvidingMember();
+        String expected = String.format(TAG_RESULT_IQ, orderId, providingMember);
+        
         Assert.assertEquals(expected, result.toString());
     }
 
@@ -92,8 +86,8 @@ public class RemoteCreateOrderRequestHandlerTest {
     @Test
     public void testHandleWhenThrowsException() throws FogbowManagerException, UnexpectedException {
         // set up
-        this.order = new ComputeOrder(null, "requestingMember", "providingmember", 1, 2, 3,
-                "imageId", null, "publicKey", new ArrayList<>());
+        FederationUser federationUser = null;
+        String orderId = createOrder(federationUser);
 
         Mockito.doThrow(new FogbowManagerException()).when(this.remoteFacade)
                 .activateOrder(Mockito.any(Order.class));
@@ -106,11 +100,10 @@ public class RemoteCreateOrderRequestHandlerTest {
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).activateOrder(Mockito.eq(order));
 
-        String orderId = order.getId();
-        String orderProvidingMember = order.getProvidingMember();
-        String expected = String.format(TAG_RESULT_ERRO, orderId, orderProvidingMember);
+        String providingMember = order.getProvidingMember();
+        String expected = String.format(TAG_RESULT_ERRO, orderId, providingMember);
+        
         Assert.assertEquals(expected, result.toString());
-
     }
 
     private IQ createIq() {
@@ -129,6 +122,20 @@ public class RemoteCreateOrderRequestHandlerTest {
         String orderJson = new Gson().toJson(this.order);
         orderElement.setText(orderJson);
         return iq;
+    }
+    
+    private String createOrder(FederationUser federationUser) {
+        this.order = new ComputeOrder(federationUser, "requestingMember", "providingmember", 1, 2,
+                3, "imageId", null, "publicKey", new ArrayList<>());
+        return this.order.getId();
+    }
+
+    private FederationUser createFederationUser() throws InvalidParameterException {
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put("user-name", "fogbow");
+
+        FederationUser federationUser = new FederationUser("fake-id", attributes);
+        return federationUser;
     }
 
 }
