@@ -3,6 +3,7 @@ package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 import com.google.gson.Gson;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
@@ -22,7 +23,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.xmpp.packet.IQ;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,32 +54,31 @@ public class RemoteGetAllImagesRequestHandlerTest {
     private RemoteFacade remoteFacade;
 
     @Before
-    public void setUp() {
+    public void setUp() throws InvalidParameterException {
         this.remoteGetAllImagesRequestHandler = new RemoteGetAllImagesRequestHandler();
 
         this.packetSender = Mockito.mock(PacketSender.class);
-
         PowerMockito.mockStatic(PacketSenderHolder.class);
         BDDMockito.given(PacketSenderHolder.getPacketSender()).willReturn(this.packetSender);
 
         this.remoteFacade = Mockito.mock(RemoteFacade.class);
-
         PowerMockito.mockStatic(RemoteFacade.class);
         BDDMockito.given(RemoteFacade.getInstance()).willReturn(this.remoteFacade);
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put("user-name", "fogbow");
+
+        FederationUser federationUser = new FederationUser("fake-id", attributes);
+
+        this.order = new ComputeOrder();
+        order.setProvidingMember("providingmember");
+        order.setFederationUser(federationUser);
     }
 
     // test case: When call the handle method passing a valid IQ object, it must create an OK result IQ and return it.
     @Test
     public void testHandleWithValidIQ() throws Exception {
         //set up
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put("user-name", "fogbow");
-
-        FederationUser federationUser = new FederationUser("fake-id", attributes);
-
-        this.order = new ComputeOrder(federationUser, "requestingMember", "providingmember",
-                1, 2, 3, "imageId", null, "publicKey", new ArrayList<>());
-
         Map<String, String> images = new HashMap<>();
         images.put("image-id1", IMAGE_NAME.concat("1"));
         images.put("image-id2", IMAGE_NAME.concat("2"));
@@ -92,9 +91,9 @@ public class RemoteGetAllImagesRequestHandlerTest {
         IQ result = this.remoteGetAllImagesRequestHandler.handle(iq);
 
         //verify
-        String orderId = order.getId();
+        String iqId = iq.getID();
         String orderProvidingMember = order.getProvidingMember();
-        String expected = String.format(TAG_RESULT_IQ, orderId, orderProvidingMember,
+        String expected = String.format(TAG_RESULT_IQ, iqId, orderProvidingMember,
                 IMAGE_NAME.concat("1"), IMAGE_NAME.concat("2"));
         Assert.assertEquals(expected, result.toString());
     }
@@ -103,9 +102,6 @@ public class RemoteGetAllImagesRequestHandlerTest {
     @Test
     public void testHandleWhenThrowsException() throws Exception {
         //set up
-        this.order = new ComputeOrder(null, "requestingMember", "providingmember",
-                1, 2, 3, "imageId", null, "publicKey", new ArrayList<>());
-
         Mockito.doThrow(new FogbowManagerException()).when(this.remoteFacade).getAllImages(
                 Mockito.anyString(), Mockito.any(FederationUser.class));
 
@@ -118,16 +114,15 @@ public class RemoteGetAllImagesRequestHandlerTest {
         Mockito.verify(this.remoteFacade, Mockito.times(1)).getAllImages(
                 Mockito.anyString(), Mockito.any(FederationUser.class));
 
-        String orderId = order.getId();
+        String iqId = iq.getID();
         String orderProvidingMember = order.getProvidingMember();
-        String expected = String.format(TAG_RESULT_ERRO, orderId, orderProvidingMember);
+        String expected = String.format(TAG_RESULT_ERRO, iqId, orderProvidingMember);
         Assert.assertEquals(expected, result.toString());
     }
 
     private IQ createIq() {
         IQ iq = new IQ(IQ.Type.get);
         iq.setTo(this.order.getProvidingMember());
-        iq.setID(this.order.getId());
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_ALL_IMAGES.toString());
