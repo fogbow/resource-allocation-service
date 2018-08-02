@@ -14,6 +14,8 @@ class CommonMethods:
   data_volume = {'volumeSize': GeneralConfigurations.volume_size}
   data_attachment = {'device':'/dev/sdd'}
 
+  #Collaborators
+
   @classmethod
   def wait_instance_ready(cls, order_id, order_type):
     state_key = 'state'
@@ -29,10 +31,36 @@ class CommonMethods:
       break
     return True
 
+  @classmethod
+  def wait_compute_available(cls, size):
+    for x in range(GeneralConfigurations.max_tries + 1):
+      instances_available = cls.get_available_instances(size)
+      if instances_available < size:
+        print('No instances available, waiting for resources')
+        if(x < GeneralConfigurations.max_tries):
+          time.sleep(GeneralConfigurations.sleep_time_secs)
+          continue
+        print('No instances available')
+        return False
+      break
+    print('Instances are available, proceeding')
+    return True
+
+  @classmethod
+  def get_quota(cls, member):
+    response = requests.get(CommonMethods.url_computes + GeneralConfigurations.quota_endpoint + member, headers= GeneralConfigurations.json_header)
+    return response
+
+  @classmethod
+  def get_available_instances(cls, member):
+    response_get_quota = cls.get_quota(GeneralConfigurations.local_member)
+    available_quota = response_get_quota.json()[GeneralConfigurations.available_quota]
+    return available_quota[GeneralConfigurations.instances_quota]
+
   #Post functions
 
   @classmethod
-  def _post_order(cls, optional_attributes, order_type):
+  def __post_order(cls, optional_attributes, order_type):
     if order_type == GeneralConfigurations.type_compute:
       merged_data = cls.data_compute.copy()
       merged_data.update(optional_attributes)
@@ -58,7 +86,7 @@ class CommonMethods:
   def post_multiple_orders(cls, optional_attributes, amount, order_type):
     orders_id = []
     for i in range(amount):
-      response = cls._post_order(optional_attributes, order_type)
+      response = cls.__post_order(optional_attributes, order_type)
       if response.status_code != GeneralConfigurations.created_status:
         print('Test get all computes: Failed on creating compute, trying next test')
         return
@@ -67,28 +95,28 @@ class CommonMethods:
 
   @classmethod
   def post_compute(cls, optional_attributes):
-    response_compute = cls._post_order(optional_attributes, GeneralConfigurations.type_compute)
+    response_compute = cls.__post_order(optional_attributes, GeneralConfigurations.type_compute)
     if response_compute.status_code != GeneralConfigurations.created_status:
       return ''
     return response_compute.text
 
   @classmethod
   def post_network(cls, optional_attributes):
-    response_network = cls._post_order(optional_attributes, GeneralConfigurations.type_network)
+    response_network = cls.__post_order(optional_attributes, GeneralConfigurations.type_network)
     if response_network.status_code != GeneralConfigurations.created_status:
       return ''
     return response_network.text
 
   @classmethod
   def post_volume(cls, optional_attributes):
-    response_volume = cls._post_order(optional_attributes, GeneralConfigurations.type_volume)
+    response_volume = cls.__post_order(optional_attributes, GeneralConfigurations.type_volume)
     if response_volume.status_code != GeneralConfigurations.created_status:
       return ''
     return response_volume.text
 
   @classmethod
   def post_attachment(cls, optional_attributes):
-    response_attachment = cls._post_order(optional_attributes, GeneralConfigurations.type_attachment)
+    response_attachment = cls.__post_order(optional_attributes, GeneralConfigurations.type_attachment)
     if response_attachment.status_code != GeneralConfigurations.created_status:
       return ''
     return response_attachment.text

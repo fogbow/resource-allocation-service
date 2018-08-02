@@ -40,10 +40,7 @@ class NetworkTests:
       print('Test get by id: Failed on creating network, trying next test')
       return
     response_get = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_network)
-    test_ok = False
     if response_get.status_code == GeneralConfigurations.ok_status:
-      test_ok = True
-    if test_ok:
       print('Test get network by id: Ok. Removing network')
     else:
       print('Test get network by id: Failed. Expecting %d status, but got: %d. Removing network' % (GeneralConfigurations.ok_status, response_get.status_code))
@@ -62,9 +59,7 @@ class NetworkTests:
       print('Test get all networks: Failed. Could not create networks')
       return
     response_get = CommonMethods.get_all_order(GeneralConfigurations.type_network)
-    test_ok = False
-    if not (response_get.status_code != GeneralConfigurations.ok_status or response_get.text == '[]' or len(response_get.json()) != GeneralConfigurations.max_networks):
-      test_ok = True
+    test_ok =  not (response_get.status_code != GeneralConfigurations.ok_status or response_get.text == '[]' or len(response_get.json()) != GeneralConfigurations.max_networks)
     if test_ok:
       print('Test get all local networks: Ok. Removing networks')
     else:

@@ -31,7 +31,7 @@ class ComputeTests:
   # Quota tests
   @classmethod
   def test_local_quota(cls):
-    response_get_quota = cls.get_quota(GeneralConfigurations.local_member)
+    response_get_quota = CommonMethods.get_quota(GeneralConfigurations.local_member)
     if response_get_quota.status_code != 200:
       print('Test get local quota: Failed, trying next test')
       return
@@ -40,36 +40,10 @@ class ComputeTests:
     else:
       print('Test get local quota: Failed, trying next test')
 
-  @classmethod
-  def get_quota(cls, member):
-    response = requests.get(CommonMethods.url_computes + GeneralConfigurations.quota_endpoint + member, headers= GeneralConfigurations.json_header)
-    return response
-
-  @classmethod
-  def get_available_instances(cls, member):
-    response_get_quota = cls.get_quota(GeneralConfigurations.local_member)
-    available_quota = response_get_quota.json()[GeneralConfigurations.available_quota]
-    return available_quota[GeneralConfigurations.instances_quota]
-
-  @classmethod
-  def wait_instances_available(cls, size):
-    for x in range(GeneralConfigurations.max_tries + 1):
-      instances_available = cls.get_available_instances(size)
-      if instances_available < size:
-        print('No instances available, waiting for resources')
-        if(x < GeneralConfigurations.max_tries):
-          time.sleep(GeneralConfigurations.sleep_time_secs)
-          continue
-        print('No instances available')
-        return False
-      break
-    print('Instances are now available, proceeding')
-    return True
-
   # Allocation tests
   @classmethod
   def test_local_allocation(cls):
-    if not cls.wait_instances_available(GeneralConfigurations.max_computes):
+    if not CommonMethods.wait_compute_available(GeneralConfigurations.max_computes):
       print('Test get all computes: Failed. There is not %d instances available.')
       return
     response_get_allocation = cls.get_allocation(GeneralConfigurations.local_member)
@@ -128,10 +102,7 @@ class ComputeTests:
       time.sleep(20)
       return
     response_get = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_compute)
-    test_ok = False
     if response_get.status_code == GeneralConfigurations.ok_status:
-      test_ok = True
-    if test_ok:
       print('Test get compute by id: Ok. Removing compute')
     else:
       print('Test get compute by id: Failed. Expecting %d status, but got: %d. Removing compute' % (GeneralConfigurations.ok_status, response_get.status_code))
@@ -142,7 +113,7 @@ class ComputeTests:
 
   @classmethod
   def test_get_all_local_compute(cls):
-    if not cls.wait_instances_available(GeneralConfigurations.max_computes):
+    if not CommonMethods.wait_compute_available(GeneralConfigurations.max_computes):
       print('Test get all computes: Failed. There is not %d instances available.')
       return
     response_get = CommonMethods.get_all_order(GeneralConfigurations.type_compute)
@@ -155,9 +126,7 @@ class ComputeTests:
       print('Test get all computes: Failed. Could not create computes')
       return
     response_get = CommonMethods.get_all_order(GeneralConfigurations.type_compute)
-    test_ok = False
-    if not (response_get.status_code != GeneralConfigurations.ok_status or response_get.text == '[]' or len(response_get.json()) != GeneralConfigurations.max_computes):
-      test_ok = True
+    test_ok = not (response_get.status_code != GeneralConfigurations.ok_status or response_get.text == '[]' or len(response_get.json()) != GeneralConfigurations.max_computes)
     if test_ok:
       print('Test get all local compute: Ok. Removing computes')
     else:

@@ -40,10 +40,7 @@ class VolumeTests:
       print('Test get by id: Failed on creating volume, trying next test')
       return
     response_get = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_volume)
-    test_ok = False
     if response_get.status_code == GeneralConfigurations.ok_status:
-      test_ok = True
-    if test_ok:
       print('Test get volume by id: Ok. Removing volume')
     else:
       print('Test get volume by id: Failed. Expecting %d status, but got: %d. Removing volume' % (GeneralConfigurations.ok_status, response_get.status_code))
@@ -62,9 +59,7 @@ class VolumeTests:
       print('Test get all volumes: Failed. Could not create volumes')
       return
     response_get = CommonMethods.get_all_order(GeneralConfigurations.type_volume)
-    test_ok = False
-    if not (response_get.status_code != GeneralConfigurations.ok_status or response_get.text == '[]' or len(response_get.json()) != GeneralConfigurations.max_volumes):
-      test_ok = True
+    test_ok = not (response_get.status_code != GeneralConfigurations.ok_status or response_get.text == '[]' or len(response_get.json()) != GeneralConfigurations.max_volumes)
     if test_ok:
       print('Test get all local compute: Ok. Removing volumes')
     else:
