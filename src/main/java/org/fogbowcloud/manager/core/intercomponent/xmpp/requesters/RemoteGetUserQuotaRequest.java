@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnavailableProviderException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
@@ -45,9 +46,6 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_USER_QUOTA.toString());
 
-        Element memberIdElement = iq.getElement().addElement(IqElement.MEMBER_ID.toString());
-        memberIdElement.setText(new Gson().toJson(this.provider));
-
         Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());
         userElement.setText(new Gson().toJson(this.federationUser));
 
@@ -57,7 +55,7 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
         return iq;
     }
 
-    private Quota getUserQuotaFromResponse(IQ response) throws FogbowManagerException {
+    private Quota getUserQuotaFromResponse(IQ response) throws UnexpectedException {
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
         String quotaStr = queryElement.element(IqElement.USER_QUOTA.toString()).getText();
 
@@ -67,7 +65,7 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
         try {
             quota = (Quota) new Gson().fromJson(quotaStr, Class.forName(instanceClassName));
         } catch (Exception e) {
-            throw new UnavailableProviderException(e.getMessage());
+            throw new UnexpectedException(e.getMessage());
         }
 
         return quota;

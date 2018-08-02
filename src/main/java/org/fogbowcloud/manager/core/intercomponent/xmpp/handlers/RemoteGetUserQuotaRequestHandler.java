@@ -27,8 +27,7 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
     public IQ handle(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
 
-        Element memberIdElement = iq.getElement().element(IqElement.MEMBER_ID.toString());
-        String memberId = new Gson().fromJson(memberIdElement.getText(), String.class);
+        String memberId = iq.getTo().toString();
 
         Element federationUserElement = iq.getElement().element(IqElement.FEDERATION_USER.toString());
         FederationUser federationUser = new Gson().fromJson(federationUserElement.getText(), FederationUser.class);

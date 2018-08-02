@@ -34,7 +34,7 @@ public class RemoteGetOrderRequestTest {
 	private ArgumentCaptor<IQ> argIQ = ArgumentCaptor.forClass(IQ.class);
 	private FederationUser federationUser;
 	
-	private Instance instanceResponse;
+	private Instance instance;
 	private Order order;
 	
  	@Before
@@ -47,7 +47,7 @@ public class RemoteGetOrderRequestTest {
 		this.remoteGetOrderRequest = new RemoteGetOrderRequest(this.order);
 		this.packetSender = Mockito.mock(PacketSender.class);
 		PacketSenderHolder.init(packetSender);
-		this.instanceResponse = new ComputeInstance("compute-instance");
+		this.instance = new ComputeInstance("compute-instance");
 	}
  	
  	//test case: checks if IQ attributes is according to both RemoteGetOrderRequest constructor parameters 
@@ -57,7 +57,7 @@ public class RemoteGetOrderRequestTest {
 	public void testSend() throws Exception {
 		//set up
  		String federationUserJson = new Gson().toJson(this.federationUser);
- 		IQ iqResponse = getInstanceIQResponse(this.instanceResponse);
+ 		IQ iqResponse = getInstanceIQResponse(this.instance);
  		Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(this.argIQ.capture());
 
  		//exercise
@@ -80,7 +80,7 @@ public class RemoteGetOrderRequestTest {
 		String iqUser = iq.getElement().element(IqElement.FEDERATION_USER.toString()).getText();
 		Assert.assertEquals(federationUserJson, iqUser);
 		
-		Assert.assertEquals(this.instanceResponse, responseInstance);
+		Assert.assertEquals(this.instance, responseInstance);
 	}
 	
 	//test case: checks if "send" is properly forwading UnavailableProviderException thrown by 
@@ -108,7 +108,7 @@ public class RemoteGetOrderRequestTest {
 	}
 	
 	//test case: checks if "send" is properly forwading UnexpectedException thrown by 
-	//"getImageFromResponse" when the image class name from the IQ response is undefined (wrong or not found)
+	//"getInstanceFromResponse" when the instance class name from the IQ response is undefined (wrong or not found)
 	@Test(expected = UnexpectedException.class)
 	public void testSendWhenImageClassIsUndefined() throws Exception {
 		//set up
