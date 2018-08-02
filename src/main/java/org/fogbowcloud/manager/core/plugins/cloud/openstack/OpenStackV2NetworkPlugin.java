@@ -1,6 +1,7 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -16,6 +17,9 @@ import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.network.v2.CreateRequest;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.network.v2.CreateResponse;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.network.v2.CreateSubnetRequest;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONArray;
@@ -52,7 +56,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     protected static final String KEY_CIDR = "cidr";
     protected static final String KEY_ID = "id";
 
-    protected static final String DEFAULT_IP_VERSION = "4";
+    protected static final int DEFAULT_IP_VERSION = 4;
     protected static final String DEFAULT_NETWORK_NAME = "fogbow-network";
     protected static final String DEFAULT_SUBNET_NAME = "fogbow-subnet";
     protected static final String[] DEFAULT_DNS_NAME_SERVERS = new String[] {"8.8.8.8", "8.8.4.4"};
@@ -102,25 +106,32 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     public String requestInstance(NetworkOrder order, Token localToken)
             throws FogbowManagerException, UnexpectedException {
         String tenantId = localToken.getAttributes().get(TENANT_ID);
-        String responseStr = "";
+        CreateResponse createResponse = createNetwork(localToken, tenantId);
 
-        responseStr = createNetwork(localToken, tenantId);
-        String networkId = getNetworkIdFromJson(responseStr);
-        createSubNet(order, localToken, tenantId, networkId);
+        String createdNetworkId = createResponse.getId();
+        createSubNet(order, localToken, tenantId, createdNetworkId);
 
-        responseStr = createSecurityGroup(order, localToken, tenantId, networkId);
-        String securityGroupId = getSecurityGroupIdFromPostResponse(responseStr);
+        jsonResponse = createSecurityGroup(order, localToken, tenantId, networkId);
+        String securityGroupId = getSecurityGroupIdFromPostResponse(jsonResponse);
 
         createSecurityGroupRules(order, localToken, networkId, securityGroupId);
         return networkId;
     }
 
-    private String createNetwork(Token localToken, String tenantId) throws FogbowManagerException, UnexpectedException {
-        String responseStr = "";
+    private CreateResponse createNetwork(Token localToken, String tenantId) throws FogbowManagerException, UnexpectedException {
+        CreateResponse createResponse = null;
         try {
-            JSONObject jsonRequest = generateJsonEntityToCreateNetwork(tenantId);
+            String networkName = DEFAULT_NETWORK_NAME + "-" + UUID.randomUUID();
+
+            CreateRequest createRequest = new CreateRequest.Builder()
+                    .name(networkName)
+                    .tenantId(tenantId)
+                    .build();
+
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK;
-            responseStr = this.client.doPostRequest(endpoint, localToken, jsonRequest);
+            JSONObject json = new JSONObject(createRequest.toJson());
+            String response = this.client.doPostRequest(endpoint, localToken, json);
+            createResponse = CreateResponse.fromJson(response);
         } catch (JSONException e) {
             String errorMsg = "An error occurred when generating json.";
             LOGGER.error(errorMsg, e);
@@ -128,7 +139,8 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
-        return responseStr;
+
+        return createResponse;
     }
 
     private void createSubNet(NetworkOrder order, Token localToken, String tenantId, String networkId) throws UnexpectedException, FogbowManagerException {
@@ -396,60 +408,80 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         return networkId;
     }
 
-    protected JSONObject generateJsonEntityToCreateNetwork(String tenantId) throws JSONException {
-        JSONObject networkContent = new JSONObject();
-        networkContent.put(KEY_NAME, DEFAULT_NETWORK_NAME + "-" + UUID.randomUUID());
-        networkContent.put(KEY_TENANT_ID, tenantId);
-
-        JSONObject network = new JSONObject();
-        network.put(KEY_JSON_NETWORK, networkContent);
-
-        return network;
-    }
-
     protected JSONObject generateJsonEntityToCreateSubnet(String networkId, String tenantId,
-                                                          NetworkOrder order) throws JSONException {
-        JSONObject subnetContent = new JSONObject();
-        subnetContent.put(KEY_NAME, DEFAULT_SUBNET_NAME + "-" + UUID.randomUUID());
-        subnetContent.put(KEY_TENANT_ID, tenantId);
-        subnetContent.put(KEY_NETWORK_ID, networkId);
-        subnetContent.put(KEY_IP_VERSION, DEFAULT_IP_VERSION);
+                                                          NetworkOrder order) {
+        String subnetName = DEFAULT_SUBNET_NAME + "-" + UUID.randomUUID();
+        int ipVersion = DEFAULT_IP_VERSION;
 
         String gateway = order.getGateway();
-        if (gateway != null && !gateway.isEmpty()) {
-            subnetContent.put(KEY_GATEWAY_IP, gateway);
-        }
+        gateway = gateway == null || gateway.isEmpty() ? null : gateway;
 
         String networkAddress = order.getAddress();
-        if (networkAddress == null) {
-            networkAddress = DEFAULT_NETWORK_ADDRESS;
-        }
-        subnetContent.put(KEY_CIDR, networkAddress);
+        networkAddress = networkAddress == null ? DEFAULT_NETWORK_ADDRESS : networkAddress;
 
-        NetworkAllocationMode networkAllocationMode = order.getAllocation();
-        if (networkAllocationMode != null) {
-            if (networkAllocationMode.equals(NetworkAllocationMode.DYNAMIC)) {
-                subnetContent.put(KEY_ENABLE_DHCP, true);
-            } else if (networkAllocationMode.equals(NetworkAllocationMode.STATIC)) {
-                subnetContent.put(KEY_ENABLE_DHCP, false);
-            }
-        }
+        boolean dhcpEnabled = !NetworkAllocationMode.STATIC.equals(order.getAllocation());
+        String[] dnsNamesServers = this.dnsList == null ? DEFAULT_DNS_NAME_SERVERS : this.dnsList;
 
-        String[] dnsNamesServers = this.dnsList;
-        if (dnsNamesServers == null) {
-            dnsNamesServers = DEFAULT_DNS_NAME_SERVERS;
-        }
-        JSONArray dnsNameServersArray = new JSONArray();
-        for (int i = 0; i < dnsNamesServers.length; i++) {
-            dnsNameServersArray.put(dnsNamesServers[i]);
-        }
-        subnetContent.put(KEY_DNS_NAMESERVERS, dnsNameServersArray);
+        CreateSubnetRequest createSubnetRequest = new CreateSubnetRequest.Builder()
+                .name(subnetName)
+                .tenantId(tenantId)
+                .networkId(networkId)
+                .ipVersion(ipVersion)
+                .gatewayIp(gateway)
+                .networkAddress(networkAddress)
+                .dhcpEnabled(dhcpEnabled)
+                .dnsNameServers(Arrays.asList(dnsNamesServers))
+                .build();
 
-        JSONObject subnet = new JSONObject();
-        subnet.put(KEY_JSON_SUBNET, subnetContent);
+        return new JSONObject(createSubnetRequest.toJson());
 
-        return subnet;
     }
+
+//    protected JSONObject generateJsonEntityToCreateSubnetOld(String networkId, String tenantId,
+//                                                          NetworkOrder order) throws JSONException {
+//        JSONObject subnetContent = new JSONObject();
+//        subnetContent.put(KEY_NAME, DEFAULT_SUBNET_NAME + "-" + UUID.randomUUID());
+//        subnetContent.put(KEY_TENANT_ID, tenantId);
+//        subnetContent.put(KEY_NETWORK_ID, networkId);
+//        subnetContent.put(KEY_IP_VERSION, DEFAULT_IP_VERSION);
+//
+//        String gateway = order.getGateway();
+//        if (gateway != null && !gateway.isEmpty()) {
+//            subnetContent.put(KEY_GATEWAY_IP, gateway);
+//        }
+//
+//        String networkAddress = order.getAddress();
+//        if (networkAddress == null) {
+//            networkAddress = DEFAULT_NETWORK_ADDRESS;
+//        }
+//        subnetContent.put(KEY_CIDR, networkAddress);
+//
+//        NetworkAllocationMode networkAllocationMode = order.getAllocation();
+//        if (networkAllocationMode != null) {
+//            if (networkAllocationMode.equals(NetworkAllocationMode.DYNAMIC)) {
+//                subnetContent.put(KEY_ENABLE_DHCP, true);
+//            } else if (networkAllocationMode.equals(NetworkAllocationMode.STATIC)) {
+//                subnetContent.put(KEY_ENABLE_DHCP, false);
+//            }
+//        }
+//
+//        String[] dnsNamesServers = this.dnsList;
+//        if (dnsNamesServers == null) {
+//            dnsNamesServers = DEFAULT_DNS_NAME_SERVERS;
+//        }
+//
+//        JSONArray dnsNameServersArray = new JSONArray();
+//        for (int i = 0; i < dnsNamesServers.length; i++) {
+//            dnsNameServersArray.put(dnsNamesServers[i]);
+//        }
+//
+//        subnetContent.put(KEY_DNS_NAMESERVERS, dnsNameServersArray);
+//
+//        JSONObject subnet = new JSONObject();
+//        subnet.put(KEY_JSON_SUBNET, subnetContent);
+//
+//        return subnet;
+//    }
 
     protected boolean removeNetwork(Token token, String networkId) throws UnexpectedException, FogbowManagerException {
         String messageTemplate = "Removing network %s";
@@ -477,4 +509,3 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     }
 
 }
-

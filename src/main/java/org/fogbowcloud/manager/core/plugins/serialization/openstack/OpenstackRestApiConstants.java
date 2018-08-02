@@ -47,4 +47,20 @@ public class OpenstackRestApiConstants {
 		public static final String UUID_KEY_JSON = "uuid";
 
 	}
+
+	public static class Network {
+
+		public static final String NETWORK_KEY_JSON = "network";
+		public static final String NAME_KEY_JSON = "name";
+		public static final String TENANT_ID_KEY_JSON = "tenant_id";
+		public static final String ID_KEY_JSON = "id";
+
+		public static final String NETWORK_ID_KEY_JSON = "network_id";
+		public static final String IP_VERSION_KEY_JSON = "ip_version";
+		public static final String GATEWAY_IP_KEY_JSON = "gateway_ip";
+		public static final String CIDR_KEY_JSON = "cidr";
+		public static final String ENABLE_DHCP_KEY_JSON = "enable_dhcp";
+		public static final String DNS_NAMESERVERS_KEY_JSON = "dns_nameservers";
+
+	}
 }
