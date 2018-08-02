@@ -6,6 +6,7 @@ import java.util.Map;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.exceptions.UnavailableProviderException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
@@ -50,7 +51,7 @@ public class RemoteGetImageRequestTest {
 	public void testSend() throws Exception {
 		//set up
 		Image image = new Image("image-id", "image-name", 10, 20, 30, "status");
-		IQ iqResponse = getImageIqResponse(image);
+		IQ iqResponse = getImageIQResponse(image);
 		Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(argIQ.capture());
  		String federationUserJson = new Gson().toJson(this.federationUser);
 
@@ -77,7 +78,7 @@ public class RemoteGetImageRequestTest {
 		Assert.assertEquals(image, responseImage);
 	}
 	
-	//test case: Check if "send" is properly forwading UnavailableProviderException thrown by 
+	//test case: checks if "send" is properly forwading UnavailableProviderException thrown by 
 	//"XmppErrorConditionToExceptionTranslator.handleError" when the IQ response is null
 	@Test (expected = UnavailableProviderException.class)
 	public void testSendWhenResponseIsNull() throws Exception {
@@ -88,7 +89,7 @@ public class RemoteGetImageRequestTest {
 		this.remoteGetImageRequest.send();
 	}
 	
-	//test case: Check if "send" is properly forwading UnauthorizedRequestException thrown by 
+	//test case: checks if "send" is properly forwading UnauthorizedRequestException thrown by 
 	//"XmppErrorConditionToExceptionTranslator.handleError" when the IQ response status is forbidden
 	@Test (expected = UnauthorizedRequestException.class)
 	public void testSendWhenResponseReturnsForbidden() throws Exception {
@@ -101,12 +102,35 @@ public class RemoteGetImageRequestTest {
 		this.remoteGetImageRequest.send();
 	}
 	
-	private IQ getImageIqResponse(Image image) {
+	//test case: checks if "send" is properly forwading UnexpectedException thrown by 
+	//"getImageFromResponse" when the image class name from the IQ response is undefined (wrong or not found)
+	@Test(expected = UnexpectedException.class)
+	public void testSendWhenImageClassIsUndefined() throws Exception {
+		//set up
+		Image image = new Image("image-id", "image-name", 10, 20, 30, "status");
+		IQ iqResponse = getImageIQResponseWithWrongClass(image);
+		Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(argIQ.capture());
+
+ 		//exercise/verify
+		this.remoteGetImageRequest.send();
+	}
+	
+	private IQ getImageIQResponse(Image image) {
 		IQ iqResponse = new IQ();
         Element queryEl = iqResponse.getElement().addElement(IqElement.QUERY.toString(), RemoteMethod.REMOTE_GET_IMAGE.toString());
         Element imageElement = queryEl.addElement(IqElement.IMAGE.toString());
         Element imageClassNameElement = queryEl.addElement(IqElement.IMAGE_CLASS_NAME.toString());
         imageClassNameElement.setText(image.getClass().getName());
+        imageElement.setText(new Gson().toJson(image));
+		return iqResponse;
+	}
+	
+	private IQ getImageIQResponseWithWrongClass(Image image) {
+		IQ iqResponse = new IQ();
+        Element queryEl = iqResponse.getElement().addElement(IqElement.QUERY.toString(), RemoteMethod.REMOTE_GET_IMAGE.toString());
+        Element imageElement = queryEl.addElement(IqElement.IMAGE.toString());
+        Element imageClassNameElement = queryEl.addElement(IqElement.IMAGE_CLASS_NAME.toString());
+        imageClassNameElement.setText("wrong-class-name");
         imageElement.setText(new Gson().toJson(image));
 		return iqResponse;
 	}
