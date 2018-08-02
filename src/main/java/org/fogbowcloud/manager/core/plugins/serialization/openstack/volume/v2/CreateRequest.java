@@ -5,36 +5,41 @@ import org.fogbowcloud.manager.core.plugins.serialization.JsonSerializable;
 
 import com.google.gson.annotations.SerializedName;
 
+import static org.fogbowcloud.manager.core.plugins.serialization.openstack.OpenstackRestApiConstants.Volume.*;
+
 /**
  * Documentation: https://developer.openstack.org/api-ref/block-storage/v2/
  */
 public class CreateRequest implements JsonSerializable {
 
-	@SerializedName(OpenstackApiConstants.Volume.VOLUME_KEY_JSON)
-	private VolumeParameters volumeParameters;
+	@SerializedName(VOLUME_KEY_JSON)
+	private Volume volume;
 	
-	public CreateRequest() {}
-	
-	private CreateRequest(VolumeParameters volume) {
-		this.volumeParameters = volume;
+	private CreateRequest(Volume volume) {
+		this.volume = volume;
 	}
-	
-	public class VolumeParameters {
+
+	@Override
+	public String toJson() {
+		return GsonHolder.getInstance().toJson(this);
+	}
+
+	public static class Volume {
 		
-		@SerializedName(OpenstackApiConstants.Volume.NAME_KEY_JSON)
+		@SerializedName(NAME_KEY_JSON)
 		private final String name;
-		@SerializedName(OpenstackApiConstants.Volume.SIZE_KEY_JSON)
+
+		@SerializedName(SIZE_KEY_JSON)
 		private final String size;
 
-		public VolumeParameters(Builder builder) {
-			super();
+		public Volume(Builder builder) {
 			this.name = builder.name;
 			this.size = builder.size;
 		}
 		
 	}
 	
-	public class Builder {
+	public static class Builder {
 		
 		private String name;
 		private String size;
@@ -50,15 +55,10 @@ public class CreateRequest implements JsonSerializable {
         }        
         
         public CreateRequest build() {
-            VolumeParameters volumeParameters = new VolumeParameters(this);
-			return new CreateRequest(volumeParameters);
+            Volume volume = new Volume(this);
+			return new CreateRequest(volume);
         }        
 		
-	}
-	
-	@Override
-	public String toJson() {
-		return GsonHolder.getInstance().toJson(this);
 	}
 
 }

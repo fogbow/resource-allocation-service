@@ -1,0 +1,133 @@
+package org.fogbowcloud.manager.core.plugins.serialization.openstack.compute.v2;
+
+import com.google.gson.annotations.SerializedName;
+import org.fogbowcloud.manager.core.plugins.serialization.GsonHolder;
+import org.fogbowcloud.manager.core.plugins.serialization.JsonSerializable;
+
+import static org.fogbowcloud.manager.core.plugins.serialization.openstack.OpenstackRestApiConstants.Compute.*;
+import java.util.List;
+
+public class CreateRequest implements JsonSerializable {
+
+    @SerializedName(SERVER_KEY_JSON)
+    private Server server;
+
+    private CreateRequest(Server server) {
+        this.server = server;
+    }
+
+    @Override
+    public String toJson() {
+        return GsonHolder.getInstance().toJson(this);
+    }
+
+    public static class Server {
+
+        @SerializedName(NAME_KEY_JSON)
+        private final String name;
+
+        @SerializedName(IMAGE_REFERENCE_KEY_JSON)
+        private final String imageReference;
+
+        @SerializedName(FLAVOR_REFERENCE_KEY_JSON)
+        private final String flavorReference;
+
+        @SerializedName(USER_DATA_KEY_JSON)
+        private final String userData;
+
+        @SerializedName(KEY_NAME_KEY_JSON)
+        private final String keyName;
+
+        @SerializedName(NETWORKS_KEY_JSON)
+        private final List<Network> networks;
+
+        @SerializedName(SECURITY_GROUPS_KEY_JSON)
+        private final List<SecurityGroup> securityGroups;
+
+        private Server(Builder builder) {
+            this.name = builder.name;
+            this.imageReference = builder.imageReference;
+            this.flavorReference = builder.flavorReference;
+            this.userData = builder.userData;
+            this.keyName = builder.keyName;
+            this.networks = builder.networks;
+            this.securityGroups = builder.securityGroups;
+        }
+
+    }
+
+    public static class Network {
+
+        @SerializedName(UUID_KEY_JSON)
+        private String uuid;
+
+        public Network(String uuid) {
+            this.uuid = uuid;
+        }
+
+    }
+
+    public static class SecurityGroup {
+
+        @SerializedName(NAME_KEY_JSON)
+        private String name;
+
+        public SecurityGroup(String name) {
+            this.name = name;
+        }
+
+    }
+
+    public static class Builder {
+
+        private String name;
+        private String imageReference;
+        private String flavorReference;
+        private String userData;
+        private String keyName;
+        private List<Network> networks;
+        private List<SecurityGroup> securityGroups;
+
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder imageReference(String imageReference) {
+            this.imageReference = imageReference;
+            return this;
+        }
+
+        public Builder flavorReference(String flavorReference) {
+            this.flavorReference = flavorReference;
+            return this;
+        }
+
+        public Builder userData(String userData) {
+            this.userData = userData;
+            return this;
+        }
+
+        public Builder keyName(String keyName) {
+            this.keyName = keyName;
+            return this;
+        }
+
+        public Builder networks(List<Network> networks) {
+            this.networks = networks;
+            return this;
+        }
+
+        public Builder securityGroups(List<SecurityGroup> securityGroups) {
+            this.securityGroups = securityGroups;
+            return this;
+        }
+
+        public CreateRequest build() {
+            Server server = new Server(this);
+            return new CreateRequest(server);
+        }
+
+    }
+
+}

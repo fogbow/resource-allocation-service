@@ -23,12 +23,11 @@ import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.util.DefaultLaunchCommandGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.util.LaunchCommandGenerator;
-import org.fogbowcloud.manager.core.plugins.serialization.openstack.computev2.*;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.compute.v2.*;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
@@ -244,16 +243,16 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
 	private CreateRequest getRequestBody(String imageRef, String flavorRef, String userdata, String keyName,
 									 List<String> networksIds) {
-		List<CreateRequest.ServerParameters.Network> networks = new ArrayList<>();
-		List<CreateRequest.ServerParameters.SecurityGroup> securityGroups = new ArrayList<>();
+		List<CreateRequest.Network> networks = new ArrayList<>();
+		List<CreateRequest.SecurityGroup> securityGroups = new ArrayList<>();
 		for (String networkId : networksIds) {
-			networks.add(new CreateRequest.ServerParameters.Network(networkId));
+			networks.add(new CreateRequest.Network(networkId));
 
 			String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
 			if (!networkId.equals(defaultNetworkId)) {
 				String prefix = OpenStackV2NetworkPlugin.SECURITY_GROUP_PREFIX;
 				String securityGroupName = prefix + "-" + networkId;
-				securityGroups.add(new CreateRequest.ServerParameters.SecurityGroup(securityGroupName));
+				securityGroups.add(new CreateRequest.SecurityGroup(securityGroupName));
 			}
 		}
 
@@ -388,11 +387,11 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 		String instanceId = getResponse.getId();
 		String hostName = getResponse.getName();
 
-		GetResponse.Server.Addresses addressesContainer = getResponse.getAddresses();
+		GetResponse.Addresses addressesContainer = getResponse.getAddresses();
 
 		String address = "";
 		if (addressesContainer != null) {
-			GetResponse.Server.Addresses.Address[] addresses = addressesContainer.getProviderAddresses();
+			GetResponse.Address[] addresses = addressesContainer.getProviderAddresses();
 			boolean firstAddressEmpty = addresses == null || addresses.length == 0 || addresses[0].getAddress() == null;
 			address = firstAddressEmpty ? "" : addresses[0].getAddress();
 		}

@@ -13,7 +13,7 @@ import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.tokens.Token;
-import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.OpenstackApiConstants;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.OpenstackRestApiConstants;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -95,8 +95,8 @@ public class OpenStackV2VolumePluginTest {
         JSONObject jsonEntity = this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE, FAKE_NAME);
 
         // verify
-        Assert.assertEquals(FAKE_SIZE, jsonEntity.getJSONObject(OpenstackApiConstants.Volume.VOLUME_KEY_JSON)
-                .getString(OpenstackApiConstants.Volume.SIZE_KEY_JSON));
+        Assert.assertEquals(FAKE_SIZE, jsonEntity.getJSONObject(OpenstackRestApiConstants.Volume.VOLUME_KEY_JSON)
+                .getString(OpenstackRestApiConstants.Volume.SIZE_KEY_JSON));
     }
 
     // test case: Tests if given a volume Json, the getInstanceFromJson() returns the right VolumeInstance.
@@ -162,12 +162,12 @@ public class OpenStackV2VolumePluginTest {
     private JsonObject generateInstanceJsonResponse(String instanceId) throws JSONException {
         JsonObject instanceJsonResponse = new JsonObject();
         
-        instanceJsonResponse.addProperty(OpenstackApiConstants.Volume.ID_KEY_JSON, instanceId);
-        instanceJsonResponse.addProperty(OpenstackApiConstants.Volume.SIZE_KEY_JSON, 0);
-        instanceJsonResponse.addProperty(OpenstackApiConstants.Volume.STATUS_KEY_JSON, OpenStackStateMapper.ACTIVE_STATUS);
-        instanceJsonResponse.addProperty(OpenstackApiConstants.Volume.NAME_KEY_JSON, "anyName");
+        instanceJsonResponse.addProperty(OpenstackRestApiConstants.Volume.ID_KEY_JSON, instanceId);
+        instanceJsonResponse.addProperty(OpenstackRestApiConstants.Volume.SIZE_KEY_JSON, 0);
+        instanceJsonResponse.addProperty(OpenstackRestApiConstants.Volume.STATUS_KEY_JSON, OpenStackStateMapper.ACTIVE_STATUS);
+        instanceJsonResponse.addProperty(OpenstackRestApiConstants.Volume.NAME_KEY_JSON, "anyName");
         JsonObject volumeJsonObject = new JsonObject();
-        volumeJsonObject.add(OpenstackApiConstants.Volume.VOLUME_KEY_JSON, instanceJsonResponse);
+        volumeJsonObject.add(OpenstackRestApiConstants.Volume.VOLUME_KEY_JSON, instanceJsonResponse);
         return volumeJsonObject;
     }
 }

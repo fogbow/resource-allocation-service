@@ -11,7 +11,7 @@ import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
 import org.fogbowcloud.manager.core.plugins.serialization.openstack.attachment.v2.AttachmentResponse;
-import org.fogbowcloud.manager.core.plugins.serialization.openstack.attachment.v2.AttachmentResponse.AttachmentParameters;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.attachment.v2.AttachmentResponse.Attachment;
 import org.fogbowcloud.manager.core.plugins.serialization.openstack.attachment.v2.CreateRequest;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
@@ -123,12 +123,11 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     
     protected AttachmentInstance getInstanceFromJson(String jsonResponse) throws UnexpectedException {
     	try {
-    		AttachmentResponse attachmentResponse = new AttachmentResponse().fromJson(jsonResponse);
-    		AttachmentParameters attachmentParameters = attachmentResponse.getAttachmentParameters();
-    		String id = attachmentParameters.getId();
-    		String serverId = attachmentParameters.getServerId();
-    		String volumeId = attachmentParameters.getVolumeId();
-    		String device = attachmentParameters.getDevice();
+    		AttachmentResponse attachmentResponse = AttachmentResponse.fromJson(jsonResponse);
+            String id = attachmentResponse.getId();
+            String serverId = attachmentResponse.getServerId();
+            String volumeId = attachmentResponse.getVolumeId();
+            String device = attachmentResponse.getDevice();
 
         	// There is no OpenStackState for attachments; we set it to empty string to allow its mapping
             // by the OpenStackStateMapper.map() function.
@@ -150,7 +149,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     }
 
     protected JSONObject generateJsonToAttach(String volume) throws JSONException {
-    	CreateRequest createRequest = new CreateRequest().new Builder()
+    	CreateRequest createRequest = new CreateRequest.Builder()
     			.volumeId(volume)
     			.build();
     	

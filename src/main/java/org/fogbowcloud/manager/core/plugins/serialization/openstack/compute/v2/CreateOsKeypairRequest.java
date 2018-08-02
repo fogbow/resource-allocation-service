@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.serialization.openstack.computev2;
+package org.fogbowcloud.manager.core.plugins.serialization.openstack.compute.v2;
 
 import com.google.gson.annotations.SerializedName;
 import org.fogbowcloud.manager.core.plugins.serialization.GsonHolder;

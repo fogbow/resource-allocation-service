@@ -13,7 +13,7 @@ import org.fogbowcloud.manager.core.models.tokens.KeystoneV3TokenGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
 import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.CreateRequest;
 import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.VolumeResponse;
-import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.VolumeResponse.VolumeParameters;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.VolumeResponse.Volume;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.tokens.Token;
@@ -117,14 +117,13 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 	protected VolumeInstance getInstanceFromJson(String json) throws UnexpectedException {
 		try {
-			VolumeResponse createResponse = new VolumeResponse().fromJson(json);
-			VolumeParameters volumeParameters = createResponse.getVolumeParameters();
-			String id = volumeParameters.getId();
-			String name = volumeParameters.getName();
-			String status = volumeParameters.getStatus();
+			VolumeResponse volumeResponse = VolumeResponse.fromJson(json);
+			String id = volumeResponse.getId();
+			String name = volumeResponse.getName();
+			int size = volumeResponse.getSize();
+			String status = volumeResponse.getStatus();
 			InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.VOLUME, status);
-			int size = volumeParameters.getSize();
-			
+
 			return new VolumeInstance(id, fogbowState, name, size);
 		} catch (Exception e) {
 			String errorMsg = "There was an exception while getting volume instance.";
@@ -135,7 +134,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 	protected JSONObject generateJsonEntityToCreateInstance(String size, String name) throws JSONException {
 		CreateRequest createRequest = 
-				new CreateRequest().new Builder()
+				new CreateRequest.Builder()
 				.name(name)
 				.size(size)
 				.build();
