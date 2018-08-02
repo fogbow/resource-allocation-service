@@ -295,33 +295,26 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 		return null;
 	}
 
-	private void updateFlavors(Token localToken)
-			throws FogbowManagerException, UnexpectedException {
+	private void updateFlavors(Token localToken) throws FogbowManagerException, UnexpectedException {
 		LOGGER.debug("Updating hardwareRequirements from OpenStack");
 
-			String tenantId = getTenantId(localToken);
-			String endpoint = getComputeEndpoint(tenantId, SUFFIX_ENDPOINT_FLAVORS);
-			
-			String jsonResponseFlavors = null;
-			try {
-				jsonResponseFlavors = this.client.doGetRequest(endpoint, localToken);
-			} catch (HttpResponseException e) {
-				OpenStackHttpToFogbowManagerExceptionMapper.map(e);
+		String tenantId = getTenantId(localToken);
+		String flavorsEndpoint = getComputeEndpoint(tenantId, SUFFIX_ENDPOINT_FLAVORS);
+
+		try {
+			String jsonResponse = this.client.doGetRequest(flavorsEndpoint, localToken);
+			GetAllFlavorsResponse getAllFlavorsResponse = GetAllFlavorsResponse.fromJson(jsonResponse);
+
+			List<String> flavorsIds = new ArrayList<>();
+			for (GetAllFlavorsResponse.Flavor flavor : getAllFlavorsResponse.getFlavors()) {
+				flavorsIds.add(flavor.getId());
 			}
 
-			List<String> flavorsId = new ArrayList<>();
-
-			JSONArray jsonArrayFlavors = new JSONObject(jsonResponseFlavors).getJSONArray(FLAVOR_JSON_KEY);
-
-			for (int i = 0; i < jsonArrayFlavors.length(); i++) {
-				JSONObject itemFlavor = jsonArrayFlavors.getJSONObject(i);
-				flavorsId.add(itemFlavor.getString(ID_JSON_FIELD));
-			}
-
-			TreeSet<HardwareRequirements> newHardwareRequirements = detailFlavors(endpoint, localToken, flavorsId);
-
+			TreeSet<HardwareRequirements> newHardwareRequirements = detailFlavors(flavorsEndpoint, localToken, flavorsIds);
 			setHardwareRequirementsList(newHardwareRequirements);
-
+		} catch (HttpResponseException e) {
+			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
+		}
 	}
 
 	private TreeSet<HardwareRequirements> detailFlavors(String endpoint, Token localToken, List<String> flavorsIds)
@@ -352,13 +345,13 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 					OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 				}
 
-				GetFlavorResponse getFlavorResponse = GetFlavorResponse.fromJson(getJsonResponse);
+				GetFlavorByIdResponse getFlavorByIdResponse = GetFlavorByIdResponse.fromJson(getJsonResponse);
 
-				String id = getFlavorResponse.getId();
-				String name = getFlavorResponse.getName();
-				int disk = getFlavorResponse.getDisk();
-				int memory = getFlavorResponse.getMemory();
-				int vcpusCount = getFlavorResponse.getVcpusCount();
+				String id = getFlavorByIdResponse.getId();
+				String name = getFlavorByIdResponse.getName();
+				int disk = getFlavorByIdResponse.getDisk();
+				int memory = getFlavorByIdResponse.getMemory();
+				int vcpusCount = getFlavorByIdResponse.getVcpusCount();
 
 				newHardwareRequirements.add(new HardwareRequirements(name, id, vcpusCount, memory, disk));
 			}

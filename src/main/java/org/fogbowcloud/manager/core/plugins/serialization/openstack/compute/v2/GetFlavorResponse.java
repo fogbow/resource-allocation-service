@@ -5,7 +5,7 @@ import org.fogbowcloud.manager.core.plugins.serialization.GsonHolder;
 
 import static org.fogbowcloud.manager.core.plugins.serialization.openstack.OpenstackRestApiConstants.Compute.*;
 
-public class GetFlavorResponse {
+public class GetFlavorByIdResponse {
 
     @SerializedName(FLAVOR_KEY_JSON)
     private Flavor flavor;
@@ -30,8 +30,8 @@ public class GetFlavorResponse {
         return flavor.vcpusCount;
     }
 
-    public static GetFlavorResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, GetFlavorResponse.class);
+    public static GetFlavorByIdResponse fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, GetFlavorByIdResponse.class);
     }
 
     public class Flavor {
