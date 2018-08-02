@@ -7,12 +7,13 @@ class ComputeTests:
 
   @classmethod
   def test_computes(cls):
-    cls.test_post_local_compute()
-    cls.test_delete_local_compute()
-    cls.test_get_all_local_compute()
-    cls.test_get_by_id_local_compute()
-    cls.test_local_quota()
-    cls.test_local_allocation()
+    #cls.test_post_local_compute()
+    cls.test_post_local_compute_with_private_network()
+    #cls.test_delete_local_compute()
+    #cls.test_get_all_local_compute()
+    #cls.test_get_by_id_local_compute()
+    #cls.test_local_quota()
+    #cls.test_local_allocation()
 
   # Post tests
   @classmethod
@@ -22,11 +23,39 @@ class ComputeTests:
     if not order_id:
       print('Test post local compute: Failed, trying next test')
       return 
-    if cls.wait_instance_ready(order_id):
+    if cls.wait_instance_ready(order_id, GeneralConfigurations.type_compute):
       print('Test post local compute: Ok. Removing compute')
     else:
       print('Test post local compute: Failed. Removing compute')
     CommonMethods.delete_order(order_id, GeneralConfigurations.type_compute)
+
+  @classmethod
+  def test_post_local_compute_with_private_network(cls):
+    extra_data_network = {}
+    networks = []
+    network_id = CommonMethods.post_network(extra_data_network)
+    networks.append(network_id)
+    if not network_id:
+      CommonMethods.delete_order(network_id, GeneralConfigurations.type_network)
+      print('Test post compute attached to a private network: Failed, could not create new network')
+      return 
+    if not cls.wait_instance_ready(network_id, GeneralConfigurations.type_network):
+      print('Test post compute attached to a private network: Failed. Removing network')
+      CommonMethods.delete_order(network_id, GeneralConfigurations.type_network)
+    extra_data_compute = {GeneralConfigurations.networksId_key: networks}
+    compute_id = CommonMethods.post_compute(extra_data_compute)
+    if not compute_id:
+      CommonMethods.delete_order(network_id, GeneralConfigurations.type_network)
+      print('Test post compute attached to a private network: Failed, could not create new compute')
+      return 
+    #for instance, we do not check any get, because fogbow-core doesn't provide the extra network interface for users
+    if cls.wait_instance_ready(compute_id, GeneralConfigurations.type_compute):
+      print('Test post compute attached to a private network: Ok. Removing compute')
+    else:
+      print('Test post compute attached to a private network: Failed. Removing compute')
+    response_get = CommonMethods.get_order_by_id(compute_id, GeneralConfigurations.type_compute)
+    CommonMethods.delete_order(compute_id, GeneralConfigurations.type_compute)
+    CommonMethods.delete_order(network_id, GeneralConfigurations.type_network)
 
   # Quota tests
   @classmethod
@@ -44,7 +73,7 @@ class ComputeTests:
   @classmethod
   def test_local_allocation(cls):
     if not CommonMethods.wait_compute_available(GeneralConfigurations.max_computes):
-      print('Test get all computes: Failed. There is not %d instances available.')
+      print('Test get all computes: Failed. There is not %d instances available.' % GeneralConfigurations.max_computes)
       return
     response_get_allocation = cls.get_allocation(GeneralConfigurations.local_member)
     if response_get_allocation.status_code != 200:
@@ -60,7 +89,7 @@ class ComputeTests:
       print('Test get all computes: Failed. Could not create computes')
       return
     for order in orders_id:
-      cls.wait_instance_ready(order)
+      cls.wait_instance_ready(order, GeneralConfigurations.type_compute)
     response_get_allocation = cls.get_allocation(GeneralConfigurations.local_member)
     allocation = response_get_allocation.json()
     if cls.empty_allocation(allocation):
@@ -114,7 +143,7 @@ class ComputeTests:
   @classmethod
   def test_get_all_local_compute(cls):
     if not CommonMethods.wait_compute_available(GeneralConfigurations.max_computes):
-      print('Test get all computes: Failed. There is not %d instances available.')
+      print('Test get all computes: Failed. There is not %d instances available.' % GeneralConfigurations.max_computes)
       return
     response_get = CommonMethods.get_all_order(GeneralConfigurations.type_compute)
     if response_get.status_code != GeneralConfigurations.ok_status or response_get.text != '[]':
@@ -134,11 +163,11 @@ class ComputeTests:
     CommonMethods.delete_multiple_orders(orders_id, GeneralConfigurations.type_compute)
 
   @classmethod
-  def wait_instance_ready(cls, order_id):
+  def wait_instance_ready(cls, order_id, order_type):
     state_key = 'state'
     ready_state = 'READY'
     for x in range(GeneralConfigurations.max_tries + 1):
-      response = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_compute)
+      response = CommonMethods.get_order_by_id(order_id, order_type)
       json_response = response.json()
       if json_response[state_key] != ready_state:
         if(x < GeneralConfigurations.max_tries):
