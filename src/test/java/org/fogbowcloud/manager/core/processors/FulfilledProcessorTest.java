@@ -49,7 +49,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     private static final String FAKE_DEVICE = "fake-device";
 
     /** Maximum value that the thread should wait in sleep time */
-    private static final int MAX_SLEEP_TIME = 30000;
+    private static final int MAX_SLEEP_TIME = 10000;
     private static final int DEFAULT_SLEEP_TIME = 500;
 
     private ChainedList failedOrderList;
@@ -186,6 +186,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         // exercise
         this.thread = new Thread(this.fulfilledProcessor);
         this.thread.start();
+        Thread.sleep(DEFAULT_SLEEP_TIME);
 
         // verify
         Assert.assertEquals(order, this.fulfilledOrderList.getNext());

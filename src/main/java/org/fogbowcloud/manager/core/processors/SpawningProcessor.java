@@ -41,8 +41,6 @@ public class SpawningProcessor implements Runnable {
                     processSpawningOrder(order);
                 } else {
                     this.spawningOrderList.resetPointer();
-                    LOGGER.debug("There is no spawning order to be processed, sleeping for "
-                            + this.sleepTime + " milliseconds");
                     Thread.sleep(this.sleepTime);
                 }
             } catch (InterruptedException e) {

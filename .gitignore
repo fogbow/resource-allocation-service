@@ -1,4 +1,3 @@
-log4j.properties
 /target/
 !.mvn/wrapper/maven-wrapper.jar
 

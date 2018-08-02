@@ -78,11 +78,10 @@ public class OpenStackAttachmentPluginTest {
                 Mockito.anyString(), Mockito.any(Token.class), Mockito.any(JSONObject.class));
         
         //exercise
-        String instanceId = this.openStackAttachmentPlugin.requestInstance(this.attachmentOrder,
-                this.localToken);
+        String instanceId = this.openStackAttachmentPlugin.requestInstance(this.attachmentOrder, this.localToken);
         
         //verify
-        Assert.assertEquals(FAKE_INSTANCE_ID, instanceId);
+        Assert.assertEquals(FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID, instanceId);
     }
     
     //test case: Check if requestInstance is properly forwarding UnexpectedException thrown by doPostRequest.
