@@ -1,7 +1,5 @@
 package org.fogbowcloud.manager.core.plugins.serialization.openstack;
 
-import com.google.gson.annotations.SerializedName;
-
 // TODO review the same keys
 public class OpenstackRestApiConstants {
 	
@@ -46,5 +44,21 @@ public class OpenstackRestApiConstants {
 		public static final String SECURITY_GROUPS_KEY_JSON = "security_groups";
 		public static final String UUID_KEY_JSON = "uuid";
 
+	}
+	
+	public static class Image {
+	
+		public static final String ID_KEY_JSON = "id";
+		public static final String NAME_KEY_JSON = "name";
+		public static final String SIZE_KEY_JSON = "size";
+		public static final String STATUS_KEY_JSON = "status";
+		public static final String MIN_RAM_KEY_JSON = "min_ram";
+		public static final String MIN_DISK_KEY_JSON = "min_disk";		
+		public static final String VISIBILITY_KEY_JSON = "visibility";
+		public static final String  OWNER_KEY_JSON = "owner";
+		public static final String  NEXT_KEY_JSON = "next";
+		public static final String  IMAGES_KEY_JSON = "images";
+		
+		
 	}
 }

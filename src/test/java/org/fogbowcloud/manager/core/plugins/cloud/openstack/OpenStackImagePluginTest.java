@@ -14,6 +14,7 @@ import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.OpenstackRestApiConstants;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -54,8 +55,8 @@ public class OpenStackImagePluginTest {
     	String imageGlancev2UrlKey = "image-url-key";
     	String endpoint = 
     				imageGlancev2UrlKey
-	                + OpenStackImagePlugin.COMPUTE_V2_API_ENDPOINT
-	                + OpenStackImagePlugin.SUFFIX
+	                + OpenStackImagePlugin.IMAGE_V2_API_ENDPOINT
+	                + OpenStackImagePlugin.IMAGE_V2_API_SUFFIX
 	                + OpenStackImagePlugin.QUERY_ACTIVE_IMAGES;
     	List<Map<String, String>> generatedImages = generateImages(tenantId, 0, 100);
 
@@ -88,8 +89,8 @@ public class OpenStackImagePluginTest {
     	
     	String endpoint1 = 
     				imageGlancev2UrlKey
-	                + OpenStackImagePlugin.COMPUTE_V2_API_ENDPOINT
-	                + OpenStackImagePlugin.SUFFIX
+	                + OpenStackImagePlugin.IMAGE_V2_API_ENDPOINT
+	                + OpenStackImagePlugin.IMAGE_V2_API_SUFFIX
 	                + OpenStackImagePlugin.QUERY_ACTIVE_IMAGES;
     	
     	String endpoint2 = 
@@ -140,8 +141,8 @@ public class OpenStackImagePluginTest {
     	String imageGlancev2UrlKey = "image-url-key";
     	String endpoint = 
     				imageGlancev2UrlKey
-	                + OpenStackImagePlugin.COMPUTE_V2_API_ENDPOINT
-	                + OpenStackImagePlugin.SUFFIX
+	                + OpenStackImagePlugin.IMAGE_V2_API_ENDPOINT
+	                + OpenStackImagePlugin.IMAGE_V2_API_SUFFIX
 	                + "/"
 	                + imageId;
     	Image expectedImage = new Image(FAKE_IMAGE_ID, FAKE_IMAGE_NAME, FAKE_SIZE, FAKE_MIN_DISK, FAKE_MIN_RAM, OpenStackImagePlugin.ACTIVE_STATE);
@@ -149,7 +150,7 @@ public class OpenStackImagePluginTest {
     	String jsonResponse = getImageJsonFromImage(expectedImage);
 
     	Mockito.when(this.properties.getProperty(OpenStackImagePlugin.IMAGE_GLANCEV2_URL_KEY)).thenReturn(imageGlancev2UrlKey);
-    	Mockito.when(this.client.doGetRequest(endpoint, this.token)).thenReturn(jsonResponse);
+    	Mockito.when(this.client.doGetRequest(Mockito.eq(endpoint), Mockito.eq(this.token))).thenReturn(jsonResponse);
     	
     	//exercise
     	Image imagePluginOutput = this.plugin.getImage(imageId, this.token);
@@ -166,8 +167,8 @@ public class OpenStackImagePluginTest {
     	String imageGlancev2UrlKey = "image-url-key";
     	String endpoint = 
     				imageGlancev2UrlKey
-	                + OpenStackImagePlugin.COMPUTE_V2_API_ENDPOINT
-	                + OpenStackImagePlugin.SUFFIX
+	                + OpenStackImagePlugin.IMAGE_V2_API_ENDPOINT
+	                + OpenStackImagePlugin.IMAGE_V2_API_SUFFIX
 	                + "/"
 	                + imageId;
     	Image image = new Image(FAKE_IMAGE_ID, FAKE_IMAGE_NAME, FAKE_SIZE, FAKE_MIN_DISK, FAKE_MIN_RAM, "it_is_not_activated");
@@ -243,8 +244,8 @@ public class OpenStackImagePluginTest {
     	
     	String endpoint1 = 
     				imageGlancev2UrlKey
-	                + OpenStackImagePlugin.COMPUTE_V2_API_ENDPOINT
-	                + OpenStackImagePlugin.SUFFIX
+	                + OpenStackImagePlugin.IMAGE_V2_API_ENDPOINT
+	                + OpenStackImagePlugin.IMAGE_V2_API_SUFFIX
 	                + OpenStackImagePlugin.QUERY_ACTIVE_IMAGES;
     	
     	String endpoint2 = 
@@ -278,8 +279,8 @@ public class OpenStackImagePluginTest {
     	
     	String endpoint1 = 
     				imageGlancev2UrlKey
-	                + OpenStackImagePlugin.COMPUTE_V2_API_ENDPOINT
-	                + OpenStackImagePlugin.SUFFIX
+	                + OpenStackImagePlugin.IMAGE_V2_API_ENDPOINT
+	                + OpenStackImagePlugin.IMAGE_V2_API_SUFFIX
 	                + OpenStackImagePlugin.QUERY_ACTIVE_IMAGES;
     	
     	String endpoint2 = 
@@ -365,12 +366,12 @@ public class OpenStackImagePluginTest {
     
     private String getImageJsonFromImage(Image image) {
     	Map<String, String> jsonMap = new HashMap<String, String>();
-    	jsonMap.put(OpenStackImagePlugin.ID_JSON, image.getId());
-    	jsonMap.put(OpenStackImagePlugin.NAME_JSON, image.getName());
-    	jsonMap.put(OpenStackImagePlugin.SIZE_JSON, Long.toString(image.getSize()));
-    	jsonMap.put(OpenStackImagePlugin.MIN_DISK_JSON, Long.toString(image.getMinDisk()));
-    	jsonMap.put(OpenStackImagePlugin.MIN_RAM_JSON, Long.toString(image.getMinRam()));
-    	jsonMap.put(OpenStackImagePlugin.STATUS, image.getStatus());
+    	jsonMap.put(OpenstackRestApiConstants.Image.ID_KEY_JSON, image.getId());
+    	jsonMap.put(OpenstackRestApiConstants.Image.NAME_KEY_JSON, image.getName());
+    	jsonMap.put(OpenstackRestApiConstants.Image.SIZE_KEY_JSON, Long.toString(image.getSize()));
+    	jsonMap.put(OpenstackRestApiConstants.Image.MIN_DISK_KEY_JSON, Long.toString(image.getMinDisk()));
+    	jsonMap.put(OpenstackRestApiConstants.Image.MIN_RAM_KEY_JSON, Long.toString(image.getMinRam()));
+    	jsonMap.put(OpenstackRestApiConstants.Image.STATUS_KEY_JSON, image.getStatus());
     	Gson gson = new Gson();
     	String jsonResponse = gson.toJson(jsonMap);
     	return jsonResponse;

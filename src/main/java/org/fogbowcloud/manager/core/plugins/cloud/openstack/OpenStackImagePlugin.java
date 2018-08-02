@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.http.client.HttpResponseException;
+import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
@@ -16,30 +17,26 @@ import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.ImagePlugin;
-import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.image.v2.ImageResponse;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.image.v2.ImageListResponse;
 import org.fogbowcloud.manager.util.PropertiesUtil;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 
 public class OpenStackImagePlugin implements ImagePlugin {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenStackImagePlugin.class);
 
 	public static final String IMAGE_GLANCEV2_URL_KEY = "openstack_glance_v2_url";
-
-	public static final String SUFFIX = "images";
-	public static final String ACTIVE_STATE = "active";
-	public static final String QUERY_ACTIVE_IMAGES = "?status=" + ACTIVE_STATE;
-	public static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
-	public static final String TENANT_ID = "tenantId";
 	
-	public static final String ID_JSON = "id";
-	public static final String NAME_JSON = "name";
-	public static final String SIZE_JSON = "size";
-	public static final String MIN_DISK_JSON = "min_disk";
-	public static final String MIN_RAM_JSON = "min_ram";
-	public static final String STATUS = "status";
+	public static final String ACTIVE_STATE = "active";
+	public static final String PUBLIC_VISIBILITY = "public";
+	private static final String PRIVATE_VISIBILITY = "private";
+	
+	public static final String QUERY_ACTIVE_IMAGES = "?status=" + ACTIVE_STATE;
+	public static final String IMAGE_V2_API_SUFFIX = "images";
+	public static final String IMAGE_V2_API_ENDPOINT = "/v2/";
+	
+	public static final String TENANT_ID = "tenantId";
 
 	private Properties properties;
 	private HttpRequestClientUtil client;
@@ -60,128 +57,124 @@ public class OpenStackImagePlugin implements ImagePlugin {
 
 	@Override
 	public Image getImage(String imageId, Token localToken) throws FogbowManagerException, UnexpectedException {
-		JSONObject imageJsonObject = getJsonObjectImage(imageId, localToken);
-		String status = imageJsonObject.optString(STATUS);
-		LOGGER.debug("getImage returned status: " + status);
+		ImageResponse imageResponse = getImageResponse(imageId, localToken);
+		String id = imageResponse.getId();
+		String status = imageResponse.getStatus();
+		LOGGER.debug("The image " + id + " status is " + status);
 		if (status.equals(ACTIVE_STATE)) {
-			Image image = new Image(
-					imageJsonObject.getString(ID_JSON),
-					imageJsonObject.getString(NAME_JSON),
-					imageJsonObject.getLong(SIZE_JSON),
-					imageJsonObject.getLong(MIN_DISK_JSON),
-					imageJsonObject.getLong(MIN_RAM_JSON),
-					imageJsonObject.getString(STATUS)
+			Image image = new Image(id,
+					imageResponse.getName(),
+					imageResponse.getSize(),
+					imageResponse.getMinDisk(),
+					imageResponse.getMinRam(),
+					status
 			);
 			return image;
 		}
+		
 		return null;
 	}
 	
-	private JSONObject getJsonObjectImage(String imageId, Token localToken)
+	private ImageResponse getImageResponse(String imageId, Token localToken)
 			throws FogbowManagerException, UnexpectedException {
-		String endpoint = 
-				this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
-                + COMPUTE_V2_API_ENDPOINT
-                + SUFFIX
-                + "/"
-                + imageId;
 		String jsonResponse = null;
 		try {
+			String endpoint = this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY) 
+					+ IMAGE_V2_API_ENDPOINT + IMAGE_V2_API_SUFFIX + File.separator + imageId;
 			jsonResponse = this.client.doGetRequest(endpoint, localToken);
 		} catch (HttpResponseException e) {
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}
-		JSONObject image = new JSONObject(jsonResponse);
-		return image;
+		
+		return ImageResponse.fromJson(jsonResponse);
 	}
 	
-	private List<JSONObject> getAllImagesJson(Token localToken) throws FogbowManagerException, UnexpectedException {
-		String endpoint = 
-				this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
-                + COMPUTE_V2_API_ENDPOINT
-                + SUFFIX
-                + QUERY_ACTIVE_IMAGES;
+	private List<ImageResponse> getImagesResponse(Token localToken) throws FogbowManagerException, UnexpectedException {
 		String jsonResponse = null;
 		try {
+			String endpoint = this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY) 
+					+ IMAGE_V2_API_ENDPOINT + IMAGE_V2_API_SUFFIX + QUERY_ACTIVE_IMAGES;
 			jsonResponse = this.client.doGetRequest(endpoint, localToken);
 		} catch (HttpResponseException e) {
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}
-		List<JSONObject> imagesJson = new ArrayList<JSONObject>();
-		imagesJson.addAll(getImagesFromJson(jsonResponse));
-		getNextJsonByPagination(localToken, jsonResponse, imagesJson);
+		ImageListResponse imagesResponse = getImageListResponse(jsonResponse);
+		
+		List<ImageResponse> imagesJson = new ArrayList<ImageResponse>();
+		imagesJson.addAll(imagesResponse.getImageResponseList());
+		getNextImageListResponseByPagination(localToken, imagesResponse, imagesJson);
 		return imagesJson;
 	}
-	
-	private void getNextJsonByPagination(Token localToken, String currentJson, List<JSONObject> imagesJson)
+
+	private void getNextImageListResponseByPagination(Token localToken, ImageListResponse imageListResponse, List<ImageResponse> imagesJson)
 			throws FogbowManagerException, UnexpectedException {
-		JSONObject jsonObject = new JSONObject (currentJson);
-		if (jsonObject.has("next")) {
-			String next = jsonObject.getString("next");
-			String endpoint = 
-					this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY)
-	                + next;
+		
+		String next = imageListResponse.getNext();
+		if (next != null && !next.isEmpty()) {
+			String endpoint = this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY) + next;
 			String jsonResponse = null;
 			try {
 				jsonResponse = this.client.doGetRequest(endpoint, localToken);
 			} catch (HttpResponseException e) {
 				OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 			}
-			imagesJson.addAll(getImagesFromJson(jsonResponse));
-			getNextJsonByPagination(localToken, jsonResponse, imagesJson);
-		}
+			imageListResponse = getImageListResponse(jsonResponse);
+			
+			imagesJson.addAll(imageListResponse.getImageResponseList());
+			getNextImageListResponseByPagination(localToken, imageListResponse, imagesJson);
+		}	
 	}
 	
-	private List<JSONObject> getImagesFromJson(String json) {
-		JSONObject jsonObject = new JSONObject(json);
-		JSONArray jsonArray = jsonObject.getJSONArray("images");
-		List<JSONObject> jsonList = new ArrayList<JSONObject>();
-		for (int i = 0; i < jsonArray.length(); i++) {
-			JSONObject jsonImage = (JSONObject) jsonArray.get(i);
-			jsonList.add(jsonImage);
-		}
-		return jsonList;
-	}
 	
-	private List<JSONObject> getPublicImages(List<JSONObject> images){
-		List<JSONObject> publicImages = new ArrayList<JSONObject>();
-		for (JSONObject image: images) {
-			if (image.getString("visibility").equals("public")) {
-				publicImages.add(image);
+	private List<ImageResponse> getPublicImagesResponse(List<ImageResponse> imagesResponse){
+		List<ImageResponse> publicImagesResponse = new ArrayList<ImageResponse>();
+		for (ImageResponse imageResponse: imagesResponse) {
+			if (imageResponse.getVisibility().equals(PUBLIC_VISIBILITY)) {
+				publicImagesResponse.add(imageResponse);
 			}
 		}
-		return publicImages;
+		return publicImagesResponse;
 	}
 	
-	private List<JSONObject> getPrivateImagesByTenantId(List<JSONObject> images, String tenantId){
-		List<JSONObject> privateImages = new ArrayList<JSONObject>();
-		for (JSONObject image: images) {
-			if (image.getString("owner").equals(tenantId) && image.getString("visibility").equals("private")) {
-				privateImages.add(image);
+	private List<ImageResponse> getPrivateImagesResponse(List<ImageResponse> imagesResponse, String tenantId){
+		List<ImageResponse> privateImagesResponse = new ArrayList<ImageResponse>();
+		for (ImageResponse imageResponse: imagesResponse) {
+			if (imageResponse.getOwner().equals(tenantId) 
+					&& imageResponse.getVisibility().equals(PRIVATE_VISIBILITY)) {
+				privateImagesResponse.add(imageResponse);
 			}
 		}
-		return privateImages;
+		return privateImagesResponse;
 	}
 	
 	private Map<String, String> getImageNameAndIdMapFromAllAvailableImages(Token localToken, String tenantId)
 			throws FogbowManagerException, UnexpectedException {
 		Map<String, String> imageNameIdMap = new HashMap<String, String>();
 		
-		List<JSONObject> allImages = getAllImagesJson(localToken);
+		List<ImageResponse> allImagesResponse = getImagesResponse(localToken);
 		
-		List<JSONObject> filteredImages = new ArrayList<JSONObject>();
-		filteredImages.addAll(getPublicImages(allImages));
-		filteredImages.addAll(getPrivateImagesByTenantId(allImages, tenantId));
+		List<ImageResponse> filteredImagesResponse = filterImagesResponse(tenantId, allImagesResponse);
 		
-		for (JSONObject image: filteredImages) {
-			imageNameIdMap.put(image.getString("id"), image.getString("name")); 
+		for (ImageResponse imageResponse: filteredImagesResponse) {
+			imageNameIdMap.put(imageResponse.getId(), imageResponse.getName()); 
 		}
 		
 		return imageNameIdMap;
 	}
+
+	private List<ImageResponse> filterImagesResponse(String tenantId, List<ImageResponse> allImagesResponse) {
+		List<ImageResponse> filteredImages = new ArrayList<ImageResponse>();
+		filteredImages.addAll(getPublicImagesResponse(allImagesResponse));
+		filteredImages.addAll(getPrivateImagesResponse(allImagesResponse, tenantId));
+		return filteredImages;
+	}
 	
 	protected void setClient(HttpRequestClientUtil client) {
 		this.client = client;
+	}
+	
+	private ImageListResponse getImageListResponse(String json) {
+		return ImageListResponse.fromJson(json);
 	}
 	
 	protected void setProperties(Properties properties) {
