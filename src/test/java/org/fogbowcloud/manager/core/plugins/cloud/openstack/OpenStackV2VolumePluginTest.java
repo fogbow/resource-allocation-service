@@ -1,5 +1,10 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
 import org.apache.http.client.HttpResponseException;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
@@ -8,19 +13,16 @@ import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.OpenstackApiConstants;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import com.google.gson.JsonObject;
 
 public class OpenStackV2VolumePluginTest {
 
@@ -31,6 +33,7 @@ public class OpenStackV2VolumePluginTest {
     private final String FAKE_ACCESS_ID = "access-id";
     private final String FAKE_INSTANCE_ID = "instance-id";
 
+    // TODO create this json with a libary
     private final String FAKE_VOLUME_JSON = "{\"volume\":{\"size\":2,\"name\":\"fake-name\", " +
             "\"id\": \"fake-id\", \"status\": \"fake-status\"}}";
 
@@ -92,16 +95,16 @@ public class OpenStackV2VolumePluginTest {
         JSONObject jsonEntity = this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE, FAKE_NAME);
 
         // verify
-        Assert.assertEquals(FAKE_SIZE, jsonEntity.getJSONObject(OpenStackV2VolumePlugin.KEY_JSON_VOLUME)
-                .getString(OpenStackV2VolumePlugin.KEY_JSON_SIZE));
+        Assert.assertEquals(FAKE_SIZE, jsonEntity.getJSONObject(OpenstackApiConstants.Volume.VOLUME_KEY_JSON)
+                .getString(OpenstackApiConstants.Volume.SIZE_KEY_JSON));
     }
 
     // test case: Tests if given a volume Json, the getInstanceFromJson() returns the right VolumeInstance.
     @Test
     public void testGetInstanceFromJson() throws FogbowManagerException, JSONException, UnexpectedException {
         // exercise
-        VolumeInstance instance = this.openStackV2VolumePlugin.getInstanceFromJson(
-                generateInstanceJsonResponse(FAKE_INSTANCE_ID).toString());
+        String instanceJsonResponseStr = generateInstanceJsonResponse(FAKE_INSTANCE_ID).toString();
+		VolumeInstance instance = this.openStackV2VolumePlugin.getInstanceFromJson(instanceJsonResponseStr);
 
         // verify
         Assert.assertEquals(FAKE_INSTANCE_ID, instance.getId());
@@ -156,18 +159,15 @@ public class OpenStackV2VolumePluginTest {
         this.openStackV2VolumePlugin.deleteInstance(FAKE_INSTANCE_ID, tokenDefault);
     }
 
-    @Ignore
-    @Test
-    public void getInstanceState() {
-        // TODO
-    }
-
-    private JSONObject generateInstanceJsonResponse(String instanceId) throws JSONException {
-        JSONObject jsonId = new JSONObject();
-        jsonId.put(OpenStackV2VolumePlugin.KEY_JSON_ID, instanceId);
-        jsonId.put(OpenStackV2VolumePlugin.KEY_JSON_SIZE, FAKE_SIZE);
-        JSONObject jsonStorage = new JSONObject();
-        jsonStorage.put(OpenStackV2VolumePlugin.KEY_JSON_VOLUME, jsonId);
-        return jsonStorage;
+    private JsonObject generateInstanceJsonResponse(String instanceId) throws JSONException {
+        JsonObject instanceJsonResponse = new JsonObject();
+        
+        instanceJsonResponse.addProperty(OpenstackApiConstants.Volume.ID_KEY_JSON, instanceId);
+        instanceJsonResponse.addProperty(OpenstackApiConstants.Volume.SIZE_KEY_JSON, 0);
+        instanceJsonResponse.addProperty(OpenstackApiConstants.Volume.STATUS_KEY_JSON, OpenStackStateMapper.ACTIVE_STATUS);
+        instanceJsonResponse.addProperty(OpenstackApiConstants.Volume.NAME_KEY_JSON, "anyName");
+        JsonObject volumeJsonObject = new JsonObject();
+        volumeJsonObject.add(OpenstackApiConstants.Volume.VOLUME_KEY_JSON, instanceJsonResponse);
+        return volumeJsonObject;
     }
 }

@@ -10,6 +10,9 @@ import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.attachment.v2.AttachmentResponse;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.attachment.v2.AttachmentResponse.AttachmentParameters;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.attachment.v2.CreateRequest;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.tokens.Token;
@@ -25,7 +28,6 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     private final String TENANT_ID_IS_NOT_SPECIFIED_ERROR = "Tenant id is not specified.";
     protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
     private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
-	private static final String ID_JSON_FIELD = "id";
     private static final String OS_VOLUME_ATTACHMENTS = "/os-volume_attachments";
     private static final String SEPARATOR_ID = " ";
     private static final String SERVERS = "/servers/";
@@ -61,9 +63,8 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         }
         
         String endpoint = getPrefixEndpoint(tenantId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS;
-        String responseStr = null;
         try {
-            responseStr = this.client.doPostRequest(endpoint, localToken, jsonRequest);
+            this.client.doPostRequest(endpoint, localToken, jsonRequest);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
@@ -122,13 +123,12 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     
     protected AttachmentInstance getInstanceFromJson(String jsonResponse) throws UnexpectedException {
     	try {
-            JSONObject rootServer = new JSONObject(jsonResponse);
-        	rootServer = rootServer.getJSONObject("volumeAttachment");
-        	
-        	String id = rootServer.getString(ID_JSON_FIELD);
-        	String serverId = rootServer.getString("serverId");
-        	String volumeId = rootServer.getString("volumeId");
-        	String device = rootServer.getString("device");
+    		AttachmentResponse attachmentResponse = new AttachmentResponse().fromJson(jsonResponse);
+    		AttachmentParameters attachmentParameters = attachmentResponse.getAttachmentParameters();
+    		String id = attachmentParameters.getId();
+    		String serverId = attachmentParameters.getServerId();
+    		String volumeId = attachmentParameters.getVolumeId();
+    		String device = attachmentParameters.getDevice();
 
         	// There is no OpenStackState for attachments; we set it to empty string to allow its mapping
             // by the OpenStackStateMapper.map() function.
@@ -145,27 +145,16 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     	}
     }
 
-    private String getAttachmentIdJson(String responseStr) throws UnexpectedException {
-        try {
-            JSONObject root = new JSONObject(responseStr);
-            return root.getJSONObject("volumeAttachment").getString("volumeId").toString();
-        } catch (JSONException e) {
-            String errorMsg = "There was an exception while getting attchment instance.";
-            LOGGER.error(errorMsg, e);
-            throw new UnexpectedException(errorMsg, e);        }
-    }
-
     private String getPrefixEndpoint(String tenantId) {
         return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + tenantId;
     }
 
     protected JSONObject generateJsonToAttach(String volume) throws JSONException {
-        JSONObject osAttachContent = new JSONObject();
-        osAttachContent.put("volumeId", volume);
-
-        JSONObject osAttach = new JSONObject();
-        osAttach.put("volumeAttachment", osAttachContent);
-        
+    	CreateRequest createRequest = new CreateRequest().new Builder()
+    			.volumeId(volume)
+    			.build();
+    	
+    	JSONObject osAttach = new JSONObject(createRequest.toJson());
         return osAttach;
     }
     
