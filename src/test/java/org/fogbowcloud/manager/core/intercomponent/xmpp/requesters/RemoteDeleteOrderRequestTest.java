@@ -47,14 +47,14 @@ public class RemoteDeleteOrderRequestTest {
  	//test case: check if IQ attributes is according to both Order parameters and remote delete order request rules
 	@Test
 	public void testSend() throws Exception {
-		// set up
+		//set up
 		Mockito.doReturn(this.iqResponse).when(this.packetSender).syncSendPacket(argIQ.capture());
 		String federationUserJson = new Gson().toJson(this.order.getFederationUser());
  		
-		// exercise
+		//exercise
 		this.remoteDeleteOrderRequest.send();
 		
- 		// verify
+ 		//verify
 		IQ iq = argIQ.getValue();
 		Assert.assertEquals(IQ.Type.set.toString(), iq.getType().toString());
 		Assert.assertEquals(this.order.getProvidingMember().toString(), iq.getTo().toString());
@@ -77,10 +77,10 @@ public class RemoteDeleteOrderRequestTest {
 	//"XmppErrorConditionToExceptionTranslator.handleError" when the IQ response is null
 	@Test (expected = UnavailableProviderException.class)
 	public void testSendWhenResponseIsNull() throws Exception {
-		// set up
+		//set up
 		Mockito.doReturn(null).when(this.packetSender).syncSendPacket(this.argIQ.capture());
  		
-		// exercise/verify
+		//exercise/verify
 		this.remoteDeleteOrderRequest.send();
 	}
 	
@@ -88,11 +88,11 @@ public class RemoteDeleteOrderRequestTest {
 	//"XmppErrorConditionToExceptionTranslator.handleError" when the IQ response status is forbidden
 	@Test (expected = UnauthorizedRequestException.class)
 	public void testSendWhenResponseReturnsForbidden() throws Exception {
-		// set up
+		//set up
 		Mockito.doReturn(this.iqResponse).when(this.packetSender).syncSendPacket(this.argIQ.capture());
 		this.iqResponse.setError(new PacketError(PacketError.Condition.forbidden));
 		
-		// exercise/verify
+		//exercise/verify
 		this.remoteDeleteOrderRequest.send();
 	}
 }
