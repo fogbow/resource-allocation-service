@@ -29,8 +29,10 @@ class CommonMethods:
       break
     return True
 
+  #Post functions
+
   @classmethod
-  def post_order(cls, optional_attributes, order_type):
+  def _post_order(cls, optional_attributes, order_type):
     if order_type == GeneralConfigurations.type_compute:
       merged_data = cls.data_compute.copy()
       merged_data.update(optional_attributes)
@@ -56,12 +58,42 @@ class CommonMethods:
   def post_multiple_orders(cls, optional_attributes, amount, order_type):
     orders_id = []
     for i in range(amount):
-      response = cls.post_order(optional_attributes, order_type)
+      response = cls._post_order(optional_attributes, order_type)
       if response.status_code != GeneralConfigurations.created_status:
         print('Test get all computes: Failed on creating compute, trying next test')
         return
       orders_id.append(response.text)
     return orders_id
+
+  @classmethod
+  def post_compute(cls, optional_attributes):
+    response_compute = cls._post_order(optional_attributes, GeneralConfigurations.type_compute)
+    if response_compute.status_code != GeneralConfigurations.created_status:
+      return ''
+    return response_compute.text
+
+  @classmethod
+  def post_network(cls, optional_attributes):
+    response_network = cls._post_order(optional_attributes, GeneralConfigurations.type_network)
+    if response_network.status_code != GeneralConfigurations.created_status:
+      return ''
+    return response_network.text
+
+  @classmethod
+  def post_volume(cls, optional_attributes):
+    response_volume = cls._post_order(optional_attributes, GeneralConfigurations.type_volume)
+    if response_volume.status_code != GeneralConfigurations.created_status:
+      return ''
+    return response_volume.text
+
+  @classmethod
+  def post_attachment(cls, optional_attributes):
+    response_attachment = cls._post_order(optional_attributes, GeneralConfigurations.type_attachment)
+    if response_attachment.status_code != GeneralConfigurations.created_status:
+      return ''
+    return response_attachment.text
+
+  #Get functions
 
   @classmethod
   def get_order_by_id(cls, order_id, order_type):
@@ -84,6 +116,8 @@ class CommonMethods:
       return requests.get(cls.url_volumes + GeneralConfigurations.status_endpoint)
     elif order_type == GeneralConfigurations.type_attachment:
       return requests.get(cls.url_attachments + GeneralConfigurations.status_endpoint)
+
+  #Delete functions
 
   @classmethod
   def delete_order(cls, order_id, order_type):

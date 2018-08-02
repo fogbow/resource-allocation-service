@@ -5,64 +5,14 @@ from common_methods import CommonMethods
 
 class AttachmentTests:
 
+  compute_id = ''
+  volume_id = ''
+  attachment_id = ''
+
   @classmethod
   def test_attachments(cls):
     cls.test_post_local_attachments()
-
-  #Post tests
-  @classmethod
-  def test_post_local_attachments(cls):
-    empty_extra_data = {}
-    compute_id = cls.post_compute(empty_extra_data)
-    if not compute_id:
-      print('Test post local attachment: Failed. Compute not created')
-      return
-    volume_id = cls.post_volume(empty_extra_data)
-    if not volume_id:
-      CommonMethods.delete_order(compute_id, GeneralConfigurations.type_compute)
-      print('Test post local attachment: Failed. Volume not created')
-      return
-    if not cls.wait_for_compute_and_volume(compute_id, volume_id):
-      print('Test post local attachment: Failed. Volume or compute not ready')
-      return
-    attachment_extra_data = {GeneralConfigurations.source: compute_id, GeneralConfigurations.target: volume_id}
-    attachment_id = cls.post_attachment(attachment_extra_data)
-    if not attachment_id:
-      CommonMethods.delete_order(compute_id, GeneralConfigurations.type_compute)
-      CommonMethods.delete_order(volume_id, GeneralConfigurations.type_volume)
-      print('Test post local attachment: Failed. Attachment and not created')
-      return
-    if CommonMethods.wait_instance_ready(attachment_id, GeneralConfigurations.type_attachment):
-      print('Test post local attachment: Ok. Removing attachment')
-    else:
-      print('Test post local attachment: Failed. Removing attachment')
-    CommonMethods.delete_order(attachment_id, GeneralConfigurations.type_attachment)
-    CommonMethods.delete_order(compute_id, GeneralConfigurations.type_compute)
-    CommonMethods.delete_order(volume_id, GeneralConfigurations.type_volume)
-
-  @classmethod
-  def post_compute(cls, extra_data):
-    response_compute = CommonMethods.post_order(extra_data, GeneralConfigurations.type_compute)
-    if response_compute.status_code != GeneralConfigurations.created_status:
-      print('Test post local attachment: Failed, trying next test')
-      return
-    return response_compute.text
-
-  @classmethod
-  def post_volume(cls, extra_data):
-    response_volume = CommonMethods.post_order(extra_data, GeneralConfigurations.type_volume)
-    if response_volume.status_code != GeneralConfigurations.created_status:
-      print('Test post local attachment: Failed, trying next test')
-      return
-    return response_volume.text
-
-  @classmethod
-  def post_attachment(cls, extra_data):
-    response_attachment = CommonMethods.post_order(extra_data, GeneralConfigurations.type_attachment)
-    if response_attachment.status_code != GeneralConfigurations.created_status:
-      print('Test post local attachment: Failed, trying next test')
-      return
-    return response_attachment.text
+    cls.test_get_by_id_local_attachment()
 
   @classmethod
   def wait_for_compute_and_volume(cls, compute_id, volume_id):
@@ -74,4 +24,69 @@ class AttachmentTests:
       CommonMethods.delete_order(volume_id, GeneralConfigurations.type_volume)
       CommonMethods.delete_order(compute_id, GeneralConfigurations.type_compute)
       return False
+    return True
+
+  #Post tests
+  @classmethod
+  def test_post_local_attachments(cls):
+    if not cls.post_attachment():
+      print('Test post local attachment: Failed.')
+      return
+    if CommonMethods.wait_instance_ready(cls.attachment_id, GeneralConfigurations.type_attachment):
+      print('Test post local attachment: Ok. Removing attachment')
+    else:
+      print('Test post local attachment: Failed. Removing attachment')
+    CommonMethods.delete_order(cls.attachment_id, GeneralConfigurations.type_attachment)
+    CommonMethods.delete_order(cls.compute_id, GeneralConfigurations.type_compute)
+    CommonMethods.delete_order(cls.volume_id, GeneralConfigurations.type_volume)
+    time.sleep(10)
+
+  @classmethod
+  def test_get_by_id_local_attachment(cls):
+    extra_data = {}
+    fake_id = 'fake-id'
+    response_get = CommonMethods.get_order_by_id(fake_id, GeneralConfigurations.type_attachment)
+    if response_get.status_code != GeneralConfigurations.not_found_status:
+      print('Test get attachment by id: Failed. Expecting %d status, but got: %d' % (GeneralConfigurations.not_found_status, response_get.status_code))
+      return
+    if not cls.post_attachment():
+      print('Test get attachment by id: Failed.')
+      return
+    response_get = CommonMethods.get_order_by_id(cls.attachment_id, GeneralConfigurations.type_attachment)
+    test_ok = False
+    if response_get.status_code == GeneralConfigurations.ok_status:
+      test_ok = True
+    if test_ok:
+      print('Test get attachment by id: Ok. Removing attachment')
+    else:
+      print('Test get attachment by id: Failed. Expecting %d status, but got: %d. Removing attachment' % (GeneralConfigurations.ok_status, response_get.status_code))
+    CommonMethods.delete_order(cls.attachment_id, GeneralConfigurations.type_attachment)
+    CommonMethods.delete_order(cls.compute_id, GeneralConfigurations.type_compute)
+    CommonMethods.delete_order(cls.volume_id, GeneralConfigurations.type_volume)
+    time.sleep(10)
+
+  @classmethod
+  def post_attachment(cls):
+    empty_extra_data = {}
+    cls.compute_id = CommonMethods.post_compute(empty_extra_data)
+    if not cls.compute_id:
+      print('Error while trying to create compute')
+      return
+    cls.volume_id = CommonMethods.post_volume(empty_extra_data)
+    if not cls.volume_id:
+      CommonMethods.delete_order(cls.compute_id, GeneralConfigurations.type_compute)
+      print('Error while trying to create volume')
+      return
+    if not cls.wait_for_compute_and_volume(cls.compute_id, cls.volume_id):
+      CommonMethods.delete_order(cls.compute_id, GeneralConfigurations.type_compute)
+      CommonMethods.delete_order(cls.volume_id, GeneralConfigurations.type_volume)
+      print('Volume or compute was not transitioned to ready')
+      return
+    attachment_extra_data = {GeneralConfigurations.source: cls.compute_id, GeneralConfigurations.target: cls.volume_id}
+    cls.attachment_id = CommonMethods.post_attachment(attachment_extra_data)
+    if not cls.attachment_id:
+      CommonMethods.delete_order(cls.compute_id, GeneralConfigurations.type_compute)
+      CommonMethods.delete_order(cls.volume_id, GeneralConfigurations.type_volume)
+      print('Error while trying to create attachment')
+      return
     return True

@@ -18,11 +18,10 @@ class ComputeTests:
   @classmethod
   def test_post_local_compute(cls):
     extra_data = {}
-    response = CommonMethods.post_order(extra_data, GeneralConfigurations.type_compute)
-    if response.status_code != GeneralConfigurations.created_status:
+    order_id = CommonMethods.post_compute(extra_data)
+    if not order_id:
       print('Test post local compute: Failed, trying next test')
-      return False
-    order_id = response.text
+      return 
     if cls.wait_instance_ready(order_id):
       print('Test post local compute: Ok. Removing compute')
     else:
@@ -121,11 +120,12 @@ class ComputeTests:
     if response_get.status_code != GeneralConfigurations.not_found_status:
       print('Test get compute by id: Failed. Expecting %d status, but got: %d' % (GeneralConfigurations.not_found_status, response_get.status_code))
       return
-    response_post = CommonMethods.post_order(extra_data, GeneralConfigurations.type_compute)
-    order_id = response_post.text
-    if response_post.status_code != GeneralConfigurations.created_status:
+    order_id = CommonMethods.post_compute(extra_data)
+    if not order_id:
       print('Test get by id: Failed on creating compute, trying next test')
       CommonMethods.delete_order(order_id, GeneralConfigurations.type_compute)
+      #time to wait order to be deleted
+      time.sleep(20)
       return
     response_get = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_compute)
     test_ok = False
@@ -136,6 +136,8 @@ class ComputeTests:
     else:
       print('Test get compute by id: Failed. Expecting %d status, but got: %d. Removing compute' % (GeneralConfigurations.ok_status, response_get.status_code))
     CommonMethods.delete_order(order_id, GeneralConfigurations.type_compute)
+    #time to wait order to be deleted
+    time.sleep(20)
 
 
   @classmethod
@@ -181,14 +183,15 @@ class ComputeTests:
   @classmethod
   def test_delete_local_compute(cls):
     extra_data = {}
-    response = CommonMethods.post_order(extra_data, GeneralConfigurations.type_compute)
-    if response.status_code != GeneralConfigurations.created_status:
+    order_id = CommonMethods.post_compute(extra_data)
+    if not order_id:
       print('Test Failed. Trying next test')
       return
-    order_id = response.text
     get_response = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_compute)
     if (get_response.status_code == GeneralConfigurations.not_found_status):
       CommonMethods.delete_order(order_id, GeneralConfigurations.type_compute)
+      #time to wait order to be deleted
+      time.sleep(20)
       print('Test Failed. Trying next test')
       return
     CommonMethods.delete_order(order_id, GeneralConfigurations.type_compute)
@@ -197,3 +200,5 @@ class ComputeTests:
       print('Test delete local compute: Failed.')
       return
     print('Test delete local compute: Ok. Compute removed')
+    #time to wait order to be deleted
+    time.sleep(20)

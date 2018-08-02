@@ -8,7 +8,7 @@ class VolumeTests:
   @classmethod
   def test_volumes(cls):
     cls.test_post_local_volumes()
-    cls.test_get_local_volume()
+    cls.test_get_by_id_local_volume()
     cls.test_get_all_local_compute()
     cls.test_delete_local_volume()
 
@@ -16,11 +16,10 @@ class VolumeTests:
   @classmethod
   def test_post_local_volumes(cls):
     extra_data = {}
-    response = CommonMethods.post_order(extra_data, GeneralConfigurations.type_volume)
-    if response.status_code != GeneralConfigurations.created_status:
+    order_id = CommonMethods.post_volume(extra_data)
+    if not order_id:
       print('Test post local volume: Failed, trying next test')
-      return False
-    order_id = response.text
+      return
     if CommonMethods.wait_instance_ready(order_id, GeneralConfigurations.type_volume):
       print('Test post local volume: Ok. Removing volume')
     else:
@@ -29,18 +28,16 @@ class VolumeTests:
 
   # Get tests
   @classmethod
-  def test_get_local_volume(cls):
+  def test_get_by_id_local_volume(cls):
     extra_data = {}
     fake_id = 'fake-id'
     response_get = CommonMethods.get_order_by_id(fake_id, GeneralConfigurations.type_volume)
     if response_get.status_code != GeneralConfigurations.not_found_status:
       print('Test get volume by id: Failed. Expecting %d status, but got: %d' % (GeneralConfigurations.not_found_status, response_get.status_code))
       return
-    response_post = CommonMethods.post_order(extra_data, GeneralConfigurations.type_volume)
-    order_id = response_post.text
-    if response_post.status_code != GeneralConfigurations.created_status:
+    order_id = CommonMethods.post_volume(extra_data)
+    if not order_id:
       print('Test get by id: Failed on creating volume, trying next test')
-      CommonMethods.delete_order(order_id, GeneralConfigurations.type_volume)
       return
     response_get = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_volume)
     test_ok = False
@@ -78,11 +75,10 @@ class VolumeTests:
   @classmethod
   def test_delete_local_volume(cls):
     extra_data = {}
-    response = CommonMethods.post_order(extra_data, GeneralConfigurations.type_volume)
-    if response.status_code != GeneralConfigurations.created_status:
+    order_id = CommonMethods.post_volume(extra_data)
+    if not order_id:
       print('Test Failed. Trying next test')
       return
-    order_id = response.text
     get_response = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_volume)
     if (get_response.status_code == GeneralConfigurations.not_found_status):
       print('Test Failed. Trying next test')

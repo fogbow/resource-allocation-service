@@ -16,11 +16,10 @@ class NetworkTests:
   @classmethod
   def test_post_local_networks(cls):
     extra_data = {}
-    response = CommonMethods.post_order(extra_data, GeneralConfigurations.type_network)
-    if response.status_code != GeneralConfigurations.created_status:
+    order_id = CommonMethods.post_network(extra_data)
+    if not order_id:
       print('Test post local network: Failed, trying next test')
       return False
-    order_id = response.text
     if CommonMethods.wait_instance_ready(order_id, GeneralConfigurations.type_network):
       print('Test post local network: Ok. Removing network')
     else:
@@ -36,11 +35,9 @@ class NetworkTests:
     if response_get.status_code != GeneralConfigurations.not_found_status:
       print('Test get network by id: Failed. Expecting %d status, but got: %d' % (GeneralConfigurations.not_found_status, response_get.status_code))
       return
-    response_post = CommonMethods.post_order(extra_data, GeneralConfigurations.type_network)
-    order_id = response_post.text
-    if response_post.status_code != GeneralConfigurations.created_status:
+    order_id = CommonMethods.post_network(extra_data)
+    if not order_id:
       print('Test get by id: Failed on creating network, trying next test')
-      CommonMethods.delete_order(order_id, GeneralConfigurations.type_network)
       return
     response_get = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_network)
     test_ok = False
@@ -51,10 +48,10 @@ class NetworkTests:
     else:
       print('Test get network by id: Failed. Expecting %d status, but got: %d. Removing network' % (GeneralConfigurations.ok_status, response_get.status_code))
     CommonMethods.delete_order(order_id, GeneralConfigurations.type_network)
+    time.sleep(10)
 
   @classmethod
   def test_get_all_local_networks(cls):
-    time.sleep(60)
     response_get = CommonMethods.get_all_order(GeneralConfigurations.type_network)
     if response_get.status_code != GeneralConfigurations.ok_status or response_get.text != '[]':
       print('Test get all networks: Failed')
@@ -73,16 +70,16 @@ class NetworkTests:
     else:
       print('Test get all networks: Failed. Removing networks')
     CommonMethods.delete_multiple_orders(orders_id, GeneralConfigurations.type_network)
+    time.sleep(10)
 
   # Delete tests
   @classmethod
   def test_delete_local_network(cls):
     extra_data = {}
-    response = CommonMethods.post_order(extra_data, GeneralConfigurations.type_network)
-    if response.status_code != GeneralConfigurations.created_status:
+    order_id = CommonMethods.post_network(extra_data)
+    if not order_id:
       print('Test Failed. Trying next test')
       return
-    order_id = response.text
     get_response = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_network)
     if (get_response.status_code == GeneralConfigurations.not_found_status):
       print('Test Failed. Trying next test')
@@ -93,3 +90,4 @@ class NetworkTests:
       print('Test delete local network: Failed.')
       return
     print('Test delete local network: Ok. Network removed')
+    time.sleep(10)
