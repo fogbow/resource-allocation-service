@@ -105,7 +105,7 @@ public class LdapIdentityPlugin implements AuthenticationPlugin {
             name = ldapAuthenticate(userId, password);
         } catch (Exception e) {
             throw new InvalidCredentialsUserException(
-                    "Couldn't load account summary from LDAP Server.", e);
+                    "Couldn't load account summary from LDAP Network.", e);
         }
 
         Date expirationDate = new Date(new Date().getTime() + EXPIRATION_INTERVAL);

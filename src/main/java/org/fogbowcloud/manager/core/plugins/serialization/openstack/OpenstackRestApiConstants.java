@@ -62,5 +62,20 @@ public class OpenstackRestApiConstants {
 		public static final String ENABLE_DHCP_KEY_JSON = "enable_dhcp";
 		public static final String DNS_NAMESERVERS_KEY_JSON = "dns_nameservers";
 
+		public static final String SECURITY_GROUP_KEY_JSON = "security_group";
+
+		public static final String SECURITY_GROUP_RULE_KEY_JSON = "security_group_rule";
+		public static final String DIRECTION_KEY_JSON = "direction";
+		public static final String SECURITY_GROUP_ID_KEY_JSON = "security_group_id";
+		public static final String REMOTE_IP_PREFIX_KEY_JSON = "remote_ip_prefix";
+		public static final String PROTOCOL_KEY_JSON = "protocol";
+		public static final String MIN_PORT_KEY_JSON = "port_range_min";
+		public static final String MAX_PORT_KEY_JSON = "port_range_max";
+
+		public static final String PROVIDER_SEGMENTATION_ID_KEY_JSON = "provider:segmentation_id";
+		public static final String SUBNET_KEY_JSON = "subnet";
+		public static final String SUBNETS_KEY_JSON = "subnets";
+		public static final String STATUS_KEY_JSON = "status";
+
 	}
 }

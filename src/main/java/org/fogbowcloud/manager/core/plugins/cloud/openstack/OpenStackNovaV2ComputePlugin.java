@@ -129,7 +129,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 		return instanceId;
 	}
 
-	private String doRequestInstance(Token localToken, String flavorId, List<String> networksId, String imageId, String userData, String keyName, String endpoint) throws UnavailableProviderException, HttpResponseException {
+	private String doRequestInstance(Token localToken, String flavorId, List<String> networksId, String imageId,
+									 String userData, String keyName, String endpoint) throws UnavailableProviderException, HttpResponseException {
 		CreateRequest createBody = getRequestBody(imageId, flavorId, userData, keyName, networksId);
 
 		JSONObject json = new JSONObject(createBody.toJson());

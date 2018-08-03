@@ -29,6 +29,8 @@ import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.network.v2.CreateResponse;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.network.v2.CreateSecurityGroupResponse;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -95,18 +97,21 @@ public class OpenStackV2NetworkPluginTest {
 	public void testNumberOfRequestsInSucceededRequestInstance() throws IOException, FogbowManagerException, UnexpectedException {
 		//set up
 		// post network
-		Mockito.doReturn(NETWORK_ID).when(this.httpRequestClientUtil)
+		String createNetworkResponse = new CreateResponse(new CreateResponse.Network(NETWORK_ID)).toJson();
+		Mockito.doReturn(createNetworkResponse).when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_NETWORK),
 						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
 		//post subnet
 		Mockito.doReturn("").when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SUBNET),
 						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
+
 		//post security group
-		Mockito.doReturn("").when(this.httpRequestClientUtil)
+		CreateSecurityGroupResponse.SecurityGroup securityGroup = new CreateSecurityGroupResponse.SecurityGroup(SECURITY_GROUP_ID);
+		CreateSecurityGroupResponse createSecurityGroupResponse = new CreateSecurityGroupResponse(securityGroup);
+		Mockito.doReturn(createSecurityGroupResponse.toJson()).when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP),
 						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
-		Mockito.doReturn(SECURITY_GROUP_ID).when(this.openStackV2NetworkPlugin).getSecurityGroupIdFromPostResponse(Mockito.anyString());
 		//post ssh and icmp rule
 		Mockito.doReturn("").when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES),
@@ -156,18 +161,24 @@ public class OpenStackV2NetworkPluginTest {
 	}
 
 	//test case: Tests if an exception will be thrown in case that openstack raise an error when requesting for a new subnet.
-	@Test(expected = UnexpectedException.class)
+	@Test
 	public void testRequestInstancePostSubnetError() throws IOException, FogbowManagerException, UnexpectedException {
 		//set up
-		HttpResponse httpResponsePostNetwork = createHttpResponse("", HttpStatus.SC_OK);
+		String createNetworkResponse = new CreateResponse(new CreateResponse.Network(NETWORK_ID)).toJson();
+		HttpResponse httpResponsePostNetwork = createHttpResponse(createNetworkResponse, HttpStatus.SC_OK);
 		HttpResponse httpResponsePostSubnet = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
 		HttpResponse httpResponseRemoveNetwork = createHttpResponse("", HttpStatus.SC_OK);
 		Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork,
 				httpResponsePostSubnet, httpResponseRemoveNetwork);
 		NetworkOrder order = createEmptyOrder();
 
-		//exercise
-		this.openStackV2NetworkPlugin.requestInstance(order, this.defaultToken);
+		try {
+			//exercise
+			this.openStackV2NetworkPlugin.requestInstance(order, this.defaultToken);
+			Assert.fail();
+		} catch (FogbowManagerException e) {
+
+		}
 
 		//verify
 		Mockito.verify(this.client, Mockito.times(3)).execute(Mockito.any(HttpUriRequest.class));
@@ -178,7 +189,8 @@ public class OpenStackV2NetworkPluginTest {
 	public void testErrorInPostSecurityGroup() throws IOException, FogbowManagerException, UnexpectedException {
 		//set up
 		//post network
-		Mockito.doReturn("").when(this.httpRequestClientUtil)
+		CreateResponse createResponse = new CreateResponse(new CreateResponse.Network(NETWORK_ID));
+		Mockito.doReturn(createResponse.toJson()).when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_NETWORK),
 						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
 		//post subnet
@@ -194,7 +206,6 @@ public class OpenStackV2NetworkPluginTest {
 				Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_NETWORK), Mockito.eq(this.defaultToken));
 
 		Mockito.doReturn(NETWORK_ID).when(this.openStackV2NetworkPlugin).getNetworkIdFromJson(Mockito.anyString());
-		Mockito.doReturn(SECURITY_GROUP_ID).when(this.openStackV2NetworkPlugin).getSecurityGroupIdFromPostResponse(Mockito.anyString());
 		NetworkOrder order = createEmptyOrder();
 
 		//exercise
@@ -230,17 +241,23 @@ public class OpenStackV2NetworkPluginTest {
 	public void testErrorInPostSecurityGroupRules() throws IOException, FogbowManagerException, UnexpectedException {
 		//set up
 		//post network
-		Mockito.doReturn("").when(this.httpRequestClientUtil)
+		CreateResponse createResponse = new CreateResponse(new CreateResponse.Network(NETWORK_ID));
+		Mockito.doReturn(createResponse.toJson()).when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_NETWORK),
 						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
+
 		//post subnet
 		Mockito.doReturn("").when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SUBNET),
 						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
+
 		//post security group
-		Mockito.doReturn("").when(this.httpRequestClientUtil)
+		CreateSecurityGroupResponse.SecurityGroup securityGroup = new CreateSecurityGroupResponse.SecurityGroup(SECURITY_GROUP_ID);
+		CreateSecurityGroupResponse createSecurityGroupResponse = new CreateSecurityGroupResponse(securityGroup);
+		Mockito.doReturn(createSecurityGroupResponse.toJson()).when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP),
 						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
+
 		//error in post security group rules
 		Mockito.doThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, "")).when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES),
@@ -253,7 +270,6 @@ public class OpenStackV2NetworkPluginTest {
 				Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_SECURITY_GROUP), Mockito.eq(this.defaultToken));
 
 		Mockito.doReturn(NETWORK_ID).when(this.openStackV2NetworkPlugin).getNetworkIdFromJson(Mockito.anyString());
-		Mockito.doReturn(SECURITY_GROUP_ID).when(this.openStackV2NetworkPlugin).getSecurityGroupIdFromPostResponse(Mockito.anyString());
 		NetworkOrder order = createEmptyOrder();
 
 		//exercise
@@ -288,21 +304,6 @@ public class OpenStackV2NetworkPluginTest {
 	}
 
 	//requestInstance collaborators tests
-
-	//test case: Tests if the json to request network was generated as expected
-	@Test
-	public void testGenerateJsonEntityToCreateNetwork() throws JSONException {
-		//exercise
-		JSONObject generateJsonEntityToCreateNetwork = this.openStackV2NetworkPlugin
-				.generateJsonEntityToCreateNetwork(DEFAULT_TENANT_ID);
-
-		//verify
-		JSONObject networkJsonObject = generateJsonEntityToCreateNetwork
-				.optJSONObject(OpenStackV2NetworkPlugin.KEY_JSON_NETWORK);
-		Assert.assertEquals(DEFAULT_TENANT_ID, networkJsonObject.optString(OpenStackV2NetworkPlugin.KEY_TENANT_ID));
-		Assert.assertTrue(networkJsonObject.optString(OpenStackV2NetworkPlugin.KEY_NAME)
-				.contains(OpenStackV2NetworkPlugin.DEFAULT_NETWORK_NAME));
-	}
 
 	//test case: Tests if the dns list will be returned as expected
 	@Test
@@ -349,7 +350,7 @@ public class OpenStackV2NetworkPluginTest {
 		Assert.assertEquals(order.getGateway(), subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_GATEWAY_IP));
 		Assert.assertEquals(true, subnetJsonObject.optBoolean(OpenStackV2NetworkPlugin.KEY_ENABLE_DHCP));
 		Assert.assertEquals(OpenStackV2NetworkPlugin.DEFAULT_IP_VERSION,
-				subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_IP_VERSION));
+				subnetJsonObject.optInt(OpenStackV2NetworkPlugin.KEY_IP_VERSION));
 		Assert.assertEquals(dnsOne, subnetJsonObject.optJSONArray(OpenStackV2NetworkPlugin.KEY_DNS_NAMESERVERS).get(0));
 		Assert.assertEquals(dnsTwo, subnetJsonObject.optJSONArray(OpenStackV2NetworkPlugin.KEY_DNS_NAMESERVERS).get(1));
 	}
@@ -424,38 +425,6 @@ public class OpenStackV2NetworkPluginTest {
 		JSONObject subnetJsonObject = generateJsonEntityToCreateSubnet
 				.optJSONObject(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET);
 		Assert.assertTrue(subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_GATEWAY_IP).isEmpty());
-	}
-
-	//test case: Tests if getSecurityGroupIdFromPostResponse can retrieve the respective id from a valid json
-	@Test
-	public void testRetrieveSecurityGroupIdFromJsonResponse() throws UnexpectedException {
-		//set up
-		JSONObject securityGroup = new JSONObject();
-		securityGroup.put(OpenStackV2NetworkPlugin.KEY_TENANT_ID, "fake-tenant-id");
-		securityGroup.put(OpenStackV2NetworkPlugin.KEY_NAME, "fake-name");
-		securityGroup.put(OpenStackV2NetworkPlugin.KEY_ID, SECURITY_GROUP_ID);
-
-		JSONObject response = new JSONObject();
-		response.put(OpenStackV2NetworkPlugin.KEY_SECURITY_GROUP, securityGroup);
-
-		//exercise
-		String id = this.openStackV2NetworkPlugin.getSecurityGroupIdFromPostResponse(response.toString());
-
-		//verify
-		Assert.assertEquals(SECURITY_GROUP_ID, id);
-	}
-
-	//test case: Tests if getSecurityGroupIdFromPostResponse throws exception when cannot get id from json
-	@Test(expected = UnexpectedException.class)
-	public void testErrorToRetrieveSecurityGroupIdFromJsonResponse() throws UnexpectedException {
-		//set up
-		JSONObject response = new JSONObject();
-		JSONObject securityGroup = new JSONObject();
-		securityGroup.put(OpenStackV2NetworkPlugin.KEY_TENANT_ID, "fake-tenant-id");
-		securityGroup.put(OpenStackV2NetworkPlugin.KEY_NAME, "fake-name");
-
-		//exercise
-		this.openStackV2NetworkPlugin.getSecurityGroupIdFromPostResponse(response.toString());
 	}
 
 	//getInstance tests
