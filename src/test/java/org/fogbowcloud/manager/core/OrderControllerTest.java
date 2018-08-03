@@ -155,7 +155,7 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test(expected = InstanceNotFoundException.class) // verify
     public void testGetOrderNotActive() throws InstanceNotFoundException {
         // set up
-        Order order = createLocalOrder();
+        Order order = createOrder();
         String orderId = order.getId();
         
         // verify
@@ -175,7 +175,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString()))
                 .thenReturn(localCloudConnector);
 
-        Order order = createLocalOrder();
+        Order order = createOrder();
         order.setOrderStateInTestMode(OrderState.FULFILLED);
 
         this.fulfilledOrdersList.addItem(order);
@@ -277,7 +277,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
-    // test case: Checks if deleting a fulfiled order, this one will be moved to the closed orders
+    // test case: Checks if deleting a fulfilled order, this one will be moved to the closed orders
     // list.
     @Test
     public void testDeleteOrderStateFulfilled()
@@ -426,7 +426,7 @@ public class OrderControllerTest extends BaseUnitTests {
         return orderId;
     }
 
-    private Order createLocalOrder() {
+    private Order createOrder() {
         FederationUser federationUser = Mockito.mock(FederationUser.class);
         UserData userData = Mockito.mock(UserData.class);
         String imageName = FAKE_IMAGE_NAME;
