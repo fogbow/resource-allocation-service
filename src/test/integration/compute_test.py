@@ -5,28 +5,45 @@ from common_methods import CommonMethods
 
 class ComputeTests:
 
+  test_number = 0
+
   @classmethod
   def test_computes(cls):
-    cls.test_post_local_compute()
+    data_for_local = {}
+    print('-Test %d: post local compute' % cls.which_test_case())
+    cls.test_post_compute(data_for_local)
     cls.test_post_local_compute_with_private_network()
     cls.test_delete_local_compute()
     cls.test_get_all_local_compute()
     cls.test_get_by_id_local_compute()
     cls.test_local_quota()
     cls.test_local_allocation()
+    if GeneralConfigurations.remote_member:
+      print('-Test %d: post remote compute' % cls.which_test_case())
+      data_for_remote = {GeneralConfigurations.providingMember: GeneralConfigurations.remote_member}
+      cls.test_post_compute(data_for_remote)
+
+  @classmethod
+  def which_test_case(cls):
+    cls.test_number += 1
+    return cls.test_number
 
   # Post tests
   @classmethod
-  def test_post_local_compute(cls):
+  def test_post_compute(cls, data):
+    if not CommonMethods.wait_compute_available(1):
+      print('Failed. There is not %d instance(s) available.' % 1)
+      return
     extra_data = {}
+    extra_data.update(data)
     order_id = CommonMethods.post_compute(extra_data)
     if not order_id:
-      print('Test post local compute: Failed, trying next test')
+      print('  Failed, trying next test')
       return 
     if cls.wait_instance_ready(order_id, GeneralConfigurations.type_compute):
-      print('Test post local compute: Ok. Removing compute')
+      print('  Ok. Removing compute')
     else:
-      print('Test post local compute: Failed. Removing compute')
+      print('  Failed. Removing compute')
     CommonMethods.delete_order(order_id, GeneralConfigurations.type_compute)
 
   @classmethod
@@ -168,6 +185,11 @@ class ComputeTests:
     ready_state = 'READY'
     for x in range(GeneralConfigurations.max_tries + 1):
       response = CommonMethods.get_order_by_id(order_id, order_type)
+      if response.status_code != GeneralConfigurations.ok_status:
+        if(x < GeneralConfigurations.max_tries):
+          time.sleep(GeneralConfigurations.sleep_time_secs)
+          continue
+        return False
       json_response = response.json()
       if json_response[state_key] != ready_state:
         if(x < GeneralConfigurations.max_tries):

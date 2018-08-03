@@ -3,7 +3,7 @@ class GeneralConfigurations:
   #deploy configurations
   base_url = 'http://localhost:8080/'
   local_member = 'fake-localidentity-member'
-  remote_member = ''
+  remote_member = 'fake-localidentity-member2'
 
   #general attributes
   json_header = {"Content-Type": "application/json"}
