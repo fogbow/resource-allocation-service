@@ -14,6 +14,9 @@ import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.handlers.RemoteGetUserQuotaRequestHandler;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.jamppa.component.PacketSender;
+import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
+import org.fogbowcloud.manager.core.models.quotas.Quota;
+import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,7 +61,15 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 	// that.
 	@Test
 	public void testWithValidIQ() throws Exception {
+		ComputeAllocation totalQuota = new ComputeAllocation(0, 0, 0);
+		ComputeAllocation usedQuota = new ComputeAllocation(0, 0, 0);
 
+		Quota quota = new ComputeQuota(totalQuota, usedQuota);
+		Mockito.doReturn(quota).when(this.remoteFacade).getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any());
+
+		IQ iq = createIq();
+		// exercise
+		IQ result = this.remoteGetUserQuotaRequestHandler.handle(iq);
 	}
 
 	// test case: When an Exception occurs, the handle method must return a response
