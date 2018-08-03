@@ -12,16 +12,19 @@ class ComputeTests:
     data_for_local = {}
     print('-Test %d: post local compute' % cls.which_test_case())
     cls.test_post_compute(data_for_local)
-    cls.test_post_local_compute_with_private_network()
-    cls.test_delete_local_compute()
-    cls.test_get_all_local_compute()
-    cls.test_get_by_id_local_compute()
-    cls.test_local_quota()
-    cls.test_local_allocation()
+    print('-Test %d: post local compute attached to a local private network' % cls.which_test_case())
+    cls.test_post_compute_with_private_network(data_for_local)
+    #cls.test_delete_local_compute()
+    #cls.test_get_all_local_compute()
+    #cls.test_get_by_id_local_compute()
+    #cls.test_local_quota()
+    #cls.test_local_allocation()
     if GeneralConfigurations.remote_member:
-      print('-Test %d: post remote compute' % cls.which_test_case())
       data_for_remote = {GeneralConfigurations.providingMember: GeneralConfigurations.remote_member}
+      print('-Test %d: post remote compute' % cls.which_test_case())
       cls.test_post_compute(data_for_remote)
+      print('-Test %d: post remote compute attached to a remote private network' % cls.which_test_case())
+      cls.test_post_compute_with_private_network(data_for_remote)
 
   @classmethod
   def which_test_case(cls):
@@ -32,7 +35,7 @@ class ComputeTests:
   @classmethod
   def test_post_compute(cls, data):
     if not CommonMethods.wait_compute_available(1):
-      print('Failed. There is not %d instance(s) available.' % 1)
+      print('  Failed. There is not %d instance(s) available.' % 1)
       return
     extra_data = {}
     extra_data.update(data)
@@ -47,29 +50,31 @@ class ComputeTests:
     CommonMethods.delete_order(order_id, GeneralConfigurations.type_compute)
 
   @classmethod
-  def test_post_local_compute_with_private_network(cls):
+  def test_post_compute_with_private_network(cls, data):
     extra_data_network = {}
+    extra_data_network.update(data)
     networks = []
     network_id = CommonMethods.post_network(extra_data_network)
     networks.append(network_id)
     if not network_id:
       CommonMethods.delete_order(network_id, GeneralConfigurations.type_network)
-      print('Test post compute attached to a private network: Failed, could not create new network')
+      print('  Failed, could not create new network')
       return 
     if not cls.wait_instance_ready(network_id, GeneralConfigurations.type_network):
-      print('Test post compute attached to a private network: Failed. Removing network')
+      print('  Failed. Removing network')
       CommonMethods.delete_order(network_id, GeneralConfigurations.type_network)
     extra_data_compute = {GeneralConfigurations.networksId_key: networks}
+    extra_data_compute.update(data)
     compute_id = CommonMethods.post_compute(extra_data_compute)
     if not compute_id:
       CommonMethods.delete_order(network_id, GeneralConfigurations.type_network)
-      print('Test post compute attached to a private network: Failed, could not create new compute')
+      print('  Failed, could not create new compute')
       return 
     #for now, we do not check any get, because fogbow-core doesn't provide the extra network interface for users
     if cls.wait_instance_ready(compute_id, GeneralConfigurations.type_compute):
-      print('Test post compute attached to a private network: Ok. Removing compute')
+      print('  Ok. Removing compute and network')
     else:
-      print('Test post compute attached to a private network: Failed. Removing compute')
+      print('  Failed. Removing compute and network')
     response_get = CommonMethods.get_order_by_id(compute_id, GeneralConfigurations.type_compute)
     CommonMethods.delete_order(compute_id, GeneralConfigurations.type_compute)
     CommonMethods.delete_order(network_id, GeneralConfigurations.type_network)

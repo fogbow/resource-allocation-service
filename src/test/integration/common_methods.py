@@ -37,14 +37,14 @@ class CommonMethods:
     for x in range(GeneralConfigurations.max_tries + 1):
       instances_available = cls.get_available_instances(size)
       if instances_available < size:
-        print('No instances available, waiting for resources')
+        print('  No instances available, waiting for resources')
         if(x < GeneralConfigurations.max_tries):
           time.sleep(GeneralConfigurations.sleep_time_secs)
           continue
-        print('No instances available')
+        print('  No instances available')
         return False
       break
-    print('Instances are available, proceeding')
+    print('  Instances are available, proceeding')
     return True
 
   @classmethod
