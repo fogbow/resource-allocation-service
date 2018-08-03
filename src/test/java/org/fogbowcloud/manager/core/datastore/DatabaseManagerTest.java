@@ -3,7 +3,6 @@ package org.fogbowcloud.manager.core.datastore;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.*;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
@@ -68,6 +67,67 @@ public class DatabaseManagerTest {
 
         // exercise: it should raise an exception since the database path is an invalid one
         DatabaseManager.getInstance();
+    }
+
+    // test case: Tests if a new attachment order is added properly in the database.
+    @Test
+    public void testAddAttachmentOrder() throws InvalidParameterException {
+        // set up
+        DatabaseManager databaseManager = DatabaseManager.getInstance();
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
+        FederationUser federationUser = new FederationUser("fake-user", attributes);
+
+        Order attachmentOrder = new AttachmentOrder(federationUser, "requestingMember",
+                "providingMember", "source", "target", "device");
+        attachmentOrder.setOrderStateInTestMode(OrderState.OPEN);
+
+        SynchronizedDoublyLinkedList synchronizedDoublyLinkedList =
+                databaseManager.readActiveOrders(OrderState.OPEN);
+
+        // verify
+        Assert.assertEquals(0, getListSize(synchronizedDoublyLinkedList));
+
+        // exercise
+        databaseManager.add(attachmentOrder);
+
+        synchronizedDoublyLinkedList =
+                databaseManager.readActiveOrders(OrderState.OPEN);
+
+        // verify
+        Assert.assertEquals(1, getListSize(synchronizedDoublyLinkedList));
+    }
+
+    // test case: Tests if a stored attachment order is updated properly in the database.
+    @Test
+    public void testUpdateAttachmentOrderState() throws InvalidParameterException {
+        // set up
+        DatabaseManager databaseManager = DatabaseManager.getInstance();
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
+        FederationUser federationUser = new FederationUser("fake-user", attributes);
+
+        Order attachmentOrder = new AttachmentOrder(federationUser, "requestingMember",
+                "providingMember", "source", "target", "device");
+        attachmentOrder.setOrderStateInTestMode(OrderState.OPEN);
+
+        databaseManager.add(attachmentOrder);
+
+        attachmentOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+
+        // exercise
+        databaseManager.update(attachmentOrder);
+
+        SynchronizedDoublyLinkedList synchronizedDoublyLinkedList =
+                databaseManager.readActiveOrders(OrderState.FULFILLED);
+
+        AttachmentOrder result = (AttachmentOrder) synchronizedDoublyLinkedList.getNext();
+
+        // verify
+        Assert.assertEquals(OrderState.FULFILLED, result.getOrderState());
+        Assert.assertEquals("source", result.getSource());
+        Assert.assertEquals("target", result.getTarget());
+        Assert.assertEquals("device", result.getDevice());
     }
 
     // test case: Tests if a new compute order is added properly in the database.
