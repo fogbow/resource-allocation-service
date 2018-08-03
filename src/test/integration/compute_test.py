@@ -7,13 +7,13 @@ class ComputeTests:
 
   @classmethod
   def test_computes(cls):
-    #cls.test_post_local_compute()
+    cls.test_post_local_compute()
     cls.test_post_local_compute_with_private_network()
-    #cls.test_delete_local_compute()
-    #cls.test_get_all_local_compute()
-    #cls.test_get_by_id_local_compute()
-    #cls.test_local_quota()
-    #cls.test_local_allocation()
+    cls.test_delete_local_compute()
+    cls.test_get_all_local_compute()
+    cls.test_get_by_id_local_compute()
+    cls.test_local_quota()
+    cls.test_local_allocation()
 
   # Post tests
   @classmethod
@@ -48,7 +48,7 @@ class ComputeTests:
       CommonMethods.delete_order(network_id, GeneralConfigurations.type_network)
       print('Test post compute attached to a private network: Failed, could not create new compute')
       return 
-    #for instance, we do not check any get, because fogbow-core doesn't provide the extra network interface for users
+    #for now, we do not check any get, because fogbow-core doesn't provide the extra network interface for users
     if cls.wait_instance_ready(compute_id, GeneralConfigurations.type_compute):
       print('Test post compute attached to a private network: Ok. Removing compute')
     else:

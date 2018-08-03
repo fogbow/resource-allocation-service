@@ -8,6 +8,7 @@ class CommonMethods:
   url_networks= GeneralConfigurations.base_url + GeneralConfigurations.networks_endpoint
   url_volumes= GeneralConfigurations.base_url + GeneralConfigurations.volumes_endpoint
   url_attachments= GeneralConfigurations.base_url + GeneralConfigurations.attachments_endpoint
+  url_images= GeneralConfigurations.base_url + GeneralConfigurations.images_endpoint
 
   data_compute = {'vCPU': GeneralConfigurations.vCPU, 'memory': GeneralConfigurations.memory, 'disk': GeneralConfigurations.disk, 'providingMember': GeneralConfigurations.local_member, 'imageId': GeneralConfigurations.imageId, 'publicKey': GeneralConfigurations.publicKey}
   data_network = {'address': GeneralConfigurations.address, 'allocation': GeneralConfigurations.allocation}
@@ -133,6 +134,8 @@ class CommonMethods:
       return requests.get(cls.url_volumes + order_id)
     elif order_type == GeneralConfigurations.type_attachment:
       return requests.get(cls.url_attachments + order_id)
+    elif order_type == GeneralConfigurations.type_image:
+      return requests.get(cls.url_images + order_id)
 
   @classmethod
   def get_all_order(cls, order_type):
@@ -144,6 +147,8 @@ class CommonMethods:
       return requests.get(cls.url_volumes + GeneralConfigurations.status_endpoint)
     elif order_type == GeneralConfigurations.type_attachment:
       return requests.get(cls.url_attachments + GeneralConfigurations.status_endpoint)
+    elif order_type == GeneralConfigurations.type_image:
+      return requests.get(cls.url_images)
 
   #Delete functions
 

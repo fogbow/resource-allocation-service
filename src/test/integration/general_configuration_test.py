@@ -22,6 +22,7 @@ class GeneralConfigurations:
   type_network = 'network'
   type_volume = 'volume'
   type_attachment = 'attachment'
+  type_image = 'image'
 
   #compute attributes
   computes_endpoint = 'computes/'
@@ -54,3 +55,6 @@ class GeneralConfigurations:
   source = 'source'
   target = 'target'
   max_attachment = 1
+
+  #images attributes
+  images_endpoint = 'images/'
