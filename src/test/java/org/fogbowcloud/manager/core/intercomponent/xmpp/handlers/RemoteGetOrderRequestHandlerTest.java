@@ -68,12 +68,12 @@ public class RemoteGetOrderRequestHandlerTest {
     @Test
     public void testHandleWithValidIQ() throws Exception {
         // set up
-        FederationUser federationUser = createFeFederationUser();
+        FederationUser federationUser = createFederationUser();
         String orderId = createOrder(federationUser);
         Instance instance = new Instance(FAKE_INSTANCE_ID);
 
-        Mockito.doReturn(instance).when(this.remoteFacade).getResourceInstance(orderId,
-                federationUser, ResourceType.COMPUTE);
+        Mockito.when(this.remoteFacade.getResourceInstance(Mockito.eq(orderId),
+                Mockito.eq(federationUser), Mockito.eq(ResourceType.COMPUTE))).thenReturn(instance);
 
         IQ iq = createIq();
 
@@ -81,10 +81,13 @@ public class RemoteGetOrderRequestHandlerTest {
         IQ result = this.remoteGetOrderRequestHandler.handle(iq);
 
         // verify
+        Mockito.verify(this.remoteFacade, Mockito.times(1)).getResourceInstance(Mockito.eq(orderId),
+                Mockito.eq(federationUser), Mockito.eq(ResourceType.COMPUTE));
+
         String iqId = iq.getID();
         String providingMember = this.order.getProvidingMember();
         String expected = String.format(TAG_RESULT_IQ, iqId, providingMember);
-        
+
         Assert.assertEquals(expected, result.toString());
 
     }
@@ -96,8 +99,9 @@ public class RemoteGetOrderRequestHandlerTest {
         FederationUser federationUser = null;
         String orderId = createOrder(federationUser);
 
-        Mockito.doThrow(new Exception()).when(this.remoteFacade).getResourceInstance(
-                Mockito.eq(orderId), Mockito.eq(federationUser), Mockito.eq(ResourceType.COMPUTE));
+        Mockito.when(this.remoteFacade.getResourceInstance(Mockito.eq(orderId),
+                Mockito.eq(federationUser), Mockito.eq(ResourceType.COMPUTE)))
+                .thenThrow(new Exception());
 
         IQ iq = createIq();
 
@@ -111,7 +115,7 @@ public class RemoteGetOrderRequestHandlerTest {
         String iqId = iq.getID();
         String providingMember = order.getProvidingMember();
         String expected = String.format(TAG_RESULT_ERRO, iqId, providingMember);
-        
+
         Assert.assertEquals(expected, result.toString());
     }
 
@@ -139,7 +143,7 @@ public class RemoteGetOrderRequestHandlerTest {
         return this.order.getId();
     }
 
-    private FederationUser createFeFederationUser() throws InvalidParameterException {
+    private FederationUser createFederationUser() throws InvalidParameterException {
         Map<String, String> attributes = new HashMap<>();
         attributes.put("user-name", "fogbow");
         return new FederationUser("fake-id", attributes);
