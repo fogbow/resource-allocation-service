@@ -7,6 +7,33 @@ import org.fogbowcloud.manager.core.plugins.serialization.JsonSerializable;
 import static org.fogbowcloud.manager.core.plugins.serialization.openstack.OpenstackRestApiConstants.Compute.*;
 import java.util.List;
 
+/**
+ * Documentation: https://developer.openstack.org/api-ref/compute/
+ *
+ * Request Example:
+ * {
+ *   "server":{
+ *     "name":"new-server-test",
+ *     "imageRef":"70a599e0-31e7-49b7-b260-868f441e862b",
+ *     "flavorRef":"1",
+ *     "user_data":"IyEvYmluL2Jhc2gKL2Jpbi9zdQplY2hvICJJIGFtIGluIHlvdSEiCg==",
+ *     "key_name":"keypair-d20a3d59-9433-4b79-8726-20b431d89c78",
+ *     "networks":[
+ *       {
+ *         "uuid":"ff608d40-75e9-48cb-b745-77bb55b5eaf2",
+ *         "tag":"nic1"
+ *       }
+ *     ],
+ *     "security_groups":[
+ *       {
+ *         "name":"default"
+ *       }
+ *     ]
+ *   }
+ * }
+ *
+ * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
+ */
 public class CreateComputeRequest implements JsonSerializable {
 
     @SerializedName(SERVER_KEY_JSON)

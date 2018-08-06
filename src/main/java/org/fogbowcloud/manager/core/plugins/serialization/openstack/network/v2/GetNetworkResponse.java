@@ -7,6 +7,24 @@ import java.util.List;
 
 import static org.fogbowcloud.manager.core.plugins.serialization.openstack.OpenstackRestApiConstants.Network.*;
 
+/**
+ * Documentation: https://developer.openstack.org/api-ref/network/v2/
+ *
+ * Response Example:
+ * {
+ *   "network":{
+ *     "id":"d32019d3-bc6e-4319-9c1d-6722fc136a22",
+ *     "name":"private-network",
+ *     "provider:segmentation_id":95612,
+ *     "subnets":[
+ *       "54d6f61d-db07-451c-9ab3-b9609b6b6f0b"
+ *     ],
+ *     "status":"ACTIVE"
+ *   }
+ * }
+ *
+ * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
+ */
 public class GetNetworkResponse {
 
     @SerializedName(NETWORK_KEY_JSON)

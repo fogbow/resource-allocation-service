@@ -25,13 +25,10 @@ import com.google.gson.annotations.SerializedName;
  *       "owner": "5ef70662f8b34079a6eddb8da9d75fe8",
  *       "size": 13167616,
  *       "min_ram": 0
- *     },
- *     {
- *        ...
  *     }
  *   ],
- *   "next" : ""
- * } 
+ *   "next" : "/v2/images?marker=e663df3a-88a1-40f3-bc9a-ca96ab35a026"
+ * }
  * 
  */
 public class GetAllImagesResponse {

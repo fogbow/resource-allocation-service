@@ -5,6 +5,20 @@ import org.fogbowcloud.manager.core.plugins.serialization.GsonHolder;
 
 import static org.fogbowcloud.manager.core.plugins.serialization.openstack.OpenstackRestApiConstants.Network.*;
 
+/**
+ * Documentation: https://developer.openstack.org/api-ref/network/v2/
+ *
+ * Response Example:
+ * {
+ *     "subnet": {
+ *         "gateway_ip": "192.0.0.1",
+ *         "enable_dhcp": true,
+ *         "cidr": "192.0.0.0/8"
+ *     }
+ * }
+ *
+ * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
+ */
 public class GetSubnetResponse {
 
     @SerializedName(SUBNET_KEY_JSON)

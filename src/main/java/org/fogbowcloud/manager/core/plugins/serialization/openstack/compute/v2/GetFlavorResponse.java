@@ -5,6 +5,22 @@ import org.fogbowcloud.manager.core.plugins.serialization.GsonHolder;
 
 import static org.fogbowcloud.manager.core.plugins.serialization.openstack.OpenstackRestApiConstants.Compute.*;
 
+/**
+ * Documentation: https://developer.openstack.org/api-ref/compute/
+ *
+ * Response Example:
+ * {
+ *   "flavor":{
+ *     "id":"7",
+ *     "name":"m1.small.description",
+ *     "disk":20,
+ *     "ram":2048,
+ *     "vcpus":1
+ *   }
+ * }
+ *
+ * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
+ */
 public class GetFlavorResponse {
 
     @SerializedName(FLAVOR_KEY_JSON)

@@ -4,6 +4,22 @@ import com.google.gson.annotations.SerializedName;
 import org.fogbowcloud.manager.core.plugins.serialization.GsonHolder;
 import static org.fogbowcloud.manager.core.plugins.serialization.openstack.OpenstackRestApiConstants.Network.*;
 
+/**
+ * Documentation: https://developer.openstack.org/api-ref/network/v2/
+ *
+ * Request Example:
+ * {
+ *     "security_group_rule": {
+ *         "direction": "ingress",
+ *         "security_group_id": "a7734e61-b545-452d-a3cd-0189cbd9747a"
+ *         "remote_ip_prefix":"fake-prefix",
+ *         "port_range_min": "80",
+ *         "port_range_max": "80",
+ *     }
+ * }
+ *
+ * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
+ */
 public class CreateSecurityGroupRuleRequest {
 
     @SerializedName(SECURITY_GROUP_RULE_KEY_JSON)
