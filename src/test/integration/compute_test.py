@@ -14,11 +14,11 @@ class ComputeTests:
     cls.test_post_compute(data_for_local)
     print('-Test %d: post local compute attached to a local private network' % cls.which_test_case())
     cls.test_post_compute_with_private_network(data_for_local)
-    #cls.test_delete_local_compute()
-    #cls.test_get_all_local_compute()
-    #cls.test_get_by_id_local_compute()
-    #cls.test_local_quota()
-    #cls.test_local_allocation()
+    cls.test_delete_local_compute()
+    cls.test_get_all_local_compute()
+    cls.test_get_by_id_local_compute()
+    cls.test_local_quota()
+    cls.test_local_allocation()
     if GeneralConfigurations.remote_member:
       data_for_remote = {GeneralConfigurations.providingMember: GeneralConfigurations.remote_member}
       print('-Test %d: post remote compute' % cls.which_test_case())
@@ -95,7 +95,7 @@ class ComputeTests:
   @classmethod
   def test_local_allocation(cls):
     if not CommonMethods.wait_compute_available(GeneralConfigurations.max_computes):
-      print('Test get all computes: Failed. There is not %d instances available.' % GeneralConfigurations.max_computes)
+      print('Test get local allocation: Failed. There is not %d instances available.' % GeneralConfigurations.max_computes)
       return
     response_get_allocation = cls.get_allocation(GeneralConfigurations.local_member)
     if response_get_allocation.status_code != 200:
@@ -108,7 +108,7 @@ class ComputeTests:
     extra_data = {}
     orders_id = CommonMethods.post_multiple_orders(extra_data, GeneralConfigurations.max_computes, GeneralConfigurations.type_compute)
     if not orders_id:
-      print('Test get all computes: Failed. Could not create computes')
+      print('Test get local allocation: Failed. Could not create computes')
       return
     for order in orders_id:
       cls.wait_instance_ready(order, GeneralConfigurations.type_compute)
@@ -116,12 +116,12 @@ class ComputeTests:
     allocation = response_get_allocation.json()
     if cls.empty_allocation(allocation):
       CommonMethods.delete_multiple_orders(orders_id, GeneralConfigurations.type_compute)
-      print('Test get local allocation: Failed, allocation already in use, trying next test')
+      print('Test get local allocation: Failed. Allocation was not in use, but actually was created %d instances. So was expected allocation in use' % GeneralConfigurations.max_computes)
       return
     if allocation['instances'] == GeneralConfigurations.max_computes:
-      print('Test get allocation: Ok. Removing compute')
+      print('Test get local allocation: Ok. Removing compute')
     else:
-      print('Test get allocation: Failed. Removing compute')
+      print('Test get local allocation: Failed. Removing compute')
     CommonMethods.delete_multiple_orders(orders_id, GeneralConfigurations.type_compute)
 
 
