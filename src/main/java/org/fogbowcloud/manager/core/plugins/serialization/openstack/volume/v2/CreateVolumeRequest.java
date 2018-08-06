@@ -10,12 +10,12 @@ import static org.fogbowcloud.manager.core.plugins.serialization.openstack.Opens
 /**
  * Documentation: https://developer.openstack.org/api-ref/block-storage/v2/
  */
-public class CreateRequest implements JsonSerializable {
+public class CreateVolumeRequest implements JsonSerializable {
 
 	@SerializedName(VOLUME_KEY_JSON)
 	private Volume volume;
 	
-	private CreateRequest(Volume volume) {
+	private CreateVolumeRequest(Volume volume) {
 		this.volume = volume;
 	}
 
@@ -54,9 +54,9 @@ public class CreateRequest implements JsonSerializable {
             return this;
         }        
         
-        public CreateRequest build() {
+        public CreateVolumeRequest build() {
             Volume volume = new Volume(this);
-			return new CreateRequest(volume);
+			return new CreateVolumeRequest(volume);
         }        
 		
 	}

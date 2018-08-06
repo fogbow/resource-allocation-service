@@ -9,7 +9,7 @@ import static org.fogbowcloud.manager.core.plugins.serialization.openstack.Opens
 /**
  * Documentation: https://developer.openstack.org/api-ref/block-storage/v2/
  */
-public class VolumeResponse {
+public class GetVolumeResponse {
 
 	@SerializedName(VOLUME_KEY_JSON)
 	private Volume volume;
@@ -22,8 +22,8 @@ public class VolumeResponse {
 		return volume.id;
 	}
 
-	public static VolumeResponse fromJson(String json) {
-		return GsonHolder.getInstance().fromJson(json, VolumeResponse.class);
+	public static GetVolumeResponse fromJson(String json) {
+		return GsonHolder.getInstance().fromJson(json, GetVolumeResponse.class);
 	}
 
 	public String getName() {

@@ -11,9 +11,8 @@ import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.tokens.KeystoneV3TokenGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
-import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.CreateRequest;
-import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.VolumeResponse;
-import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.VolumeResponse.Volume;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.CreateVolumeRequest;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.GetVolumeResponse;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.tokens.Token;
@@ -117,11 +116,11 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 
 	protected VolumeInstance getInstanceFromJson(String json) throws UnexpectedException {
 		try {
-			VolumeResponse volumeResponse = VolumeResponse.fromJson(json);
-			String id = volumeResponse.getId();
-			String name = volumeResponse.getName();
-			int size = volumeResponse.getSize();
-			String status = volumeResponse.getStatus();
+			GetVolumeResponse getVolumeResponse = GetVolumeResponse.fromJson(json);
+			String id = getVolumeResponse.getId();
+			String name = getVolumeResponse.getName();
+			int size = getVolumeResponse.getSize();
+			String status = getVolumeResponse.getStatus();
 			InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.VOLUME, status);
 
 			return new VolumeInstance(id, fogbowState, name, size);
@@ -133,13 +132,13 @@ public class OpenStackV2VolumePlugin implements VolumePlugin {
 	}
 
 	protected JSONObject generateJsonEntityToCreateInstance(String size, String name) throws JSONException {
-		CreateRequest createRequest = 
-				new CreateRequest.Builder()
+		CreateVolumeRequest createVolumeRequest =
+				new CreateVolumeRequest.Builder()
 				.name(name)
 				.size(size)
 				.build();
 		
-		String jsonStr = createRequest.toJson();
+		String jsonStr = createVolumeRequest.toJson();
 		JSONObject volumeJsonObject = new JSONObject(jsonStr);		
 		return volumeJsonObject;
 	}	
