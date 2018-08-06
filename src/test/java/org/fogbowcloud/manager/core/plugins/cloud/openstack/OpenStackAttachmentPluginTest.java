@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpResponseException;
@@ -11,14 +12,13 @@ import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
-import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,7 +75,7 @@ public class OpenStackAttachmentPluginTest {
     public void testRequestInstance() throws FogbowManagerException, HttpResponseException, UnexpectedException {
     	//set up
         Mockito.doReturn(FAKE_POST_REQUEST_BODY).when(this.client).doPostRequest(
-                Mockito.anyString(), Mockito.any(Token.class), Mockito.any(JSONObject.class));
+                Mockito.anyString(), Mockito.any(Token.class), Mockito.anyString());
         
         //exercise
         String instanceId = this.openStackAttachmentPlugin.requestInstance(this.attachmentOrder, this.localToken);
@@ -92,7 +92,7 @@ public class OpenStackAttachmentPluginTest {
     	int unknownStatusCode = -1;
     	HttpResponseException httpResponseException = new HttpResponseException(unknownStatusCode, "");
 		Mockito.doThrow(httpResponseException).when(this.client).doPostRequest(Mockito.anyString(),
-				Mockito.any(Token.class), Mockito.any(JSONObject.class));
+				Mockito.any(Token.class), Mockito.anyString());
 
         //exercise/verify
         this.openStackAttachmentPlugin.requestInstance(this.attachmentOrder, this.localToken);
@@ -170,11 +170,11 @@ public class OpenStackAttachmentPluginTest {
         String expected = "{\"volumeAttachment\":{\"volumeId\":\"" + volumeId + "\"}}";
         
         //exercise
-        JSONObject json = this.openStackAttachmentPlugin.generateJsonToAttach(volumeId);
+        String json = this.openStackAttachmentPlugin.generateJsonToAttach(volumeId);
         
         //verify
         Assert.assertNotNull(json);
-        Assert.assertEquals(expected, json.toString());
+        Assert.assertEquals(expected, json);
     }
 
 }

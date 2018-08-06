@@ -3,24 +3,28 @@ package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 import java.io.File;
 import java.util.Map;
 import java.util.Properties;
+
 import org.apache.http.client.HttpResponseException;
+import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.models.instances.InstanceState;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.ResourceType;
-import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
-import org.fogbowcloud.manager.core.plugins.serialization.openstack.attachment.v2.GetAttachmentResponse;
-import org.fogbowcloud.manager.core.plugins.serialization.openstack.attachment.v2.CreateAttachmentRequest;
-import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.attachment.v2.CreateAttachmentRequest;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.attachment.v2.GetAttachmentResponse;
+import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
-import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.json.JSONException;
-import org.json.JSONObject;
-import org.apache.log4j.Logger;
 
 public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
 
@@ -52,7 +56,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         String serverId = attachmentOrder.getSource();
         String volumeId = attachmentOrder.getTarget();
 
-        JSONObject jsonRequest = null;
+        String jsonRequest = null;
         try {
             jsonRequest = generateJsonToAttach(volumeId);
         } catch (JSONException e) {
@@ -147,13 +151,11 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
         return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + tenantId;
     }
 
-    protected JSONObject generateJsonToAttach(String volume) throws JSONException {
+    protected String generateJsonToAttach(String volume) throws JSONException {
     	CreateAttachmentRequest createAttachmentRequest = new CreateAttachmentRequest.Builder()
     			.volumeId(volume)
     			.build();
-    	
-    	JSONObject osAttach = new JSONObject(createAttachmentRequest.toJson());
-        return osAttach;
+        return createAttachmentRequest.toJson();
     }
     
     protected String getTenantId(Token localToken) {
