@@ -9,7 +9,7 @@ import static org.fogbowcloud.manager.core.plugins.serialization.openstack.Opens
 /**
  * Documentation: https://developer.openstack.org/api-ref/compute/
  */
-public class AttachmentResponse {
+public class GetAttachmentResponse {
 
 	@SerializedName(VOLUME_ATTACHMENT_KEY_JSON)
 	private Attachment attachment;
@@ -34,8 +34,8 @@ public class AttachmentResponse {
 		return attachment;
 	}
 
-	public static AttachmentResponse fromJson(String jsonStr) {
-		return GsonHolder.getInstance().fromJson(jsonStr, AttachmentResponse.class);
+	public static GetAttachmentResponse fromJson(String jsonStr) {
+		return GsonHolder.getInstance().fromJson(jsonStr, GetAttachmentResponse.class);
 	}
 
 	public class Attachment {

@@ -3,14 +3,15 @@ package org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2;
 import org.fogbowcloud.manager.core.plugins.serialization.GsonHolder;
 
 import com.google.gson.annotations.SerializedName;
-import org.fogbowcloud.manager.core.plugins.serialization.openstack.OpenstackRestApiConstants;
+
+import static org.fogbowcloud.manager.core.plugins.serialization.openstack.OpenstackRestApiConstants.Volume.*;
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/block-storage/v2/
  */
 public class VolumeResponse {
 
-	@SerializedName(OpenstackRestApiConstants.Volume.VOLUME_KEY_JSON)
+	@SerializedName(VOLUME_KEY_JSON)
 	private Volume volume;
 	
 	public Volume getVolume() {
@@ -39,16 +40,16 @@ public class VolumeResponse {
 
 	public class Volume {
 
-		@SerializedName(OpenstackRestApiConstants.Volume.ID_KEY_JSON)
+		@SerializedName(ID_KEY_JSON)
 		private String id;
 
-		@SerializedName(OpenstackRestApiConstants.Volume.NAME_KEY_JSON)
+		@SerializedName(NAME_KEY_JSON)
 		private String name;
 
-		@SerializedName(OpenstackRestApiConstants.Volume.SIZE_KEY_JSON)
+		@SerializedName(SIZE_KEY_JSON)
 		private Integer size;
 
-		@SerializedName(OpenstackRestApiConstants.Volume.STATUS_KEY_JSON)
+		@SerializedName(STATUS_KEY_JSON)
 		private String status;
 
 	}

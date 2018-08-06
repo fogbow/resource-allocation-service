@@ -10,9 +10,8 @@ import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
-import org.fogbowcloud.manager.core.plugins.serialization.openstack.attachment.v2.AttachmentResponse;
-import org.fogbowcloud.manager.core.plugins.serialization.openstack.attachment.v2.AttachmentResponse.Attachment;
-import org.fogbowcloud.manager.core.plugins.serialization.openstack.attachment.v2.CreateRequest;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.attachment.v2.GetAttachmentResponse;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.attachment.v2.CreateAttachmentRequest;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.tokens.Token;
@@ -123,11 +122,11 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     
     protected AttachmentInstance getInstanceFromJson(String jsonResponse) throws UnexpectedException {
     	try {
-    		AttachmentResponse attachmentResponse = AttachmentResponse.fromJson(jsonResponse);
-            String id = attachmentResponse.getId();
-            String serverId = attachmentResponse.getServerId();
-            String volumeId = attachmentResponse.getVolumeId();
-            String device = attachmentResponse.getDevice();
+    		GetAttachmentResponse getAttachmentResponse = GetAttachmentResponse.fromJson(jsonResponse);
+            String id = getAttachmentResponse.getId();
+            String serverId = getAttachmentResponse.getServerId();
+            String volumeId = getAttachmentResponse.getVolumeId();
+            String device = getAttachmentResponse.getDevice();
 
         	// There is no OpenStackState for attachments; we set it to empty string to allow its mapping
             // by the OpenStackStateMapper.map() function.
@@ -149,11 +148,11 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin {
     }
 
     protected JSONObject generateJsonToAttach(String volume) throws JSONException {
-    	CreateRequest createRequest = new CreateRequest.Builder()
+    	CreateAttachmentRequest createAttachmentRequest = new CreateAttachmentRequest.Builder()
     			.volumeId(volume)
     			.build();
     	
-    	JSONObject osAttach = new JSONObject(createRequest.toJson());
+    	JSONObject osAttach = new JSONObject(createAttachmentRequest.toJson());
         return osAttach;
     }
     

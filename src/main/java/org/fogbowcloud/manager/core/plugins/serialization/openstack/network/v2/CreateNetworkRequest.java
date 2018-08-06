@@ -5,12 +5,12 @@ import org.fogbowcloud.manager.core.plugins.serialization.GsonHolder;
 
 import static org.fogbowcloud.manager.core.plugins.serialization.openstack.OpenstackRestApiConstants.Network.*;
 
-public class CreateRequest {
+public class CreateNetworkRequest {
 
     @SerializedName(NETWORK_KEY_JSON)
     private Network network;
 
-    public CreateRequest(Network network) {
+    public CreateNetworkRequest(Network network) {
         this.network = network;
     }
 
@@ -47,9 +47,9 @@ public class CreateRequest {
             return this;
         }
 
-        public CreateRequest build() {
+        public CreateNetworkRequest build() {
             Network network = new Network(this);
-            return new CreateRequest(network);
+            return new CreateNetworkRequest(network);
         }
 
     }

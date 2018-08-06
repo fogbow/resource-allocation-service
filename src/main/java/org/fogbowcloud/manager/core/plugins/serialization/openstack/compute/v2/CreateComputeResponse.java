@@ -5,7 +5,7 @@ import org.fogbowcloud.manager.core.plugins.serialization.GsonHolder;
 
 import static org.fogbowcloud.manager.core.plugins.serialization.openstack.OpenstackRestApiConstants.Compute.*;
 
-public class CreateResponse {
+public class CreateComputeResponse {
 
     @SerializedName(SERVER_KEY_JSON)
     private Server server;
@@ -14,8 +14,8 @@ public class CreateResponse {
         return server.id;
     }
 
-    public static CreateResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, CreateResponse.class);
+    public static CreateComputeResponse fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, CreateComputeResponse.class);
     }
 
     public class Server {

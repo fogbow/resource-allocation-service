@@ -10,12 +10,12 @@ import static org.fogbowcloud.manager.core.plugins.serialization.openstack.Opens
 /**
  * Documentation: https://developer.openstack.org/api-ref/compute/
  */
-public class CreateRequest implements JsonSerializable {
+public class CreateAttachmentRequest implements JsonSerializable {
 
 	@SerializedName(VOLUME_ATTACHMENT_KEY_JSON)
 	private Attachment attachment;
 	
-	private CreateRequest(Attachment attachment) {
+	private CreateAttachmentRequest(Attachment attachment) {
 		this.attachment = attachment;
 	}
 
@@ -44,9 +44,9 @@ public class CreateRequest implements JsonSerializable {
 			return this;
 		}
 
-		public CreateRequest build() {
+		public CreateAttachmentRequest build() {
 			Attachment attachment = new Attachment(this);
-			return new CreateRequest(attachment);
+			return new CreateAttachmentRequest(attachment);
 		}
 
 	}

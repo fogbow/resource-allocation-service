@@ -100,8 +100,8 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
             throws FogbowManagerException, UnexpectedException {
         String tenantId = localToken.getAttributes().get(TENANT_ID);
 
-        CreateResponse createResponse = createNetwork(localToken, tenantId);
-        String createdNetworkId = createResponse.getId();
+        CreateNetworkResponse createNetworkResponse = createNetwork(localToken, tenantId);
+        String createdNetworkId = createNetworkResponse.getId();
 
         createSubNet(localToken, order, createdNetworkId, tenantId);
 
@@ -112,19 +112,19 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         return createdNetworkId;
     }
 
-    private CreateResponse createNetwork(Token localToken, String tenantId) throws FogbowManagerException, UnexpectedException {
-        CreateResponse createResponse = null;
+    private CreateNetworkResponse createNetwork(Token localToken, String tenantId) throws FogbowManagerException, UnexpectedException {
+        CreateNetworkResponse createNetworkResponse = null;
         try {
             String networkName = DEFAULT_NETWORK_NAME + "-" + UUID.randomUUID();
 
-            CreateRequest createRequest = new CreateRequest.Builder()
+            CreateNetworkRequest createNetworkRequest = new CreateNetworkRequest.Builder()
                     .name(networkName)
                     .tenantId(tenantId)
                     .build();
 
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK;
-            String response = this.client.doPostRequest(endpoint, localToken, new JSONObject(createRequest.toJson()));
-            createResponse = CreateResponse.fromJson(response);
+            String response = this.client.doPostRequest(endpoint, localToken, new JSONObject(createNetworkRequest.toJson()));
+            createNetworkResponse = CreateNetworkResponse.fromJson(response);
         } catch (JSONException e) {
             String errorMsg = "An error occurred when generating json.";
             LOGGER.error(errorMsg, e);
@@ -133,7 +133,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
             OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
 
-        return createResponse;
+        return createNetworkResponse;
     }
 
     private void createSubNet(Token localToken, NetworkOrder order, String networkId, String tenantId) throws UnexpectedException, FogbowManagerException {
@@ -288,14 +288,14 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
     protected NetworkInstance getInstanceFromJson(String json, Token token)
             throws FogbowManagerException, UnexpectedException {
 
-        GetResponse getResponse = GetResponse.fromJson(json);
+        GetNetworkResponse getNetworkResponse = GetNetworkResponse.fromJson(json);
 
-        String networkId = getResponse.getId();
-        String label = getResponse.getName();
-        String instanceState = getResponse.getStatus();
-        String vlan = getResponse.getSegmentationId();
+        String networkId = getNetworkResponse.getId();
+        String label = getNetworkResponse.getName();
+        String instanceState = getNetworkResponse.getStatus();
+        String vlan = getNetworkResponse.getSegmentationId();
 
-        List<String> subnets = getResponse.getSubnets();
+        List<String> subnets = getNetworkResponse.getSubnets();
         String subnetId = subnets == null || subnets.size() == 0 ? null : subnets.get(0);
 
         String address = null;

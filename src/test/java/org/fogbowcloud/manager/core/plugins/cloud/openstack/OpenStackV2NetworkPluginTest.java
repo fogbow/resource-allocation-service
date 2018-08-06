@@ -29,7 +29,7 @@ import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.fogbowcloud.manager.core.models.tokens.Token;
-import org.fogbowcloud.manager.core.plugins.serialization.openstack.network.v2.CreateResponse;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.network.v2.CreateNetworkResponse;
 import org.fogbowcloud.manager.core.plugins.serialization.openstack.network.v2.CreateSecurityGroupResponse;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONArray;
@@ -97,7 +97,7 @@ public class OpenStackV2NetworkPluginTest {
 	public void testNumberOfRequestsInSucceededRequestInstance() throws IOException, FogbowManagerException, UnexpectedException {
 		//set up
 		// post network
-		String createNetworkResponse = new CreateResponse(new CreateResponse.Network(NETWORK_ID)).toJson();
+		String createNetworkResponse = new CreateNetworkResponse(new CreateNetworkResponse.Network(NETWORK_ID)).toJson();
 		Mockito.doReturn(createNetworkResponse).when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_NETWORK),
 						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
@@ -164,7 +164,7 @@ public class OpenStackV2NetworkPluginTest {
 	@Test
 	public void testRequestInstancePostSubnetError() throws IOException, FogbowManagerException, UnexpectedException {
 		//set up
-		String createNetworkResponse = new CreateResponse(new CreateResponse.Network(NETWORK_ID)).toJson();
+		String createNetworkResponse = new CreateNetworkResponse(new CreateNetworkResponse.Network(NETWORK_ID)).toJson();
 		HttpResponse httpResponsePostNetwork = createHttpResponse(createNetworkResponse, HttpStatus.SC_OK);
 		HttpResponse httpResponsePostSubnet = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
 		HttpResponse httpResponseRemoveNetwork = createHttpResponse("", HttpStatus.SC_OK);
@@ -189,8 +189,8 @@ public class OpenStackV2NetworkPluginTest {
 	public void testErrorInPostSecurityGroup() throws IOException, FogbowManagerException, UnexpectedException {
 		//set up
 		//post network
-		CreateResponse createResponse = new CreateResponse(new CreateResponse.Network(NETWORK_ID));
-		Mockito.doReturn(createResponse.toJson()).when(this.httpRequestClientUtil)
+		CreateNetworkResponse createNetworkResponse = new CreateNetworkResponse(new CreateNetworkResponse.Network(NETWORK_ID));
+		Mockito.doReturn(createNetworkResponse.toJson()).when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_NETWORK),
 						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
 		//post subnet
@@ -241,8 +241,8 @@ public class OpenStackV2NetworkPluginTest {
 	public void testErrorInPostSecurityGroupRules() throws IOException, FogbowManagerException, UnexpectedException {
 		//set up
 		//post network
-		CreateResponse createResponse = new CreateResponse(new CreateResponse.Network(NETWORK_ID));
-		Mockito.doReturn(createResponse.toJson()).when(this.httpRequestClientUtil)
+		CreateNetworkResponse createNetworkResponse = new CreateNetworkResponse(new CreateNetworkResponse.Network(NETWORK_ID));
+		Mockito.doReturn(createNetworkResponse.toJson()).when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_NETWORK),
 						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
 

@@ -7,12 +7,12 @@ import org.fogbowcloud.manager.core.plugins.serialization.JsonSerializable;
 import static org.fogbowcloud.manager.core.plugins.serialization.openstack.OpenstackRestApiConstants.Compute.*;
 import java.util.List;
 
-public class CreateRequest implements JsonSerializable {
+public class CreateComputeRequest implements JsonSerializable {
 
     @SerializedName(SERVER_KEY_JSON)
     private Server server;
 
-    private CreateRequest(Server server) {
+    private CreateComputeRequest(Server server) {
         this.server = server;
     }
 
@@ -123,9 +123,9 @@ public class CreateRequest implements JsonSerializable {
             return this;
         }
 
-        public CreateRequest build() {
+        public CreateComputeRequest build() {
             Server server = new Server(this);
-            return new CreateRequest(server);
+            return new CreateComputeRequest(server);
         }
 
     }

@@ -7,13 +7,13 @@ import java.util.List;
 
 import static org.fogbowcloud.manager.core.plugins.serialization.openstack.OpenstackRestApiConstants.Network.*;
 
-public class GetResponse {
+public class GetNetworkResponse {
 
     @SerializedName(NETWORK_KEY_JSON)
     private Network network;
 
-    public static GetResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, GetResponse.class);
+    public static GetNetworkResponse fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, GetNetworkResponse.class);
     }
 
     public class Network {

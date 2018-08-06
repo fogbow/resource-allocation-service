@@ -5,7 +5,7 @@ import org.fogbowcloud.manager.core.plugins.serialization.GsonHolder;
 
 import static org.fogbowcloud.manager.core.plugins.serialization.openstack.OpenstackRestApiConstants.Compute.*;
 
-public class GetResponse {
+public class GetComputeResponse {
 
     @SerializedName(SERVER_KEY_JSON)
     private Server server;
@@ -49,8 +49,8 @@ public class GetResponse {
         return server.status;
     }
 
-    public static GetResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, GetResponse.class);
+    public static GetComputeResponse fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, GetComputeResponse.class);
     }
 
     public class Flavor {
