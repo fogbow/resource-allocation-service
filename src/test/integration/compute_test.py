@@ -16,10 +16,14 @@ class ComputeTests:
     cls.test_post_compute_with_private_network(data_for_local)
     print('-Test %d: delete local compute' % cls.which_test_case())
     cls.test_delete_compute(data_for_local)
-    cls.test_get_all_local_compute()
-    cls.test_get_by_id_local_compute()
-    cls.test_local_quota()
-    cls.test_local_allocation()
+    print('-Test %d: get all local computes' % cls.which_test_case())
+    cls.test_get_all_compute(data_for_local)
+    print('-Test %d: get by id local compute' % cls.which_test_case())
+    cls.test_get_by_id_compute(data_for_local)
+    print('-Test %d: get local quota' % cls.which_test_case())
+    cls.test_quota(data_for_local)
+    print('-Test %d: get local allocation:' % cls.which_test_case())
+    cls.test_allocation(data_for_local)
     if GeneralConfigurations.remote_member:
       data_for_remote = {GeneralConfigurations.providingMember: GeneralConfigurations.remote_member}
       print('-Test %d: post remote compute' % cls.which_test_case())
@@ -28,6 +32,14 @@ class ComputeTests:
       cls.test_post_compute_with_private_network(data_for_remote)
       print('-Test %d: delete remote compute' % cls.which_test_case())
       cls.test_delete_compute(data_for_remote)
+      print('-Test %d: get all remote computes' % cls.which_test_case())
+      cls.test_get_all_compute(data_for_remote)
+      print('-Test %d: get by id remote compute' % cls.which_test_case())
+      cls.test_get_by_id_compute(data_for_remote)
+      print('-Test %d: get remote quota' % cls.which_test_case())
+      cls.test_quota(data_for_remote)
+      print('-Test %d: get remote allocation:' % cls.which_test_case())
+      cls.test_allocation(data_for_remote)
 
   @classmethod
   def which_test_case(cls):
@@ -37,11 +49,12 @@ class ComputeTests:
   # Post tests
   @classmethod
   def test_post_compute(cls, data):
-    if not CommonMethods.wait_compute_available(1):
-      print('  Failed. There is not %d instance(s) available.' % 1)
-      return
     extra_data = {}
     extra_data.update(data)
+    member = extra_data[GeneralConfigurations.providingMember] if GeneralConfigurations.providingMember in extra_data else GeneralConfigurations.local_member
+    if not CommonMethods.wait_compute_available(1, member):
+      print('  Failed. There is not %d instance(s) available.' % 1)
+      return
     order_id = CommonMethods.post_compute(extra_data)
     if not order_id:
       print('  Failed, trying next test')
@@ -84,47 +97,58 @@ class ComputeTests:
 
   # Quota tests
   @classmethod
-  def test_local_quota(cls):
-    response_get_quota = CommonMethods.get_quota(GeneralConfigurations.local_member)
-    if response_get_quota.status_code != 200:
-      print('Test get local quota: Failed, trying next test')
-      return
-    if response_get_quota.json() != '':
-      print('Test get local quota: Ok, trying next test')
+  def test_quota(cls, data):
+    extra_data = {}
+    extra_data.update(data)
+    response_get_quota = None
+    member = extra_data[GeneralConfigurations.providingMember] if GeneralConfigurations.providingMember in extra_data else GeneralConfigurations.local_member
+    if GeneralConfigurations.providingMember in data:
+      #if remote
+      response_get_quota = CommonMethods.get_quota(data[GeneralConfigurations.providingMember])
     else:
-      print('Test get local quota: Failed, trying next test')
+      response_get_quota = CommonMethods.get_quota(member)
+    if response_get_quota.status_code != GeneralConfigurations.ok_status:
+      print('  Failed. Got HTTP status: %d and message: %s' % (response_get_quota.status_code, response_get_quota.text))
+      return
+    #review this test
+    if response_get_quota.json() != '':
+      print('  Ok')
+    else:
+      print('  Failed, trying next test')
 
   # Allocation tests
   @classmethod
-  def test_local_allocation(cls):
-    if not CommonMethods.wait_compute_available(GeneralConfigurations.max_computes):
-      print('Test get local allocation: Failed. There is not %d instances available.' % GeneralConfigurations.max_computes)
+  def test_allocation(cls, data):
+    extra_data = {}
+    extra_data.update(data)
+    member = extra_data[GeneralConfigurations.providingMember] if GeneralConfigurations.providingMember in extra_data else GeneralConfigurations.local_member
+    if not CommonMethods.wait_compute_available(GeneralConfigurations.max_computes, member):
+      print('  Failed. There is not %d instances available.' % GeneralConfigurations.max_computes)
       return
-    response_get_allocation = cls.get_allocation(GeneralConfigurations.local_member)
+    response_get_allocation = cls.get_allocation(member)
     if response_get_allocation.status_code != 200:
-      print('Test get local allocation: Failed, trying next test')
+      print('  Failed, trying next test')
       return
     if not cls.empty_allocation(response_get_allocation.json()):
       print(response_get_allocation.json())
-      print('Test get local allocation: Failed, allocation already in use, trying next test')
+      print('  Failed, allocation already in use, trying next test')
       return
-    extra_data = {}
     orders_id = CommonMethods.post_multiple_orders(extra_data, GeneralConfigurations.max_computes, GeneralConfigurations.type_compute)
     if not orders_id:
-      print('Test get local allocation: Failed. Could not create computes')
+      print('  Failed. Could not create computes')
       return
     for order in orders_id:
       cls.wait_instance_ready(order, GeneralConfigurations.type_compute)
-    response_get_allocation = cls.get_allocation(GeneralConfigurations.local_member)
+    response_get_allocation = cls.get_allocation(member)
     allocation = response_get_allocation.json()
     if cls.empty_allocation(allocation):
       CommonMethods.delete_multiple_orders(orders_id, GeneralConfigurations.type_compute)
-      print('Test get local allocation: Failed. Allocation was not in use, but actually was created %d instances. So was expected allocation in use' % GeneralConfigurations.max_computes)
+      print('  Failed. Allocation was not in use. Actual allocation was: %s' % allocation)
       return
     if allocation['instances'] == GeneralConfigurations.max_computes:
-      print('Test get local allocation: Ok. Removing compute')
+      print('  Ok. Removing compute')
     else:
-      print('Test get local allocation: Failed. Removing compute')
+      print('  Failed. Removing compute')
     CommonMethods.delete_multiple_orders(orders_id, GeneralConfigurations.type_compute)
 
 
@@ -141,50 +165,63 @@ class ComputeTests:
 
   # Get tests
   @classmethod
-  def test_get_by_id_local_compute(cls):
+  def test_get_by_id_compute(cls, data):
     extra_data = {}
+    extra_data.update(data)
     fake_id = 'fake-id'
+    member = extra_data[GeneralConfigurations.providingMember] if GeneralConfigurations.providingMember in extra_data else GeneralConfigurations.local_member
+    if not CommonMethods.wait_compute_available(GeneralConfigurations.max_computes, member):
+      print('  Failed. There is not %d instances available.' % GeneralConfigurations.max_computes)
+      return
     response_get = CommonMethods.get_order_by_id(fake_id, GeneralConfigurations.type_compute)
     if response_get.status_code != GeneralConfigurations.not_found_status:
-      print('Test get compute by id: Failed. Expecting %d status, but got: %d' % (GeneralConfigurations.not_found_status, response_get.status_code))
+      print('  Failed. Expecting %d status, but got: %d' % (GeneralConfigurations.not_found_status, response_get.status_code))
       return
     order_id = CommonMethods.post_compute(extra_data)
     if not order_id:
-      print('Test get by id: Failed on creating compute, trying next test')
+      print('  Failed when creating compute, trying next test')
       CommonMethods.delete_order(order_id, GeneralConfigurations.type_compute)
       #time to wait order to be deleted
       time.sleep(20)
       return
+    if GeneralConfigurations.providingMember in extra_data:
+      #if it is remote, we need to wait order request to be received
+      time.sleep(15)
     response_get = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_compute)
     if response_get.status_code == GeneralConfigurations.ok_status:
-      print('Test get compute by id: Ok. Removing compute')
+      print('  Ok. Removing compute')
     else:
-      print('Test get compute by id: Failed. Expecting %d status, but got: %d. Removing compute' % (GeneralConfigurations.ok_status, response_get.status_code))
+      print('  Failed. Expecting %d status, but got: %d. Removing compute' % (GeneralConfigurations.ok_status, response_get.status_code))
     CommonMethods.delete_order(order_id, GeneralConfigurations.type_compute)
     #time to wait order to be deleted
     time.sleep(20)
 
 
   @classmethod
-  def test_get_all_local_compute(cls):
-    if not CommonMethods.wait_compute_available(GeneralConfigurations.max_computes):
-      print('Test get all computes: Failed. There is not %d instances available.' % GeneralConfigurations.max_computes)
+  def test_get_all_compute(cls, data):
+    extra_data = {}
+    extra_data.update(data)
+    member = extra_data[GeneralConfigurations.providingMember] if GeneralConfigurations.providingMember in extra_data else GeneralConfigurations.local_member
+    if not CommonMethods.wait_compute_available(GeneralConfigurations.max_computes, member):
+      print('  Failed. There is not %d instances available.' % GeneralConfigurations.max_computes)
       return
     response_get = CommonMethods.get_all_order(GeneralConfigurations.type_compute)
     if response_get.status_code != GeneralConfigurations.ok_status or response_get.text != '[]':
-      print('Test get all computes: Failed')
+      print('  Failed. Wrong status in get request, got status: %d, and message: %s' % (response_get.status_code, response_get.text))
       return
-    extra_data = {}
     orders_id = CommonMethods.post_multiple_orders(extra_data, GeneralConfigurations.max_computes, GeneralConfigurations.type_compute)
     if not orders_id:
-      print('Test get all computes: Failed. Could not create computes')
+      print('  Failed. Could not create computes')
       return
+    if GeneralConfigurations.providingMember in extra_data:
+      #if it is remote, we need to wait order request to be received
+      time.sleep(10)
     response_get = CommonMethods.get_all_order(GeneralConfigurations.type_compute)
     test_ok = not (response_get.status_code != GeneralConfigurations.ok_status or response_get.text == '[]' or len(response_get.json()) != GeneralConfigurations.max_computes)
     if test_ok:
-      print('Test get all local compute: Ok. Removing computes')
+      print('  Ok. Removing computes')
     else:
-      print('Test get all computes: Failed. Removing computes')
+      print('  Failed. Removing computes')
     CommonMethods.delete_multiple_orders(orders_id, GeneralConfigurations.type_compute)
 
   @classmethod

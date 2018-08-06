@@ -33,9 +33,9 @@ class CommonMethods:
     return True
 
   @classmethod
-  def wait_compute_available(cls, size):
+  def wait_compute_available(cls, size, member):
     for x in range(GeneralConfigurations.max_tries + 1):
-      instances_available = cls.get_available_instances(size)
+      instances_available = cls.get_available_instances(member)
       if instances_available < size:
         print('  No instances available, waiting for resources')
         if(x < GeneralConfigurations.max_tries):
@@ -54,7 +54,7 @@ class CommonMethods:
 
   @classmethod
   def get_available_instances(cls, member):
-    response_get_quota = cls.get_quota(GeneralConfigurations.local_member)
+    response_get_quota = cls.get_quota(member)
     available_quota = response_get_quota.json()[GeneralConfigurations.available_quota]
     return available_quota[GeneralConfigurations.instances_quota]
 
