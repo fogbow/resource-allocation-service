@@ -100,22 +100,22 @@ public class OpenStackV2NetworkPluginTest {
 		String createNetworkResponse = new CreateNetworkResponse(new CreateNetworkResponse.Network(NETWORK_ID)).toJson();
 		Mockito.doReturn(createNetworkResponse).when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_NETWORK),
-						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
+						Mockito.eq(this.defaultToken), Mockito.anyString());
 		//post subnet
 		Mockito.doReturn("").when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SUBNET),
-						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
+						Mockito.eq(this.defaultToken), Mockito.anyString());
 
 		//post security group
 		CreateSecurityGroupResponse.SecurityGroup securityGroup = new CreateSecurityGroupResponse.SecurityGroup(SECURITY_GROUP_ID);
 		CreateSecurityGroupResponse createSecurityGroupResponse = new CreateSecurityGroupResponse(securityGroup);
 		Mockito.doReturn(createSecurityGroupResponse.toJson()).when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP),
-						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
+						Mockito.eq(this.defaultToken), Mockito.anyString());
 		//post ssh and icmp rule
 		Mockito.doReturn("").when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES),
-						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
+						Mockito.eq(this.defaultToken), Mockito.anyString());
 
 		Mockito.doReturn(null).when(this.openStackV2NetworkPlugin).getNetworkIdFromJson(Mockito.anyString());
 		NetworkOrder order = createEmptyOrder();
@@ -126,16 +126,16 @@ public class OpenStackV2NetworkPluginTest {
 		//verify
 		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doPostRequest(
 				Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_NETWORK), Mockito.eq(this.defaultToken),
-				Mockito.any(JSONObject.class));
+				Mockito.anyString());
 		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doPostRequest(
 				Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SUBNET), Mockito.eq(this.defaultToken),
-				Mockito.any(JSONObject.class));
+				Mockito.anyString());
 		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doPostRequest(
 				Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP), Mockito.eq(this.defaultToken),
-				Mockito.any(JSONObject.class));
+				Mockito.anyString());
 		Mockito.verify(this.httpRequestClientUtil, Mockito.times(2)).doPostRequest(
 				Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES), Mockito.eq(this.defaultToken),
-				Mockito.any(JSONObject.class));
+				Mockito.anyString());
 	}
 
 	//test case: Tests if an exception will be thrown in case that openstack raise an error in network request.
@@ -192,15 +192,15 @@ public class OpenStackV2NetworkPluginTest {
 		CreateNetworkResponse createNetworkResponse = new CreateNetworkResponse(new CreateNetworkResponse.Network(NETWORK_ID));
 		Mockito.doReturn(createNetworkResponse.toJson()).when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_NETWORK),
-						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
+						Mockito.eq(this.defaultToken), Mockito.anyString());
 		//post subnet
 		Mockito.doReturn("").when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SUBNET),
-						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
+						Mockito.eq(this.defaultToken), Mockito.anyString());
 		//post security group
 		Mockito.doThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, "")).when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP),
-						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
+						Mockito.eq(this.defaultToken), Mockito.anyString());
 		//remove network
 		Mockito.doNothing().when(this.httpRequestClientUtil).doDeleteRequest(
 				Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_NETWORK), Mockito.eq(this.defaultToken));
@@ -219,16 +219,16 @@ public class OpenStackV2NetworkPluginTest {
 		//request checks
 		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doPostRequest(
 				Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_NETWORK), Mockito.eq(this.defaultToken),
-				Mockito.any(JSONObject.class));
+				Mockito.anyString());
 		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doPostRequest(
 				Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SUBNET), Mockito.eq(this.defaultToken),
-				Mockito.any(JSONObject.class));
+				Mockito.anyString());
 		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doPostRequest(
 				Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP), Mockito.eq(this.defaultToken),
-				Mockito.any(JSONObject.class));
+				Mockito.anyString());
 		Mockito.verify(this.httpRequestClientUtil, Mockito.never()).doPostRequest(
 				Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES), Mockito.eq(this.defaultToken),
-				Mockito.any(JSONObject.class));
+				Mockito.anyString());
 
 		//remove checks
 		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doDeleteRequest(
@@ -244,24 +244,24 @@ public class OpenStackV2NetworkPluginTest {
 		CreateNetworkResponse createNetworkResponse = new CreateNetworkResponse(new CreateNetworkResponse.Network(NETWORK_ID));
 		Mockito.doReturn(createNetworkResponse.toJson()).when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_NETWORK),
-						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
+						Mockito.eq(this.defaultToken), Mockito.anyString());
 
 		//post subnet
 		Mockito.doReturn("").when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SUBNET),
-						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
+						Mockito.eq(this.defaultToken), Mockito.anyString());
 
 		//post security group
 		CreateSecurityGroupResponse.SecurityGroup securityGroup = new CreateSecurityGroupResponse.SecurityGroup(SECURITY_GROUP_ID);
 		CreateSecurityGroupResponse createSecurityGroupResponse = new CreateSecurityGroupResponse(securityGroup);
 		Mockito.doReturn(createSecurityGroupResponse.toJson()).when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP),
-						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
+						Mockito.eq(this.defaultToken), Mockito.anyString());
 
 		//error in post security group rules
 		Mockito.doThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, "")).when(this.httpRequestClientUtil)
 				.doPostRequest(Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES),
-						Mockito.eq(this.defaultToken), Mockito.any(JSONObject.class));
+						Mockito.eq(this.defaultToken), Mockito.anyString());
 
 		//remove network
 		Mockito.doNothing().when(this.httpRequestClientUtil).doDeleteRequest(
@@ -283,16 +283,16 @@ public class OpenStackV2NetworkPluginTest {
 		//request checks
 		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doPostRequest(
 				Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_NETWORK), Mockito.eq(this.defaultToken),
-				Mockito.any(JSONObject.class));
+				Mockito.anyString());
 		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doPostRequest(
 				Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SUBNET), Mockito.eq(this.defaultToken),
-				Mockito.any(JSONObject.class));
+				Mockito.anyString());
 		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doPostRequest(
 				Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP), Mockito.eq(this.defaultToken),
-				Mockito.any(JSONObject.class));
+				Mockito.anyString());
 		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doPostRequest(
 				Mockito.endsWith(OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES), Mockito.eq(this.defaultToken),
-				Mockito.any(JSONObject.class));
+				Mockito.anyString());
 
 		//remove checks
 		Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doDeleteRequest(
@@ -336,12 +336,12 @@ public class OpenStackV2NetworkPluginTest {
 		NetworkOrder order = createNetworkOrder(networkId, address, gateway, NetworkAllocationMode.DYNAMIC);
 
 		//exercise
-		JSONObject generateJsonEntityToCreateSubnet = this.openStackV2NetworkPlugin
+		String generateJsonEntityToCreateSubnet = this.openStackV2NetworkPlugin
 				.generateJsonEntityToCreateSubnet(order.getId(), DEFAULT_TENANT_ID, order);
 
 		//verify
-		JSONObject subnetJsonObject = generateJsonEntityToCreateSubnet
-				.optJSONObject(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET);
+		String subnetJson = generateJsonEntityToCreateSubnet;
+		JSONObject subnetJsonObject = new JSONObject(subnetJson).optJSONObject(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET);
 		Assert.assertEquals(DEFAULT_TENANT_ID, subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_TENANT_ID));
 		Assert.assertTrue(subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_NAME)
 				.contains(OpenStackV2NetworkPlugin.DEFAULT_SUBNET_NAME));
@@ -363,9 +363,10 @@ public class OpenStackV2NetworkPluginTest {
 		NetworkOrder order = createNetworkOrder(networkId, null, null, null);
 
 		//exercise
-		JSONObject generateJsonEntityToCreateSubnet = this.openStackV2NetworkPlugin
+		String entityToCreateSubnet = this.openStackV2NetworkPlugin
 				.generateJsonEntityToCreateSubnet(order.getId(), DEFAULT_TENANT_ID, order);
-
+		JSONObject generateJsonEntityToCreateSubnet = new JSONObject(entityToCreateSubnet);
+		
 		//verify
 		JSONObject subnetJsonObject = generateJsonEntityToCreateSubnet
 				.optJSONObject(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET);
@@ -381,8 +382,9 @@ public class OpenStackV2NetworkPluginTest {
 		NetworkOrder order = createNetworkOrder(networkId, null, null, null);
 
 		//exercise
-		JSONObject generateJsonEntityToCreateSubnet = this.openStackV2NetworkPlugin
+		String entityToCreateSubnet = this.openStackV2NetworkPlugin
 				.generateJsonEntityToCreateSubnet(order.getId(), DEFAULT_TENANT_ID, order);
+		JSONObject generateJsonEntityToCreateSubnet = new JSONObject(entityToCreateSubnet);
 
 		//verify
 		JSONObject subnetJsonObject = generateJsonEntityToCreateSubnet
@@ -401,8 +403,9 @@ public class OpenStackV2NetworkPluginTest {
 		NetworkOrder order = createNetworkOrder(networkId, null, null, NetworkAllocationMode.STATIC);
 
 		//exercise
-		JSONObject generateJsonEntityToCreateSubnet = this.openStackV2NetworkPlugin
+		String entityToCreateSubnet = this.openStackV2NetworkPlugin
 				.generateJsonEntityToCreateSubnet(order.getId(), DEFAULT_TENANT_ID, order);
+		JSONObject generateJsonEntityToCreateSubnet = new JSONObject(entityToCreateSubnet);
 
 		//verify
 		JSONObject subnetJsonObject = generateJsonEntityToCreateSubnet
@@ -418,8 +421,9 @@ public class OpenStackV2NetworkPluginTest {
 		NetworkOrder order = createNetworkOrder(networkId, null, null, null);
 
 		//exercise
-		JSONObject generateJsonEntityToCreateSubnet = this.openStackV2NetworkPlugin
+		String entityToCreateSubnet = this.openStackV2NetworkPlugin
 				.generateJsonEntityToCreateSubnet(order.getId(), DEFAULT_TENANT_ID, order);
+		JSONObject generateJsonEntityToCreateSubnet = new JSONObject(entityToCreateSubnet);
 
 		//verify
 		JSONObject subnetJsonObject = generateJsonEntityToCreateSubnet

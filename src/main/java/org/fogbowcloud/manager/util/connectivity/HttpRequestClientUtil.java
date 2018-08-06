@@ -61,15 +61,15 @@ public class HttpRequestClientUtil {
         }
         return responseStr;
     }
-
-    public String doPostRequest(String endpoint, Token localToken, JSONObject json)
+    
+    public String doPostRequest(String endpoint, Token localToken, String json)
             throws UnavailableProviderException, HttpResponseException {
         LOGGER.debug("Doing POST request to endpoint <" + endpoint + ">");
         HttpPost request = new HttpPost(endpoint);
         request.addHeader(HttpRequestUtil.CONTENT_TYPE_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
         request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
         request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, localToken.getAccessId());
-        request.setEntity(new StringEntity(json.toString(), StandardCharsets.UTF_8));
+        request.setEntity(new StringEntity(json, StandardCharsets.UTF_8));
 
         String responseStr;
         HttpResponse response = null;

@@ -92,7 +92,8 @@ public class OpenStackV2VolumePluginTest {
     @Test
     public void testGenerateJsonEntityToCreateInstance() {
         // exercise
-        JSONObject jsonEntity = this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE, FAKE_NAME);
+        String entity = this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE, FAKE_NAME);
+        JSONObject jsonEntity = new JSONObject(entity);
 
         // verify
         Assert.assertEquals(FAKE_SIZE, jsonEntity.getJSONObject(OpenstackRestApiConstants.Volume.VOLUME_KEY_JSON)

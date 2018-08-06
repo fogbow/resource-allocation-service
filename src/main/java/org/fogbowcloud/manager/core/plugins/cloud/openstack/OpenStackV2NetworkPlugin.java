@@ -123,7 +123,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
                     .build();
 
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK;
-            String response = this.client.doPostRequest(endpoint, localToken, new JSONObject(createNetworkRequest.toJson()));
+            String response = this.client.doPostRequest(endpoint, localToken, createNetworkRequest.toJson());
             createNetworkResponse = CreateNetworkResponse.fromJson(response);
         } catch (JSONException e) {
             String errorMsg = "An error occurred when generating json.";
@@ -138,7 +138,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
 
     private void createSubNet(Token localToken, NetworkOrder order, String networkId, String tenantId) throws UnexpectedException, FogbowManagerException {
         try {
-            JSONObject jsonRequest = generateJsonEntityToCreateSubnet(networkId, tenantId, order);
+            String jsonRequest = generateJsonEntityToCreateSubnet(networkId, tenantId, order);
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SUBNET;
             this.client.doPostRequest(endpoint, localToken, jsonRequest);
         } catch (HttpResponseException e) {
@@ -156,7 +156,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
                     .build();
 
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP;
-            JSONObject jsonRequest = new JSONObject(createSecurityGroupRequest.toJson());
+            String jsonRequest = createSecurityGroupRequest.toJson();
             String response = this.client.doPostRequest(endpoint, localToken, jsonRequest);
             creationResponse = CreateSecurityGroupResponse.fromJson(response);
         } catch (HttpResponseException e) {
@@ -195,8 +195,8 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
             CreateSecurityGroupRuleRequest icmpRuleRequest = createIcmpRuleRequest(order.getAddress(), securityGroupId);
 
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES;
-            this.client.doPostRequest(endpoint, localToken, new JSONObject(sshRuleRequest.toJson()));
-            this.client.doPostRequest(endpoint, localToken, new JSONObject(icmpRuleRequest.toJson()));
+            this.client.doPostRequest(endpoint, localToken, sshRuleRequest.toJson());
+            this.client.doPostRequest(endpoint, localToken, icmpRuleRequest.toJson());
         } catch (HttpResponseException e) {
             removeNetwork(localToken, networkId);
             removeSecurityGroup(localToken, securityGroupId);
@@ -353,7 +353,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
         return networkId;
     }
 
-    protected JSONObject generateJsonEntityToCreateSubnet(String networkId, String tenantId,
+    protected String generateJsonEntityToCreateSubnet(String networkId, String tenantId,
                                                           NetworkOrder order) {
         String subnetName = DEFAULT_SUBNET_NAME + "-" + UUID.randomUUID();
         int ipVersion = DEFAULT_IP_VERSION;
@@ -378,7 +378,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin {
                 .dnsNameServers(Arrays.asList(dnsNamesServers))
                 .build();
 
-        return new JSONObject(createSubnetRequest.toJson());
+        return createSubnetRequest.toJson();
 
     }
 

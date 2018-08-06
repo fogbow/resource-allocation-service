@@ -12,22 +12,31 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.manager.core.exceptions.NoAvailableResourcesException;
+import org.fogbowcloud.manager.core.exceptions.UnavailableProviderException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.HardwareRequirements;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.util.DefaultLaunchCommandGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.util.LaunchCommandGenerator;
-import org.fogbowcloud.manager.core.plugins.serialization.openstack.compute.v2.*;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.compute.v2.CreateComputeRequest;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.compute.v2.CreateComputeResponse;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.compute.v2.CreateOsKeypairRequest;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.compute.v2.GetAllFlavorsResponse;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.compute.v2.GetComputeResponse;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.compute.v2.GetFlavorResponse;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
-import org.json.JSONObject;
 
 public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 
@@ -132,8 +141,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 									 String userData, String keyName, String endpoint) throws UnavailableProviderException, HttpResponseException {
 		CreateComputeRequest createBody = getRequestBody(imageId, flavorId, userData, keyName, networksId);
 
-		JSONObject json = new JSONObject(createBody.toJson());
-		String response = this.client.doPostRequest(endpoint, localToken, json);
+		String body = createBody.toJson();
+		String response = this.client.doPostRequest(endpoint, localToken, body);
 		CreateComputeResponse createComputeResponse = CreateComputeResponse.fromJson(response);
 
 		return createComputeResponse.getId();
@@ -215,7 +224,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin {
 					.publicKey(publicKey)
 					.build();
 
-			JSONObject body = new JSONObject(request.toJson());
+			String body = request.toJson();
 			try {
 				this.client.doPostRequest(osKeypairEndpoint, localToken, body);
 			} catch (HttpResponseException e) {
