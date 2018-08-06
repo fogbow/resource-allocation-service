@@ -14,7 +14,8 @@ class ComputeTests:
     cls.test_post_compute(data_for_local)
     print('-Test %d: post local compute attached to a local private network' % cls.which_test_case())
     cls.test_post_compute_with_private_network(data_for_local)
-    cls.test_delete_local_compute()
+    print('-Test %d: delete local compute' % cls.which_test_case())
+    cls.test_delete_compute(data_for_local)
     cls.test_get_all_local_compute()
     cls.test_get_by_id_local_compute()
     cls.test_local_quota()
@@ -25,6 +26,8 @@ class ComputeTests:
       cls.test_post_compute(data_for_remote)
       print('-Test %d: post remote compute attached to a remote private network' % cls.which_test_case())
       cls.test_post_compute_with_private_network(data_for_remote)
+      print('-Test %d: delete remote compute' % cls.which_test_case())
+      cls.test_delete_compute(data_for_remote)
 
   @classmethod
   def which_test_case(cls):
@@ -206,24 +209,32 @@ class ComputeTests:
 
   # Delete tests
   @classmethod
-  def test_delete_local_compute(cls):
+  def test_delete_compute(cls, data):
     extra_data = {}
+    extra_data.update(data)
     order_id = CommonMethods.post_compute(extra_data)
     if not order_id:
-      print('Test Failed. Trying next test')
+      print('  Failed. Could not create a compute')
       return
+    if GeneralConfigurations.providingMember in extra_data:
+      #if it is remote, we need to wait order request to be received
+      time.sleep(10)
     get_response = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_compute)
-    if (get_response.status_code == GeneralConfigurations.not_found_status):
+    if (get_response.status_code != GeneralConfigurations.ok_status):
+      print(get_response.status_code)
       CommonMethods.delete_order(order_id, GeneralConfigurations.type_compute)
       #time to wait order to be deleted
       time.sleep(20)
-      print('Test Failed. Trying next test')
+      print('  Failed. Could not get order by id')
       return
     CommonMethods.delete_order(order_id, GeneralConfigurations.type_compute)
+    if GeneralConfigurations.providingMember in extra_data:
+      #if it is remote, we need to wait delete request to be received
+      time.sleep(10)
     get_response = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_compute)
     if (get_response.status_code != GeneralConfigurations.not_found_status):
-      print('Test delete local compute: Failed.')
+      print(' Failed. Expected %d HTTP status, but got: %d' % (GeneralConfigurations.not_found_status, get_response.status_code))
       return
-    print('Test delete local compute: Ok. Compute removed')
+    print('  Ok. Compute removed')
     #time to wait order to be deleted
     time.sleep(20)
