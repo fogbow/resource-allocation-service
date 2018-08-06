@@ -5,6 +5,7 @@ import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.Instance;
@@ -45,7 +46,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
     private Thread thread;
 
     @Before
-    public void setUp() {
+    public void setUp() throws UnexpectedException {
 
         super.mockReadOrdersFromDataBase();
 

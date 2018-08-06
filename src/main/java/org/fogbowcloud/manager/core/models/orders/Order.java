@@ -1,6 +1,7 @@
 package org.fogbowcloud.manager.core.models.orders;
 
 import org.fogbowcloud.manager.core.datastore.DatabaseManager;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
@@ -53,7 +54,7 @@ public abstract class Order {
         this.orderState = state;
     }
 
-    public synchronized void setOrderState(OrderState state) {
+    public synchronized void setOrderState(OrderState state) throws UnexpectedException {
         this.orderState = state;
         DatabaseManager databaseManager = DatabaseManager.getInstance();
         if (state.equals(OrderState.OPEN)) {

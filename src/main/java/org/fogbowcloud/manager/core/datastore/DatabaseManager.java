@@ -3,6 +3,7 @@ package org.fogbowcloud.manager.core.datastore;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.datastore.orderstorage.*;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -44,53 +45,67 @@ public class DatabaseManager implements StableStorage {
     }
 
     @Override
-    public void add(Order order) {
-        switch (order.getType()) {
-            case COMPUTE:
-                this.computeOrderStorage.addOrder(order);
-                break;
-            case NETWORK:
-                this.networkOrderStorage.addOrder(order);
-                break;
-            case VOLUME:
-                this.volumeOrderStorage.addOrder(order);
-                break;
-            case ATTACHMENT:
-                this.attachmentOrderStorage.addOrder(order);
-                break;
-        }
+    public void add(Order order) throws UnexpectedException {
+        try {
+            switch (order.getType()) {
+                case COMPUTE:
+                    this.computeOrderStorage.addOrder(order);
+                    break;
+                case NETWORK:
+                    this.networkOrderStorage.addOrder(order);
+                    break;
+                case VOLUME:
+                    this.volumeOrderStorage.addOrder(order);
+                    break;
+                case ATTACHMENT:
+                    this.attachmentOrderStorage.addOrder(order);
+                    break;
+            }
 
-        this.orderTimestampStorage.addOrder(order);
+            this.orderTimestampStorage.addOrder(order);
+
+        } catch (SQLException e) {
+            throw new UnexpectedException(e.getMessage());
+        }
     }
 
     @Override
-    public void update(Order order) {
-        switch (order.getType()) {
-            case COMPUTE:
-                this.computeOrderStorage.updateOrder(order);
-                break;
-            case NETWORK:
-                this.networkOrderStorage.updateOrder(order);
-                break;
-            case VOLUME:
-                this.volumeOrderStorage.updateOrder(order);
-                break;
-            case ATTACHMENT:
-                this.attachmentOrderStorage.updateOrder(order);
-                break;
-        }
+    public void update(Order order) throws UnexpectedException {
+        try {
+            switch (order.getType()) {
+                case COMPUTE:
+                    this.computeOrderStorage.updateOrder(order);
+                    break;
+                case NETWORK:
+                    this.networkOrderStorage.updateOrder(order);
+                    break;
+                case VOLUME:
+                    this.volumeOrderStorage.updateOrder(order);
+                    break;
+                case ATTACHMENT:
+                    this.attachmentOrderStorage.updateOrder(order);
+                    break;
+            }
 
-        this.orderTimestampStorage.addOrder(order);
+            this.orderTimestampStorage.addOrder(order);
+
+        } catch (SQLException e) {
+            throw new UnexpectedException(e.getMessage());
+        }
     }
 
     @Override
-    public SynchronizedDoublyLinkedList readActiveOrders(OrderState orderState) {
+    public SynchronizedDoublyLinkedList readActiveOrders(OrderState orderState) throws UnexpectedException {
         SynchronizedDoublyLinkedList synchronizedDoublyLinkedList = new SynchronizedDoublyLinkedList();
 
-        this.computeOrderStorage.readOrdersByState(orderState, synchronizedDoublyLinkedList);
-        this.networkOrderStorage.readOrdersByState(orderState, synchronizedDoublyLinkedList);
-        this.volumeOrderStorage.readOrdersByState(orderState, synchronizedDoublyLinkedList);
-        this.attachmentOrderStorage.readOrdersByState(orderState, synchronizedDoublyLinkedList);
+        try {
+            this.computeOrderStorage.readOrdersByState(orderState, synchronizedDoublyLinkedList);
+            this.networkOrderStorage.readOrdersByState(orderState, synchronizedDoublyLinkedList);
+            this.volumeOrderStorage.readOrdersByState(orderState, synchronizedDoublyLinkedList);
+            this.attachmentOrderStorage.readOrdersByState(orderState, synchronizedDoublyLinkedList);
+        } catch (SQLException e) {
+            throw new UnexpectedException(e.getMessage());
+        }
 
         return synchronizedDoublyLinkedList;
     }

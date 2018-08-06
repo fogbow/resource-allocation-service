@@ -4,6 +4,7 @@ import org.fogbowcloud.manager.core.constants.Operation;
 import org.fogbowcloud.manager.core.datastore.DatabaseManager;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.instances.*;
 import org.fogbowcloud.manager.core.models.orders.*;
@@ -42,7 +43,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     private Map<String, Order> activeOrdersMap;
 
     @Before
-    public void setUp() throws UnauthorizedRequestException {
+    public void setUp() throws UnauthorizedRequestException, UnexpectedException {
         this.aaaController = Mockito.mock(AaController.class);
 
         HomeDir.getInstance().setPath("src/test/resources/private");

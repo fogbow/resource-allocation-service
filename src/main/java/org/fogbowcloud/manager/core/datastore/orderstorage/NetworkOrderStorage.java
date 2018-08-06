@@ -38,7 +38,7 @@ public class NetworkOrderStorage extends OrderStorage {
         }
     }
 
-    public void addOrder(Order order) {
+    public void addOrder(Order order) throws SQLException {
         NetworkOrder networkOrder = (NetworkOrder) order;
 
         Connection connection = null;
@@ -68,13 +68,16 @@ public class NetworkOrderStorage extends OrderStorage {
                 }
             } catch (SQLException e1) {
                 LOGGER.error("Couldn't rollback transaction.", e1);
+                throw e1;
             }
+
+            throw e;
         } finally {
             closeConnection(orderStatement, connection);
         }
     }
 
-    public void updateOrder(Order order) {
+    public void updateOrder(Order order) throws SQLException {
         NetworkOrder networkOrder = (NetworkOrder) order;
 
         Connection connection = null;
@@ -90,7 +93,12 @@ public class NetworkOrderStorage extends OrderStorage {
             orderStatement.setString(2, networkOrder.getOrderState().name());
             orderStatement.setString(3, networkOrder.getId());
 
-            orderStatement.executeUpdate();
+            int rowsAffected = orderStatement.executeUpdate();
+
+            if (rowsAffected == 0) {
+                LOGGER.error("Network order [" + order.getId() + "] was not added to the database.");
+                throw new SQLException();
+            }
 
             connection.commit();
         } catch (SQLException e) {
@@ -101,14 +109,17 @@ public class NetworkOrderStorage extends OrderStorage {
                 }
             } catch (SQLException e1) {
                 LOGGER.error("Couldn't rollback transaction.", e1);
+                throw e1;
             }
+
+            throw e;
         } finally {
             closeConnection(orderStatement, connection);
         }
     }
 
     public void readOrdersByState(
-            OrderState orderState, SynchronizedDoublyLinkedList synchronizedDoublyLinkedList) {
+            OrderState orderState, SynchronizedDoublyLinkedList synchronizedDoublyLinkedList) throws SQLException {
 
         Connection connection = null;
         PreparedStatement orderStatement = null;
@@ -154,7 +165,10 @@ public class NetworkOrderStorage extends OrderStorage {
                 }
             } catch (SQLException e1) {
                 LOGGER.error("Couldn't rollback transaction.", e1);
+                throw e1;
             }
+
+            throw e;
         } catch (InvalidParameterException e) {
             LOGGER.error(e);
         } finally {

@@ -43,7 +43,7 @@ public class OrderControllerTest extends BaseUnitTests {
     private String localMember = BaseUnitTests.LOCAL_MEMBER_ID;
 
     @Before
-    public void setUp() {
+    public void setUp() throws UnexpectedException {
         HomeDir.getInstance().setPath("src/test/resources/private");
 
         // mocking database to return empty instances of SynchronizedDoublyLinkedList.

@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.models.linkedlists;
 
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.junit.Assert;
 
 import org.fogbowcloud.manager.core.BaseUnitTests;
@@ -15,7 +16,7 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
     private SynchronizedDoublyLinkedList list;
 
     @Before
-    public void initialize() {
+    public void initialize() throws UnexpectedException {
         mockReadOrdersFromDataBase();
         this.list = new SynchronizedDoublyLinkedList();
     }
