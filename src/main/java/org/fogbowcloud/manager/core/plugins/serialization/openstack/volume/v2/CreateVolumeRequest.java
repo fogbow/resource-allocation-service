@@ -9,6 +9,15 @@ import static org.fogbowcloud.manager.core.plugins.serialization.openstack.Opens
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/block-storage/v2/
+ * 
+ * Request example:
+ * {
+ *   "volume": {
+ *     "size": 10,
+ *     "name": "volume-name"
+ *   }
+ * }
+ * 
  */
 public class CreateVolumeRequest implements JsonSerializable {
 

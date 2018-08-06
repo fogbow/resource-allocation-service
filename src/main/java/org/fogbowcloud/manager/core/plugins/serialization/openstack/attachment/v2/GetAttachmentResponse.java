@@ -8,6 +8,17 @@ import static org.fogbowcloud.manager.core.plugins.serialization.openstack.Opens
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/compute/
+ * 
+ * Response example:
+ * {
+ *   "volumeAttachment": {
+ *      "device": "/dev/sdd",
+ *      "id": "a26887c6-c47b-4654-abb5-dfadf7d3f803",
+ *      "serverId": "2390fb4d-1693-45d7-b309-e29c4af16538",
+ *      "volumeId": "a26887c6-c47b-4654-abb5-dfadf7d3f803"
+ *   }
+ * }
+ * 
  */
 public class GetAttachmentResponse {
 

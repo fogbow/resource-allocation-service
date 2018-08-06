@@ -8,6 +8,17 @@ import static org.fogbowcloud.manager.core.plugins.serialization.openstack.Opens
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/block-storage/v2/
+ * 
+ * Response example: 
+ * {
+ *   "volume": {
+ *     "status": "creating",
+ *     "name": "test-volume-attachments",
+ *     "id": "6edbc2f4-1507-44f8-ac0d-eed1d2608d38",
+ *     "size": 2
+ *   }
+ * }
+ * 
  */
 public class GetVolumeResponse {
 

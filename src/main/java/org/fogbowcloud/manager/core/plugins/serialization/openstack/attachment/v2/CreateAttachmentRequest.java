@@ -9,6 +9,13 @@ import static org.fogbowcloud.manager.core.plugins.serialization.openstack.Opens
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/compute/
+ * 
+ * Request example:
+ * {
+ *   "volumeAttachment": {
+ *      "volumeId": "a26887c6-c47b-4654-abb5-dfadf7d3f803"
+ *   }
+ * }
  */
 public class CreateAttachmentRequest implements JsonSerializable {
 

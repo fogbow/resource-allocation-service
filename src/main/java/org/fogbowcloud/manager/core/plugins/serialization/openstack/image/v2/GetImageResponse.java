@@ -8,6 +8,21 @@ import com.google.gson.annotations.SerializedName;
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/image/v2/
+ * 
+ * Response example: 
+ * {
+ *   "status": "active",
+ *   "name": "cirros-0.3.2-x86_64-disk",
+ *   "container_format": "bare",
+ *   "disk_format": "qcow2",
+ *   "visibility": "public",
+ *   "min_disk": 0,
+ *   "id": "1bea47ed-f6a9-463b-b423-14b9cca9ad27",
+ *   "owner": "5ef70662f8b34079a6eddb8da9d75fe8",
+ *   "size": 13167616,
+ *   "min_ram": 0
+ * }
+ * 
  */
 public class GetImageResponse {
 	
