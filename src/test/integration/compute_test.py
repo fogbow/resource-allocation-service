@@ -186,7 +186,7 @@ class ComputeTests:
       return
     if GeneralConfigurations.providingMember in extra_data:
       #if it is remote, we need to wait order request to be received
-      time.sleep(15)
+      time.sleep(10)
     response_get = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_compute)
     if response_get.status_code == GeneralConfigurations.ok_status:
       print('  Ok. Removing compute')
