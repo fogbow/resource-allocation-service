@@ -1,6 +1,5 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 
-import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
@@ -13,8 +12,6 @@ import org.xmpp.packet.IQ;
 import com.google.gson.Gson;
 
 public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
-
-    private static final Logger LOGGER = Logger.getLogger(RemoteGetOrderRequest.class);
 
     private Order order;
 
@@ -32,23 +29,31 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
         return instance;
     }
 
-    private IQ createIq() {
+    public IQ createIq() {
         IQ iq = new IQ(IQ.Type.get);
         iq.setTo(this.order.getProvidingMember());
 
-        Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
+        marshallOrder(iq);        
+        marshallUser(iq);
+        
+        return iq;
+    }
+
+	private void marshallUser(IQ iq) {
+		Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());
+        userElement.setText(new Gson().toJson(this.order.getFederationUser()));
+	}
+
+	private void marshallOrder(IQ iq) {
+		Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_ORDER.toString());
+        
         Element orderIdElement = queryElement.addElement(IqElement.ORDER_ID.toString());
         orderIdElement.setText(this.order.getId());
 
         Element orderTypeElement = queryElement.addElement(IqElement.INSTANCE_TYPE.toString());
         orderTypeElement.setText(this.order.getType().toString());
-        
-        Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());
-        userElement.setText(new Gson().toJson(this.order.getFederationUser()));
-        
-        return iq;
-    }
+	}
 
     private Instance getInstanceFromResponse(IQ response) throws UnexpectedException {
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
