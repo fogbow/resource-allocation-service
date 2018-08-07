@@ -25,8 +25,8 @@ public class RemoteCreateOrderRequestHandler extends AbstractQueryHandler {
     @Override
     public IQ handle(IQ iq) {
         LOGGER.info("Received request for order: " + iq.getID());
-        String orderJsonStr = unMarshallOrder(iq);
-        String className = unMarshallClassName(iq);
+        String orderJsonStr = unmarshalOrder(iq);
+        String className = unmarshalClassName(iq);
         
         IQ response = IQ.createResultIQ(iq);
         
@@ -41,14 +41,14 @@ public class RemoteCreateOrderRequestHandler extends AbstractQueryHandler {
         return response;
     }
 
-    private String unMarshallOrder(IQ iq) {
+    private String unmarshalOrder(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
         Element orderElement = queryElement.element(IqElement.ORDER.toString());
         String orderJsonStr = orderElement.getText();
         return orderJsonStr;
     }
 
-    private String unMarshallClassName(IQ iq) {
+    private String unmarshalClassName(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
         Element orderClassNameElement = queryElement.element(IqElement.ORDER_CLASS_NAME.toString());
         String className = orderClassNameElement.getText();

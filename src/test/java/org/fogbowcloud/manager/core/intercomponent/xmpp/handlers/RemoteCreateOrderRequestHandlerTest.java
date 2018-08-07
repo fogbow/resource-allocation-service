@@ -24,7 +24,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.xmpp.packet.IQ;
 
-
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
 public class RemoteCreateOrderRequestHandlerTest {
@@ -40,7 +39,6 @@ public class RemoteCreateOrderRequestHandlerTest {
     private RemoteCreateOrderRequestHandler remoteCreateOrderRequestHandler;
     private RemoteFacade remoteFacade;
     private PacketSender packetSender;
-
 
     @Before
     public void setUp() {

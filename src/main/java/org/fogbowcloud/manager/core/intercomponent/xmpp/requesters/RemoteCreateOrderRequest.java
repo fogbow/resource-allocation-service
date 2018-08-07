@@ -37,23 +37,24 @@ public class RemoteCreateOrderRequest implements RemoteRequest<Void> {
         iq.setTo(this.order.getProvidingMember());
         iq.setID(this.order.getId());
 
-        Element orderElement = marshallOrder(iq);
-        
-        LOGGER.debug("Jsonifying Order");
-        String orderJson = new Gson().toJson(this.order);
-        orderElement.setText(orderJson);
+        marshalOrder(iq);
+
         return iq;
     }
 
-    private Element marshallOrder(IQ iq) {
+    private void marshalOrder(IQ iq) {
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_CREATE_ORDER.toString());
-        
+
         Element orderElement = queryElement.addElement(IqElement.ORDER.toString());
 
-        Element orderClassNameElement = queryElement.addElement(IqElement.ORDER_CLASS_NAME.toString());
-        orderClassNameElement.setText(this.order.getClass().getName());
+        Element orderClassNameElement =
+                queryElement.addElement(IqElement.ORDER_CLASS_NAME.toString());
         
-        return orderElement;
+        orderClassNameElement.setText(this.order.getClass().getName());
+
+        String orderJson = new Gson().toJson(this.order);
+        orderElement.setText(orderJson);
     }
+
 }
