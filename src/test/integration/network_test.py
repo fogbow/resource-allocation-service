@@ -97,7 +97,11 @@ class NetworkTests:
     else:
       print('  Failed. Removing networks')
     CommonMethods.delete_multiple_orders(orders_id, GeneralConfigurations.type_network)
-    time.sleep(10)
+    if GeneralConfigurations.providingMember in extra_data:
+      #if it is remote, we need to wait order request to be received
+      time.sleep(40)
+    else:
+      time.sleep(10)
 
   # Delete tests
   @classmethod
@@ -122,7 +126,7 @@ class NetworkTests:
       time.sleep(10)
     get_response = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_network)
     if (get_response.status_code != GeneralConfigurations.not_found_status):
-      print('  Failed. Got http status: %d' % (get_response.status_code))
+      print('  Failed. Got http status %d and was expected: %d' % (get_response.status_code, GeneralConfigurations.not_found_status))
       return
     print('  Ok. Network removed')
     time.sleep(10)
