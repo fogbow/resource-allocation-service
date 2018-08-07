@@ -77,6 +77,11 @@ class AttachmentTests:
     if not cls.__post_attachment(extra_data):
       print('  Failed.')
       return
+    if GeneralConfigurations.providingMember in data:
+      #if it is remote, we need to wait order request to be received
+      time.sleep(30)
+    else:
+      time.sleep(10)
     response_get = CommonMethods.get_order_by_id(cls.attachment_id, GeneralConfigurations.type_attachment)
     test_ok = False
     if response_get.status_code == GeneralConfigurations.ok_status:
@@ -99,6 +104,11 @@ class AttachmentTests:
     if not cls.__post_attachment(extra_data):
       print('  Failed.')
       return
+    if GeneralConfigurations.providingMember in data:
+      #if it is remote, we need to wait order request to be received
+      time.sleep(30)
+    else:
+      time.sleep(10)
     response_get_all = CommonMethods.get_all_order(GeneralConfigurations.type_attachment)
     test_ok = not (response_get_all.status_code != GeneralConfigurations.ok_status or response_get_all.text == '[]' or len(response_get_all.json()) != 1)
     if test_ok:
@@ -116,6 +126,11 @@ class AttachmentTests:
       print('  Failed.')
       return
     CommonMethods.delete_order(cls.attachment_id, GeneralConfigurations.type_attachment)
+    if GeneralConfigurations.providingMember in data:
+      #if it is remote, we need to wait order request to be received
+      time.sleep(30)
+    else:
+      time.sleep(10)
     get_response = CommonMethods.get_order_by_id(cls.attachment_id, GeneralConfigurations.type_attachment)
     if (get_response.status_code != GeneralConfigurations.not_found_status):
       print('  Failed. Expecting http status %d, but got: %d' % (GeneralConfigurations.not_found_status, get_response.status_code))

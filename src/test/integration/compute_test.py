@@ -77,8 +77,9 @@ class ComputeTests:
       print('  Failed, could not create new network')
       return 
     if not cls.wait_instance_ready(network_id, GeneralConfigurations.type_network):
-      print('  Failed. Removing network')
+      print('  Failed. Network did not transitioned to \'ready\' state')
       CommonMethods.delete_order(network_id, GeneralConfigurations.type_network)
+      return
     extra_data_compute = {GeneralConfigurations.networksId_key: networks}
     extra_data_compute.update(data)
     compute_id = CommonMethods.post_compute(extra_data_compute)

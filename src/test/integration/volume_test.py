@@ -63,8 +63,10 @@ class VolumeTests:
     if not order_id:
       print('  Failed on creating volume, trying next test')
       return
-    if GeneralConfigurations.providingMember in extra_data:
+    if GeneralConfigurations.providingMember in data:
       #if it is remote, we need to wait order request to be received
+      time.sleep(30)
+    else:
       time.sleep(10)
     response_get = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_volume)
     if response_get.status_code == GeneralConfigurations.ok_status:
