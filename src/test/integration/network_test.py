@@ -123,7 +123,7 @@ class NetworkTests:
     CommonMethods.delete_order(order_id, GeneralConfigurations.type_network)
     if GeneralConfigurations.providingMember in extra_data:
       #if it is remote, we need to wait order request to be received
-      time.sleep(10)
+      time.sleep(30)
     get_response = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_network)
     if (get_response.status_code != GeneralConfigurations.not_found_status):
       print('  Failed. Got http status %d and was expected: %d' % (get_response.status_code, GeneralConfigurations.not_found_status))

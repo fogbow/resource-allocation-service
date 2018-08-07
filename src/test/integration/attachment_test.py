@@ -14,24 +14,24 @@ class AttachmentTests:
   @classmethod
   def test_attachments(cls):
     data_for_local = {}
-    #print('-Test %d: post local attachment' % cls.which_test_case())
-    #cls.test_post_attachment(data_for_local)
-    #print('-Test %d: get by id local attachment' % cls.which_test_case())
-    #cls.test_get_by_id_attachment(data_for_local)
-    #print('-Test %d: get all local attachment' % cls.which_test_case())
-    #cls.test_get_all_attachment(data_for_local)
-    #print('-Test %d: delete local attachment' % cls.which_test_case())
-    #cls.test_delete_attachment(data_for_local)
+    print('-Test %d: post local attachment' % cls.which_test_case())
+    cls.test_post_attachment(data_for_local)
+    print('-Test %d: get by id local attachment' % cls.which_test_case())
+    cls.test_get_by_id_attachment(data_for_local)
+    print('-Test %d: get all local attachment' % cls.which_test_case())
+    cls.test_get_all_attachment(data_for_local)
+    print('-Test %d: delete local attachment' % cls.which_test_case())
+    cls.test_delete_attachment(data_for_local)
     if GeneralConfigurations.remote_member:
       data_for_remote = {GeneralConfigurations.providingMember: GeneralConfigurations.remote_member}
       print('-Test %d: post remote attachment' % cls.which_test_case())
       cls.test_post_attachment(data_for_remote)
-      #print('-Test %d: get by id remote attachment' % cls.which_test_case())
-      #cls.test_get_by_id_attachment(data_for_remote)
-      #print('-Test %d: get all remote attachment' % cls.which_test_case())
-      #cls.test_get_all_attachment(data_for_remote)
-      #print('-Test %d: delete remote attachment' % cls.which_test_case())
-      #cls.test_delete_attachment(data_for_remote)
+      print('-Test %d: get by id remote attachment' % cls.which_test_case())
+      cls.test_get_by_id_attachment(data_for_remote)
+      print('-Test %d: get all remote attachment' % cls.which_test_case())
+      cls.test_get_all_attachment(data_for_remote)
+      print('-Test %d: delete remote attachment' % cls.which_test_case())
+      cls.test_delete_attachment(data_for_remote)
 
   @classmethod
   def which_test_case(cls):
