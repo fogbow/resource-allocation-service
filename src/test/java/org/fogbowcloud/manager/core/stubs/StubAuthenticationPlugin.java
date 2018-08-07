@@ -2,7 +2,7 @@ package org.fogbowcloud.manager.core.stubs;
 
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
 import org.fogbowcloud.manager.core.plugins.behavior.authentication.AuthenticationPlugin;
 
 /**
@@ -14,7 +14,7 @@ public class StubAuthenticationPlugin implements AuthenticationPlugin {
     public StubAuthenticationPlugin() {}
 
     @Override
-    public FederationUser getFederationUser(String federationTokenValue)
+    public FederationUserAttributes getFederationUser(String federationTokenValue)
             throws UnauthenticatedUserException, InvalidParameterException {
         return null;
     }

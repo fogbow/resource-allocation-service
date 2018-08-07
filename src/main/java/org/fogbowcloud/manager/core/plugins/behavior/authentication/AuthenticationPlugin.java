@@ -2,21 +2,21 @@ package org.fogbowcloud.manager.core.plugins.behavior.authentication;
 
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
 
 public interface AuthenticationPlugin {
 
     /**
-     * Based on an access id recreates a Token containing the corresponding access id plus the user
+     * Based on an access id recreates a LocalUserAttributes containing the corresponding access id plus the user
      * name and some arbitrary information regarding the tokens.
      *
-     * @return a FederationUser for the corresponding federationTokenValue. A federationUser is
+     * @return a FederationUserAttributes for the corresponding federationTokenValue. A federationUser is
      * composed of a unique id (String) and a Map<String, String> of attributes.
      * Any implementation of this plugin MUST include at least the following attribute:
      * "user-name", which is the name of the user (ex. used in the Dashboard after authentication).
      * @throws UnauthenticatedUserException
      */
-    public FederationUser getFederationUser(String federationTokenValue) throws UnauthenticatedUserException,
+    public FederationUserAttributes getFederationUser(String federationTokenValue) throws UnauthenticatedUserException,
             InvalidParameterException;
 
     /**

@@ -41,14 +41,9 @@ public class OrderStorage {
         orderStatement.setString(1, order.getId());
         orderStatement.setString(2, order.getInstanceId());
         orderStatement.setString(3, order.getOrderState().name());
-        orderStatement.setString(4, order.getFederationUser().getId());
-
-        Gson gson = new Gson();
-        String fedAttributes = gson.toJson(order.getFederationUser().getAttributes());
-
-        orderStatement.setString(5, fedAttributes);
-        orderStatement.setString(6, order.getRequestingMember());
-        orderStatement.setString(7, order.getProvidingMember());
+        orderStatement.setString(4, order.getFederationUserAttributes().getId());
+        orderStatement.setString(5, order.getRequestingMember());
+        orderStatement.setString(6, order.getProvidingMember());
     }
 
     protected Map<String, String> getFederationUserAttrFromString(String jsonString) {

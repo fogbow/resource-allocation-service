@@ -9,7 +9,7 @@ import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputeQuotaPlugin;
 import org.fogbowcloud.manager.core.plugins.serialization.openstack.quota.v2.GetQuotaResponse;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
@@ -34,14 +34,14 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 	}
 
 	@Override
-	public ComputeQuota getUserQuota(Token localToken) throws FogbowManagerException, UnexpectedException {
+	public ComputeQuota getUserQuota(LocalUserAttributes localUserAttributes) throws FogbowManagerException, UnexpectedException {
 		String endpoint = this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY)
 				+ COMPUTE_V2_API_ENDPOINT + SUFFIX;
 
 		String jsonResponse = null;
 
 		try {
-			jsonResponse = this.client.doGetRequest(endpoint, localToken);
+			jsonResponse = this.client.doGetRequest(endpoint, localUserAttributes);
 		} catch (HttpResponseException e) {
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}

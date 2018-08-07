@@ -16,7 +16,7 @@ public class HttpRequestUtil {
     public static final String CONTENT_TYPE_KEY = "Content-Type";
     public static final String ACCEPT_KEY = "Accept";
     public static final String JSON_CONTENT_TYPE_KEY = "application/json";
-    public static final String X_AUTH_TOKEN_KEY = "X-Auth-Token";
+    public static final String X_AUTH_TOKEN_KEY = "X-Auth-LocalUserAttributes";
 
     private static final Logger LOGGER = Logger.getLogger(HttpRequestUtil.class);
     private static Integer timeoutHttpRequest;

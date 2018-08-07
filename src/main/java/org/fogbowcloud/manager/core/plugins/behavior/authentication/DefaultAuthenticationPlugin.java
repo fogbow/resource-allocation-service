@@ -1,22 +1,17 @@
 package org.fogbowcloud.manager.core.plugins.behavior.authentication;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
 
 public class DefaultAuthenticationPlugin implements AuthenticationPlugin {
     
     public DefaultAuthenticationPlugin() {}
 
     @Override
-    public FederationUser getFederationUser(String federationTokenValue) throws InvalidParameterException {
-        Map<String, String> attributes = new HashMap<String, String>();
+    public FederationUserAttributes getFederationUser(String federationTokenValue) throws InvalidParameterException {
+        FederationUserAttributes federationUserAttributes = new FederationUserAttributes("default-id", "default");
 
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "default");
-
-        return new FederationUser("default-id", attributes);
+        return federationUserAttributes;
     }
 
     @Override

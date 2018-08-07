@@ -2,13 +2,13 @@ package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.OpenStackUserAttributes;
 import org.fogbowcloud.manager.core.plugins.serialization.openstack.quota.v2.GetQuotaResponse;
-import org.fogbowcloud.manager.util.JSONUtil;
-import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,7 +19,7 @@ import java.util.Map;
 
 public class OpenStackComputeQuotaPluginTest {
 
-    private static final String TENANT_ID = "tenantId";
+    private static final String TENANT_ID = "TENANT_ID";
     private static final String FAKE_TENANT_ID = "fake-tenant-id";
 
     private static final String FAKE_QUOTA_JSON_RESPONSE =
@@ -32,18 +32,14 @@ public class OpenStackComputeQuotaPluginTest {
                     + "\"totalSecurityGroupsUsed\": 1, \"maxTotalInstances\": 20, \"maxTotalRAMSize\": 46080}}}";
 
     private OpenStackComputeQuotaPlugin plugin;
-    private Token token;
+    private OpenStackUserAttributes localUserAttributes;
 
     @Before
-    public void setUp() {
+    public void setUp() throws InvalidParameterException {
         HomeDir.getInstance().setPath("src/test/resources/private");
         this.plugin = Mockito.spy(new OpenStackComputeQuotaPlugin());
 
-        this.token = new Token();
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(TENANT_ID, FAKE_TENANT_ID);
-        token.setAttributes(attributes);
-        token.setAccessId("");
+        this.localUserAttributes = new OpenStackUserAttributes("", FAKE_TENANT_ID);
     }
 
     // test case: Tests if getTotalQuota(), getUsedQuota() and getAvailableQuota() returns the right
@@ -64,12 +60,12 @@ public class OpenStackComputeQuotaPluginTest {
         ComputeAllocation usedQuota = new ComputeAllocation(totalCoresUsed, totalRamUsed, totalInstancesUsed);
 
         ComputeQuota computeQuota = new ComputeQuota(totalQuota, usedQuota);
-        Mockito.doReturn(computeQuota).when(this.plugin).getUserQuota(this.token);
+        Mockito.doReturn(computeQuota).when(this.plugin).getUserQuota(this.localUserAttributes);
 
         // exercise
-        ComputeAllocation retrievedTotalQuota = this.plugin.getUserQuota(this.token).getTotalQuota();
-        ComputeAllocation retrievedUsedQuota = this.plugin.getUserQuota(this.token).getUsedQuota();
-        ComputeAllocation retrievedAvailableQuota = this.plugin.getUserQuota(this.token).getAvailableQuota();
+        ComputeAllocation retrievedTotalQuota = this.plugin.getUserQuota(this.localUserAttributes).getTotalQuota();
+        ComputeAllocation retrievedUsedQuota = this.plugin.getUserQuota(this.localUserAttributes).getUsedQuota();
+        ComputeAllocation retrievedAvailableQuota = this.plugin.getUserQuota(this.localUserAttributes).getAvailableQuota();
 
         // verify
         Assert.assertEquals(totalQuota.getvCPU(), retrievedTotalQuota.getvCPU());
@@ -88,10 +84,10 @@ public class OpenStackComputeQuotaPluginTest {
     @Test(expected = UnexpectedException.class)
     public void testGetUserQuotaWhenGetRequestThrowsAnException() throws UnexpectedException, FogbowManagerException {
         // set up
-        Mockito.doThrow(UnexpectedException.class).when(this.plugin).getUserQuota(this.token);
+        Mockito.doThrow(UnexpectedException.class).when(this.plugin).getUserQuota(this.localUserAttributes);
 
         // exercise
-        this.plugin.getUserQuota(this.token);
+        this.plugin.getUserQuota(this.localUserAttributes);
     }
 
 }

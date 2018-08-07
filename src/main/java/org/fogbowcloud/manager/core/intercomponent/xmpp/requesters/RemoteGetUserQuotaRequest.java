@@ -10,7 +10,7 @@ import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
 import org.xmpp.packet.IQ;
 import com.google.gson.Gson;
 
@@ -19,12 +19,12 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
     private static final Logger LOGGER = Logger.getLogger(RemoteGetUserQuotaRequest.class);
 
     private String provider;
-    private FederationUser federationUser;
+    private FederationUserAttributes federationUserAttributes;
     private ResourceType resourceType;
 
-    public RemoteGetUserQuotaRequest(String provider, FederationUser federationUser, ResourceType resourceType) {
+    public RemoteGetUserQuotaRequest(String provider, FederationUserAttributes federationUserAttributes, ResourceType resourceType) {
         this.provider = provider;
-        this.federationUser = federationUser;
+        this.federationUserAttributes = federationUserAttributes;
         this.resourceType = resourceType;
     }
 
@@ -49,7 +49,7 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
         memberIdElement.setText(new Gson().toJson(this.provider));
 
         Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());
-        userElement.setText(new Gson().toJson(this.federationUser));
+        userElement.setText(new Gson().toJson(this.federationUserAttributes));
 
         Element orderTypeElement = queryElement.addElement(IqElement.INSTANCE_TYPE.toString());
         orderTypeElement.setText(this.resourceType.toString());

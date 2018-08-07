@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.models.tokens;
+package org.fogbowcloud.manager.core.models.tokens.generators;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -27,8 +27,8 @@ import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.manager.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
-import org.fogbowcloud.manager.core.models.tokens.KeystoneV3TokenGenerator;
-import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.OpenStackUserAttributes;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -109,15 +109,12 @@ public class KeystoneV3IdentityTest {
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
         
         // exercise
-        Token token = this.keystoneV3Identity.createToken(credentials);
+        OpenStackUserAttributes localUserAttributes = this.keystoneV3Identity.createToken(credentials);
         
         //verify
-        assertNotNull(token);
+        assertNotNull(localUserAttributes);
 
-        assertEquals(userName, token.getUser().getName());
-        assertEquals(userId, token.getUser().getId());
-        assertEquals(token.get("tenantName"), projectName);
-        assertEquals(token.get("tenantId"), projectId);
+        assertEquals(localUserAttributes.getTenantId(), projectId);
     }
     
     //test case: check if mountJson is creating a correct json from credentials.

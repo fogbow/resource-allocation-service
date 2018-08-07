@@ -8,7 +8,7 @@ import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 import com.google.gson.Gson;
@@ -31,7 +31,7 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
         String memberId = new Gson().fromJson(memberIdElement.getText(), String.class);
 
         Element federationUserElement = iq.getElement().element(IqElement.FEDERATION_USER.toString());
-        FederationUser federationUser = new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
+        FederationUserAttributes federationUserAttributes = new Gson().fromJson(federationUserElement.getText(), FederationUserAttributes.class);
 
         Element instanceTypeElementRequest = queryElement.element(IqElement.INSTANCE_TYPE.toString());
         ResourceType resourceType = new Gson().fromJson(instanceTypeElementRequest.getText(), ResourceType.class);
@@ -39,7 +39,7 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            Quota userQuota = RemoteFacade.getInstance().getUserQuota(memberId, federationUser, resourceType);
+            Quota userQuota = RemoteFacade.getInstance().getUserQuota(memberId, federationUserAttributes, resourceType);
 
             Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_USER_QUOTA);
             Element instanceElement = queryEl.addElement(IqElement.USER_QUOTA.toString());

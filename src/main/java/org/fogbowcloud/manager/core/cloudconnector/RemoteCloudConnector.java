@@ -7,7 +7,7 @@ import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
 
 import java.util.HashMap;
 
@@ -44,28 +44,28 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public Quota getUserQuota(FederationUser federationUser, ResourceType resourceType) throws Exception {
+    public Quota getUserQuota(FederationUserAttributes federationUserAttributes, ResourceType resourceType) throws Exception {
 
         RemoteGetUserQuotaRequest remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.destinationMember,
-                federationUser, resourceType);
+                federationUserAttributes, resourceType);
         Quota quota = remoteGetUserQuotaRequest.send();
         return quota;
     }
 
     @Override
-    public HashMap<String, String> getAllImages(FederationUser federationUser) throws Exception {
+    public HashMap<String, String> getAllImages(FederationUserAttributes federationUserAttributes) throws Exception {
 
         RemoteGetAllImagesRequest remoteGetAllImagesRequest = new RemoteGetAllImagesRequest(this.destinationMember,
-                federationUser);
+                federationUserAttributes);
         HashMap<String, String> imagesMap = remoteGetAllImagesRequest.send();
         return imagesMap;
     }
 
     @Override
-    public Image getImage(String imageId, FederationUser federationUser) throws Exception {
+    public Image getImage(String imageId, FederationUserAttributes federationUserAttributes) throws Exception {
 
         RemoteGetImageRequest remoteGetImageRequest = new RemoteGetImageRequest(this.destinationMember, imageId,
-                federationUser);
+                federationUserAttributes);
         Image image = remoteGetImageRequest.send();
         return image;    }
 }

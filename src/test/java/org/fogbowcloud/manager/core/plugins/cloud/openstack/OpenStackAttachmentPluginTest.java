@@ -11,13 +11,15 @@ import org.apache.http.client.HttpResponseException;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
-import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.OpenStackUserAttributes;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -42,27 +44,23 @@ public class OpenStackAttachmentPluginTest {
     private static final String FAKE_TENANT_ID = "fake-tenant-id";
     private AttachmentOrder attachmentOrder;
     private OpenStackNovaV2AttachmentPlugin openStackAttachmentPlugin;
-    private Token localToken;
+    private OpenStackUserAttributes localUserAttributes;
     private HttpRequestClientUtil client;
     private ArgumentCaptor<String> argString = ArgumentCaptor.forClass(String.class);
-    private ArgumentCaptor<Token> argToken = ArgumentCaptor.forClass(Token.class);
+    private ArgumentCaptor<LocalUserAttributes> argToken = ArgumentCaptor.forClass(LocalUserAttributes.class);
     private String instanceId = FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID;
     
     @Before
-    public void setUp() {
+    public void setUp() throws InvalidParameterException {
         HomeDir.getInstance().setPath("src/test/resources/private");
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         Properties properties = propertiesHolder.getProperties();
         properties.put(OpenStackNovaV2AttachmentPlugin.COMPUTE_NOVAV2_URL_KEY, FAKE_ENDPOINT);
         properties.put(COMPUTE_NOVAV2_NETWORK_KEY, FAKE_NET_ID);
 
-        this.localToken = new Token();
+        this.localUserAttributes = new OpenStackUserAttributes("fake-token-value", FAKE_TENANT_ID);
         this.attachmentOrder =
                 new AttachmentOrder(null, null, null, FAKE_SERVER_ID, FAKE_VOLUME_ID, MOUNT_POINT);
-        
-        Map<String, String> tokenAttributes = new HashMap<String, String>();
-        tokenAttributes.put("tenantId", FAKE_TENANT_ID);
-        this.localToken.setAttributes(tokenAttributes);
         
         this.openStackAttachmentPlugin = new OpenStackNovaV2AttachmentPlugin();
         this.openStackAttachmentPlugin.setProperties(properties);
@@ -75,10 +73,10 @@ public class OpenStackAttachmentPluginTest {
     public void testRequestInstance() throws FogbowManagerException, HttpResponseException, UnexpectedException {
     	//set up
         Mockito.doReturn(FAKE_POST_REQUEST_BODY).when(this.client).doPostRequest(
-                Mockito.anyString(), Mockito.any(Token.class), Mockito.anyString());
+                Mockito.anyString(), Mockito.any(LocalUserAttributes.class), Mockito.anyString());
         
         //exercise
-        String instanceId = this.openStackAttachmentPlugin.requestInstance(this.attachmentOrder, this.localToken);
+        String instanceId = this.openStackAttachmentPlugin.requestInstance(this.attachmentOrder, this.localUserAttributes);
         
         //verify
         Assert.assertEquals(FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID, instanceId);
@@ -92,10 +90,10 @@ public class OpenStackAttachmentPluginTest {
     	int unknownStatusCode = -1;
     	HttpResponseException httpResponseException = new HttpResponseException(unknownStatusCode, "");
 		Mockito.doThrow(httpResponseException).when(this.client).doPostRequest(Mockito.anyString(),
-				Mockito.any(Token.class), Mockito.anyString());
+				Mockito.any(LocalUserAttributes.class), Mockito.anyString());
 
         //exercise/verify
-        this.openStackAttachmentPlugin.requestInstance(this.attachmentOrder, this.localToken);
+        this.openStackAttachmentPlugin.requestInstance(this.attachmentOrder, this.localUserAttributes);
     }
     
     //test case: Check if HttpDeleteRequest parameters are correct according to the deleteInstance call parameters
@@ -108,11 +106,11 @@ public class OpenStackAttachmentPluginTest {
 				+ "/os-volume_attachments" + "/" + FAKE_VOLUME_ID;
 		
         //exercise
-        this.openStackAttachmentPlugin.deleteInstance(this.instanceId, this.localToken);
+        this.openStackAttachmentPlugin.deleteInstance(this.instanceId, this.localUserAttributes);
         
         //verify
         Assert.assertEquals(expectedEndpoint, this.argString.getValue());
-        Assert.assertEquals(this.localToken.toString(), this.argToken.getValue().toString());
+        Assert.assertEquals(this.localUserAttributes.toString(), this.argToken.getValue().toString());
     }
     
     //test case: Check if requestInstance is properly forwarding UnauthorizedRequestException thrown by deleteInstance when Forbidden (403).
@@ -123,7 +121,7 @@ public class OpenStackAttachmentPluginTest {
         Mockito.doThrow(httpResponseException).when(this.client).doDeleteRequest(Mockito.any(), Mockito.any());
         
         //exercise/verify
-        this.openStackAttachmentPlugin.deleteInstance(instanceId, this.localToken);
+        this.openStackAttachmentPlugin.deleteInstance(instanceId, this.localUserAttributes);
     }
     
     //test case: Check if an attachment is correctly built according to the JSON returned by the getRequest
@@ -133,12 +131,12 @@ public class OpenStackAttachmentPluginTest {
     	//setup
 		String instanceId = FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID;
 		Mockito.doReturn(FAKE_GET_REQUEST_BODY).when(this.client).doGetRequest(Mockito.anyString(),
-				Mockito.eq(this.localToken));
+				Mockito.eq(this.localUserAttributes));
 		String openStackState = "";
         InstanceState expectedFogbowState = OpenStackStateMapper.map(ResourceType.ATTACHMENT, openStackState);
         
 		//exercise
-		AttachmentInstance attachmentInstance = this.openStackAttachmentPlugin.getInstance(instanceId, this.localToken);
+		AttachmentInstance attachmentInstance = this.openStackAttachmentPlugin.getInstance(instanceId, this.localUserAttributes);
         
         //verify
         Assert.assertEquals(FAKE_DEVICE, attachmentInstance.getDevice());
@@ -154,11 +152,11 @@ public class OpenStackAttachmentPluginTest {
             throws FogbowManagerException, HttpResponseException, UnexpectedException {
     	//set up
         Mockito.doThrow(UnexpectedException.class).when(this.client)
-                .doGetRequest(Mockito.anyString(), Mockito.any(Token.class));
+                .doGetRequest(Mockito.anyString(), Mockito.any(LocalUserAttributes.class));
         String instanceId = FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID;
         
         //exercise/verify
-        this.openStackAttachmentPlugin.getInstance(instanceId, this.localToken);
+        this.openStackAttachmentPlugin.getInstance(instanceId, this.localUserAttributes);
     }
     
     //test case: check if generateJsonAttach is generating a correct Json according to a random volumeId generated by VolumeOrder

@@ -2,20 +2,13 @@ package org.fogbowcloud.manager.requests.api.local.http;
 
 import static org.mockito.Mockito.times;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import org.fogbowcloud.manager.api.http.VolumeOrdersController;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -168,12 +161,10 @@ public class VolumeOrdersControllerTest {
     }
 
     private VolumeOrder createVolumeOrder() throws InvalidParameterException {
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, FAKE_NAME);
-        FederationUser federationUser = new FederationUser(FAKE_USER, attributes);
+        FederationUserAttributes federationUserAttributes = new FederationUserAttributes(FAKE_ID, FAKE_NAME);
 
         VolumeOrder volumeOrder = Mockito.spy(new VolumeOrder());
-        volumeOrder.setFederationUser(federationUser);
+        volumeOrder.setFederationUserAttributes(federationUserAttributes);
 
         return volumeOrder;
     }

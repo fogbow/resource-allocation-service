@@ -12,7 +12,6 @@ import java.security.SignatureException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Properties;
@@ -29,7 +28,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
 import org.fogbowcloud.manager.core.plugins.behavior.authentication.AuthenticationPlugin;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.RSAUtil;
@@ -153,7 +152,7 @@ public class LdapIdentityPlugin implements AuthenticationPlugin {
     }
 
     @Override
-    public FederationUser getFederationUser(String federationTokenValue)
+    public FederationUserAttributes getFederationUser(String federationTokenValue)
             throws UnauthenticatedUserException, InvalidParameterException {
 
         try {
@@ -180,10 +179,9 @@ public class LdapIdentityPlugin implements AuthenticationPlugin {
             String uuid = root.getString(ATT_LOGIN);
             String name = root.getString(ATT_NAME);
 
-            HashMap<String, String> attributes = new HashMap<String, String>();
-            attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, name);
-
-            return new FederationUser(uuid, attributes);
+            FederationUserAttributes federationUserAttributes = new FederationUserAttributes(uuid, null);
+            federationUserAttributes.setName(name);
+            return federationUserAttributes;
         } catch (JSONException e) {
             LOGGER.error("Exception while getting tokens from json.", e);
             throw new UnauthenticatedUserException();

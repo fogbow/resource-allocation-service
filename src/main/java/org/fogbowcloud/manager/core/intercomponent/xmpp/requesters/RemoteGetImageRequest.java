@@ -8,7 +8,7 @@ import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.images.Image;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
 import org.xmpp.packet.IQ;
 import com.google.gson.Gson;
 
@@ -18,12 +18,12 @@ public class RemoteGetImageRequest implements RemoteRequest<Image> {
 
     private String provider;
     private String imageId;
-    private FederationUser federationUser;
+    private FederationUserAttributes federationUserAttributes;
 
-    public RemoteGetImageRequest(String provider, String imageId, FederationUser federationUser) {
+    public RemoteGetImageRequest(String provider, String imageId, FederationUserAttributes federationUserAttributes) {
         this.provider = provider;
         this.imageId = imageId;
-        this.federationUser = federationUser;
+        this.federationUserAttributes = federationUserAttributes;
     }
 
     @Override
@@ -50,7 +50,7 @@ public class RemoteGetImageRequest implements RemoteRequest<Image> {
         imageIdElement.setText(this.imageId);
 
         Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
-        userElement.setText(new Gson().toJson(this.federationUser));
+        userElement.setText(new Gson().toJson(this.federationUserAttributes));
 
         return iq;
     }

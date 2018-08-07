@@ -2,12 +2,11 @@ package org.fogbowcloud.manager.core.datastore.orderstorage;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.datastore.commands.VolumeSQLCommands;
-import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
 
 import java.sql.*;
 import java.util.Date;
@@ -131,7 +130,7 @@ public class VolumeOrderStorage extends OrderStorage {
                 Map<String, String> federationUserAttr = getFederationUserAttrFromString(volumeResult.getString(5));
 
                 VolumeOrder volumeOrder = new VolumeOrder(volumeResult.getString(1),
-                        new FederationUser(volumeResult.getString(4), federationUserAttr),
+                        new FederationUserAttributes(volumeResult.getString(4), null),
                         volumeResult.getString(6), volumeResult.getString(7),
                         volumeResult.getInt(8), volumeResult.getString(9));
 
@@ -151,8 +150,6 @@ public class VolumeOrderStorage extends OrderStorage {
             } catch (SQLException e1) {
                 LOGGER.error("Couldn't rollback transaction.", e1);
             }
-        } catch (InvalidParameterException e) {
-            LOGGER.error(e);
         } finally {
             closeConnection(orderStatement, connection);
         }

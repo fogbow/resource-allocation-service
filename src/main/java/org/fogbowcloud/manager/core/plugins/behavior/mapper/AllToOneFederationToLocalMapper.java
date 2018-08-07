@@ -10,10 +10,10 @@ import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
-import org.fogbowcloud.manager.core.models.tokens.KeystoneV3TokenGenerator;
-import org.fogbowcloud.manager.core.models.tokens.LocalTokenGenerator;
-import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.generators.KeystoneV3TokenGenerator;
+import org.fogbowcloud.manager.core.models.tokens.generators.LocalTokenGenerator;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 
 public class AllToOneFederationToLocalMapper implements FederationToLocalMapperPlugin {
@@ -36,7 +36,7 @@ public class AllToOneFederationToLocalMapper implements FederationToLocalMapperP
     }
 
     @Override
-    public Token getToken(FederationUser user) throws UnexpectedException, FogbowManagerException {
+    public LocalUserAttributes map(FederationUserAttributes user) throws UnexpectedException, FogbowManagerException {
 	    return localTokenGenerator.createToken(this.credentials);
     }
 

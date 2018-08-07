@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.core.models.orders;
 import java.util.UUID;
 
 import org.fogbowcloud.manager.core.models.ResourceType;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
 
 public class VolumeOrder extends Order {
 
@@ -15,16 +15,16 @@ public class VolumeOrder extends Order {
     }
 
     /** Creating Order with predefined Id. */
-    public VolumeOrder(String id, FederationUser federationUser, String requestingMember, String providingMember,
-            int volumeSize, String volumeName) {
-        super(id, federationUser, requestingMember, providingMember);
+    public VolumeOrder(String id, FederationUserAttributes federationUserAttributes, String requestingMember, String providingMember,
+                       int volumeSize, String volumeName) {
+        super(id, federationUserAttributes, requestingMember, providingMember);
         this.volumeSize = volumeSize;
         this.volumeName = volumeName;
     }
 
-    public VolumeOrder(FederationUser federationUser, String requestingMember, String providingMember,
-            int volumeSize, String volumeName) {
-        this(UUID.randomUUID().toString(), federationUser, requestingMember, providingMember,
+    public VolumeOrder(FederationUserAttributes federationUserAttributes, String requestingMember, String providingMember,
+                       int volumeSize, String volumeName) {
+        this(UUID.randomUUID().toString(), federationUserAttributes, requestingMember, providingMember,
                 volumeSize, volumeName);
     }
 

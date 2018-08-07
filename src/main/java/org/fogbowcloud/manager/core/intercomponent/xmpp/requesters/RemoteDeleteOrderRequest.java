@@ -46,7 +46,7 @@ public class RemoteDeleteOrderRequest implements RemoteRequest<Void> {
 
         LOGGER.debug("Jsonifying federationidentity user.");
         Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());
-        userElement.setText(new Gson().toJson(this.order.getFederationUser()));
+        userElement.setText(new Gson().toJson(this.order.getFederationUserAttributes()));
         
         return iq;
     }

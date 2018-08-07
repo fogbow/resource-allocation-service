@@ -15,14 +15,15 @@ import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.images.Image;
-import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.OpenStackUserAttributes;
 import org.fogbowcloud.manager.core.plugins.cloud.ImagePlugin;
 import org.fogbowcloud.manager.core.plugins.serialization.openstack.image.v2.GetImageResponse;
 import org.fogbowcloud.manager.core.plugins.serialization.openstack.image.v2.GetAllImagesResponse;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 
-public class OpenStackImagePlugin implements ImagePlugin {
+public class OpenStackImagePlugin implements ImagePlugin<OpenStackUserAttributes> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenStackImagePlugin.class);
 
@@ -49,15 +50,15 @@ public class OpenStackImagePlugin implements ImagePlugin {
 	}
 	
 	@Override
-	public Map<String, String> getAllImages(Token localToken) throws FogbowManagerException, UnexpectedException {
+	public Map<String, String> getAllImages(OpenStackUserAttributes openStackUserAttributes) throws FogbowManagerException, UnexpectedException {
 		Map<String, String> availableImages = getAvailableImages(
-				localToken, localToken.getAttributes().get(TENANT_ID));
+                openStackUserAttributes, openStackUserAttributes.getTenantId());
 		return availableImages;
 	}
 
 	@Override
-	public Image getImage(String imageId, Token localToken) throws FogbowManagerException, UnexpectedException {
-		GetImageResponse getImageResponse = getImageResponse(imageId, localToken);
+	public Image getImage(String imageId, OpenStackUserAttributes openStackUserAttributes) throws FogbowManagerException, UnexpectedException {
+		GetImageResponse getImageResponse = getImageResponse(imageId, openStackUserAttributes);
 		String id = getImageResponse.getId();
 		String status = getImageResponse.getStatus();
 		LOGGER.debug("The image " + id + " status is " + status);
@@ -75,13 +76,13 @@ public class OpenStackImagePlugin implements ImagePlugin {
 		return null;
 	}
 	
-	private GetImageResponse getImageResponse(String imageId, Token localToken)
+	private GetImageResponse getImageResponse(String imageId, LocalUserAttributes localUserAttributes)
 			throws FogbowManagerException, UnexpectedException {
 		String jsonResponse = null;
 		try {
 			String endpoint = this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY) 
 					+ IMAGE_V2_API_ENDPOINT + IMAGE_V2_API_SUFFIX + File.separator + imageId;
-			jsonResponse = this.client.doGetRequest(endpoint, localToken);
+			jsonResponse = this.client.doGetRequest(endpoint, localUserAttributes);
 		} catch (HttpResponseException e) {
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}
@@ -89,12 +90,12 @@ public class OpenStackImagePlugin implements ImagePlugin {
 		return GetImageResponse.fromJson(jsonResponse);
 	}
 	
-	private List<GetImageResponse> getImagesResponse(Token localToken) throws FogbowManagerException, UnexpectedException {
+	private List<GetImageResponse> getImagesResponse(LocalUserAttributes localUserAttributes) throws FogbowManagerException, UnexpectedException {
 		String jsonResponse = null;
 		try {
 			String endpoint = this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY) 
 					+ IMAGE_V2_API_ENDPOINT + IMAGE_V2_API_SUFFIX + QUERY_ACTIVE_IMAGES;
-			jsonResponse = this.client.doGetRequest(endpoint, localToken);
+			jsonResponse = this.client.doGetRequest(endpoint, localUserAttributes);
 		} catch (HttpResponseException e) {
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}
@@ -102,11 +103,11 @@ public class OpenStackImagePlugin implements ImagePlugin {
 		
 		List<GetImageResponse> getImageResponses = new ArrayList<GetImageResponse>();
 		getImageResponses.addAll(getAllImagesResponse.getImages());
-		getNextImageListResponseByPagination(localToken, getAllImagesResponse, getImageResponses);
+		getNextImageListResponseByPagination(localUserAttributes, getAllImagesResponse, getImageResponses);
 		return getImageResponses;
 	}
 
-	private void getNextImageListResponseByPagination(Token localToken, GetAllImagesResponse getAllImagesResponse, List<GetImageResponse> imagesJson)
+	private void getNextImageListResponseByPagination(LocalUserAttributes localUserAttributes, GetAllImagesResponse getAllImagesResponse, List<GetImageResponse> imagesJson)
 			throws FogbowManagerException, UnexpectedException {
 		
 		String next = getAllImagesResponse.getNext();
@@ -114,14 +115,14 @@ public class OpenStackImagePlugin implements ImagePlugin {
 			String endpoint = this.properties.getProperty(IMAGE_GLANCEV2_URL_KEY) + next;
 			String jsonResponse = null;
 			try {
-				jsonResponse = this.client.doGetRequest(endpoint, localToken);
+				jsonResponse = this.client.doGetRequest(endpoint, localUserAttributes);
 			} catch (HttpResponseException e) {
 				OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 			}
 			getAllImagesResponse = getAllImagesResponse(jsonResponse);
 			
 			imagesJson.addAll(getAllImagesResponse.getImages());
-			getNextImageListResponseByPagination(localToken, getAllImagesResponse, imagesJson);
+			getNextImageListResponseByPagination(localUserAttributes, getAllImagesResponse, imagesJson);
 		}	
 	}
 	
@@ -147,11 +148,11 @@ public class OpenStackImagePlugin implements ImagePlugin {
 		return privateImagesResponse;
 	}
 	
-	private Map<String, String> getAvailableImages(Token localToken, String tenantId)
+	private Map<String, String> getAvailableImages(LocalUserAttributes localUserAttributes, String tenantId)
 			throws FogbowManagerException, UnexpectedException {
 		Map<String, String> availableImages = new HashMap<String, String>();
 		
-		List<GetImageResponse> allImagesResponse = getImagesResponse(localToken);
+		List<GetImageResponse> allImagesResponse = getImagesResponse(localUserAttributes);
 		
 		List<GetImageResponse> filteredImagesResponse = filterImagesResponse(tenantId, allImagesResponse);
 		

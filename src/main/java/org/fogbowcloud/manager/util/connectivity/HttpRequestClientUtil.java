@@ -3,7 +3,6 @@ package org.fogbowcloud.manager.util.connectivity;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import com.google.j2objc.annotations.ReflectionSupport;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -13,7 +12,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 
@@ -31,13 +30,13 @@ public class HttpRequestClientUtil {
 		this.client = httpClient;
 	}
 
-    public String doGetRequest(String endpoint, Token localToken)
+    public String doGetRequest(String endpoint, LocalUserAttributes localUserAttributes)
             throws UnavailableProviderException, HttpResponseException {
         LOGGER.debug("Doing GET request to endpoint <" + endpoint + ">");
         HttpGet request = new HttpGet(endpoint);
         request.addHeader(HttpRequestUtil.CONTENT_TYPE_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
         request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
-        request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, localToken.getAccessId());
+        request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, localUserAttributes.getTokenValue());
 
         String response;
         HttpResponse httpResponse = null;
@@ -63,13 +62,13 @@ public class HttpRequestClientUtil {
         return response;
     }
     
-    public String doPostRequest(String endpoint, Token localToken, String body)
+    public String doPostRequest(String endpoint, LocalUserAttributes localUserAttributes, String body)
             throws UnavailableProviderException, HttpResponseException {
         LOGGER.debug("Doing POST request to endpoint <" + endpoint + ">");
         HttpPost request = new HttpPost(endpoint);
         request.addHeader(HttpRequestUtil.CONTENT_TYPE_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
         request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
-        request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, localToken.getAccessId());
+        request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, localUserAttributes.getTokenValue());
         request.setEntity(new StringEntity(body, StandardCharsets.UTF_8));
 
         String responseStr;
@@ -96,11 +95,11 @@ public class HttpRequestClientUtil {
         return responseStr;
     }
 
-    public void doDeleteRequest(String endpoint, Token localToken)
+    public void doDeleteRequest(String endpoint, LocalUserAttributes localUserAttributes)
             throws UnavailableProviderException, HttpResponseException {
         LOGGER.debug("Doing DELETE request to endpoint <" + endpoint + ">");
         HttpDelete request = new HttpDelete(endpoint);
-        request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, localToken.getAccessId());
+        request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, localUserAttributes.getTokenValue());
 
         HttpResponse response = null;
 
@@ -155,12 +154,12 @@ public class HttpRequestClientUtil {
     }
 
     @SuppressWarnings("unused")
-    public String doPutRequest(String endpoint, Token localToken, JSONObject json)
+    public String doPutRequest(String endpoint, LocalUserAttributes localUserAttributes, JSONObject json)
             throws HttpResponseException, UnavailableProviderException {
         HttpPut request = new HttpPut(endpoint);
         request.addHeader(HttpRequestUtil.CONTENT_TYPE_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
         request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
-        request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, localToken.getAccessId());
+        request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, localUserAttributes.getTokenValue());
         request.setEntity(new StringEntity(json.toString(), StandardCharsets.UTF_8));
 
         String responseStr;

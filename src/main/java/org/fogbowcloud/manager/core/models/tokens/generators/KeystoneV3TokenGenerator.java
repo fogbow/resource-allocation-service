@@ -1,7 +1,6 @@
-package org.fogbowcloud.manager.core.models.tokens;
+package org.fogbowcloud.manager.core.models.tokens.generators;
 
 import java.io.File;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -12,6 +11,8 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.OpenStackUserAttributes;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackHttpToFogbowManagerExceptionMapper;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.manager.util.PropertiesUtil;
@@ -19,12 +20,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class KeystoneV3TokenGenerator implements LocalTokenGenerator {
+public class KeystoneV3TokenGenerator implements LocalTokenGenerator<OpenStackUserAttributes> {
 
     private static final Logger LOGGER = Logger.getLogger(KeystoneV3TokenGenerator.class);
 
     private static final String OPENSTACK_KEYSTONE_V3_URL = "openstack_keystone_v3_url";
-    private static final String X_SUBJECT_TOKEN = "X-Subject-Token";
+    private static final String X_SUBJECT_TOKEN = "X-Subject-LocalUserAttributes";
     private static final String PASSWORD_PROP = "password";
     private static final String IDENTITY_PROP = "identity";
     private static final String PROJECT_PROP = "project";
@@ -69,9 +70,9 @@ public class KeystoneV3TokenGenerator implements LocalTokenGenerator {
     }
 
     @Override
-    public Token createToken(Map<String, String> credentials) throws FogbowManagerException,
+    public OpenStackUserAttributes createToken(Map<String, String> credentials) throws FogbowManagerException,
             UnexpectedException {
-        LOGGER.debug("Creating new Token");
+        LOGGER.debug("Creating new LocalUserAttributes");
 
         JSONObject json;
         try {
@@ -94,8 +95,9 @@ public class KeystoneV3TokenGenerator implements LocalTokenGenerator {
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
-        Token token = getTokenFromJson(response);
-        return token;
+
+        OpenStackUserAttributes localUserAttributes = getTokenFromJson(response);
+        return localUserAttributes;
     }
 
     protected JSONObject mountJson(Map<String, String> credentials) throws JSONException {
@@ -124,13 +126,12 @@ public class KeystoneV3TokenGenerator implements LocalTokenGenerator {
         return root;
     }
 
-    private Token getTokenFromJson(HttpRequestClientUtil.Response response) throws UnexpectedException {
-
-        String accessId = null;
+    private OpenStackUserAttributes getTokenFromJson(HttpRequestClientUtil.Response response) throws UnexpectedException {
+        String tokenValue = null;
         Header[] headers = response.getHeaders();
         for (Header header : headers) {
             if (header.getName().equals(X_SUBJECT_TOKEN)) {
-                accessId = header.getValue();
+                tokenValue = header.getValue();
             }
         }
 
@@ -138,27 +139,8 @@ public class KeystoneV3TokenGenerator implements LocalTokenGenerator {
             JSONObject root = new JSONObject(response.getContent());
             JSONObject token = root.getJSONObject(TOKEN_PROP);
 
-            JSONObject user = token.getJSONObject(USER_PROP);
-            String userId = user.getString(ID_PROP);
-            String userName = user.getString(NAME_PROP);
-
-            Map<String, String> tokenAtt = new HashMap<String, String>();
-            String tenantId = null;
-            String tenantName = null;
-            try {
-                tenantId = token.getJSONObject(PROJECT_PROP).getString(ID_PROP);
-                tokenAtt.put(TENANT_ID, tenantId);
-            } catch (JSONException e) {
-                LOGGER.debug("There is no tenantId inside json response");
-            }
-            try {
-                tenantName = token.getJSONObject(PROJECT_PROP).getString(NAME_PROP);
-                tokenAtt.put(TENANT_NAME, tenantName);
-            } catch (JSONException e) {
-                LOGGER.debug("There is no tenantName inside json response");
-            }
-
-            return new Token(accessId, new Token.User(userId, userName), new Date(), tokenAtt);
+            String tenantId = token.getJSONObject(PROJECT_PROP).getString(ID_PROP);
+            return new OpenStackUserAttributes(tokenValue, tenantId);
         } catch (Exception e) {
             LOGGER.error("Exception while getting tokens from json", e);
             throw new UnexpectedException("Exception while getting tokens from json", e);

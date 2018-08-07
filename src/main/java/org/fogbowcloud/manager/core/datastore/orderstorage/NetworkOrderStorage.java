@@ -2,13 +2,12 @@ package org.fogbowcloud.manager.core.datastore.orderstorage;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.datastore.commands.NetworkSQLCommands;
-import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
 
 import java.sql.*;
 import java.util.Date;
@@ -134,7 +133,7 @@ public class NetworkOrderStorage extends OrderStorage {
                 Map<String, String> federationUserAttr = getFederationUserAttrFromString(networkResult.getString(5));
 
                 NetworkOrder networkOrder = new NetworkOrder(networkResult.getString(1),
-                        new FederationUser(networkResult.getString(4), federationUserAttr),
+                        new FederationUserAttributes(networkResult.getString(4), null),
                         networkResult.getString(6), networkResult.getString(7),
                         networkResult.getString(8), networkResult.getString(9),
                         NetworkAllocationMode.valueOf(networkResult.getString(10)));
@@ -155,8 +154,6 @@ public class NetworkOrderStorage extends OrderStorage {
             } catch (SQLException e1) {
                 LOGGER.error("Couldn't rollback transaction.", e1);
             }
-        } catch (InvalidParameterException e) {
-            LOGGER.error(e);
         } finally {
             closeConnection(orderStatement, connection);
         }

@@ -3,11 +3,10 @@ package org.fogbowcloud.manager.core.datastore;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.*;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
 import org.fogbowcloud.manager.core.plugins.cloud.util.CloudInitUserDataBuilder;
 import org.junit.*;
 import org.junit.runner.RunWith;
@@ -19,8 +18,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(PropertiesHolder.class)
@@ -75,11 +72,9 @@ public class DatabaseManagerTest {
     public void testAddComputeOrder() throws InvalidParameterException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserAttributes federationUserAttributes = new FederationUserAttributes("fake-id", "fake-user");
 
-        Order computeOrder = new ComputeOrder(federationUser,
+        Order computeOrder = new ComputeOrder(federationUserAttributes,
                 "requestingMember", "providingMember", 8, 1024,
                 30, "fake_image_name", new UserData("extraUserDataFile",
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), "fake_public_key", null);
@@ -106,11 +101,9 @@ public class DatabaseManagerTest {
     public void testUpdateComputeOrderState() throws InvalidParameterException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserAttributes federationUserAttributes = new FederationUserAttributes("fake-id", "fake-user");
 
-        ComputeOrder computeOrder = new ComputeOrder("id", federationUser,
+        ComputeOrder computeOrder = new ComputeOrder("id", federationUserAttributes,
                 "requestingMember", "providingMember", 8, 1024,
                 30, "fake_image_name", new UserData("extraUserDataFile",
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), "fake_public_key", null);
@@ -141,11 +134,9 @@ public class DatabaseManagerTest {
     public void testAddNetworkOrder() throws InvalidParameterException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserAttributes federationUserAttributes = new FederationUserAttributes("fake-id", "fake-user");
 
-        Order networkOrder = new NetworkOrder(federationUser,
+        Order networkOrder = new NetworkOrder(federationUserAttributes,
                 "requestingMember", "providingMember", "gateway",
                 "address", NetworkAllocationMode.STATIC);
         networkOrder.setOrderStateInTestMode(OrderState.OPEN);
@@ -171,11 +162,9 @@ public class DatabaseManagerTest {
     public void testUpdateNetworkOrderState() throws InvalidParameterException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserAttributes federationUserAttributes = new FederationUserAttributes("fake-id", "fake-user");
 
-        Order networkOrder = new NetworkOrder(federationUser,
+        Order networkOrder = new NetworkOrder(federationUserAttributes,
                 "requestingMember", "providingMember", "gateway",
                 "address", NetworkAllocationMode.STATIC);
         networkOrder.setOrderStateInTestMode(OrderState.OPEN);
@@ -201,11 +190,9 @@ public class DatabaseManagerTest {
     public void testAddVolumeOrder() throws InvalidParameterException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserAttributes federationUserAttributes = new FederationUserAttributes("fake-id", "fake-user");
 
-        Order volumeOrder = new VolumeOrder(federationUser,
+        Order volumeOrder = new VolumeOrder(federationUserAttributes,
                 "requestingMember", "providingMember", 0, "volume-name");
         volumeOrder.setOrderStateInTestMode(OrderState.OPEN);
 
@@ -230,11 +217,9 @@ public class DatabaseManagerTest {
     public void testUpdateVolumeOrderState() throws InvalidParameterException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserAttributes federationUserAttributes = new FederationUserAttributes("fake-id", "fake-user");
 
-        Order volumeOrder = new VolumeOrder(federationUser,
+        Order volumeOrder = new VolumeOrder(federationUserAttributes,
                 "requestingMember", "providingMember", 0, "volume-name");
         volumeOrder.setOrderStateInTestMode(OrderState.OPEN);
 
@@ -260,11 +245,9 @@ public class DatabaseManagerTest {
     public void testGetClosedOrderWithoutInstanceId() throws InvalidParameterException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserAttributes federationUserAttributes = new FederationUserAttributes("fake-id", "fake-user");
 
-        Order volumeOrder = new VolumeOrder(federationUser,
+        Order volumeOrder = new VolumeOrder(federationUserAttributes,
                 "requestingMember", "providingMember", 0, "volume-name");
         volumeOrder.setOrderStateInTestMode(OrderState.CLOSED);
 
@@ -286,11 +269,9 @@ public class DatabaseManagerTest {
     public void testGetClosedOrderWithInstanceId() throws InvalidParameterException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserAttributes federationUserAttributes = new FederationUserAttributes("fake-id", "fake-user");
 
-        VolumeOrder volumeOrder = new VolumeOrder(federationUser,
+        VolumeOrder volumeOrder = new VolumeOrder(federationUserAttributes,
                 "requestingMember", "providingMember", 0, "volume-name");
         volumeOrder.setOrderStateInTestMode(OrderState.CLOSED);
         volumeOrder.setInstanceId("instanceId");
