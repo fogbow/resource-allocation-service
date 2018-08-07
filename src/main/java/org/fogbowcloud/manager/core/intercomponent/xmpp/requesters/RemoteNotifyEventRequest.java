@@ -29,24 +29,36 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
         return null;
     }
 
-    private IQ createIq() {
+    public IQ createIq() {
         LOGGER.debug("Creating IQ for order: " + this.order.getId());
-
         IQ iq = new IQ(IQ.Type.set);
         iq.setTo(this.order.getRequestingMember());
         iq.setID(this.order.getId());
 
-        Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
-                RemoteMethod.REMOTE_NOTIFY_EVENT.toString());
-        Element orderElement = queryElement.addElement(IqElement.ORDER.toString());
+        Element queryElement = marshallQuery(iq);
+
+        marshallOrder(queryElement);
+        marshallEvent(queryElement);
+
+        return iq;
+    }
+
+	private void marshallEvent(Element queryElement) {
+		Element eventElement = queryElement.addElement(IqElement.EVENT.toString());
+        eventElement.setText(new Gson().toJson(this.event));
+	}
+
+	private void marshallOrder(Element queryElement) {
+		Element orderElement = queryElement.addElement(IqElement.ORDER.toString());
         orderElement.setText(new Gson().toJson(this.order));
 
         Element orderClassNameElement = queryElement.addElement(IqElement.ORDER_CLASS_NAME.toString());
         orderClassNameElement.setText(this.order.getClass().getName());
+	}
 
-        Element eventElement = queryElement.addElement(IqElement.EVENT.toString());
-        eventElement.setText(new Gson().toJson(this.event));
-
-        return iq;
-    }
+	private Element marshallQuery(IQ iq) {
+		Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
+                RemoteMethod.REMOTE_NOTIFY_EVENT.toString());
+		return queryElement;
+	}
 }
