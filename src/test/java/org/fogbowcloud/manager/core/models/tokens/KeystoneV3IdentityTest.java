@@ -27,8 +27,6 @@ import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.manager.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
-import org.fogbowcloud.manager.core.models.tokens.KeystoneV3TokenGenerator;
-import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -131,7 +129,8 @@ public class KeystoneV3IdentityTest {
         credentials.put(KeystoneV3TokenGenerator.PROJECT_ID, projectId);
         
         //exercise
-        JSONObject json = this.keystoneV3Identity.mountJson(credentials);
+        String jsonStr = this.keystoneV3Identity.mountJsonBody(credentials);
+        JSONObject json = new JSONObject(jsonStr);
 
         //verify
         JSONObject auth = json.getJSONObject("auth");
@@ -211,7 +210,7 @@ public class KeystoneV3IdentityTest {
     	//set up
         Map<String, String> credentials = Mockito.spy(new HashMap<String, String>());
         Mockito.doReturn("").when(credentials).get(Mockito.any());
-        Mockito.doReturn(new JSONObject()).when(this.keystoneV3Identity).mountJson(Mockito.any());
+        Mockito.doReturn("").when(this.keystoneV3Identity).mountJsonBody(Mockito.any());
 
         HttpResponse httpResponse = Mockito.mock(HttpResponse.class);
         HttpEntity httpEntity = Mockito.mock(HttpEntity.class);
@@ -233,7 +232,7 @@ public class KeystoneV3IdentityTest {
     	//set up
         Map<String, String> credentials = Mockito.spy(new HashMap<String, String>());
         Mockito.doReturn("").when(credentials).get(Mockito.any());
-        Mockito.doReturn(new JSONObject()).when(this.keystoneV3Identity).mountJson(Mockito.any());
+        Mockito.doReturn("").when(this.keystoneV3Identity).mountJsonBody(Mockito.any());
 
         HttpResponse httpResponse = Mockito.mock(HttpResponse.class);
         HttpEntity httpEntity = Mockito.mock(HttpEntity.class);
@@ -255,7 +254,7 @@ public class KeystoneV3IdentityTest {
     	//set up
         Map<String, String> credentials = Mockito.spy(new HashMap<String, String>());
         Mockito.doReturn("").when(credentials).get(Mockito.any());
-        Mockito.doReturn(new JSONObject()).when(this.keystoneV3Identity).mountJson(Mockito.any());
+        Mockito.doReturn("").when(this.keystoneV3Identity).mountJsonBody(Mockito.any());
 
         HttpResponse httpResponse = Mockito.mock(HttpResponse.class);
         HttpEntity httpEntity = Mockito.mock(HttpEntity.class);
@@ -277,7 +276,7 @@ public class KeystoneV3IdentityTest {
     	//set up
         Map<String, String> credentials = Mockito.spy(new HashMap<String, String>());
         Mockito.doReturn("").when(credentials).get(Mockito.any());
-        Mockito.doReturn(new JSONObject()).when(this.keystoneV3Identity).mountJson(Mockito.any());
+        Mockito.doReturn("").when(this.keystoneV3Identity).mountJsonBody(Mockito.any());
 
         HttpResponse httpResponse = Mockito.mock(HttpResponse.class);
         HttpEntity httpEntity = Mockito.mock(HttpEntity.class);
@@ -298,7 +297,7 @@ public class KeystoneV3IdentityTest {
     public void testCreateTokenOnJsonException() throws FogbowManagerException, UnexpectedException {
     	//set up
         Map<String, String> credentials = Mockito.spy(new HashMap<String, String>());
-        Mockito.doThrow(new JSONException("")).when(this.keystoneV3Identity).mountJson(Mockito.any());
+        Mockito.doThrow(new JSONException("")).when(this.keystoneV3Identity).mountJsonBody(Mockito.any());
         //exercise/verify
         this.keystoneV3Identity.createToken(credentials);
     }
@@ -310,8 +309,8 @@ public class KeystoneV3IdentityTest {
     	Map<String, String> credentials = Mockito.spy(new HashMap<String, String>());
         String authUrl = "auth-url";
         Mockito.doReturn(authUrl).when(credentials).get(Mockito.any());
-        JSONObject json = new JSONObject();
-        Mockito.doReturn(json).when(this.keystoneV3Identity).mountJson(Mockito.any());
+        String jsonStr = "";
+		Mockito.doReturn(jsonStr).when(this.keystoneV3Identity).mountJsonBody(Mockito.any());
         HttpResponse httpResponse = Mockito.mock(HttpResponse.class);
         HttpEntity httpEntity = Mockito.mock(HttpEntity.class);
         JSONObject returnJson =
@@ -342,7 +341,7 @@ public class KeystoneV3IdentityTest {
         this.keystoneV3Identity.createToken(credentials);
 
         //verify
-        Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doPostRequest(currentTokenEndpoint, json);
+        Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doPostRequest(currentTokenEndpoint, jsonStr);
     }
     
     private JSONObject createJsonResponse(

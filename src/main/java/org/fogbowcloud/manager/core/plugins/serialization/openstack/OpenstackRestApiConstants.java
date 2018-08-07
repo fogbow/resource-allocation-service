@@ -93,4 +93,21 @@ public class OpenstackRestApiConstants {
         public static final String IMAGES_KEY_JSON = "images";
 
     }
+    
+    public static class Identity {
+    	
+    	public static final String ID_KEY_JSON = "id";
+    	public static final String AUTH_KEY_JSON = "auth";
+    	public static final String USER_KEY_JSON = "user";
+    	public static final String NAME_KEY_JSON = "name";
+    	public static final String SCOPE_KEY_JSON = "scope";
+    	public static final String TOKEN_KEY_JSON = "token";
+    	public static final String METHODS_KEY_JSON = "methods";
+    	public static final String METHODS_PASSWORD_VALUE_JSON = "password";
+    	public static final String PROJECT_KEY_JSON = "project";
+    	public static final String PASSWORD_KEY_JSON = "password";
+    	public static final String IDENTITY_KEY_JSON = "identity";
+    	
+    }
+    
 }
