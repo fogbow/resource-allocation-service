@@ -6,6 +6,7 @@ import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.core.plugins.serialization.openstack.quota.v2.GetQuotaResponse;
 import org.fogbowcloud.manager.util.JSONUtil;
 import org.json.JSONObject;
 import org.junit.Assert;
@@ -48,51 +49,49 @@ public class OpenStackComputeQuotaPluginTest {
     // test case: Tests if getTotalQuota(), getUsedQuota() and getAvailableQuota() returns the right
     // quotas from the FAKE_QUOTA_JSON_RESPONSE.
     @Test
-    public void testgetUserQuota() throws FogbowManagerException, UnexpectedException {
+    public void testGetUserQuota() throws FogbowManagerException, UnexpectedException {
         // set up
-        ComputeQuota computeQuota = processJson(FAKE_QUOTA_JSON_RESPONSE);
+        GetQuotaResponse getQuotaResponse = GetQuotaResponse.fromJson(FAKE_QUOTA_JSON_RESPONSE);
 
-        Mockito.doReturn(FAKE_QUOTA_JSON_RESPONSE).when(this.plugin).getQuotaJson(this.token);
+        int maxTotalCores = getQuotaResponse.getMaxTotalCores();
+        int maxTotalRamSize = getQuotaResponse.getMaxTotalRamSize();
+        int maxTotalInstances = getQuotaResponse.getMaxTotalInstances();
+        ComputeAllocation totalQuota = new ComputeAllocation(maxTotalCores,	maxTotalRamSize, maxTotalInstances);
+
+        int totalCoresUsed = getQuotaResponse.getTotalCoresUsed();
+        int totalRamUsed = getQuotaResponse.getTotalRamUsed();
+        int totalInstancesUsed = getQuotaResponse.getTotalInstancesUsed();
+        ComputeAllocation usedQuota = new ComputeAllocation(totalCoresUsed, totalRamUsed, totalInstancesUsed);
+
+        ComputeQuota computeQuota = new ComputeQuota(totalQuota, usedQuota);
+        Mockito.doReturn(computeQuota).when(this.plugin).getUserQuota(this.token);
 
         // exercise
-        ComputeAllocation totalQuota = this.plugin.getUserQuota(this.token).getTotalQuota();
-        ComputeAllocation usedQuota = this.plugin.getUserQuota(this.token).getUsedQuota();
-        ComputeAllocation availableQuota = this.plugin.getUserQuota(this.token).getAvailableQuota();
+        ComputeAllocation retrievedTotalQuota = this.plugin.getUserQuota(this.token).getTotalQuota();
+        ComputeAllocation retrievedUsedQuota = this.plugin.getUserQuota(this.token).getUsedQuota();
+        ComputeAllocation retrievedAvailableQuota = this.plugin.getUserQuota(this.token).getAvailableQuota();
 
         // verify
-        Assert.assertEquals(computeQuota.getTotalQuota().getvCPU(), totalQuota.getvCPU());
-        Assert.assertEquals(computeQuota.getTotalQuota().getRam(), totalQuota.getRam());
-        Assert.assertEquals(computeQuota.getTotalQuota().getInstances(), totalQuota.getInstances());
+        Assert.assertEquals(totalQuota.getvCPU(), retrievedTotalQuota.getvCPU());
+        Assert.assertEquals(totalQuota.getRam(), retrievedTotalQuota.getRam());
+        Assert.assertEquals(totalQuota.getInstances(), retrievedTotalQuota.getInstances());
 
-        Assert.assertEquals(computeQuota.getUsedQuota().getvCPU(), usedQuota.getvCPU());
-        Assert.assertEquals(computeQuota.getUsedQuota().getRam(), usedQuota.getRam());
-        Assert.assertEquals(computeQuota.getUsedQuota().getInstances(), usedQuota.getInstances());
+        Assert.assertEquals(usedQuota.getvCPU(), retrievedUsedQuota.getvCPU());
+        Assert.assertEquals(usedQuota.getRam(), retrievedUsedQuota.getRam());
+        Assert.assertEquals(usedQuota.getInstances(), retrievedUsedQuota.getInstances());
 
-        Assert.assertEquals(computeQuota.getAvailableQuota().getvCPU(), availableQuota.getvCPU());
-        Assert.assertEquals(computeQuota.getAvailableQuota().getRam(), availableQuota.getRam());
-        Assert.assertEquals(computeQuota.getAvailableQuota().getInstances(), availableQuota.getInstances());
+        Assert.assertEquals(computeQuota.getAvailableQuota().getvCPU(), retrievedAvailableQuota.getvCPU());
+        Assert.assertEquals(computeQuota.getAvailableQuota().getRam(), retrievedAvailableQuota.getRam());
+        Assert.assertEquals(computeQuota.getAvailableQuota().getInstances(), retrievedAvailableQuota.getInstances());
     }
 
     @Test(expected = UnexpectedException.class)
     public void testGetUserQuotaWhenGetRequestThrowsAnException() throws UnexpectedException, FogbowManagerException {
         // set up
-        Mockito.doThrow(UnexpectedException.class).when(this.plugin).getQuotaJson(this.token);
+        Mockito.doThrow(UnexpectedException.class).when(this.plugin).getUserQuota(this.token);
 
         // exercise
         this.plugin.getUserQuota(this.token);
     }
 
-    private ComputeQuota processJson(String jsonStr) {
-        JSONObject jsonObject = (JSONObject) JSONUtil.getValue(jsonStr, "limits", "absolute");
-
-        ComputeAllocation totalQuota = new ComputeAllocation(jsonObject.getInt(OpenStackComputeQuotaPlugin.MAX_TOTAL_CORES_JSON),
-                jsonObject.getInt(OpenStackComputeQuotaPlugin.MAX_TOTAL_RAM_SIZE_JSON),
-                jsonObject.getInt(OpenStackComputeQuotaPlugin.MAX_TOTAL_INSTANCES_JSON));
-
-        ComputeAllocation usedQuota = new ComputeAllocation(jsonObject.getInt(OpenStackComputeQuotaPlugin.TOTAL_CORES_USED_JSON),
-                jsonObject.getInt(OpenStackComputeQuotaPlugin.TOTAL_RAM_USED_JSON),
-                jsonObject.getInt(OpenStackComputeQuotaPlugin.TOTAL_INSTANCES_USED_JSON));
-
-        return new ComputeQuota(totalQuota, usedQuota);
-    }
 }
