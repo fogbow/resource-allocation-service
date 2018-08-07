@@ -22,7 +22,7 @@ public class RemoteCreateOrderRequest implements RemoteRequest<Void> {
 
     @Override
     public Void send() throws Exception {
-        IQ iq = createIq();
+        IQ iq = RemoteCreateOrderRequest.marshalIQ(this.order);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getProvidingMember());
@@ -30,19 +30,15 @@ public class RemoteCreateOrderRequest implements RemoteRequest<Void> {
         return null;
     }
 
-    public IQ createIq() {
+    public static IQ marshalIQ(Order order) {
+
         LOGGER.debug("Creating IQ for order: " + order.getId());
 
         IQ iq = new IQ(IQ.Type.set);
-        iq.setTo(this.order.getProvidingMember());
-        iq.setID(this.order.getId());
+        iq.setTo(order.getProvidingMember());
+        iq.setID(order.getId());
 
-        marshalOrder(iq);
-
-        return iq;
-    }
-
-    private void marshalOrder(IQ iq) {
+        //marshalling the order parcel of the IQ. It seems ok to not have another method to do so
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_CREATE_ORDER.toString());
 
@@ -50,11 +46,13 @@ public class RemoteCreateOrderRequest implements RemoteRequest<Void> {
 
         Element orderClassNameElement =
                 queryElement.addElement(IqElement.ORDER_CLASS_NAME.toString());
-        
-        orderClassNameElement.setText(this.order.getClass().getName());
 
-        String orderJson = new Gson().toJson(this.order);
+        orderClassNameElement.setText(order.getClass().getName());
+
+        String orderJson = new Gson().toJson(order);
         orderElement.setText(orderJson);
+
+        return iq;
     }
 
 }

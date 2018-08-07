@@ -63,8 +63,7 @@ public class RemoteCreateOrderRequestHandlerTest {
 
         Mockito.doNothing().when(this.remoteFacade).activateOrder(Mockito.eq(order));
 
-        RemoteCreateOrderRequest remoteCreateOrderRequest = new RemoteCreateOrderRequest(order);
-        IQ iq = remoteCreateOrderRequest.createIq();
+        IQ iq = RemoteCreateOrderRequest.marshalIQ(order);
 
         // exercise
         IQ result = this.remoteCreateOrderRequestHandler.handle(iq);
@@ -89,8 +88,7 @@ public class RemoteCreateOrderRequestHandlerTest {
         Mockito.doThrow(new FogbowManagerException()).when(this.remoteFacade)
                 .activateOrder(Mockito.any(Order.class));
 
-        RemoteCreateOrderRequest remoteCreateOrderRequest = new RemoteCreateOrderRequest(order);
-        IQ iq = remoteCreateOrderRequest.createIq();
+        IQ iq = RemoteCreateOrderRequest.marshalIQ(order);
 
         // exercise
         IQ result = this.remoteCreateOrderRequestHandler.handle(iq);
