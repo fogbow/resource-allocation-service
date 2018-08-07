@@ -30,23 +30,31 @@ public class RemoteCreateOrderRequest implements RemoteRequest<Void> {
         return null;
     }
 
-    private IQ createIq() {
-        LOGGER.debug("Creating IQ for order: " + this.order.getId());
+    public IQ createIq() {
+        LOGGER.debug("Creating IQ for order: " + order.getId());
 
         IQ iq = new IQ(IQ.Type.set);
         iq.setTo(this.order.getProvidingMember());
         iq.setID(this.order.getId());
 
-        Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
-                RemoteMethod.REMOTE_CREATE_ORDER.toString());
-        Element orderElement = queryElement.addElement(IqElement.ORDER.toString());
+        marshalOrder(iq);
 
-        Element orderClassNameElement = queryElement.addElement(IqElement.ORDER_CLASS_NAME.toString());
-        orderClassNameElement.setText(this.order.getClass().getName());
-        
-        LOGGER.debug("Jsonifying Order");
-        String orderJson = new Gson().toJson(this.order);
-        orderElement.setText(orderJson);
         return iq;
     }
+
+    private void marshalOrder(IQ iq) {
+        Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
+                RemoteMethod.REMOTE_CREATE_ORDER.toString());
+
+        Element orderElement = queryElement.addElement(IqElement.ORDER.toString());
+
+        Element orderClassNameElement =
+                queryElement.addElement(IqElement.ORDER_CLASS_NAME.toString());
+        
+        orderClassNameElement.setText(this.order.getClass().getName());
+
+        String orderJson = new Gson().toJson(this.order);
+        orderElement.setText(orderJson);
+    }
+
 }
