@@ -93,4 +93,19 @@ public class OpenstackRestApiConstants {
         public static final String IMAGES_KEY_JSON = "images";
 
     }
+
+    public static class Quota {
+
+        public static final String LIMITS_KEY_JSON = "limits";
+        public static final String ABSOLUTE_KEY_JSON = "absolute";
+
+        public static final String MAX_TOTAL_CORES_KEY_JSON = "maxTotalCores";
+        public static final String MAX_TOTAL_RAM_SIZE_KEY_JSON = "maxTotalRAMSize";
+        public static final String MAX_TOTAL_INSTANCES_KEY_JSON = "maxTotalInstances";
+        public static final String TOTAL_CORES_USED_KEY_JSON = "totalCoresUsed";
+        public static final String TOTAL_RAM_USED_KEY_JSON = "totalRAMUsed";
+        public static final String TOTAL_INSTANCES_USED_KEY_JSON = "totalInstancesUsed";
+
+    }
+
 }

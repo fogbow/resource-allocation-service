@@ -3,6 +3,7 @@ package org.fogbowcloud.manager.util.connectivity;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+import com.google.j2objc.annotations.ReflectionSupport;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -38,38 +39,38 @@ public class HttpRequestClientUtil {
         request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
         request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, localToken.getAccessId());
 
-        String responseStr;
-        HttpResponse response = null;
+        String response;
+        HttpResponse httpResponse = null;
 
         try {
-            response = this.client.execute(request);
-            if (response.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
-                String message = response.getStatusLine().getReasonPhrase();
-                throw new HttpResponseException(response.getStatusLine().getStatusCode(), message); 
+            httpResponse = this.client.execute(request);
+            if (httpResponse.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
+                String message = httpResponse.getStatusLine().getReasonPhrase();
+                throw new HttpResponseException(httpResponse.getStatusLine().getStatusCode(), message);
             }
-            responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+            response = EntityUtils.toString(httpResponse.getEntity(), StandardCharsets.UTF_8);
         } catch (HttpResponseException e) {
             throw e;
         } catch (IOException e) {
             throw new UnavailableProviderException(e.getMessage(), e);
         } finally {
             try {
-                EntityUtils.consume(response.getEntity());
+                EntityUtils.consume(httpResponse.getEntity());
             } catch (Throwable t) {
                 LOGGER.error("Error while consuming the response: " + t);
             }
         }
-        return responseStr;
+        return response;
     }
     
-    public String doPostRequest(String endpoint, Token localToken, String json)
+    public String doPostRequest(String endpoint, Token localToken, String body)
             throws UnavailableProviderException, HttpResponseException {
         LOGGER.debug("Doing POST request to endpoint <" + endpoint + ">");
         HttpPost request = new HttpPost(endpoint);
         request.addHeader(HttpRequestUtil.CONTENT_TYPE_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
         request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
         request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, localToken.getAccessId());
-        request.setEntity(new StringEntity(json, StandardCharsets.UTF_8));
+        request.setEntity(new StringEntity(body, StandardCharsets.UTF_8));
 
         String responseStr;
         HttpResponse response = null;
@@ -153,6 +154,7 @@ public class HttpRequestClientUtil {
         return new Response(responseStr, response.getAllHeaders());
     }
 
+    @SuppressWarnings("unused")
     public String doPutRequest(String endpoint, Token localToken, JSONObject json)
             throws HttpResponseException, UnavailableProviderException {
         HttpPut request = new HttpPut(endpoint);
