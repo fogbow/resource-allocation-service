@@ -33,27 +33,27 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
         IQ iq = new IQ(IQ.Type.get);
         iq.setTo(this.order.getProvidingMember());
 
-        marshallOrder(iq);        
-        marshallUser(iq);
+        marshalOrder(iq);        
+        marshalUser(iq);
         
         return iq;
     }
 
-	private void marshallUser(IQ iq) {
-		Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());
+    private void marshalUser(IQ iq) {
+        Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());
         userElement.setText(new Gson().toJson(this.order.getFederationUser()));
-	}
+    }
 
-	private void marshallOrder(IQ iq) {
-		Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
+    private void marshalOrder(IQ iq) {
+        Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_ORDER.toString());
-        
+
         Element orderIdElement = queryElement.addElement(IqElement.ORDER_ID.toString());
         orderIdElement.setText(this.order.getId());
 
         Element orderTypeElement = queryElement.addElement(IqElement.INSTANCE_TYPE.toString());
         orderTypeElement.setText(this.order.getType().toString());
-	}
+    }
 
     private Instance getInstanceFromResponse(IQ response) throws UnexpectedException {
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
