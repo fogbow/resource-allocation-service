@@ -1,13 +1,10 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 
-import com.google.gson.Gson;
-import org.dom4j.Element;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
-import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
-import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.requesters.RemoteDeleteOrderRequest;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
@@ -32,9 +29,9 @@ import java.util.Map;
 @PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
 public class RemoteDeleteOrderRequestHandlerTest {
 
-    public static final String TAG_RESULT_IQ = "\n<iq type=\"result\" id=\"%s\" from=\"%s\"/>";
+    public static final String IQ_RESULT = "\n<iq type=\"result\" id=\"%s\" from=\"%s\"/>";
 
-    public static final String TAG_RESULT_ERRO =
+    public static final String IQ_ERROR_RESULT =
             "\n<iq type=\"error\" id=\"%s\" from=\"%s\">\n" +
                     "  <error code=\"500\" type=\"wait\">\n" +
                     "    <undefined-condition xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n" +
@@ -78,7 +75,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
 
         Mockito.doNothing().when(this.remoteFacade).activateOrder(Mockito.eq(this.order));
 
-        IQ iq = createIq();
+        IQ iq = RemoteDeleteOrderRequest.marshalIQ(this.order);
 
         // exercise
         IQ result = this.remoteDeleteOrderRequestHandler.handle(iq);
@@ -86,7 +83,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
         //verify
         String orderId = order.getId();
         String orderProvidingMember = order.getProvidingMember();
-        String expected = String.format(TAG_RESULT_IQ, orderId, orderProvidingMember);
+        String expected = String.format(IQ_RESULT, orderId, orderProvidingMember);
         Assert.assertEquals(expected, result.toString());
     }
 
@@ -100,7 +97,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
         Mockito.doThrow(new FogbowManagerException()).when(this.remoteFacade).deleteOrder(Mockito.anyString(),
                 Mockito.any(FederationUser.class), Mockito.any(ResourceType.class));
 
-        IQ iq = createIq();
+        IQ iq = RemoteDeleteOrderRequest.marshalIQ(this.order);
 
         // exercise
         IQ result = this.remoteDeleteOrderRequestHandler.handle(iq);
@@ -111,26 +108,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
 
         String orderId = order.getId();
         String orderProvidingMember = order.getProvidingMember();
-        String expected = String.format(TAG_RESULT_ERRO, orderId, orderProvidingMember);
+        String expected = String.format(IQ_ERROR_RESULT, orderId, orderProvidingMember);
         Assert.assertEquals(expected, result.toString());
-    }
-
-    private IQ createIq() {
-        IQ iq = new IQ(IQ.Type.set);
-        iq.setTo(this.order.getProvidingMember());
-        iq.setID(this.order.getId());
-
-        Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
-                RemoteMethod.REMOTE_DELETE_ORDER.toString());
-        Element orderIdElement = queryElement.addElement(IqElement.ORDER_ID.toString());
-        orderIdElement.setText(this.order.getId());
-
-        Element orderTypeElement = queryElement.addElement(IqElement.INSTANCE_TYPE.toString());
-        orderTypeElement.setText(this.order.getType().toString());
-
-        Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());
-        userElement.setText(new Gson().toJson(this.order.getFederationUser()));
-
-        return iq;
     }
 }
