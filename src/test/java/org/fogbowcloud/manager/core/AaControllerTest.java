@@ -2,7 +2,7 @@ package org.fogbowcloud.manager.core;
 
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.ResourceType;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.authentication.AuthenticationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
@@ -139,14 +139,14 @@ public class AaControllerTest {
     @Test
     public void testGetFederationUser() throws UnauthenticatedUserException, InvalidParameterException {
     	//set up
-    	FederationUserAttributes expectedFederationUserAttributes = new FederationUserAttributes("id", "fake-name");
-    	Mockito.when(this.authenticationPluginMock.getFederationUser(Mockito.anyString())).thenReturn(expectedFederationUserAttributes);
+    	FederationUserToken expectedFederationUserToken = new FederationUserToken("id", "fake-name");
+    	Mockito.when(this.authenticationPluginMock.getFederationUser(Mockito.anyString())).thenReturn(expectedFederationUserToken);
     	
     	//exercise
-    	FederationUserAttributes aaFederationUserAttributes = this.aaController.getFederationUser(Mockito.anyString());
+    	FederationUserToken aaFederationUserToken = this.aaController.getFederationUser(Mockito.anyString());
     	
     	//verify
-    	Assert.assertEquals(expectedFederationUserAttributes, aaFederationUserAttributes);
+    	Assert.assertEquals(expectedFederationUserToken, aaFederationUserToken);
     }
     
     //test case: Check if AaController is properly forwarding UnauthenticatedUserException thrown by AuthenticationPlugin.

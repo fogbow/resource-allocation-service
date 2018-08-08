@@ -19,7 +19,7 @@ import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.apache.log4j.Logger;
 
 public class OrderController {
@@ -32,10 +32,10 @@ public class OrderController {
         this.orderHolders = SharedOrderHolders.getInstance();
     }
 
-    public void setEmptyFieldsAndActivateOrder(Order order, FederationUserAttributes federationUserAttributes) throws UnexpectedException {
+    public void setEmptyFieldsAndActivateOrder(Order order, FederationUserToken federationUserToken) throws UnexpectedException {
         // Set order fields that have not been provided by the requester
         order.setId(UUID.randomUUID().toString());
-        order.setFederationUserAttributes(federationUserAttributes);
+        order.setFederationUserToken(federationUserToken);
         String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         order.setRequestingMember(localMemberId);
         if (order.getProvidingMember() == null) {
@@ -83,7 +83,7 @@ public class OrderController {
         }
     }
 
-    public Allocation getUserAllocation(String memberId, FederationUserAttributes federationUserAttributes, ResourceType resourceType)
+    public Allocation getUserAllocation(String memberId, FederationUserToken federationUserToken, ResourceType resourceType)
             throws UnexpectedException {
 
         Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
@@ -92,7 +92,7 @@ public class OrderController {
                 .filter(order -> order.getType().equals(resourceType))
                 .filter(order -> order.getOrderState().equals(OrderState.FULFILLED))
                 .filter(order -> order.isProviderLocal(memberId))
-                .filter(order -> order.getFederationUserAttributes().equals(federationUserAttributes))
+                .filter(order -> order.getFederationUserToken().equals(federationUserToken))
                 .collect(Collectors.toList());
 
         switch (resourceType) {
@@ -107,9 +107,9 @@ public class OrderController {
         }
     }
 
-    public List<InstanceStatus> getInstancesStatus(FederationUserAttributes federationUserAttributes, ResourceType resourceType) {
+    public List<InstanceStatus> getInstancesStatus(FederationUserToken federationUserToken, ResourceType resourceType) {
         List<InstanceStatus> instanceStatusList = new ArrayList<>();
-        List<Order> allOrders = getAllOrders(federationUserAttributes, resourceType);
+        List<Order> allOrders = getAllOrders(federationUserToken, resourceType);
         for (Order order : allOrders) {
             // The state of the instance can be inferred from the state of the order
             InstanceStatus instanceStatus = new InstanceStatus(order.getId(), order.getProvidingMember(),
@@ -135,16 +135,16 @@ public class OrderController {
         return new ComputeAllocation(vCPU, ram, instances);
     }
 
-    private List<Order> getAllOrders(FederationUserAttributes federationUserAttributes, ResourceType resourceType) {
+    private List<Order> getAllOrders(FederationUserToken federationUserToken, ResourceType resourceType) {
         Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
 
-        // Filter all orders of resourceType from federationUserAttributes that are not closed (closed orders have been deleted by
+        // Filter all orders of resourceType from federationUserToken that are not closed (closed orders have been deleted by
         // the user and should not be seen; they will disappear from the system as soon as the closedProcessor thread
         // process them).
         List<Order> requestedOrders =
                 orders.stream()
                         .filter(order -> order.getType().equals(resourceType))
-                        .filter(order -> order.getFederationUserAttributes().equals(federationUserAttributes))
+                        .filter(order -> order.getFederationUserToken().equals(federationUserToken))
                         .filter(order -> !order.getOrderState().equals(OrderState.CLOSED))
                         .collect(Collectors.toList());
         return requestedOrders;

@@ -1,8 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 import org.apache.http.HttpStatus;
@@ -18,8 +16,8 @@ import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
-import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
-import org.fogbowcloud.manager.core.models.tokens.OpenStackUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.core.models.tokens.OpenStackToken;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -44,10 +42,10 @@ public class OpenStackAttachmentPluginTest {
     private static final String FAKE_TENANT_ID = "fake-tenant-id";
     private AttachmentOrder attachmentOrder;
     private OpenStackNovaV2AttachmentPlugin openStackAttachmentPlugin;
-    private OpenStackUserAttributes localUserAttributes;
+    private OpenStackToken localUserAttributes;
     private HttpRequestClientUtil client;
     private ArgumentCaptor<String> argString = ArgumentCaptor.forClass(String.class);
-    private ArgumentCaptor<LocalUserAttributes> argToken = ArgumentCaptor.forClass(LocalUserAttributes.class);
+    private ArgumentCaptor<Token> argToken = ArgumentCaptor.forClass(Token.class);
     private String instanceId = FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID;
     
     @Before
@@ -58,7 +56,7 @@ public class OpenStackAttachmentPluginTest {
         properties.put(OpenStackNovaV2AttachmentPlugin.COMPUTE_NOVAV2_URL_KEY, FAKE_ENDPOINT);
         properties.put(COMPUTE_NOVAV2_NETWORK_KEY, FAKE_NET_ID);
 
-        this.localUserAttributes = new OpenStackUserAttributes("fake-token-value", FAKE_TENANT_ID);
+        this.localUserAttributes = new OpenStackToken("fake-token-value", FAKE_TENANT_ID);
         this.attachmentOrder =
                 new AttachmentOrder(null, null, null, FAKE_SERVER_ID, FAKE_VOLUME_ID, MOUNT_POINT);
         
@@ -73,7 +71,7 @@ public class OpenStackAttachmentPluginTest {
     public void testRequestInstance() throws FogbowManagerException, HttpResponseException, UnexpectedException {
     	//set up
         Mockito.doReturn(FAKE_POST_REQUEST_BODY).when(this.client).doPostRequest(
-                Mockito.anyString(), Mockito.any(LocalUserAttributes.class), Mockito.anyString());
+                Mockito.anyString(), Mockito.any(Token.class), Mockito.anyString());
         
         //exercise
         String instanceId = this.openStackAttachmentPlugin.requestInstance(this.attachmentOrder, this.localUserAttributes);
@@ -90,7 +88,7 @@ public class OpenStackAttachmentPluginTest {
     	int unknownStatusCode = -1;
     	HttpResponseException httpResponseException = new HttpResponseException(unknownStatusCode, "");
 		Mockito.doThrow(httpResponseException).when(this.client).doPostRequest(Mockito.anyString(),
-				Mockito.any(LocalUserAttributes.class), Mockito.anyString());
+				Mockito.any(Token.class), Mockito.anyString());
 
         //exercise/verify
         this.openStackAttachmentPlugin.requestInstance(this.attachmentOrder, this.localUserAttributes);
@@ -152,7 +150,7 @@ public class OpenStackAttachmentPluginTest {
             throws FogbowManagerException, HttpResponseException, UnexpectedException {
     	//set up
         Mockito.doThrow(UnexpectedException.class).when(this.client)
-                .doGetRequest(Mockito.anyString(), Mockito.any(LocalUserAttributes.class));
+                .doGetRequest(Mockito.anyString(), Mockito.any(Token.class));
         String instanceId = FAKE_SERVER_ID + SEPARATOR_ID + FAKE_VOLUME_ID;
         
         //exercise/verify

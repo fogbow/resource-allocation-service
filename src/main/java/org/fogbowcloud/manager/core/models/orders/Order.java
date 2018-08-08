@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.core.models.orders;
 import org.fogbowcloud.manager.core.datastore.DatabaseManager;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.ResourceType;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 
 public abstract class Order {
 
@@ -11,7 +11,7 @@ public abstract class Order {
 
     private OrderState orderState;
 
-    private FederationUserAttributes federationUserAttributes;
+    private FederationUserToken federationUserToken;
 
     private String requestingMember;
 
@@ -26,9 +26,9 @@ public abstract class Order {
     }
 
     /** Creating Order with predefined Id. */
-    public Order(String id, FederationUserAttributes federationUserAttributes, String requestingMember, String providingMember) {
+    public Order(String id, FederationUserToken federationUserToken, String requestingMember, String providingMember) {
         this(id);
-        this.federationUserAttributes = federationUserAttributes;
+        this.federationUserToken = federationUserToken;
         this.requestingMember = requestingMember;
         this.providingMember = providingMember;
     }
@@ -65,12 +65,12 @@ public abstract class Order {
         }
     }
 
-    public FederationUserAttributes getFederationUserAttributes() {
-        return this.federationUserAttributes;
+    public FederationUserToken getFederationUserToken() {
+        return this.federationUserToken;
     }
 
-    public void setFederationUserAttributes(FederationUserAttributes federationUserAttributes) {
-        this.federationUserAttributes = federationUserAttributes;
+    public void setFederationUserToken(FederationUserToken federationUserToken) {
+        this.federationUserToken = federationUserToken;
     }
 
     public String getRequestingMember() {
@@ -147,7 +147,7 @@ public abstract class Order {
 
     @Override
     public String toString() {
-        return "Order [id=" + this.id + ", orderState=" + this.orderState + ", federationUserAttributes=" + this.federationUserAttributes
+        return "Order [id=" + this.id + ", orderState=" + this.orderState + ", federationUserToken=" + this.federationUserToken
                 + ", requestingMember=" + this.requestingMember + ", providingMember=" + this.providingMember
                 + ", instanceId=" + this.instanceId + "]";
     }

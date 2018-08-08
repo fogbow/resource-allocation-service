@@ -4,9 +4,9 @@ import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
-import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 
-public interface NetworkPlugin<T extends LocalUserAttributes> {
+public interface NetworkPlugin<T extends Token> {
 
 	public String requestInstance(NetworkOrder networkOrder, T localUserAttributes) throws FogbowManagerException, UnexpectedException;
 

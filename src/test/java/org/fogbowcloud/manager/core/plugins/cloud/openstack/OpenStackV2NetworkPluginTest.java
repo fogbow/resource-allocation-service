@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 import org.apache.http.HttpEntity;
@@ -27,9 +25,8 @@ import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
 import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
-import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
-import org.fogbowcloud.manager.core.models.tokens.OpenStackUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.manager.core.models.tokens.OpenStackToken;
 import org.fogbowcloud.manager.core.plugins.serialization.openstack.network.v2.CreateNetworkResponse;
 import org.fogbowcloud.manager.core.plugins.serialization.openstack.network.v2.CreateSecurityGroupResponse;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
@@ -63,7 +60,7 @@ public class OpenStackV2NetworkPluginTest {
 			+ NETWORK_ID;
 
 	private OpenStackV2NetworkPlugin openStackV2NetworkPlugin;
-	private OpenStackUserAttributes defaultLocalUserAttributes;
+	private OpenStackToken defaultLocalUserAttributes;
 	private HttpClient client;
 	private Properties properties;
 	private HttpRequestClientUtil httpRequestClientUtil;
@@ -81,7 +78,7 @@ public class OpenStackV2NetworkPluginTest {
 		this.httpRequestClientUtil = Mockito.spy(new HttpRequestClientUtil(this.client));
 		this.openStackV2NetworkPlugin.setClient(this.httpRequestClientUtil);
 
-		this.defaultLocalUserAttributes = new OpenStackUserAttributes("accessId", DEFAULT_TENANT_ID);
+		this.defaultLocalUserAttributes = new OpenStackToken("accessId", DEFAULT_TENANT_ID);
 	}
 
 	@After
@@ -642,7 +639,7 @@ public class OpenStackV2NetworkPluginTest {
 			NetworkAllocationMode allocation) {
 		String requestingMember = "fake-requesting-member";
 		String providingMember = "fake-providing-member";
-		NetworkOrder order = new NetworkOrder(networkId, Mockito.mock(FederationUserAttributes.class), requestingMember, providingMember,
+		NetworkOrder order = new NetworkOrder(networkId, Mockito.mock(FederationUserToken.class), requestingMember, providingMember,
 				gateway, address, allocation);
 		return order;
 	}

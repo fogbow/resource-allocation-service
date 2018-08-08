@@ -1,7 +1,7 @@
 package org.fogbowcloud.manager.core.stubs;
 
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
-import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 
 /**
@@ -13,5 +13,5 @@ public class StubFederationToLocalMapperPlugin implements FederationToLocalMappe
     public StubFederationToLocalMapperPlugin() {}
 
     @Override
-    public LocalUserAttributes map(FederationUserAttributes user) { return null; }
+    public Token map(FederationUserToken user) { return null; }
 }

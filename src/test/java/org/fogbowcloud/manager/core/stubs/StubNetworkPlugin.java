@@ -4,31 +4,31 @@ import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
-import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
 
 /**
  * This class is a stub for the NetworkPlugin interface used for tests only.
  * Should not have a proper implementation.
  */
-public class StubNetworkPlugin implements NetworkPlugin<LocalUserAttributes> {
+public class StubNetworkPlugin implements NetworkPlugin<Token> {
 
     public StubNetworkPlugin() {}
     
     @Override
-    public String requestInstance(NetworkOrder networkOrder, LocalUserAttributes localUserAttributes)
+    public String requestInstance(NetworkOrder networkOrder, Token token)
             throws FogbowManagerException, UnexpectedException {
         return null;
     }
 
     @Override
-    public NetworkInstance getInstance(String networkInstanceId, LocalUserAttributes localUserAttributes)
+    public NetworkInstance getInstance(String networkInstanceId, Token token)
             throws FogbowManagerException, UnexpectedException {
         return null;
     }
 
     @Override
-    public void deleteInstance(String networkInstanceId, LocalUserAttributes localUserAttributes)
+    public void deleteInstance(String networkInstanceId, Token token)
             throws FogbowManagerException, UnexpectedException {
     }
 

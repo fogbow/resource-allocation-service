@@ -9,8 +9,8 @@ import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.*;
 import org.fogbowcloud.manager.core.models.orders.*;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
-import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
@@ -48,7 +48,7 @@ public class LocalCloudConnector implements CloudConnector {
     @Override
     public String requestInstance(Order order) throws FogbowManagerException, UnexpectedException {
         String requestInstance = null;
-        LocalUserAttributes localUserAttributes = this.mapperPlugin.map(order.getFederationUserAttributes());
+        Token token = this.mapperPlugin.map(order.getFederationUserToken());
         switch (order.getType()) {
             case COMPUTE:
                 // As the order parameter came from the rest API, the NetworkInstanceIds in the order are actually
@@ -62,7 +62,7 @@ public class LocalCloudConnector implements CloudConnector {
                 List<String> networkInstanceIds = getNetworkInstanceIdsFromNetworkOrderIds(computeOrder);
                 computeOrder.setNetworksId(networkInstanceIds);
                 try {
-                    requestInstance = this.computePlugin.requestInstance(computeOrder, localUserAttributes);
+                    requestInstance = this.computePlugin.requestInstance(computeOrder, token);
                 } catch (Throwable e) {
                     throw e;
                 } finally {
@@ -71,11 +71,11 @@ public class LocalCloudConnector implements CloudConnector {
                 break;
             case NETWORK:
                 NetworkOrder networkOrder = (NetworkOrder) order;
-                requestInstance = this.networkPlugin.requestInstance(networkOrder, localUserAttributes);
+                requestInstance = this.networkPlugin.requestInstance(networkOrder, token);
                 break;
             case VOLUME:
                 VolumeOrder volumeOrder = (VolumeOrder) order;
-                requestInstance = this.volumePlugin.requestInstance(volumeOrder, localUserAttributes);
+                requestInstance = this.volumePlugin.requestInstance(volumeOrder, token);
                 break;
             case ATTACHMENT:
                 // As the order parameter came from the rest API, the Source and Target fields are actually
@@ -93,7 +93,7 @@ public class LocalCloudConnector implements CloudConnector {
                 attachmentOrder.setSource(sourceOrder.getInstanceId());
                 attachmentOrder.setTarget(targetOrder.getInstanceId());
                 try {
-                    requestInstance = this.attachmentPlugin.requestInstance(attachmentOrder, localUserAttributes);
+                    requestInstance = this.attachmentPlugin.requestInstance(attachmentOrder, token);
                 } catch (Throwable e) {
                     throw e;
                 } finally {
@@ -116,19 +116,19 @@ public class LocalCloudConnector implements CloudConnector {
     public void deleteInstance(Order order) throws FogbowManagerException, UnexpectedException {
         try {
             if (order.getInstanceId() != null) {
-                LocalUserAttributes localUserAttributes = this.mapperPlugin.map(order.getFederationUserAttributes());
+                Token token = this.mapperPlugin.map(order.getFederationUserToken());
                 switch (order.getType()) {
                     case COMPUTE:
-                        this.computePlugin.deleteInstance(order.getInstanceId(), localUserAttributes);
+                        this.computePlugin.deleteInstance(order.getInstanceId(), token);
                         break;
                     case VOLUME:
-                        this.volumePlugin.deleteInstance(order.getInstanceId(), localUserAttributes);
+                        this.volumePlugin.deleteInstance(order.getInstanceId(), token);
                         break;
                     case NETWORK:
-                        this.networkPlugin.deleteInstance(order.getInstanceId(), localUserAttributes);
+                        this.networkPlugin.deleteInstance(order.getInstanceId(), token);
                         break;
                     case ATTACHMENT:
-                        this.attachmentPlugin.deleteInstance(order.getInstanceId(), localUserAttributes);
+                        this.attachmentPlugin.deleteInstance(order.getInstanceId(), token);
                         break;
                     default:
                         LOGGER.error("No deleteInstance plugin implemented for order " + order.getType());
@@ -149,14 +149,14 @@ public class LocalCloudConnector implements CloudConnector {
     @Override
     public Instance getInstance(Order order) throws FogbowManagerException, UnexpectedException {
         Instance instance;
-        LocalUserAttributes localUserAttributes = this.mapperPlugin.map(order.getFederationUserAttributes());
+        Token token = this.mapperPlugin.map(order.getFederationUserToken());
         synchronized (order) {
         	if (order.getOrderState() == OrderState.DEACTIVATED || order.getOrderState() == OrderState.CLOSED) {
         		throw new InstanceNotFoundException();
         	}
             String instanceId = order.getInstanceId();
             if (instanceId != null) {
-                instance = getResourceInstance(order, order.getType(), localUserAttributes);
+                instance = getResourceInstance(order, order.getType(), token);
                 // The user believes that the order id is actually the instance id.
                 // So we need to set the instance id accordingly before returning the instance.
                 instance.setId(order.getId());
@@ -187,29 +187,29 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public Quota getUserQuota(FederationUserAttributes federationUserAttributes, ResourceType resourceType) throws
+    public Quota getUserQuota(FederationUserToken federationUserToken, ResourceType resourceType) throws
             FogbowManagerException, UnexpectedException {
-        LocalUserAttributes localUserAttributes = this.mapperPlugin.map(federationUserAttributes);
+        Token token = this.mapperPlugin.map(federationUserToken);
         switch (resourceType) {
             case COMPUTE:
-                return this.computeQuotaPlugin.getUserQuota(localUserAttributes);
+                return this.computeQuotaPlugin.getUserQuota(token);
             default:
                 throw new UnexpectedException("Not yet implemented quota endpoint for " + resourceType);
         }
     }
 
     @Override
-    public Map<String, String> getAllImages(FederationUserAttributes federationUserAttributes)
+    public Map<String, String> getAllImages(FederationUserToken federationUserToken)
             throws FogbowManagerException, UnexpectedException {
-        LocalUserAttributes localUserAttributes = this.mapperPlugin.map(federationUserAttributes);
-        return this.imagePlugin.getAllImages(localUserAttributes);
+        Token token = this.mapperPlugin.map(federationUserToken);
+        return this.imagePlugin.getAllImages(token);
     }
 
     @Override
-    public Image getImage(String imageId, FederationUserAttributes federationUserAttributes)
+    public Image getImage(String imageId, FederationUserToken federationUserToken)
             throws FogbowManagerException, UnexpectedException {
-        LocalUserAttributes localUserAttributes = this.mapperPlugin.map(federationUserAttributes);
-        return this.imagePlugin.getImage(imageId, localUserAttributes);
+        Token token = this.mapperPlugin.map(federationUserToken);
+        return this.imagePlugin.getImage(imageId, token);
     }
 
     /** protected visibility for tests */
@@ -225,22 +225,22 @@ public class LocalCloudConnector implements CloudConnector {
         return networkInstanceIDs;
     }
 
-    private Instance getResourceInstance(Order order, ResourceType resourceType, LocalUserAttributes localUserAttributes)
+    private Instance getResourceInstance(Order order, ResourceType resourceType, Token token)
             throws FogbowManagerException, UnexpectedException {
         Instance instance;
         String instanceId = order.getInstanceId();
         switch (resourceType) {
             case COMPUTE:
-                instance = this.computePlugin.getInstance(instanceId, localUserAttributes);
+                instance = this.computePlugin.getInstance(instanceId, token);
                 break;
             case NETWORK:
-                instance = this.networkPlugin.getInstance(instanceId, localUserAttributes);
+                instance = this.networkPlugin.getInstance(instanceId, token);
                 break;
             case VOLUME:
-                instance = this.volumePlugin.getInstance(instanceId, localUserAttributes);
+                instance = this.volumePlugin.getInstance(instanceId, token);
                 break;
             case ATTACHMENT:
-                instance = this.attachmentPlugin.getInstance(instanceId, localUserAttributes);
+                instance = this.attachmentPlugin.getInstance(instanceId, token);
                 break;
             default:
                 String message = "Not supported order type " + order.getType();

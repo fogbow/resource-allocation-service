@@ -10,7 +10,7 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.manager.core.plugins.cloud.util.CloudInitUserDataBuilder;
 
 import java.lang.reflect.Type;
@@ -169,7 +169,7 @@ public class ComputeOrderStorage extends OrderStorage {
                 }
                 
                 ComputeOrder computeOrder = new ComputeOrder(computeResult.getString(1),
-                        new FederationUserAttributes(computeResult.getString(4), null),
+                        new FederationUserToken(computeResult.getString(4), null),
                         computeResult.getString(6), computeResult.getString(7), computeResult.getInt(8),
                         computeResult.getInt(9), computeResult.getInt(10), computeResult.getString(11),
                         new UserData(computeResult.getString(12), extraUserDataFileType), 

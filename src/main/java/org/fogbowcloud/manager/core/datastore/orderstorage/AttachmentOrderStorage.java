@@ -6,7 +6,7 @@ import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedL
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 
 import java.sql.*;
 import java.util.Date;
@@ -132,7 +132,7 @@ public class AttachmentOrderStorage extends OrderStorage {
                 Map<String, String> federationUserAttr = getFederationUserAttrFromString(attachmentResult.getString(5));
 
                 AttachmentOrder attachmentOrder = new AttachmentOrder(attachmentResult.getString(1),
-                        new FederationUserAttributes(attachmentResult.getString(4), null),
+                        new FederationUserToken(attachmentResult.getString(4), null),
                         attachmentResult.getString(6), attachmentResult.getString(7),
                         attachmentResult.getString(8), attachmentResult.getString(9),
                         attachmentResult.getString(10));

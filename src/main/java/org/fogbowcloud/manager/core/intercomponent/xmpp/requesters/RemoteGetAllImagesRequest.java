@@ -7,7 +7,7 @@ import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppErrorConditionToExce
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.xmpp.packet.IQ;
 import com.google.gson.Gson;
 import java.util.HashMap;
@@ -17,11 +17,11 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
     private static final Logger LOGGER = Logger.getLogger(RemoteGetAllImagesRequest.class);
 
     private String provider;
-    private FederationUserAttributes federationUserAttributes;
+    private FederationUserToken federationUserToken;
 
-    public RemoteGetAllImagesRequest(String provider, FederationUserAttributes federationUserAttributes) {
+    public RemoteGetAllImagesRequest(String provider, FederationUserToken federationUserToken) {
         this.provider = provider;
-        this.federationUserAttributes = federationUserAttributes;
+        this.federationUserToken = federationUserToken;
     }
 
     @Override
@@ -45,7 +45,7 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
         memberIdElement.setText(this.provider);
 
         Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
-        userElement.setText(new Gson().toJson(this.federationUserAttributes));
+        userElement.setText(new Gson().toJson(this.federationUserToken));
 
         return iq;
     }

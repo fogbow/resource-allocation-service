@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.models.tokens.generators;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -11,8 +10,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
-import org.fogbowcloud.manager.core.models.tokens.OpenStackUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.OpenStackToken;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackHttpToFogbowManagerExceptionMapper;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.manager.util.PropertiesUtil;
@@ -20,12 +18,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class KeystoneV3TokenGenerator implements LocalTokenGenerator<OpenStackUserAttributes> {
+public class KeystoneV3TokenGenerator implements LocalTokenGenerator<OpenStackToken> {
 
     private static final Logger LOGGER = Logger.getLogger(KeystoneV3TokenGenerator.class);
 
     private static final String OPENSTACK_KEYSTONE_V3_URL = "openstack_keystone_v3_url";
-    private static final String X_SUBJECT_TOKEN = "X-Subject-LocalUserAttributes";
+    private static final String X_SUBJECT_TOKEN = "X-Subject-Token";
     private static final String PASSWORD_PROP = "password";
     private static final String IDENTITY_PROP = "identity";
     private static final String PROJECT_PROP = "project";
@@ -70,9 +68,9 @@ public class KeystoneV3TokenGenerator implements LocalTokenGenerator<OpenStackUs
     }
 
     @Override
-    public OpenStackUserAttributes createToken(Map<String, String> credentials) throws FogbowManagerException,
+    public OpenStackToken createToken(Map<String, String> credentials) throws FogbowManagerException,
             UnexpectedException {
-        LOGGER.debug("Creating new LocalUserAttributes");
+        LOGGER.debug("Creating new Token");
 
         JSONObject json;
         try {
@@ -96,7 +94,7 @@ public class KeystoneV3TokenGenerator implements LocalTokenGenerator<OpenStackUs
             OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
 
-        OpenStackUserAttributes localUserAttributes = getTokenFromJson(response);
+        OpenStackToken localUserAttributes = getTokenFromJson(response);
         return localUserAttributes;
     }
 
@@ -126,7 +124,7 @@ public class KeystoneV3TokenGenerator implements LocalTokenGenerator<OpenStackUs
         return root;
     }
 
-    private OpenStackUserAttributes getTokenFromJson(HttpRequestClientUtil.Response response) throws UnexpectedException {
+    private OpenStackToken getTokenFromJson(HttpRequestClientUtil.Response response) throws UnexpectedException {
         String tokenValue = null;
         Header[] headers = response.getHeaders();
         for (Header header : headers) {
@@ -140,7 +138,7 @@ public class KeystoneV3TokenGenerator implements LocalTokenGenerator<OpenStackUs
             JSONObject token = root.getJSONObject(TOKEN_PROP);
 
             String tenantId = token.getJSONObject(PROJECT_PROP).getString(ID_PROP);
-            return new OpenStackUserAttributes(tokenValue, tenantId);
+            return new OpenStackToken(tokenValue, tenantId);
         } catch (Exception e) {
             LOGGER.error("Exception while getting tokens from json", e);
             throw new UnexpectedException("Exception while getting tokens from json", e);

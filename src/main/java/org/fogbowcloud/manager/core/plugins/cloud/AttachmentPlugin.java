@@ -4,9 +4,9 @@ import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
-import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 
-public interface AttachmentPlugin<T extends LocalUserAttributes> {
+public interface AttachmentPlugin<T extends Token> {
 
 	public String requestInstance(AttachmentOrder attachmentOrder, T localUserAttributes) throws FogbowManagerException, UnexpectedException;
 

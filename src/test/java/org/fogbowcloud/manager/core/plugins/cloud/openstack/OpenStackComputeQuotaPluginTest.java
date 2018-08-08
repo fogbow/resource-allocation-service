@@ -6,16 +6,12 @@ import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
-import org.fogbowcloud.manager.core.models.tokens.OpenStackUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.OpenStackToken;
 import org.fogbowcloud.manager.core.plugins.serialization.openstack.quota.v2.GetQuotaResponse;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class OpenStackComputeQuotaPluginTest {
 
@@ -32,14 +28,14 @@ public class OpenStackComputeQuotaPluginTest {
                     + "\"totalSecurityGroupsUsed\": 1, \"maxTotalInstances\": 20, \"maxTotalRAMSize\": 46080}}}";
 
     private OpenStackComputeQuotaPlugin plugin;
-    private OpenStackUserAttributes localUserAttributes;
+    private OpenStackToken localUserAttributes;
 
     @Before
     public void setUp() throws InvalidParameterException {
         HomeDir.getInstance().setPath("src/test/resources/private");
         this.plugin = Mockito.spy(new OpenStackComputeQuotaPlugin());
 
-        this.localUserAttributes = new OpenStackUserAttributes("", FAKE_TENANT_ID);
+        this.localUserAttributes = new OpenStackToken("", FAKE_TENANT_ID);
     }
 
     // test case: Tests if getTotalQuota(), getUsedQuota() and getAvailableQuota() returns the right

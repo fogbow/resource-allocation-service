@@ -2,7 +2,7 @@ package org.fogbowcloud.manager.core.models.orders;
 
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,10 +26,10 @@ public class ComputeOrder extends Order {
     }
 
     /** Creating Order with predefined Id. */
-    public ComputeOrder(String id, FederationUserAttributes federationUserAttributes, String requestingMember, String providingMember,
+    public ComputeOrder(String id, FederationUserToken federationUserToken, String requestingMember, String providingMember,
                         int vCPU, int memory, int disk, String imageId, UserData userData, String publicKey,
                         List<String> networksId) {
-        super(id, federationUserAttributes, requestingMember, providingMember);
+        super(id, federationUserToken, requestingMember, providingMember);
         this.vCPU = vCPU;
         this.memory = memory;
         this.disk = disk;
@@ -39,10 +39,10 @@ public class ComputeOrder extends Order {
         this.networksId = networksId;
     }
 
-    public ComputeOrder(FederationUserAttributes federationUserAttributes, String requestingMember, String providingMember,
+    public ComputeOrder(FederationUserToken federationUserToken, String requestingMember, String providingMember,
                         int vCPU, int memory, int disk, String imageId, UserData userData, String publicKey,
                         List<String> networksId) {
-        this(UUID.randomUUID().toString(), federationUserAttributes, requestingMember, providingMember,
+        this(UUID.randomUUID().toString(), federationUserToken, requestingMember, providingMember,
                 vCPU, memory, disk, imageId, userData, publicKey, networksId);
     }
 

@@ -5,9 +5,9 @@ import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
-import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 
-public interface ComputePlugin<T extends LocalUserAttributes> {
+public interface ComputePlugin<T extends Token> {
 
     /**
      * This method requests the virtual machine creation on a provider.

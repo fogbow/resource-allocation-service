@@ -8,7 +8,7 @@ import java.util.Properties;
 
 import org.apache.commons.codec.binary.Base64;
 import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.RSAUtil;
 import org.json.JSONObject;
@@ -159,18 +159,18 @@ public class LdapIdentityPluginTest {
         String token = jsonCredentials + ACCESSID_SEPARATOR + "fake-json-credentials-hashed";
 
         byte[] bytes = token.getBytes();
-        FederationUserAttributes federationUserAttributes = new FederationUserAttributes("login", "user");
+        FederationUserToken federationUserToken = new FederationUserToken("login", "user");
 
         Mockito.doReturn(true)
                 .when(this.identityPlugin)
                 .verifySign(Mockito.anyString(), Mockito.anyString());
         
         // exercise: get a federated user from a valid token credential
-        FederationUserAttributes returnedUser =
+        FederationUserToken returnedUser =
                 this.identityPlugin.getFederationUser(new String(Base64.encodeBase64(bytes)));
 
         // exercise: compares if the returned user info is the expected
-        Assert.assertEquals(federationUserAttributes, returnedUser);
+        Assert.assertEquals(federationUserToken, returnedUser);
     }
 
     private String decodeAccessId(String accessId) {

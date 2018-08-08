@@ -14,7 +14,7 @@ import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.images.Image;
-import org.fogbowcloud.manager.core.models.tokens.OpenStackUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.OpenStackToken;
 import org.fogbowcloud.manager.core.plugins.serialization.openstack.OpenstackRestApiConstants;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.junit.Assert;
@@ -37,7 +37,7 @@ public class OpenStackImagePluginTest {
     private OpenStackImagePlugin plugin;
     private HttpRequestClientUtil client;
     private Properties properties;
-    private OpenStackUserAttributes localUserAttributes;
+    private OpenStackToken localUserAttributes;
 
     @Before
     public void setUp() throws InvalidParameterException {
@@ -45,7 +45,7 @@ public class OpenStackImagePluginTest {
         this.plugin = new OpenStackImagePlugin();
         this.client = Mockito.mock(HttpRequestClientUtil.class);
         this.properties = Mockito.mock(Properties.class);
-        this.localUserAttributes = new OpenStackUserAttributes("fake-token-value", "tenant-id");
+        this.localUserAttributes = new OpenStackToken("fake-token-value", "tenant-id");
     	this.plugin.setProperties(this.properties);
     	this.plugin.setClient(this.client);
     }

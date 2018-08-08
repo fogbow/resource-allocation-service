@@ -3,7 +3,6 @@ package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -24,8 +23,7 @@ import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
-import org.fogbowcloud.manager.core.models.tokens.OpenStackUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.OpenStackToken;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.util.DefaultLaunchCommandGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.util.LaunchCommandGenerator;
@@ -39,7 +37,7 @@ import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
 
-public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackUserAttributes> {
+public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackToken> {
 
 	protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
 	protected static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
@@ -101,22 +99,22 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackUser
 		this.hardwareRequirementsList = new TreeSet<HardwareRequirements>();
 	}
 
-	public String requestInstance(ComputeOrder computeOrder, OpenStackUserAttributes openStackUserAttributes)
+	public String requestInstance(ComputeOrder computeOrder, OpenStackToken openStackToken)
 			throws FogbowManagerException, UnexpectedException {
-		LOGGER.debug("Requesting instance with tokens=" + openStackUserAttributes);
+		LOGGER.debug("Requesting instance with tokens=" + openStackToken);
 
-		HardwareRequirements hardwareRequirements = findSmallestFlavor(computeOrder, openStackUserAttributes);
+		HardwareRequirements hardwareRequirements = findSmallestFlavor(computeOrder, openStackToken);
 		String flavorId = hardwareRequirements.getFlavorId();
-		String tenantId = getTenantId(openStackUserAttributes);
+		String tenantId = getTenantId(openStackToken);
 		List<String> networksId = resolveNetworksId(computeOrder);
 		String imageId = computeOrder.getImageId();
 		String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
-		String keyName = getKeyName(tenantId, openStackUserAttributes, computeOrder.getPublicKey());
+		String keyName = getKeyName(tenantId, openStackToken, computeOrder.getPublicKey());
 		String endpoint = getComputeEndpoint(tenantId, SERVERS);
 		String instanceId = null;
 
 		try {
-			instanceId = doRequestInstance(openStackUserAttributes, flavorId, networksId, imageId, userData, keyName, endpoint);
+			instanceId = doRequestInstance(openStackToken, flavorId, networksId, imageId, userData, keyName, endpoint);
 
 			synchronized (computeOrder) {
 				ComputeAllocation actualAllocation = new ComputeAllocation(
@@ -132,50 +130,50 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackUser
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		} finally {
 			if (keyName != null) {
-				deleteKeyName(tenantId, openStackUserAttributes, keyName);
+				deleteKeyName(tenantId, openStackToken, keyName);
 			}
 		}
 		return instanceId;
 	}
 
-	private String doRequestInstance(OpenStackUserAttributes openStackUserAttributes, String flavorId, List<String> networksId, String imageId,
+	private String doRequestInstance(OpenStackToken openStackToken, String flavorId, List<String> networksId, String imageId,
 									 String userData, String keyName, String endpoint) throws UnavailableProviderException, HttpResponseException {
 		CreateComputeRequest createBody = getRequestBody(imageId, flavorId, userData, keyName, networksId);
 
 		String body = createBody.toJson();
-		String response = this.client.doPostRequest(endpoint, openStackUserAttributes, body);
+		String response = this.client.doPostRequest(endpoint, openStackToken, body);
 		CreateComputeResponse createComputeResponse = CreateComputeResponse.fromJson(response);
 
 		return createComputeResponse.getId();
 	}
 
 	@Override
-	public ComputeInstance getInstance(String instanceId, OpenStackUserAttributes openStackUserAttributes)
+	public ComputeInstance getInstance(String instanceId, OpenStackToken openStackToken)
 			throws FogbowManagerException, UnexpectedException {
-		LOGGER.info("Getting instance " + instanceId + " with tokens " + openStackUserAttributes);
+		LOGGER.info("Getting instance " + instanceId + " with tokens " + openStackToken);
 
-		String tenantId = getTenantId(openStackUserAttributes);
+		String tenantId = getTenantId(openStackToken);
 		String requestEndpoint = getComputeEndpoint(tenantId, SERVERS + "/" + instanceId);
 
 		String jsonResponse = null;
 		try {
-			jsonResponse = this.client.doGetRequest(requestEndpoint, openStackUserAttributes);
+			jsonResponse = this.client.doGetRequest(requestEndpoint, openStackToken);
 		} catch (HttpResponseException e) {
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}
 
 		LOGGER.debug("Getting instance from json: " + jsonResponse);
 
-		ComputeInstance computeInstance = instanceFromJson(jsonResponse, openStackUserAttributes);
+		ComputeInstance computeInstance = instanceFromJson(jsonResponse, openStackToken);
 		return computeInstance;
 	}
 
 	@Override
-	public void deleteInstance(String instanceId, OpenStackUserAttributes openStackUserAttributes) throws FogbowManagerException, UnexpectedException {
-		LOGGER.info("Deleting instance " + instanceId + " with tokens " + openStackUserAttributes);
-		String endpoint = getComputeEndpoint(getTenantId(openStackUserAttributes), SERVERS + "/" + instanceId);
+	public void deleteInstance(String instanceId, OpenStackToken openStackToken) throws FogbowManagerException, UnexpectedException {
+		LOGGER.info("Deleting instance " + instanceId + " with tokens " + openStackToken);
+		String endpoint = getComputeEndpoint(getTenantId(openStackToken), SERVERS + "/" + instanceId);
 		try {
-			this.client.doDeleteRequest(endpoint, openStackUserAttributes);
+			this.client.doDeleteRequest(endpoint, openStackToken);
 		} catch (HttpResponseException e) {
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}
@@ -191,8 +189,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackUser
 		this.client = new HttpRequestClientUtil();
 	}
 
-	private String getTenantId(OpenStackUserAttributes openStackUserAttributes) throws InvalidParameterException {
-		String tenantId = openStackUserAttributes.getTenantId();
+	private String getTenantId(OpenStackToken openStackToken) throws InvalidParameterException {
+		String tenantId = openStackToken.getTenantId();
 		if (tenantId == null) {
 			throw new InvalidParameterException("No tenantId in local token.");
 		}
@@ -211,7 +209,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackUser
 		return requestedNetworksId;
 	}
 
-	private String getKeyName(String tenantId, OpenStackUserAttributes openStackUserAttributes, String publicKey)
+	private String getKeyName(String tenantId, OpenStackToken openStackToken, String publicKey)
 			throws FogbowManagerException, UnexpectedException {
 		String keyName = null;
 
@@ -226,7 +224,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackUser
 
 			String body = request.toJson();
 			try {
-				this.client.doPostRequest(osKeypairEndpoint, openStackUserAttributes, body);
+				this.client.doPostRequest(osKeypairEndpoint, openStackToken, body);
 			} catch (HttpResponseException e) {
 				OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 			}
@@ -239,12 +237,12 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackUser
 		return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + tenantId + suffix;
 	}
 
-	private void deleteKeyName(String tenantId, OpenStackUserAttributes openStackUserAttributes, String keyName) throws FogbowManagerException, UnexpectedException {
+	private void deleteKeyName(String tenantId, OpenStackToken openStackToken, String keyName) throws FogbowManagerException, UnexpectedException {
 		String suffixEndpoint = SUFFIX_ENDPOINT_KEYPAIRS + "/" + keyName;
 		String keyNameEndpoint = getComputeEndpoint(tenantId, suffixEndpoint);
 		
 		try {
-			this.client.doDeleteRequest(keyNameEndpoint, openStackUserAttributes);
+			this.client.doDeleteRequest(keyNameEndpoint, openStackToken);
 		} catch (HttpResponseException e) {
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}
@@ -282,17 +280,17 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackUser
 		return createComputeRequest;
 	}
 
-	private HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, OpenStackUserAttributes openStackUserAttributes)
+	private HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, OpenStackToken openStackToken)
 			throws UnexpectedException, FogbowManagerException {
-		HardwareRequirements bestFlavor = getBestFlavor(computeOrder, openStackUserAttributes);
+		HardwareRequirements bestFlavor = getBestFlavor(computeOrder, openStackToken);
 		if (bestFlavor == null) {
 			throw new NoAvailableResourcesException();
 		}
 		return bestFlavor;
 	}
 
-	private HardwareRequirements getBestFlavor(ComputeOrder computeOrder, OpenStackUserAttributes openStackUserAttributes) throws FogbowManagerException, UnexpectedException {
-		updateFlavors(openStackUserAttributes);
+	private HardwareRequirements getBestFlavor(ComputeOrder computeOrder, OpenStackToken openStackToken) throws FogbowManagerException, UnexpectedException {
+		updateFlavors(openStackToken);
 		TreeSet<HardwareRequirements> hardwareRequirementsList = getHardwareRequirementsList();
 		for (HardwareRequirements hardwareRequirements : hardwareRequirementsList) {
 			if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
@@ -304,14 +302,14 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackUser
 		return null;
 	}
 
-	private void updateFlavors(OpenStackUserAttributes openStackUserAttributes) throws FogbowManagerException, UnexpectedException {
+	private void updateFlavors(OpenStackToken openStackToken) throws FogbowManagerException, UnexpectedException {
 		LOGGER.debug("Updating hardwareRequirements from OpenStack");
 
-		String tenantId = getTenantId(openStackUserAttributes);
+		String tenantId = getTenantId(openStackToken);
 		String flavorsEndpoint = getComputeEndpoint(tenantId, SUFFIX_ENDPOINT_FLAVORS);
 
 		try {
-			String jsonResponse = this.client.doGetRequest(flavorsEndpoint, openStackUserAttributes);
+			String jsonResponse = this.client.doGetRequest(flavorsEndpoint, openStackToken);
 			GetAllFlavorsResponse getAllFlavorsResponse = GetAllFlavorsResponse.fromJson(jsonResponse);
 
 			List<String> flavorsIds = new ArrayList<>();
@@ -319,14 +317,14 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackUser
 				flavorsIds.add(flavor.getId());
 			}
 
-			TreeSet<HardwareRequirements> newHardwareRequirements = detailFlavors(flavorsEndpoint, openStackUserAttributes, flavorsIds);
+			TreeSet<HardwareRequirements> newHardwareRequirements = detailFlavors(flavorsEndpoint, openStackToken, flavorsIds);
 			setHardwareRequirementsList(newHardwareRequirements);
 		} catch (HttpResponseException e) {
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}
 	}
 
-	private TreeSet<HardwareRequirements> detailFlavors(String endpoint, OpenStackUserAttributes openStackUserAttributes, List<String> flavorsIds)
+	private TreeSet<HardwareRequirements> detailFlavors(String endpoint, OpenStackToken openStackToken, List<String> flavorsIds)
 			throws FogbowManagerException, UnexpectedException 
 			{
 		TreeSet<HardwareRequirements> newHardwareRequirements = new TreeSet<>();
@@ -349,7 +347,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackUser
 				String getJsonResponse = null;
 				
 				try {
-					getJsonResponse = this.client.doGetRequest(newEndpoint, openStackUserAttributes);
+					getJsonResponse = this.client.doGetRequest(newEndpoint, openStackToken);
 				} catch (HttpResponseException e) {
 					OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 				}
@@ -369,11 +367,11 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackUser
 		return newHardwareRequirements;
 	}
 
-	private ComputeInstance instanceFromJson(String getRawResponse, OpenStackUserAttributes openStackUserAttributes) throws FogbowManagerException, UnexpectedException {
+	private ComputeInstance instanceFromJson(String getRawResponse, OpenStackToken openStackToken) throws FogbowManagerException, UnexpectedException {
 		GetComputeResponse getComputeResponse = GetComputeResponse.fromJson(getRawResponse);
 
 		String flavorId = getComputeResponse.getFlavor().getId();
-		HardwareRequirements hardwareRequirements = getFlavorById(flavorId, openStackUserAttributes);
+		HardwareRequirements hardwareRequirements = getFlavorById(flavorId, openStackToken);
 
 		if (hardwareRequirements == null) {
 			throw new NoAvailableResourcesException("No matching flavor");
@@ -403,8 +401,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackUser
 		return computeInstance;
 	}
 
-	private HardwareRequirements getFlavorById(String id, OpenStackUserAttributes openStackUserAttributes) throws FogbowManagerException, UnexpectedException {
-		updateFlavors(openStackUserAttributes);
+	private HardwareRequirements getFlavorById(String id, OpenStackToken openStackToken) throws FogbowManagerException, UnexpectedException {
+		updateFlavors(openStackToken);
 		TreeSet<HardwareRequirements> flavorsCopy = new TreeSet<>(getHardwareRequirementsList());
 		for (HardwareRequirements hardwareRequirements : flavorsCopy) {
 			if (hardwareRequirements.getFlavorId().equals(id)) {

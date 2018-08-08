@@ -13,7 +13,7 @@ cat > /bin/fogbow-autossh << EOL
 autossh() {
   while true; do
     
-    REMOTE_PORT="\$(curl -X POST #TOKEN_HOST#:#TOKEN_HOST_HTTP_PORT#/localUserAttributes/#TOKEN_ID#)"
+    REMOTE_PORT="\$(curl -X POST #TOKEN_HOST#:#TOKEN_HOST_HTTP_PORT#/token/#TOKEN_ID#)"
     if [ -z "\$REMOTE_PORT" ]; then
       echo "No remote port available for #TOKEN_ID#, will try again in 30 seconds"
       sleep 30
@@ -43,8 +43,8 @@ LOCAL_PORT=\$2
 auto_extra_port(){
 	while true; do
 	    
-	    echo "Requesting port curl -X POST #TOKEN_HOST#:#TOKEN_HOST_HTTP_PORT#/localUserAttributes/#TOKEN_ID#-\$TOKEN_VAR"
-	    REMOTE_PORT=\$(curl -X POST #TOKEN_HOST#:#TOKEN_HOST_HTTP_PORT#/localUserAttributes/#TOKEN_ID#-\$TOKEN_VAR)
+	    echo "Requesting port curl -X POST #TOKEN_HOST#:#TOKEN_HOST_HTTP_PORT#/token/#TOKEN_ID#-\$TOKEN_VAR"
+	    REMOTE_PORT=\$(curl -X POST #TOKEN_HOST#:#TOKEN_HOST_HTTP_PORT#/token/#TOKEN_ID#-\$TOKEN_VAR)
 	    OLD_IFS=\$IFS               # save internal field separator
 	    IFS=":"                     # set it to ':'
 	    set -- \$REMOTE_PORT        # make the result positional parameters

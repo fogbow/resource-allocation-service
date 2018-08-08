@@ -7,7 +7,7 @@ import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 
 import java.sql.*;
 import java.util.Date;
@@ -133,7 +133,7 @@ public class NetworkOrderStorage extends OrderStorage {
                 Map<String, String> federationUserAttr = getFederationUserAttrFromString(networkResult.getString(5));
 
                 NetworkOrder networkOrder = new NetworkOrder(networkResult.getString(1),
-                        new FederationUserAttributes(networkResult.getString(4), null),
+                        new FederationUserToken(networkResult.getString(4), null),
                         networkResult.getString(6), networkResult.getString(7),
                         networkResult.getString(8), networkResult.getString(9),
                         NetworkAllocationMode.valueOf(networkResult.getString(10)));

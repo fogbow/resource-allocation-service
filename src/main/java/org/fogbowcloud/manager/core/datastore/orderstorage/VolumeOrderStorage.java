@@ -6,7 +6,7 @@ import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedL
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 
 import java.sql.*;
 import java.util.Date;
@@ -130,7 +130,7 @@ public class VolumeOrderStorage extends OrderStorage {
                 Map<String, String> federationUserAttr = getFederationUserAttrFromString(volumeResult.getString(5));
 
                 VolumeOrder volumeOrder = new VolumeOrder(volumeResult.getString(1),
-                        new FederationUserAttributes(volumeResult.getString(4), null),
+                        new FederationUserToken(volumeResult.getString(4), null),
                         volumeResult.getString(6), volumeResult.getString(7),
                         volumeResult.getInt(8), volumeResult.getString(9));
 

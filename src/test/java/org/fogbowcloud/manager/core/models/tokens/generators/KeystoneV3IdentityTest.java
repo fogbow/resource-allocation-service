@@ -27,8 +27,7 @@ import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.manager.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
-import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
-import org.fogbowcloud.manager.core.models.tokens.OpenStackUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.OpenStackToken;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -109,7 +108,7 @@ public class KeystoneV3IdentityTest {
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
         
         // exercise
-        OpenStackUserAttributes localUserAttributes = this.keystoneV3Identity.createToken(credentials);
+        OpenStackToken localUserAttributes = this.keystoneV3Identity.createToken(credentials);
         
         //verify
         assertNotNull(localUserAttributes);

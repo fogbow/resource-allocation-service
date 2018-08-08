@@ -22,7 +22,7 @@ import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 
 public class ApplicationFacade {
 
@@ -119,13 +119,13 @@ public class ApplicationFacade {
 
     public List<InstanceStatus> getAllInstancesStatus(String federationTokenValue, ResourceType resourceType) throws
             UnauthenticatedUserException, InvalidParameterException, UnauthorizedRequestException {
-        FederationUserAttributes federationUserAttributes = authenticateAndAuthorize(federationTokenValue, Operation.GET_ALL, resourceType);
-        return this.orderController.getInstancesStatus(federationUserAttributes, resourceType);
+        FederationUserToken federationUserToken = authenticateAndAuthorize(federationTokenValue, Operation.GET_ALL, resourceType);
+        return this.orderController.getInstancesStatus(federationUserToken, resourceType);
     }
 
     private String activateOrder(Order order, String federationTokenValue) throws FogbowManagerException,
             UnexpectedException {
-        FederationUserAttributes requester = authenticateAndAuthorize(federationTokenValue, Operation.CREATE, order.getType());
+        FederationUserToken requester = authenticateAndAuthorize(federationTokenValue, Operation.CREATE, order.getType());
         this.orderController.setEmptyFieldsAndActivateOrder(order, requester);
         return order.getId();
     }
@@ -144,59 +144,59 @@ public class ApplicationFacade {
 
     private Allocation getUserAllocation(String memberId, String federationTokenValue, ResourceType resourceType)
             throws FogbowManagerException, UnexpectedException {
-        FederationUserAttributes federationUserAttributes = authenticateAndAuthorize(federationTokenValue,
+        FederationUserToken federationUserToken = authenticateAndAuthorize(federationTokenValue,
                 Operation.GET_USER_ALLOCATION, resourceType);
-        return this.orderController.getUserAllocation(memberId, federationUserAttributes, resourceType);
+        return this.orderController.getUserAllocation(memberId, federationUserToken, resourceType);
     }
 
     private Quota getUserQuota(String memberId, String federationTokenValue, ResourceType resourceType)
             throws Exception {
-        FederationUserAttributes federationUserAttributes = authenticateAndAuthorize(federationTokenValue,
+        FederationUserToken federationUserToken = authenticateAndAuthorize(federationTokenValue,
                 Operation.GET_USER_QUOTA, resourceType);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
-        return cloudConnector.getUserQuota(federationUserAttributes, resourceType);
+        return cloudConnector.getUserQuota(federationUserToken, resourceType);
     }
 
     public Map<String, String> getAllImages(String memberId, String federationTokenValue) throws Exception {
-        FederationUserAttributes federationUserAttributes = authenticateAndAuthorize(federationTokenValue, Operation.GET_ALL_IMAGES,
+        FederationUserToken federationUserToken = authenticateAndAuthorize(federationTokenValue, Operation.GET_ALL_IMAGES,
                 ResourceType.IMAGE);
         if(memberId == null) {
             memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         }
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
-        return cloudConnector.getAllImages(federationUserAttributes);
+        return cloudConnector.getAllImages(federationUserToken);
     }
 
     public Image getImage(String memberId, String imageId, String federationTokenValue) throws Exception {
-        FederationUserAttributes federationUserAttributes = authenticateAndAuthorize(federationTokenValue, Operation.GET_IMAGE,
+        FederationUserToken federationUserToken = authenticateAndAuthorize(federationTokenValue, Operation.GET_IMAGE,
                 ResourceType.IMAGE);
         if(memberId == null) {
             memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         }
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
-        return (Image) cloudConnector.getImage(imageId, federationUserAttributes);
+        return (Image) cloudConnector.getImage(imageId, federationUserToken);
     }
 
-    private FederationUserAttributes authenticateAndAuthorize(String federationTokenValue, Operation operation, ResourceType type)
+    private FederationUserToken authenticateAndAuthorize(String federationTokenValue, Operation operation, ResourceType type)
             throws UnauthenticatedUserException, UnauthorizedRequestException, InvalidParameterException {
         // Authenticate user based on the token received
         this.aaController.authenticate(federationTokenValue);
         // Get authenticated user attributes from token
-        FederationUserAttributes requester = this.aaController.getFederationUser(federationTokenValue);
+        FederationUserToken requester = this.aaController.getFederationUser(federationTokenValue);
         // Authorize the user based on user's attributes, requested operation and resource type
         this.aaController.authorize(requester, operation, type);
         return requester;
     }
 
-    private FederationUserAttributes authenticateAndAuthorize(String federationTokenValue, Operation operation, ResourceType type,
-                                                              String orderId) throws FogbowManagerException {
+    private FederationUserToken authenticateAndAuthorize(String federationTokenValue, Operation operation, ResourceType type,
+                                                         String orderId) throws FogbowManagerException {
         // Check if requested type matches order type
         Order order = this.orderController.getOrder(orderId);
         if (!order.getType().equals(type)) throw new InstanceNotFoundException("Mismatching resource type");
         // Authenticate user and get authorization to perform generic operation on the type of resource
-        FederationUserAttributes requester = authenticateAndAuthorize(federationTokenValue, operation, type);
+        FederationUserToken requester = authenticateAndAuthorize(federationTokenValue, operation, type);
         // Check whether requester owns order
-        FederationUserAttributes orderOwner = order.getFederationUserAttributes();
+        FederationUserToken orderOwner = order.getFederationUserToken();
         if (!orderOwner.getId().equals(requester.getId())) {
             throw new UnauthorizedRequestException("Requester does not own order");
         }

@@ -1,16 +1,12 @@
 package org.fogbowcloud.manager.core.models.tokens;
 
-import java.util.Map;
-
-public class LocalUserAttributes {
-
-    private Map<String, String> attributes;
+public class Token {
 
     private String tokenValue;
 
-    public LocalUserAttributes() {}
+    public Token() {}
 
-    public LocalUserAttributes(String tokenValue) {
+    public Token(String tokenValue) {
         this.tokenValue = tokenValue;
     }
 

@@ -8,7 +8,7 @@ import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -161,10 +161,10 @@ public class VolumeOrdersControllerTest {
     }
 
     private VolumeOrder createVolumeOrder() throws InvalidParameterException {
-        FederationUserAttributes federationUserAttributes = new FederationUserAttributes(FAKE_ID, FAKE_NAME);
+        FederationUserToken federationUserToken = new FederationUserToken(FAKE_ID, FAKE_NAME);
 
         VolumeOrder volumeOrder = Mockito.spy(new VolumeOrder());
-        volumeOrder.setFederationUserAttributes(federationUserAttributes);
+        volumeOrder.setFederationUserToken(federationUserToken);
 
         return volumeOrder;
     }

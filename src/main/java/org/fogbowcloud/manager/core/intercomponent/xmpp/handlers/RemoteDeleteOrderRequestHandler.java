@@ -8,7 +8,7 @@ import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppExceptionToErrorCond
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.ResourceType;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 
@@ -31,12 +31,12 @@ public class RemoteDeleteOrderRequestHandler extends AbstractQueryHandler {
         ResourceType resourceType = new Gson().fromJson(orderTypeElementRequest.getText(), ResourceType.class);
         
         Element federationUserElement = iq.getElement().element(IqElement.FEDERATION_USER.toString());
-        FederationUserAttributes federationUserAttributes = new Gson().fromJson(federationUserElement.getText(), FederationUserAttributes.class);
+        FederationUserToken federationUserToken = new Gson().fromJson(federationUserElement.getText(), FederationUserToken.class);
 
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            RemoteFacade.getInstance().deleteOrder(orderId, federationUserAttributes, resourceType);
+            RemoteFacade.getInstance().deleteOrder(orderId, federationUserToken, resourceType);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }

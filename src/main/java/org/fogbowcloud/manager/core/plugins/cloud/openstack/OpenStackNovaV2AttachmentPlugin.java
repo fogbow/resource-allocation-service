@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
 import java.io.File;
-import java.util.Map;
 import java.util.Properties;
 
 import org.apache.http.client.HttpResponseException;
@@ -17,8 +16,7 @@ import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
-import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
-import org.fogbowcloud.manager.core.models.tokens.OpenStackUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.OpenStackToken;
 import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
 import org.fogbowcloud.manager.core.plugins.serialization.openstack.attachment.v2.CreateAttachmentRequest;
 import org.fogbowcloud.manager.core.plugins.serialization.openstack.attachment.v2.GetAttachmentResponse;
@@ -27,7 +25,7 @@ import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
 import org.json.JSONException;
 
-public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenStackUserAttributes> {
+public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenStackToken> {
 
     private final String TENANT_ID_IS_NOT_SPECIFIED_ERROR = "Tenant id is not specified.";
     protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
@@ -50,9 +48,9 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
     }
 
     @Override
-    public String requestInstance(AttachmentOrder attachmentOrder, OpenStackUserAttributes openStackUserAttributes)
+    public String requestInstance(AttachmentOrder attachmentOrder, OpenStackToken openStackToken)
             throws FogbowManagerException, UnexpectedException {
-        String tenantId = openStackUserAttributes.getTenantId();
+        String tenantId = openStackToken.getTenantId();
         
         String serverId = attachmentOrder.getSource();
         String volumeId = attachmentOrder.getTarget();
@@ -68,7 +66,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
         
         String endpoint = getPrefixEndpoint(tenantId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS;
         try {
-            this.client.doPostRequest(endpoint, openStackUserAttributes, jsonRequest);
+            this.client.doPostRequest(endpoint, openStackToken, jsonRequest);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
@@ -76,9 +74,9 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
     }
     
     @Override
-    public void deleteInstance(String instanceId, OpenStackUserAttributes openStackUserAttributes)
+    public void deleteInstance(String instanceId, OpenStackToken openStackToken)
             throws FogbowManagerException, UnexpectedException {
-        String tenantId = openStackUserAttributes.getTenantId();
+        String tenantId = openStackToken.getTenantId();
         if (tenantId == null) {
             LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
             throw new UnauthenticatedUserException(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
@@ -90,17 +88,17 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
         String endpoint = getPrefixEndpoint(tenantId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + "/" + volumeId;
 
         try {
-            this.client.doDeleteRequest(endpoint, openStackUserAttributes);
+            this.client.doDeleteRequest(endpoint, openStackToken);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
     }
 
     @Override
-    public AttachmentInstance getInstance(String instanceId, OpenStackUserAttributes openStackUserAttributes)
+    public AttachmentInstance getInstance(String instanceId, OpenStackToken openStackToken)
             throws FogbowManagerException, UnexpectedException {
-        LOGGER.info("Getting instance " + instanceId + " with tokens " + openStackUserAttributes);
-    	String tenantId = openStackUserAttributes.getTenantId();
+        LOGGER.info("Getting instance " + instanceId + " with tokens " + openStackToken);
+    	String tenantId = openStackToken.getTenantId();
     	
     	String[] separatorInstanceId = instanceId.split(SEPARATOR_ID);
     	
@@ -114,7 +112,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
 
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(requestEndpoint, openStackUserAttributes);
+            jsonResponse = this.client.doGetRequest(requestEndpoint, openStackToken);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }

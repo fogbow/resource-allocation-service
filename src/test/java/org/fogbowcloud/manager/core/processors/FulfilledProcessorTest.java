@@ -19,7 +19,7 @@ import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -335,7 +335,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     private Order createOrder() {
-        FederationUserAttributes federationUserAttributes = new FederationUserAttributes("login", "user");
+        FederationUserToken federationUserToken = new FederationUserToken("login", "user");
 
         UserData userData = Mockito.mock(UserData.class);
 
@@ -345,7 +345,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         String providingMember =
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
 
-        Order order = new ComputeOrder(federationUserAttributes, requestingMember, providingMember, 8, 1024,
+        Order order = new ComputeOrder(federationUserToken, requestingMember, providingMember, 8, 1024,
                 30, FAKE_IMAGE_NAME, userData, FAKE_PUBLIC_KEY, null);
 
         return order;

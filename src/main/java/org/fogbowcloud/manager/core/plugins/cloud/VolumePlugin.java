@@ -4,9 +4,9 @@ import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
-import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 
-public interface VolumePlugin<T extends LocalUserAttributes> {
+public interface VolumePlugin<T extends Token> {
 
 	public String requestInstance(VolumeOrder volumeOrder, T localUserAttributes)
             throws FogbowManagerException, UnexpectedException;

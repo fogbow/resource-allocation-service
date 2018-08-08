@@ -6,7 +6,7 @@ import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 
@@ -32,12 +32,12 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
         String memberId = memberIdElement.getText();
 
         Element federationUserElement = queryElement.element(IqElement.FEDERATION_USER.toString());
-        FederationUserAttributes federationUserAttributes = new Gson().fromJson(federationUserElement.getText(), FederationUserAttributes.class);
+        FederationUserToken federationUserToken = new Gson().fromJson(federationUserElement.getText(), FederationUserToken.class);
 
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            Map<String, String> imagesMap = RemoteFacade.getInstance().getAllImages(memberId, federationUserAttributes);
+            Map<String, String> imagesMap = RemoteFacade.getInstance().getAllImages(memberId, federationUserToken);
 
             Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_ALL_IMAGES);
             Element imagesMapElement = queryEl.addElement(IqElement.IMAGES_MAP.toString());

@@ -8,7 +8,7 @@ import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 
@@ -34,12 +34,12 @@ public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
         ResourceType resourceType = new Gson().fromJson(orderTypeElementRequest.getText(), ResourceType.class);
         
         Element federationUserElement = iq.getElement().element(IqElement.FEDERATION_USER.toString());
-        FederationUserAttributes federationUserAttributes = new Gson().fromJson(federationUserElement.getText(), FederationUserAttributes.class);
+        FederationUserToken federationUserToken = new Gson().fromJson(federationUserElement.getText(), FederationUserToken.class);
 
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            Instance instance = RemoteFacade.getInstance().getResourceInstance(orderId, federationUserAttributes, resourceType);
+            Instance instance = RemoteFacade.getInstance().getResourceInstance(orderId, federationUserToken, resourceType);
             
             Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_INSTANCE);
             Element instanceElement = queryEl.addElement(IqElement.INSTANCE.toString());

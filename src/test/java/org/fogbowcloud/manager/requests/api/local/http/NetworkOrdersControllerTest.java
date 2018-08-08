@@ -7,7 +7,7 @@ import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
 import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -142,10 +142,10 @@ public class NetworkOrdersControllerTest {
     }
 
     private NetworkOrder createNetworkOrder() {
-        FederationUserAttributes federationUserAttributes = new FederationUserAttributes("fake-user", "fake-name");
+        FederationUserToken federationUserToken = new FederationUserToken("fake-user", "fake-name");
 
         NetworkOrder networkOrder = Mockito.spy(new NetworkOrder());
-        networkOrder.setFederationUserAttributes(federationUserAttributes);
+        networkOrder.setFederationUserToken(federationUserToken);
 
         return networkOrder;
     }

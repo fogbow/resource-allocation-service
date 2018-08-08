@@ -28,7 +28,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.manager.core.plugins.behavior.authentication.AuthenticationPlugin;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.RSAUtil;
@@ -152,7 +152,7 @@ public class LdapIdentityPlugin implements AuthenticationPlugin {
     }
 
     @Override
-    public FederationUserAttributes getFederationUser(String federationTokenValue)
+    public FederationUserToken getFederationUser(String federationTokenValue)
             throws UnauthenticatedUserException, InvalidParameterException {
 
         try {
@@ -179,9 +179,9 @@ public class LdapIdentityPlugin implements AuthenticationPlugin {
             String uuid = root.getString(ATT_LOGIN);
             String name = root.getString(ATT_NAME);
 
-            FederationUserAttributes federationUserAttributes = new FederationUserAttributes(uuid, null);
-            federationUserAttributes.setName(name);
-            return federationUserAttributes;
+            FederationUserToken federationUserToken = new FederationUserToken(uuid, null);
+            federationUserToken.setName(name);
+            return federationUserToken;
         } catch (JSONException e) {
             LOGGER.error("Exception while getting tokens from json.", e);
             throw new UnauthenticatedUserException();

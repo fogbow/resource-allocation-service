@@ -1,17 +1,17 @@
 package org.fogbowcloud.manager.core.plugins.behavior.authentication;
 
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 
 public class DefaultAuthenticationPlugin implements AuthenticationPlugin {
     
     public DefaultAuthenticationPlugin() {}
 
     @Override
-    public FederationUserAttributes getFederationUser(String federationTokenValue) throws InvalidParameterException {
-        FederationUserAttributes federationUserAttributes = new FederationUserAttributes("default-id", "default");
+    public FederationUserToken getFederationUser(String federationTokenValue) throws InvalidParameterException {
+        FederationUserToken federationUserToken = new FederationUserToken("default-id", "default");
 
-        return federationUserAttributes;
+        return federationUserToken;
     }
 
     @Override

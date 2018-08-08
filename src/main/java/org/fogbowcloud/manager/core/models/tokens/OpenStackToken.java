@@ -2,11 +2,11 @@ package org.fogbowcloud.manager.core.models.tokens;
 
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 
-public class OpenStackUserAttributes extends LocalUserAttributes {
+public class OpenStackToken extends Token {
 
     private String tenantId;
 
-    public OpenStackUserAttributes(String tokenValue, String tenantId) throws InvalidParameterException {
+    public OpenStackToken(String tokenValue, String tenantId) throws InvalidParameterException {
         super(tokenValue);
 
         if (tenantId != null) {

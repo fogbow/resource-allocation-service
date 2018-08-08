@@ -39,7 +39,7 @@ function testPostCompute {
 }
 
 function doPostCompute {
-  local response=$(curl -X POST -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" -d \
+  local response=$(curl -X POST -H "Content-Type: application/json" -H "federationTokenValue: token" -d \
   '{ 
       "vCPU" : 1,
       "memory" : 1024,
@@ -93,23 +93,23 @@ function testGetAllCompute {
 
 function doGetCompute {
   local instanceId=$1
-  local response=$(curl -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" $baseUrl$computesEndpoint$instanceId 2> /dev/null)
+  local response=$(curl -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$computesEndpoint$instanceId 2> /dev/null)
   echo $response
 }
 
 function doGetComputeReturningStatus {
   local instanceId=$1
-  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" $baseUrl$computesEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$computesEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
   echo $responseStatus
 }
 
 function doGetAllCompute {
-  local response=$(curl -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" $baseUrl$computesEndpoint 2> /dev/null)
+  local response=$(curl -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$computesEndpoint 2> /dev/null)
   echo $response
 }
 
 function doGetAllComputeReturningStatus {
-  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" $baseUrl$computesEndpoint 2> /dev/null | grep HTTP | awk '{print $2}')
+  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$computesEndpoint 2> /dev/null | grep HTTP | awk '{print $2}')
   echo $responseStatus
 }
 
@@ -148,13 +148,13 @@ function testDeleteNonExistentCompute {
 
 function doDeleteCompute {
   local instanceId=$1
-  $(curl -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" $baseUrl$computesEndpoint$instanceId 2> /dev/null)
+  $(curl -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$computesEndpoint$instanceId 2> /dev/null)
   sleep $sleepTimeSecs
 }
 
 function doDeleteComputeReturningStatus {
   local instanceId=$1
-  local responseStatus=$(curl -I -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" $baseUrl$computesEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  local responseStatus=$(curl -I -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$computesEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
   sleep $sleepTimeSecs
   echo $responseStatus
 }
@@ -198,12 +198,12 @@ function testDeleteNonExistentNetwork {
 
 function doDeleteNetwork {
   local instanceId=$1
-  $(curl -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" $baseUrl$networksEndpoint$instanceId 2> /dev/null)
+  $(curl -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$networksEndpoint$instanceId 2> /dev/null)
 }
 
 function doDeleteNetworkReturningStatus {
   local instanceId=$1
-  local responseStatus=$(curl -I -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" $baseUrl$networksEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  local responseStatus=$(curl -I -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$networksEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
   echo $responseStatus
 }
 
@@ -229,7 +229,7 @@ function testPostNetwork {
 }
 
 function doPostNetwork {
-  local response=$(curl -X POST -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" -d \
+  local response=$(curl -X POST -H "Content-Type: application/json" -H "federationTokenValue: token" -d \
   '{
     "gateway" : "10.15.20.1",
     "address" : "10.15.20.1/28",
@@ -253,13 +253,13 @@ function testGetNonExistentNetwork {
 
 function doGetNetwork {
   local instanceId=$1
-  local response=$(curl -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" $baseUrl$networksEndpoint$instanceId 2> /dev/null)
+  local response=$(curl -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$networksEndpoint$instanceId 2> /dev/null)
   echo $response
 }
 
 function doGetNetworkReturningStatus {
   local instanceId=$1
-  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" $baseUrl$networksEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$networksEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
   echo $responseStatus
 }
 
@@ -302,12 +302,12 @@ function testDeleteNonExistentVolume {
 
 function doDeleteVolume {
   local instanceId=$1
-  $(curl -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" $baseUrl$volumesEndpoint$instanceId 2> /dev/null)
+  $(curl -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$volumesEndpoint$instanceId 2> /dev/null)
 }
 
 function doDeleteVolumeReturningStatus {
   local instanceId=$1
-  local responseStatus=$(curl -I -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" $baseUrl$volumesEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  local responseStatus=$(curl -I -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$volumesEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
   echo $responseStatus
 }
 
@@ -333,7 +333,7 @@ function testPostVolume {
 }
 
 function doPostVolume {
-  local response=$(curl -X POST -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" -d \
+  local response=$(curl -X POST -H "Content-Type: application/json" -H "federationTokenValue: token" -d \
   '{
     "volumeSize" : 2
   }' $baseUrl$volumesEndpoint 2> /dev/null)
@@ -355,13 +355,13 @@ function testGetNonExistentVolume {
 
 function doGetVolume {
   local instanceId=$1
-  local response=$(curl -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" $baseUrl$volumesEndpoint$instanceId 2> /dev/null)
+  local response=$(curl -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$volumesEndpoint$instanceId 2> /dev/null)
   echo $response
 }
 
 function doGetVolumeReturningStatus {
   local instanceId=$1
-  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" $baseUrl$volumesEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$volumesEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
   echo $responseStatus
 }
 
@@ -405,7 +405,7 @@ function doPostAttachment {
     $(doDeleteVolume $volumeId)
     return 1
   fi
-  local response=$(curl -X POST -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" -d \
+  local response=$(curl -X POST -H "Content-Type: application/json" -H "federationTokenValue: token" -d \
   '{
     "source":"$computeId",
     "target":"$volumeId",
@@ -449,13 +449,13 @@ function testGetNonExistentAttachment {
 
 function doGetAttachment {
   local instanceId=$1
-  local response=$(curl -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" $baseUrl$attachmentsEndpoint$instanceId 2> /dev/null)
+  local response=$(curl -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$attachmentsEndpoint$instanceId 2> /dev/null)
   echo $response
 }
 
 function doGetAttachmentReturningStatus {
   local instanceId=$1
-  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" $baseUrl$attachmentsEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  local responseStatus=$(curl -I -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$attachmentsEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
   echo $responseStatus
 }
 
@@ -498,12 +498,12 @@ function testDeleteNonExistentAttachment {
 
 function doDeleteAttachment {
   local instanceId=$1
-  $(curl -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" $baseUrl$attachmentsEndpoint$instanceId 2> /dev/null)
+  $(curl -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$attachmentsEndpoint$instanceId 2> /dev/null)
 }
 
 function doDeleteAttachmentReturningStatus {
   local instanceId=$1
-  local responseStatus=$(curl -I -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: localUserAttributes" $baseUrl$attachmentsEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
+  local responseStatus=$(curl -I -X DELETE -H "Content-Type: application/json" -H "federationTokenValue: token" $baseUrl$attachmentsEndpoint$instanceId 2> /dev/null | grep HTTP | awk '{print $2}')
   echo $responseStatus
 }
 

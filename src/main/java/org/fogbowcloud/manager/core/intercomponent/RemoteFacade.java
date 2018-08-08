@@ -15,7 +15,7 @@ import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserAttributes;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.manager.core.AaController;
 
 import java.util.Map;
@@ -39,41 +39,41 @@ public class RemoteFacade {
     }
 
     public void activateOrder(Order order) throws FogbowManagerException, UnexpectedException {
-        this.aaController.authorize(order.getFederationUserAttributes(), Operation.CREATE, order.getType());
+        this.aaController.authorize(order.getFederationUserToken(), Operation.CREATE, order.getType());
         OrderStateTransitioner.activateOrder(order);
     }
 
-    public Instance getResourceInstance(String orderId, FederationUserAttributes federationUserAttributes, ResourceType resourceType) throws
+    public Instance getResourceInstance(String orderId, FederationUserToken federationUserToken, ResourceType resourceType) throws
             Exception {
-        this.aaController.authorize(federationUserAttributes, Operation.GET, resourceType);
+        this.aaController.authorize(federationUserToken, Operation.GET, resourceType);
         return this.orderController.getResourceInstance(orderId);
     }
 
-    public void deleteOrder(String orderId, FederationUserAttributes federationUserAttributes, ResourceType resourceType)
+    public void deleteOrder(String orderId, FederationUserToken federationUserToken, ResourceType resourceType)
             throws FogbowManagerException, UnexpectedException {
-        this.aaController.authorize(federationUserAttributes, Operation.DELETE, resourceType);
+        this.aaController.authorize(federationUserToken, Operation.DELETE, resourceType);
         this.orderController.deleteOrder(orderId);
     }
 
-    public Quota getUserQuota(String memberId, FederationUserAttributes federationUserAttributes, ResourceType resourceType) throws
+    public Quota getUserQuota(String memberId, FederationUserToken federationUserToken, ResourceType resourceType) throws
             Exception {
-        this.aaController.authorize(federationUserAttributes, Operation.GET_USER_QUOTA, resourceType);
+        this.aaController.authorize(federationUserToken, Operation.GET_USER_QUOTA, resourceType);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
-        return cloudConnector.getUserQuota(federationUserAttributes, resourceType);
+        return cloudConnector.getUserQuota(federationUserToken, resourceType);
     }
 
-    public Image getImage(String memberId, String imageId, FederationUserAttributes federationUserAttributes) throws
+    public Image getImage(String memberId, String imageId, FederationUserToken federationUserToken) throws
             Exception {
-        this.aaController.authorize(federationUserAttributes, Operation.GET_IMAGE, ResourceType.IMAGE);
+        this.aaController.authorize(federationUserToken, Operation.GET_IMAGE, ResourceType.IMAGE);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
-        return cloudConnector.getImage(imageId, federationUserAttributes);
+        return cloudConnector.getImage(imageId, federationUserToken);
     }
 
-    public Map<String, String> getAllImages(String memberId, FederationUserAttributes federationUserAttributes) throws
+    public Map<String, String> getAllImages(String memberId, FederationUserToken federationUserToken) throws
             Exception {
-        this.aaController.authorize(federationUserAttributes, Operation.GET_ALL_IMAGES, ResourceType.IMAGE);
+        this.aaController.authorize(federationUserToken, Operation.GET_ALL_IMAGES, ResourceType.IMAGE);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
-        return cloudConnector.getAllImages(federationUserAttributes);
+        return cloudConnector.getAllImages(federationUserToken);
     }
 
     public void handleRemoteEvent(Event event, Order remoteOrder) throws FogbowManagerException, UnexpectedException {

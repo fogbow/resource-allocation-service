@@ -16,9 +16,7 @@ import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
-import org.fogbowcloud.manager.core.models.tokens.LocalUserAttributes;
-import org.fogbowcloud.manager.core.models.tokens.OpenStackUserAttributes;
-import org.fogbowcloud.manager.core.models.tokens.generators.KeystoneV3TokenGenerator;
+import org.fogbowcloud.manager.core.models.tokens.OpenStackToken;
 import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
 import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.CreateVolumeRequest;
 import org.fogbowcloud.manager.core.plugins.serialization.openstack.volume.v2.GetVolumeResponse;
@@ -26,7 +24,7 @@ import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONException;
 
-public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackUserAttributes> {
+public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackToken> {
 
 	private final String TENANT_ID_IS_NOT_SPECIFIED_ERROR = "Tenant id is not specified.";
 
@@ -51,9 +49,9 @@ public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackUserAttrib
 	}
 	
 	@Override
-	public String requestInstance(VolumeOrder order, OpenStackUserAttributes openStackUserAttributes)
+	public String requestInstance(VolumeOrder order, OpenStackToken openStackToken)
 			throws FogbowManagerException, UnexpectedException {
-		String tenantId = openStackUserAttributes.getTenantId();
+		String tenantId = openStackToken.getTenantId();
 		if (tenantId == null) {
 			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 			throw new UnauthenticatedUserException(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
@@ -73,7 +71,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackUserAttrib
 		String endpoint = this.volumeV2APIEndpoint + tenantId + SUFIX_ENDPOINT_VOLUMES;
 		String responseStr = null;
 		try {
-			responseStr = this.client.doPostRequest(endpoint, openStackUserAttributes, jsonRequest);
+			responseStr = this.client.doPostRequest(endpoint, openStackToken, jsonRequest);
 		} catch (HttpResponseException e) {
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}
@@ -82,9 +80,9 @@ public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackUserAttrib
 	}
 
 	@Override
-	public VolumeInstance getInstance(String storageOrderInstanceId, OpenStackUserAttributes openStackUserAttributes)
+	public VolumeInstance getInstance(String storageOrderInstanceId, OpenStackToken openStackToken)
 			throws FogbowManagerException, UnexpectedException {
-		String tenantId = openStackUserAttributes.getTenantId();
+		String tenantId = openStackToken.getTenantId();
 		if (tenantId == null) {
 			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 			throw new UnauthenticatedUserException(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
@@ -94,7 +92,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackUserAttrib
 				+ SUFIX_ENDPOINT_VOLUMES + "/" + storageOrderInstanceId;
 		String responseStr = null;
 		try {
-			responseStr = this.client.doGetRequest(endpoint, openStackUserAttributes);
+			responseStr = this.client.doGetRequest(endpoint, openStackToken);
 		} catch (HttpResponseException e) {
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}
@@ -102,9 +100,9 @@ public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackUserAttrib
 	}
 
 	@Override
-	public void deleteInstance(String storageOrderInstanceId, OpenStackUserAttributes openStackUserAttributes)
+	public void deleteInstance(String storageOrderInstanceId, OpenStackToken openStackToken)
 			throws FogbowManagerException, UnexpectedException {
-		String tenantId = openStackUserAttributes.getTenantId();
+		String tenantId = openStackToken.getTenantId();
 		if (tenantId == null) {
 			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
 			throw new UnauthenticatedUserException(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
@@ -113,7 +111,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackUserAttrib
 		String endpoint = this.volumeV2APIEndpoint + tenantId
 				+ SUFIX_ENDPOINT_VOLUMES + "/" + storageOrderInstanceId;
 		try {
-			this.client.doDeleteRequest(endpoint, openStackUserAttributes);
+			this.client.doDeleteRequest(endpoint, openStackToken);
 		} catch (HttpResponseException e) {
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		}
