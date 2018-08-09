@@ -1273,7 +1273,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     private NetworkOrder createNetworkOrder() throws Exception {
-        FederationUserToken federationUserToken = new FederationUserToken(FAKE_USER, "fake-name");
+        FederationUserToken federationUserToken = new FederationUserToken("token-value", FAKE_USER, "fake-name");
         NetworkOrder order = new NetworkOrder(federationUserToken, FAKE_MEMBER_ID, FAKE_MEMBER_ID,
                 FAKE_GATEWAY, FAKE_ADDRESS, NetworkAllocationMode.STATIC);
 
@@ -1286,7 +1286,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     private VolumeOrder createVolumeOrder() throws Exception {
-        FederationUserToken federationUserToken = new FederationUserToken(FAKE_USER, "fake-name");
+        FederationUserToken federationUserToken = new FederationUserToken("token-value", FAKE_USER, "fake-name");
         VolumeOrder order = new VolumeOrder(federationUserToken, FAKE_MEMBER_ID, FAKE_MEMBER_ID, 1,
                 FAKE_VOLUME_NAME);
 
@@ -1299,7 +1299,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     private ComputeOrder createComputeOrder() throws Exception {
-        FederationUserToken federationUserToken = new FederationUserToken(FAKE_USER, "fake-name");
+        FederationUserToken federationUserToken = new FederationUserToken("token-value", FAKE_USER, "fake-name");
 
         ComputeOrder order = new ComputeOrder(federationUserToken, FAKE_MEMBER_ID, FAKE_MEMBER_ID, 2, 2,
                 30, FAKE_IMAGE_NAME, new UserData(), FAKE_PUBLIC_KEY, null);
@@ -1315,7 +1315,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     private AttachmentOrder createAttachmentOrder() throws Exception {
-        FederationUserToken federationUserToken = new FederationUserToken(FAKE_USER, "fake-name");
+        FederationUserToken federationUserToken = new FederationUserToken("token-value", FAKE_USER, "fake-name");
 
         ComputeOrder computeOrder = new ComputeOrder();
         ComputeInstance computeInstance = new ComputeInstance(FAKE_SOURCE_ID);

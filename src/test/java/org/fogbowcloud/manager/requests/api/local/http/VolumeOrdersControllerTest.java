@@ -161,7 +161,7 @@ public class VolumeOrdersControllerTest {
     }
 
     private VolumeOrder createVolumeOrder() throws InvalidParameterException {
-        FederationUserToken federationUserToken = new FederationUserToken(FAKE_ID, FAKE_NAME);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-value", FAKE_ID, FAKE_NAME);
 
         VolumeOrder volumeOrder = Mockito.spy(new VolumeOrder());
         volumeOrder.setFederationUserToken(federationUserToken);

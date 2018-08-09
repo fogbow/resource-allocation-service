@@ -7,7 +7,8 @@ public class FederationUserToken extends Token {
     // This field is a human-friendly identification of the user, typically used by the CLI/GUI, but need not be unique.
     private String name;
 
-    public FederationUserToken(String id, String name) {
+    public FederationUserToken(String federationUserTokenValue, String id, String name) {
+        super(federationUserTokenValue);
         this.id = id;
         this.name = name;
     }

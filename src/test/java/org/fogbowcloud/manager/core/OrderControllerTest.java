@@ -98,7 +98,7 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test
     public void testGetAllInstancesStatus() throws InvalidParameterException {
         // set up
-        FederationUserToken federationUserToken = new FederationUserToken("fake-id", "fake-user");
+        FederationUserToken federationUserToken = new FederationUserToken("token-value", "fake-id", "fake-user");
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setFederationUserToken(federationUserToken);
         computeOrder.setRequestingMember(this.localMember);
@@ -138,7 +138,7 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testGetOrder() throws UnexpectedException, FogbowManagerException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.OPEN);
-        FederationUserToken federationUserToken = new FederationUserToken("fake-id", "fake-user");
+        FederationUserToken federationUserToken = new FederationUserToken("token-value", "fake-id", "fake-user");
 
         // exercise
         ComputeOrder computeOrder = (ComputeOrder) this.ordersController.getOrder(orderId);
@@ -151,7 +151,7 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test(expected = InstanceNotFoundException.class)
     public void testGetInvalidOrder() throws FogbowManagerException {
         // setup
-        FederationUserToken federationUserToken = new FederationUserToken("fake-id", "fake-user");
+        FederationUserToken federationUserToken = new FederationUserToken("token-value", "fake-id", "fake-user");
 
         // exercise
         this.ordersController.getOrder("invalid-order-id");
@@ -218,7 +218,7 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test
     public void testGetUserAllocation() throws UnexpectedException, InvalidParameterException {
         // set up
-        FederationUserToken federationUserToken = new FederationUserToken("fake-id", "fake-user");
+        FederationUserToken federationUserToken = new FederationUserToken("token-value", "fake-id", "fake-user");
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setFederationUserToken(federationUserToken);
         computeOrder.setRequestingMember(this.localMember);
@@ -245,7 +245,7 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test(expected = UnexpectedException.class)
     public void testGetUserAllocationWithInvalidInstanceType() throws UnexpectedException, InvalidParameterException {
         // set up
-        FederationUserToken federationUserToken = new FederationUserToken("fake-id", "fake-user");
+        FederationUserToken federationUserToken = new FederationUserToken("token-value", "fake-id", "fake-user");
         NetworkOrder networkOrder = new NetworkOrder();
         networkOrder.setFederationUserToken(federationUserToken);
         networkOrder.setRequestingMember(this.localMember);
@@ -389,7 +389,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
     private String getComputeOrderCreationId(OrderState orderState) throws InvalidParameterException {
         String orderId;
-        FederationUserToken federationUserToken = new FederationUserToken("fake-id", "fake-user");
+        FederationUserToken federationUserToken = new FederationUserToken("token-value", "fake-id", "fake-user");
 
         ComputeOrder computeOrder = Mockito.spy(new ComputeOrder());
         computeOrder.setFederationUserToken(federationUserToken);

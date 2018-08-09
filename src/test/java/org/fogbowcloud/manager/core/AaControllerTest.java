@@ -39,18 +39,18 @@ public class AaControllerTest {
     public void testAuthenticate() throws UnauthenticatedUserException {
     	//set up
     	String federationTokenId = "federation-token-id";
-    	Mockito.when(this.authenticationPluginMock.isValid(Mockito.anyString())).thenReturn(true);
+    	Mockito.when(this.authenticationPluginMock.isAuthentic(Mockito.anyString())).thenReturn(true);
 
     	//exercise/verify
     	this.aaController.authenticate(federationTokenId);
-    	Mockito.verify(this.authenticationPluginMock, Mockito.times(1)).isValid(federationTokenId);
+    	Mockito.verify(this.authenticationPluginMock, Mockito.times(1)).isAuthentic(federationTokenId);
     }
     
     //test case: Check if authenticate method throws Unauthenticated exception when the federation token is invalid. 
     @Test (expected = UnauthenticatedUserException.class)
     public void testAuthenticateWhenUnauthenticatedUserException() throws UnauthenticatedUserException {
     	//set up
-    	Mockito.when(this.authenticationPluginMock.isValid(Mockito.anyString())).thenReturn(false);
+    	Mockito.when(this.authenticationPluginMock.isAuthentic(Mockito.anyString())).thenReturn(false);
 
     	//exercise/verify
     	this.aaController.authenticate(Mockito.anyString());
@@ -119,7 +119,7 @@ public class AaControllerTest {
     	//verify
     }
     
-    //test case: Check if getLocalToken is properly forwarding FogbowManagerException thrown by LocalTokenGenerator.
+    //test case: Check if getLocalToken is properly forwarding FogbowManagerException thrown by TokenGenerator.
 	@Ignore
     @Test (expected = FogbowManagerException.class)
     public void testGetLocalTokenWhenFogbowManagerException() throws FogbowManagerException, UnexpectedException {
@@ -127,7 +127,7 @@ public class AaControllerTest {
     	//exercise/verify
     }
     
-    //test case: Check if getLocalToken is properly forwading UnexpectedException thrown by LocalTokenGenerator.
+    //test case: Check if getLocalToken is properly forwading UnexpectedException thrown by TokenGenerator.
 	@Ignore
     @Test (expected = UnexpectedException.class)
     public void testGetLocalTokenWhenUnexpectedException() throws FogbowManagerException, UnexpectedException {
@@ -139,7 +139,7 @@ public class AaControllerTest {
     @Test
     public void testGetFederationUser() throws UnauthenticatedUserException, InvalidParameterException {
     	//set up
-    	FederationUserToken expectedFederationUserToken = new FederationUserToken("id", "fake-name");
+    	FederationUserToken expectedFederationUserToken = new FederationUserToken("token-value", "id", "fake-name");
     	Mockito.when(this.authenticationPluginMock.getFederationUser(Mockito.anyString())).thenReturn(expectedFederationUserToken);
     	
     	//exercise

@@ -130,7 +130,7 @@ public class VolumeOrderStorage extends OrderStorage {
                 Map<String, String> federationUserAttr = getFederationUserAttrFromString(volumeResult.getString(5));
 
                 VolumeOrder volumeOrder = new VolumeOrder(volumeResult.getString(1),
-                        new FederationUserToken(volumeResult.getString(4), null),
+                        new FederationUserToken(null, volumeResult.getString(4), null),
                         volumeResult.getString(6), volumeResult.getString(7),
                         volumeResult.getInt(8), volumeResult.getString(9));
 

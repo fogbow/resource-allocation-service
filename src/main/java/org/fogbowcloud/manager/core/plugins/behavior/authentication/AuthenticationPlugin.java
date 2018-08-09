@@ -25,6 +25,6 @@ public interface AuthenticationPlugin {
      * @param federationTokenValue
      * @return a boolean stating whether the tokens value is valid or not.
      */
-    public boolean isValid(String federationTokenValue);
+    public boolean isAuthentic(String federationTokenValue);
 
 }

@@ -169,7 +169,7 @@ public class ComputeOrderStorage extends OrderStorage {
                 }
                 
                 ComputeOrder computeOrder = new ComputeOrder(computeResult.getString(1),
-                        new FederationUserToken(computeResult.getString(4), null),
+                        new FederationUserToken(null, computeResult.getString(4), null),
                         computeResult.getString(6), computeResult.getString(7), computeResult.getInt(8),
                         computeResult.getInt(9), computeResult.getInt(10), computeResult.getString(11),
                         new UserData(computeResult.getString(12), extraUserDataFileType), 

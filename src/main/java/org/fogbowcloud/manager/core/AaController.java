@@ -26,7 +26,7 @@ public class AaController {
     }
 
     public void authenticate(String federationTokenId) throws UnauthenticatedUserException {
-        if (!this.authenticationPlugin.isValid(federationTokenId)) {
+        if (!this.authenticationPlugin.isAuthentic(federationTokenId)) {
             throw new UnauthenticatedUserException();
         }
     }

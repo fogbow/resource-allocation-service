@@ -142,7 +142,7 @@ public class NetworkOrdersControllerTest {
     }
 
     private NetworkOrder createNetworkOrder() {
-        FederationUserToken federationUserToken = new FederationUserToken("fake-user", "fake-name");
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token", "fake-user", "fake-name");
 
         NetworkOrder networkOrder = Mockito.spy(new NetworkOrder());
         networkOrder.setFederationUserToken(federationUserToken);

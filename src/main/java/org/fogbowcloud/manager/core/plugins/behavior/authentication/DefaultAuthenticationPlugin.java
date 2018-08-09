@@ -9,13 +9,13 @@ public class DefaultAuthenticationPlugin implements AuthenticationPlugin {
 
     @Override
     public FederationUserToken getFederationUser(String federationTokenValue) throws InvalidParameterException {
-        FederationUserToken federationUserToken = new FederationUserToken("default-id", "default");
+        FederationUserToken federationUserToken = new FederationUserToken(federationTokenValue, "default-id", "default");
 
         return federationUserToken;
     }
 
     @Override
-    public boolean isValid(String federationTokenValue) {
+    public boolean isAuthentic(String federationTokenValue) {
         return true;
     }
 }
