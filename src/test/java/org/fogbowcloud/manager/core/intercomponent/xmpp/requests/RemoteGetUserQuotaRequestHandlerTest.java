@@ -3,13 +3,11 @@ package org.fogbowcloud.manager.core.intercomponent.xmpp.requests;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.dom4j.Element;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
-import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
-import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.handlers.RemoteGetUserQuotaRequestHandler;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.requesters.RemoteGetUserQuotaRequest;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
@@ -27,8 +25,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.xmpp.packet.IQ;
 
-import com.google.gson.Gson;
-
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ RemoteFacade.class, PacketSenderHolder.class })
 public class RemoteGetUserQuotaRequestHandlerTest {
@@ -39,19 +35,25 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 	private static final String PROVIDING_MEMBER = "providingmember";
 	
 	private RemoteGetUserQuotaRequestHandler remoteGetUserQuotaRequestHandler;
+	private RemoteGetUserQuotaRequest getUserQuotaRequest;
 
-	private static final String EXPECTED_QUOTA = "{\"totalQuota\":" + "{\"vCPU\":1,\"ram\":1,\"instances\":1},"
-					+ "\"usedQuota\":{\"vCPU\":1,\"ram\":1,\"instances\":1},"
-					+ "\"availableQuota\":{\"vCPU\":0,\"ram\":0,\"instances\":0}}";
+	private static final String EXPECTED_QUOTA = "\n<iq type=\"result\" id=\"%s\" from=\"%s\">\n"
+					+ "  <query xmlns=\"remoteGetUserQuota\">\n"
+					+ "    <userQuota>{\"totalQuota\":{\"vCPU\":1,\"ram\":1,\"instances\":1},"
+									+ "\"usedQuota\":{\"vCPU\":1,\"ram\":1,\"instances\":1},"
+									+ "\"availableQuota\":{\"vCPU\":0,\"ram\":0,\"instances\":0}}"
+						+ "</userQuota>\n"
+					+ "    <userQuotaClassName>org.fogbowcloud.manager.core.models.quotas.ComputeQuota</userQuotaClassName>\n"
+					+ "  </query>\n</iq>";
 
 	private static final String IQ_ERROR_RESPONSE = "\n<iq type=\"error\" id=\"%s\" from=\"%s\">\n"
 					+ "  <error code=\"500\" type=\"wait\">\n"
 					+ "    <undefined-condition xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n"
 					+ "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">Unexpected exceptionjava.lang.Exception</text>\n"
-					+ "  </error>\n" + "</iq>";
+					+ "  </error>\n</iq>";
 
 	@Before
-	public void setUp() {
+	public void setUp() throws InvalidParameterException {
 		this.remoteGetUserQuotaRequestHandler = new RemoteGetUserQuotaRequestHandler();
 		this.remoteFacade = Mockito.mock(RemoteFacade.class);
 		PowerMockito.mockStatic(RemoteFacade.class);
@@ -61,6 +63,10 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 
 		PowerMockito.mockStatic(PacketSenderHolder.class);
 		BDDMockito.given(PacketSenderHolder.getPacketSender()).willReturn(this.packetSender);
+		this.getUserQuotaRequest = new RemoteGetUserQuotaRequest(
+												PROVIDING_MEMBER,
+												this.createFederationUser(),
+												ResourceType.COMPUTE);
 	}
 
 	// test case: When the handle method is called passing an IQ request, it must return the User Quota from that.
@@ -73,18 +79,18 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 			.when(this.remoteFacade)
 				.getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any());
 
-		IQ iq = createIq();
+		IQ iq = this.getUserQuotaRequest.createIq();
 
 		// exercise
 		IQ result = this.remoteGetUserQuotaRequestHandler.handle(iq);
 
 		// verify
-		String userQuota = this.getQuotaFromResponse(result);
+		String expected = String.format(EXPECTED_QUOTA, iq.getID(), PROVIDING_MEMBER);
 
 		Mockito.verify(this.remoteFacade, Mockito.times(1))
 			.getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any(ResourceType.class));
 
-		Assert.assertEquals(EXPECTED_QUOTA, userQuota);
+		Assert.assertEquals(expected, result.toString());
 	}
 
 	// test case: When an Exception occurs, the handle method must return a response error.
@@ -94,7 +100,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 			.getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any()))
 				.thenThrow(new Exception());
 
-		IQ iq = createIq();
+		IQ iq = this.getUserQuotaRequest.createIq();
 
 		// exercise
 		IQ result = this.remoteGetUserQuotaRequestHandler.handle(iq);
@@ -106,27 +112,6 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 		String expected = String.format(IQ_ERROR_RESPONSE, iq.getID(), PROVIDING_MEMBER);
 		Assert.assertEquals(expected, result.toString());
 	}
-
-	private IQ createIq() throws InvalidParameterException {
-		IQ iq = new IQ(IQ.Type.get);
-		iq.setTo(PROVIDING_MEMBER);
-
-		FederationUser fedUser = this.createFederationUser();
-
-		Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
-				RemoteMethod.REMOTE_GET_USER_QUOTA.toString());
-
-		Element orderIdElement = queryElement.addElement(IqElement.MEMBER_ID.toString());
-		orderIdElement.setText(FED_USER_ID);
-
-		Element federationUser = queryElement.addElement(IqElement.FEDERATION_USER.toString());
-		federationUser.setText(new Gson().toJson(fedUser));
-
-		Element resourceType = queryElement.addElement(IqElement.INSTANCE_TYPE.toString());
-		resourceType.setText(ResourceType.COMPUTE.toString());
-
-		return iq;
-	}
 	
 	private Quota getQuota() {
 		// set up
@@ -137,12 +122,6 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 		ComputeAllocation totalQuota = new ComputeAllocation(vCPU, ram, instances);
 		ComputeAllocation usedQuota = new ComputeAllocation(vCPU, ram, instances);
 		return new ComputeQuota(totalQuota, usedQuota);
-	}
-	
-	private String getQuotaFromResponse(IQ response) {
-		Element query = response.getElement().element(IqElement.QUERY.toString());
-		Element userQuota = query.element(IqElement.USER_QUOTA.toString());
-		return userQuota.getText();
 	}
 	
 	private FederationUser createFederationUser() throws InvalidParameterException {

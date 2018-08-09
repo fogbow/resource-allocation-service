@@ -38,7 +38,7 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
         return quota;
     }
 
-    private IQ createIq() {
+    public IQ createIq() {
         IQ iq = new IQ(IQ.Type.get);
         iq.setTo(this.provider);
 
