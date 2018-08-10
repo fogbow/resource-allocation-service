@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.models.tokens.generators.openstack.v3;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -26,9 +25,7 @@ public class KeystoneV3TokenGenerator implements TokenGenerator<OpenStackV3Token
     private static final String OPENSTACK_KEYSTONE_V3_URL = "openstack_keystone_v3_url";
     private static final String X_SUBJECT_TOKEN = "X-Subject-Token";
 
-    public static final String TENANT_NAME = "tenantName";
     public static final String PROJECT_ID = "projectId";
-    public static final String TENANT_ID = "tenantId";
     public static final String PASSWORD = "password";
     public static final String USER_ID = "userId";
     public static final String AUTH_URL = "authUrl";
@@ -115,10 +112,15 @@ public class KeystoneV3TokenGenerator implements TokenGenerator<OpenStackV3Token
         try {
             CreateTokenResponse createTokenResponse = CreateTokenResponse.fromJson(response.getContent());
 
-            CreateTokenResponse.Project projectTokenResponse = createTokenResponse.getProject();
-            String tenantId = projectTokenResponse.getId();
+            CreateTokenResponse.User userTokenResponse = createTokenResponse.getUser();
+            String userId = userTokenResponse.getId();
+            String userName = userTokenResponse.getName();
 
-            return new OpenStackV3Token(tokenValue, tenantId);
+            CreateTokenResponse.Project projectTokenResponse = createTokenResponse.getProject();
+            String projectId = projectTokenResponse.getId();
+            String projectName = projectTokenResponse.getName();
+
+            return new OpenStackV3Token(tokenValue, userId, userName, projectId, projectName);
         } catch (Exception e) {
             LOGGER.error("Exception while getting tokens from json", e);
             throw new UnexpectedException("Exception while getting tokens from json", e);

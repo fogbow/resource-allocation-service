@@ -52,7 +52,7 @@ public class OpenstackRestApiConstants {
 
         public static final String NETWORK_KEY_JSON = "network";
         public static final String NAME_KEY_JSON = "name";
-        public static final String TENANT_ID_KEY_JSON = "tenant_id";
+        public static final String PROJECT_ID_KEY_JSON = "project_id";
         public static final String ID_KEY_JSON = "id";
 
         public static final String NETWORK_ID_KEY_JSON = "network_id";

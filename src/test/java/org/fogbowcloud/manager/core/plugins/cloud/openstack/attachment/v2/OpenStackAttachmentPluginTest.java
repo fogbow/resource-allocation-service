@@ -19,7 +19,6 @@ import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackStateMapper;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.attachment.v2.OpenStackNovaV2AttachmentPlugin;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -41,7 +40,11 @@ public class OpenStackAttachmentPluginTest {
     private static final String FAKE_DEVICE = "/dev/sdd";
     private static final String FAKE_GET_REQUEST_BODY = "{\"volumeAttachment\": {\"device\": \""+ FAKE_DEVICE +"\",\"id\": \""
             + FAKE_INSTANCE_ID + "\",\"serverId\": \"" + FAKE_SERVER_ID + "\",\"volumeId\": \"" + FAKE_VOLUME_ID + "\"}}";
-    private static final String FAKE_TENANT_ID = "fake-tenant-id";
+    private static final String FAKE_TOKEN_VALUE = "fake-token-value";
+    private static final String FAKE_USER_ID = "fake-user-id";
+    private static final String FAKE_NAME = "fake-name";
+    private static final String FAKE_PROJECT_ID = "fake-project-id";
+    private static final String FAKE_PROJECT_NAME = "fake-project-name";
     private AttachmentOrder attachmentOrder;
     private OpenStackNovaV2AttachmentPlugin openStackAttachmentPlugin;
     private OpenStackV3Token localUserAttributes;
@@ -58,7 +61,7 @@ public class OpenStackAttachmentPluginTest {
         properties.put(OpenStackNovaV2AttachmentPlugin.COMPUTE_NOVAV2_URL_KEY, FAKE_ENDPOINT);
         properties.put(COMPUTE_NOVAV2_NETWORK_KEY, FAKE_NET_ID);
 
-        this.localUserAttributes = new OpenStackV3Token("fake-token-value", FAKE_TENANT_ID);
+        this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
         this.attachmentOrder =
                 new AttachmentOrder(null, null, null, FAKE_SERVER_ID, FAKE_VOLUME_ID, MOUNT_POINT);
         
@@ -102,7 +105,7 @@ public class OpenStackAttachmentPluginTest {
             IOException, UnexpectedException, NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
         //set up
         Mockito.doNothing().when(this.client).doDeleteRequest(this.argString.capture(), this.argToken.capture());
-		String expectedEndpoint = FAKE_ENDPOINT + "/v2/" + FAKE_TENANT_ID + "/servers/" + FAKE_SERVER_ID
+		String expectedEndpoint = FAKE_ENDPOINT + "/v2/" + FAKE_PROJECT_ID + "/servers/" + FAKE_SERVER_ID
 				+ "/os-volume_attachments" + "/" + FAKE_VOLUME_ID;
 		
         //exercise

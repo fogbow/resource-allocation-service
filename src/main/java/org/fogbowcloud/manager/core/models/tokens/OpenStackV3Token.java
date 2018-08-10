@@ -2,22 +2,28 @@ package org.fogbowcloud.manager.core.models.tokens;
 
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 
-public class OpenStackV3Token extends Token {
+public class OpenStackV3Token extends FederationUserToken {
 
-    private String tenantId;
+    private String projectId;
+    private String projectName;
 
-    public OpenStackV3Token(String tokenValue, String tenantId) throws InvalidParameterException {
-        super(tokenValue);
+    public OpenStackV3Token(String tokenValue, String userId, String name, String projectId, String projectName)
+            throws InvalidParameterException {
+        super(tokenValue, userId, name);
 
-        if (tenantId != null) {
-            this.tenantId = tenantId;
+        if (projectId != null) {
+            this.projectId = projectId;
         } else {
-            throw new InvalidParameterException("tenantId not defined");
+            throw new InvalidParameterException("projectId not defined");
         }
-
+        this.projectName = projectName;
     }
 
-    public String getTenantId() {
-        return tenantId;
+    public String getProjectId() {
+        return this.projectId;
+    }
+
+    public String getName() {
+        return this.projectName;
     }
 }

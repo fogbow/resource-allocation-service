@@ -28,9 +28,6 @@ import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.manager.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackStateMapper;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.network.v2.CreateNetworkResponse;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.network.v2.CreateSecurityGroupResponse;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.network.v2.OpenStackV2NetworkPlugin;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -47,10 +44,16 @@ public class OpenStackV2NetworkPluginTest {
 
 	private static final String UTF_8 = "UTF-8";
 	private static final String DEFAULT_GATEWAY_INFO = "000000-gateway_info";
-	private static final String DEFAULT_TENANT_ID = "TENANT_ID";
+	private static final String DEFAULT_PROJECT_ID = "PROJECT_ID";
 	private static final String DEFAULT_NETWORK_URL = "http://localhost:0000";
 	private static final String SECURITY_GROUP_ID = "fake-sg-id";
 	private static final String NETWORK_ID = "networkId";
+
+	private static final String FAKE_TOKEN_VALUE = "fake-token-value";
+	private static final String FAKE_USER_ID = "fake-user-id";
+	private static final String FAKE_NAME = "fake-name";
+	private static final String FAKE_PROJECT_ID = "fake-project-id";
+	private static final String FAKE_PROJECT_NAME = "fake-project-name";
 
 	private static final String SUFFIX_ENDPOINT_DELETE_NETWORK = OpenStackV2NetworkPlugin.SUFFIX_ENDPOINT_NETWORK +
 			File.separator + NETWORK_ID;
@@ -80,7 +83,7 @@ public class OpenStackV2NetworkPluginTest {
 		this.httpRequestClientUtil = Mockito.spy(new HttpRequestClientUtil(this.client));
 		this.openStackV2NetworkPlugin.setClient(this.httpRequestClientUtil);
 
-		this.defaultLocalUserAttributes = new OpenStackV3Token("accessId", DEFAULT_TENANT_ID);
+		this.defaultLocalUserAttributes = new OpenStackV3Token(FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
 	}
 
 	@After
@@ -335,12 +338,12 @@ public class OpenStackV2NetworkPluginTest {
 
 		//exercise
 		String generateJsonEntityToCreateSubnet = this.openStackV2NetworkPlugin
-				.generateJsonEntityToCreateSubnet(order.getId(), DEFAULT_TENANT_ID, order);
+				.generateJsonEntityToCreateSubnet(order.getId(), DEFAULT_PROJECT_ID, order);
 
 		//verify
 		String subnetJson = generateJsonEntityToCreateSubnet;
 		JSONObject subnetJsonObject = new JSONObject(subnetJson).optJSONObject(OpenStackV2NetworkPlugin.KEY_JSON_SUBNET);
-		Assert.assertEquals(DEFAULT_TENANT_ID, subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_TENANT_ID));
+		Assert.assertEquals(DEFAULT_PROJECT_ID, subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_PROJECT_ID));
 		Assert.assertTrue(subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_NAME)
 				.contains(OpenStackV2NetworkPlugin.DEFAULT_SUBNET_NAME));
 		Assert.assertEquals(order.getId(), subnetJsonObject.optString(OpenStackV2NetworkPlugin.KEY_NETWORK_ID));
@@ -362,7 +365,7 @@ public class OpenStackV2NetworkPluginTest {
 
 		//exercise
 		String entityToCreateSubnet = this.openStackV2NetworkPlugin
-				.generateJsonEntityToCreateSubnet(order.getId(), DEFAULT_TENANT_ID, order);
+				.generateJsonEntityToCreateSubnet(order.getId(), DEFAULT_PROJECT_ID, order);
 		JSONObject generateJsonEntityToCreateSubnet = new JSONObject(entityToCreateSubnet);
 		
 		//verify
@@ -381,7 +384,7 @@ public class OpenStackV2NetworkPluginTest {
 
 		//exercise
 		String entityToCreateSubnet = this.openStackV2NetworkPlugin
-				.generateJsonEntityToCreateSubnet(order.getId(), DEFAULT_TENANT_ID, order);
+				.generateJsonEntityToCreateSubnet(order.getId(), DEFAULT_PROJECT_ID, order);
 		JSONObject generateJsonEntityToCreateSubnet = new JSONObject(entityToCreateSubnet);
 
 		//verify
@@ -402,7 +405,7 @@ public class OpenStackV2NetworkPluginTest {
 
 		//exercise
 		String entityToCreateSubnet = this.openStackV2NetworkPlugin
-				.generateJsonEntityToCreateSubnet(order.getId(), DEFAULT_TENANT_ID, order);
+				.generateJsonEntityToCreateSubnet(order.getId(), DEFAULT_PROJECT_ID, order);
 		JSONObject generateJsonEntityToCreateSubnet = new JSONObject(entityToCreateSubnet);
 
 		//verify
@@ -420,7 +423,7 @@ public class OpenStackV2NetworkPluginTest {
 
 		//exercise
 		String entityToCreateSubnet = this.openStackV2NetworkPlugin
-				.generateJsonEntityToCreateSubnet(order.getId(), DEFAULT_TENANT_ID, order);
+				.generateJsonEntityToCreateSubnet(order.getId(), DEFAULT_PROJECT_ID, order);
 		JSONObject generateJsonEntityToCreateSubnet = new JSONObject(entityToCreateSubnet);
 
 		//verify
@@ -604,7 +607,7 @@ public class OpenStackV2NetworkPluginTest {
 	public void testRetrieveSecurityGroupIdFromGetResponse() throws UnexpectedException {
 		//set up
 		JSONObject securityGroup = new JSONObject();
-		securityGroup.put(OpenStackV2NetworkPlugin.KEY_TENANT_ID, "fake-tenant-id");
+		securityGroup.put(OpenStackV2NetworkPlugin.KEY_PROJECT_ID, "fake-tenant-id");
 		securityGroup.put(OpenStackV2NetworkPlugin.KEY_NAME, "fake-name");
 		securityGroup.put(OpenStackV2NetworkPlugin.KEY_ID, SECURITY_GROUP_ID);
 
@@ -625,7 +628,7 @@ public class OpenStackV2NetworkPluginTest {
 	public void testErrorToRetrieveSecurityGroupIdFromGetResponse() throws UnexpectedException {
 		//set up
 		JSONObject securityGroup = new JSONObject();
-		securityGroup.put(OpenStackV2NetworkPlugin.KEY_TENANT_ID, "fake-tenant-id");
+		securityGroup.put(OpenStackV2NetworkPlugin.KEY_PROJECT_ID, "fake-tenant-id");
 		securityGroup.put(OpenStackV2NetworkPlugin.KEY_NAME, "fake-name");
 
 		JSONArray securityGroups = new JSONArray();
@@ -689,7 +692,7 @@ public class OpenStackV2NetworkPluginTest {
 		JSONObject jsonObject = new JSONObject();
 		JSONArray securityGroups = new JSONArray();
 		JSONObject securityGroupInfo = new JSONObject();
-		securityGroupInfo.put(OpenStackV2NetworkPlugin.KEY_TENANT_ID, "fake-project-id");
+		securityGroupInfo.put(OpenStackV2NetworkPlugin.KEY_PROJECT_ID, "fake-project-id");
 		securityGroupInfo.put(OpenStackV2NetworkPlugin.QUERY_NAME, "fake-name");
 		securityGroupInfo.put(OpenStackV2NetworkPlugin.KEY_ID, id);
 		securityGroups.put(securityGroupInfo);

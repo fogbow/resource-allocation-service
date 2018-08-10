@@ -27,13 +27,12 @@ import org.json.JSONException;
 
 public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenStackV3Token> {
 
-    private final String TENANT_ID_IS_NOT_SPECIFIED_ERROR = "Tenant id is not specified.";
+    private final String PROJECT_ID_IS_NOT_SPECIFIED_ERROR = "Project id is not specified.";
     protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
     private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
     private static final String OS_VOLUME_ATTACHMENTS = "/os-volume_attachments";
     private static final String SEPARATOR_ID = " ";
     private static final String SERVERS = "/servers/";
-    private static final String TENANT_ID = "tenantId";
 
     private final Logger LOGGER = Logger.getLogger(OpenStackNovaV2AttachmentPlugin.class);
     
@@ -50,7 +49,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
     @Override
     public String requestInstance(AttachmentOrder attachmentOrder, OpenStackV3Token openStackV3Token)
             throws FogbowManagerException, UnexpectedException {
-        String tenantId = openStackV3Token.getTenantId();
+        String tenantId = openStackV3Token.getProjectId();
         
         String serverId = attachmentOrder.getSource();
         String volumeId = attachmentOrder.getTarget();
@@ -76,10 +75,10 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
     @Override
     public void deleteInstance(String instanceId, OpenStackV3Token openStackV3Token)
             throws FogbowManagerException, UnexpectedException {
-        String tenantId = openStackV3Token.getTenantId();
+        String tenantId = openStackV3Token.getProjectId();
         if (tenantId == null) {
-            LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
-            throw new UnauthenticatedUserException(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
+            LOGGER.error(PROJECT_ID_IS_NOT_SPECIFIED_ERROR);
+            throw new UnauthenticatedUserException(PROJECT_ID_IS_NOT_SPECIFIED_ERROR);
         }
 
         String[] separatorInstanceId = instanceId.split(SEPARATOR_ID);
@@ -98,7 +97,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
     public AttachmentInstance getInstance(String instanceId, OpenStackV3Token openStackV3Token)
             throws FogbowManagerException, UnexpectedException {
         LOGGER.info("Getting instance " + instanceId + " with tokens " + openStackV3Token);
-    	String tenantId = openStackV3Token.getTenantId();
+    	String tenantId = openStackV3Token.getProjectId();
     	
     	String[] separatorInstanceId = instanceId.split(SEPARATOR_ID);
     	

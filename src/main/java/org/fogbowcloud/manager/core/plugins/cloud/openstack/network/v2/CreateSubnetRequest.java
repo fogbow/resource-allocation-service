@@ -14,7 +14,7 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
  * {
  *   "subnet":{
  *     "name":"subnet-name-01",
- *     "tenant_id":"fake-tenant",
+ *     "project_id":"fake-project",
  *     "network_id":"d32019d3-bc6e-4319-9c1d-6722fc136a22",
  *     "ip_version":4,
  *     "gateway_ip":"192.0.0.1",
@@ -46,8 +46,8 @@ public class CreateSubnetRequest {
         @SerializedName(NAME_KEY_JSON)
         private final String name;
 
-        @SerializedName(TENANT_ID_KEY_JSON)
-        private final String tenantId;
+        @SerializedName(PROJECT_ID_KEY_JSON)
+        private final String projectId;
 
         @SerializedName(NETWORK_ID_KEY_JSON)
         private final String networkId;
@@ -69,7 +69,7 @@ public class CreateSubnetRequest {
 
         private Subnet(Builder builder) {
             this.name = builder.name;
-            this.tenantId = builder.tenantId;
+            this.projectId = builder.projectId;
             this.networkId = builder.networkId;
             this.ipVersion = builder.ipVersion;
             this.gatewayIp = builder.gatewayIp;
@@ -83,7 +83,7 @@ public class CreateSubnetRequest {
     public static class Builder {
 
         private String name;
-        private String tenantId;
+        private String projectId;
         private String networkId;
         private int ipVersion;
         private String gatewayIp;
@@ -96,8 +96,8 @@ public class CreateSubnetRequest {
             return this;
         }
 
-        public Builder tenantId(String tenantId) {
-            this.tenantId = tenantId;
+        public Builder projectId(String projectId) {
+            this.projectId = projectId;
             return this;
         }
 

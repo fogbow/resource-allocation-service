@@ -58,6 +58,12 @@ public class OpenStackComputePluginTest {
 	private final int bestCpu = 2;
 	private final int bestMemory = 1024;
 
+	private static final String FAKE_TOKEN_VALUE = "fake-token-value";
+	private static final String FAKE_USER_ID = "fake-user-id";
+	private static final String FAKE_NAME = "fake-name";
+	private static final String FAKE_PROJECT_ID = "fake-project-id";
+	private static final String FAKE_PROJECT_NAME = "fake-project-name";
+
 	private final int bestDisk = 8;
 	private final String privateNetworkId = "fake-private-network-id";
 	private final String userData = "userDataFromLauchCommand";
@@ -93,21 +99,21 @@ public class OpenStackComputePluginTest {
         String tokenValue = "accessID";
         String tenantId = "tenant-id";
         Map <String, String> attributes = new HashMap<String, String>();
-        attributes.put(OpenStackNovaV2ComputePlugin.TENANT_ID, tenantId);
-        this.openStackV3Token = new OpenStackV3Token(tokenValue, tenantId);
-        
-        HomeDir.getInstance().setPath("src/test/resources/private");
+        attributes.put(OpenStackNovaV2ComputePlugin.PROJECT_ID, tenantId);
+		this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
+
+		HomeDir.getInstance().setPath("src/test/resources/private");
         
 		this.computePlugin = Mockito.spy(new OpenStackNovaV2ComputePlugin(this.propertiesMock,
 				this.launchCommandGeneratorMock, this.httpRequestClientUtilMock));
 		this.osKeyPairEndpoint = computeNovaV2UrlKey + OpenStackNovaV2ComputePlugin.COMPUTE_V2_API_ENDPOINT
-				+ this.openStackV3Token.getTenantId()
+				+ this.openStackV3Token.getProjectId()
 				+ OpenStackNovaV2ComputePlugin.SUFFIX_ENDPOINT_KEYPAIRS;
 		this.computeEndpoint = computeNovaV2UrlKey + OpenStackNovaV2ComputePlugin.COMPUTE_V2_API_ENDPOINT
-				+ this.openStackV3Token.getTenantId()
+				+ this.openStackV3Token.getProjectId()
 				+ OpenStackNovaV2ComputePlugin.SERVERS;
 		this.flavorEndpoint = this.computeNovaV2UrlKey + OpenStackNovaV2ComputePlugin.COMPUTE_V2_API_ENDPOINT
-				+ this.openStackV3Token.getTenantId()
+				+ this.openStackV3Token.getProjectId()
 				+ OpenStackNovaV2ComputePlugin.SUFFIX_ENDPOINT_FLAVORS;
 
 		Mockito.when(this.propertiesMock.getProperty(OpenStackNovaV2ComputePlugin.COMPUTE_NOVAV2_URL_KEY))

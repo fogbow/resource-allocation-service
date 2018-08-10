@@ -11,7 +11,7 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
  * {
  *   "security_group":{
  *     "name":"net1",
- *     "tenant_id":"fake-tenant"
+ *     "project_id":"fake-project"
  *   }
  * }
  *
@@ -35,12 +35,12 @@ public class CreateSecurityGroupRequest {
         @SerializedName(NAME_KEY_JSON)
         private String name;
 
-        @SerializedName(TENANT_ID_KEY_JSON)
-        private String tenantId;
+        @SerializedName(PROJECT_ID_KEY_JSON)
+        private String projectId;
 
         private SecurityGroup(Builder builder) {
             this.name = builder.name;
-            this.tenantId = builder.tenantId;
+            this.projectId = builder.projectId;
         }
 
     }
@@ -48,15 +48,15 @@ public class CreateSecurityGroupRequest {
     public static class Builder {
 
         private String name;
-        private String tenantId;
+        private String projectId;
 
         public Builder name(String name) {
             this.name = name;
             return this;
         }
 
-        public Builder tenantId(String tenantId) {
-            this.tenantId = tenantId;
+        public Builder projectId(String projectId) {
+            this.projectId = projectId;
             return this;
         }
 

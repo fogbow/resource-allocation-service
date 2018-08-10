@@ -26,7 +26,7 @@ import org.json.JSONException;
 
 public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackV3Token> {
 
-	private final String TENANT_ID_IS_NOT_SPECIFIED_ERROR = "Tenant id is not specified.";
+	private final String PROJECT_ID_IS_NOT_SPECIFIED_ERROR = "Project id is not specified.";
 
 	private final String V2_API_ENDPOINT = "/v2/";
 	protected static final String SUFIX_ENDPOINT_VOLUMES = "/volumes";
@@ -51,10 +51,10 @@ public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackV3Token> {
 	@Override
 	public String requestInstance(VolumeOrder order, OpenStackV3Token openStackV3Token)
 			throws FogbowManagerException, UnexpectedException {
-		String tenantId = openStackV3Token.getTenantId();
+		String tenantId = openStackV3Token.getProjectId();
 		if (tenantId == null) {
-			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
-			throw new UnauthenticatedUserException(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
+			LOGGER.error(PROJECT_ID_IS_NOT_SPECIFIED_ERROR);
+			throw new UnauthenticatedUserException(PROJECT_ID_IS_NOT_SPECIFIED_ERROR);
 		}
 
 		String jsonRequest = null;
@@ -82,10 +82,10 @@ public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackV3Token> {
 	@Override
 	public VolumeInstance getInstance(String storageOrderInstanceId, OpenStackV3Token openStackV3Token)
 			throws FogbowManagerException, UnexpectedException {
-		String tenantId = openStackV3Token.getTenantId();
+		String tenantId = openStackV3Token.getProjectId();
 		if (tenantId == null) {
-			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
-			throw new UnauthenticatedUserException(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
+			LOGGER.error(PROJECT_ID_IS_NOT_SPECIFIED_ERROR);
+			throw new UnauthenticatedUserException(PROJECT_ID_IS_NOT_SPECIFIED_ERROR);
 		}		
 		
 		String endpoint = this.volumeV2APIEndpoint + tenantId
@@ -102,10 +102,10 @@ public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackV3Token> {
 	@Override
 	public void deleteInstance(String storageOrderInstanceId, OpenStackV3Token openStackV3Token)
 			throws FogbowManagerException, UnexpectedException {
-		String tenantId = openStackV3Token.getTenantId();
+		String tenantId = openStackV3Token.getProjectId();
 		if (tenantId == null) {
-			LOGGER.error(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
-			throw new UnauthenticatedUserException(TENANT_ID_IS_NOT_SPECIFIED_ERROR);
+			LOGGER.error(PROJECT_ID_IS_NOT_SPECIFIED_ERROR);
+			throw new UnauthenticatedUserException(PROJECT_ID_IS_NOT_SPECIFIED_ERROR);
 		}		
 		
 		String endpoint = this.volumeV2APIEndpoint + tenantId

@@ -16,7 +16,6 @@ import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRestApiConstants;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.image.v2.OpenStackImagePlugin;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -33,7 +32,11 @@ public class OpenStackImagePluginTest {
     private static final long FAKE_MIN_DISK = 1l;
     private static final long FAKE_MIN_RAM = 2l;
 
-    public static final String TENANT_ID = "tenant-id";
+    private static final String FAKE_TOKEN_VALUE = "fake-token-value";
+    private static final String FAKE_USER_ID = "fake-user-id";
+    private static final String FAKE_NAME = "fake-name";
+    private static final String FAKE_PROJECT_ID = "fake-project-id";
+    private static final String FAKE_PROJECT_NAME = "fake-project-name";
 
     private OpenStackImagePlugin plugin;
     private HttpRequestClientUtil client;
@@ -46,8 +49,8 @@ public class OpenStackImagePluginTest {
         this.plugin = new OpenStackImagePlugin();
         this.client = Mockito.mock(HttpRequestClientUtil.class);
         this.properties = Mockito.mock(Properties.class);
-        this.localUserAttributes = new OpenStackV3Token("fake-token-value", "tenant-id");
-    	this.plugin.setProperties(this.properties);
+        this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
+        this.plugin.setProperties(this.properties);
     	this.plugin.setClient(this.client);
     }
     
@@ -305,7 +308,7 @@ public class OpenStackImagePluginTest {
     }
     
     private List<Map<String, String>> generateImages(int startId, int qtdImages){
-    	String tenantId2 = TENANT_ID + "2";
+    	String projectId2 = FAKE_PROJECT_ID + "2";
     	List<Map<String, String>> myList = new ArrayList<Map<String, String>>();
     	
     	qtdImages /= 2;
@@ -313,7 +316,7 @@ public class OpenStackImagePluginTest {
     	for (int i = 0; i < qtdImages; i++) {
     		Map <String, String> image = new HashMap<String, String>();
     		image.put("visibility", i % 2 == 0? "public" : "private");
-    		image.put("owner", i < qtdImages / 2 ? tenantId2 : TENANT_ID);
+    		image.put("owner", i < qtdImages / 2 ? projectId2 : FAKE_PROJECT_ID);
     		image.put("id", "id" + Integer.toString(i + startId));
     		image.put("name", "name" + Integer.toString(i + startId));
     		myList.add(image);
@@ -322,7 +325,7 @@ public class OpenStackImagePluginTest {
     	for (int i = 0; i < qtdImages; i++) {
     		Map <String, String> image = new HashMap<String, String>();
     		image.put("visibility", i % 2 == 0? "community" : "shared");
-    		image.put("owner", i < qtdImages / 2 ? tenantId2 : TENANT_ID);
+    		image.put("owner", i < qtdImages / 2 ? projectId2 : FAKE_PROJECT_ID);
     		image.put("id", "id" + Integer.toString(qtdImages + i + startId));
     		image.put("name", "name" + Integer.toString(qtdImages + i + startId));
     		myList.add(image);
@@ -332,14 +335,14 @@ public class OpenStackImagePluginTest {
     }
     
     private Map<String, String> generateJustPublicAndPrivateImagesFromProject(int startId, int qtdImages){
-    	String tenantId2 = TENANT_ID + "2";
+    	String projectId2 = FAKE_PROJECT_ID + "2";
     	Map<String, String> images = new HashMap<String, String>();
     	qtdImages /= 2;
     	for (int i = 0; i < qtdImages; i++) {
     		Map <String, String> image = new HashMap<String, String>();
     		if (i % 2 == 0 || (i % 2 != 0 && i >= qtdImages / 2)) {
 	    		image.put("visibility", i % 2 == 0? "public" : "private");
-	    		image.put("owner", i < qtdImages / 2 ? tenantId2 : TENANT_ID);
+	    		image.put("owner", i < qtdImages / 2 ? projectId2 : FAKE_PROJECT_ID);
 	    		image.put("id", "id" + Integer.toString(i + startId));
 	    		image.put("name", "name" + Integer.toString(i + startId));
 	    		images.put(image.get("id"), image.get("name"));

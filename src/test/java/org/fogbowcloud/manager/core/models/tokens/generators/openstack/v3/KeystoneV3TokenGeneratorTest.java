@@ -57,8 +57,7 @@ public class KeystoneV3TokenGeneratorTest {
     private final String domainName = "LSD";
     private final String projectId = "3324431f606d4a74a060cf78c16fcb21";
     private final String projectName = "naf-lsd-site";
-    private final String tenantId = "tenantID";
-    
+
     @Before
     public void setUp() throws Exception {
         HomeDir.getInstance().setPath("src/test/resources/private");
@@ -75,7 +74,7 @@ public class KeystoneV3TokenGeneratorTest {
         Map<String, String> credentials = new HashMap<String, String>();
         credentials.put(KeystoneV3TokenGenerator.USER_ID, userId);
         credentials.put(KeystoneV3TokenGenerator.PASSWORD, userPass);
-        credentials.put(KeystoneV3TokenGenerator.TENANT_ID, projectName);
+        credentials.put(KeystoneV3TokenGenerator.PROJECT_ID, projectName);
         credentials.put(KeystoneV3TokenGenerator.PROJECT_ID, projectId);
 
         HttpResponse httpResponse = Mockito.mock(HttpResponse.class);
@@ -113,7 +112,7 @@ public class KeystoneV3TokenGeneratorTest {
         //verify
         assertNotNull(token);
 
-        assertEquals(token.getTenantId(), projectId);
+        assertEquals(token.getProjectId(), projectId);
     }
     
     //test case: check if mountJson is creating a correct json from credentials.
@@ -123,7 +122,6 @@ public class KeystoneV3TokenGeneratorTest {
         Map<String, String> credentials = new HashMap<String, String>();
         credentials.put(KeystoneV3TokenGenerator.USER_ID, userId);
         credentials.put(KeystoneV3TokenGenerator.PASSWORD, userPass);
-        credentials.put(KeystoneV3TokenGenerator.TENANT_ID, tenantId);
         credentials.put(KeystoneV3TokenGenerator.PROJECT_ID, projectId);
         
         //exercise
@@ -162,7 +160,6 @@ public class KeystoneV3TokenGeneratorTest {
         Map<String, String> credentials = new HashMap<String, String>();
         credentials.put(KeystoneV3TokenGenerator.USER_ID, userId);
         credentials.put(KeystoneV3TokenGenerator.PASSWORD, userPass);
-        credentials.put(KeystoneV3TokenGenerator.TENANT_ID, projectName);
         credentials.put(KeystoneV3TokenGenerator.PROJECT_ID, projectId);
 
         HttpResponse httpResponse = Mockito.mock(HttpResponse.class);

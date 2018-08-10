@@ -60,7 +60,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
 	protected static final String KEYPAIR_JSON_FIELD = "keypair";
 	protected static final String UUID_JSON_FIELD = "uuid";
 	protected static final String FOGBOW_INSTANCE_NAME = "fogbow-instance-";
-	protected static final String TENANT_ID = "tenantId";
+	protected static final String PROJECT_ID = "projectId";
 
 	protected static final String SERVERS = "/servers";
 	protected static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
@@ -102,12 +102,12 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
 
 		HardwareRequirements hardwareRequirements = findSmallestFlavor(computeOrder, openStackV3Token);
 		String flavorId = hardwareRequirements.getFlavorId();
-		String tenantId = getTenantId(openStackV3Token);
+		String projectId = getProjectId(openStackV3Token);
 		List<String> networksId = resolveNetworksId(computeOrder);
 		String imageId = computeOrder.getImageId();
 		String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
-		String keyName = getKeyName(tenantId, openStackV3Token, computeOrder.getPublicKey());
-		String endpoint = getComputeEndpoint(tenantId, SERVERS);
+		String keyName = getKeyName(projectId, openStackV3Token, computeOrder.getPublicKey());
+		String endpoint = getComputeEndpoint(projectId, SERVERS);
 		String instanceId = null;
 
 		try {
@@ -127,7 +127,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
 			OpenStackHttpToFogbowManagerExceptionMapper.map(e);
 		} finally {
 			if (keyName != null) {
-				deleteKeyName(tenantId, openStackV3Token, keyName);
+				deleteKeyName(projectId, openStackV3Token, keyName);
 			}
 		}
 		return instanceId;
@@ -149,8 +149,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
 			throws FogbowManagerException, UnexpectedException {
 		LOGGER.info("Getting instance " + instanceId + " with tokens " + openStackV3Token);
 
-		String tenantId = getTenantId(openStackV3Token);
-		String requestEndpoint = getComputeEndpoint(tenantId, SERVERS + "/" + instanceId);
+		String projectId = getProjectId(openStackV3Token);
+		String requestEndpoint = getComputeEndpoint(projectId, SERVERS + "/" + instanceId);
 
 		String jsonResponse = null;
 		try {
@@ -168,7 +168,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
 	@Override
 	public void deleteInstance(String instanceId, OpenStackV3Token openStackV3Token) throws FogbowManagerException, UnexpectedException {
 		LOGGER.info("Deleting instance " + instanceId + " with tokens " + openStackV3Token);
-		String endpoint = getComputeEndpoint(getTenantId(openStackV3Token), SERVERS + "/" + instanceId);
+		String endpoint = getComputeEndpoint(getProjectId(openStackV3Token), SERVERS + "/" + instanceId);
 		try {
 			this.client.doDeleteRequest(endpoint, openStackV3Token);
 		} catch (HttpResponseException e) {
@@ -186,12 +186,12 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
 		this.client = new HttpRequestClientUtil();
 	}
 
-	private String getTenantId(OpenStackV3Token openStackV3Token) throws InvalidParameterException {
-		String tenantId = openStackV3Token.getTenantId();
-		if (tenantId == null) {
-			throw new InvalidParameterException("No tenantId in local token.");
+	private String getProjectId(OpenStackV3Token openStackV3Token) throws InvalidParameterException {
+		String projectId = openStackV3Token.getProjectId();
+		if (projectId == null) {
+			throw new InvalidParameterException("No projectId in local token.");
 		}
-		return tenantId;
+		return projectId;
 	}
 
 	private List<String> resolveNetworksId(ComputeOrder computeOrder) {
@@ -206,12 +206,12 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
 		return requestedNetworksId;
 	}
 
-	private String getKeyName(String tenantId, OpenStackV3Token openStackV3Token, String publicKey)
+	private String getKeyName(String projectId, OpenStackV3Token openStackV3Token, String publicKey)
 			throws FogbowManagerException, UnexpectedException {
 		String keyName = null;
 
 		if (publicKey != null && !publicKey.isEmpty()) {
-			String osKeypairEndpoint = getComputeEndpoint(tenantId, SUFFIX_ENDPOINT_KEYPAIRS);
+			String osKeypairEndpoint = getComputeEndpoint(projectId, SUFFIX_ENDPOINT_KEYPAIRS);
 
 			keyName = getRandomUUID();
 			CreateOsKeypairRequest request = new CreateOsKeypairRequest.Builder()
@@ -230,13 +230,13 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
 		return keyName;
 	}
 
-	private String getComputeEndpoint(String tenantId, String suffix) {
-		return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + tenantId + suffix;
+	private String getComputeEndpoint(String projectId, String suffix) {
+		return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + projectId + suffix;
 	}
 
-	private void deleteKeyName(String tenantId, OpenStackV3Token openStackV3Token, String keyName) throws FogbowManagerException, UnexpectedException {
+	private void deleteKeyName(String projectId, OpenStackV3Token openStackV3Token, String keyName) throws FogbowManagerException, UnexpectedException {
 		String suffixEndpoint = SUFFIX_ENDPOINT_KEYPAIRS + "/" + keyName;
-		String keyNameEndpoint = getComputeEndpoint(tenantId, suffixEndpoint);
+		String keyNameEndpoint = getComputeEndpoint(projectId, suffixEndpoint);
 		
 		try {
 			this.client.doDeleteRequest(keyNameEndpoint, openStackV3Token);
@@ -302,8 +302,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
 	private void updateFlavors(OpenStackV3Token openStackV3Token) throws FogbowManagerException, UnexpectedException {
 		LOGGER.debug("Updating hardwareRequirements from OpenStack");
 
-		String tenantId = getTenantId(openStackV3Token);
-		String flavorsEndpoint = getComputeEndpoint(tenantId, SUFFIX_ENDPOINT_FLAVORS);
+		String projectId = getProjectId(openStackV3Token);
+		String flavorsEndpoint = getComputeEndpoint(projectId, SUFFIX_ENDPOINT_FLAVORS);
 
 		try {
 			String jsonResponse = this.client.doGetRequest(flavorsEndpoint, openStackV3Token);

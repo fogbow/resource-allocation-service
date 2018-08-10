@@ -36,27 +36,27 @@ public class CreateNetworkRequest {
         @SerializedName(NAME_KEY_JSON)
         private String name;
 
-        @SerializedName(TENANT_ID_KEY_JSON)
-        private String tenantId;
+        @SerializedName(PROJECT_ID_KEY_JSON)
+        private String projectId;
 
         private Network(Builder builder) {
             this.name = builder.name;
-            this.tenantId = builder.tenantId;
+            this.projectId = builder.projectId;
         }
     }
 
     public static class Builder {
 
         private String name;
-        private String tenantId;
+        private String projectId;
 
         public Builder name(String name) {
             this.name = name;
             return this;
         }
 
-        public Builder tenantId(String tenantId) {
-            this.tenantId = tenantId;
+        public Builder projectId(String projectId) {
+            this.projectId = projectId;
             return this;
         }
 

@@ -35,8 +35,6 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3Token> {
 	public static final String QUERY_ACTIVE_IMAGES = "?status=" + ACTIVE_STATE;
 	public static final String IMAGE_V2_API_SUFFIX = "images";
 	public static final String IMAGE_V2_API_ENDPOINT = "/v2/";
-	
-	public static final String TENANT_ID = "tenantId";
 
 	private Properties properties;
 	private HttpRequestClientUtil client;
@@ -51,7 +49,7 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3Token> {
 	@Override
 	public Map<String, String> getAllImages(OpenStackV3Token openStackV3Token) throws FogbowManagerException, UnexpectedException {
 		Map<String, String> availableImages = getAvailableImages(
-				openStackV3Token, openStackV3Token.getTenantId());
+				openStackV3Token, openStackV3Token.getProjectId());
 		return availableImages;
 	}
 

@@ -35,7 +35,6 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
     protected static final String SUFFIX_ENDPOINT_SECURITY_GROUP = "/security-groups";
     protected static final String V2_API_ENDPOINT = "/v2.0";
 
-    protected static final String TENANT_ID = "tenantId";
     protected static final String KEY_PROVIDER_SEGMENTATION_ID = "provider:segmentation_id";
     protected static final String KEY_EXTERNAL_GATEWAY_INFO = "external_gateway_info";
     protected static final String QUERY_NAME = "name";
@@ -44,12 +43,11 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
     protected static final String KEY_ENABLE_DHCP = "enable_dhcp";
     protected static final String KEY_IP_VERSION = "ip_version";
     protected static final String KEY_GATEWAY_IP = "gateway_ip";
-    protected static final String KEY_TENANT_ID = "tenant_id";
+    protected static final String KEY_PROJECT_ID = "project_id";
     protected static final String KEY_JSON_NETWORK = "network";
     protected static final String KEY_NETWORK_ID = "network_id";
     protected static final String KEY_JSON_SUBNET = "subnet";
     protected static final String KEY_SUBNETS = "subnets";
-    protected static final String KEY_SECURITY_GROUP = "security_group";
     protected static final String KEY_SECURITY_GROUPS = "security_groups";
     protected static final String KEY_STATUS = "status";
     protected static final String KEY_NAME = "name";
@@ -99,7 +97,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
     @Override
     public String requestInstance(NetworkOrder order, OpenStackV3Token openStackV3Token)
             throws FogbowManagerException, UnexpectedException {
-        String tenantId = openStackV3Token.getTenantId();
+        String tenantId = openStackV3Token.getProjectId();
 
         CreateNetworkResponse createNetworkResponse = createNetwork(openStackV3Token, tenantId);
         String createdNetworkId = createNetworkResponse.getId();
@@ -120,7 +118,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
 
             CreateNetworkRequest createNetworkRequest = new CreateNetworkRequest.Builder()
                     .name(networkName)
-                    .tenantId(tenantId)
+                    .projectId(tenantId)
                     .build();
 
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK;
@@ -153,7 +151,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
         try {
             CreateSecurityGroupRequest createSecurityGroupRequest = new CreateSecurityGroupRequest.Builder()
                     .name(name)
-                    .tenantId(tenantId)
+                    .projectId(tenantId)
                     .build();
 
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP;
@@ -370,7 +368,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
 
         CreateSubnetRequest createSubnetRequest = new CreateSubnetRequest.Builder()
                 .name(subnetName)
-                .tenantId(tenantId)
+                .projectId(tenantId)
                 .networkId(networkId)
                 .ipVersion(ipVersion)
                 .gatewayIp(gateway)
