@@ -37,7 +37,7 @@ public class CreateTokenResponse {
     public User getUser() {
     	return this.token.user;
     }
-    
+
     public Project getProject() {
     	return this.token.project;
     }
@@ -46,46 +46,46 @@ public class CreateTokenResponse {
 		
 		@SerializedName(USER_KEY_JSON)
 		private User user;
-		
+
 		@SerializedName(PROJECT_KEY_JSON)
 		private Project project;
 		
 	}
 	
 	public class User {
-		
+
 		@SerializedName(ID_KEY_JSON)
 		private String id;
-		
+
 		@SerializedName(NAME_KEY_JSON)
 		private String name;
-		
+
 		public String getId() {
 			return id;
 		}
-		
+
 		public String getName() {
 			return name;
 		}
-		
+
 	}
-	
+
 	public class Project {
 
 		@SerializedName(ID_KEY_JSON)
 		private String id;
-		
+
 		@SerializedName(NAME_KEY_JSON)
 		private String name;
-		
+
 		public String getId() {
 			return id;
 		}
-		
+
 		public String getName() {
 			return name;
-		}		
-		
+		}
+
 	}
 	
 }

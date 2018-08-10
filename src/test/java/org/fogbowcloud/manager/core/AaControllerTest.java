@@ -119,7 +119,7 @@ public class AaControllerTest {
     	//verify
     }
     
-    //test case: Check if getLocalToken is properly forwarding FogbowManagerException thrown by TokenGenerator.
+    //test case: Check if getLocalToken is properly forwarding FogbowManagerException thrown by FederationIdentityPlugin.
 	@Ignore
     @Test (expected = FogbowManagerException.class)
     public void testGetLocalTokenWhenFogbowManagerException() throws FogbowManagerException, UnexpectedException {
@@ -127,7 +127,7 @@ public class AaControllerTest {
     	//exercise/verify
     }
     
-    //test case: Check if getLocalToken is properly forwading UnexpectedException thrown by TokenGenerator.
+    //test case: Check if getLocalToken is properly forwading UnexpectedException thrown by FederationIdentityPlugin.
 	@Ignore
     @Test (expected = UnexpectedException.class)
     public void testGetLocalTokenWhenUnexpectedException() throws FogbowManagerException, UnexpectedException {

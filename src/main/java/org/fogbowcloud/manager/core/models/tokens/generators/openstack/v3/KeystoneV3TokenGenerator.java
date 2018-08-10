@@ -1,6 +1,7 @@
 package org.fogbowcloud.manager.core.models.tokens.generators.openstack.v3;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
@@ -11,6 +12,7 @@ import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.tokens.OpenStackV3Token;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.models.tokens.TokenGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackHttpToFogbowManagerExceptionMapper;
 import org.fogbowcloud.manager.util.PropertiesUtil;
@@ -24,8 +26,7 @@ public class KeystoneV3TokenGenerator implements TokenGenerator<OpenStackV3Token
     private static final String OPENSTACK_KEYSTONE_V3_URL = "openstack_keystone_v3_url";
     private static final String X_SUBJECT_TOKEN = "X-Subject-Token";
 
-    private static final String TOKEN_SEPARATOR = "!#!";
-
+    public static final String TENANT_NAME = "tenantName";
     public static final String PROJECT_ID = "projectId";
     public static final String TENANT_ID = "tenantId";
     public static final String PASSWORD = "password";
@@ -50,25 +51,15 @@ public class KeystoneV3TokenGenerator implements TokenGenerator<OpenStackV3Token
         this.client = new HttpRequestClientUtil();
     }
 
-    @Override
-    public OpenStackV3Token createToken(String tokenValue) throws UnauthenticatedUserException {
-
-        String[] splitedToken = tokenValue.split(TOKEN_SEPARATOR);
-        String keystoneTokenValue = splitedToken[0];
-        String responseContent = splitedToken[1];
-
-        try {
-            CreateTokenResponse createTokenResponse = CreateTokenResponse.fromJson(responseContent);
-            CreateTokenResponse.Project projectTokenResponse = createTokenResponse.getProject();
-            String tenantId = projectTokenResponse.getId();
-            return new OpenStackV3Token(keystoneTokenValue, tenantId);
-        } catch (InvalidParameterException | RuntimeException e) {
-            throw new UnauthenticatedUserException("No tenant Id in token");
+    private boolean isUrlValid(String url) throws FatalErrorException {
+        if (url == null || url.trim().isEmpty()) {
+            throw new FatalErrorException("Invalid Keystone_V3_URL " + OPENSTACK_KEYSTONE_V3_URL);
         }
+        return true;
     }
 
     @Override
-    public String createTokenValue(Map<String, String> credentials) throws FogbowManagerException,
+    public Token createToken(Map<String, String> credentials) throws FogbowManagerException,
             UnexpectedException {
         LOGGER.debug("Creating new Token");
 
@@ -93,23 +84,8 @@ public class KeystoneV3TokenGenerator implements TokenGenerator<OpenStackV3Token
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
-
-        String tokenValue = null;
-        Header[] headers = response.getHeaders();
-        for (Header header : headers) {
-            if (header.getName().equals(X_SUBJECT_TOKEN)) {
-                tokenValue = header.getValue();
-            }
-        }
-
-        return tokenValue + TOKEN_SEPARATOR + response.getContent();
-    }
-
-    private boolean isUrlValid(String url) throws FatalErrorException {
-        if (url == null || url.trim().isEmpty()) {
-            throw new FatalErrorException("Invalid Keystone_V3_URL " + OPENSTACK_KEYSTONE_V3_URL);
-        }
-        return true;
+        OpenStackV3Token token = getTokenFromJson(response);
+        return token;
     }
 
     protected String mountJsonBody(Map<String, String> credentials) throws JSONException {
@@ -126,7 +102,30 @@ public class KeystoneV3TokenGenerator implements TokenGenerator<OpenStackV3Token
         return createTokenRequest.toJson();
     }
 
-    protected void setClient(HttpRequestClientUtil client) {
+    private OpenStackV3Token getTokenFromJson(HttpRequestClientUtil.Response response) throws UnexpectedException {
+
+        String tokenValue = null;
+        Header[] headers = response.getHeaders();
+        for (Header header : headers) {
+            if (header.getName().equals(X_SUBJECT_TOKEN)) {
+                tokenValue = header.getValue();
+            }
+        }
+
+        try {
+            CreateTokenResponse createTokenResponse = CreateTokenResponse.fromJson(response.getContent());
+
+            CreateTokenResponse.Project projectTokenResponse = createTokenResponse.getProject();
+            String tenantId = projectTokenResponse.getId();
+
+            return new OpenStackV3Token(tokenValue, tenantId);
+        } catch (Exception e) {
+            LOGGER.error("Exception while getting tokens from json", e);
+            throw new UnexpectedException("Exception while getting tokens from json", e);
+        }
+    }
+
+    protected void setClient (HttpRequestClientUtil client) {
         this.client = client;
     }
 }

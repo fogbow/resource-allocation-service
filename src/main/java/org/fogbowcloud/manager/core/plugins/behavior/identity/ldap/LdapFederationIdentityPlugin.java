@@ -1,8 +1,8 @@
-package org.fogbowcloud.manager.core.models.tokens.generators.ldap;
+package org.fogbowcloud.manager.core.plugins.behavior.identity.ldap;
 
 import org.apache.commons.codec.Charsets;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.manager.core.models.tokens.TokenGenerator;
+import org.fogbowcloud.manager.core.plugins.behavior.identity.FederationIdentityPlugin;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
@@ -32,8 +32,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-public class LdapTokenGenerator implements TokenGenerator<FederationUserToken> {
-    private static final Logger LOGGER = Logger.getLogger(LdapTokenGenerator.class);
+public class LdapFederationIdentityPlugin implements FederationIdentityPlugin<FederationUserToken> {
+    private static final Logger LOGGER = Logger.getLogger(LdapFederationIdentityPlugin.class);
     private static final String LDAP_PLUGIN_CONF_FILE = "ldap-identity-plugin.conf";
 
     private static final String ATT_EXPIRATION_DATE = "expirationDate";
@@ -68,7 +68,7 @@ public class LdapTokenGenerator implements TokenGenerator<FederationUserToken> {
     private String privateKeyPath;
     private String publicKeyPath;
 
-    public LdapTokenGenerator() throws FatalErrorException {
+    public LdapFederationIdentityPlugin() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
         Properties properties = PropertiesUtil.readProperties(
                 homeDir.getPath() + File.separator + LDAP_PLUGIN_CONF_FILE);

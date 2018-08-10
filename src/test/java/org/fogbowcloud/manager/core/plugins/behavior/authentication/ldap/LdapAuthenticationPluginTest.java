@@ -2,7 +2,6 @@ package org.fogbowcloud.manager.core.plugins.behavior.authentication.ldap;
 
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Date;
@@ -14,14 +13,13 @@ import java.util.concurrent.TimeUnit;
 import org.apache.commons.codec.binary.Base64;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.manager.core.models.tokens.generators.ldap.LdapTokenGenerator;
+import org.fogbowcloud.manager.core.plugins.behavior.identity.ldap.LdapFederationIdentityPlugin;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.RSAUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -116,7 +114,7 @@ public class LdapAuthenticationPluginTest {
         PublicKey publicKey = keyPair.getPublic();
         PrivateKey privateKey = keyPair.getPrivate();
 
-        LdapTokenGenerator tokenGenerator = Mockito.spy(new LdapTokenGenerator());
+        LdapFederationIdentityPlugin tokenGenerator = Mockito.spy(new LdapFederationIdentityPlugin());
         LdapAuthenticationPlugin authenticationPlugin = Mockito.spy(new LdapAuthenticationPlugin());
         Mockito.doReturn(this.name).when(tokenGenerator).ldapAuthenticate(Mockito.eq(this.name),
                 Mockito.eq(this.password));
@@ -124,11 +122,11 @@ public class LdapAuthenticationPluginTest {
         Mockito.doReturn(privateKey).when(tokenGenerator).getPrivateKey(Mockito.anyString());
         String tokenValueA = tokenGenerator.createTokenValue(this.userCredentials);
         String decodedTokenValue = decodeTokenValue(tokenValueA);
-        String split[] = decodedTokenValue.split(LdapTokenGenerator.ACCESSID_SEPARATOR);
+        String split[] = decodedTokenValue.split(LdapFederationIdentityPlugin.ACCESSID_SEPARATOR);
         String signature = split[1];
         Date actualDate = new Date(new Date().getTime());
         String newTokenValue = "{name:\"nome\", expirationDate:\"" + actualDate.getTime() + "\"}"
-                + LdapTokenGenerator.ACCESSID_SEPARATOR + signature;
+                + LdapFederationIdentityPlugin.ACCESSID_SEPARATOR + signature;
         newTokenValue = new String(Base64.encodeBase64(newTokenValue.getBytes(StandardCharsets.UTF_8), false, false),
                 StandardCharsets.UTF_8);
 
@@ -144,7 +142,7 @@ public class LdapAuthenticationPluginTest {
         PublicKey publicKey = keyPair.getPublic();
         PrivateKey privateKey = keyPair.getPrivate();
 
-        LdapTokenGenerator tokenGenerator = Mockito.spy(new LdapTokenGenerator());
+        LdapFederationIdentityPlugin tokenGenerator = Mockito.spy(new LdapFederationIdentityPlugin());
         LdapAuthenticationPlugin authenticationPlugin = Mockito.spy(new LdapAuthenticationPlugin());
         Mockito.doReturn(this.name).when(tokenGenerator).ldapAuthenticate(Mockito.eq(this.name),
                 Mockito.eq(this.password));
@@ -152,11 +150,11 @@ public class LdapAuthenticationPluginTest {
         Mockito.doReturn(privateKey).when(tokenGenerator).getPrivateKey(Mockito.anyString());
         String tokenValueA = tokenGenerator.createTokenValue(this.userCredentials);
         String decodedTokenValue = decodeTokenValue(tokenValueA);
-        String split[] = decodedTokenValue.split(LdapTokenGenerator.ACCESSID_SEPARATOR);
+        String split[] = decodedTokenValue.split(LdapFederationIdentityPlugin.ACCESSID_SEPARATOR);
         String signature = split[1];
         Date actualDate = new Date(new Date().getTime() + TimeUnit.DAYS.toMillis(365));
         String newTokenValue = "{name:\"nome\", expirationDate:\"" + actualDate.getTime() + "\"}"
-                + LdapTokenGenerator.ACCESSID_SEPARATOR + signature;
+                + LdapFederationIdentityPlugin.ACCESSID_SEPARATOR + signature;
         newTokenValue = new String(Base64.encodeBase64(newTokenValue.getBytes(StandardCharsets.UTF_8), false, false),
                 StandardCharsets.UTF_8);
 

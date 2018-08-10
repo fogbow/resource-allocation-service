@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.models.tokens.generators.ldap;
+package org.fogbowcloud.manager.core.plugins.behavior.identity.ldap;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -19,12 +19,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class LdapTokenGeneratorTest {
+public class LdapFederationIdentityPluginTest {
 
     private static final String IDENTITY_URL_KEY = "identity_url";
     private final String KEYSTONE_URL = "http://localhost:0000";
     private final String MOCK_SIGNATURE = "mock_signature";
-    private LdapTokenGenerator tokenGenerator;
+    private LdapFederationIdentityPlugin tokenGenerator;
     private final String name = "ldapUser";
     private final String password = "ldapUserPass";
     private final String userName = "User Full Name";
@@ -36,14 +36,14 @@ public class LdapTokenGeneratorTest {
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         Properties properties = propertiesHolder.getProperties();
         properties.put(IDENTITY_URL_KEY, this.KEYSTONE_URL);
-        this.tokenGenerator = Mockito.spy(new LdapTokenGenerator());
-        this.userCredentials.put(LdapTokenGenerator.CRED_USERNAME, this.name);
-        this.userCredentials.put(LdapTokenGenerator.CRED_PASSWORD, this.password);
-        this.userCredentials.put(LdapTokenGenerator.CRED_AUTH_URL, "ldapUrl");
-        this.userCredentials.put(LdapTokenGenerator.CRED_LDAP_BASE, "ldapBase");
-        this.userCredentials.put(LdapTokenGenerator.CRED_LDAP_ENCRYPT, "");
-        this.userCredentials.put(LdapTokenGenerator.CRED_PRIVATE_KEY, "private_key_path");
-        this.userCredentials.put(LdapTokenGenerator.CRED_PUBLIC_KEY, "public_key_path");
+        this.tokenGenerator = Mockito.spy(new LdapFederationIdentityPlugin());
+        this.userCredentials.put(LdapFederationIdentityPlugin.CRED_USERNAME, this.name);
+        this.userCredentials.put(LdapFederationIdentityPlugin.CRED_PASSWORD, this.password);
+        this.userCredentials.put(LdapFederationIdentityPlugin.CRED_AUTH_URL, "ldapUrl");
+        this.userCredentials.put(LdapFederationIdentityPlugin.CRED_LDAP_BASE, "ldapBase");
+        this.userCredentials.put(LdapFederationIdentityPlugin.CRED_LDAP_ENCRYPT, "");
+        this.userCredentials.put(LdapFederationIdentityPlugin.CRED_PRIVATE_KEY, "private_key_path");
+        this.userCredentials.put(LdapFederationIdentityPlugin.CRED_PUBLIC_KEY, "public_key_path");
 		Mockito.doReturn(this.MOCK_SIGNATURE).when(this.tokenGenerator)
 				.createSignature(Mockito.any(JSONObject.class));
     }

@@ -70,7 +70,7 @@ public class KeystoneV3TokenGeneratorTest {
     
     //test case: Check if CreateToken is returning the expected token returned by the http response.
     @Test
-    public void testCreateToken() throws JSONException, ClientProtocolException, IOException, UnexpectedException, FogbowManagerException {
+    public void testCreateToken() throws JSONException, IOException, UnexpectedException, FogbowManagerException {
     	//set up
         Map<String, String> credentials = new HashMap<String, String>();
         credentials.put(KeystoneV3TokenGenerator.USER_ID, userId);
@@ -108,8 +108,7 @@ public class KeystoneV3TokenGeneratorTest {
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
         
         // exercise
-        String tokenValue = this.keystoneV3TokenGenerator.createTokenValue(credentials);
-        OpenStackV3Token token = this.keystoneV3TokenGenerator.createToken(tokenValue);
+        OpenStackV3Token token = (OpenStackV3Token) this.keystoneV3TokenGenerator.createToken(credentials);
 
         //verify
         assertNotNull(token);
@@ -158,7 +157,7 @@ public class KeystoneV3TokenGeneratorTest {
     //test case: createToken must throw UnexpectedException when the json from the cloud is incomplete.
     @Test (expected = UnauthenticatedUserException.class)
     public void testMissingTokenParameters()
-            throws JSONException, ClientProtocolException, IOException, UnexpectedException, FogbowManagerException {
+            throws JSONException, IOException, UnexpectedException, FogbowManagerException {
     	//set up
         Map<String, String> credentials = new HashMap<String, String>();
         credentials.put(KeystoneV3TokenGenerator.USER_ID, userId);
@@ -198,8 +197,7 @@ public class KeystoneV3TokenGeneratorTest {
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
         
         //exercise/verify
-        String tokenValue = this.keystoneV3TokenGenerator.createTokenValue(credentials);
-        OpenStackV3Token token = this.keystoneV3TokenGenerator.createToken(tokenValue);
+        OpenStackV3Token token = (OpenStackV3Token) this.keystoneV3TokenGenerator.createToken(credentials);
     }
     
     //test case: check if createToken throws UnauthenticatedUserException when the http request is Unauthorized (401).
@@ -221,8 +219,7 @@ public class KeystoneV3TokenGeneratorTest {
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
         
         //exercise/verify
-        String tokenValue = this.keystoneV3TokenGenerator.createTokenValue(credentials);
-        OpenStackV3Token token = this.keystoneV3TokenGenerator.createToken(tokenValue);
+        OpenStackV3Token token = (OpenStackV3Token) this.keystoneV3TokenGenerator.createToken(credentials);
     }
     
     //test case: check if createToken throws InstanceNotFoundException when the http request is Not Found (404).
@@ -244,8 +241,7 @@ public class KeystoneV3TokenGeneratorTest {
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
         
         //exercise/verify
-        String tokenValue = this.keystoneV3TokenGenerator.createTokenValue(credentials);
-        OpenStackV3Token token = this.keystoneV3TokenGenerator.createToken(tokenValue);
+        OpenStackV3Token token = (OpenStackV3Token) this.keystoneV3TokenGenerator.createToken(credentials);
     }
     
     //test case: check if createToken throws InvalidParameterException when the http request is Bad Request (400).
@@ -267,8 +263,7 @@ public class KeystoneV3TokenGeneratorTest {
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
         
         //exercise/verify
-        String tokenValue = this.keystoneV3TokenGenerator.createTokenValue(credentials);
-        OpenStackV3Token token = this.keystoneV3TokenGenerator.createToken(tokenValue);
+        OpenStackV3Token token = (OpenStackV3Token) this.keystoneV3TokenGenerator.createToken(credentials);
     }
     
     //test case: check if createToken throws UnavailableProviderException when the http request host is Unknown.
@@ -291,8 +286,7 @@ public class KeystoneV3TokenGeneratorTest {
                 .thenThrow(new UnknownHostException());
         
         //exercise/verify
-        String tokenValue = this.keystoneV3TokenGenerator.createTokenValue(credentials);
-        OpenStackV3Token token = this.keystoneV3TokenGenerator.createToken(tokenValue);
+        OpenStackV3Token token = (OpenStackV3Token) this.keystoneV3TokenGenerator.createToken(credentials);
     }
     
     //test case: check if createToken throws InvalidParameterException when the credentials attributes is incomplete.
@@ -302,8 +296,7 @@ public class KeystoneV3TokenGeneratorTest {
         Map<String, String> credentials = Mockito.spy(new HashMap<String, String>());
         Mockito.doThrow(new JSONException("")).when(this.keystoneV3TokenGenerator).mountJsonBody(Mockito.any());
         //exercise/verify
-        String tokenValue = this.keystoneV3TokenGenerator.createTokenValue(credentials);
-        OpenStackV3Token token = this.keystoneV3TokenGenerator.createToken(tokenValue);
+        OpenStackV3Token token = (OpenStackV3Token) this.keystoneV3TokenGenerator.createToken(credentials);
     }
     
     //test case: check if the authUrl in credentials is used in the http request url when the authUrl is not null.
@@ -342,8 +335,7 @@ public class KeystoneV3TokenGeneratorTest {
         String currentTokenEndpoint = authUrl + "/auth/tokens";
         
         //exercise
-        String tokenValue = this.keystoneV3TokenGenerator.createTokenValue(credentials);
-        OpenStackV3Token token = this.keystoneV3TokenGenerator.createToken(tokenValue);
+        OpenStackV3Token token = (OpenStackV3Token) this.keystoneV3TokenGenerator.createToken(credentials);
 
         //verify
         Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doPostRequest(currentTokenEndpoint, jsonStr);
