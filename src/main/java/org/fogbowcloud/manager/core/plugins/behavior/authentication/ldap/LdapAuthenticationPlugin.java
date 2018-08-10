@@ -36,7 +36,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     public static final String CRED_LDAP_ENCRYPT = "encrypt";
     public static final String CRED_PRIVATE_KEY = "privateKey";
     public static final String CRED_PUBLIC_KEY = "publicKey";
-    public static final String ACCESSID_SEPARATOR = "!#!";
+    public static final String TOKEN_VALUE_SEPARATOR = "!#!";
 
     private String publicKeyPath;
 
@@ -64,7 +64,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
             String decodedAccessId =
                     new String(Base64.decodeBase64(federationTokenValue), StandardCharsets.UTF_8);
 
-            String split[] = decodedAccessId.split(ACCESSID_SEPARATOR);
+            String split[] = decodedAccessId.split(TOKEN_VALUE_SEPARATOR);
             if (split == null || split.length < 2) {
                 throw new UnauthenticTokenException("Invalid tokens: " + decodedAccessId);
             }

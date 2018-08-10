@@ -59,7 +59,7 @@ public class LdapFederationIdentityPlugin implements FederationIdentityPlugin<Fe
     public static final String ENCRYPT_TYPE = ":TYPE:";
     public static final String ENCRYPT_PASS = ":PASS:";
     public static final String PASSWORD_ENCRYPTED = "{" + ENCRYPT_TYPE + "}" + ENCRYPT_PASS;
-    public static final String ACCESSID_SEPARATOR = "!#!";
+    public static final String TOKEN_VALUE_SEPARATOR = "!#!";
 
     private String ldapBase;
     private String ldapUrl;
@@ -87,7 +87,7 @@ public class LdapFederationIdentityPlugin implements FederationIdentityPlugin<Fe
             String decodedFederationTokenValue =
                     new String(Base64.decodeBase64(federationTokenValue), Charsets.UTF_8);
 
-            String split[] = decodedFederationTokenValue.split(ACCESSID_SEPARATOR);
+            String split[] = decodedFederationTokenValue.split(TOKEN_VALUE_SEPARATOR);
             if (split == null || split.length < 2) {
                 LOGGER.error("Invalid accessID: " + decodedFederationTokenValue);
                 throw new UnauthenticatedUserException();
@@ -154,7 +154,7 @@ public class LdapFederationIdentityPlugin implements FederationIdentityPlugin<Fe
 
             String signature = createSignature(json);
 
-            String federationTokenValue = json.toString() + ACCESSID_SEPARATOR + signature;
+            String federationTokenValue = json.toString() + TOKEN_VALUE_SEPARATOR + signature;
 
             federationTokenValue =
                     new String(Base64.encodeBase64(federationTokenValue.getBytes(StandardCharsets.UTF_8),

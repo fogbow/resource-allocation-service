@@ -72,11 +72,11 @@ public class LdapAuthenticationPluginTest {
         Mockito.doReturn(privateKey).when(tokenGenerator).getPrivateKey(Mockito.anyString());
         String tokenValueA = tokenGenerator.createTokenValue(this.userCredentials);
         String decodedTokenValue = decodeTokenValue(tokenValueA);
-        String split[] = decodedTokenValue.split(LdapFederationIdentityPlugin.ACCESSID_SEPARATOR);
+        String split[] = decodedTokenValue.split(LdapFederationIdentityPlugin.TOKEN_VALUE_SEPARATOR);
         String signature = split[1];
         Date actualDate = new Date(new Date().getTime());
         String newTokenValue = "{name:\"nome\", expirationDate:\"" + actualDate.getTime() + "\"}"
-                + LdapFederationIdentityPlugin.ACCESSID_SEPARATOR + signature;
+                + LdapFederationIdentityPlugin.TOKEN_VALUE_SEPARATOR + signature;
         newTokenValue = new String(Base64.encodeBase64(newTokenValue.getBytes(StandardCharsets.UTF_8), false, false),
                 StandardCharsets.UTF_8);
 
@@ -100,11 +100,11 @@ public class LdapAuthenticationPluginTest {
         Mockito.doReturn(privateKey).when(tokenGenerator).getPrivateKey(Mockito.anyString());
         String tokenValueA = tokenGenerator.createTokenValue(this.userCredentials);
         String decodedTokenValue = decodeTokenValue(tokenValueA);
-        String split[] = decodedTokenValue.split(LdapFederationIdentityPlugin.ACCESSID_SEPARATOR);
+        String split[] = decodedTokenValue.split(LdapFederationIdentityPlugin.TOKEN_VALUE_SEPARATOR);
         String signature = split[1];
         Date actualDate = new Date(new Date().getTime() + TimeUnit.DAYS.toMillis(365));
         String newTokenValue = "{name:\"nome\", expirationDate:\"" + actualDate.getTime() + "\"}"
-                + LdapFederationIdentityPlugin.ACCESSID_SEPARATOR + signature;
+                + LdapFederationIdentityPlugin.TOKEN_VALUE_SEPARATOR + signature;
         newTokenValue = new String(Base64.encodeBase64(newTokenValue.getBytes(StandardCharsets.UTF_8), false, false),
                 StandardCharsets.UTF_8);
 

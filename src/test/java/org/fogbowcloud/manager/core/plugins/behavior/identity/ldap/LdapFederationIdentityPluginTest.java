@@ -48,7 +48,7 @@ public class LdapFederationIdentityPluginTest {
 				.createSignature(Mockito.any(JSONObject.class));
     }
     
-    //test case: check if the access id information is correct when creating a token with the correct user credentials.
+    //test case: check if the token value information is correct when creating a token with the correct user credentials.
     @Test
     public void testCreateToken() throws Exception {
     	//set up
@@ -59,10 +59,10 @@ public class LdapFederationIdentityPluginTest {
         String federationTokenValue = this.ldapFederationIdentityPlugin.createTokenValue(userCredentials);
 
         //verify
-        String decodedAccessId = decodeAccessId(federationTokenValue);
-        Assert.assertTrue(decodedAccessId.contains(this.name));
-        Assert.assertTrue(decodedAccessId.contains(this.userName));
-        Assert.assertTrue(decodedAccessId.contains(this.MOCK_SIGNATURE));
+        String decodedTokenValue = decodeTokenValue(federationTokenValue);
+        Assert.assertTrue(decodedTokenValue.contains(this.name));
+        Assert.assertTrue(decodedTokenValue.contains(this.userName));
+        Assert.assertTrue(decodedTokenValue.contains(this.MOCK_SIGNATURE));
     }
 
     // test case: token information is based on the given credentials
@@ -76,12 +76,12 @@ public class LdapFederationIdentityPluginTest {
 
         // exercise: create a token with valid credentials and after decode this token.
         String token = this.ldapFederationIdentityPlugin.createTokenValue(userCredentials);
-        String decodedAccessId = decodeAccessId(token);
+        String decodedTokenValue = decodeTokenValue(token);
 
         // verify
-        Assert.assertTrue(decodedAccessId.contains(name));
-        Assert.assertTrue(decodedAccessId.contains(userName));
-        Assert.assertTrue(decodedAccessId.contains(MOCK_SIGNATURE));
+        Assert.assertTrue(decodedTokenValue.contains(name));
+        Assert.assertTrue(decodedTokenValue.contains(userName));
+        Assert.assertTrue(decodedTokenValue.contains(MOCK_SIGNATURE));
     }
     
     //test case: check if createFederationTokenValue throws UnauthenticatedUserException when the user credentials are invalid.
@@ -96,8 +96,8 @@ public class LdapFederationIdentityPluginTest {
         this.ldapFederationIdentityPlugin.createTokenValue(this.userCredentials);
     }
 
-    private String decodeAccessId(String accessId) {
-        return new String(Base64.decodeBase64(accessId), StandardCharsets.UTF_8);
+    private String decodeTokenValue(String tokenValue) {
+        return new String(Base64.decodeBase64(tokenValue), StandardCharsets.UTF_8);
     }
 
     // test case: the create token method throws an exception when receiving an empty map
@@ -128,9 +128,9 @@ public class LdapFederationIdentityPluginTest {
         this.ldapFederationIdentityPlugin.createTokenValue(this.userCredentials);
     }
 
-    // test case: test create token value with a invalid access id returns an invalid token.
+    // test case: test create token value with a invalid token value returns an invalid token.
     @Test
-    public void testGetTokenInvalidAccessId() throws Exception {
+    public void testGetTokenInvalidTokenValue() throws Exception {
         // set up
         String userName = "User Full Name";
         LdapAuthenticationPlugin authenticationPlugin = Mockito.spy(new LdapAuthenticationPlugin());
