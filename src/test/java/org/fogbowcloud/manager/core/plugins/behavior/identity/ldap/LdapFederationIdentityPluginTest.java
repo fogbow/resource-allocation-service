@@ -8,10 +8,8 @@ import java.util.Properties;
 import org.apache.commons.codec.binary.Base64;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
-import org.fogbowcloud.manager.core.exceptions.InvalidCredentialsUserException;
-import org.fogbowcloud.manager.core.exceptions.TokenValueCreationException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
+import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.manager.core.plugins.behavior.authentication.ldap.LdapAuthenticationPlugin;
 import org.json.JSONObject;
 import org.junit.Assert;
@@ -24,10 +22,12 @@ public class LdapFederationIdentityPluginTest {
     private static final String IDENTITY_URL_KEY = "identity_url";
     private final String KEYSTONE_URL = "http://localhost:0000";
     private final String MOCK_SIGNATURE = "mock_signature";
-    private LdapFederationIdentityPlugin tokenGenerator;
     private final String name = "ldapUser";
     private final String password = "ldapUserPass";
     private final String userName = "User Full Name";
+    public static final String TOKEN_VALUE_SEPARATOR = "!#!";
+    private LdapFederationIdentityPlugin ldapFederationIdentityPlugin;
+
     Map<String, String> userCredentials = new HashMap<String, String>();
     
     @Before
@@ -36,7 +36,7 @@ public class LdapFederationIdentityPluginTest {
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         Properties properties = propertiesHolder.getProperties();
         properties.put(IDENTITY_URL_KEY, this.KEYSTONE_URL);
-        this.tokenGenerator = Mockito.spy(new LdapFederationIdentityPlugin());
+        this.ldapFederationIdentityPlugin = Mockito.spy(new LdapFederationIdentityPlugin());
         this.userCredentials.put(LdapFederationIdentityPlugin.CRED_USERNAME, this.name);
         this.userCredentials.put(LdapFederationIdentityPlugin.CRED_PASSWORD, this.password);
         this.userCredentials.put(LdapFederationIdentityPlugin.CRED_AUTH_URL, "ldapUrl");
@@ -44,7 +44,7 @@ public class LdapFederationIdentityPluginTest {
         this.userCredentials.put(LdapFederationIdentityPlugin.CRED_LDAP_ENCRYPT, "");
         this.userCredentials.put(LdapFederationIdentityPlugin.CRED_PRIVATE_KEY, "private_key_path");
         this.userCredentials.put(LdapFederationIdentityPlugin.CRED_PUBLIC_KEY, "public_key_path");
-		Mockito.doReturn(this.MOCK_SIGNATURE).when(this.tokenGenerator)
+		Mockito.doReturn(this.MOCK_SIGNATURE).when(this.ldapFederationIdentityPlugin)
 				.createSignature(Mockito.any(JSONObject.class));
     }
     
@@ -52,11 +52,11 @@ public class LdapFederationIdentityPluginTest {
     @Test
     public void testCreateToken() throws Exception {
     	//set up
-		Mockito.doReturn(this.userName).when(this.tokenGenerator).ldapAuthenticate(Mockito.eq(this.name),
+		Mockito.doReturn(this.userName).when(this.ldapFederationIdentityPlugin).ldapAuthenticate(Mockito.eq(this.name),
 				Mockito.eq(this.password));
         
         //exercise
-        String federationTokenValue = this.tokenGenerator.createTokenValue(userCredentials);
+        String federationTokenValue = this.ldapFederationIdentityPlugin.createTokenValue(userCredentials);
 
         //verify
         String decodedAccessId = decodeAccessId(federationTokenValue);
@@ -71,11 +71,11 @@ public class LdapFederationIdentityPluginTest {
         // set up
         String userName = "User Full Name";
         Mockito.doReturn(userName)
-                .when(this.tokenGenerator)
+                .when(this.ldapFederationIdentityPlugin)
                 .ldapAuthenticate(Mockito.eq(name), Mockito.eq(password));
 
         // exercise: create a token with valid credentials and after decode this token.
-        String token = this.tokenGenerator.createTokenValue(userCredentials);
+        String token = this.ldapFederationIdentityPlugin.createTokenValue(userCredentials);
         String decodedAccessId = decodeAccessId(token);
 
         // verify
@@ -89,11 +89,11 @@ public class LdapFederationIdentityPluginTest {
     public void testCreateTokenFail() throws Exception {
     	//set up
         Mockito.doThrow(new FogbowManagerException("Invalid User"))
-                .when(this.tokenGenerator)
+                .when(this.ldapFederationIdentityPlugin)
                 .ldapAuthenticate(Mockito.eq(name), Mockito.eq(this.password));
         
         //exercise/verify
-        this.tokenGenerator.createTokenValue(this.userCredentials);
+        this.ldapFederationIdentityPlugin.createTokenValue(this.userCredentials);
     }
 
     private String decodeAccessId(String accessId) {
@@ -106,13 +106,13 @@ public class LdapFederationIdentityPluginTest {
     public void testCreateTokenWithoutCredentials() throws UnauthenticatedUserException, TokenValueCreationException {
 
         // exercise/verify: try create a token with empty credentials
-        this.tokenGenerator.createTokenValue(Mockito.anyMap());
+        this.ldapFederationIdentityPlugin.createTokenValue(Mockito.anyMap());
     }
     // test case: authentication with invalids credentials throws an exception.
     @Test(expected = FogbowManagerException.class)
     public void testLdapAuthenticateWithoutLdapUrl() throws Exception {
         // exercise/verify: try to get authentication with invalids user id and password.
-        this.tokenGenerator.ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
+        this.ldapFederationIdentityPlugin.ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
     }
 
     // test case: the creation of the token value throws an exception when ldap plugin does not authenticate the user
@@ -120,12 +120,12 @@ public class LdapFederationIdentityPluginTest {
     public void testCreateTokenWithInvalidUserName() throws Exception {
         // set up
         Mockito.doThrow(new FogbowManagerException("Invalid User"))
-                .when(this.tokenGenerator)
+                .when(this.ldapFederationIdentityPlugin)
                 .ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
 
         // exercise/verify: try create a token, must to throws an exception because
         // LDAP will not authenticate the user.
-        this.tokenGenerator.createTokenValue(this.userCredentials);
+        this.ldapFederationIdentityPlugin.createTokenValue(this.userCredentials);
     }
 
     // test case: test create token value with a invalid access id returns an invalid token.
@@ -136,13 +136,61 @@ public class LdapFederationIdentityPluginTest {
         LdapAuthenticationPlugin authenticationPlugin = Mockito.spy(new LdapAuthenticationPlugin());
 
         Mockito.doReturn(userName)
-                .when(tokenGenerator)
+                .when(ldapFederationIdentityPlugin)
                 .ldapAuthenticate(Mockito.eq(name), Mockito.eq(password));
 
         // exercise
-        String tokenA = this.tokenGenerator.createTokenValue(this.userCredentials);
+        String tokenA = this.ldapFederationIdentityPlugin.createTokenValue(this.userCredentials);
 
         // verify
         Assert.assertFalse(authenticationPlugin.isAuthentic(tokenA));
     }
+
+    // test case: try to get federated user info with an empty token throws an exception.
+    @Test(expected = UnauthenticatedUserException.class)
+    public void testGetFederatedUserWithEmptyToken()
+            throws UnauthenticatedUserException, InvalidParameterException {
+
+        // exercise/verify: try to get federated user info
+        this.ldapFederationIdentityPlugin.createToken(Mockito.anyString());
+    }
+
+    // test case: try to get federated user info with a invalid token throws an exception.
+    @Test(expected = UnauthenticatedUserException.class)
+    public void testGetFederatedUserWithInvalidToken()
+            throws UnauthenticatedUserException, InvalidParameterException {
+        // set up
+        String invalidToken =
+                "InvalidJsonCredentials" +
+                        TOKEN_VALUE_SEPARATOR +
+                        "InvalidJsonCredentialsHashed";
+
+        byte[] bytes = invalidToken.getBytes();
+
+        // exercise/verify: try to get federated user info
+        this.ldapFederationIdentityPlugin.createToken(new String(Base64.encodeBase64(bytes)));
+    }
+
+    // test case: try to get federated user info with a valid token returns the user information correctly.
+    @Test
+    public void testGetFederatedUser() throws UnauthenticatedUserException, InvalidParameterException {
+        // set up
+        String jsonCredentials = "{\n\t\"name\": \"user\",\n\t\"login\": \"login\"\n}";
+        String token = jsonCredentials + TOKEN_VALUE_SEPARATOR + "fake-json-credentials-hashed";
+
+        byte[] bytes = token.getBytes();
+        FederationUserToken federationUserToken = new FederationUserToken("token", "login", "user");
+
+        Mockito.doReturn(true)
+                .when(this.ldapFederationIdentityPlugin)
+                .verifySign(Mockito.anyString(), Mockito.anyString());
+
+        // exercise: get a federated user from a valid token credential
+        FederationUserToken returnedUser =
+                this.ldapFederationIdentityPlugin.createToken(new String(Base64.encodeBase64(bytes)));
+
+        // exercise: compares if the returned user info is the expected
+        Assert.assertEquals(federationUserToken, returnedUser);
+    }
+
 }

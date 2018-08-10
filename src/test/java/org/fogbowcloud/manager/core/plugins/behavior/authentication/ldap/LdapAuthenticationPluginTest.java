@@ -11,8 +11,6 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.codec.binary.Base64;
-import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.manager.core.plugins.behavior.identity.ldap.LdapFederationIdentityPlugin;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.RSAUtil;
@@ -33,7 +31,6 @@ public class LdapAuthenticationPluginTest {
 	
     private static final String IDENTITY_URL_KEY = "identity_url";
     private final String KEYSTONE_URL = "http://localhost:" + 3000;
-    public static final String TOKEN_VALUE_SEPARATOR = "!#!";
 
     private LdapAuthenticationPlugin identityPlugin;
     private Map<String, String> userCredentials;
@@ -57,53 +54,6 @@ public class LdapAuthenticationPluginTest {
 
         this.userCredentials = new HashMap<String, String>();
         this.setUpCredentials();
-    }
-
-    // test case: try to get federated user info with an empty token throws an exception.
-    @Test(expected = UnauthenticatedUserException.class)
-    public void testGetFederatedUserWithEmptyToken()
-            throws UnauthenticatedUserException, InvalidParameterException {
-    	
-    	// exercise/verify: try to get federated user info
-        this.identityPlugin.getFederationUser(Mockito.anyString());
-    }
-
-    // test case: try to get federated user info with a invalid token throws an exception.
-    @Test(expected = UnauthenticatedUserException.class)
-    public void testGetFederatedUserWithInvalidToken()
-            throws UnauthenticatedUserException, InvalidParameterException {
-        // set up
-    	String invalidToken =
-                "InvalidJsonCredentials" +
-                        TOKEN_VALUE_SEPARATOR +
-                "InvalidJsonCredentialsHashed";
-
-        byte[] bytes = invalidToken.getBytes();
-        
-        // exercise/verify: try to get federated user info
-        this.identityPlugin.getFederationUser(new String(Base64.encodeBase64(bytes)));
-    }
-
-    // test case: try to get federated user info with a valid token returns the user information correctly.
-    @Test
-    public void testGetFederatedUser() throws UnauthenticatedUserException, InvalidParameterException {
-        // set up
-    	String jsonCredentials = "{\n\t\"name\": \"user\",\n\t\"login\": \"login\"\n}";
-        String token = jsonCredentials + TOKEN_VALUE_SEPARATOR + "fake-json-credentials-hashed";
-
-        byte[] bytes = token.getBytes();
-        FederationUserToken federationUserToken = new FederationUserToken("token", "login", "user");
-
-        Mockito.doReturn(true)
-                .when(this.identityPlugin)
-                .verifySign(Mockito.anyString(), Mockito.anyString());
-        
-        // exercise: get a federated user from a valid token credential
-        FederationUserToken returnedUser =
-                this.identityPlugin.getFederationUser(new String(Base64.encodeBase64(bytes)));
-
-        // exercise: compares if the returned user info is the expected
-        Assert.assertEquals(federationUserToken, returnedUser);
     }
 
     //test case: check if isAuthentic returns true when the tokenValue is not expired.

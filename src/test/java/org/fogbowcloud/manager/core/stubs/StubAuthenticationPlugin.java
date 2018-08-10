@@ -13,11 +13,11 @@ public class StubAuthenticationPlugin implements AuthenticationPlugin {
 
     public StubAuthenticationPlugin() {}
 
-    @Override
-    public FederationUserToken getFederationUser(String federationTokenValue)
-            throws UnauthenticatedUserException, InvalidParameterException {
-        return null;
-    }
+//    @Override
+//    public FederationUserToken getFederationUser(String federationTokenValue)
+//            throws UnauthenticatedUserException, InvalidParameterException {
+//        return null;
+//    }
 
     @Override
     public boolean isAuthentic(String federationTokenValue) {

@@ -7,6 +7,7 @@ import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.authentication.AuthenticationPlugin;
+import org.fogbowcloud.manager.core.plugins.behavior.identity.FederationIdentityPlugin;
 
 public class AaController {
 
@@ -14,15 +15,16 @@ public class AaController {
 
     private AuthenticationPlugin authenticationPlugin;
     private AuthorizationPlugin authorizationPlugin;
+    private FederationIdentityPlugin federationIdentityPlugin;
 
     public AaController(BehaviorPluginsHolder behaviorPluginsHolder) {
         this.authenticationPlugin = behaviorPluginsHolder.getAuthenticationPlugin();
         this.authorizationPlugin = behaviorPluginsHolder.getAuthorizationPlugin();
+        this.federationIdentityPlugin = behaviorPluginsHolder.getFederationIdentityPlugin();
     }
 
-    public FederationUserToken getFederationUser(String federationTokenValue)
-            throws UnauthenticatedUserException, InvalidParameterException {
-        return this.authenticationPlugin.getFederationUser(federationTokenValue);
+    public FederationUserToken getFederationUser(String federationTokenValue) throws UnauthenticatedUserException {
+        return this.federationIdentityPlugin.createToken(federationTokenValue);
     }
 
     public void authenticate(String federationTokenId) throws UnauthenticatedUserException {

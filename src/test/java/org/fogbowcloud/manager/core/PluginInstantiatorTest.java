@@ -55,7 +55,7 @@ public class PluginInstantiatorTest {
                 "org.fogbowcloud.manager.core.stubs.StubAuthenticationPlugin";
 
         // exercise
-        AuthenticationPlugin plugin = this.pluginInstantiator.getFederationIdentityPlugin();
+        AuthenticationPlugin plugin = this.pluginInstantiator.getAuthenticationPlugin();
 
         // verify
         Assert.assertEquals(expected_federation_identity_class_value, plugin.getClass().getName());

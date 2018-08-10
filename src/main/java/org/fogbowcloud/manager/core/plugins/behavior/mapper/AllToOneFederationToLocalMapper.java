@@ -11,10 +11,8 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.manager.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.models.tokens.TokenGenerator;
-import org.fogbowcloud.manager.core.plugins.behavior.identity.FederationIdentityPlugin;
 import org.fogbowcloud.manager.core.models.tokens.generators.openstack.v3.KeystoneV3TokenGenerator;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 

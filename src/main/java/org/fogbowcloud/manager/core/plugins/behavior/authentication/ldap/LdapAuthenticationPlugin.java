@@ -4,16 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
-import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
 import java.util.Properties;
-import org.apache.commons.codec.Charsets;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.manager.core.plugins.behavior.authentication.AuthenticationPlugin;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.RSAUtil;
@@ -49,41 +46,6 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
                 PropertiesUtil.readProperties(
                         homeDir.getPath() + File.separator + LDAP_PLUGIN_CONF_FILE);
         this.publicKeyPath = properties.getProperty(PUBLIC_KEY_PATH);
-    }
-
-    @Override
-    public FederationUserToken getFederationUser(String federationTokenValue) throws UnauthenticatedUserException {
-
-        try {
-            String decodedFederationTokenValue =
-                    new String(Base64.decodeBase64(federationTokenValue), Charsets.UTF_8);
-
-            String split[] = decodedFederationTokenValue.split(ACCESSID_SEPARATOR);
-            if (split == null || split.length < 2) {
-                LOGGER.error("Invalid accessID: " + decodedFederationTokenValue);
-                throw new UnauthenticatedUserException();
-            }
-
-            String tokenValue = split[0];
-            String signature = split[1];
-
-            JSONObject root = new JSONObject(tokenValue);
-
-            if (!verifySign(tokenValue, signature)) {
-                LOGGER.error("Invalid accessID: " + decodedFederationTokenValue);
-                throw new UnauthenticatedUserException();
-            }
-
-            String uuid = root.getString(ATT_LOGIN);
-            String name = root.getString(ATT_NAME);
-
-            FederationUserToken federationUserToken = new FederationUserToken(federationTokenValue, uuid, null);
-            federationUserToken.setName(name);
-            return federationUserToken;
-        } catch (JSONException e) {
-            LOGGER.error("Exception while getting tokens from json.", e);
-            throw new UnauthenticatedUserException();
-        }
     }
 
     @Override
