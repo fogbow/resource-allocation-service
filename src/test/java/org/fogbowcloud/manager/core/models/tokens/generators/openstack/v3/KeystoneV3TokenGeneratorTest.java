@@ -21,12 +21,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicStatusLine;
 import org.fogbowcloud.manager.core.HomeDir;
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
-import org.fogbowcloud.manager.core.exceptions.UnavailableProviderException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONArray;
@@ -152,8 +147,8 @@ public class KeystoneV3TokenGeneratorTest {
         assertEquals(projectId, project.getString("id"));
     }
     
-    //test case: createToken must throw UnexpectedException when the json from the cloud is incomplete.
-    @Test (expected = UnauthenticatedUserException.class)
+    //test case: createToken must throw UnauthorizedRequestException when the http request is forbidden (403).
+    @Test (expected = UnauthorizedRequestException.class)
     public void testMissingTokenParameters()
             throws JSONException, IOException, UnexpectedException, FogbowManagerException {
     	//set up
@@ -187,7 +182,7 @@ public class KeystoneV3TokenGeneratorTest {
 
         Mockito.when(httpResponse.getEntity()).thenReturn(httpEntity);
         BasicStatusLine basicStatus =
-                new BasicStatusLine(new ProtocolVersion("", 0, 0), HttpStatus.SC_OK, "");
+                new BasicStatusLine(new ProtocolVersion("", 0, 0), HttpStatus.SC_FORBIDDEN, "");
         Mockito.when(httpResponse.getStatusLine()).thenReturn(basicStatus);
         Mockito.when(httpResponse.getAllHeaders()).thenReturn(new Header[0]);
 
@@ -275,9 +270,6 @@ public class KeystoneV3TokenGeneratorTest {
         HttpResponse httpResponse = Mockito.mock(HttpResponse.class);
         HttpEntity httpEntity = Mockito.mock(HttpEntity.class);
         Mockito.when(httpResponse.getEntity()).thenReturn(httpEntity);
-        BasicStatusLine basicStatus =
-                new BasicStatusLine(new ProtocolVersion("", 0, 0), HttpStatus.SC_BAD_REQUEST, "");
-        Mockito.when(httpResponse.getStatusLine()).thenReturn(basicStatus);
         Mockito.when(httpResponse.getAllHeaders()).thenReturn(new Header[0]);
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class)))
                 .thenThrow(new UnknownHostException());

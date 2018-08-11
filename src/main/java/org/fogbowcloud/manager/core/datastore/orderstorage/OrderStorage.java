@@ -41,7 +41,7 @@ public class OrderStorage {
         orderStatement.setString(1, order.getId());
         orderStatement.setString(2, order.getInstanceId());
         orderStatement.setString(3, order.getOrderState().name());
-        orderStatement.setString(4, order.getFederationUserToken().getId());
+        orderStatement.setString(4, order.getFederationUserToken().getUserId());
         orderStatement.setString(5, order.getRequestingMember());
         orderStatement.setString(6, order.getProvidingMember());
     }
