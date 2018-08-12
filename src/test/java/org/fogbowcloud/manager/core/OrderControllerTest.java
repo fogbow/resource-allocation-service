@@ -98,7 +98,7 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test
     public void testGetAllInstancesStatus() throws InvalidParameterException {
         // set up
-        FederationUserToken federationUserToken = new FederationUserToken("token-value", "fake-id", "fake-user");
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider", "token-value", "fake-id", "fake-user");
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setFederationUserToken(federationUserToken);
         computeOrder.setRequestingMember(this.localMember);
@@ -138,7 +138,7 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testGetOrder() throws UnexpectedException, FogbowManagerException {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.OPEN);
-        FederationUserToken federationUserToken = new FederationUserToken("token-value", "fake-id", "fake-user");
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider", "token-value", "fake-id", "fake-user");
 
         // exercise
         ComputeOrder computeOrder = (ComputeOrder) this.ordersController.getOrder(orderId);
@@ -151,35 +151,10 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test(expected = InstanceNotFoundException.class)
     public void testGetInvalidOrder() throws FogbowManagerException {
         // setup
-        FederationUserToken federationUserToken = new FederationUserToken("token-value", "fake-id", "fake-user");
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider", "token-value", "fake-id", "fake-user");
 
         // exercise
         this.ordersController.getOrder("invalid-order-id");
-    }
-
-    // test case: Getting an order passing a different ResourceType must raise InstanceNotFoundException.
-    // ToDO: The refactor in ApplicationFacade moved the this logic out from OrderController; this test should be moved elsewhere.
-    @Ignore
-    @Test(expected = InstanceNotFoundException.class)
-    public void testGetOrderWithInvalidInstanceType() throws FogbowManagerException, UnexpectedException {
-        // set up
-        String orderId = getComputeOrderCreationId(OrderState.OPEN);
-
-        // exercise
-        this.ordersController.getOrder(orderId);
-    }
-
-    // test case: Getting order with when invalid federationUser (any fedUser with another ID)
-    // must throw InstanceNotFoundException.
-    // ToDO: The refactor in ApplicationFacade moved the this logic out from OrderController; this test should be moved elsewhere.
-    @Ignore
-    @Test(expected = UnauthorizedRequestException.class)
-    public void testGetOrderWithInvalidFedUser() throws FogbowManagerException {
-        // set up
-        String orderId = getComputeOrderCreationId(OrderState.OPEN);
-
-        // exercise
-        this.ordersController.getOrder(orderId);
     }
 
     // test case: Checks if given an order getResourceInstance() returns its instance.
@@ -218,7 +193,7 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test
     public void testGetUserAllocation() throws UnexpectedException, InvalidParameterException {
         // set up
-        FederationUserToken federationUserToken = new FederationUserToken("token-value", "fake-id", "fake-user");
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider", "token-value", "fake-id", "fake-user");
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setFederationUserToken(federationUserToken);
         computeOrder.setRequestingMember(this.localMember);
@@ -245,7 +220,7 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test(expected = UnexpectedException.class)
     public void testGetUserAllocationWithInvalidInstanceType() throws UnexpectedException, InvalidParameterException {
         // set up
-        FederationUserToken federationUserToken = new FederationUserToken("token-value", "fake-id", "fake-user");
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider", "token-value", "fake-id", "fake-user");
         NetworkOrder networkOrder = new NetworkOrder();
         networkOrder.setFederationUserToken(federationUserToken);
         networkOrder.setRequestingMember(this.localMember);
@@ -387,9 +362,34 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.deleteOrder(null);
     }
 
+    // test case: Getting an order passing a different ResourceType must raise InstanceNotFoundException.
+    // ToDO: The refactor in ApplicationFacade moved the this logic out from OrderController; this test should be moved elsewhere.
+    @Ignore
+    @Test(expected = InstanceNotFoundException.class)
+    public void testGetOrderWithInvalidInstanceType() throws FogbowManagerException, UnexpectedException {
+        // set up
+        String orderId = getComputeOrderCreationId(OrderState.OPEN);
+
+        // exercise
+        this.ordersController.getOrder(orderId);
+    }
+
+    // test case: Getting order with when invalid federationUser (any fedUser with another ID)
+    // must throw InstanceNotFoundException.
+    // ToDO: The refactor in ApplicationFacade moved the this logic out from OrderController; this test should be moved elsewhere.
+    @Ignore
+    @Test(expected = UnauthorizedRequestException.class)
+    public void testGetOrderWithInvalidFedUser() throws FogbowManagerException {
+        // set up
+        String orderId = getComputeOrderCreationId(OrderState.OPEN);
+
+        // exercise
+        this.ordersController.getOrder(orderId);
+    }
+
     private String getComputeOrderCreationId(OrderState orderState) throws InvalidParameterException {
         String orderId;
-        FederationUserToken federationUserToken = new FederationUserToken("token-value", "fake-id", "fake-user");
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider", "token-value", "fake-id", "fake-user");
 
         ComputeOrder computeOrder = Mockito.spy(new ComputeOrder());
         computeOrder.setFederationUserToken(federationUserToken);

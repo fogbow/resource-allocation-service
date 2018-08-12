@@ -29,8 +29,10 @@ public class AaControllerTest {
         this.authorizationPluginMock = Mockito.mock(AuthorizationPlugin.class);
         this.federationToLocalMapperPluginMock = Mockito.mock(FederationToLocalMapperPlugin.class);
         this.federationIdentityPluginMock = Mockito.mock(FederationIdentityPlugin.class);
-    	
-    	Mockito.when(this.behaviorPluginsHolderMock.getAuthorizationPlugin()).thenReturn(this.authorizationPluginMock);
+
+        HomeDir.getInstance().setPath("src/test/resources/private");
+
+        Mockito.when(this.behaviorPluginsHolderMock.getAuthorizationPlugin()).thenReturn(this.authorizationPluginMock);
     	Mockito.when(this.behaviorPluginsHolderMock.getAuthenticationPlugin()).thenReturn(this.authenticationPluginMock);
         Mockito.when(this.behaviorPluginsHolderMock.getFederationToLocalMapperPlugin()).thenReturn(this.federationToLocalMapperPluginMock);
     	Mockito.when(this.behaviorPluginsHolderMock.getFederationIdentityPlugin()).thenReturn(this.federationIdentityPluginMock);
@@ -40,24 +42,25 @@ public class AaControllerTest {
     //test case: Check if authenticate method throws no exception when the federation token is valid and federation token
     //id is properly passed as parameter.
     @Test
-    public void testAuthenticate() throws UnauthenticatedUserException {
+    public void testAuthenticate() throws UnauthenticatedUserException, UnavailableProviderException {
     	//set up
-    	String federationTokenId = "federation-token-id";
-    	Mockito.when(this.authenticationPluginMock.isAuthentic(Mockito.anyString())).thenReturn(true);
+    	FederationUserToken federationToken = new FederationUserToken("fake-provider",
+                "fake=federation-user","fake-user-id", "fake-name");
+    	Mockito.when(this.authenticationPluginMock.isAuthentic(Mockito.any(FederationUserToken.class))).thenReturn(true);
 
     	//exercise/verify
-    	this.aaController.authenticate(federationTokenId);
-    	Mockito.verify(this.authenticationPluginMock, Mockito.times(1)).isAuthentic(federationTokenId);
+    	this.aaController.authenticate(federationToken);
+    	Mockito.verify(this.authenticationPluginMock, Mockito.times(1)).isAuthentic(federationToken);
     }
     
     //test case: Check if authenticate method throws Unauthenticated exception when the federation token is invalid. 
     @Test (expected = UnauthenticatedUserException.class)
-    public void testAuthenticateWhenUnauthenticatedUserException() throws UnauthenticatedUserException {
+    public void testAuthenticateWhenUnauthenticatedUserException() throws UnauthenticatedUserException, UnavailableProviderException {
     	//set up
-    	Mockito.when(this.authenticationPluginMock.isAuthentic(Mockito.anyString())).thenReturn(false);
+    	Mockito.when(this.authenticationPluginMock.isAuthentic(Mockito.any(FederationUserToken.class))).thenReturn(false);
 
     	//exercise/verify
-    	this.aaController.authenticate(Mockito.anyString());
+    	this.aaController.authenticate(Mockito.any(FederationUserToken.class));
     }
     
     //test case: Check if authorize method throws no exception when the operation is valid.
@@ -143,7 +146,7 @@ public class AaControllerTest {
     @Test
     public void testGetFederationUser() throws UnauthenticatedUserException, InvalidParameterException {
     	//set up
-    	FederationUserToken expectedFederationUserToken = new FederationUserToken("token-value", "id", "fake-name");
+    	FederationUserToken expectedFederationUserToken = new FederationUserToken("fake-token-provider", "token-value", "id", "fake-name");
     	Mockito.when(this.federationIdentityPluginMock.createToken(Mockito.anyString())).thenReturn(expectedFederationUserToken);
     	
     	//exercise

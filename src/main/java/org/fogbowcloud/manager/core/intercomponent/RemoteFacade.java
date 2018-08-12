@@ -29,6 +29,9 @@ public class RemoteFacade {
     private AaController aaController;
     private OrderController orderController;
 
+    private RemoteFacade() {
+    }
+
     public static RemoteFacade getInstance() {
         synchronized (RemoteFacade.class) {
             if (instance == null) {
@@ -39,39 +42,45 @@ public class RemoteFacade {
     }
 
     public void activateOrder(Order order) throws FogbowManagerException, UnexpectedException {
-        this.aaController.authenticateAndAuthorize(order.getFederationUserToken(), Operation.CREATE, order.getType());
+        this.aaController.remoteAuthenticateAndAuthorize(order.getFederationUserToken(), Operation.CREATE,
+                order.getType(), order);
         OrderStateTransitioner.activateOrder(order);
     }
 
-    public Instance getResourceInstance(String orderId, FederationUserToken federationUserToken, ResourceType resourceType) throws
-            Exception {
-        this.aaController.authenticateAndAuthorize(federationUserToken, Operation.GET, resourceType);
+    public Instance getResourceInstance(String orderId, FederationUserToken federationUserToken,
+                                        ResourceType resourceType) throws Exception {
+        Order order = this.orderController.getOrder(orderId);
+        this.aaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.GET, resourceType, order);
         return this.orderController.getResourceInstance(orderId);
     }
 
     public void deleteOrder(String orderId, FederationUserToken federationUserToken, ResourceType resourceType)
             throws FogbowManagerException, UnexpectedException {
-        this.aaController.authenticateAndAuthorize(federationUserToken, Operation.DELETE, resourceType);
+        Order order = this.orderController.getOrder(orderId);
+        this.aaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.DELETE, resourceType, order);
         this.orderController.deleteOrder(orderId);
     }
 
-    public Quota getUserQuota(String memberId, FederationUserToken federationUserToken, ResourceType resourceType) throws
-            Exception {
-        this.aaController.authenticateAndAuthorize(federationUserToken, Operation.GET_USER_QUOTA, resourceType);
+    public Quota getUserQuota(String memberId, FederationUserToken federationUserToken, ResourceType resourceType)
+            throws Exception {
+        this.aaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.GET_USER_QUOTA, resourceType,
+                memberId);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return cloudConnector.getUserQuota(federationUserToken, resourceType);
     }
 
-    public Image getImage(String memberId, String imageId, FederationUserToken federationUserToken) throws
-            Exception {
-        this.aaController.authenticateAndAuthorize(federationUserToken, Operation.GET_IMAGE, ResourceType.IMAGE);
+    public Image getImage(String memberId, String imageId, FederationUserToken federationUserToken)
+            throws Exception {
+        this.aaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.GET_IMAGE, ResourceType.IMAGE,
+                memberId);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return cloudConnector.getImage(imageId, federationUserToken);
     }
 
-    public Map<String, String> getAllImages(String memberId, FederationUserToken federationUserToken) throws
-            Exception {
-        this.aaController.authenticateAndAuthorize(federationUserToken, Operation.GET_ALL_IMAGES, ResourceType.IMAGE);
+    public Map<String, String> getAllImages(String memberId, FederationUserToken federationUserToken)
+            throws Exception {
+        this.aaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.GET_ALL_IMAGES,
+                ResourceType.IMAGE, memberId);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return cloudConnector.getAllImages(federationUserToken);
     }

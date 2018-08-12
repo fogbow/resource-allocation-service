@@ -14,6 +14,7 @@ public class KeystoneV3IdentityPlugin implements FederationIdentityPlugin<OpenSt
     private static final Logger LOGGER = Logger.getLogger(KeystoneV3IdentityPlugin.class);
 
     private KeystoneV3TokenGenerator keystoneV3TokenGenerator;
+
     private static final String TOKEN_VALUE_SEPARATOR = "!#!";
 
     public KeystoneV3IdentityPlugin() {
@@ -24,9 +25,9 @@ public class KeystoneV3IdentityPlugin implements FederationIdentityPlugin<OpenSt
     public String createTokenValue(Map<String, String> userCredentials)
             throws UnexpectedException, FogbowManagerException {
         OpenStackV3Token token = (OpenStackV3Token) this.keystoneV3TokenGenerator.createToken(userCredentials);
-        String tokenValue = token.getTokenValue() + TOKEN_VALUE_SEPARATOR + token.getUserId() + TOKEN_VALUE_SEPARATOR +
-                token.getUserName() + TOKEN_VALUE_SEPARATOR + token.getProjectId() + TOKEN_VALUE_SEPARATOR +
-                token.getProjectName();
+        String tokenValue = token.getTokenProvider() + TOKEN_VALUE_SEPARATOR + token.getTokenValue() +
+                TOKEN_VALUE_SEPARATOR + token.getUserId() + TOKEN_VALUE_SEPARATOR + token.getUserName() +
+                TOKEN_VALUE_SEPARATOR + token.getProjectId() + TOKEN_VALUE_SEPARATOR + token.getProjectName();
         return tokenValue;
     }
 
@@ -34,17 +35,27 @@ public class KeystoneV3IdentityPlugin implements FederationIdentityPlugin<OpenSt
     public OpenStackV3Token createToken(String tokenValue) throws UnauthenticatedUserException {
 
         String split[] = tokenValue.split(TOKEN_VALUE_SEPARATOR);
-        if (split == null || split.length < 5) {
+        if (split == null || split.length < 6) {
             LOGGER.error("Invalid token value: " + tokenValue);
             throw new UnauthenticatedUserException();
         }
 
-        String keystoneTokenValue = split[0];
-        String userId = split[1];
-        String userName = split[2];
-        String projectId = split[3];
-        String projectName = split[4];
+        String tokenProvider = split[0];
+        String keystoneTokenValue = split[1];
+        String userId = split[2];
+        String userName = split[3];
+        String projectId = split[4];
+        String projectName = split[5];
 
-        return new OpenStackV3Token(keystoneTokenValue, userId, userName, projectId, projectName);
+        return new OpenStackV3Token(tokenProvider, keystoneTokenValue, userId, userName, projectId, projectName);
+    }
+
+    // Used for tests purpose
+    public KeystoneV3TokenGenerator getKeystoneV3TokenGenerator() {
+        return keystoneV3TokenGenerator;
+    }
+
+    protected void setKeystoneV3TokenGenerator(KeystoneV3TokenGenerator tokenGenerator) {
+        this.keystoneV3TokenGenerator = tokenGenerator;
     }
 }

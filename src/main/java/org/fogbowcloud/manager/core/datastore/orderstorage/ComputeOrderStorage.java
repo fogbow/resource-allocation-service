@@ -167,9 +167,10 @@ public class ComputeOrderStorage extends OrderStorage {
                     extraUserDataFileType = CloudInitUserDataBuilder.
                             FileType.valueOf(computeResult.getString(13));
                 }
-                
+
+                // TODO: fix the null fields (we will probably change the whole implementation, though)
                 ComputeOrder computeOrder = new ComputeOrder(computeResult.getString(1),
-                        new FederationUserToken(null, computeResult.getString(4), null),
+                        new FederationUserToken(null, null, computeResult.getString(4), null),
                         computeResult.getString(6), computeResult.getString(7), computeResult.getInt(8),
                         computeResult.getInt(9), computeResult.getInt(10), computeResult.getString(11),
                         new UserData(computeResult.getString(12), extraUserDataFileType), 
