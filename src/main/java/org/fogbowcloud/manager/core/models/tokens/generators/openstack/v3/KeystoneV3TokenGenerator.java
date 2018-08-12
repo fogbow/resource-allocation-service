@@ -8,6 +8,8 @@ import org.apache.http.Header;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.PropertiesHolder;
+import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.tokens.OpenStackV3Token;
@@ -34,8 +36,11 @@ public class KeystoneV3TokenGenerator implements TokenGenerator<OpenStackV3Token
     private String keystoneUrl;
     private String v3TokensEndpoint;
     private HttpRequestClientUtil client;
+    private String tokenProvider;
 
     public KeystoneV3TokenGenerator() throws FatalErrorException {
+        this.tokenProvider = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+
         HomeDir homeDir = HomeDir.getInstance();
         Properties properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
                 + DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
@@ -58,7 +63,6 @@ public class KeystoneV3TokenGenerator implements TokenGenerator<OpenStackV3Token
     @Override
     public Token createToken(Map<String, String> credentials) throws FogbowManagerException,
             UnexpectedException {
-        LOGGER.debug("Creating new Token");
 
         String jsonBody;
         try {
@@ -120,7 +124,7 @@ public class KeystoneV3TokenGenerator implements TokenGenerator<OpenStackV3Token
             String projectId = projectTokenResponse.getId();
             String projectName = projectTokenResponse.getName();
 
-            return new OpenStackV3Token(tokenValue, userId, userName, projectId, projectName);
+            return new OpenStackV3Token(this.tokenProvider, tokenValue, userId, userName, projectId, projectName);
         } catch (Exception e) {
             LOGGER.error("Exception while getting tokens from json", e);
             throw new UnexpectedException("Exception while getting tokens from json", e);

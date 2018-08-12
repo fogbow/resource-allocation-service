@@ -131,8 +131,9 @@ public class AttachmentOrderStorage extends OrderStorage {
 
                 Map<String, String> federationUserAttr = getFederationUserAttrFromString(attachmentResult.getString(5));
 
+                // TODO: fix the null fields (we will probably change the whole implementation, though)
                 AttachmentOrder attachmentOrder = new AttachmentOrder(attachmentResult.getString(1),
-                        new FederationUserToken(null, attachmentResult.getString(4), null),
+                        new FederationUserToken(null, null, attachmentResult.getString(4), null),
                         attachmentResult.getString(6), attachmentResult.getString(7),
                         attachmentResult.getString(8), attachmentResult.getString(9),
                         attachmentResult.getString(10));

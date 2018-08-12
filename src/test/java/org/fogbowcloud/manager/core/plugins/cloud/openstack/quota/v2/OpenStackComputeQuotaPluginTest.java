@@ -14,6 +14,7 @@ import org.mockito.Mockito;
 
 public class OpenStackComputeQuotaPluginTest {
 
+    private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_NAME = "fake-name";
@@ -37,7 +38,7 @@ public class OpenStackComputeQuotaPluginTest {
         HomeDir.getInstance().setPath("src/test/resources/private");
         this.plugin = Mockito.spy(new OpenStackComputeQuotaPlugin());
 
-        this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
+        this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
     }
 
     // test case: Tests if getTotalQuota(), getUsedQuota() and getAvailableQuota() returns the right

@@ -119,7 +119,7 @@ public class ApplicationFacade {
     }
 
     public List<InstanceStatus> getAllInstancesStatus(String federationTokenValue, ResourceType resourceType) throws
-            UnauthenticatedUserException, InvalidParameterException, UnauthorizedRequestException {
+            UnauthenticatedUserException, UnauthorizedRequestException, UnavailableProviderException {
         FederationUserToken requester = this.aaController.getFederationUser(federationTokenValue);
         this.aaController.authenticateAndAuthorize(requester, Operation.GET_ALL, resourceType);
         return this.orderController.getInstancesStatus(requester, resourceType);
@@ -143,11 +143,8 @@ public class ApplicationFacade {
 
     private void deleteOrder(String orderId, String federationTokenValue, ResourceType resourceType) throws
             FogbowManagerException, UnexpectedException {
-        LOGGER.debug("getting federation user");
         FederationUserToken requester = this.aaController.getFederationUser(federationTokenValue);
-        LOGGER.debug("getting order");
         Order order = this.orderController.getOrder(orderId);
-        LOGGER.debug("A&A");
         this.aaController.authenticateAndAuthorize(requester, Operation.DELETE, resourceType, order);
         this.orderController.deleteOrder(orderId);
     }
@@ -186,27 +183,4 @@ public class ApplicationFacade {
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return (Image) cloudConnector.getImage(imageId, requester);
     }
-
-//    private void authenticateAndAuthorize(FederationUserToken requester,
-//                                          Operation operation, ResourceType type)
-//            throws UnauthenticatedUserException, UnauthorizedRequestException, InvalidParameterException {
-//        // Authenticate user based on the token received
-//        this.aaController.authenticate(requester.getTokenValue());
-//        // Authorize the user based on user's attributes, requested operation and resource type
-//        this.aaController.authorize(requester, operation, type);
-//    }
-//
-//    private void authenticateAndAuthorize(FederationUserToken requester, Operation operation, ResourceType type,
-//                                          String orderId) throws FogbowManagerException {
-//        // Check if requested type matches order type
-//        Order order = this.orderController.getOrder(orderId);
-//        if (!order.getType().equals(type)) throw new InstanceNotFoundException("Mismatching resource type");
-//        // Authenticate user and get authorization to perform generic operation on the type of resource
-//        authenticateAndAuthorize(requester, operation, type);
-//        // Check whether requester owns order
-//        FederationUserToken orderOwner = order.getFederationUserToken();
-//        if (!orderOwner.getUserId().equals(requester.getUserId())) {
-//            throw new UnauthorizedRequestException("Requester does not own order");
-//        }
-//    }
 }

@@ -49,6 +49,7 @@ public class OpenStackV2NetworkPluginTest {
 	private static final String SECURITY_GROUP_ID = "fake-sg-id";
 	private static final String NETWORK_ID = "networkId";
 
+	private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
 	private static final String FAKE_TOKEN_VALUE = "fake-token-value";
 	private static final String FAKE_USER_ID = "fake-user-id";
 	private static final String FAKE_NAME = "fake-name";
@@ -83,7 +84,7 @@ public class OpenStackV2NetworkPluginTest {
 		this.httpRequestClientUtil = Mockito.spy(new HttpRequestClientUtil(this.client));
 		this.openStackV2NetworkPlugin.setClient(this.httpRequestClientUtil);
 
-		this.defaultLocalUserAttributes = new OpenStackV3Token(FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
+		this.defaultLocalUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
 	}
 
 	@After

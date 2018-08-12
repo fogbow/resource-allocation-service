@@ -32,6 +32,7 @@ public class OpenStackImagePluginTest {
     private static final long FAKE_MIN_DISK = 1l;
     private static final long FAKE_MIN_RAM = 2l;
 
+	private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_NAME = "fake-name";
@@ -49,7 +50,7 @@ public class OpenStackImagePluginTest {
         this.plugin = new OpenStackImagePlugin();
         this.client = Mockito.mock(HttpRequestClientUtil.class);
         this.properties = Mockito.mock(Properties.class);
-        this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
+        this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
         this.plugin.setProperties(this.properties);
     	this.plugin.setClient(this.client);
     }

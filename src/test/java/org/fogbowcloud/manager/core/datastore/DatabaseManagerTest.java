@@ -72,7 +72,7 @@ public class DatabaseManagerTest {
     public void testAddComputeOrder() throws InvalidParameterException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        FederationUserToken federationUserToken = new FederationUserToken("token-value", "fake-id", "fake-user");
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider", "token-value", "fake-id", "fake-user");
 
         Order computeOrder = new ComputeOrder(federationUserToken,
                 "requestingMember", "providingMember", 8, 1024,
@@ -101,7 +101,7 @@ public class DatabaseManagerTest {
     public void testUpdateComputeOrderState() throws InvalidParameterException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        FederationUserToken federationUserToken = new FederationUserToken("token-value", "fake-id", "fake-user");
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider", "token-value", "fake-id", "fake-user");
 
         ComputeOrder computeOrder = new ComputeOrder("id", federationUserToken,
                 "requestingMember", "providingMember", 8, 1024,
@@ -134,7 +134,7 @@ public class DatabaseManagerTest {
     public void testAddNetworkOrder() throws InvalidParameterException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        FederationUserToken federationUserToken = new FederationUserToken("token-value", "fake-id", "fake-user");
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider", "token-value", "fake-id", "fake-user");
 
         Order networkOrder = new NetworkOrder(federationUserToken,
                 "requestingMember", "providingMember", "gateway",
@@ -162,7 +162,7 @@ public class DatabaseManagerTest {
     public void testUpdateNetworkOrderState() throws InvalidParameterException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        FederationUserToken federationUserToken = new FederationUserToken("token-value", "fake-id", "fake-user");
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider", "token-value", "fake-id", "fake-user");
 
         Order networkOrder = new NetworkOrder(federationUserToken,
                 "requestingMember", "providingMember", "gateway",
@@ -190,7 +190,7 @@ public class DatabaseManagerTest {
     public void testAddVolumeOrder() throws InvalidParameterException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        FederationUserToken federationUserToken = new FederationUserToken("token-value", "fake-id", "fake-user");
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider", "token-value", "fake-id", "fake-user");
 
         Order volumeOrder = new VolumeOrder(federationUserToken,
                 "requestingMember", "providingMember", 0, "volume-name");
@@ -217,7 +217,7 @@ public class DatabaseManagerTest {
     public void testUpdateVolumeOrderState() throws InvalidParameterException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        FederationUserToken federationUserToken = new FederationUserToken("token-value", "fake-id", "fake-user");
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider", "token-value", "fake-id", "fake-user");
 
         Order volumeOrder = new VolumeOrder(federationUserToken,
                 "requestingMember", "providingMember", 0, "volume-name");
@@ -245,7 +245,7 @@ public class DatabaseManagerTest {
     public void testGetClosedOrderWithoutInstanceId() throws InvalidParameterException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        FederationUserToken federationUserToken = new FederationUserToken("token-value", "fake-id", "fake-user");
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider", "token-value", "fake-id", "fake-user");
 
         Order volumeOrder = new VolumeOrder(federationUserToken,
                 "requestingMember", "providingMember", 0, "volume-name");
@@ -269,7 +269,7 @@ public class DatabaseManagerTest {
     public void testGetClosedOrderWithInstanceId() throws InvalidParameterException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        FederationUserToken federationUserToken = new FederationUserToken("token-value", "fake-id", "fake-user");
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider", "token-value", "fake-id", "fake-user");
 
         VolumeOrder volumeOrder = new VolumeOrder(federationUserToken,
                 "requestingMember", "providingMember", 0, "volume-name");

@@ -29,6 +29,7 @@ public class OpenStackV2VolumePluginTest {
     private final String FAKE_SIZE = "2";
     private final String FAKE_VOLUME_ID = "fake-id";
     private final String FAKE_NAME = "fake-name";
+    private final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private final String FAKE_TOKEN_VALUE = "fake-token-value";
     private final String FAKE_USER_ID = "fake-user-id";
     private final String FAKE_PROJECT_ID = "fake-project-id";
@@ -53,7 +54,7 @@ public class OpenStackV2VolumePluginTest {
         this.openStackV2VolumePlugin = Mockito.spy(new OpenStackV2VolumePlugin());
         this.httpRequestClientUtil = Mockito.mock(HttpRequestClientUtil.class);
         this.openStackV2VolumePlugin.setClient(this.httpRequestClientUtil);
-        this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
+        this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
     }
 
     // test case: Check if the request in requestInstance() is executed properly with the right parameters.

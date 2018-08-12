@@ -40,6 +40,7 @@ public class OpenStackAttachmentPluginTest {
     private static final String FAKE_DEVICE = "/dev/sdd";
     private static final String FAKE_GET_REQUEST_BODY = "{\"volumeAttachment\": {\"device\": \""+ FAKE_DEVICE +"\",\"id\": \""
             + FAKE_INSTANCE_ID + "\",\"serverId\": \"" + FAKE_SERVER_ID + "\",\"volumeId\": \"" + FAKE_VOLUME_ID + "\"}}";
+    private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_NAME = "fake-name";
@@ -61,7 +62,7 @@ public class OpenStackAttachmentPluginTest {
         properties.put(OpenStackNovaV2AttachmentPlugin.COMPUTE_NOVAV2_URL_KEY, FAKE_ENDPOINT);
         properties.put(COMPUTE_NOVAV2_NETWORK_KEY, FAKE_NET_ID);
 
-        this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
+        this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
         this.attachmentOrder =
                 new AttachmentOrder(null, null, null, FAKE_SERVER_ID, FAKE_VOLUME_ID, MOUNT_POINT);
         

@@ -32,7 +32,6 @@ public class PropertiesUtil {
     }
 
     private static Properties loadProperties(String fileName) throws FatalErrorException {
-
         Properties prop = new Properties();
         FileInputStream fileInputStream = null;
 
@@ -52,9 +51,7 @@ public class PropertiesUtil {
                 }
             }
         }
-
         return prop;
-
     }
 }
 

@@ -335,7 +335,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     }
 
     private Order createOrder() {
-        FederationUserToken federationUserToken = new FederationUserToken("token-value", "login", "user");
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider", "token-value", "login", "user");
 
         UserData userData = Mockito.mock(UserData.class);
 

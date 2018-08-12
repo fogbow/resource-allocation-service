@@ -58,6 +58,7 @@ public class OpenStackComputePluginTest {
 	private final int bestCpu = 2;
 	private final int bestMemory = 1024;
 
+	private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
 	private static final String FAKE_TOKEN_VALUE = "fake-token-value";
 	private static final String FAKE_USER_ID = "fake-user-id";
 	private static final String FAKE_NAME = "fake-name";
@@ -100,7 +101,7 @@ public class OpenStackComputePluginTest {
         String tenantId = "tenant-id";
         Map <String, String> attributes = new HashMap<String, String>();
         attributes.put(OpenStackNovaV2ComputePlugin.PROJECT_ID, tenantId);
-		this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
+		this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
 
 		HomeDir.getInstance().setPath("src/test/resources/private");
         
