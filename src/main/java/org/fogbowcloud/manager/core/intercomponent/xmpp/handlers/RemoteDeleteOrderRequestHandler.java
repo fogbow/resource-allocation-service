@@ -13,6 +13,7 @@ import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 
 public class RemoteDeleteOrderRequestHandler extends AbstractQueryHandler {
+
     private static final Logger LOGGER = Logger.getLogger(RemoteDeleteOrderRequestHandler.class);
 
     public static final String REMOTE_DELETE_ORDER = RemoteMethod.REMOTE_DELETE_ORDER.toString();
@@ -58,4 +59,5 @@ public class RemoteDeleteOrderRequestHandler extends AbstractQueryHandler {
         FederationUser federationUser = new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
         return federationUser;
     }
+
 }

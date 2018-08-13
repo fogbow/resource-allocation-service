@@ -5,7 +5,6 @@ import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.requesters.RemoteDeleteOrderRequest;
-import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
@@ -29,9 +28,9 @@ import java.util.Map;
 @PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
 public class RemoteDeleteOrderRequestHandlerTest {
 
-    public static final String IQ_RESULT = "\n<iq type=\"result\" id=\"%s\" from=\"%s\"/>";
+    public static final String IQ_RESULT_FORMAT = "\n<iq type=\"result\" id=\"%s\" from=\"%s\"/>";
 
-    public static final String IQ_ERROR_RESULT =
+    public static final String IQ_ERROR_RESULT_FORMAT =
             "\n<iq type=\"error\" id=\"%s\" from=\"%s\">\n" +
                     "  <error code=\"500\" type=\"wait\">\n" +
                     "    <undefined-condition xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n" +
@@ -61,7 +60,8 @@ public class RemoteDeleteOrderRequestHandlerTest {
         BDDMockito.given(RemoteFacade.getInstance()).willReturn(this.remoteFacade);
     }
 
-    // test case: When call the handle method passing a valid IQ object, it must create an OK result IQ and return it.
+    // test case: When calling the method handle passing a valid IQ object, it must create an OK
+    // result IQ and return it.
     @Test
     public void testHandleWithValidIQ() throws FogbowManagerException, UnexpectedException {
         //set up
@@ -73,9 +73,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
         this.order = new ComputeOrder(federationUser, "requestingMember", "providingmember",
                 1, 2, 3, "imageId", null, "publicKey", new ArrayList<>());
 
-        Mockito.doNothing().when(this.remoteFacade).activateOrder(Mockito.eq(this.order));
-
-        IQ iq = RemoteDeleteOrderRequest.marshalIQ(this.order);
+        IQ iq = RemoteDeleteOrderRequest.marshal(this.order);
 
         // exercise
         IQ result = this.remoteDeleteOrderRequestHandler.handle(iq);
@@ -83,32 +81,33 @@ public class RemoteDeleteOrderRequestHandlerTest {
         //verify
         String orderId = order.getId();
         String orderProvidingMember = order.getProvidingMember();
-        String expected = String.format(IQ_RESULT, orderId, orderProvidingMember);
+        String expected = String.format(IQ_RESULT_FORMAT, orderId, orderProvidingMember);
         Assert.assertEquals(expected, result.toString());
     }
 
-    // test case: When an Exception occurs, the handle method must return a response error.
+    // test case: When an exception occurs while deleting, the method handle should return a response error
     @Test
-    public void testHandleWhenThrowsException() throws FogbowManagerException, UnexpectedException {
+    public void testHandleWhenExceptionIsThrown() throws FogbowManagerException, UnexpectedException {
         //set up
         this.order = new ComputeOrder(null, "requestingMember", "providingmember",
                 1, 2, 3, "imageId", null, "publicKey", new ArrayList<>());
 
-        Mockito.doThrow(new FogbowManagerException()).when(this.remoteFacade).deleteOrder(Mockito.anyString(),
-                Mockito.any(FederationUser.class), Mockito.any(ResourceType.class));
+        Mockito.doThrow(new FogbowManagerException()).when(this.remoteFacade).deleteOrder(this.order.getId(),
+                this.order.getFederationUser(), this.order.getType());
 
-        IQ iq = RemoteDeleteOrderRequest.marshalIQ(this.order);
+        IQ iq = RemoteDeleteOrderRequest.marshal(this.order);
 
         // exercise
         IQ result = this.remoteDeleteOrderRequestHandler.handle(iq);
 
         //verify
-        Mockito.verify(this.remoteFacade, Mockito.times(1)).deleteOrder(Mockito.anyString(),
-                Mockito.any(FederationUser.class), Mockito.any(ResourceType.class));
+        Mockito.verify(this.remoteFacade, Mockito.times(1)).deleteOrder(this.order.getId(),
+            this.order.getFederationUser(), this.order.getType());
 
         String orderId = order.getId();
         String orderProvidingMember = order.getProvidingMember();
-        String expected = String.format(IQ_ERROR_RESULT, orderId, orderProvidingMember);
+        String expected = String.format(IQ_ERROR_RESULT_FORMAT, orderId, orderProvidingMember);
         Assert.assertEquals(expected, result.toString());
     }
+
 }
