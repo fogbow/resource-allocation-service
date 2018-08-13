@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core;
 
 import org.fogbowcloud.manager.core.constants.Operation;
 import org.fogbowcloud.manager.core.datastore.DatabaseManager;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.models.ResourceType;
@@ -129,14 +130,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doNothing().when(this.aaController).authenticate(Mockito.any(FederationUserToken.class));
 
-        Mockito.doThrow(new UnauthenticatedUserException()).when(this.aaController)
+        Mockito.doThrow(new InvalidParameterException()).when(this.aaController)
                 .getFederationUser(Mockito.anyString());
 
         try {
             // exercise
             this.application.deleteCompute(order.getId(), FAKE_FEDERATION_TOKEN_VALUE);
             Assert.fail();
-        } catch (UnauthenticatedUserException e) {
+        } catch (InvalidParameterException e) {
             // verify
             Mockito.verify(this.aaController, Mockito.times(1))
                     .getFederationUser(FAKE_FEDERATION_TOKEN_VALUE);
@@ -242,14 +243,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doNothing().when(this.aaController).authenticate(Mockito.any(FederationUserToken.class));
 
-        Mockito.doThrow(new UnauthenticatedUserException()).when(this.aaController)
+        Mockito.doThrow(new InvalidParameterException()).when(this.aaController)
                 .getFederationUser(Mockito.anyString());
 
         try {
             // exercise
             this.application.createCompute(order, FAKE_FEDERATION_TOKEN_VALUE);
             Assert.fail();
-        } catch (UnauthenticatedUserException e) {
+        } catch (InvalidParameterException e) {
             // verify
             Mockito.verify(this.aaController, Mockito.times(1))
                     .getFederationUser(FAKE_FEDERATION_TOKEN_VALUE);
@@ -343,7 +344,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
     // test case: Check if getCompute is properly forwarding the exception thrown by
     // getFederationUserToken.
-    @Test(expected = UnauthenticatedUserException.class) // verify
+    @Test(expected = InvalidParameterException.class) // verify
     public void testGetComputeOrderWhenGetFederationUserThrowsAnException() throws Exception {
 
         // set up
@@ -353,7 +354,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doNothing().when(this.aaController).authenticateAndAuthorize(Mockito.any(FederationUserToken.class),
                 Mockito.any(Operation.class), Mockito.any(ResourceType.class), Mockito.any(Order.class));
 
-        Mockito.doThrow(new UnauthenticatedUserException()).when(this.aaController)
+        Mockito.doThrow(new InvalidParameterException()).when(this.aaController)
                 .getFederationUser(Mockito.anyString());
 
         // exercise
@@ -449,14 +450,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doNothing().when(this.aaController).authenticate(Mockito.any(FederationUserToken.class));
 
-        Mockito.doThrow(new UnauthenticatedUserException()).when(this.aaController)
+        Mockito.doThrow(new InvalidParameterException()).when(this.aaController)
                 .getFederationUser(Mockito.anyString());
 
         try {
             // exercise
             this.application.createVolume(order, FAKE_FEDERATION_TOKEN_VALUE);
             Assert.fail();
-        } catch (UnauthenticatedUserException e) {
+        } catch (InvalidParameterException e) {
             // verify
             Mockito.verify(this.aaController, Mockito.times(1))
                     .getFederationUser(FAKE_FEDERATION_TOKEN_VALUE);
@@ -541,7 +542,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
     // test case: Check if getVolume is properly forwarding the exception thrown by
     // getFederationUserToken.
-    @Test(expected = UnauthenticatedUserException.class) // verify
+    @Test(expected = InvalidParameterException.class) // verify
     public void testGetVolumeOrderWhenGetFederationUserThrowsAnException() throws Exception {
 
         // set up
@@ -553,7 +554,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doReturn(order.getFederationUserToken()).when(this.aaController)
                 .getFederationUser(Mockito.anyString());
 
-        Mockito.doThrow(new UnauthenticatedUserException()).when(this.aaController)
+        Mockito.doThrow(new InvalidParameterException()).when(this.aaController)
                 .getFederationUser(Mockito.anyString());
 
         // exercise
@@ -647,14 +648,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doNothing().when(this.aaController).authenticate(Mockito.any(FederationUserToken.class));
 
-        Mockito.doThrow(new UnauthenticatedUserException()).when(this.aaController)
+        Mockito.doThrow(new InvalidParameterException()).when(this.aaController)
                 .getFederationUser(Mockito.anyString());
 
         try {
             // exercise
             this.application.deleteVolume(order.getId(), FAKE_FEDERATION_TOKEN_VALUE);
             Assert.fail();
-        } catch (UnauthenticatedUserException e) {
+        } catch (InvalidParameterException e) {
             // verify
             Mockito.verify(this.aaController, Mockito.times(1))
                     .getFederationUser(FAKE_FEDERATION_TOKEN_VALUE);
@@ -760,14 +761,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doNothing().when(this.aaController).authenticate(Mockito.any(FederationUserToken.class));
 
-        Mockito.doThrow(new UnauthenticatedUserException()).when(this.aaController)
+        Mockito.doThrow(new InvalidParameterException()).when(this.aaController)
                 .getFederationUser(Mockito.anyString());
 
         try {
             // exercise
             this.application.createNetwork(order, FAKE_FEDERATION_TOKEN_VALUE);
             Assert.fail();
-        } catch (UnauthenticatedUserException e) {
+        } catch (InvalidParameterException e) {
             // verify
             Mockito.verify(this.aaController, Mockito.times(1))
                     .getFederationUser(FAKE_FEDERATION_TOKEN_VALUE);
@@ -863,7 +864,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
     // test case: Check if getNetwork is properly forwarding the exception thrown by
     // getFederationUserToken.
-    @Test(expected = UnauthenticatedUserException.class) // verify
+    @Test(expected = InvalidParameterException.class) // verify
     public void testGetNetworkOrderWhenGetFederationUserThrowsAnException() throws Exception {
 
         // set up
@@ -872,7 +873,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doNothing().when(this.aaController).authenticate(Mockito.any(FederationUserToken.class));
 
-        Mockito.doThrow(new UnauthenticatedUserException()).when(this.aaController)
+        Mockito.doThrow(new InvalidParameterException()).when(this.aaController)
                 .getFederationUser(Mockito.anyString());
 
         // exercise
@@ -966,14 +967,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doNothing().when(this.aaController).authenticate(Mockito.any(FederationUserToken.class));
 
-        Mockito.doThrow(new UnauthenticatedUserException()).when(this.aaController)
+        Mockito.doThrow(new InvalidParameterException()).when(this.aaController)
                 .getFederationUser(Mockito.anyString());
 
         try {
             // exercise
             this.application.deleteNetwork(order.getId(), FAKE_FEDERATION_TOKEN_VALUE);
             Assert.fail();
-        } catch (UnauthenticatedUserException e) {
+        } catch (InvalidParameterException e) {
             // verify
             Mockito.verify(this.aaController, Mockito.times(1))
                     .getFederationUser(FAKE_FEDERATION_TOKEN_VALUE);
@@ -1052,14 +1053,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doNothing().when(this.aaController).authenticate(Mockito.any(FederationUserToken.class));
 
-        Mockito.doThrow(new UnauthenticatedUserException()).when(this.aaController)
+        Mockito.doThrow(new InvalidParameterException()).when(this.aaController)
                 .getFederationUser(Mockito.anyString());
 
         try {
             // exercise
             this.application.createAttachment(order, FAKE_FEDERATION_TOKEN_VALUE);
             Assert.fail();
-        } catch (UnauthenticatedUserException e) {
+        } catch (InvalidParameterException e) {
             // verify
             Mockito.verify(this.aaController, Mockito.times(1))
                     .getFederationUser(FAKE_FEDERATION_TOKEN_VALUE);
@@ -1149,7 +1150,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
     // test case: Check if getAttachment is properly forwarding the exception thrown by
     // getFederationUserToken.
-    @Test(expected = UnauthenticatedUserException.class) // verify
+    @Test(expected = InvalidParameterException.class) // verify
     public void testGetAttachmentOrderWhenGetFederationUserThrowsAnException() throws Exception {
 
         // set up
@@ -1159,7 +1160,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doNothing().when(this.aaController).authenticateAndAuthorize(Mockito.any(FederationUserToken.class),
                 Mockito.any(Operation.class), Mockito.any(ResourceType.class), Mockito.any(Order.class));
 
-        Mockito.doThrow(new UnauthenticatedUserException()).when(this.aaController)
+        Mockito.doThrow(new InvalidParameterException()).when(this.aaController)
                 .getFederationUser(Mockito.anyString());
 
         // exercise
@@ -1253,14 +1254,14 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doNothing().when(this.aaController).authenticate(Mockito.any(FederationUserToken.class));
 
-        Mockito.doThrow(new UnauthenticatedUserException()).when(this.aaController)
+        Mockito.doThrow(new InvalidParameterException()).when(this.aaController)
                 .getFederationUser(Mockito.anyString());
 
         try {
             // exercise
             this.application.deleteAttachment(order.getId(), FAKE_FEDERATION_TOKEN_VALUE);
             Assert.fail();
-        } catch (UnauthenticatedUserException e) {
+        } catch (InvalidParameterException e) {
             // verify
             Mockito.verify(this.aaController, Mockito.times(1))
                     .getFederationUser(FAKE_FEDERATION_TOKEN_VALUE);

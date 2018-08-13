@@ -14,6 +14,8 @@ import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.models.tokens.TokenGenerator;
 import org.fogbowcloud.manager.core.models.tokens.generators.openstack.v3.KeystoneV3TokenGenerator;
+import org.fogbowcloud.manager.core.plugins.behavior.identity.FederationIdentityPlugin;
+import org.fogbowcloud.manager.core.plugins.behavior.identity.openstack.KeystoneV3IdentityPlugin;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 
 public class AllToOneFederationToLocalMapper implements FederationToLocalMapperPlugin {
@@ -24,10 +26,12 @@ public class AllToOneFederationToLocalMapper implements FederationToLocalMapperP
 	private static final String DEFAULT_MAPPER_CONF = "default_mapper.conf";
 
 	private static final String TOKEN_GENERATOR_CLASS_NAME_KEY = "local_token_generator_class";
+	private static final String FEDERATION_IDENTITY_PLUGIN_CLASS_NAME_KEY = "federation_identity_plugin_class";
 	
     private Map<String, String> credentials;
 
     private TokenGenerator tokenGenerator;
+    private FederationIdentityPlugin federationIdentityPlugin;
 	
 	public AllToOneFederationToLocalMapper() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
@@ -35,11 +39,13 @@ public class AllToOneFederationToLocalMapper implements FederationToLocalMapperP
                 File.separator + DEFAULT_MAPPER_CONF);
         this.credentials = getDefaultLocalTokenCredentials(properties);
         this.tokenGenerator = getTokenGenerator(properties);
+        this.federationIdentityPlugin = getFederationIdentityPlugin(properties);
     }
 
     @Override
     public Token map(FederationUserToken user) throws UnexpectedException, FogbowManagerException {
-	    return tokenGenerator.createToken(this.credentials);
+	    String tokenString = this.tokenGenerator.createTokenValue(this.credentials);
+	    return this.federationIdentityPlugin.createToken(tokenString);
     }
 
     /**
@@ -78,7 +84,7 @@ public class AllToOneFederationToLocalMapper implements FederationToLocalMapperP
         return keyPropertiesStr.replace(LOCAL_TOKEN_CREDENTIALS_PREFIX, "");
     }
 
-    // ToDo: This method needs to get a property that defines which FederationIdentityPlugin should be used
+    // ToDo: This method needs to get a property that defines which TokenGenerator should be used
     // For the time being, we set KeystoneV3 statically.
     private TokenGenerator getTokenGenerator(Properties properties) {
 //        PluginFactory pluginFactory = new PluginFactory();
@@ -88,5 +94,17 @@ public class AllToOneFederationToLocalMapper implements FederationToLocalMapperP
 //        }
 //        return (FederationIdentityPlugin) pluginFactory.createPluginInstance(className);
         return new KeystoneV3TokenGenerator();
+    }
+
+    // ToDo: This method needs to get a property that defines which FederationIdentityPlugin should be used
+    // For the time being, we set KeystoneV3 statically.
+    private FederationIdentityPlugin getFederationIdentityPlugin(Properties properties) {
+//        PluginFactory pluginFactory = new PluginFactory();
+//        String className = properties.getProperty(TOKEN_GENERATOR_CLASS_NAME_KEY);
+//        if (className  == null) {
+//            throw new FatalErrorException("No FederationIdentityPlugin class speciefied.");
+//        }
+//        return (FederationIdentityPlugin) pluginFactory.createPluginInstance(className);
+        return new KeystoneV3IdentityPlugin();
     }
 }

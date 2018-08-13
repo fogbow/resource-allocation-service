@@ -144,7 +144,7 @@ public class AaControllerTest {
     
     //test case: Check if federation user token is returning a valid token properly.
     @Test
-    public void testGetFederationUser() throws UnauthenticatedUserException, InvalidParameterException {
+    public void testGetFederationUser() throws InvalidParameterException {
     	//set up
     	FederationUserToken expectedFederationUserToken = new FederationUserToken("fake-token-provider", "token-value", "id", "fake-name");
     	Mockito.when(this.federationIdentityPluginMock.createToken(Mockito.anyString())).thenReturn(expectedFederationUserToken);
@@ -156,11 +156,11 @@ public class AaControllerTest {
     	Assert.assertEquals(expectedFederationUserToken, aaFederationUserToken);
     }
     
-    //test case: Check if AaController is properly forwarding UnauthenticatedUserException thrown by FederationIdentityPlugin.
-    @Test (expected = UnauthenticatedUserException.class)
-    public void testGetFederationUserUnauthenticatedUserException() throws UnauthenticatedUserException, InvalidParameterException {
+    //test case: Check if AaController is properly forwarding InvalidParameterException thrown by FederationIdentityPlugin.
+    @Test (expected = InvalidParameterException.class)
+    public void testGetFederationUserInvalidParameterException() throws InvalidParameterException {
     	//set up
-    	Mockito.when(this.federationIdentityPluginMock.createToken(Mockito.anyString())).thenThrow(new UnauthenticatedUserException());
+    	Mockito.when(this.federationIdentityPluginMock.createToken(Mockito.anyString())).thenThrow(new InvalidParameterException());
     	
     	//exercise/verify
     	this.aaController.getFederationUser(Mockito.anyString());

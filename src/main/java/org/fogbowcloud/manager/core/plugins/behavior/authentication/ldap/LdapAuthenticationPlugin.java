@@ -12,6 +12,7 @@ import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.manager.core.models.tokens.generators.ldap.LdapTokenGenerator;
 import org.fogbowcloud.manager.core.plugins.behavior.authentication.AuthenticationPlugin;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.RSAUtil;
@@ -22,15 +23,6 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
     private static final String LDAP_PLUGIN_CONF_FILE = "ldap-identity-plugin.conf";
     private static final String PUBLIC_KEY_PATH = "public_key_path";
-
-    public static final String CRED_USERNAME = "username";
-    public static final String CRED_PASSWORD = "password";
-    public static final String CRED_AUTH_URL = "authUrl";
-    public static final String CRED_LDAP_BASE = "base";
-    public static final String CRED_LDAP_ENCRYPT = "encrypt";
-    public static final String CRED_PRIVATE_KEY = "privateKey";
-    public static final String CRED_PUBLIC_KEY = "publicKey";
-    public static final String TOKEN_VALUE_SEPARATOR = "!#!";
 
     private String localProviderId;
     private RSAPublicKey publicKey;
@@ -67,7 +59,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     private void checkTokenValue(String federationTokenValue)
             throws ExpiredTokenException, UnauthenticTokenException {
 
-        String split[] = federationTokenValue.split(TOKEN_VALUE_SEPARATOR);
+        String split[] = federationTokenValue.split(LdapTokenGenerator.TOKEN_VALUE_SEPARATOR);
         if (split == null || split.length < 4) {
             throw new UnauthenticTokenException("Invalid tokens: " + federationTokenValue);
         }
@@ -75,7 +67,8 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         Date currentDate = new Date(System.currentTimeMillis());
         Date expirationDate = new Date(new Long(split[2]).longValue());
 
-        String tokenValue = split[0] + TOKEN_VALUE_SEPARATOR + split[1] + TOKEN_VALUE_SEPARATOR + split[2];
+        String tokenValue = split[0] + LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + split[1] +
+                LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + split[2];
         String signature = split[3];
 
         if (expirationDate.before(currentDate)) {

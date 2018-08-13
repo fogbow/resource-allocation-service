@@ -7,6 +7,7 @@ import java.util.Map;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.manager.core.models.tokens.generators.ldap.LdapTokenGenerator;
 import org.fogbowcloud.manager.core.plugins.behavior.identity.ldap.LdapFederationIdentityPlugin;
 import org.junit.Assert;
 import org.junit.Before;
@@ -14,8 +15,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 public class LdapAuthenticationPluginTest {
-
-    public static final String TOKEN_VALUE_SEPARATOR = "!#!";
 
     private LdapAuthenticationPlugin authenticationPlugin;
     private Map<String, String> userCredentials;
@@ -27,49 +26,55 @@ public class LdapAuthenticationPluginTest {
         HomeDir homeDir = HomeDir.getInstance();
         homeDir.setPath("src/test/resources/private");
 
-        this.authenticationPlugin = new LdapAuthenticationPlugin();
+        this.authenticationPlugin = Mockito.spy(new LdapAuthenticationPlugin());
 
         this.name = "ldapUser";
         this.password = "ldapUserPass";
 
         this.userCredentials = new HashMap<String, String>();
-        this.userCredentials.put(LdapAuthenticationPlugin.CRED_USERNAME, this.name);
-        this.userCredentials.put(LdapAuthenticationPlugin.CRED_PASSWORD, this.password);
-        this.userCredentials.put(LdapAuthenticationPlugin.CRED_AUTH_URL, "ldapUrl");
-        this.userCredentials.put(LdapAuthenticationPlugin.CRED_LDAP_BASE, "ldapBase");
-        this.userCredentials.put(LdapAuthenticationPlugin.CRED_LDAP_ENCRYPT, "");
-        this.userCredentials.put(LdapAuthenticationPlugin.CRED_PRIVATE_KEY, "private_key_path");
-        this.userCredentials.put(LdapAuthenticationPlugin.CRED_PUBLIC_KEY, "public_key_path");
+        this.userCredentials.put(LdapTokenGenerator.CRED_USERNAME, this.name);
+        this.userCredentials.put(LdapTokenGenerator.CRED_PASSWORD, this.password);
+        this.userCredentials.put(LdapTokenGenerator.CRED_AUTH_URL, "ldapUrl");
+        this.userCredentials.put(LdapTokenGenerator.CRED_LDAP_BASE, "ldapBase");
+        this.userCredentials.put(LdapTokenGenerator.CRED_LDAP_ENCRYPT, "");
+        this.userCredentials.put(LdapTokenGenerator.CRED_PRIVATE_KEY, "private_key_path");
+        this.userCredentials.put(LdapTokenGenerator.CRED_PUBLIC_KEY, "public_key_path");
     }
 
     //test case: check if isAuthentic returns true when the tokenValue is not expired.
     @Test
     public void testGetTokenValidTokenValue() throws Exception {
         //set up
-        LdapFederationIdentityPlugin tokenGenerator = Mockito.spy(new LdapFederationIdentityPlugin());
+        LdapFederationIdentityPlugin identityPlugin = Mockito.spy(new LdapFederationIdentityPlugin());
+        Mockito.doReturn(true).when(identityPlugin).verifySign(Mockito.anyString(), Mockito.anyString());
+        LdapTokenGenerator tokenGenerator = Mockito.spy(new LdapTokenGenerator());
         Mockito.doReturn(this.name).when(tokenGenerator).ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
+        Mockito.doReturn(true).when(this.authenticationPlugin).verifySign(Mockito.anyString(), Mockito.anyString());
 
         //exercise
         String tokenValue = tokenGenerator.createTokenValue(this.userCredentials);
-        FederationUserToken token = tokenGenerator.createToken(tokenValue);
+        FederationUserToken token = identityPlugin.createToken(tokenValue);
 
         //verify
         Assert.assertTrue(this.authenticationPlugin.isAuthentic(token));
     }
 
     //test case: check if isAuthentic returns false when the tokenValue is invalid (signature doesn't match).
-    @Test (expected = UnauthenticatedUserException.class)
+    @Test
     public void testGetTokenExpiredTokenValue() throws Exception {
         //set up
-        LdapFederationIdentityPlugin tokenGenerator = Mockito.spy(new LdapFederationIdentityPlugin());
+        LdapFederationIdentityPlugin identityPlugin = Mockito.spy(new LdapFederationIdentityPlugin());
+        Mockito.doReturn(true).when(identityPlugin).verifySign(Mockito.anyString(), Mockito.anyString());
+        LdapTokenGenerator tokenGenerator = Mockito.spy(new LdapTokenGenerator());
         Mockito.doReturn(this.name).when(tokenGenerator).ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
 
         //exercise
         String tokenValue = tokenGenerator.createTokenValue(this.userCredentials);
-        String split[] = tokenValue.split(TOKEN_VALUE_SEPARATOR);
-        String newTokenValue = "another user id" + TOKEN_VALUE_SEPARATOR + split[1] + TOKEN_VALUE_SEPARATOR + split[2]
-                + TOKEN_VALUE_SEPARATOR + split[3];
-        FederationUserToken newToken = tokenGenerator.createToken(newTokenValue);
+        String split[] = tokenValue.split(LdapTokenGenerator.TOKEN_VALUE_SEPARATOR);
+        String newTokenValue = "another user id" + LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + split[1] +
+                LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + split[2] + LdapTokenGenerator.TOKEN_VALUE_SEPARATOR +
+                split[3];
+        FederationUserToken newToken = identityPlugin.createToken(newTokenValue);
 
         //verify
         Assert.assertFalse(this.authenticationPlugin.isAuthentic(newToken));
@@ -79,17 +84,19 @@ public class LdapAuthenticationPluginTest {
     @Test
     public void testGetTokenInvalidTokenValue() throws Exception {
         //set up
-        LdapFederationIdentityPlugin tokenGenerator = Mockito.spy(new LdapFederationIdentityPlugin());
+        LdapFederationIdentityPlugin identityPlugin = Mockito.spy(new LdapFederationIdentityPlugin());
+        Mockito.doReturn(true).when(identityPlugin).verifySign(Mockito.anyString(), Mockito.anyString());
+        LdapTokenGenerator tokenGenerator = Mockito.spy(new LdapTokenGenerator());
         Mockito.doReturn(this.name).when(tokenGenerator).ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
-        Mockito.doReturn(true).when(tokenGenerator).verifySign(Mockito.anyString(), Mockito.anyString());
 
         //exercise
         String tokenValue = tokenGenerator.createTokenValue(this.userCredentials);
-        String split[] = tokenValue.split(TOKEN_VALUE_SEPARATOR);
-        String newExpirationTime = new Long((new Date().getTime())).toString();
-        String newTokenValue = split[0] + TOKEN_VALUE_SEPARATOR + split[1] + TOKEN_VALUE_SEPARATOR + newExpirationTime
-                + TOKEN_VALUE_SEPARATOR + split[3];
-        FederationUserToken newToken = tokenGenerator.createToken(newTokenValue);
+        String split[] = tokenValue.split(LdapTokenGenerator.TOKEN_VALUE_SEPARATOR);
+        String newExpirationTime = Long.toString((new Date().getTime()));
+        String newTokenValue = split[0] + LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + split[1] +
+                LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + newExpirationTime
+                + LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + split[3];
+        FederationUserToken newToken = identityPlugin.createToken(newTokenValue);
 
         //verify
         Assert.assertFalse(this.authenticationPlugin.isAuthentic(newToken));

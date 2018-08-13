@@ -1,18 +1,18 @@
 package org.fogbowcloud.manager.core.exceptions;
 
-public class InvalidCredentialsUserException extends UnauthenticatedUserException {
+public class InvalidUserCredentialsException extends FogbowManagerException {
     private static final long serialVersionUID = 1L;
     private static final String message = "Invalid Credentials";
 
-    public InvalidCredentialsUserException() {
+    public InvalidUserCredentialsException() {
         super(message);
     }
 
-    public InvalidCredentialsUserException(String message) {
+    public InvalidUserCredentialsException(String message) {
         super(message);
     }
 
-    public InvalidCredentialsUserException(String message, Throwable cause) {
+    public InvalidUserCredentialsException(String message, Throwable cause) {
         super(message, cause);
     }
 }

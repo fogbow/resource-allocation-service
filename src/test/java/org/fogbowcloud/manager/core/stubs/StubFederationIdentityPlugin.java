@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.stubs;
 
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.behavior.identity.FederationIdentityPlugin;
 
 import java.util.Map;
@@ -13,11 +12,6 @@ import java.util.Map;
 public class StubFederationIdentityPlugin implements FederationIdentityPlugin<FederationUserToken> {
 
     public StubFederationIdentityPlugin() {}
-
-    @Override
-    public String createTokenValue(Map<String, String> userCredentials) {
-        return null;
-    }
 
     @Override
     public FederationUserToken createToken(String tokenValue) {
