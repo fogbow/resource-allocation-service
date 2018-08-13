@@ -2,7 +2,6 @@ package org.fogbowcloud.manager.core.cloudconnector;
 
 import org.fogbowcloud.manager.core.CloudPluginsHolder;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
-import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -37,7 +36,7 @@ public class CloudConnectorFactoryTest {
                 this.cloudConnectorFactory.getCloudConnector(LOCAL_MEMBER_ID);
 
         // verify
-        Assert.assertThat(localCloudConnector, CoreMatchers.instanceOf(LocalCloudConnector.class));
+        Assert.assertTrue(localCloudConnector instanceof LocalCloudConnector);
     }
 
     // test case: When calling getCloudConnector by passing a different memberId from a previously
@@ -49,8 +48,7 @@ public class CloudConnectorFactoryTest {
                 this.cloudConnectorFactory.getCloudConnector(Mockito.anyString());
 
         // verify
-        Assert.assertThat(remoteCloudConnector,
-                CoreMatchers.instanceOf(RemoteCloudConnector.class));
+        Assert.assertTrue(remoteCloudConnector instanceof RemoteCloudConnector);
     }
 
 }
