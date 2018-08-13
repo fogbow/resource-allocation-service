@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.intercomponent.xmpp.requests;
+package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +35,6 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 	private static final String PROVIDING_MEMBER = "providingmember";
 	
 	private RemoteGetUserQuotaRequestHandler remoteGetUserQuotaRequestHandler;
-	private RemoteGetUserQuotaRequest getUserQuotaRequest;
 
 	private static final String EXPECTED_QUOTA = "\n<iq type=\"result\" id=\"%s\" from=\"%s\">\n"
 					+ "  <query xmlns=\"remoteGetUserQuota\">\n"
@@ -49,7 +48,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 	private static final String IQ_ERROR_RESPONSE = "\n<iq type=\"error\" id=\"%s\" from=\"%s\">\n"
 					+ "  <error code=\"500\" type=\"wait\">\n"
 					+ "    <undefined-condition xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n"
-					+ "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">Unexpected exceptionjava.lang.Exception</text>\n"
+					+ "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">Unexpected exception: java.lang.Exception</text>\n"
 					+ "  </error>\n</iq>";
 
 	@Before
@@ -63,10 +62,6 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 
 		PowerMockito.mockStatic(PacketSenderHolder.class);
 		BDDMockito.given(PacketSenderHolder.getPacketSender()).willReturn(this.packetSender);
-		this.getUserQuotaRequest = new RemoteGetUserQuotaRequest(
-												PROVIDING_MEMBER,
-												this.createFederationUser(),
-												ResourceType.COMPUTE);
 	}
 
 	// test case: When the handle method is called passing an IQ request, it must return the User Quota from that.
@@ -79,7 +74,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 			.when(this.remoteFacade)
 				.getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any());
 
-		IQ iq = this.getUserQuotaRequest.createIq();
+		IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, this.createFederationUser(), ResourceType.COMPUTE);
 
 		// exercise
 		IQ result = this.remoteGetUserQuotaRequestHandler.handle(iq);
@@ -100,7 +95,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 			.getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any()))
 				.thenThrow(new Exception());
 
-		IQ iq = this.getUserQuotaRequest.createIq();
+		IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, this.createFederationUser(), ResourceType.COMPUTE);
 
 		// exercise
 		IQ result = this.remoteGetUserQuotaRequestHandler.handle(iq);

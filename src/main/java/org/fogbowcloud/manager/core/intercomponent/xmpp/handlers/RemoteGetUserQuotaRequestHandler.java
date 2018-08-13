@@ -25,8 +25,7 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
-        LOGGER.info("Received request for order: " + iq.getID());
-
+    	LOGGER.info("Received request for order: " + iq.getID());
         String memberId = unmarshalMemberId(iq);
         FederationUser federationUser = unmarshalFederatedUser(iq);
         ResourceType resourceType = unmarshalInstanceType(iq);

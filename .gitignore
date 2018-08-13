@@ -27,3 +27,5 @@
 ### Private Folder ###
 src/main/resources/private/
 
+### LOGS ###
+*.log
