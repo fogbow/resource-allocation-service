@@ -25,12 +25,8 @@ public class RemoteCreateOrderRequestHandler extends AbstractQueryHandler {
     @Override
     public IQ handle(IQ iq) {
         LOGGER.info("Received request for order: " + iq.getID());
-        Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
-        Element orderElement = queryElement.element(IqElement.ORDER.toString());
-        String orderJsonStr = orderElement.getText();
-
-        Element orderClassNameElement = queryElement.element(IqElement.ORDER_CLASS_NAME.toString());
-        String className = orderClassNameElement.getText();
+        String orderJsonStr = unmarshalOrder(iq);
+        String className = unmarshalClassName(iq);
         
         IQ response = IQ.createResultIQ(iq);
         
@@ -43,6 +39,20 @@ public class RemoteCreateOrderRequestHandler extends AbstractQueryHandler {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
         return response;
+    }
+
+    private String unmarshalOrder(IQ iq) {
+        Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
+        Element orderElement = queryElement.element(IqElement.ORDER.toString());
+        String orderJsonStr = orderElement.getText();
+        return orderJsonStr;
+    }
+
+    private String unmarshalClassName(IQ iq) {
+        Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
+        Element orderClassNameElement = queryElement.element(IqElement.ORDER_CLASS_NAME.toString());
+        String className = orderClassNameElement.getText();
+        return className;
     }
 
 }

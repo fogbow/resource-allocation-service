@@ -16,31 +16,31 @@ public class XmppExceptionToErrorConditionTranslator {
         } else {
             LOGGER.error(e.getMessage(), e);
         }
-        PacketError error = new PacketError(XmppExceptionToErrorConditionTranslator.mapExceptionToCondition(e));
+        PacketError error = new PacketError(mapExceptionToCondition(e));
         if (e.getMessage() != null) {
             error.setText(e.getMessage());
         } else {
-            error.setText("Unexpected exception" + e.toString());
+            error.setText("Unexpected exception: " + e.toString());
         }
         response.setError(error);
     }
 
     private static PacketError.Condition mapExceptionToCondition(Throwable e) {
-        if (e instanceof UnauthorizedRequestException) {
+        if (e.getClass() == UnauthorizedRequestException.class) {
             return PacketError.Condition.forbidden;
-        } else if (e instanceof UnauthenticatedUserException) {
+        } else if (e.getClass() == UnauthenticatedUserException.class) {
             return PacketError.Condition.not_authorized;
-        } else if (e instanceof InvalidParameterException) {
+        } else if (e.getClass() == InvalidParameterException.class) {
             return PacketError.Condition.bad_request;
-        } else if (e instanceof InstanceNotFoundException) {
+        } else if (e.getClass() == InstanceNotFoundException.class) {
             return PacketError.Condition.item_not_found;
-        } else if (e instanceof QuotaExceededException) {
+        } else if (e.getClass() == QuotaExceededException.class) {
             return PacketError.Condition.conflict;
-        } else if (e instanceof NoAvailableResourcesException) {
+        } else if (e.getClass() == NoAvailableResourcesException.class) {
             return PacketError.Condition.not_acceptable;
-        } else if (e instanceof UnavailableProviderException) {
+        } else if (e.getClass() == UnavailableProviderException.class) {
             return PacketError.Condition.remote_server_not_found;
-        } else if (e instanceof UnexpectedException) {
+        } else if (e.getClass() == UnexpectedException.class) {
             return PacketError.Condition.internal_server_error;
         } else {
             return PacketError.Condition.undefined_condition;

@@ -39,14 +39,17 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
         return quota;
     }
 
-    private IQ createIq() {
+    public IQ createIq() {
         IQ iq = new IQ(IQ.Type.get);
         iq.setTo(this.provider);
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_USER_QUOTA.toString());
 
-        Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());
+        Element memberIdElement = queryElement.addElement(IqElement.MEMBER_ID.toString());
+        memberIdElement.setText(new Gson().toJson(this.provider));
+
+        Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
         userElement.setText(new Gson().toJson(this.federationUser));
 
         Element orderTypeElement = queryElement.addElement(IqElement.INSTANCE_TYPE.toString());

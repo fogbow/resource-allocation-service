@@ -25,31 +25,53 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
-        Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
-
-        String memberId = iq.getTo().toString();
-
-        Element federationUserElement = iq.getElement().element(IqElement.FEDERATION_USER.toString());
-        FederationUser federationUser = new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
-
-        Element instanceTypeElementRequest = queryElement.element(IqElement.INSTANCE_TYPE.toString());
-        ResourceType resourceType = new Gson().fromJson(instanceTypeElementRequest.getText(), ResourceType.class);
+    	LOGGER.info("Received request for order: " + iq.getID());
+        String memberId = unmarshalMemberId(iq);
+        FederationUser federationUser = unmarshalFederatedUser(iq);
+        ResourceType resourceType = unmarshalInstanceType(iq);
 
         IQ response = IQ.createResultIQ(iq);
 
         try {
             Quota userQuota = RemoteFacade.getInstance().getUserQuota(memberId, federationUser, resourceType);
-
-            Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_USER_QUOTA);
-            Element instanceElement = queryEl.addElement(IqElement.USER_QUOTA.toString());
-
-            Element instanceClassNameElement = queryEl.addElement(IqElement.USER_QUOTA_CLASS_NAME.toString());
-            instanceClassNameElement.setText(userQuota.getClass().getName());
-
-            instanceElement.setText(new Gson().toJson(userQuota));
+            updateResponse(response, userQuota);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
         return response;
+    }
+    
+    private String unmarshalMemberId(IQ iq) {
+        Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
+
+        Element memberIdElement = queryElement.element(IqElement.MEMBER_ID.toString());
+        String memberId = new Gson().fromJson(memberIdElement.getText(), String.class);
+        return memberId;
+    }
+    
+    private FederationUser unmarshalFederatedUser(IQ iq) {
+        Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
+
+        Element federationUserElement = queryElement.element(IqElement.FEDERATION_USER.toString());
+        FederationUser federationUser = new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
+        return federationUser;
+    }
+    
+    private ResourceType unmarshalInstanceType(IQ iq) {
+        Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
+
+        Element instanceTypeElementRequest = queryElement.element(IqElement.INSTANCE_TYPE.toString());
+        ResourceType resourceType = new Gson().fromJson(instanceTypeElementRequest.getText(), ResourceType.class);
+        return resourceType;
+    }
+    
+    private void updateResponse(IQ iq, Quota quota) {
+        Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_USER_QUOTA);
+        Element instanceElement = queryElement.addElement(IqElement.USER_QUOTA.toString());
+        
+        Element instanceClassNameElement = queryElement.addElement(IqElement.USER_QUOTA_CLASS_NAME.toString());
+        instanceClassNameElement.setText(quota.getClass().getName());
+        
+        instanceElement.setText(new Gson().toJson(quota));
     }
 }
