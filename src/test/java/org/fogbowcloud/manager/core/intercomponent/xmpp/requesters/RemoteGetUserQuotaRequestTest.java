@@ -8,6 +8,7 @@ import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.IQMatcher;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
@@ -20,7 +21,6 @@ import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
@@ -31,7 +31,6 @@ public class RemoteGetUserQuotaRequestTest {
 	
  	private RemoteGetUserQuotaRequest remoteGetUserQuotaRequest;
 	private PacketSender packetSender;
-	private ArgumentCaptor<IQ> argIQ = ArgumentCaptor.forClass(IQ.class);
 	
 	private Quota quota;
 	private String provider;
@@ -59,26 +58,16 @@ public class RemoteGetUserQuotaRequestTest {
 	@Test
 	public void testSend() throws Exception {
 		//set up
- 		String federationUserJson = new Gson().toJson(this.federationUser);
  		IQ iqResponse = getQuotaIQResponse(this.quota);
- 		Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(this.argIQ.capture());
-
+ 		Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(Mockito.any(IQ.class));
+ 		IQ expectedIQ = RemoteGetUserQuotaRequest.marshal(this.provider, this.federationUser, this.resourceType);
+ 		
  		//exercise
  		Quota responseQuota = this.remoteGetUserQuotaRequest.send();
 		
  		//verify
-		IQ iq = argIQ.getValue();
-		Assert.assertEquals(IQ.Type.get.toString(), iq.getType().toString());
-		Assert.assertEquals(this.provider, iq.getTo().toString());
-		
-		Element iqElementQuery = iq.getElement().element(IqElement.QUERY.toString());
-		Assert.assertEquals(RemoteMethod.REMOTE_GET_USER_QUOTA.toString(), iqElementQuery.getNamespaceURI());
-		
-		String iqFederationUser = iq.getElement().element(IqElement.FEDERATION_USER.toString()).getText();
-		Assert.assertEquals(federationUserJson, iqFederationUser);
-		
-		String iqInstanceType = iqElementQuery.element(IqElement.INSTANCE_TYPE.toString()).getText();
-		Assert.assertEquals(this.resourceType.toString(), iqInstanceType);
+		IQMatcher matcher = new IQMatcher(expectedIQ);
+		Mockito.verify(this.packetSender).syncSendPacket(Mockito.argThat(matcher));
 		
 		ComputeAllocation expectedComputeAvailableQuota = (ComputeAllocation) this.quota.getAvailableQuota();
 		ComputeAllocation actualComputeAvailableQuota = (ComputeAllocation) responseQuota.getAvailableQuota();
@@ -104,7 +93,7 @@ public class RemoteGetUserQuotaRequestTest {
 	@Test (expected = UnavailableProviderException.class)
 	public void testSendWhenResponseIsNull() throws Exception {
 		//set up
-		Mockito.doReturn(null).when(this.packetSender).syncSendPacket(this.argIQ.capture());
+		Mockito.doReturn(null).when(this.packetSender).syncSendPacket(Mockito.any());
  		
 		//exercise/verify
 		this.remoteGetUserQuotaRequest.send();
@@ -116,7 +105,7 @@ public class RemoteGetUserQuotaRequestTest {
 	public void testSendWhenResponseReturnsForbidden() throws Exception {
 		//set up
 		IQ iqResponse = new IQ();
-		Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(this.argIQ.capture());
+		Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(Mockito.any());
 		iqResponse.setError(new PacketError(PacketError.Condition.forbidden));
 		
 		//exercise/verify
@@ -129,7 +118,7 @@ public class RemoteGetUserQuotaRequestTest {
 	public void testSendWhenImageClassIsUndefined() throws Exception {
 		//set up
 		IQ iqResponse = getQuotaIQResponseWithWrongClass(this.quota);
-		Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(this.argIQ.capture());
+		Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(Mockito.any());
 
  		//exercise/verify
 		this.remoteGetUserQuotaRequest.send();

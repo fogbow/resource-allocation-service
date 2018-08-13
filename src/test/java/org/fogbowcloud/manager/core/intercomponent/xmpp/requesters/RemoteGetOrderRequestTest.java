@@ -8,6 +8,7 @@ import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.IQMatcher;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
@@ -20,7 +21,6 @@ import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
@@ -31,7 +31,6 @@ public class RemoteGetOrderRequestTest {
 	
  	private RemoteGetOrderRequest remoteGetOrderRequest;
 	private PacketSender packetSender;
-	private ArgumentCaptor<IQ> argIQ = ArgumentCaptor.forClass(IQ.class);
 	private FederationUser federationUser;
 	
 	private Instance instance;
@@ -56,30 +55,16 @@ public class RemoteGetOrderRequestTest {
 	@Test
 	public void testSend() throws Exception {
 		//set up
- 		String federationUserJson = new Gson().toJson(this.federationUser);
  		IQ iqResponse = getInstanceIQResponse(this.instance);
- 		Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(this.argIQ.capture());
-
+ 		Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(Mockito.any(IQ.class));
+ 		IQ expectedIQ = RemoteGetOrderRequest.marshal(this.order);
+ 		
  		//exercise
  		Instance responseInstance = this.remoteGetOrderRequest.send();
 		
  		//verify
-		IQ iq = argIQ.getValue();
-		Assert.assertEquals(IQ.Type.get.toString(), iq.getType().toString());
-		Assert.assertEquals(this.order.getProvidingMember(), iq.getTo().toString());
-		
-		Element iqElementQuery = iq.getElement().element(IqElement.QUERY.toString());
-		Assert.assertEquals(RemoteMethod.REMOTE_GET_ORDER.toString(), iqElementQuery.getNamespaceURI());
-		
-		String iqOrderId = iqElementQuery.element(IqElement.ORDER_ID.toString()).getText();
-		Assert.assertEquals(this.order.getId(), iqOrderId);
-		
-		String iqInstanceId = iqElementQuery.element(IqElement.INSTANCE_TYPE.toString()).getText();
-		Assert.assertEquals(this.order.getType().toString(), iqInstanceId);
-		
-		String iqUser = iq.getElement().element(IqElement.FEDERATION_USER.toString()).getText();
-		Assert.assertEquals(federationUserJson, iqUser);
-		
+ 		IQMatcher matcher = new IQMatcher(expectedIQ);
+ 		Mockito.verify(this.packetSender).syncSendPacket(Mockito.argThat(matcher));
 		Assert.assertEquals(this.instance, responseInstance);
 	}
 	
@@ -88,7 +73,7 @@ public class RemoteGetOrderRequestTest {
 	@Test (expected = UnavailableProviderException.class)
 	public void testSendWhenResponseIsNull() throws Exception {
 		//set up
-		Mockito.doReturn(null).when(this.packetSender).syncSendPacket(this.argIQ.capture());
+		Mockito.doReturn(null).when(this.packetSender).syncSendPacket(Mockito.any());
  		
 		//exercise/verify
 		this.remoteGetOrderRequest.send();
@@ -100,7 +85,7 @@ public class RemoteGetOrderRequestTest {
 	public void testSendWhenResponseReturnsForbidden() throws Exception {
 		//set up
 		IQ iqResponse = new IQ();
-		Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(this.argIQ.capture());
+		Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(Mockito.any());
 		iqResponse.setError(new PacketError(PacketError.Condition.forbidden));
 		
 		//exercise/verify
@@ -114,7 +99,7 @@ public class RemoteGetOrderRequestTest {
 		//set up
 		Instance instanceResponse = new ComputeInstance("compute-instance");
 		IQ iqResponse = getInstanceIQResponseWithWrongClass(instanceResponse);
-		Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(this.argIQ.capture());
+		Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(Mockito.any());
 
  		//exercise/verify
 		this.remoteGetOrderRequest.send();
