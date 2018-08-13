@@ -62,8 +62,6 @@ public class FulfilledProcessor implements Runnable {
                     processFulfilledOrder(order);
                 } else {
                     this.fulfilledOrdersList.resetPointer();
-                    LOGGER.debug("There is no fulfilled order to be processed, sleeping for "
-                            + this.sleepTime + " milliseconds");
                     Thread.sleep(this.sleepTime);
                 }
             } catch (InterruptedException e) {

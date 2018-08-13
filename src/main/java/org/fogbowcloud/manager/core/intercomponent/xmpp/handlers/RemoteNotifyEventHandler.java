@@ -17,7 +17,7 @@ public class RemoteNotifyEventHandler extends AbstractQueryHandler {
     private static final Logger LOGGER = Logger.getLogger(RemoteNotifyEventHandler.class);
 
     public static final String REMOTE_NOTIFY_EVENT = RemoteMethod.REMOTE_NOTIFY_EVENT.toString();
-
+    
     public RemoteNotifyEventHandler() {
         super(REMOTE_NOTIFY_EVENT);
     }
@@ -25,25 +25,41 @@ public class RemoteNotifyEventHandler extends AbstractQueryHandler {
     @Override
     public IQ handle(IQ iq) {
         LOGGER.info("Received request for order: " + iq.getID());
-        Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
-        Element orderElement = queryElement.element(IqElement.ORDER.toString());
-        String orderJsonStr = orderElement.getText();
-
-        Element orderClassNameElement = queryElement.element(IqElement.ORDER_CLASS_NAME.toString());
-        String className = orderClassNameElement.getText();
 
         IQ response = IQ.createResultIQ(iq);
 
         Gson gson = new Gson();
         Order order = null;
+        Event event = null;
         try {
-            order = (Order) gson.fromJson(orderJsonStr, Class.forName(className));
-            Element eventElement = queryElement.element(IqElement.EVENT.toString());
-            Event event = gson.fromJson(eventElement.getText(), Event.class);
+            order = unmarshalOrder(iq, gson);
+            event = unmarshalEvent(iq, gson);
+
             RemoteFacade.getInstance().handleRemoteEvent(event, order);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
         return response;
     }
+
+    private Order unmarshalOrder(IQ iq, Gson gson) throws ClassNotFoundException {
+
+        Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
+        Element orderClassNameElement = queryElement.element(IqElement.ORDER_CLASS_NAME.toString());
+        String className = orderClassNameElement.getText();
+
+        Element orderElement = queryElement.element(IqElement.ORDER.toString());
+        String orderJsonStr = orderElement.getText();
+
+        return (Order) gson.fromJson(orderJsonStr, Class.forName(className));
+    }
+
+    private Event unmarshalEvent(IQ iq, Gson gson) {
+        Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
+        Element eventElement = queryElement.element(IqElement.EVENT.toString());
+
+        Event event = gson.fromJson(eventElement.getText(), Event.class);
+        return event;
+    }
+
 }

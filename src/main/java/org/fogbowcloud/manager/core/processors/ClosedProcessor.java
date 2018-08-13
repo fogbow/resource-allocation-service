@@ -33,8 +33,6 @@ public class ClosedProcessor implements Runnable {
                     processClosedOrder(order);
                 } else {
                     this.closedOrders.resetPointer();
-                    LOGGER.debug("There is no closed order to be processed, sleeping for "
-                                    + this.sleepTime + " milliseconds");
                     Thread.sleep(this.sleepTime);
                 }
             } catch (InterruptedException e) {
