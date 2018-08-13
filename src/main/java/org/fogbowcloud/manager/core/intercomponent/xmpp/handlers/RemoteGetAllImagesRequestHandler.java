@@ -35,7 +35,7 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
 
         try {
             Map<String, String> imagesMap = RemoteFacade.getInstance().getAllImages(memberId, federationUser);
-            unmarshalImages(response, imagesMap);
+            updateResponse(response, imagesMap);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
@@ -56,7 +56,7 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
         return federationUser;
     }
 
-    private void unmarshalImages(IQ response, Map<String, String> imagesMap) {
+    private void updateResponse(IQ response, Map<String, String> imagesMap) {
         Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_ALL_IMAGES);
         Element imagesMapElement = queryEl.addElement(IqElement.IMAGES_MAP.toString());
 
@@ -65,4 +65,5 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
 
         imagesMapElement.setText(new Gson().toJson(imagesMap));
     }
+
 }

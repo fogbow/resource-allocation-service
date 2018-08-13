@@ -30,12 +30,12 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
-        HashMap<String, String> imagesMap = getImageFromResponse(response);
-        return imagesMap;
+
+        return unmarshalImages(response);
     }
 
     public static IQ marshal(String provider, FederationUser federationUser) {
-        LOGGER.debug("Creating IQ for provider: " + provider);
+        LOGGER.debug("Marshalling provider <" + provider + "> and federationUser <" + federationUser + ">");
 
         IQ iq = new IQ(IQ.Type.get);
         iq.setTo(provider);
@@ -52,7 +52,7 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
         return iq;
     }
 
-    private HashMap<String, String> getImageFromResponse(IQ response) throws UnexpectedException {
+    private HashMap<String, String> unmarshalImages(IQ response) throws UnexpectedException {
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
         String hashMapStr = queryElement.element(IqElement.IMAGES_MAP.toString()).getText();
 
@@ -68,4 +68,5 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
 
         return imagesMap;
     }
+
 }

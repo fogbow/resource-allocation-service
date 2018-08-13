@@ -73,7 +73,7 @@ public class RemoteGetAllImagesRequestHandlerTest {
     // it must create an OK result IQ and return it.
     @Test
     public void testHandleWithValidIQ() throws Exception {
-        //set up
+        // set up
         Map<String, String> images = new HashMap<>();
         images.put("image-id1", IMAGE_NAME.concat("1"));
         images.put("image-id2", IMAGE_NAME.concat("2"));
@@ -85,7 +85,7 @@ public class RemoteGetAllImagesRequestHandlerTest {
         // exercise
         IQ result = this.remoteGetAllImagesRequestHandler.handle(iq);
 
-        //verify
+        // verify
         String iqId = iq.getID();
         String expected = String.format(IQ_RESULT_FORMAT, iqId, this.provider,
                 IMAGE_NAME.concat("1"), IMAGE_NAME.concat("2"));
@@ -96,7 +96,7 @@ public class RemoteGetAllImagesRequestHandlerTest {
     // return a response error.
     @Test
     public void testHandleWhenThrowsException() throws Exception {
-        //set up
+        // set up
         Mockito.doThrow(new FogbowManagerException()).when(this.remoteFacade).getAllImages(
                 Mockito.anyString(), Mockito.any(FederationUser.class));
 
@@ -105,7 +105,7 @@ public class RemoteGetAllImagesRequestHandlerTest {
         // exercise
         IQ result = this.remoteGetAllImagesRequestHandler.handle(iq);
 
-        //verify
+        // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).getAllImages(
                 Mockito.anyString(), Mockito.any(FederationUser.class));
 
