@@ -22,8 +22,7 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
     @Override
     public Void send() throws Exception {
 
-        IQ iq = marshalIQ(this.order, this.event);
-
+        IQ iq = RemoteNotifyEventRequest.marshall(this.order, this.event);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getRequestingMember());
@@ -31,8 +30,7 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
         return null;
     }
 
-    public static IQ marshalIQ(Order order, Event event) {
-
+    public static IQ marshall(Order order, Event event) {
         LOGGER.debug("Creating IQ for order: " + order.getId() + " event: " + event);
         
         IQ iq = new IQ(IQ.Type.set);

@@ -64,8 +64,7 @@ public class RemoteNotifyEventHandlerTest {
 
 		Mockito.doNothing().when(this.remoteFacade).handleRemoteEvent(this.event, this.order);
 
-		RemoteNotifyEventRequest remoteNotifyEventRequest = new RemoteNotifyEventRequest(this.order, this.event);
-		IQ iq = remoteNotifyEventRequest.createIq();
+		IQ iq = RemoteNotifyEventRequest.marshall(this.order, this.event);
 
 		// exercise
 		IQ result = this.remoteNotifyEventHandler.handle(iq);
@@ -89,8 +88,7 @@ public class RemoteNotifyEventHandlerTest {
 		Mockito.doThrow(new UnexpectedException()).when(this.remoteFacade).handleRemoteEvent(Mockito.eq(this.event),
 				Mockito.eq(this.order));
 
-		RemoteNotifyEventRequest remoteNotifyEventRequest = new RemoteNotifyEventRequest(this.order, this.event);
-		IQ iq = remoteNotifyEventRequest.createIq();
+		IQ iq = RemoteNotifyEventRequest.marshall(this.order, this.event);
 
 		// exercise
 		IQ result = this.remoteNotifyEventHandler.handle(iq);
