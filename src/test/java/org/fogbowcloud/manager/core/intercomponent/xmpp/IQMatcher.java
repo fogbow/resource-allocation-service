@@ -9,6 +9,8 @@ import org.xmpp.packet.IQ;
  */
 public class IQMatcher extends ArgumentMatcher<IQ> {
 
+    public static final String NO_ID_REGEX = "id\\=\".*\"";
+
     private final IQ expectedIQ;
 
     public IQMatcher(IQ expectedIQ) {
@@ -17,7 +19,14 @@ public class IQMatcher extends ArgumentMatcher<IQ> {
 
     @Override
     public boolean matches(Object argument) {
-        IQ comparedRequest = (IQ) argument;
-        return expectedIQ.toString().equals(comparedRequest.toString());
+        IQ comparedIq = (IQ) argument;
+
+        // jamppa generates random iq ids by default, our matcher ignores ids
+        return removeIdAttribute(expectedIQ.toString()).equals(removeIdAttribute(comparedIq.toString()));
     }
+
+    private String removeIdAttribute(String s) {
+        return s.replaceFirst(NO_ID_REGEX, "");
+    }
+
 }
