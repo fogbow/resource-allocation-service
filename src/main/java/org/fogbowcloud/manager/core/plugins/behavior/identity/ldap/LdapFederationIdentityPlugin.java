@@ -25,7 +25,6 @@ public class LdapFederationIdentityPlugin implements FederationIdentityPlugin<Ld
     private static final String LDAP_PLUGIN_CONF_FILE = "ldap-identity-plugin.conf";
     private static final String PUBLIC_KEY_PATH = "public_key_path";
 
-    private String tokenProvider;
     private RSAPublicKey publicKey;
 
     public LdapFederationIdentityPlugin() throws FatalErrorException {
@@ -33,7 +32,6 @@ public class LdapFederationIdentityPlugin implements FederationIdentityPlugin<Ld
         Properties properties = PropertiesUtil.readProperties(
                 homeDir.getPath() + File.separator + LDAP_PLUGIN_CONF_FILE);
         String publicKeyPath = properties.getProperty(PUBLIC_KEY_PATH);
-        this.tokenProvider = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         try {
             this.publicKey = RSAUtil.getPublicKey(publicKeyPath);
         } catch (IOException | GeneralSecurityException e) {
@@ -45,16 +43,18 @@ public class LdapFederationIdentityPlugin implements FederationIdentityPlugin<Ld
     public LdapToken createToken(String federationTokenValue) throws InvalidParameterException {
 
         String split[] = federationTokenValue.split(LdapTokenGenerator.TOKEN_VALUE_SEPARATOR);
-        if (split == null || split.length < 4) {
+        if (split == null || split.length < 5) {
             LOGGER.error("Invalid token value: " + federationTokenValue);
             throw new InvalidParameterException();
         }
 
-        String uuid = split[0];
-        String name = split[1];
-        String expirationDate = split[2];
-        String signature = split[3];
-        String tokenValue = uuid + LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + name +
+        String tokenProvider = split[0];
+        String uuid = split[1];
+        String name = split[2];
+        String expirationDate = split[3];
+        String signature = split[4];
+        String tokenValue = tokenProvider + LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + uuid +
+                LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + name +
                 LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + expirationDate;
 
         if (!verifySign(tokenValue, signature)) {
@@ -62,7 +62,7 @@ public class LdapFederationIdentityPlugin implements FederationIdentityPlugin<Ld
             throw new InvalidParameterException();
         }
 
-        LdapToken ldapToken = new LdapToken(this.tokenProvider, federationTokenValue, uuid, name, expirationDate);
+        LdapToken ldapToken = new LdapToken(tokenProvider, federationTokenValue, uuid, name, expirationDate);
         return ldapToken;
     }
 

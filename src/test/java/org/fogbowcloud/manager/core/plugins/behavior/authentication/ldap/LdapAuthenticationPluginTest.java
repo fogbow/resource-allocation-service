@@ -49,7 +49,8 @@ public class LdapAuthenticationPluginTest {
         Mockito.doReturn(true).when(identityPlugin).verifySign(Mockito.anyString(), Mockito.anyString());
         LdapTokenGenerator tokenGenerator = Mockito.spy(new LdapTokenGenerator());
         Mockito.doReturn(this.name).when(tokenGenerator).ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
-        Mockito.doReturn(true).when(this.authenticationPlugin).verifySign(Mockito.anyString(), Mockito.anyString());
+        Mockito.doReturn(true).when(this.authenticationPlugin).verifySign(Mockito.anyString(),
+                Mockito.anyString());
 
         //exercise
         String tokenValue = tokenGenerator.createTokenValue(this.userCredentials);
@@ -71,9 +72,10 @@ public class LdapAuthenticationPluginTest {
         //exercise
         String tokenValue = tokenGenerator.createTokenValue(this.userCredentials);
         String split[] = tokenValue.split(LdapTokenGenerator.TOKEN_VALUE_SEPARATOR);
-        String newTokenValue = "another user id" + LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + split[1] +
-                LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + split[2] + LdapTokenGenerator.TOKEN_VALUE_SEPARATOR +
-                split[3];
+        String newTokenValue = split[0] + LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + "another user id" +
+                LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + split[2] +
+                LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + split[3] +
+                LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + split[4];
         FederationUserToken newToken = identityPlugin.createToken(newTokenValue);
 
         //verify
@@ -95,7 +97,8 @@ public class LdapAuthenticationPluginTest {
         String newExpirationTime = Long.toString((new Date().getTime()));
         String newTokenValue = split[0] + LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + split[1] +
                 LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + newExpirationTime
-                + LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + split[3];
+                + LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + split[3]
+                + LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + split[4];
         FederationUserToken newToken = identityPlugin.createToken(newTokenValue);
 
         //verify

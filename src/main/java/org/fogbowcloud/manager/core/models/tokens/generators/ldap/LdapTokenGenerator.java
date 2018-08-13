@@ -2,6 +2,8 @@ package org.fogbowcloud.manager.core.models.tokens.generators.ldap;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.PropertiesHolder;
+import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.tokens.TokenGenerator;
 import org.fogbowcloud.manager.core.plugins.behavior.identity.ldap.LdapFederationIdentityPlugin;
@@ -54,6 +56,7 @@ public class LdapTokenGenerator implements TokenGenerator {
     private static final String ENCRYPT_PASS = ":PASS:";
     private static final String PASSWORD_ENCRYPTED = "{" + ENCRYPT_TYPE + "}" + ENCRYPT_PASS;
 
+    private String tokenProviderId;
     private String ldapBase;
     private String ldapUrl;
     private String encryptType;
@@ -62,6 +65,8 @@ public class LdapTokenGenerator implements TokenGenerator {
     private RSAPrivateKey privateKey;
 
     public LdapTokenGenerator() throws FatalErrorException {
+        this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+
         HomeDir homeDir = HomeDir.getInstance();
         Properties properties = PropertiesUtil.readProperties(
                 homeDir.getPath() + File.separator + LDAP_PLUGIN_CONF_FILE);
@@ -79,7 +84,7 @@ public class LdapTokenGenerator implements TokenGenerator {
 
     @Override
     public String createTokenValue(Map<String, String> userCredentials)
-            throws InvalidUserCredentialsException, TokenValueCreationException {
+            throws InvalidUserCredentialsException, UnexpectedException, InvalidParameterException {
 
         String userId = userCredentials.get(CRED_USERNAME);
         String password = userCredentials.get(CRED_PASSWORD);
@@ -89,27 +94,24 @@ public class LdapTokenGenerator implements TokenGenerator {
         parseCredentials(userCredentials);
 
         String name = null;
-        try {
-            name = ldapAuthenticate(userId, password);
-        } catch (Exception e) {
-            throw new InvalidUserCredentialsException("Couldn't load account summary from LDAP Network.", e);
-        }
+        name = ldapAuthenticate(userId, password);
 
         Date expirationDate = new Date(new Date().getTime() + EXPIRATION_INTERVAL);
         String expirationTime = Long.toString(expirationDate.getTime());
 
         try {
-            String tokenValue = userId + TOKEN_VALUE_SEPARATOR + name + TOKEN_VALUE_SEPARATOR + expirationTime;
+            String tokenValue = this.tokenProviderId + TOKEN_VALUE_SEPARATOR + userId + TOKEN_VALUE_SEPARATOR +
+                    name + TOKEN_VALUE_SEPARATOR + expirationTime;
             String signature = createSignature(tokenValue);
             return tokenValue + TOKEN_VALUE_SEPARATOR + signature;
         } catch (IOException | GeneralSecurityException e) {
-            throw new TokenValueCreationException("Error while trying to sign the tokens.", e);
+            throw new UnexpectedException("Error while trying to sign the tokens.", e);
         }
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public String ldapAuthenticate(String uid, String password) throws NoSuchAlgorithmException,
-            UnsupportedEncodingException, FogbowManagerException {
+    public String ldapAuthenticate(String uid, String password) throws UnexpectedException, InvalidParameterException,
+            InvalidUserCredentialsException {
 
         String contextFactory = "com.sun.jndi.ldap.LdapCtxFactory";
         String securityAuthentication = "simple";
@@ -143,7 +145,7 @@ public class LdapTokenGenerator implements TokenGenerator {
 
             if (dn == null || enm.hasMore()) {
                 // uid not found or not unique
-                throw new NamingException("Authentication failed");
+                throw new InvalidUserCredentialsException("Couldn't load account summary from LDAP Network.");
             }
 
             // Bind with found DN and given password
@@ -156,8 +158,10 @@ public class LdapTokenGenerator implements TokenGenerator {
 
             return name;
 
-        } catch (NamingException e) {
-            throw new FogbowManagerException("Ldap url is not provided in conf files.");
+        } catch (NamingException e1) {
+            throw new InvalidParameterException("Ldap url is not provided in conf files.", e1);
+        } catch (NoSuchAlgorithmException | UnsupportedEncodingException e2) {
+            throw new UnexpectedException(e2.getMessage(), e2);
         }
     }
 

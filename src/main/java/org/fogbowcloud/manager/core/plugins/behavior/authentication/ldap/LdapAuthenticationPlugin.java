@@ -60,16 +60,17 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
             throws ExpiredTokenException, UnauthenticTokenException {
 
         String split[] = federationTokenValue.split(LdapTokenGenerator.TOKEN_VALUE_SEPARATOR);
-        if (split == null || split.length < 4) {
+        if (split == null || split.length < 5) {
             throw new UnauthenticTokenException("Invalid tokens: " + federationTokenValue);
         }
 
         Date currentDate = new Date(System.currentTimeMillis());
-        Date expirationDate = new Date(new Long(split[2]).longValue());
+        Date expirationDate = new Date(new Long(split[3]).longValue());
 
         String tokenValue = split[0] + LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + split[1] +
-                LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + split[2];
-        String signature = split[3];
+                LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + split[2] + LdapTokenGenerator.TOKEN_VALUE_SEPARATOR +
+                split[3];
+        String signature = split[4];
 
         if (expirationDate.before(currentDate)) {
             throw new ExpiredTokenException("Expiration date: " + expirationDate);
