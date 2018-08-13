@@ -1,8 +1,8 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 
+import com.google.gson.Gson;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.dom4j.Element;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
@@ -21,78 +21,90 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
-import com.google.gson.Gson;
- 
+
 public class RemoteDeleteOrderRequestTest {
-	
- 	private RemoteDeleteOrderRequest remoteDeleteOrderRequest;
-	private Order order;
-	private PacketSender packetSender;
-	private ArgumentCaptor<IQ> argIQ = ArgumentCaptor.forClass(IQ.class);
-	private IQ iqResponse;
-	
- 	@Before
-	public void setUp() throws InvalidParameterException {
- 		Map<String, String> attributes = new HashMap<String, String>();
- 		attributes.put("user-name", "user-name");
- 		FederationUser federationUser = new FederationUser("federation-user-id", attributes);
-		this.order = new ComputeOrder(federationUser, "requesting-member", "providing-member", 10, 20, 30, "imageid", null,
-				"publicKey", null);
-		this.remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(this.order);
-		this.packetSender = Mockito.mock(PacketSender.class);
-		PacketSenderHolder.init(packetSender);
-		this.iqResponse = new IQ();
-	}
- 	
- 	//test case: check if IQ attributes is according to both Order parameters and remote delete order request rules
-	@Test
-	public void testSend() throws Exception {
-		//set up
-		Mockito.doReturn(this.iqResponse).when(this.packetSender).syncSendPacket(argIQ.capture());
-		String federationUserJson = new Gson().toJson(this.order.getFederationUser());
- 		
-		//exercise
-		this.remoteDeleteOrderRequest.send();
-		
- 		//verify
-		IQ iq = argIQ.getValue();
-		Assert.assertEquals(IQ.Type.set.toString(), iq.getType().toString());
-		Assert.assertEquals(this.order.getProvidingMember().toString(), iq.getTo().toString());
-		Assert.assertEquals(this.order.getId(), iq.getID().toString());
-		
-		Element iqElementQuery = iq.getElement().element(IqElement.QUERY.toString());
-		Assert.assertEquals(RemoteMethod.REMOTE_DELETE_ORDER.toString(), iqElementQuery.getNamespaceURI());
-		
-		String iqQueryOrderId = iqElementQuery.element(IqElement.ORDER_ID.toString()).getText();
-		Assert.assertEquals(this.order.getId(), iqQueryOrderId);
-		
-		String iqQueryInstanceType = iqElementQuery.element(IqElement.INSTANCE_TYPE.toString()).getText();
-		Assert.assertEquals(this.order.getType().toString(), iqQueryInstanceType.toString());
-		
-		Element iqElementFederationUser = iq.getElement().element(IqElement.FEDERATION_USER.toString());
-		Assert.assertEquals(federationUserJson, iqElementFederationUser.getText());
-	}
-	
-	//test case: Check if "send" is properly forwading UnavailableProviderException thrown by 
-	//"XmppErrorConditionToExceptionTranslator.handleError" when the IQ response is null
-	@Test (expected = UnavailableProviderException.class)
-	public void testSendWhenResponseIsNull() throws Exception {
-		//set up
-		Mockito.doReturn(null).when(this.packetSender).syncSendPacket(this.argIQ.capture());
- 		
-		//exercise/verify
-		this.remoteDeleteOrderRequest.send();
-	}
-	
-	//test case: Check if "send" is properly forwading UnauthorizedRequestException thrown by 
-	//"XmppErrorConditionToExceptionTranslator.handleError" when the IQ response status is forbidden
-	@Test (expected = UnauthorizedRequestException.class)
-	public void testSendWhenResponseReturnsForbidden() throws Exception {
-		//set up
-		Mockito.doReturn(this.iqResponse).when(this.packetSender).syncSendPacket(this.argIQ.capture());
-		this.iqResponse.setError(new PacketError(PacketError.Condition.forbidden));
-		
-		//exercise/verify
-		this.remoteDeleteOrderRequest.send();
-	}
+
+    private RemoteDeleteOrderRequest remoteDeleteOrderRequest;
+
+    private Order order;
+    private IQ response;
+    private PacketSender packetSender;
+
+    private ArgumentCaptor<IQ> iqArgumentCaptor = ArgumentCaptor.forClass(IQ.class);
+
+    @Before
+    public void setUp() throws InvalidParameterException {
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put("user-name", "user-name");
+        FederationUser federationUser = new FederationUser("federation-user-id", attributes);
+
+        this.order = new ComputeOrder(federationUser, "requesting-member",
+            "providing-member", 10, 20, 30, "imageid",
+            null, "publicKey", null);
+
+        this.remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(this.order);
+        this.packetSender = Mockito.mock(PacketSender.class);
+        PacketSenderHolder.init(packetSender);
+        this.response = new IQ();
+    }
+
+    // test case: check if IQ attributes is according to both Order parameters and remote delete order request rules
+    @Test
+    public void testSend() throws Exception {
+        // set up
+        Mockito.doReturn(this.response).when(this.packetSender).syncSendPacket(
+            iqArgumentCaptor.capture());
+        String federationUserJson = new Gson().toJson(this.order.getFederationUser());
+
+        // exercise
+        this.remoteDeleteOrderRequest.send();
+
+        // verify
+        IQ iq = this.iqArgumentCaptor.getValue();
+
+        Assert.assertEquals(IQ.Type.set.toString(), iq.getType().toString());
+        Assert.assertEquals(this.order.getProvidingMember().toString(), iq.getTo().toString());
+        Assert.assertEquals(this.order.getId(), iq.getID().toString());
+
+        Element iqElementQuery = iq.getElement().element(IqElement.QUERY.toString());
+        Assert.assertEquals(RemoteMethod.REMOTE_DELETE_ORDER.toString(),
+            iqElementQuery.getNamespaceURI());
+
+        String iqQueryOrderId = iqElementQuery.element(IqElement.ORDER_ID.toString()).getText();
+        Assert.assertEquals(this.order.getId(), iqQueryOrderId);
+
+        String iqQueryInstanceType = iqElementQuery.element(IqElement.INSTANCE_TYPE.toString())
+            .getText();
+        Assert.assertEquals(this.order.getType().toString(), iqQueryInstanceType.toString());
+
+        Element iqElementFederationUser = iq.getElement()
+            .element(IqElement.FEDERATION_USER.toString());
+        Assert.assertEquals(federationUserJson, iqElementFederationUser.getText());
+    }
+
+    // test case: Check if "send" is properly forwading UnavailableProviderException thrown by
+    // XmppErrorConditionToExceptionTranslator.handleError when the IQ response is null
+    @Test(expected = UnavailableProviderException.class)
+    public void testSendWhenResponseIsNull() throws Exception {
+        // set up
+        Mockito.doReturn(null).when(this.packetSender).syncSendPacket(
+            this.iqArgumentCaptor.capture());
+
+        // exercise/verify
+        this.remoteDeleteOrderRequest.send();
+    }
+
+    // test case: Check if "send" is properly forwarding UnauthorizedRequestException thrown by
+    // XmppErrorConditionToExceptionTranslator.handleError when the IQ response status is forbidden
+    @Test(expected = UnauthorizedRequestException.class)
+    public void testSendWhenResponseReturnsForbidden() throws Exception {
+        // set up
+        Mockito.doReturn(this.response).when(this.packetSender)
+            .syncSendPacket(this.iqArgumentCaptor.capture());
+        this.response.setError(new PacketError(PacketError.Condition.forbidden));
+
+        // exercise/verify
+        this.remoteDeleteOrderRequest.send();
+    }
+
 }
