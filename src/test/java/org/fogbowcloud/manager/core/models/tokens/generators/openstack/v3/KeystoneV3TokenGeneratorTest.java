@@ -102,7 +102,7 @@ public class KeystoneV3TokenGeneratorTest {
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
         
         // exercise
-        OpenStackV3Token token = (OpenStackV3Token) this.keystoneV3TokenGenerator.createToken(credentials);
+        OpenStackV3Token token = this.keystoneV3TokenGenerator.createToken(credentials);
 
         //verify
         assertNotNull(token);
@@ -189,7 +189,7 @@ public class KeystoneV3TokenGeneratorTest {
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
         
         //exercise/verify
-        OpenStackV3Token token = (OpenStackV3Token) this.keystoneV3TokenGenerator.createToken(credentials);
+        OpenStackV3Token token = this.keystoneV3TokenGenerator.createToken(credentials);
     }
     
     //test case: check if createToken throws UnauthenticatedUserException when the http request is Unauthorized (401).
@@ -211,7 +211,7 @@ public class KeystoneV3TokenGeneratorTest {
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
         
         //exercise/verify
-        OpenStackV3Token token = (OpenStackV3Token) this.keystoneV3TokenGenerator.createToken(credentials);
+        OpenStackV3Token token = this.keystoneV3TokenGenerator.createToken(credentials);
     }
     
     //test case: check if createToken throws InstanceNotFoundException when the http request is Not Found (404).
@@ -233,7 +233,7 @@ public class KeystoneV3TokenGeneratorTest {
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
         
         //exercise/verify
-        OpenStackV3Token token = (OpenStackV3Token) this.keystoneV3TokenGenerator.createToken(credentials);
+        OpenStackV3Token token = this.keystoneV3TokenGenerator.createToken(credentials);
     }
     
     //test case: check if createToken throws InvalidParameterException when the http request is Bad Request (400).
@@ -255,7 +255,7 @@ public class KeystoneV3TokenGeneratorTest {
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
         
         //exercise/verify
-        OpenStackV3Token token = (OpenStackV3Token) this.keystoneV3TokenGenerator.createToken(credentials);
+        OpenStackV3Token token = this.keystoneV3TokenGenerator.createToken(credentials);
     }
     
     //test case: check if createToken throws UnavailableProviderException when the http request host is Unknown.
@@ -275,7 +275,7 @@ public class KeystoneV3TokenGeneratorTest {
                 .thenThrow(new UnknownHostException());
         
         //exercise/verify
-        OpenStackV3Token token = (OpenStackV3Token) this.keystoneV3TokenGenerator.createToken(credentials);
+        OpenStackV3Token token = this.keystoneV3TokenGenerator.createToken(credentials);
     }
     
     //test case: check if createToken throws InvalidParameterException when the credentials attributes is incomplete.
@@ -285,7 +285,7 @@ public class KeystoneV3TokenGeneratorTest {
         Map<String, String> credentials = Mockito.spy(new HashMap<String, String>());
         Mockito.doThrow(new JSONException("")).when(this.keystoneV3TokenGenerator).mountJsonBody(Mockito.any());
         //exercise/verify
-        OpenStackV3Token token = (OpenStackV3Token) this.keystoneV3TokenGenerator.createToken(credentials);
+        OpenStackV3Token token = this.keystoneV3TokenGenerator.createToken(credentials);
     }
     
     //test case: check if the authUrl in credentials is used in the http request url when the authUrl is not null.
@@ -324,7 +324,7 @@ public class KeystoneV3TokenGeneratorTest {
         String currentTokenEndpoint = authUrl + "/auth/tokens";
         
         //exercise
-        OpenStackV3Token token = (OpenStackV3Token) this.keystoneV3TokenGenerator.createToken(credentials);
+        OpenStackV3Token token = this.keystoneV3TokenGenerator.createToken(credentials);
 
         //verify
         Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doPostRequest(currentTokenEndpoint, jsonStr);
