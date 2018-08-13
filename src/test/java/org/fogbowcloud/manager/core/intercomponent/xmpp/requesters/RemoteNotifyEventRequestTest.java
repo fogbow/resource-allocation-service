@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 
 import org.dom4j.Element;
-import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.Event;
@@ -33,7 +32,7 @@ public class RemoteNotifyEventRequestTest {
 	private final Event event = Event.INSTANCE_FULFILLED;
 	
  	@Before
-	public void setUp() throws InvalidParameterException {
+	public void setUp() {
 		this.order = new ComputeOrder(null, this.requestingMember, this.providingMember, 10, 20, 30, "imageid", null,
 				"publicKey", null);
 		this.remoteNotifyEventRequest = new RemoteNotifyEventRequest(this.order, this.event);
@@ -75,7 +74,7 @@ public class RemoteNotifyEventRequestTest {
 		Assert.assertEquals(null, output);
 	}
 	
-	//test case: Check if "send" is properly forwading UnavailableProviderException thrown by 
+	//test case: Check if "send" is properly forwarding UnavailableProviderException thrown by
 	//"XmppErrorConditionToExceptionTranslator.handleError" when the IQ response is null
 	@Test (expected = UnavailableProviderException.class)
 	public void testSendWhenResponseIsNull() throws Exception {
@@ -85,7 +84,7 @@ public class RemoteNotifyEventRequestTest {
 		this.remoteNotifyEventRequest.send();
 	}
 	
-	//test case: Check if "send" is properly forwading UnauthorizedRequestException thrown by 
+	//test case: Check if "send" is properly forwarding UnauthorizedRequestException thrown by
 	//"XmppErrorConditionToExceptionTranslator.handleError" when the IQ response status is forbidden
 	@Test (expected = UnauthorizedRequestException.class)
 	public void testSendWhenResponseReturnsForbidden() throws Exception {

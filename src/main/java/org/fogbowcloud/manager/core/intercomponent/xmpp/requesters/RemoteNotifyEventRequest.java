@@ -21,7 +21,7 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
 
     @Override
     public Void send() throws Exception {
-        IQ iq = createIq();
+        IQ iq = RemoteNotifyEventRequest.marshall(this.order, this.event);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getRequestingMember());
@@ -29,23 +29,23 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
         return null;
     }
 
-    private IQ createIq() {
-        LOGGER.debug("Creating IQ for order: " + this.order.getId());
+    public static IQ marshall(Order order, Event event) {
+        LOGGER.debug("Creating IQ for order: " + order.getId() + " event: " + event);
 
         IQ iq = new IQ(IQ.Type.set);
-        iq.setTo(this.order.getRequestingMember());
-        iq.setID(this.order.getId());
+        iq.setTo(order.getRequestingMember());
+        iq.setID(order.getId());
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_NOTIFY_EVENT.toString());
         Element orderElement = queryElement.addElement(IqElement.ORDER.toString());
-        orderElement.setText(new Gson().toJson(this.order));
+        orderElement.setText(new Gson().toJson(order));
 
         Element orderClassNameElement = queryElement.addElement(IqElement.ORDER_CLASS_NAME.toString());
-        orderClassNameElement.setText(this.order.getClass().getName());
+        orderClassNameElement.setText(order.getClass().getName());
 
         Element eventElement = queryElement.addElement(IqElement.EVENT.toString());
-        eventElement.setText(new Gson().toJson(this.event));
+        eventElement.setText(new Gson().toJson(event));
 
         return iq;
     }
