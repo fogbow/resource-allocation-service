@@ -36,7 +36,6 @@ public class HttpRequestClientUtil {
 
     public String doGetRequest(String endpoint, Token token)
             throws UnavailableProviderException, HttpResponseException {
-        LOGGER.debug("Doing GET request to endpoint <" + endpoint + ">");
         HttpGet request = new HttpGet(endpoint);
         request.addHeader(HttpRequestUtil.CONTENT_TYPE_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
         request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
@@ -68,7 +67,6 @@ public class HttpRequestClientUtil {
     
     public String doPostRequest(String endpoint, Token token, String body)
             throws UnavailableProviderException, HttpResponseException {
-        LOGGER.debug("Doing POST request to endpoint <" + endpoint + ">");
         HttpPost request = new HttpPost(endpoint);
         request.addHeader(HttpRequestUtil.CONTENT_TYPE_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
         request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
@@ -101,7 +99,6 @@ public class HttpRequestClientUtil {
 
     public void doDeleteRequest(String endpoint, Token token)
             throws UnavailableProviderException, HttpResponseException {
-        LOGGER.debug("Doing DELETE request to endpoint <" + endpoint + ">");
         HttpDelete request = new HttpDelete(endpoint);
         request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, token.getTokenValue());
 

@@ -59,9 +59,10 @@ public class LdapFederationIdentityPluginTest {
         String split[] = federationTokenValue.split(TOKEN_VALUE_SEPARATOR);
 
         //verify
-        Assert.assertEquals(split[0], ldapToken.getUserId());
-        Assert.assertEquals(split[1], ldapToken.getUserName());
-        Assert.assertEquals(split[2], ldapToken.getExpirationTime());
+        Assert.assertEquals(split[0], ldapToken.getTokenProvider());
+        Assert.assertEquals(split[1], ldapToken.getUserId());
+        Assert.assertEquals(split[2], ldapToken.getUserName());
+        Assert.assertEquals(split[3], ldapToken.getExpirationTime());
         Assert.assertTrue(this.ldapAuthenticationPlugin.isAuthentic(ldapToken));
     }
 

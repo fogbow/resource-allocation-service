@@ -60,15 +60,7 @@ public class KeystoneV3TokenGenerator implements TokenGenerator {
     public String createTokenValue(Map<String, String> credentials) throws FogbowManagerException,
             UnexpectedException {
 
-        String jsonBody;
-        try {
-            jsonBody = mountJsonBody(credentials);
-        } catch (JSONException e) {
-            String errorMsg = "An error occurred when generating json.";
-            LOGGER.error(errorMsg, e);
-            throw new InvalidUserCredentialsException(errorMsg, e);
-        }
-
+        String jsonBody = mountJsonBody(credentials);
         String authUrl = credentials.get(AUTH_URL);
         String currentTokenEndpoint = this.v3TokensEndpoint;
         if (authUrl != null && !authUrl.isEmpty()) {
@@ -117,7 +109,7 @@ public class KeystoneV3TokenGenerator implements TokenGenerator {
         }
     }
 
-    private String mountJsonBody(Map<String, String> credentials) throws JSONException {
+    private String mountJsonBody(Map<String, String> credentials) {
         String projectId = credentials.get(PROJECT_ID);
         String userId = credentials.get(USER_ID);
         String password = credentials.get(PASSWORD);
