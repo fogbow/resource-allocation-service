@@ -21,6 +21,7 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
 
     @Override
     public Void send() throws Exception {
+
         IQ iq = RemoteNotifyEventRequest.marshall(this.order, this.event);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
@@ -31,22 +32,26 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
 
     public static IQ marshall(Order order, Event event) {
         LOGGER.debug("Creating IQ for order: " + order.getId() + " event: " + event);
-
+        
         IQ iq = new IQ(IQ.Type.set);
         iq.setTo(order.getRequestingMember());
         iq.setID(order.getId());
 
+        //marshall order parcel
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_NOTIFY_EVENT.toString());
+
         Element orderElement = queryElement.addElement(IqElement.ORDER.toString());
         orderElement.setText(new Gson().toJson(order));
 
         Element orderClassNameElement = queryElement.addElement(IqElement.ORDER_CLASS_NAME.toString());
         orderClassNameElement.setText(order.getClass().getName());
 
+        //marshall event parcel
         Element eventElement = queryElement.addElement(IqElement.EVENT.toString());
         eventElement.setText(new Gson().toJson(event));
 
         return iq;
     }
+
 }
