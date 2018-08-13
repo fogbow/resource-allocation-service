@@ -73,9 +73,9 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 	@Test
 	public void testWithValidIQ() throws Exception {
 		// set up
-		Quota exprectedQuota = this.getQuota();
+		Quota expectedQuota = this.getQuota();
 		
-		Mockito.doReturn(exprectedQuota)
+		Mockito.doReturn(expectedQuota)
 			.when(this.remoteFacade)
 				.getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any());
 
@@ -95,7 +95,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 
 	// test case: When an Exception occurs, the handle method must return a response error.
 	@Test
-	public void testWhenThrowsException() throws Exception {
+	public void testUpdateResponseWhenExceptionIsThrown() throws Exception {
 		Mockito.when(this.remoteFacade
 			.getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any()))
 				.thenThrow(new Exception());

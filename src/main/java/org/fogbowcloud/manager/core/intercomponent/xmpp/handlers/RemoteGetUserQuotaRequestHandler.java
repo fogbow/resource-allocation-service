@@ -25,6 +25,8 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
+        LOGGER.info("Received request for order: " + iq.getID());
+
         String memberId = unmarshalMemberId(iq);
         FederationUser federationUser = unmarshalFederatedUser(iq);
         ResourceType resourceType = unmarshalInstanceType(iq);
@@ -33,7 +35,7 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
 
         try {
             Quota userQuota = RemoteFacade.getInstance().getUserQuota(memberId, federationUser, resourceType);
-            marshalUserQuota(response, userQuota);
+            updateResponse(response, userQuota);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
@@ -64,7 +66,7 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
         return resourceType;
     }
     
-    private void marshalUserQuota(IQ iq, Quota quota) {
+    private void updateResponse(IQ iq, Quota quota) {
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_USER_QUOTA);
         Element instanceElement = queryElement.addElement(IqElement.USER_QUOTA.toString());
         
