@@ -21,41 +21,39 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
 
     @Override
     public Instance send() throws Exception {
-        IQ iq = createIq();
+
+        IQ iq = marshal(this.order);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getProvidingMember());
-        Instance instance = getInstanceFromResponse(response);
+        Instance instance = unmarshalInstance(response);
         return instance;
     }
 
-    public IQ createIq() {
+    public static IQ marshal(Order order) {
+
         IQ iq = new IQ(IQ.Type.get);
-        iq.setTo(this.order.getProvidingMember());
+        iq.setTo(order.getProvidingMember());
 
-        marshalOrder(iq);        
-        marshalUser(iq);
-        
-        return iq;
-    }
-
-    private void marshalUser(IQ iq) {
+        //user
         Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());
-        userElement.setText(new Gson().toJson(this.order.getFederationUser()));
-    }
+        userElement.setText(new Gson().toJson(order.getFederationUser()));
 
-    private void marshalOrder(IQ iq) {
+        //order
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_ORDER.toString());
 
         Element orderIdElement = queryElement.addElement(IqElement.ORDER_ID.toString());
-        orderIdElement.setText(this.order.getId());
+        orderIdElement.setText(order.getId());
 
         Element orderTypeElement = queryElement.addElement(IqElement.INSTANCE_TYPE.toString());
-        orderTypeElement.setText(this.order.getType().toString());
+        orderTypeElement.setText(order.getType().toString());
+        
+        return iq;
     }
 
-    private Instance getInstanceFromResponse(IQ response) throws UnexpectedException {
+    private Instance unmarshalInstance(IQ response) throws UnexpectedException {
+
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
         String instanceStr = queryElement.element(IqElement.INSTANCE.toString()).getText();
         

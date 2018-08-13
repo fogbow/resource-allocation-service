@@ -31,15 +31,17 @@ public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
         try {
             Instance instance = RemoteFacade.getInstance().getResourceInstance(orderId,
                     federationUser, resourceType);
-            Element instanceElement = marshalInstance(response, instance);
-            instanceElement.setText(new Gson().toJson(instance));
+
+            //on success, update response with instance data
+            updateResponse(response, instance);
         } catch (Exception e) {
+            //on error, update response with exception data
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
         return response;
     }
 
-    private Element marshalInstance(IQ response, Instance instance) {
+    private void updateResponse(IQ response, Instance instance) {
         Element queryElement =
                 response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_INSTANCE);
 
@@ -49,7 +51,8 @@ public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
                 queryElement.addElement(IqElement.INSTANCE_CLASS_NAME.toString());
 
         instanceClassNameElement.setText(instance.getClass().getName());
-        return instanceElement;
+
+        instanceElement.setText(new Gson().toJson(instance));
     }
 
     private FederationUser unmarshalFederationUser(IQ iq) {

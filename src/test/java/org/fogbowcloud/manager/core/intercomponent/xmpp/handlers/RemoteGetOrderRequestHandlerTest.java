@@ -71,8 +71,7 @@ public class RemoteGetOrderRequestHandlerTest {
 		Mockito.when(this.remoteFacade.getResourceInstance(Mockito.eq(orderId), Mockito.eq(federationUser),
 				Mockito.eq(ResourceType.COMPUTE))).thenReturn(instance);
 
-		RemoteGetOrderRequest remoteGetOrderRequest = new RemoteGetOrderRequest(order);
-		IQ iq = remoteGetOrderRequest.createIq();
+		IQ iq = RemoteGetOrderRequest.marshal(order);
 
 		// exercise
 		IQ result = this.remoteGetOrderRequestHandler.handle(iq);
@@ -101,8 +100,7 @@ public class RemoteGetOrderRequestHandlerTest {
 		Mockito.when(this.remoteFacade.getResourceInstance(Mockito.eq(orderId), Mockito.eq(federationUser),
 				Mockito.eq(ResourceType.COMPUTE))).thenThrow(new Exception());
 
-		RemoteGetOrderRequest remoteGetOrderRequest = new RemoteGetOrderRequest(order);
-		IQ iq = remoteGetOrderRequest.createIq();
+		IQ iq = RemoteGetOrderRequest.marshal(order);
 
 		// exercise
 		IQ result = this.remoteGetOrderRequestHandler.handle(iq);
