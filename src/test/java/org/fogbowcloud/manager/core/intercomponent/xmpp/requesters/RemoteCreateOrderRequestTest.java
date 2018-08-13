@@ -1,24 +1,18 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 
-import org.dom4j.Element;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.exceptions.UnavailableProviderException;
-import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.IQMatcher;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
-import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.jamppa.component.PacketSender;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
-
-import com.google.gson.Gson;
 
 public class RemoteCreateOrderRequestTest {
 
@@ -27,7 +21,6 @@ public class RemoteCreateOrderRequestTest {
 	private RemoteCreateOrderRequest remoteCreateOrderRequest;
 	private Order order;
 	private PacketSender packetSender;
-	private ArgumentCaptor<IQ> argIQ = ArgumentCaptor.forClass(IQ.class);
 	private IQ iqResponse;
 
 	@Before
@@ -43,46 +36,38 @@ public class RemoteCreateOrderRequestTest {
 	//test case: check if IQ attributes is according to both Order parameters and remote create order request rules
 	@Test
 	public void testSend() throws Exception {
+
 		// set up
-		Mockito.doReturn(this.iqResponse).when(this.packetSender).syncSendPacket(argIQ.capture());
-		String orderJson = new Gson().toJson(this.order);
+		IQ expectedIQ = RemoteCreateOrderRequest.marshal(this.order);
+
+		Mockito.doReturn(this.iqResponse).when(this.packetSender).syncSendPacket(Mockito.any(IQ.class));
 
 		// exercise
 		this.remoteCreateOrderRequest.send();
 
 		// verify
-		IQ iq = argIQ.getValue();
-		Assert.assertEquals(IQ.Type.set.toString(), iq.getType().toString());
-		Assert.assertEquals(this.order.getProvidingMember().toString(), iq.getTo().toString());
-		Assert.assertEquals(this.order.getId(), iq.getID().toString());
-		
-		Element iqElementQuery = iq.getElement().element(IqElement.QUERY.toString());
-		Assert.assertEquals(RemoteMethod.REMOTE_CREATE_ORDER.toString(), iqElementQuery.getNamespaceURI());
-		
-		String iqQueryOrderClassName = iqElementQuery.element(IqElement.ORDER_CLASS_NAME.toString()).getText();
-		Assert.assertEquals(this.order.getClass().getName(), iqQueryOrderClassName);
-		
-		String iqQueryOrderJson= iqElementQuery.element(IqElement.ORDER.toString()).getText();
-		Assert.assertEquals(orderJson, iqQueryOrderJson);
+		//as IQ does not implement equals we need a matcher
+		IQMatcher matcher = new IQMatcher(expectedIQ);
+		Mockito.verify(this.packetSender).syncSendPacket(Mockito.argThat(matcher));
 	}
-	
-	//test case: Check if "send" is properly forwading UnavailableProviderException thrown by 
+
+	//test case: Check if "send" is properly forwarding UnavailableProviderException thrown by
 	//"XmppErrorConditionToExceptionTranslator.handleError" when the IQ response is null
 	@Test (expected = UnavailableProviderException.class)
 	public void testSendWhenResponseIsNull() throws Exception {
 		// set up
-		Mockito.doReturn(null).when(this.packetSender).syncSendPacket(this.argIQ.capture());
+		Mockito.doReturn(null).when(this.packetSender).syncSendPacket(Mockito.any(IQ.class));
 
 		// exercise/verify
 		this.remoteCreateOrderRequest.send();
 	}
 	
-	//test case: Check if "send" is properly forwading UnauthorizedRequestException thrown by 
+	//test case: Check if "send" is properly forwarding UnauthorizedRequestException thrown by
 	//"XmppErrorConditionToExceptionTranslator.handleError" when the IQ response status is forbidden
 	@Test (expected = UnauthorizedRequestException.class)
 	public void testSendWhenResponseReturnsForbidden() throws Exception {
 		// set up
-		Mockito.doReturn(this.iqResponse).when(this.packetSender).syncSendPacket(this.argIQ.capture());
+		Mockito.doReturn(this.iqResponse).when(this.packetSender).syncSendPacket(Mockito.any(IQ.class));
 		this.iqResponse.setError(new PacketError(PacketError.Condition.forbidden));
 		
 		// exercise/verify
