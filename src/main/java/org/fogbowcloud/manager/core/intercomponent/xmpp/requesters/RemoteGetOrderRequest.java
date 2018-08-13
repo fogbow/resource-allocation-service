@@ -1,6 +1,5 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 
-import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
@@ -14,8 +13,6 @@ import com.google.gson.Gson;
 
 public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
 
-    private static final Logger LOGGER = Logger.getLogger(RemoteGetOrderRequest.class);
-
     private Order order;
 
     public RemoteGetOrderRequest(Order order) {
@@ -24,33 +21,39 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
 
     @Override
     public Instance send() throws Exception {
-        IQ iq = createIq();
+
+        IQ iq = marshal(this.order);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getProvidingMember());
-        Instance instance = getInstanceFromResponse(response);
+        Instance instance = unmarshalInstance(response);
         return instance;
     }
 
-    private IQ createIq() {
-        IQ iq = new IQ(IQ.Type.get);
-        iq.setTo(this.order.getProvidingMember());
+    public static IQ marshal(Order order) {
 
+        IQ iq = new IQ(IQ.Type.get);
+        iq.setTo(order.getProvidingMember());
+
+        //user
+        Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());
+        userElement.setText(new Gson().toJson(order.getFederationUser()));
+
+        //order
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_ORDER.toString());
+
         Element orderIdElement = queryElement.addElement(IqElement.ORDER_ID.toString());
-        orderIdElement.setText(this.order.getId());
+        orderIdElement.setText(order.getId());
 
         Element orderTypeElement = queryElement.addElement(IqElement.INSTANCE_TYPE.toString());
-        orderTypeElement.setText(this.order.getType().toString());
-        
-        Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());
-        userElement.setText(new Gson().toJson(this.order.getFederationUser()));
+        orderTypeElement.setText(order.getType().toString());
         
         return iq;
     }
 
-    private Instance getInstanceFromResponse(IQ response) throws UnexpectedException {
+    private Instance unmarshalInstance(IQ response) throws UnexpectedException {
+
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
         String instanceStr = queryElement.element(IqElement.INSTANCE.toString()).getText();
         
