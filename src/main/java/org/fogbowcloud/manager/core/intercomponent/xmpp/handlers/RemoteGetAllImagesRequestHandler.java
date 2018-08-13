@@ -18,7 +18,7 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
 
     private static final Logger LOGGER = Logger.getLogger(RemoteGetAllImagesRequestHandler.class);
 
-    public static final String REMOTE_GET_ALL_IMAGES = RemoteMethod.REMOTE_GET_ALL_IMAGES.toString();
+    private static final String REMOTE_GET_ALL_IMAGES = RemoteMethod.REMOTE_GET_ALL_IMAGES.toString();
 
     public RemoteGetAllImagesRequestHandler() {
         super(REMOTE_GET_ALL_IMAGES);
@@ -26,29 +26,43 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
-        Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
+        LOGGER.debug("Received request for order: " + iq.getID());
 
-        Element memberIdElement = queryElement.element(IqElement.MEMBER_ID.toString());
-        String memberId = memberIdElement.getText();
-
-        Element federationUserElement = queryElement.element(IqElement.FEDERATION_USER.toString());
-        FederationUser federationUser = new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
+        String memberId = unmarshalMemberId(iq);
+        FederationUser federationUser = unmarshalFederationUser(iq);
 
         IQ response = IQ.createResultIQ(iq);
 
         try {
             Map<String, String> imagesMap = RemoteFacade.getInstance().getAllImages(memberId, federationUser);
-
-            Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_ALL_IMAGES);
-            Element imagesMapElement = queryEl.addElement(IqElement.IMAGES_MAP.toString());
-
-            Element imagesMapClassNameElement = queryEl.addElement(IqElement.IMAGES_MAP_CLASS_NAME.toString());
-            imagesMapClassNameElement.setText(imagesMap.getClass().getName());
-
-            imagesMapElement.setText(new Gson().toJson(imagesMap));
+            unmarshalImages(response, imagesMap);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
         return response;
+    }
+
+    private String unmarshalMemberId(IQ iq) {
+        Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
+        Element memberIdElement = queryElement.element(IqElement.MEMBER_ID.toString());
+        String memberId = memberIdElement.getText();
+        return memberId;
+    }
+
+    private FederationUser unmarshalFederationUser(IQ iq) {
+        Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
+        Element federationUserElement = queryElement.element(IqElement.FEDERATION_USER.toString());
+        FederationUser federationUser = new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
+        return federationUser;
+    }
+
+    private void unmarshalImages(IQ response, Map<String, String> imagesMap) {
+        Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_ALL_IMAGES);
+        Element imagesMapElement = queryEl.addElement(IqElement.IMAGES_MAP.toString());
+
+        Element imagesMapClassNameElement = queryEl.addElement(IqElement.IMAGES_MAP_CLASS_NAME.toString());
+        imagesMapClassNameElement.setText(imagesMap.getClass().getName());
+
+        imagesMapElement.setText(new Gson().toJson(imagesMap));
     }
 }

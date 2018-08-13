@@ -26,7 +26,7 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
 
     @Override
     public HashMap<String, String> send() throws Exception {
-        IQ iq = createIq();
+        IQ iq = RemoteGetAllImagesRequest.marshal(this.provider, this.federationUser);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
@@ -34,18 +34,20 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
         return imagesMap;
     }
 
-    private IQ createIq() {
+    public static IQ marshal(String provider, FederationUser federationUser) {
+        LOGGER.debug("Creating IQ for provider: " + provider);
+
         IQ iq = new IQ(IQ.Type.get);
-        iq.setTo(this.provider);
+        iq.setTo(provider);
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_ALL_IMAGES.toString());
 
         Element memberIdElement = queryElement.addElement(IqElement.MEMBER_ID.toString());
-        memberIdElement.setText(this.provider);
+        memberIdElement.setText(provider);
 
         Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
-        userElement.setText(new Gson().toJson(this.federationUser));
+        userElement.setText(new Gson().toJson(federationUser));
 
         return iq;
     }
@@ -56,7 +58,8 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
 
         String instanceClassName = queryElement.element(IqElement.IMAGES_MAP_CLASS_NAME.toString()).getText();
 
-        HashMap<String, String> imagesMap = null;
+        HashMap<String, String> imagesMap;
+
         try {
             imagesMap = (HashMap<String, String>) new Gson().fromJson(hashMapStr, Class.forName(instanceClassName));
         } catch (Exception e) {
