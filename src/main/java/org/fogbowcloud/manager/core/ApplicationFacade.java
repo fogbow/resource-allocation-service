@@ -119,7 +119,8 @@ public class ApplicationFacade {
     }
 
     public List<InstanceStatus> getAllInstancesStatus(String federationTokenValue, ResourceType resourceType) throws
-            UnauthenticatedUserException, UnauthorizedRequestException, UnavailableProviderException {
+            UnauthenticatedUserException, UnauthorizedRequestException, UnavailableProviderException,
+            InvalidParameterException {
         FederationUserToken requester = this.aaController.getFederationUser(federationTokenValue);
         this.aaController.authenticateAndAuthorize(requester, Operation.GET_ALL, resourceType);
         return this.orderController.getInstancesStatus(requester, resourceType);

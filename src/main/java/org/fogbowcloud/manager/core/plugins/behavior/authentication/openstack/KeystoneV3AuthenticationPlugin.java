@@ -20,10 +20,6 @@ import java.util.Properties;
 public class KeystoneV3AuthenticationPlugin implements AuthenticationPlugin {
     private static final Logger LOGGER = Logger.getLogger(KeystoneV3TokenGenerator.class);
 
-    private static final String OPENSTACK_KEYSTONE_V3_URL = "openstack_keystone_v3_url";
-    public static String V3_TOKENS_ENDPOINT_PATH = "/auth/tokens";
-
-    private String keystoneUrl;
     private String v3TokensEndpoint;
     private HttpRequestClientUtil client;
 
@@ -34,10 +30,9 @@ public class KeystoneV3AuthenticationPlugin implements AuthenticationPlugin {
         Properties properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
                 + DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
 
-        String identityUrl = properties.getProperty(OPENSTACK_KEYSTONE_V3_URL);
+        String identityUrl = properties.getProperty(KeystoneV3TokenGenerator.OPENSTACK_KEYSTONE_V3_URL);
         if (isUrlValid(identityUrl)) {
-            this.keystoneUrl = identityUrl;
-            this.v3TokensEndpoint = keystoneUrl + V3_TOKENS_ENDPOINT_PATH;
+            this.v3TokensEndpoint = identityUrl + KeystoneV3TokenGenerator.V3_TOKENS_ENDPOINT_PATH;
         }
         this.client = new HttpRequestClientUtil();
         this.localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
@@ -45,7 +40,7 @@ public class KeystoneV3AuthenticationPlugin implements AuthenticationPlugin {
 
     @Override
     public boolean isAuthentic(FederationUserToken federationToken) throws UnavailableProviderException {
-        if (federationToken.getTokenProvider() == this.localProviderId) {
+        if (federationToken.getTokenProvider().equals(this.localProviderId)) {
             try {
                 this.client.doGetRequest(this.v3TokensEndpoint, federationToken);
                 return true;
@@ -59,7 +54,8 @@ public class KeystoneV3AuthenticationPlugin implements AuthenticationPlugin {
 
     private boolean isUrlValid(String url) throws FatalErrorException {
         if (url == null || url.trim().isEmpty()) {
-            throw new FatalErrorException("Invalid Keystone_V3_URL " + OPENSTACK_KEYSTONE_V3_URL);
+            throw new FatalErrorException("Invalid Keystone_V3_URL " +
+                    KeystoneV3TokenGenerator.OPENSTACK_KEYSTONE_V3_URL);
         }
         return true;
     }

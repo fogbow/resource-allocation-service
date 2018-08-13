@@ -12,34 +12,31 @@ import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.models.tokens.OpenStackV3Token;
-import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.models.tokens.TokenGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackHttpToFogbowManagerExceptionMapper;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONException;
 
-public class KeystoneV3TokenGenerator implements TokenGenerator<OpenStackV3Token> {
+public class KeystoneV3TokenGenerator implements TokenGenerator {
 
     private static final Logger LOGGER = Logger.getLogger(KeystoneV3TokenGenerator.class);
 
-    private static final String OPENSTACK_KEYSTONE_V3_URL = "openstack_keystone_v3_url";
-    private static final String X_SUBJECT_TOKEN = "X-Subject-Token";
-
+    public static final String OPENSTACK_KEYSTONE_V3_URL = "openstack_keystone_v3_url";
+    public static final String V3_TOKENS_ENDPOINT_PATH = "/auth/tokens";
+    public static final String X_SUBJECT_TOKEN = "X-Subject-Token";
+    public static final String TOKEN_VALUE_SEPARATOR = "!#!";
     public static final String PROJECT_ID = "projectId";
     public static final String PASSWORD = "password";
     public static final String USER_ID = "userId";
     public static final String AUTH_URL = "authUrl";
-    public static String V3_TOKENS_ENDPOINT_PATH = "/auth/tokens";
 
-    private String keystoneUrl;
     private String v3TokensEndpoint;
     private HttpRequestClientUtil client;
-    private String tokenProvider;
+    private String tokenProviderId;
 
     public KeystoneV3TokenGenerator() throws FatalErrorException {
-        this.tokenProvider = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
         HomeDir homeDir = HomeDir.getInstance();
         Properties properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
@@ -47,8 +44,7 @@ public class KeystoneV3TokenGenerator implements TokenGenerator<OpenStackV3Token
 
         String identityUrl = properties.getProperty(OPENSTACK_KEYSTONE_V3_URL);
         if (isUrlValid(identityUrl)) {
-            this.keystoneUrl = identityUrl;
-            this.v3TokensEndpoint = keystoneUrl + V3_TOKENS_ENDPOINT_PATH;
+            this.v3TokensEndpoint = identityUrl + V3_TOKENS_ENDPOINT_PATH;
         }
         this.client = new HttpRequestClientUtil();
     }
@@ -61,7 +57,7 @@ public class KeystoneV3TokenGenerator implements TokenGenerator<OpenStackV3Token
     }
 
     @Override
-    public OpenStackV3Token createToken(Map<String, String> credentials) throws FogbowManagerException,
+    public String createTokenValue(Map<String, String> credentials) throws FogbowManagerException,
             UnexpectedException {
 
         String jsonBody;
@@ -70,7 +66,7 @@ public class KeystoneV3TokenGenerator implements TokenGenerator<OpenStackV3Token
         } catch (JSONException e) {
             String errorMsg = "An error occurred when generating json.";
             LOGGER.error(errorMsg, e);
-            throw new InvalidParameterException(errorMsg, e);
+            throw new InvalidUserCredentialsException(errorMsg, e);
         }
 
         String authUrl = credentials.get(AUTH_URL);
@@ -85,25 +81,11 @@ public class KeystoneV3TokenGenerator implements TokenGenerator<OpenStackV3Token
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
-        OpenStackV3Token token = getTokenFromJson(response);
-        return token;
+        String tokenString = getTokenFromJson(response);
+        return tokenString;
     }
 
-    protected String mountJsonBody(Map<String, String> credentials) throws JSONException {
-        String projectId = credentials.get(PROJECT_ID);
-        String userId = credentials.get(USER_ID);
-        String password = credentials.get(PASSWORD);
-
-        CreateTokenRequest createTokenRequest = new CreateTokenRequest.Builder()
-                .projectId(projectId)
-                .userId(userId)
-                .password(password)
-                .build();
-
-        return createTokenRequest.toJson();
-    }
-
-    private OpenStackV3Token getTokenFromJson(HttpRequestClientUtil.Response response) throws UnexpectedException {
+    private String getTokenFromJson(HttpRequestClientUtil.Response response) throws UnexpectedException {
 
         String tokenValue = null;
         Header[] headers = response.getHeaders();
@@ -124,13 +106,32 @@ public class KeystoneV3TokenGenerator implements TokenGenerator<OpenStackV3Token
             String projectId = projectTokenResponse.getId();
             String projectName = projectTokenResponse.getName();
 
-            return new OpenStackV3Token(this.tokenProvider, tokenValue, userId, userName, projectId, projectName);
+            String tokenString = this.tokenProviderId + TOKEN_VALUE_SEPARATOR + tokenValue + TOKEN_VALUE_SEPARATOR +
+                    userId + TOKEN_VALUE_SEPARATOR + userName + TOKEN_VALUE_SEPARATOR + projectId +
+                    TOKEN_VALUE_SEPARATOR + projectName;
+
+            return tokenString;
         } catch (Exception e) {
             LOGGER.error("Exception while getting tokens from json", e);
             throw new UnexpectedException("Exception while getting tokens from json", e);
         }
     }
 
+    private String mountJsonBody(Map<String, String> credentials) throws JSONException {
+        String projectId = credentials.get(PROJECT_ID);
+        String userId = credentials.get(USER_ID);
+        String password = credentials.get(PASSWORD);
+
+        CreateTokenRequest createTokenRequest = new CreateTokenRequest.Builder()
+                .projectId(projectId)
+                .userId(userId)
+                .password(password)
+                .build();
+
+        return createTokenRequest.toJson();
+    }
+
+    // Used in testing
     protected void setClient (HttpRequestClientUtil client) {
         this.client = client;
     }

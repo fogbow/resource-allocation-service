@@ -67,7 +67,7 @@ public class AaController {
         }
     }
 
-    public FederationUserToken getFederationUser(String federationTokenValue) throws UnauthenticatedUserException {
+    public FederationUserToken getFederationUser(String federationTokenValue) throws InvalidParameterException {
         return this.federationIdentityPlugin.createToken(federationTokenValue);
     }
 
