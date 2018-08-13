@@ -61,7 +61,7 @@ public class KeystoneV3TokenGenerator implements TokenGenerator<OpenStackV3Token
     }
 
     @Override
-    public Token createToken(Map<String, String> credentials) throws FogbowManagerException,
+    public OpenStackV3Token createToken(Map<String, String> credentials) throws FogbowManagerException,
             UnexpectedException {
 
         String jsonBody;

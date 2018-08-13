@@ -24,7 +24,7 @@ public class KeystoneV3IdentityPlugin implements FederationIdentityPlugin<OpenSt
     @Override
     public String createTokenValue(Map<String, String> userCredentials)
             throws UnexpectedException, FogbowManagerException {
-        OpenStackV3Token token = (OpenStackV3Token) this.keystoneV3TokenGenerator.createToken(userCredentials);
+        OpenStackV3Token token = this.keystoneV3TokenGenerator.createToken(userCredentials);
         String tokenValue = token.getTokenProvider() + TOKEN_VALUE_SEPARATOR + token.getTokenValue() +
                 TOKEN_VALUE_SEPARATOR + token.getUserId() + TOKEN_VALUE_SEPARATOR + token.getUserName() +
                 TOKEN_VALUE_SEPARATOR + token.getProjectId() + TOKEN_VALUE_SEPARATOR + token.getProjectName();

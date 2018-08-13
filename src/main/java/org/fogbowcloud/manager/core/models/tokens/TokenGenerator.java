@@ -33,6 +33,6 @@ public interface TokenGenerator<T extends Token> {
      *                        service.
      * @return a Token with the tokenValue string and the relevant attributes.
      */
-    public Token createToken(Map<String, String> userCredentials) throws UnexpectedException, FogbowManagerException;
+    public T createToken(Map<String, String> userCredentials) throws UnexpectedException, FogbowManagerException;
 
 }
