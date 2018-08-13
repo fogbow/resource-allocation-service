@@ -11,7 +11,6 @@ import org.fogbowcloud.manager.core.plugins.behavior.authentication.Authenticati
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -109,33 +108,6 @@ public class AaControllerTest {
     	
     	//exercise/verify
     	this.aaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(ResourceType.class));
-    }
-    
-    //test case: Check if getLocalToken() is returning a valid token.
-    @Ignore
-	@Test
-    public void testGetLocalToken() throws FogbowManagerException, UnexpectedException {
-    	//set up
-
-		//exercise
-
-    	//verify
-    }
-    
-    //test case: Check if getLocalToken is properly forwarding FogbowManagerException thrown by LocalTokenGenerator.
-	@Ignore
-    @Test (expected = FogbowManagerException.class)
-    public void testGetLocalTokenWhenFogbowManagerException() throws FogbowManagerException, UnexpectedException {
-    	//set up
-    	//exercise/verify
-    }
-    
-    //test case: Check if getLocalToken is properly forwading UnexpectedException thrown by LocalTokenGenerator.
-	@Ignore
-    @Test (expected = UnexpectedException.class)
-    public void testGetLocalTokenWhenUnexpectedException() throws FogbowManagerException, UnexpectedException {
-    	//set up
-    	//exercise/verify
     }
     
     //test case: Check if federation user token is returning a valid token properly.
