@@ -36,7 +36,7 @@ public class OpenStackV2VolumePluginTest {
     private final String FAKE_PROJECT_NAME = "fake-project-name";
     private final String FAKE_INSTANCE_ID = "instance-id";
 
-    // TODO create this json with a libary
+    // TODO create this json with a library
     private final String FAKE_VOLUME_JSON = "{\"volume\":{\"size\":2,\"name\":\"fake-name\", " +
             "\"id\": \"fake-id\", \"status\": \"fake-status\"}}";
 
@@ -92,11 +92,10 @@ public class OpenStackV2VolumePluginTest {
     @Test
     public void testGetInstanceFromJson() throws FogbowManagerException, JSONException, UnexpectedException {
         // exercise
-        String instanceJsonResponseStr = generateInstanceJsonResponse(FAKE_INSTANCE_ID).toString();
-		VolumeInstance instance = this.openStackV2VolumePlugin.getInstanceFromJson(instanceJsonResponseStr);
+        VolumeInstance instance = this.openStackV2VolumePlugin.getInstanceFromJson(FAKE_VOLUME_JSON);
 
         // verify
-        Assert.assertEquals(FAKE_INSTANCE_ID, instance.getId());
+        Assert.assertEquals(FAKE_VOLUME_ID, instance.getId());
     }
 
     // test case: Check if the request in getInstance() is executed properly with the right parameters.
@@ -145,12 +144,4 @@ public class OpenStackV2VolumePluginTest {
         // TODO
     }
 
-    private JSONObject generateInstanceJsonResponse(String instanceId) throws JSONException {
-        JSONObject jsonId = new JSONObject();
-        jsonId.put(OpenstackRestApiConstants.Volume.ID_KEY_JSON, instanceId);
-        jsonId.put(OpenstackRestApiConstants.Volume.SIZE_KEY_JSON, FAKE_SIZE);
-        JSONObject jsonStorage = new JSONObject();
-        jsonStorage.put(OpenstackRestApiConstants.Volume.NAME_KEY_JSON, jsonId);
-        return jsonStorage;
-    }
 }
