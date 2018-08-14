@@ -39,6 +39,7 @@ public class OrderControllerTest extends BaseUnitTests {
     private static final String RESOURCES_PATH_TEST = "src/test/resources/private";
     private static final String FAKE_NAME = "fake-name";
     private static final String FAKE_ID = "fake-id";
+    private static final String FAKE_USER = "fake-user";
     private static final String FAKE_IMAGE_NAME = "fake-image-name";
     private static final String FAKE_PUBLIC_KEY = "fake-public-key";
     
@@ -84,7 +85,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Order order = createOrder();
         Map<String, String> attributes = new HashMap<String, String>();
         attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, FAKE_NAME);
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUser federationUser = new FederationUser(FAKE_USER, attributes);
         // exercise
         this.ordersController.getOrder(orderId);
     }
@@ -228,7 +229,7 @@ public class OrderControllerTest extends BaseUnitTests {
         // set up
         Map<String, String> attributes = new HashMap<String, String>();
         attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, FAKE_NAME);
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUser federationUser = new FederationUser(FAKE_USER, attributes);
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setFederationUser(federationUser);
         computeOrder.setRequestingMember(this.localMember);
@@ -253,13 +254,13 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: Tests if getUserAllocation() throws UnexpectedException when the resource
     // type is not compute (we're not supporting other resource types)
-    @Test
+    @Test(expected = UnexpectedException.class)
     public void testGetUserAllocationWithInvalidInstanceType()
             throws UnexpectedException, InvalidParameterException {
         // set up
         Map<String, String> attributes = new HashMap<String, String>();
         attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, FAKE_NAME);
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUser federationUser = new FederationUser(FAKE_USER, attributes);
         NetworkOrder networkOrder = new NetworkOrder();
         networkOrder.setFederationUser(federationUser);
         networkOrder.setRequestingMember(this.localMember);
