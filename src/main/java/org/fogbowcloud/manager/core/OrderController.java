@@ -50,7 +50,6 @@ public class OrderController {
     public Order getOrder(String orderId) throws InstanceNotFoundException {
         Order requestedOrder = this.orderHolders.getActiveOrdersMap().get(orderId);
         String msg = (requestedOrder == null ? "null" : requestedOrder.toString());
-        LOGGER.debug("getting order " + orderId + " returned " + msg);
         if (requestedOrder == null) {
             throw new InstanceNotFoundException();
         }
