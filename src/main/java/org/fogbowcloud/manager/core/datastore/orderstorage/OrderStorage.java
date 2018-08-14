@@ -68,7 +68,7 @@ public class OrderStorage {
         }
     }
 
-    protected void closeConnection(Statement statement, Connection connection) {
+    protected void closeConnection(Statement statement, Connection connection) throws SQLException {
         if (statement != null) {
             try {
                 if (!statement.isClosed()) {
@@ -76,6 +76,7 @@ public class OrderStorage {
                 }
             } catch (SQLException e) {
                 LOGGER.error("Couldn't close statement", e);
+                throw e;
             }
         }
 
@@ -86,6 +87,7 @@ public class OrderStorage {
                 }
             } catch (SQLException e) {
                 LOGGER.error("Couldn't close connection", e);
+                throw e;
             }
         }
     }

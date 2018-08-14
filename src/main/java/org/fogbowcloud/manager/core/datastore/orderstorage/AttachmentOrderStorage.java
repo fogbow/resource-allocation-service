@@ -37,7 +37,7 @@ public class AttachmentOrderStorage extends OrderStorage {
         }
     }
 
-    public void addOrder(Order order) {
+    public void addOrder(Order order) throws SQLException {
         AttachmentOrder attachmentOrder = (AttachmentOrder) order;
 
         Connection connection = null;
@@ -67,13 +67,16 @@ public class AttachmentOrderStorage extends OrderStorage {
                 }
             } catch (SQLException e1) {
                 LOGGER.error("Couldn't rollback transaction.", e1);
+                throw e1;
             }
+
+            throw e;
         } finally {
             closeConnection(orderStatement, connection);
         }
     }
 
-    public void updateOrder(Order order) {
+    public void updateOrder(Order order) throws SQLException {
         AttachmentOrder attachmentOrder = (AttachmentOrder) order;
 
         Connection connection = null;
@@ -89,7 +92,12 @@ public class AttachmentOrderStorage extends OrderStorage {
             orderStatement.setString(2, attachmentOrder.getOrderState().name());
             orderStatement.setString(3, attachmentOrder.getId());
 
-            orderStatement.executeUpdate();
+            int rowsAffected = orderStatement.executeUpdate();
+
+            if (rowsAffected == 0) {
+                LOGGER.error("Attachment order [" + order.getId() + "] was not added to the database.");
+                throw new SQLException();
+            }
 
             connection.commit();
         } catch (SQLException e) {
@@ -100,14 +108,17 @@ public class AttachmentOrderStorage extends OrderStorage {
                 }
             } catch (SQLException e1) {
                 LOGGER.error("Couldn't rollback transaction.", e1);
+                throw e1;
             }
+
+            throw e;
         } finally {
             closeConnection(orderStatement, connection);
         }
     }
 
     public void readOrdersByState(
-            OrderState orderState, SynchronizedDoublyLinkedList synchronizedDoublyLinkedList) {
+            OrderState orderState, SynchronizedDoublyLinkedList synchronizedDoublyLinkedList) throws SQLException {
 
         Connection connection = null;
         PreparedStatement orderStatement = null;
@@ -153,7 +164,10 @@ public class AttachmentOrderStorage extends OrderStorage {
                 }
             } catch (SQLException e1) {
                 LOGGER.error("Couldn't rollback transaction.", e1);
+                throw e1;
             }
+
+            throw e;
         } catch (InvalidParameterException e) {
             LOGGER.error(e);
         } finally {

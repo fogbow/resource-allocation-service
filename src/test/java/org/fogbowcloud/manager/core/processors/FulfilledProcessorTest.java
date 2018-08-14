@@ -60,7 +60,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     private Thread thread;
 
     @Before
-    public void setUp() {
+    public void setUp() throws UnexpectedException {
 
         super.mockReadOrdersFromDataBase();
         

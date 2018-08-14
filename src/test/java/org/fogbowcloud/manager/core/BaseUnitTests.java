@@ -3,6 +3,7 @@ package org.fogbowcloud.manager.core;
 import java.util.Map;
 
 import org.fogbowcloud.manager.core.datastore.DatabaseManager;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
@@ -97,7 +98,7 @@ public class BaseUnitTests {
     /**
      * Mocks the behavior of the database as if there was no order in any state.
      */
-    public void mockReadOrdersFromDataBase() {
+    public void mockReadOrdersFromDataBase() throws UnexpectedException {
         DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
         Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList());
         Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList());

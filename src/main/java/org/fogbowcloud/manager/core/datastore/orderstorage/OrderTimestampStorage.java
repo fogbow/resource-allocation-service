@@ -35,7 +35,7 @@ public class OrderTimestampStorage extends OrderStorage {
         }
     }
 
-    public void addOrder(Order order) {
+    public void addOrder(Order order) throws SQLException {
         Connection connection = null;
         PreparedStatement orderStatement = null;
 
@@ -61,7 +61,10 @@ public class OrderTimestampStorage extends OrderStorage {
                 }
             } catch (SQLException e1) {
                 LOGGER.error("Couldn't rollback transaction.", e1);
+                throw e1;
             }
+
+            throw e;
         } finally {
             closeConnection(orderStatement, connection);
         }

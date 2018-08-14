@@ -3,6 +3,7 @@ package org.fogbowcloud.manager;
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.datastore.DatabaseManager;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.junit.Assert;
@@ -20,7 +21,7 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
     private SharedOrderHolders instanceTwo;
 
     @Before
-    public void initialize() {
+    public void initialize() throws UnexpectedException {
         mockReadOrdersFromDataBase();
 
         this.instanceOne = SharedOrderHolders.getInstance();
