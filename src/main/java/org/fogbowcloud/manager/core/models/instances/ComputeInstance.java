@@ -44,4 +44,20 @@ public class ComputeInstance extends Instance {
     public int getvCPU() {
         return this.vCPU;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        ComputeInstance that = (ComputeInstance) o;
+
+        if (vCPU != that.vCPU) return false;
+        if (ram != that.ram) return false;
+        if (disk != that.disk) return false;
+        if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
+        return localIpAddress != null ? localIpAddress.equals(that.localIpAddress) : that.localIpAddress == null;
+    }
+
 }

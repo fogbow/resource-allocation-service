@@ -16,7 +16,7 @@ import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
@@ -31,17 +31,17 @@ public class RemoteGetOrderRequestTest {
 	
  	private RemoteGetOrderRequest remoteGetOrderRequest;
 	private PacketSender packetSender;
-	private FederationUser federationUser;
+	private FederationUserToken federationUserToken;
 	
 	private Instance instance;
 	private Order order;
 	
  	@Before
-	public void setUp() throws InvalidParameterException {
-		Map<String, String> attributes = new HashMap<String, String>();
- 		attributes.put("user-name", "user-name");
- 		this.federationUser = new FederationUser("federation-user-id", attributes);
- 		this.order = new ComputeOrder(this.federationUser, "requesting-member", "providing-member", 10, 20, 30, "imageid", null,
+	public void setUp() {
+ 		this.federationUserToken = new FederationUserToken("fake-token-provider",
+				"fake-federation-token-value", "fake-user-id", "fake-user-name");
+ 		this.order = new ComputeOrder(this.federationUserToken, "requesting-member",
+				"providing-member", 10, 20, 30, "imageid", null,
 				"publicKey", null);
 		this.remoteGetOrderRequest = new RemoteGetOrderRequest(this.order);
 		this.packetSender = Mockito.mock(PacketSender.class);

@@ -1,8 +1,5 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.dom4j.Element;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
@@ -16,7 +13,7 @@ import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
@@ -34,17 +31,16 @@ public class RemoteGetUserQuotaRequestTest {
 	
 	private Quota quota;
 	private String provider;
-	private FederationUser federationUser;
+	private FederationUserToken federationUserToken;
 	private ResourceType resourceType;
 	
  	@Before
 	public void setUp() throws InvalidParameterException {
-		Map<String, String> attributes = new HashMap<String, String>();
- 		attributes.put("user-name", "user-name");
- 		this.federationUser = new FederationUser("federation-user-id", attributes);
+		this.federationUserToken = new FederationUserToken("fake-token-provider",
+				"fake-federation-token-value", "fake-user-id", "fake-user-name");
  		this.provider = "provider";
  		this.resourceType = ResourceType.COMPUTE;
-		this.remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.provider, this.federationUser, this.resourceType);
+		this.remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.provider, this.federationUserToken, this.resourceType);
 		this.packetSender = Mockito.mock(PacketSender.class);
 		PacketSenderHolder.init(packetSender);
 		ComputeAllocation computeAllocation = new ComputeAllocation(10,  20,  30);
@@ -60,7 +56,7 @@ public class RemoteGetUserQuotaRequestTest {
 		//set up
  		IQ iqResponse = getQuotaIQResponse(this.quota);
  		Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(Mockito.any(IQ.class));
- 		IQ expectedIQ = RemoteGetUserQuotaRequest.marshal(this.provider, this.federationUser, this.resourceType);
+ 		IQ expectedIQ = RemoteGetUserQuotaRequest.marshal(this.provider, this.federationUserToken, this.resourceType);
  		
  		//exercise
  		Quota responseQuota = this.remoteGetUserQuotaRequest.send();

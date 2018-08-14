@@ -15,7 +15,7 @@ public class StubComputeQuotaPlugin implements ComputeQuotaPlugin {
     public StubComputeQuotaPlugin() {}
     
     @Override
-    public ComputeQuota getUserQuota(Token localToken)
+    public ComputeQuota getUserQuota(Token token)
             throws FogbowManagerException, UnexpectedException {
         return null;
     }

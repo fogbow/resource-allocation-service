@@ -27,13 +27,10 @@ public class HttpRequestUtil {
                     PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT);
             timeoutHttpRequest = Integer.parseInt(timeoutRequestStr);
         } catch (NullPointerException | NumberFormatException e) {
-            LOGGER.debug("Setting HttpRequestUtil timeout with default: "
-                            + DefaultConfigurationConstants.HTTP_REQUEST_TIMEOUT + " ms.");
             timeoutHttpRequest = Integer.valueOf(DefaultConfigurationConstants.HTTP_REQUEST_TIMEOUT);
         } catch (Exception e) {
             throw new FatalErrorException("It is not possible to initialize HttpRequestUtil.", e);
         }
-        LOGGER.debug("The default HttpRequestUtil timeout is: " + timeoutHttpRequest + " ms.");
     }
 
     public static CloseableHttpClient createHttpClient() throws FatalErrorException {
@@ -68,7 +65,6 @@ public class HttpRequestUtil {
         if (timeout == null) {
             timeout = timeoutHttpRequest;
         }
-        LOGGER.debug("Creating httpclient with timeout: " + timeout);
         requestBuilder = requestBuilder.setSocketTimeout(timeout);
         builder.setDefaultRequestConfig(requestBuilder.build());
     }

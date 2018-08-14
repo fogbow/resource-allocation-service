@@ -6,15 +6,15 @@ import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 
-public interface VolumePlugin {
+public interface VolumePlugin<T extends Token> {
 
-	public String requestInstance(VolumeOrder volumeOrder, Token localToken)
+	public String requestInstance(VolumeOrder volumeOrder, T localUserAttributes)
             throws FogbowManagerException, UnexpectedException;
 
-	public VolumeInstance getInstance(String volumeInstanceId, Token localToken)
+	public VolumeInstance getInstance(String volumeInstanceId, T localUserAttributes)
 			throws FogbowManagerException, UnexpectedException;
 
-	public void deleteInstance(String volumeInstanceId, Token localToken)
+	public void deleteInstance(String volumeInstanceId, T localUserAttributes)
             throws FogbowManagerException, UnexpectedException;
 	
 }

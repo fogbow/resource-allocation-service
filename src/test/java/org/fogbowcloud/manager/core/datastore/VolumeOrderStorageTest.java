@@ -4,7 +4,7 @@ import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.*;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -18,11 +18,10 @@ public class VolumeOrderStorageTest extends DatabaseManagerTest {
     public void testAddExistingVolumeOrder() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        Order volumeOrder = new VolumeOrder(federationUser,
+        Order volumeOrder = new VolumeOrder(federationUserToken,
                 "requestingMember", "providingMember", 0, "volume-name");
         volumeOrder.setOrderStateInTestMode(OrderState.OPEN);
 
@@ -37,11 +36,10 @@ public class VolumeOrderStorageTest extends DatabaseManagerTest {
     public void testAddVolumeOrder() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        Order volumeOrder = new VolumeOrder(federationUser,
+        Order volumeOrder = new VolumeOrder(federationUserToken,
                 "requestingMember", "providingMember", 0, "volume-name");
         volumeOrder.setOrderStateInTestMode(OrderState.OPEN);
 
@@ -66,11 +64,10 @@ public class VolumeOrderStorageTest extends DatabaseManagerTest {
     public void testUpdateVolumeOrderState() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        Order volumeOrder = new VolumeOrder(federationUser,
+        Order volumeOrder = new VolumeOrder(federationUserToken,
                 "requestingMember", "providingMember", 0, "volume-name");
         volumeOrder.setOrderStateInTestMode(OrderState.OPEN);
 
@@ -95,11 +92,10 @@ public class VolumeOrderStorageTest extends DatabaseManagerTest {
     public void testUpdateNonexistingNetworkOrder() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        Order volumeOrder = new VolumeOrder(federationUser,
+        Order volumeOrder = new VolumeOrder(federationUserToken,
                 "requestingMember", "providingMember", 0, "volume-name");
         volumeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 
@@ -112,11 +108,10 @@ public class VolumeOrderStorageTest extends DatabaseManagerTest {
     public void testGetClosedOrderWithoutInstanceId() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        Order volumeOrder = new VolumeOrder(federationUser,
+        Order volumeOrder = new VolumeOrder(federationUserToken,
                 "requestingMember", "providingMember", 0, "volume-name");
         volumeOrder.setOrderStateInTestMode(OrderState.CLOSED);
 
@@ -138,11 +133,10 @@ public class VolumeOrderStorageTest extends DatabaseManagerTest {
     public void testGetClosedOrderWithInstanceId() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        VolumeOrder volumeOrder = new VolumeOrder(federationUser,
+        VolumeOrder volumeOrder = new VolumeOrder(federationUserToken,
                 "requestingMember", "providingMember", 0, "volume-name");
         volumeOrder.setOrderStateInTestMode(OrderState.CLOSED);
         volumeOrder.setInstanceId("instanceId");

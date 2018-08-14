@@ -6,7 +6,7 @@ import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 
@@ -29,12 +29,12 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
         LOGGER.debug("Received request for order: " + iq.getID());
 
         String memberId = unmarshalMemberId(iq);
-        FederationUser federationUser = unmarshalFederationUser(iq);
+        FederationUserToken federationUserToken = unmarshalFederationUser(iq);
 
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            Map<String, String> imagesMap = RemoteFacade.getInstance().getAllImages(memberId, federationUser);
+            Map<String, String> imagesMap = RemoteFacade.getInstance().getAllImages(memberId, federationUserToken);
             updateResponse(response, imagesMap);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
@@ -49,11 +49,11 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
         return memberId;
     }
 
-    private FederationUser unmarshalFederationUser(IQ iq) {
+    private FederationUserToken unmarshalFederationUser(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
-        Element federationUserElement = queryElement.element(IqElement.FEDERATION_USER.toString());
-        FederationUser federationUser = new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
-        return federationUser;
+        Element federationUserTokenElement = queryElement.element(IqElement.FEDERATION_USER.toString());
+        FederationUserToken federationUserToken = new Gson().fromJson(federationUserTokenElement.getText(), FederationUserToken.class);
+        return federationUserToken;
     }
 
     private void updateResponse(IQ response, Map<String, String> imagesMap) {

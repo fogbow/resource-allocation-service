@@ -11,24 +11,24 @@ import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
  * This class is a stub for the ComputePlugin interface used for tests only.
  * Should not have a proper implementation.
  */
-public class StubComputePlugin implements ComputePlugin {
+public class StubComputePlugin implements ComputePlugin<Token> {
     
     public StubComputePlugin() {}
 
     @Override
-    public String requestInstance(ComputeOrder computeOrder, Token localToken)
+    public String requestInstance(ComputeOrder computeOrder, Token token)
             throws FogbowManagerException, UnexpectedException {
         return null;
     }
 
     @Override
-    public ComputeInstance getInstance(String computeInstanceId, Token localToken)
+    public ComputeInstance getInstance(String computeInstanceId, Token token)
             throws FogbowManagerException, UnexpectedException {
         return null;
     }
 
     @Override
-    public void deleteInstance(String computeInstanceId, Token localToken)
+    public void deleteInstance(String computeInstanceId, Token token)
             throws FogbowManagerException, UnexpectedException {
     }
 

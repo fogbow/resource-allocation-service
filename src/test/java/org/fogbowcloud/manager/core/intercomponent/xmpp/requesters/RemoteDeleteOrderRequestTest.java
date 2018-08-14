@@ -12,7 +12,7 @@ import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
@@ -34,11 +34,10 @@ public class RemoteDeleteOrderRequestTest {
 
     @Before
     public void setUp() throws InvalidParameterException {
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put("user-name", "user-name");
-        FederationUser federationUser = new FederationUser("federation-user-id", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        this.order = new ComputeOrder(federationUser, "requesting-member",
+        this.order = new ComputeOrder(federationUserToken, "requesting-member",
             "providing-member", 10, 20, 30, "imageid",
             null, "publicKey", null);
 
@@ -54,7 +53,7 @@ public class RemoteDeleteOrderRequestTest {
         // set up
         Mockito.doReturn(this.response).when(this.packetSender).syncSendPacket(
             iqArgumentCaptor.capture());
-        String federationUserJson = new Gson().toJson(this.order.getFederationUser());
+        String federationUserJson = new Gson().toJson(this.order.getFederationUserToken());
 
         // exercise
         this.remoteDeleteOrderRequest.send();

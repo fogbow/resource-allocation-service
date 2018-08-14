@@ -9,7 +9,7 @@ import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.xmpp.packet.IQ;
 import com.google.gson.Gson;
 
@@ -18,18 +18,18 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
     private static final Logger LOGGER = Logger.getLogger(RemoteGetUserQuotaRequest.class);
 
     private String provider;
-    private FederationUser federationUser;
+    private FederationUserToken federationUserToken;
     private ResourceType resourceType;
 
-    public RemoteGetUserQuotaRequest(String provider, FederationUser federationUser, ResourceType resourceType) {
+    public RemoteGetUserQuotaRequest(String provider, FederationUserToken federationUserToken, ResourceType resourceType) {
         this.provider = provider;
-        this.federationUser = federationUser;
+        this.federationUserToken = federationUserToken;
         this.resourceType = resourceType;
     }
 
     @Override
     public Quota send() throws Exception {
-        IQ iq = marshal(this.provider, this.federationUser, this.resourceType);
+        IQ iq = marshal(this.provider, this.federationUserToken, this.resourceType);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
@@ -37,7 +37,7 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
         return quota;
     }
 
-    public static IQ marshal(String provider, FederationUser federationUser, ResourceType resourceType) {
+    public static IQ marshal(String provider, FederationUserToken federationUserToken, ResourceType resourceType) {
         IQ iq = new IQ(IQ.Type.get);
         iq.setTo(provider);
 
@@ -48,7 +48,7 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
         memberIdElement.setText(new Gson().toJson(provider));
 
         Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
-        userElement.setText(new Gson().toJson(federationUser));
+        userElement.setText(new Gson().toJson(federationUserToken));
 
         Element orderTypeElement = queryElement.addElement(IqElement.INSTANCE_TYPE.toString());
         orderTypeElement.setText(resourceType.toString());

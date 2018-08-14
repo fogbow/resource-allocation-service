@@ -7,7 +7,7 @@ import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.requesters.RemoteDeleteOrderRequest;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
@@ -68,7 +68,9 @@ public class RemoteDeleteOrderRequestHandlerTest {
         Map<String, String> attributes = new HashMap<>();
         attributes.put("user-name", "fogbow");
 
-        FederationUser federationUser = new FederationUser("fake-id", attributes);
+        FederationUserToken federationUser = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
+
 
         this.order = new ComputeOrder(federationUser, "requestingMember", "providingmember",
                 1, 2, 3, "imageId", null, "publicKey", new ArrayList<>());
@@ -93,7 +95,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
                 1, 2, 3, "imageId", null, "publicKey", new ArrayList<>());
 
         Mockito.doThrow(new FogbowManagerException()).when(this.remoteFacade).deleteOrder(this.order.getId(),
-                this.order.getFederationUser(), this.order.getType());
+                this.order.getFederationUserToken(), this.order.getType());
 
         IQ iq = RemoteDeleteOrderRequest.marshal(this.order);
 
@@ -102,7 +104,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
 
         //verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).deleteOrder(this.order.getId(),
-            this.order.getFederationUser(), this.order.getType());
+            this.order.getFederationUserToken(), this.order.getType());
 
         String orderId = order.getId();
         String orderProvidingMember = order.getProvidingMember();

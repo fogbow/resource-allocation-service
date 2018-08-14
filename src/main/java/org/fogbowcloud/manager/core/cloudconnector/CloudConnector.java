@@ -6,7 +6,7 @@ import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 
 import java.util.Map;
 
@@ -42,28 +42,28 @@ public interface CloudConnector {
      * Gets the quota of the federation user for resourceType.
      *
      * @return the quota associated to the user
-     * @param federationUser the attributes of the federation user
+     * @param federationUserToken the attributes of the federation user
      * @param resourceType the type of instance for which the quota was requested
      * @throws FogbowManagerException
      */
-     Quota getUserQuota(FederationUser federationUser, ResourceType resourceType) throws Exception;
+     Quota getUserQuota(FederationUserToken federationUserToken, ResourceType resourceType) throws Exception;
 
     /**
      * Gets the list of images that the federation user can see in the target cloud.
      *
-     * @param federationUser
+     * @param federationUserToken
      * @return a map where each element is a pair (image name, image id)
      * @throws FogbowManagerException
      */
-     Map<String, String> getAllImages(FederationUser federationUser) throws Exception;
+     Map<String, String> getAllImages(FederationUserToken federationUserToken) throws Exception;
 
     /**
      * Gets the information about a given image.
      *
      * @return the requested image
      * @param imageId the Id of the image to be retrieved
-     * @param federationUser the attributes of the federation user
+     * @param federationUserToken the attributes of the federation user
      * @throws FogbowManagerException
      */
-     Image getImage(String imageId, FederationUser federationUser) throws Exception;
+     Image getImage(String imageId, FederationUserToken federationUserToken) throws Exception;
 }

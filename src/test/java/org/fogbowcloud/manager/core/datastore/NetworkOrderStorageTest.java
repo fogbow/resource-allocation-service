@@ -4,8 +4,7 @@ import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.*;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
-import org.fogbowcloud.manager.core.plugins.cloud.util.CloudInitUserDataBuilder;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -19,11 +18,11 @@ public class NetworkOrderStorageTest extends DatabaseManagerTest {
     public void testAddExistingNetworkOrder() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        Order networkOrder = new NetworkOrder(federationUser,
+
+        Order networkOrder = new NetworkOrder(federationUserToken,
                 "requestingMember", "providingMember", "gateway",
                 "address", NetworkAllocationMode.STATIC);
         networkOrder.setOrderStateInTestMode(OrderState.OPEN);
@@ -39,11 +38,10 @@ public class NetworkOrderStorageTest extends DatabaseManagerTest {
     public void testAddNetworkOrder() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        Order networkOrder = new NetworkOrder(federationUser,
+        Order networkOrder = new NetworkOrder(federationUserToken,
                 "requestingMember", "providingMember", "gateway",
                 "address", NetworkAllocationMode.STATIC);
         networkOrder.setOrderStateInTestMode(OrderState.OPEN);
@@ -69,11 +67,10 @@ public class NetworkOrderStorageTest extends DatabaseManagerTest {
     public void testUpdateNetworkOrderState() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        Order networkOrder = new NetworkOrder(federationUser,
+        Order networkOrder = new NetworkOrder(federationUserToken,
                 "requestingMember", "providingMember", "gateway",
                 "address", NetworkAllocationMode.STATIC);
         networkOrder.setOrderStateInTestMode(OrderState.OPEN);
@@ -99,11 +96,10 @@ public class NetworkOrderStorageTest extends DatabaseManagerTest {
     public void testUpdateNonexistingNetworkOrder() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        Order networkOrder = new NetworkOrder(federationUser,
+        Order networkOrder = new NetworkOrder(federationUserToken,
                 "requestingMember", "providingMember", "gateway",
                 "address", NetworkAllocationMode.STATIC);
         networkOrder.setOrderStateInTestMode(OrderState.FULFILLED);
@@ -117,11 +113,10 @@ public class NetworkOrderStorageTest extends DatabaseManagerTest {
     public void testGetClosedOrderWithoutInstanceId() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        Order networkOrder = new NetworkOrder(federationUser,
+        Order networkOrder = new NetworkOrder(federationUserToken,
                 "requestingMember", "providingMember", "gateway",
                 "address", NetworkAllocationMode.STATIC);
         networkOrder.setOrderStateInTestMode(OrderState.CLOSED);
@@ -144,11 +139,10 @@ public class NetworkOrderStorageTest extends DatabaseManagerTest {
     public void testGetClosedOrderWithInstanceId() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        Order networkOrder = new NetworkOrder(federationUser,
+        Order networkOrder = new NetworkOrder(federationUserToken,
                 "requestingMember", "providingMember", "gateway",
                 "address", NetworkAllocationMode.STATIC);
         networkOrder.setOrderStateInTestMode(OrderState.CLOSED);

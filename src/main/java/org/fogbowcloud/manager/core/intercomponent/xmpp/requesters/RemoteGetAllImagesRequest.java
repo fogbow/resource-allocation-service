@@ -7,7 +7,7 @@ import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppErrorConditionToExce
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.xmpp.packet.IQ;
 import com.google.gson.Gson;
 import java.util.HashMap;
@@ -17,16 +17,16 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
     private static final Logger LOGGER = Logger.getLogger(RemoteGetAllImagesRequest.class);
 
     private String provider;
-    private FederationUser federationUser;
+    private FederationUserToken federationUserToken;
 
-    public RemoteGetAllImagesRequest(String provider, FederationUser federationUser) {
+    public RemoteGetAllImagesRequest(String provider, FederationUserToken federationUserToken) {
         this.provider = provider;
-        this.federationUser = federationUser;
+        this.federationUserToken = federationUserToken;
     }
 
     @Override
     public HashMap<String, String> send() throws Exception {
-        IQ iq = RemoteGetAllImagesRequest.marshal(this.provider, this.federationUser);
+        IQ iq = RemoteGetAllImagesRequest.marshal(this.provider, this.federationUserToken);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
@@ -34,8 +34,8 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
         return unmarshalImages(response);
     }
 
-    public static IQ marshal(String provider, FederationUser federationUser) {
-        LOGGER.debug("Marshalling provider <" + provider + "> and federationUser <" + federationUser + ">");
+    public static IQ marshal(String provider, FederationUserToken federationUserToken) {
+        LOGGER.debug("Marshalling provider <" + provider + "> and federationUserToken <" + federationUserToken + ">");
 
         IQ iq = new IQ(IQ.Type.get);
         iq.setTo(provider);
@@ -47,7 +47,7 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
         memberIdElement.setText(provider);
 
         Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
-        userElement.setText(new Gson().toJson(federationUser));
+        userElement.setText(new Gson().toJson(federationUserToken));
 
         return iq;
     }

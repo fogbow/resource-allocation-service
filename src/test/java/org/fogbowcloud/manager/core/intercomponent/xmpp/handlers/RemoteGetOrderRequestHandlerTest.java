@@ -1,8 +1,7 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
@@ -11,7 +10,7 @@ import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
@@ -65,13 +64,13 @@ public class RemoteGetOrderRequestHandlerTest {
     @Test
     public void testHandleWithValidIQ() throws Exception {
         // set up
-        FederationUser federationUser = createFederationUser();
-        Order order = createOrder(federationUser);
+        FederationUserToken federationUserToken = createFederationUserToken();
+        Order order = createOrder(federationUserToken);
         String orderId = order.getId();
         Instance instance = new Instance(FAKE_INSTANCE_ID);
 
         Mockito.when(
-            this.remoteFacade.getResourceInstance(Mockito.eq(orderId), Mockito.eq(federationUser),
+            this.remoteFacade.getResourceInstance(Mockito.eq(orderId), Mockito.eq(federationUserToken),
                 Mockito.eq(ResourceType.COMPUTE))).thenReturn(instance);
 
         IQ iq = RemoteGetOrderRequest.marshal(order);
@@ -81,7 +80,7 @@ public class RemoteGetOrderRequestHandlerTest {
 
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).getResourceInstance(Mockito.eq(orderId),
-            Mockito.eq(federationUser), Mockito.eq(ResourceType.COMPUTE));
+            Mockito.eq(federationUserToken), Mockito.eq(ResourceType.COMPUTE));
 
         String iqId = iq.getID();
         String providingMember = order.getProvidingMember();
@@ -96,12 +95,12 @@ public class RemoteGetOrderRequestHandlerTest {
     @Test
     public void testHandleWhenThrowsException() throws Exception {
         // set up
-        FederationUser federationUser = null;
-        Order order = createOrder(federationUser);
+        FederationUserToken federationUserToken = null;
+        Order order = createOrder(federationUserToken);
         String orderId = order.getId();
 
         Mockito.when(
-            this.remoteFacade.getResourceInstance(Mockito.eq(orderId), Mockito.eq(federationUser),
+            this.remoteFacade.getResourceInstance(Mockito.eq(orderId), Mockito.eq(federationUserToken),
                 Mockito.eq(ResourceType.COMPUTE))).thenThrow(new Exception());
 
         IQ iq = RemoteGetOrderRequest.marshal(order);
@@ -111,7 +110,7 @@ public class RemoteGetOrderRequestHandlerTest {
 
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).getResourceInstance(Mockito.eq(orderId),
-            Mockito.eq(federationUser), Mockito.eq(ResourceType.COMPUTE));
+            Mockito.eq(federationUserToken), Mockito.eq(ResourceType.COMPUTE));
 
         String iqId = iq.getID();
         String providingMember = order.getProvidingMember();
@@ -120,16 +119,17 @@ public class RemoteGetOrderRequestHandlerTest {
         Assert.assertEquals(expected, result.toString());
     }
 
-    private Order createOrder(FederationUser federationUser) throws InvalidParameterException {
-        return new ComputeOrder(federationUser, "requestingMember", "providingmember", 1, 2, 3,
+    private Order createOrder(FederationUserToken federationUserToken) {
+        return new ComputeOrder(federationUserToken, "requestingMember",
+                "providingmember", 1, 2, 3,
             "imageId", null,
             "publicKey", new ArrayList<>());
     }
 
-    private FederationUser createFederationUser() throws InvalidParameterException {
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put("user-name", "fogbow");
-        return new FederationUser("fake-id", attributes);
+    private FederationUserToken createFederationUserToken() throws InvalidParameterException {
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
+        return federationUserToken;
     }
 
 }

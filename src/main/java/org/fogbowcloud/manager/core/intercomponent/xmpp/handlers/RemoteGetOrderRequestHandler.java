@@ -7,7 +7,7 @@ import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 import com.google.gson.Gson;
@@ -24,13 +24,12 @@ public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
     public IQ handle(IQ iq) {
         String orderId = unmarshalOrderId(iq);
         ResourceType resourceType = unmarshalResourceType(iq);
-        FederationUser federationUser = unmarshalFederationUser(iq);
+        FederationUserToken federationUserToken = unmarshalFederationUser(iq);
 
         IQ response = IQ.createResultIQ(iq);
-
         try {
             Instance instance = RemoteFacade.getInstance().getResourceInstance(orderId,
-                    federationUser, resourceType);
+                    federationUserToken, resourceType);
 
             //on success, update response with instance data
             updateResponse(response, instance);
@@ -55,14 +54,14 @@ public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
         instanceElement.setText(new Gson().toJson(instance));
     }
 
-    private FederationUser unmarshalFederationUser(IQ iq) {
-        Element federationUserElement =
+    private FederationUserToken unmarshalFederationUser(IQ iq) {
+        Element federationUserTokenElement =
                 iq.getElement().element(IqElement.FEDERATION_USER.toString());
 
-        FederationUser federationUser =
-                new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
+        FederationUserToken federationUserToken =
+                new Gson().fromJson(federationUserTokenElement.getText(), FederationUserToken.class);
 
-        return federationUser;
+        return federationUserToken;
     }
 
     private ResourceType unmarshalResourceType(IQ iq) {

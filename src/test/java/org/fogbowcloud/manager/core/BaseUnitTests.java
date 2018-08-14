@@ -10,7 +10,7 @@ import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 
 import org.junit.After;
 
@@ -74,15 +74,15 @@ public class BaseUnitTests {
         return createOrder(requestingMember, providingMember);
     }
 
-    private Order createOrder(String requestingMember, String providingMember) {
-        FederationUser federationUser = Mockito.mock(FederationUser.class);
+    protected Order createOrder(String requestingMember, String providingMember) {
+        FederationUserToken federationUserToken = Mockito.mock(FederationUserToken.class);
         UserData userData = Mockito.mock(UserData.class);
         String imageName = "fake-image-name";
         String publicKey = "fake-public-key";
 
         Order localOrder =
                 new ComputeOrder(
-                        federationUser,
+                        federationUserToken,
                         requestingMember,
                         providingMember,
                         8,
