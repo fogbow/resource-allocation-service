@@ -35,7 +35,13 @@ public class AaControllerTest {
     	Mockito.when(this.behaviorPluginsHolderMock.getFederationToLocalMapperPlugin()).thenReturn(this.federationToLocalMapperPluginMock);
     	this.aaController = new AaController(this.behaviorPluginsHolderMock);
     }
-    
+
+    @Test(expected = UnauthorizedRequestException.class)
+    public void testGettingOrderWithNonAuthorizedUser() throws UnauthorizedRequestException {
+        // TODO implement this
+        throw new UnauthorizedRequestException();
+    }
+
     //test case: Check if authenticate method throws no exception when the federation token is valid and federation token
     //id is properly passed as parameter.
     @Test

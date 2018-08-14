@@ -83,7 +83,7 @@ public class OrderControllerTest extends BaseUnitTests {
         String orderId = getComputeOrderCreationId(OrderState.OPEN);
         Order order = createOrder();
         Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, FAKE_NAME);
         FederationUser federationUser = new FederationUser("fake-user", attributes);
         // exercise
         this.ordersController.getOrder(orderId);
@@ -107,7 +107,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: when try to delete an Order closed, it must raise an InstanceNotFoundException.
     @Test(expected = InstanceNotFoundException.class) // verify
-    public void testDeleteOrderThrowsInstanceNotFoundException()
+    public void testDeleteClosedOrderThrowsInstanceNotFoundException()
             throws InvalidParameterException, InstanceNotFoundException, UnexpectedException {
         
         // set up
@@ -123,8 +123,8 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testGetAllInstancesStatus() throws InvalidParameterException {
         // set up
         Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-id", attributes);
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, FAKE_NAME);
+        FederationUser federationUser = new FederationUser(FAKE_ID, attributes);
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setFederationUser(federationUser);
         computeOrder.setRequestingMember(this.localMember);
@@ -176,7 +176,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
     // test case: Get a not active Order, must throw InstanceNotFoundException.
     @Test(expected = InstanceNotFoundException.class) // verify
-    public void testGetOrderNotActive() throws InstanceNotFoundException {
+    public void testGetInactiveOrder() throws InstanceNotFoundException {
         // set up
         Order order = createOrder();
         String orderId = order.getId();
@@ -227,7 +227,7 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testGetUserAllocation() throws UnexpectedException, InvalidParameterException {
         // set up
         Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, FAKE_NAME);
         FederationUser federationUser = new FederationUser("fake-user", attributes);
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setFederationUser(federationUser);
@@ -251,14 +251,14 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(computeOrder.getActualAllocation().getvCPU(), allocation.getvCPU());
     }
 
-    // test case: Tests if getUserAllocation() throws UnexpectedException when there is no any order
-    // with the ResourceType specified.
-    @Test(expected = UnexpectedException.class)
+    // test case: Tests if getUserAllocation() throws UnexpectedException when the resource
+    // type is not compute (we're not supporting other resource types)
+    @Test
     public void testGetUserAllocationWithInvalidInstanceType()
             throws UnexpectedException, InvalidParameterException {
         // set up
         Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, FAKE_NAME);
         FederationUser federationUser = new FederationUser("fake-user", attributes);
         NetworkOrder networkOrder = new NetworkOrder();
         networkOrder.setFederationUser(federationUser);
@@ -405,6 +405,12 @@ public class OrderControllerTest extends BaseUnitTests {
             throws UnexpectedException, InstanceNotFoundException, InvalidParameterException {
         // exercise
         this.ordersController.deleteOrder(null);
+    }
+
+    // test case: Getting an order with an unexisting id must throw an InstanceNotFoundException
+    @Test(expected = InstanceNotFoundException.class)
+    public void testGetOrderWithInvalidId() throws InstanceNotFoundException {
+        this.ordersController.getOrder("invalid-order-id");
     }
 
     private String getComputeOrderCreationId(OrderState orderState)
