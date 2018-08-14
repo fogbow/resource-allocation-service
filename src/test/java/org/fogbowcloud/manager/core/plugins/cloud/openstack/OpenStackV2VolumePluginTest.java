@@ -156,7 +156,6 @@ public class OpenStackV2VolumePluginTest {
         this.openStackV2VolumePlugin.deleteInstance(FAKE_INSTANCE_ID, tokenDefault);
     }
 
-    @Ignore
     @Test
     public void getInstanceState() {
         // TODO

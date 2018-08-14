@@ -45,9 +45,9 @@ public class HttpExceptionToErrorConditionTranslatorTest {
 	}
 
 	//test case:
-	@Ignore
 	@Test
 	public void testHttpExceptionToErrorConditionTranslator() {
+		// TODO
 		//set up
 
 		//exercise
