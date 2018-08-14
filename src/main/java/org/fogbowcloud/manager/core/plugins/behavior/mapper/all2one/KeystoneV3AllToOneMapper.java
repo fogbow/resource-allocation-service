@@ -14,7 +14,7 @@ public class KeystoneV3AllToOneMapper implements FederationToLocalMapperPlugin {
 
     public KeystoneV3AllToOneMapper() {
         this.genericMapper = new GenericAllToOneFederationToLocalMapper(new KeystoneV3TokenGenerator(),
-                new KeystoneV3IdentityPlugin(), "keystoneV3-mapper.conf");
+                new KeystoneV3IdentityPlugin(), "keystonev3-mapper.conf");
     }
 
     @Override

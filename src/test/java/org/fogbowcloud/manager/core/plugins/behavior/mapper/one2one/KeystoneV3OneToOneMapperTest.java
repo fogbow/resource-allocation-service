@@ -115,4 +115,5 @@ public class KeystoneV3OneToOneMapperTest {
         Assert.assertEquals(token2, mappedToken2);
         Assert.assertNotEquals(mappedToken1, mappedToken2);
     }
+
 }
