@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.core.models.orders;
 import java.util.UUID;
 
 import org.fogbowcloud.manager.core.models.ResourceType;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 
 public class NetworkOrder extends Order {
 
@@ -16,17 +16,17 @@ public class NetworkOrder extends Order {
     }
     
     /** Creating Order with predefined Id. */
-    public NetworkOrder(String id, FederationUser federationUser, String requestingMember, String providingMember,
-            String gateway, String address, NetworkAllocationMode allocation) {
-        super(id, federationUser, requestingMember, providingMember);
+    public NetworkOrder(String id, FederationUserToken federationUserToken, String requestingMember, String providingMember,
+                        String gateway, String address, NetworkAllocationMode allocation) {
+        super(id, federationUserToken, requestingMember, providingMember);
         this.gateway = gateway;
         this.address = address;
         this.allocation = allocation;
     }
 
-    public NetworkOrder(FederationUser federationUser, String requestingMember, String providingMember,
-            String gateway, String address, NetworkAllocationMode allocation) {
-        this(UUID.randomUUID().toString(), federationUser, requestingMember, providingMember,
+    public NetworkOrder(FederationUserToken federationUserToken, String requestingMember, String providingMember,
+                        String gateway, String address, NetworkAllocationMode allocation) {
+        this(UUID.randomUUID().toString(), federationUserToken, requestingMember, providingMember,
                 gateway, address, allocation);
     }
 

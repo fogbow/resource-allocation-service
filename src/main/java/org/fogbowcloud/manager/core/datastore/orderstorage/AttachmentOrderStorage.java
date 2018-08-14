@@ -2,12 +2,11 @@ package org.fogbowcloud.manager.core.datastore.orderstorage;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.datastore.commands.AttachmentSQLCommands;
-import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 
 import java.sql.*;
 import java.util.Date;
@@ -143,8 +142,9 @@ public class AttachmentOrderStorage extends OrderStorage {
 
                 Map<String, String> federationUserAttr = getFederationUserAttrFromString(attachmentResult.getString(5));
 
+                // TODO: fix the null fields (we will probably change the whole implementation, though)
                 AttachmentOrder attachmentOrder = new AttachmentOrder(attachmentResult.getString(1),
-                        new FederationUser(attachmentResult.getString(4), federationUserAttr),
+                        new FederationUserToken(null, null, attachmentResult.getString(4), null),
                         attachmentResult.getString(6), attachmentResult.getString(7),
                         attachmentResult.getString(8), attachmentResult.getString(9),
                         attachmentResult.getString(10));
@@ -166,10 +166,6 @@ public class AttachmentOrderStorage extends OrderStorage {
                 LOGGER.error("Couldn't rollback transaction.", e1);
                 throw e1;
             }
-
-            throw e;
-        } catch (InvalidParameterException e) {
-            LOGGER.error(e);
         } finally {
             closeConnection(orderStatement, connection);
         }

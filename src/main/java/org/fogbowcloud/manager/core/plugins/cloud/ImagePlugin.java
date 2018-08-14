@@ -7,9 +7,9 @@ import org.fogbowcloud.manager.core.models.tokens.Token;
 
 import java.util.Map;
 
-public interface ImagePlugin {
+public interface ImagePlugin<T extends Token> {
 
-    Map<String, String> getAllImages(Token localToken) throws FogbowManagerException, UnexpectedException;
+    Map<String, String> getAllImages(T localUserAttributes) throws FogbowManagerException, UnexpectedException;
 
-    Image getImage(String imageId, Token localToken) throws FogbowManagerException, UnexpectedException;
+    Image getImage(String imageId, T localUserAttributes) throws FogbowManagerException, UnexpectedException;
 }

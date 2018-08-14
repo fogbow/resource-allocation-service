@@ -11,18 +11,18 @@ import org.fogbowcloud.manager.core.plugins.cloud.ImagePlugin;
  * This class is a stub for the ImagePlugin interface used for tests only.
  * Should not have a proper implementation.
  */
-public class StubImagePlugin implements ImagePlugin {
+public class StubImagePlugin implements ImagePlugin<Token> {
 
     public StubImagePlugin() {}
     
     @Override
-    public Map<String, String> getAllImages(Token localToken)
+    public Map<String, String> getAllImages(Token token)
             throws FogbowManagerException, UnexpectedException {
         return null;
     }
 
     @Override
-    public Image getImage(String imageId, Token localToken)
+    public Image getImage(String imageId, Token token)
             throws FogbowManagerException, UnexpectedException {
         return null;
     }

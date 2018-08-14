@@ -10,6 +10,7 @@ import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.authentication.AuthenticationPlugin;
+import org.fogbowcloud.manager.core.plugins.behavior.identity.FederationIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
@@ -59,8 +60,7 @@ public class PluginInstantiator {
 
     public ComputeQuotaPlugin getComputeQuotaPlugin() {
         String className = this.properties.getProperty(ConfigurationConstants.COMPUTE_QUOTA_PLUGIN_CLASS_KEY);
-        return (ComputeQuotaPlugin)
-                this.pluginFactory.createPluginInstance(className);
+        return (ComputeQuotaPlugin) this.pluginFactory.createPluginInstance(className);
     }
 
     public NetworkPlugin getNetworkPlugin() {
@@ -80,21 +80,22 @@ public class PluginInstantiator {
 
     public AuthorizationPlugin getAuthorizationPlugin() {
         String className = this.properties.getProperty(ConfigurationConstants.AUTHORIZATION_PLUGIN_CLASS_KEY);
-        return (AuthorizationPlugin)
-                this.pluginFactory.createPluginInstance(className);
+        return (AuthorizationPlugin) this.pluginFactory.createPluginInstance(className);
     }
 
-    public AuthenticationPlugin getFederationIdentityPlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.FEDERATION_IDENTITY_PLUGIN_CLASS_KEY);
-        return (AuthenticationPlugin)
-                this.pluginFactory.createPluginInstance(className);
+    public AuthenticationPlugin getAuthenticationPlugin() {
+        String className = this.properties.getProperty(ConfigurationConstants.AUTHENTICATION_PLUGIN_CLASS_KEY);
+        return (AuthenticationPlugin) this.pluginFactory.createPluginInstance(className);
     }
 
     public FederationToLocalMapperPlugin getLocalUserCredentialsMapperPlugin() {
-        String className = this.properties.getProperty(
-                ConfigurationConstants.LOCAL_USER_CREDENTIALS_MAPPER_PLUGIN_CLASS_KEY);
-        return (FederationToLocalMapperPlugin)
-                this.pluginFactory.createPluginInstance(className);
+        String className = this.properties.getProperty(ConfigurationConstants.LOCAL_USER_CREDENTIALS_MAPPER_PLUGIN_CLASS_KEY);
+        return (FederationToLocalMapperPlugin) this.pluginFactory.createPluginInstance(className);
+    }
+
+    public FederationIdentityPlugin getFederationIdentityPlugin() {
+        String className = this.properties.getProperty(ConfigurationConstants.FEDERATION_IDENTITY_PLUGIN_CLASS_KEY);
+        return (FederationIdentityPlugin) this.pluginFactory.createPluginInstance(className);
     }
 
     /** Used only for tests */

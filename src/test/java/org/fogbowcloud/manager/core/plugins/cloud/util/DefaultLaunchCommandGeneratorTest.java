@@ -9,7 +9,7 @@ import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.UserData;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -256,7 +256,7 @@ public class DefaultLaunchCommandGeneratorTest {
     }
 
     private ComputeOrder createComputeOrder() {
-        FederationUser federationUser = Mockito.mock(FederationUser.class);
+        FederationUserToken federationUserToken = Mockito.mock(FederationUserToken.class);
         UserData userData = new UserData(EXTRA_USER_DATA_FILE, this.extraUserDataFileType);
         String imageName = "fake-image-name";
         String requestingMember =
@@ -267,7 +267,7 @@ public class DefaultLaunchCommandGeneratorTest {
 
         ComputeOrder localOrder =
                 new ComputeOrder(
-                        federationUser,
+                        federationUserToken,
                         requestingMember,
                         providingMember,
                         8,
@@ -281,7 +281,7 @@ public class DefaultLaunchCommandGeneratorTest {
     }
 
     private ComputeOrder createComputeOrderWithoutExtraUserData() {
-        FederationUser federationUser = Mockito.mock(FederationUser.class);
+        FederationUserToken federationUserToken = Mockito.mock(FederationUserToken.class);
         UserData userData = new UserData(null, null);
         String imageName = "fake-image-name";
         String requestingMember =
@@ -292,7 +292,7 @@ public class DefaultLaunchCommandGeneratorTest {
 
         ComputeOrder localOrder =
                 new ComputeOrder(
-                		federationUser,
+                        federationUserToken,
                         requestingMember,
                         providingMember,
                         8,
@@ -306,7 +306,7 @@ public class DefaultLaunchCommandGeneratorTest {
     }
 
     private ComputeOrder createComputeOrderWithoutPublicKey() {
-    	FederationUser federationUser = Mockito.mock(FederationUser.class);
+    	FederationUserToken federationUserToken = Mockito.mock(FederationUserToken.class);
         UserData userData = new UserData(EXTRA_USER_DATA_FILE, this.extraUserDataFileType);
         String imageName = "fake-image-name";
         String requestingMember =
@@ -316,7 +316,7 @@ public class DefaultLaunchCommandGeneratorTest {
 
         ComputeOrder localOrder =
                 new ComputeOrder(
-                		federationUser,
+                        federationUserToken,
                         requestingMember,
                         providingMember,
                         8,

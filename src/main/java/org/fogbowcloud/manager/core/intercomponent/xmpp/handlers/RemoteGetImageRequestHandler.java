@@ -8,7 +8,7 @@ import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.manager.core.models.images.Image;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 
@@ -26,11 +26,11 @@ public class RemoteGetImageRequestHandler extends AbstractQueryHandler {
     public IQ handle(IQ iq) {
         String imageId = unmarshalImageId(iq);
         String memberId = unmarshalMemberId(iq);
-        FederationUser federationUser = unmarshalFederationUser(iq);
+        FederationUserToken federationUserToken = unmarshalFederationUser(iq);
 
         IQ response = IQ.createResultIQ(iq);
         try {
-            Image image = RemoteFacade.getInstance().getImage(memberId, imageId, federationUser);
+            Image image = RemoteFacade.getInstance().getImage(memberId, imageId, federationUserToken);
             updateResponse(response, image);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
@@ -65,11 +65,11 @@ public class RemoteGetImageRequestHandler extends AbstractQueryHandler {
         return memberIdElement.getText();
     }
 
-    private FederationUser unmarshalFederationUser(IQ iq) {
+    private FederationUserToken unmarshalFederationUser(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
 
-        Element federationUserElement = queryElement.element(IqElement.FEDERATION_USER.toString());
-        return new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
+        Element federationUserTokenElement = queryElement.element(IqElement.FEDERATION_USER.toString());
+        return new Gson().fromJson(federationUserTokenElement.getText(), FederationUserToken.class);
     }
 
 }

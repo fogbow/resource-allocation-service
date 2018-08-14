@@ -11,23 +11,23 @@ import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
  * This class is a stub for the AttachmentPlugin interface used for tests only.
  * Should not have a proper implementation.
  */
-public class StubAttachmentPlugin implements AttachmentPlugin {
+public class StubAttachmentPlugin implements AttachmentPlugin<Token> {
 
     public StubAttachmentPlugin() {}
     
     @Override
-    public String requestInstance(AttachmentOrder attachmentOrder, Token localToken)
+    public String requestInstance(AttachmentOrder attachmentOrder, Token token)
             throws FogbowManagerException, UnexpectedException {
         return null;
     }
 
     @Override
-    public void deleteInstance(String attachmentInstanceId, Token localToken)
+    public void deleteInstance(String attachmentInstanceId, Token token)
             throws FogbowManagerException, UnexpectedException {
     }
 
     @Override
-    public AttachmentInstance getInstance(String attachmentInstanceId, Token localToken)
+    public AttachmentInstance getInstance(String attachmentInstanceId, Token token)
             throws FogbowManagerException, UnexpectedException {
         return null;
     }

@@ -11,24 +11,24 @@ import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
  * This class is a stub for the NetworkPlugin interface used for tests only.
  * Should not have a proper implementation.
  */
-public class StubNetworkPlugin implements NetworkPlugin {
+public class StubNetworkPlugin implements NetworkPlugin<Token> {
 
     public StubNetworkPlugin() {}
     
     @Override
-    public String requestInstance(NetworkOrder networkOrder, Token localToken)
+    public String requestInstance(NetworkOrder networkOrder, Token token)
             throws FogbowManagerException, UnexpectedException {
         return null;
     }
 
     @Override
-    public NetworkInstance getInstance(String networkInstanceId, Token localToken)
+    public NetworkInstance getInstance(String networkInstanceId, Token token)
             throws FogbowManagerException, UnexpectedException {
         return null;
     }
 
     @Override
-    public void deleteInstance(String networkInstanceId, Token localToken)
+    public void deleteInstance(String networkInstanceId, Token token)
             throws FogbowManagerException, UnexpectedException {
     }
 

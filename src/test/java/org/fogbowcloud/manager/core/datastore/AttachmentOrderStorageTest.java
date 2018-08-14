@@ -6,7 +6,7 @@ import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedL
 import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -20,11 +20,10 @@ public class AttachmentOrderStorageTest extends DatabaseManagerTest {
     public void testAddAttachmentOrder() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        Order attachmentOrder = new AttachmentOrder(federationUser, "requestingMember",
+        Order attachmentOrder = new AttachmentOrder(federationUserToken, "requestingMember",
                 "providingMember", "source", "target", "device");
         attachmentOrder.setOrderStateInTestMode(OrderState.OPEN);
 
@@ -49,12 +48,10 @@ public class AttachmentOrderStorageTest extends DatabaseManagerTest {
     public void testAddExistingAttachmentOrder() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
-
-        Order attachmentOrder = new AttachmentOrder(federationUser, "requestingMember",
+        Order attachmentOrder = new AttachmentOrder(federationUserToken, "requestingMember",
                 "providingMember", "source", "target", "device");
         attachmentOrder.setOrderStateInTestMode(OrderState.OPEN);
 
@@ -70,11 +67,10 @@ public class AttachmentOrderStorageTest extends DatabaseManagerTest {
     public void testUpdateAttachmentOrderState() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        Order attachmentOrder = new AttachmentOrder(federationUser, "requestingMember",
+        Order attachmentOrder = new AttachmentOrder(federationUserToken, "requestingMember",
                 "providingMember", "source", "target", "device");
         attachmentOrder.setOrderStateInTestMode(OrderState.OPEN);
 
@@ -102,11 +98,10 @@ public class AttachmentOrderStorageTest extends DatabaseManagerTest {
     public void testUpdateNonexistingAttachmentOrder() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        Order attachmentOrder = new AttachmentOrder(federationUser, "requestingMember",
+        Order attachmentOrder = new AttachmentOrder(federationUserToken, "requestingMember",
                 "providingMember", "source", "target", "device");
         attachmentOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 
@@ -119,11 +114,10 @@ public class AttachmentOrderStorageTest extends DatabaseManagerTest {
     public void testGetClosedOrderWithoutInstanceId() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        Order attachmentOrder = new AttachmentOrder(federationUser, "requestingMember",
+        Order attachmentOrder = new AttachmentOrder(federationUserToken, "requestingMember",
                 "providingMember", "source", "target", "device");
         attachmentOrder.setOrderStateInTestMode(OrderState.CLOSED);
 
@@ -145,11 +139,10 @@ public class AttachmentOrderStorageTest extends DatabaseManagerTest {
     public void testGetClosedOrderWithInstanceId() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        Order attachmentOrder = new AttachmentOrder(federationUser, "requestingMember",
+        Order attachmentOrder = new AttachmentOrder(federationUserToken, "requestingMember",
                 "providingMember", "source", "target", "device");
         attachmentOrder.setOrderStateInTestMode(OrderState.CLOSED);
         attachmentOrder.setInstanceId("instanceId");

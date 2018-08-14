@@ -7,7 +7,7 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 
-public interface ComputePlugin {
+public interface ComputePlugin<T extends Token> {
 
     /**
      * This method requests the virtual machine creation on a provider.
@@ -16,17 +16,17 @@ public interface ComputePlugin {
      * be different from what was originally requested in the order.
      *
      * @param computeOrder {@link Order} for creating a virtual machine.
-     * @param localToken
+     * @param localUserAttributes
      * @return Instance ID.
      * @throws FogbowManagerException {@link FogbowManagerException} When request fails.
      */
-    public String requestInstance(ComputeOrder computeOrder, Token localToken)
+    public String requestInstance(ComputeOrder computeOrder, T localUserAttributes)
             throws FogbowManagerException, UnexpectedException;
 
-    public ComputeInstance getInstance(String computeInstanceId, Token localToken)
+    public ComputeInstance getInstance(String computeInstanceId, T localUserAttributes)
             throws FogbowManagerException, UnexpectedException;
 
-    public void deleteInstance(String computeInstanceId, Token localToken)
+    public void deleteInstance(String computeInstanceId, T localUserAttributes)
             throws FogbowManagerException, UnexpectedException;
 
 }

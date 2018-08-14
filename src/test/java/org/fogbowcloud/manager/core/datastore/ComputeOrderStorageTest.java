@@ -5,7 +5,7 @@ import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.*;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.manager.core.plugins.cloud.util.CloudInitUserDataBuilder;
 import org.junit.Assert;
 import org.junit.Test;
@@ -20,11 +20,10 @@ public class ComputeOrderStorageTest extends DatabaseManagerTest {
     public void testAddExistingComputeOrder() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        Order computeOrder = new ComputeOrder(federationUser,
+        Order computeOrder = new ComputeOrder(federationUserToken,
                 "requestingMember", "providingMember", 8, 1024,
                 30, "fake_image_name", new UserData("extraUserDataFile",
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), "fake_public_key", null);
@@ -41,11 +40,11 @@ public class ComputeOrderStorageTest extends DatabaseManagerTest {
     public void testAddComputeOrder() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        Order computeOrder = new ComputeOrder(federationUser,
+
+        Order computeOrder = new ComputeOrder(federationUserToken,
                 "requestingMember", "providingMember", 8, 1024,
                 30, "fake_image_name", new UserData("extraUserDataFile",
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), "fake_public_key", null);
@@ -72,11 +71,10 @@ public class ComputeOrderStorageTest extends DatabaseManagerTest {
     public void testUpdateComputeOrderState() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        ComputeOrder computeOrder = new ComputeOrder("id", federationUser,
+        ComputeOrder computeOrder = new ComputeOrder("id", federationUserToken,
                 "requestingMember", "providingMember", 8, 1024,
                 30, "fake_image_name", new UserData("extraUserDataFile",
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), "fake_public_key", null);
@@ -107,11 +105,10 @@ public class ComputeOrderStorageTest extends DatabaseManagerTest {
     public void testUpdateNonexistingComputeOrder() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        ComputeOrder computeOrder = new ComputeOrder("id", federationUser,
+        ComputeOrder computeOrder = new ComputeOrder("id", federationUserToken,
                 "requestingMember", "providingMember", 8, 1024,
                 30, "fake_image_name", new UserData("extraUserDataFile",
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), "fake_public_key", null);
@@ -126,11 +123,10 @@ public class ComputeOrderStorageTest extends DatabaseManagerTest {
     public void testGetClosedOrderWithoutInstanceId() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        ComputeOrder computeOrder = new ComputeOrder("id", federationUser,
+        ComputeOrder computeOrder = new ComputeOrder("id", federationUserToken,
                 "requestingMember", "providingMember", 8, 1024,
                 30, "fake_image_name", new UserData("extraUserDataFile",
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), "fake_public_key", null);
@@ -154,11 +150,10 @@ public class ComputeOrderStorageTest extends DatabaseManagerTest {
     public void testGetClosedOrderWithInstanceId() throws InvalidParameterException, UnexpectedException {
         // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
-        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        ComputeOrder computeOrder = new ComputeOrder("id", federationUser,
+        ComputeOrder computeOrder = new ComputeOrder("id", federationUserToken,
                 "requestingMember", "providingMember", 8, 1024,
                 30, "fake_image_name", new UserData("extraUserDataFile",
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), "fake_public_key", null);

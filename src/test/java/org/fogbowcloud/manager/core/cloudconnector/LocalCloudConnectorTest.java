@@ -4,9 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
-import org.fogbowcloud.manager.core.AaController;
 import org.fogbowcloud.manager.core.BaseUnitTests;
 import org.fogbowcloud.manager.core.CloudPluginsHolder;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
@@ -14,6 +12,8 @@ import org.fogbowcloud.manager.core.datastore.DatabaseManager;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.*;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
@@ -43,8 +43,6 @@ import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
-import org.fogbowcloud.manager.core.models.tokens.Token;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({DatabaseManager.class})
@@ -74,7 +72,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	
 	private Order order;
 	private Image image;
-	private FederationUser federationUser;
+	private FederationUserToken federationUserToken;
 	
 	private NetworkInstance networkInstance;
 	private VolumeInstance volumeInstance;
@@ -99,7 +97,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         FederationToLocalMapperPlugin mapperPlugin = Mockito.mock(FederationToLocalMapperPlugin.class);
         CloudPluginsHolder cloudPluginsHolder = Mockito.mock(CloudPluginsHolder.class);  
         
-        this.federationUser = Mockito.mock(FederationUser.class);
+        this.federationUserToken = Mockito.mock(FederationUserToken.class);
         this.computePlugin = Mockito.mock(ComputePlugin.class);
         this.attachmentPlugin = Mockito.mock(AttachmentPlugin.class);
         this.networkPlugin = Mockito.mock(NetworkPlugin.class);
@@ -130,7 +128,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(cloudPluginsHolder.getVolumePlugin()).thenReturn(volumePlugin);
         Mockito.when(cloudPluginsHolder.getImagePlugin()).thenReturn(imagePlugin);
         Mockito.when(cloudPluginsHolder.getComputeQuotaPlugin()).thenReturn(computeQuotaPlugin);
-        Mockito.when(mapperPlugin.getToken(Mockito.any(FederationUser.class))).thenReturn(new Token());
+        Mockito.when(mapperPlugin.map(Mockito.any(FederationUserToken.class))).thenReturn(new Token());
         
         // starting the object we want to test
         this.localCloudConnector = new LocalCloudConnector(mapperPlugin, cloudPluginsHolder);
@@ -821,7 +819,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	    Mockito.when(this.imagePlugin.getImage(Mockito.any(String.class), Mockito.any(Token.class))).thenReturn(this.image);
 	    
 	    // exercise
-	    String returnedImageId = this.localCloudConnector.getImage(FAKE_IMAGE_ID, federationUser).getId();
+	    String returnedImageId = this.localCloudConnector.getImage(FAKE_IMAGE_ID, federationUserToken).getId();
 	    
 	    // verify
 		Assert.assertEquals(FAKE_IMAGE_ID, returnedImageId);
@@ -836,7 +834,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	    Mockito.when(this.imagePlugin.getImage(Mockito.any(String.class), Mockito.any(Token.class))).thenReturn(null);
 	    
 	    // exercise
-	    Image image = this.localCloudConnector.getImage(FAKE_IMAGE_ID, federationUser);
+	    Image image = this.localCloudConnector.getImage(FAKE_IMAGE_ID, federationUserToken);
 	    
 	    // verify
 		Assert.assertNull(image);
@@ -855,7 +853,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	    Mockito.when(this.computeQuotaPlugin.getUserQuota(Mockito.any(Token.class))).thenReturn(fakeComputeQuota);
 	    
 	    // exercise
-	    ComputeQuota quota = (ComputeQuota) this.localCloudConnector.getUserQuota(federationUser, ResourceType.COMPUTE);
+	    ComputeQuota quota = (ComputeQuota) this.localCloudConnector.getUserQuota(federationUserToken, ResourceType.COMPUTE);
 	    
 	    // verify
 	    Assert.assertEquals(VCPU_TOTAL, quota.getTotalQuota().getvCPU());
@@ -872,7 +870,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	public void testGetUserVolumeQuotaException() throws FogbowManagerException, UnexpectedException { 
 		
 		// exercise
-	    this.localCloudConnector.getUserQuota(federationUser, ResourceType.VOLUME);
+	    this.localCloudConnector.getUserQuota(federationUserToken, ResourceType.VOLUME);
 	}
 
 	// test case: If the instance type isn't of Compute type, an exception must be throw
@@ -880,7 +878,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	public void testGetUserAttachmentQuotaException() throws FogbowManagerException, UnexpectedException { 
 		
 		// exercise
-	    this.localCloudConnector.getUserQuota(federationUser, ResourceType.ATTACHMENT);
+	    this.localCloudConnector.getUserQuota(federationUserToken, ResourceType.ATTACHMENT);
 	}
 	
 	// test case: If the instance type isn't of Compute type, an exception must be throw
@@ -888,7 +886,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	public void testGetUserNetworkQuotaException() throws FogbowManagerException, UnexpectedException {
 		
 		// exercise
-	    this.localCloudConnector.getUserQuota(federationUser, ResourceType.NETWORK);
+	    this.localCloudConnector.getUserQuota(federationUserToken, ResourceType.NETWORK);
 	}
 	
 	// test case: Getting all images. Image plugin must be called
@@ -901,7 +899,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	    Mockito.when(this.imagePlugin.getAllImages(Mockito.any(Token.class))).thenReturn(fakeMapImages);
 	    
 	    // exercise
-	    Map<String, String> returnedImages = this.localCloudConnector.getAllImages(federationUser);
+	    Map<String, String> returnedImages = this.localCloudConnector.getAllImages(federationUserToken);
 	    
 	    // verify
 	    Assert.assertEquals(FAKE_IMAGE_NAME, returnedImages.get(FAKE_IMAGE_ID));
@@ -917,7 +915,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 	    Mockito.when(this.imagePlugin.getAllImages(Mockito.any(Token.class))).thenReturn(null);
 	    
 	    // exercise
-	    Map<String, String> returnedImages = this.localCloudConnector.getAllImages(federationUser);
+	    Map<String, String> returnedImages = this.localCloudConnector.getAllImages(federationUserToken);
 	    
 	    // verify
 	    Assert.assertNull(returnedImages);

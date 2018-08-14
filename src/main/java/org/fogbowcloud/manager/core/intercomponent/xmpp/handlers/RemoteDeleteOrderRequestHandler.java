@@ -8,7 +8,7 @@ import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppExceptionToErrorCond
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.ResourceType;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 
@@ -28,12 +28,11 @@ public class RemoteDeleteOrderRequestHandler extends AbstractQueryHandler {
 
         String orderId = unmarshalOrderId(iq);
         ResourceType resourceType = unmarshalInstanceType(iq);
-        FederationUser federationUser = unmarshalFederationUser(iq);
+        FederationUserToken federationUserToken = unmarshalFederationUser(iq);
 
         IQ response = IQ.createResultIQ(iq);
-
         try {
-            RemoteFacade.getInstance().deleteOrder(orderId, federationUser, resourceType);
+            RemoteFacade.getInstance().deleteOrder(orderId, federationUserToken, resourceType);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
@@ -54,10 +53,10 @@ public class RemoteDeleteOrderRequestHandler extends AbstractQueryHandler {
         return resourceType;
     }
 
-    private FederationUser unmarshalFederationUser(IQ iq) {
-        Element federationUserElement = iq.getElement().element(IqElement.FEDERATION_USER.toString());
-        FederationUser federationUser = new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
-        return federationUser;
+    private FederationUserToken unmarshalFederationUser(IQ iq) {
+        Element federationUserTokenElement = iq.getElement().element(IqElement.FEDERATION_USER.toString());
+        FederationUserToken federationUserToken = new Gson().fromJson(federationUserTokenElement.getText(), FederationUserToken.class);
+        return federationUserToken;
     }
 
 }

@@ -8,28 +8,28 @@ public class OpenStackStateMapper {
 
     private static final Logger LOGGER = Logger.getLogger(OpenStackStateMapper.class);
 
-    protected static final String ACTIVE_STATUS = "active";
-    protected static final String BUILD_STATUS = "build";
-    protected static final String DOWN_STATUS = "down";
-    protected static final String ERROR_STATUS = "error";
-    protected static final String CREATING_STATUS = "creating";
-    protected static final String AVAILABLE_STATUS = "available";
-    protected static final String ATTACHING_STATUS = "attaching";
-    protected static final String DETACHING_STATUS = "detaching";
-    protected static final String IN_USE_STATUS = "in-use";
-    protected static final String MAINTENANCE_STATUS = "maintenance";
-    protected static final String DELETING_STATUS = "deleting";
-    protected static final String AWAITING_TRANSFER_STATUS = "awaiting-transfer";
-    protected static final String ERROR_DELETING_STATUS = "error_deleting";
-    protected static final String BACKING_UP_STATUS = "backing-up";
-    protected static final String RESTORING_BACKUP_STATUS = "restoring-backup";
-    protected static final String ERROR_BACKING_UP_STATUS = "error_backing-up";
-    protected static final String ERROR_RESTORING_STATUS = "error_restoring";
-    protected static final String ERROR_EXTENDING_STATUS = "error_extending";
-    protected static final String DOWNLOADING_STATUS = "downloading";
-    protected static final String UPLOADING_STATUS = "uploading";
-    protected static final String RETYPING_STATUS = "retyping";
-    protected static final String EXTENDING_STATUS = "extending";
+    public static final String ACTIVE_STATUS = "active";
+    public static final String BUILD_STATUS = "build";
+    public static final String DOWN_STATUS = "down";
+    public static final String ERROR_STATUS = "error";
+    public static final String CREATING_STATUS = "creating";
+    public static final String AVAILABLE_STATUS = "available";
+    public static final String ATTACHING_STATUS = "attaching";
+    public static final String DETACHING_STATUS = "detaching";
+    public static final String IN_USE_STATUS = "in-use";
+    public static final String MAINTENANCE_STATUS = "maintenance";
+    public static final String DELETING_STATUS = "deleting";
+    public static final String AWAITING_TRANSFER_STATUS = "awaiting-transfer";
+    public static final String ERROR_DELETING_STATUS = "error_deleting";
+    public static final String BACKING_UP_STATUS = "backing-up";
+    public static final String RESTORING_BACKUP_STATUS = "restoring-backup";
+    public static final String ERROR_BACKING_UP_STATUS = "error_backing-up";
+    public static final String ERROR_RESTORING_STATUS = "error_restoring";
+    public static final String ERROR_EXTENDING_STATUS = "error_extending";
+    public static final String DOWNLOADING_STATUS = "downloading";
+    public static final String UPLOADING_STATUS = "uploading";
+    public static final String RETYPING_STATUS = "retyping";
+    public static final String EXTENDING_STATUS = "extending";
 
     public static InstanceState map(ResourceType type, String openStackState) {
 

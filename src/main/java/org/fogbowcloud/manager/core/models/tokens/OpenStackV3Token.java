@@ -1,0 +1,25 @@
+package org.fogbowcloud.manager.core.models.tokens;
+
+public class OpenStackV3Token extends FederationUserToken {
+
+    private String projectId;
+    private String projectName;
+
+    public OpenStackV3Token(String tokenProvider, String tokenValue, String userId, String name, String projectId,
+                            String projectName) {
+        super(tokenProvider, tokenValue, userId, name);
+        this.projectId = projectId;
+        this.projectName = projectName;
+    }
+
+    public String getProjectId() {
+        return this.projectId;
+    }
+
+    public String getProjectName() { return this.projectName; }
+
+    // Used in testing
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
+    }
+}

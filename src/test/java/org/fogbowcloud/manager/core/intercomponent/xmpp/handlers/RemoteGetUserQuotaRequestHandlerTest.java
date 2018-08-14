@@ -1,18 +1,14 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
-import org.fogbowcloud.manager.core.intercomponent.xmpp.handlers.RemoteGetUserQuotaRequestHandler;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.requesters.RemoteGetUserQuotaRequest;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
@@ -74,7 +70,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 			.when(this.remoteFacade)
 				.getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any());
 
-		IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, this.createFederationUser(), ResourceType.COMPUTE);
+		IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, this.createFederationUserToken(), ResourceType.COMPUTE);
 
 		// exercise
 		IQ result = this.remoteGetUserQuotaRequestHandler.handle(iq);
@@ -95,7 +91,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 			.getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any()))
 				.thenThrow(new Exception());
 
-		IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, this.createFederationUser(), ResourceType.COMPUTE);
+		IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, this.createFederationUserToken(), ResourceType.COMPUTE);
 
 		// exercise
 		IQ result = this.remoteGetUserQuotaRequestHandler.handle(iq);
@@ -119,9 +115,9 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 		return new ComputeQuota(totalQuota, usedQuota);
 	}
 	
-	private FederationUser createFederationUser() throws InvalidParameterException {
-		Map<String, String> attributes = new HashMap<>();
-		attributes.put("user-name", "fogbow");
-		return new FederationUser(FED_USER_ID, attributes);
+	private FederationUserToken createFederationUserToken() {
+		FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+				"fake-federation-token-value", "fake-user-id", "fake-user-name");
+		return federationUserToken;
 	}
 }

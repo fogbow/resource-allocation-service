@@ -1,8 +1,6 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
@@ -11,7 +9,7 @@ import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.requesters.RemoteCreateOrderRequest;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.jamppa.component.PacketSender;
 import org.junit.Assert;
 import org.junit.Before;
@@ -58,8 +56,8 @@ public class RemoteCreateOrderRequestHandlerTest {
     @Test
     public void testHandleWithValidIQ() throws FogbowManagerException, UnexpectedException {
         // set up
-        FederationUser federationUser = createFederationUser();
-        Order order = createOrder(federationUser);
+        FederationUserToken federationUserToken = createFederationUserToken();
+        Order order = createOrder(federationUserToken);
 
         Mockito.doNothing().when(this.remoteFacade).activateOrder(Mockito.eq(order));
 
@@ -82,8 +80,8 @@ public class RemoteCreateOrderRequestHandlerTest {
     @Test
     public void testHandleWhenThrowsException() throws FogbowManagerException, UnexpectedException {
         // set up
-        FederationUser federationUser = null;
-        Order order = createOrder(federationUser);
+        FederationUserToken federationUserToken = null;
+        Order order = createOrder(federationUserToken);
 
         Mockito.doThrow(new FogbowManagerException()).when(this.remoteFacade)
                 .activateOrder(Mockito.any(Order.class));
@@ -103,17 +101,15 @@ public class RemoteCreateOrderRequestHandlerTest {
         Assert.assertEquals(expected, result.toString());
     }
     
-    private Order createOrder(FederationUser federationUser) {
-        return new ComputeOrder(federationUser, "requestingMember", "providingmember", 1, 2,
+    private Order createOrder(FederationUserToken federationUserToken) {
+        return new ComputeOrder(federationUserToken, "requestingMember", "providingmember", 1, 2,
                 3, "imageId", null, "publicKey", new ArrayList<>());
     }
 
-    private FederationUser createFederationUser() throws InvalidParameterException {
-        Map<String, String> attributes = new HashMap<>();
-        attributes.put("user-name", "fogbow");
-
-        FederationUser federationUser = new FederationUser("fake-id", attributes);
-        return federationUser;
+    private FederationUserToken createFederationUserToken() throws InvalidParameterException {
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
+        return federationUserToken;
     }
 
 }

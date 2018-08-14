@@ -8,7 +8,7 @@ import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 import com.google.gson.Gson;
@@ -27,13 +27,13 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
     public IQ handle(IQ iq) {
     	LOGGER.info("Received request for order: " + iq.getID());
         String memberId = unmarshalMemberId(iq);
-        FederationUser federationUser = unmarshalFederatedUser(iq);
+        FederationUserToken federationUserToken = unmarshalFederatedUser(iq);
         ResourceType resourceType = unmarshalInstanceType(iq);
 
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            Quota userQuota = RemoteFacade.getInstance().getUserQuota(memberId, federationUser, resourceType);
+            Quota userQuota = RemoteFacade.getInstance().getUserQuota(memberId, federationUserToken, resourceType);
             updateResponse(response, userQuota);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
@@ -49,12 +49,12 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
         return memberId;
     }
     
-    private FederationUser unmarshalFederatedUser(IQ iq) {
+    private FederationUserToken unmarshalFederatedUser(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
 
-        Element federationUserElement = queryElement.element(IqElement.FEDERATION_USER.toString());
-        FederationUser federationUser = new Gson().fromJson(federationUserElement.getText(), FederationUser.class);
-        return federationUser;
+        Element federationUserTokenElement = queryElement.element(IqElement.FEDERATION_USER.toString());
+        FederationUserToken federationUserToken = new Gson().fromJson(federationUserTokenElement.getText(), FederationUserToken.class);
+        return federationUserToken;
     }
     
     private ResourceType unmarshalInstanceType(IQ iq) {

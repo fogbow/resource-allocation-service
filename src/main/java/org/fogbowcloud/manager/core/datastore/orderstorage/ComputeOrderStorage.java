@@ -4,14 +4,13 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.datastore.commands.ComputeSQLCommands;
-import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.manager.core.plugins.cloud.util.CloudInitUserDataBuilder;
 
 import java.lang.reflect.Type;
@@ -179,9 +178,10 @@ public class ComputeOrderStorage extends OrderStorage {
                     extraUserDataFileType = CloudInitUserDataBuilder.
                             FileType.valueOf(computeResult.getString(13));
                 }
-                
+
+                // TODO: fix the null fields (we will probably change the whole implementation, though)
                 ComputeOrder computeOrder = new ComputeOrder(computeResult.getString(1),
-                        new FederationUser(computeResult.getString(4), federationUserAttr),
+                        new FederationUserToken(null, null, computeResult.getString(4), null),
                         computeResult.getString(6), computeResult.getString(7), computeResult.getInt(8),
                         computeResult.getInt(9), computeResult.getInt(10), computeResult.getString(11),
                         new UserData(computeResult.getString(12), extraUserDataFileType), 
@@ -211,10 +211,6 @@ public class ComputeOrderStorage extends OrderStorage {
                 LOGGER.error("Couldn't rollback transaction.", e1);
                 throw e1;
             }
-
-            throw e;
-        } catch (InvalidParameterException e) {
-            LOGGER.error(e);
         } finally {
             closeConnection(orderStatement, connection);
         }

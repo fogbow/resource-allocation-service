@@ -3,6 +3,7 @@ package org.fogbowcloud.manager.core;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.authentication.AuthenticationPlugin;
+import org.fogbowcloud.manager.core.plugins.behavior.identity.FederationIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.*;
 import org.junit.Assert;
@@ -13,7 +14,7 @@ public class PluginInstantiatorTest {
 
     private PluginInstantiator pluginInstantiator;
 
-    private static final String TEST_CONF_PATH = "src/test/resources/plugins_instatiator";
+    private static final String TEST_CONF_PATH = "src/test/resources/plugins_instantiator";
 
     @Before
     public void setUp() throws Exception {
@@ -49,13 +50,28 @@ public class PluginInstantiatorTest {
     // test case: Tests if getAuthenticationPlugin() returns StubAuthenticationPlugin
     // as the plugin class name.
     @Test
-    public void testCreateFederationIdentityPluginInstance() {
+    public void testCreateAuthenticationPluginInstance() {
         // set up
-        String expected_federation_identity_class_value =
+        String expected_authentication_class_value =
                 "org.fogbowcloud.manager.core.stubs.StubAuthenticationPlugin";
 
         // exercise
-        AuthenticationPlugin plugin = this.pluginInstantiator.getFederationIdentityPlugin();
+        AuthenticationPlugin plugin = this.pluginInstantiator.getAuthenticationPlugin();
+
+        // verify
+        Assert.assertEquals(expected_authentication_class_value, plugin.getClass().getName());
+    }
+
+    // test case: Tests if getFederationIdentityPlugin() returns StubFederationIdentityPlugin
+    // as the plugin class name.
+    @Test
+    public void testCreateFederationIdentityPluginInstance() {
+        // set up
+        String expected_federation_identity_class_value =
+                "org.fogbowcloud.manager.core.stubs.StubFederationIdentityPlugin";
+
+        // exercise
+        FederationIdentityPlugin plugin = this.pluginInstantiator.getFederationIdentityPlugin();
 
         // verify
         Assert.assertEquals(expected_federation_identity_class_value, plugin.getClass().getName());

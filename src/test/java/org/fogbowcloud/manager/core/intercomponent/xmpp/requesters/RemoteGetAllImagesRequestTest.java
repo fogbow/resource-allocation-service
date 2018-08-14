@@ -12,7 +12,7 @@ import org.fogbowcloud.manager.core.intercomponent.xmpp.IQMatcher;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.jamppa.component.PacketSender;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,17 +29,17 @@ public class RemoteGetAllImagesRequestTest {
     private RemoteGetAllImagesRequest remoteGetAllImagesRequest;
 
     private HashMap<String, String> imagesMap;
-    private FederationUser federationUser;
+    private FederationUserToken federationUserToken;
 
     private ArgumentCaptor<IQ> argIQ = ArgumentCaptor.forClass(IQ.class);
 
     @Before
     public void setUp() throws InvalidParameterException {
-        Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put("user-name", "user-name");
-        this.federationUser = new FederationUser("federation-user-id", attributes);
+        this.federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        this.remoteGetAllImagesRequest = new RemoteGetAllImagesRequest(PROVIDER, federationUser);
+
+        this.remoteGetAllImagesRequest = new RemoteGetAllImagesRequest(PROVIDER, federationUserToken);
         this.packetSender = Mockito.mock(PacketSender.class);
         PacketSenderHolder.init(packetSender);
 
@@ -63,7 +63,7 @@ public class RemoteGetAllImagesRequestTest {
 
         // verify
         // as IQ does not implement equals we need a matcher
-        IQ expectedIQ = RemoteGetAllImagesRequest.marshal(PROVIDER, federationUser);
+        IQ expectedIQ = RemoteGetAllImagesRequest.marshal(PROVIDER, federationUserToken);
         IQMatcher matcher = new IQMatcher(expectedIQ);
         Mockito.verify(this.packetSender).syncSendPacket(Mockito.argThat(matcher));
     }

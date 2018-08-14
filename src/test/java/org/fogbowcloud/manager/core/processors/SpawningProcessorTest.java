@@ -17,7 +17,7 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
-import org.fogbowcloud.manager.core.models.tokens.FederationUser;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
@@ -300,12 +300,12 @@ public class SpawningProcessorTest extends BaseUnitTests {
     }
 
     private Order createComputeOrder() {
-        FederationUser federationUser = Mockito.mock(FederationUser.class);
+        FederationUserToken federationUserToken = Mockito.mock(FederationUserToken.class);
         String requestingMember = BaseUnitTests.LOCAL_MEMBER_ID;
         String providingMember = BaseUnitTests.LOCAL_MEMBER_ID;
         UserData userData = Mockito.mock(UserData.class);
 
-        Order order = new ComputeOrder(federationUser, requestingMember,
+        Order order = new ComputeOrder(federationUserToken, requestingMember,
                 providingMember, 8, 1024, 30, FAKE_IMAGE_NAME, userData, FAKE_PUBLIC_KEY, null);
 
         return order;
