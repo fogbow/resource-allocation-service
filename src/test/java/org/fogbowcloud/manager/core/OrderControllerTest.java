@@ -135,6 +135,7 @@ public class OrderControllerTest extends BaseUnitTests {
         // verify
         Assert.assertTrue(instances.contains(statusOrder));
         Assert.assertTrue(instances.contains(statusOrder2));
+        Assert.assertEquals(2, instances.size());
     }
 
     // test case: Checks if getOrder() returns exactly the same order that
