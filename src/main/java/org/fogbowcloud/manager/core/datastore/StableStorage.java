@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.datastore;
 
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -11,14 +12,14 @@ public interface StableStorage {
      *
      * @param order {@link Order}
      */
-    public void add(Order order);
+    public void add(Order order) throws UnexpectedException;
 
     /**
      * Update the order when trasitions occur.
      *
      * @param order {@link Order}
      */
-    public void update(Order order);
+    public void update(Order order) throws UnexpectedException;
 
     /**
      * Retrive orders from the database based on its state.
@@ -26,5 +27,5 @@ public interface StableStorage {
      * @param orderState {@link OrderState}
      * @return {@link SynchronizedDoublyLinkedList}
      */
-    public SynchronizedDoublyLinkedList readActiveOrders(OrderState orderState);
+    public SynchronizedDoublyLinkedList readActiveOrders(OrderState orderState) throws UnexpectedException;
 }

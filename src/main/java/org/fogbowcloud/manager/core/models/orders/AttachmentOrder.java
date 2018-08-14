@@ -6,9 +6,6 @@ import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 
 public class AttachmentOrder extends Order {
-
-    private static final String SEPARATOR_ID = " ";
-
     /** this attribute refers to the instance of the computer where the volume will be attached */
     private String source;
     /** this attribute refers to the instanceId of the target volume of the attachment */
@@ -54,24 +51,6 @@ public class AttachmentOrder extends Order {
 
     public String getDevice() {
         return this.device;
-    }
-
-    /**
-     * The attachment-instance-id is formed by the source-id and target-id.
-     *
-     * If order-instance-id is null, it means the attachment has
-     * already been deleted, then it also must return null so that
-     * the closed processor will no longer try to delete this one.
-     *
-     * @return instance-id
-     */
-    @Override
-    public String getInstanceId() {
-        if (super.getInstanceId() == null) {
-            return null;
-        }
-
-        return getSource() + SEPARATOR_ID + getTarget();
     }
 
     @Override

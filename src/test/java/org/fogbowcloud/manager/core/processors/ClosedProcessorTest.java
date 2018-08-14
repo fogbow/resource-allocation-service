@@ -5,6 +5,7 @@ import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.RemoteCloudConnector;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -38,7 +39,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
     private Thread thread;
 
     @Before
-    public void setUp() {
+    public void setUp() throws UnexpectedException {
         mockReadOrdersFromDataBase();
         this.properties = new Properties();
         

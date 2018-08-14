@@ -79,7 +79,7 @@ public class RemoteFacade {
 
     public void handleRemoteEvent(Event event, Order remoteOrder) throws FogbowManagerException, UnexpectedException {
         // order is a java object that represents the order passed in the message
-        // actualOrder is the java object that represents this order inside the current manager
+        // actualOrder is the java object that represents this order inside the current server
         Order localOrder = this.orderController.getOrder(remoteOrder.getId());
         updateLocalOrder(localOrder, remoteOrder, event);
         switch (event) {
@@ -98,12 +98,10 @@ public class RemoteFacade {
                 // The order has been deleted or already updated
                 return;
             }
-            localOrder.setInstanceId(remoteOrder.getInstanceId());
-            if (event.equals(Event.INSTANCE_FULFILLED)) {
-                localOrder.setCachedInstanceState(InstanceState.READY);
-            } else if (event.equals(Event.INSTANCE_FAILED)) {
-                localOrder.setCachedInstanceState(InstanceState.FAILED);
-            }
+            // The Order fields that have been changed remotely, need to be copied to the local Order.
+            // Check the several cloud plugins to see which fields are changed.
+            // The exception is the instanceId, which is only required at the providing member side.
+            localOrder.setCachedInstanceState(remoteOrder.getCachedInstanceState());
             if (localOrder.getType().equals(ResourceType.COMPUTE)) {
                 ComputeOrder localCompute = (ComputeOrder) localOrder;
                 ComputeOrder remoteCompute = (ComputeOrder) remoteOrder;

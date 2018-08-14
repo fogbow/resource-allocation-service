@@ -44,7 +44,7 @@ public class ComputeOrderStorage extends OrderStorage {
         }
     }
 
-    public void addOrder(Order order) {
+    public void addOrder(Order order) throws SQLException {
         ComputeOrder computeOrder = (ComputeOrder) order;
 
         Connection connection = null;
@@ -87,13 +87,16 @@ public class ComputeOrderStorage extends OrderStorage {
                 }
             } catch (SQLException e1) {
                 LOGGER.error("Couldn't rollback transaction.", e1);
+                throw e1;
             }
+
+            throw e;
         } finally {
             closeConnection(orderStatement, connection);
         }
     }
 
-    public void updateOrder(Order order) {
+    public void updateOrder(Order order) throws SQLException {
         ComputeOrder computeOrder = (ComputeOrder) order;
 
         Connection connection = null;
@@ -118,7 +121,12 @@ public class ComputeOrderStorage extends OrderStorage {
             }
             orderStatement.setString(6, computeOrder.getId());
 
-            orderStatement.executeUpdate();
+            int rowsAffected = orderStatement.executeUpdate();
+
+            if (rowsAffected == 0) {
+                LOGGER.error("Compute order [" + order.getId() + "] was not added to the database.");
+                throw new SQLException();
+            }
 
             connection.commit();
         } catch (SQLException e) {
@@ -129,14 +137,17 @@ public class ComputeOrderStorage extends OrderStorage {
                 }
             } catch (SQLException e1) {
                 LOGGER.error("Couldn't rollback transaction.", e1);
+                throw e1;
             }
+
+            throw e;
         } finally {
             closeConnection(orderStatement, connection);
         }
     }
 
     public void readOrdersByState(
-            OrderState orderState, SynchronizedDoublyLinkedList synchronizedDoublyLinkedList) {
+            OrderState orderState, SynchronizedDoublyLinkedList synchronizedDoublyLinkedList) throws SQLException {
 
         Connection connection = null;
         PreparedStatement orderStatement = null;
@@ -198,7 +209,10 @@ public class ComputeOrderStorage extends OrderStorage {
                 }
             } catch (SQLException e1) {
                 LOGGER.error("Couldn't rollback transaction.", e1);
+                throw e1;
             }
+
+            throw e;
         } catch (InvalidParameterException e) {
             LOGGER.error(e);
         } finally {

@@ -28,46 +28,43 @@ public class RemoteGetImageRequest implements RemoteRequest<Image> {
 
     @Override
     public Image send() throws Exception {
-        IQ iq = createIq();
-        IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
+        IQ request = marshal(this.provider, this.imageId, this.federationUser);
+        IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(request);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
-        Image image = getImageFromResponse(response);
-        return image;
+        return unmarshalImage(response);
     }
 
-    private IQ createIq() {
+    public static IQ marshal(String provider, String imageId, FederationUser federationUser) {
         IQ iq = new IQ(IQ.Type.get);
-        iq.setTo(this.provider);
+        iq.setTo(provider);
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_IMAGE.toString());
 
         Element memberIdElement = queryElement.addElement(IqElement.MEMBER_ID.toString());
-        memberIdElement.setText(this.provider);
+        memberIdElement.setText(provider);
 
         Element imageIdElement = queryElement.addElement(IqElement.IMAGE_ID.toString());
-        imageIdElement.setText(this.imageId);
+        imageIdElement.setText(imageId);
 
         Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
-        userElement.setText(new Gson().toJson(this.federationUser));
+        userElement.setText(new Gson().toJson(federationUser));
 
         return iq;
     }
 
-    private Image getImageFromResponse(IQ response) throws UnexpectedException {
+    private Image unmarshalImage(IQ response) throws UnexpectedException {
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
         String imageStr = queryElement.element(IqElement.IMAGE.toString()).getText();
 
         String instanceClassName = queryElement.element(IqElement.IMAGE_CLASS_NAME.toString()).getText();
 
-        Image image = null;
         try {
-            image = (Image) new Gson().fromJson(imageStr, Class.forName(instanceClassName));
+            return (Image) new Gson().fromJson(imageStr, Class.forName(instanceClassName));
         } catch (Exception e) {
             throw new UnexpectedException(e.getMessage());
         }
-
-        return image;
     }
+
 }

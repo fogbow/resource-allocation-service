@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.UUID;
 
 public class ComputeOrder extends Order {
-
     private int vCPU;
     /** Memory attribute, must be set in MB. */
     private int memory;
@@ -88,7 +87,7 @@ public class ComputeOrder extends Order {
         if (networksId == null) {
             return Collections.unmodifiableList(new ArrayList<>());
         }
-        return Collections.unmodifiableList(networksId);
+        return Collections.unmodifiableList(this.networksId);
     }
 
     public void setNetworksId(List<String> networksId) {

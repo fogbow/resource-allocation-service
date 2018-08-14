@@ -39,7 +39,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     private CloudConnector cloudConnector;
     
     @Before
-    public void setUp() {
+    public void setUp() throws UnexpectedException {
         mockReadOrdersFromDataBase();
         HomeDir.getInstance().setPath("src/test/resources/private");
         
