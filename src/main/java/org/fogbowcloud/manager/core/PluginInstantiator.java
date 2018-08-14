@@ -84,7 +84,7 @@ public class PluginInstantiator {
     }
 
     public AuthenticationPlugin getAuthenticationPlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.FEDERATION_IDENTITY_PLUGIN_CLASS_KEY);
+        String className = this.properties.getProperty(ConfigurationConstants.AUTHENTICATION_PLUGIN_CLASS_KEY);
         return (AuthenticationPlugin) this.pluginFactory.createPluginInstance(className);
     }
 

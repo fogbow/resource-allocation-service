@@ -9,7 +9,6 @@ import org.fogbowcloud.manager.core.plugins.behavior.authentication.ldap.LdapAut
 import org.fogbowcloud.manager.core.plugins.behavior.identity.ldap.LdapFederationIdentityPlugin;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 

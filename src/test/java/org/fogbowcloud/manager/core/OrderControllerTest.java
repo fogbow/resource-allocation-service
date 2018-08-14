@@ -215,7 +215,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(computeOrder.getActualAllocation().getvCPU(), allocation.getvCPU());
     }
 
-    // test case: Tests if getUserAllocation() throws UnexpectedException when there is no any order
+    // test case: Tests if getUserAllocation() throws UnexpectedException when there is no order
     // with the ResourceType specified.
     @Test(expected = UnexpectedException.class)
     public void testGetUserAllocationWithInvalidInstanceType() throws UnexpectedException, InvalidParameterException {

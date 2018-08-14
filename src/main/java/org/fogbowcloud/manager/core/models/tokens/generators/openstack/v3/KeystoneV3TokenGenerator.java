@@ -89,7 +89,7 @@ public class KeystoneV3TokenGenerator implements TokenGenerator {
 
         try {
             CreateTokenResponse createTokenResponse = CreateTokenResponse.fromJson(response.getContent());
-
+            LOGGER.debug("Response: " + response.getContent());
             CreateTokenResponse.User userTokenResponse = createTokenResponse.getUser();
             String userId = userTokenResponse.getId();
             String userName = userTokenResponse.getName();
@@ -124,7 +124,7 @@ public class KeystoneV3TokenGenerator implements TokenGenerator {
     }
 
     // Used in testing
-    protected void setClient (HttpRequestClientUtil client) {
+    public void setClient(HttpRequestClientUtil client) {
         this.client = client;
     }
 }
