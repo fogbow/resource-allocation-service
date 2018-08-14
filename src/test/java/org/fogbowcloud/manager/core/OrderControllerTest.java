@@ -15,6 +15,7 @@ import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.tokens.FederationUser;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
@@ -29,6 +30,11 @@ import java.util.Map;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({DatabaseManager.class, CloudConnectorFactory.class})
 public class OrderControllerTest extends BaseUnitTests {
+
+    //FIXME: many of bellow tests, e.g testGetResourceInstance are too complicated. The problem is
+    //they are setting up the scenario for the getOrder method (which they use). This set up
+    //include changing the content of fulfilledOrdersList and activeOrdersMap.put
+    //A simpler way of doing these tests is to spy the behaviour of the getOrder method.
 
     private static final String RESOURCES_PATH_TEST = "src/test/resources/private";
     private static final String FAKE_NAME = "fake-name";
@@ -65,6 +71,22 @@ public class OrderControllerTest extends BaseUnitTests {
         this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
         this.failedOrdersList = sharedOrderHolders.getFailedOrdersList();
         this.closedOrdersList = sharedOrderHolders.getClosedOrdersList();
+    }
+
+    @Ignore
+    @Test(expected = InstanceNotFoundException.class)
+    public void testGetOrderWithInvalidInstanceType() throws FogbowManagerException {
+
+        //FIXME: this is to be moved to AAControllerTest
+
+        // set up
+        String orderId = getComputeOrderCreationId(OrderState.OPEN);
+        Order order = createOrder();
+        Map<String, String> attributes = new HashMap<String, String>();
+        attributes.put(FederationUser.MANDATORY_NAME_ATTRIBUTE, "fake-name");
+        FederationUser federationUser = new FederationUser("fake-user", attributes);
+        // exercise
+        this.ordersController.getOrder(orderId);
     }
 
     // test case: When pass an Order with id null, it must raise an InvalidParameterException.
