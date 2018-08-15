@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.cloudstack.compute;
+package org.fogbowcloud.manager.core.plugins.cloud.cloudstack.compute.v4_9;
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -7,13 +7,15 @@ import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.NoAvailableResourcesException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.models.HardwareRequirements;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackHttpToFogbowManagerExceptionMapper;
-import org.fogbowcloud.manager.core.plugins.cloud.util.CloudStackHelper;
+import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
@@ -21,7 +23,7 @@ import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
 import java.io.File;
 import java.util.Properties;
 
-public class CloudStackComputePlugin implements ComputePlugin {
+public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
 
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputePlugin.class);
 
@@ -43,20 +45,20 @@ public class CloudStackComputePlugin implements ComputePlugin {
     }
 
     @Override
-    public String requestInstance(ComputeOrder computeOrder, Token localToken)
+    public String requestInstance(ComputeOrder computeOrder, CloudStackToken localToken)
             throws FogbowManagerException, UnexpectedException {
         return "";
 
     }
 
     @Override
-    public ComputeInstance getInstance(String computeInstanceId, Token localToken)
+    public ComputeInstance getInstance(String computeInstanceId, CloudStackToken localToken)
             throws FogbowManagerException {
         LOGGER.info("Getting instance " + computeInstanceId + " with tokens " + localToken);
 
-        URIBuilder uriBuilder = CloudStackHelper.createURIBuilder(this.endpoint, LIST_VMS_COMMAND);
+        URIBuilder uriBuilder = CloudStackUrlUtil.createURIBuilder(this.endpoint, LIST_VMS_COMMAND);
         uriBuilder.addParameter(VIRTUAL_MACHINE_ID, computeInstanceId);
-        CloudStackHelper.sign(uriBuilder, localToken.getTokenValue());
+        CloudStackUrlUtil.sign(uriBuilder, localToken.getTokenValue());
 
         String jsonResponse = null;
         try {
@@ -66,14 +68,50 @@ public class CloudStackComputePlugin implements ComputePlugin {
         }
 
         LOGGER.debug("Getting instance from json: " + jsonResponse);
-        //ComputeInstance computeInstance = getInstanceFromJson(jsonResponse, localToken);
+        ComputeInstance computeInstance = getInstanceFromJson(jsonResponse, localToken);
 
         return new ComputeInstance(computeInstanceId);
 
     }
 
+    private ComputeInstance getInstanceFromJson(String jsonResponse, CloudStackToken cloudStackToken) {
+        GetComputeResponse getComputeResponse = GetComputeResponse.fromJson(jsonResponse);
+        /*
+        String flavorId = getComputeResponse.getFlavor().getId();
+        HardwareRequirements hardwareRequirements = getFlavorById(flavorId, cloudStackToken);
+
+        if (hardwareRequirements == null) {
+            throw new NoAvailableResourcesException("No matching flavor");
+        }
+
+        int vcpusCount = hardwareRequirements.getCpu();
+        int memory = hardwareRequirements.getRam();
+        int disk = hardwareRequirements.getDisk();
+
+        String openStackState = getComputeResponse.getStatus();
+        InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.COMPUTE, openStackState);
+
+        String instanceId = getComputeResponse.getId();
+        String hostName = getComputeResponse.getName();
+
+        GetComputeResponse.Addresses addressesContainer = getComputeResponse.getAddresses();
+
+        String address = "";
+        if (addressesContainer != null) {
+            GetComputeResponse.Address[] addresses = addressesContainer.getProviderAddresses();
+            boolean firstAddressEmpty = addresses == null || addresses.length == 0 || addresses[0].getAddress() == null;
+            address = firstAddressEmpty ? "" : addresses[0].getAddress();
+        }
+
+        ComputeInstance computeInstance = new ComputeInstance(instanceId,
+                fogbowState, hostName, vcpusCount, memory, disk, address);
+         */
+        return new ComputeInstance("");
+
+    }
+
     @Override
-    public void deleteInstance(String computeInstanceId, Token localToken)
+    public void deleteInstance(String computeInstanceId, CloudStackToken localToken)
             throws FogbowManagerException, UnexpectedException {
 
     }
