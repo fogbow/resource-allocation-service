@@ -1,9 +1,9 @@
-package org.fogbowcloud.manager.core.plugins.serialization.cloudstack.compute;
+package org.fogbowcloud.manager.core.plugins.cloud.cloudstack.compute.v4_9;
 
 import com.google.gson.annotations.SerializedName;
-import org.fogbowcloud.manager.core.plugins.serialization.GsonHolder;
+import org.fogbowcloud.manager.util.GsonHolder;
 
-import static org.fogbowcloud.manager.core.plugins.serialization.cloudstack.CloudStackRestApiConstants.Compute.*;
+import static org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRestApiConstants.Compute.*;
 
 
 /**
@@ -133,7 +133,6 @@ public class GetComputeResponse {
     }
 
     public class Addresses {
-        @SerializedName(PROVIDER_KEY_JSON)
         private Address[] providerAddresses;
 
         public Address[] getProviderAddresses() {

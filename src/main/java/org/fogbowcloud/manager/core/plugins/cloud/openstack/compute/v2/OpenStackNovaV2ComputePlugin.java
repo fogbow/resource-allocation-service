@@ -161,7 +161,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
 
 		LOGGER.debug("Getting instance from json: " + jsonResponse);
 
-		ComputeInstance computeInstance = instanceFromJson(jsonResponse, openStackV3Token);
+		ComputeInstance computeInstance = getInstanceFromJson(jsonResponse, openStackV3Token);
 		return computeInstance;
 	}
 
@@ -364,7 +364,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
 		return newHardwareRequirements;
 	}
 
-	private ComputeInstance instanceFromJson(String getRawResponse, OpenStackV3Token openStackV3Token) throws FogbowManagerException, UnexpectedException {
+	private ComputeInstance getInstanceFromJson(String getRawResponse, OpenStackV3Token openStackV3Token)
+			throws FogbowManagerException, UnexpectedException {
 		GetComputeResponse getComputeResponse = GetComputeResponse.fromJson(getRawResponse);
 
 		String flavorId = getComputeResponse.getFlavor().getId();

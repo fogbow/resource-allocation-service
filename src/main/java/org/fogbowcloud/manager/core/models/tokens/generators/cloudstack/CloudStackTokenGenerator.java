@@ -17,21 +17,20 @@ import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 public class CloudStackTokenGenerator implements TokenGenerator {
 
     private static final Logger LOGGER = Logger.getLogger(CloudStackTokenGenerator.class);
-    
-    private static final String CLOUDSTACK_URL = "cloudstack_identity_v49_url";
-    protected static final String API_KEY = "apiKey";
-    protected static final String SECRET_KEY = "secretKey";
-    
+
+    public static final String API_KEY = "apiKey";
+    public static final String CLOUDSTACK_URL = "cloudstack_api_url";
+    public static final String SECRET_KEY = "secretKey";
+    public static final String TOKEN_VALUE_SEPARATOR = ":";
+
     private String endpoint;
-    private HttpRequestClientUtil client;
-    
-    public CloudStackTokenGenerator() throws InvalidParameterException {
+
+    public CloudStackTokenGenerator() {
         HomeDir homeDir = HomeDir.getInstance();
         Properties properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME);
         
         this.endpoint = properties.getProperty(CLOUDSTACK_URL);
-        this.client = new HttpRequestClientUtil();
     }
     
     @Override
@@ -46,7 +45,7 @@ public class CloudStackTokenGenerator implements TokenGenerator {
 
         String apiKey = credentials.get(API_KEY);
         String secretKey = credentials.get(SECRET_KEY);
-        String tokenValue = apiKey + ":" + secretKey;
+        String tokenValue = apiKey + TOKEN_VALUE_SEPARATOR + secretKey;
 
         return tokenValue;
     }
