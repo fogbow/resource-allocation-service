@@ -16,7 +16,6 @@ import org.fogbowcloud.manager.core.models.tokens.TokenGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackHttpToFogbowManagerExceptionMapper;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
-import org.json.JSONException;
 
 public class KeystoneV3TokenGenerator implements TokenGenerator {
 
