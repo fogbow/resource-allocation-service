@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.cloudstack.volume;
+package org.fogbowcloud.manager.core.plugins.cloud.cloudstack.volume.v4_9;
 
 import java.io.File;
 import java.util.Properties;
@@ -8,6 +8,9 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
+import org.fogbowcloud.manager.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
@@ -57,23 +60,28 @@ public class CloudStackVolumePlugin implements VolumePlugin<Token>{
         
         String name = volumeOrder.getVolumeName();
 
-        URIBuilder uriBuilder = CloudStackHelper.createURIBuilder(endpoint, CREATE_VOLUME_COMMAND);
-        uriBuilder.addParameter(ZONE_ID, zoneId);
-        uriBuilder.addParameter(VOLUME_NAME, name);
+        URIBuilder volumeUriBuilder = CloudStackHelper.createURIBuilder(endpoint, CREATE_VOLUME_COMMAND);
+        volumeUriBuilder.addParameter(ZONE_ID, zoneId);
+        volumeUriBuilder.addParameter(VOLUME_NAME, name);
         
-        getDiskOffering(volumeOrder, localUserAttributes, uriBuilder);
+        try {
+            getDiskOffering(volumeOrder, localUserAttributes, volumeUriBuilder);
+        } catch (HttpResponseException e) {
+            CloudStackHttpToFogbowManagerExceptionMapper.map(e);
+        }
         
-        CloudStackHelper.sign(uriBuilder, localUserAttributes.getTokenValue());
+        CloudStackHelper.sign(volumeUriBuilder, localUserAttributes.getTokenValue());
         
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(uriBuilder.toString(), localUserAttributes);
+            jsonResponse = this.client.doGetRequest(volumeUriBuilder.toString(), localUserAttributes);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowManagerExceptionMapper.map(e);
         }
         
         LOGGER.debug("Getting instance from json: " + jsonResponse);
-        return jsonResponse;
+        // TODO Auto-generated method stub
+        return null;
     }
 
     @Override
@@ -87,7 +95,6 @@ public class CloudStackVolumePlugin implements VolumePlugin<Token>{
     public void deleteInstance(String volumeInstanceId, Token localUserAttributes)
             throws FogbowManagerException, UnexpectedException {
         // TODO Auto-generated method stub
-        
     }
 
     private void initClient() {
@@ -96,9 +103,49 @@ public class CloudStackVolumePlugin implements VolumePlugin<Token>{
     }
     
     private void getDiskOffering(VolumeOrder volumeOrder, Token localUserAttributes,
-            URIBuilder uriBuilder) {
-        // TODO Auto-generated method stub
+            URIBuilder volumeUriBuilder) throws InvalidParameterException,
+            UnauthorizedRequestException, HttpResponseException, UnavailableProviderException {
+
+        LOGGER.debug("Getting disk offerings available in cloudstack with token: "
+                + localUserAttributes + " and volume size: " + volumeOrder.getVolumeSize());
+
+        URIBuilder uriBuilder =
+                CloudStackHelper.createURIBuilder(endpoint, LIST_DISK_OFFERINGS_COMMAND);
+        CloudStackHelper.sign(uriBuilder, localUserAttributes.getTokenValue());
+
+        String jsonResponse = this.client.doGetRequest(endpoint, localUserAttributes);
+        String volumeSize = String.valueOf(volumeOrder.getVolumeSize());
+        String diskOfferingId = null;
+        String customDiskOfferingId = null;
         
+        //TODO: To refactor using new JsonSerializable pattern.
+        
+        // try {
+        // JSONArray diskOfferings = new
+        // JSONObject(jsonResponse.getContent()).optJSONObject(LIST_DISK_OFFERINGS_RESPONSE).optJSONArray("diskoffering");
+        // for (int i = 0; diskOfferings != null && i < diskOfferings.length(); i++) {
+        //
+        // JSONObject diskOffering = diskOfferings.optJSONObject(i);
+        // if (diskOffering.optString(DISK_SIZE).equals(volumeSize)) {
+        // diskOfferingId = diskOffering.optString(VOLUME_ID);
+        // break;
+        // }
+        //
+        // if (diskOffering.optBoolean(CUSTOMIZED) &&
+        // diskOffering.optString(DISK_SIZE).equals(ZERO_SIZE)) {
+        // customDiskOfferingId = diskOffering.getString(VOLUME_ID);
+        // }
+        // }
+        // } catch (JSONException e) {
+        // String message = "Irregular syntax.";
+        // throw new InvalidParameterException(message);
+        // }
+
+        // TODO Auto-generated method stub
+    }
+    
+    protected void setClient(HttpRequestClientUtil client) {
+        this.client = client;
     }
     
 }
