@@ -17,7 +17,8 @@ import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackHttpToFogbowManagerExceptionMapper;
-import org.fogbowcloud.manager.core.plugins.cloud.util.CloudStackHelper;
+import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackUrlUtil;
+import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.volume.v4_9.GetAllDiskOfferingsResponse.DiskOffering;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
@@ -59,27 +60,39 @@ public class CloudStackVolumePlugin implements VolumePlugin<Token>{
         LOGGER.debug("Requesting volume instance with token " + localUserAttributes);
         
         String name = volumeOrder.getVolumeName();
-
-        URIBuilder volumeUriBuilder = CloudStackHelper.createURIBuilder(endpoint, CREATE_VOLUME_COMMAND);
+        int size = volumeOrder.getVolumeSize();
+        
+        URIBuilder volumeUriBuilder = CloudStackUrlUtil.createURIBuilder(endpoint, CREATE_VOLUME_COMMAND);
         volumeUriBuilder.addParameter(ZONE_ID, zoneId);
         volumeUriBuilder.addParameter(VOLUME_NAME, name);
         
+        String diskOfferingsResponse = null;
         try {
-            getDiskOffering(volumeOrder, localUserAttributes, volumeUriBuilder);
+            diskOfferingsResponse = doGetRequestToListDiskOfferings(volumeOrder, localUserAttributes);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowManagerExceptionMapper.map(e);
         }
         
-        CloudStackHelper.sign(volumeUriBuilder, localUserAttributes.getTokenValue());
+        String diskOfferingId = getDiskOfferingIdCompatible(size, diskOfferingsResponse);
+
+        if (diskOfferingId != null) {
+            volumeUriBuilder.addParameter(DISK_OFFERING_ID, diskOfferingId);
+        } else {
+            diskOfferingId = getDiskOfferingIdCustomized(size, diskOfferingsResponse);
+            volumeUriBuilder.addParameter(DISK_OFFERING_ID, diskOfferingId);
+            volumeUriBuilder.addParameter(VOLUME_SIZE, String.valueOf(size));
+        }
+                
+        CloudStackUrlUtil.sign(volumeUriBuilder, localUserAttributes.getTokenValue());
         
-        String jsonResponse = null;
+        String instanceResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(volumeUriBuilder.toString(), localUserAttributes);
+            instanceResponse = this.client.doGetRequest(volumeUriBuilder.toString(), localUserAttributes);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowManagerExceptionMapper.map(e);
         }
         
-        LOGGER.debug("Getting instance from json: " + jsonResponse);
+        LOGGER.debug("Getting instance from json: " + instanceResponse);
         // TODO Auto-generated method stub
         return null;
     }
@@ -102,46 +115,47 @@ public class CloudStackVolumePlugin implements VolumePlugin<Token>{
         this.client = new HttpRequestClientUtil();
     }
     
-    private void getDiskOffering(VolumeOrder volumeOrder, Token localUserAttributes,
-            URIBuilder volumeUriBuilder) throws InvalidParameterException,
-            UnauthorizedRequestException, HttpResponseException, UnavailableProviderException {
+    private String doGetRequestToListDiskOfferings(VolumeOrder volumeOrder, Token localUserAttributes)
+            throws InvalidParameterException, UnauthorizedRequestException, HttpResponseException,
+            UnavailableProviderException {
 
         LOGGER.debug("Getting disk offerings available in cloudstack with token: "
                 + localUserAttributes + " and volume size: " + volumeOrder.getVolumeSize());
 
         URIBuilder uriBuilder =
-                CloudStackHelper.createURIBuilder(endpoint, LIST_DISK_OFFERINGS_COMMAND);
-        CloudStackHelper.sign(uriBuilder, localUserAttributes.getTokenValue());
+                CloudStackUrlUtil.createURIBuilder(endpoint, LIST_DISK_OFFERINGS_COMMAND);
+        
+        CloudStackUrlUtil.sign(uriBuilder, localUserAttributes.getTokenValue());
 
         String jsonResponse = this.client.doGetRequest(endpoint, localUserAttributes);
-        String volumeSize = String.valueOf(volumeOrder.getVolumeSize());
-        String diskOfferingId = null;
-        String customDiskOfferingId = null;
+        return jsonResponse;
         
-        //TODO: To refactor using new JsonSerializable pattern.
-        
-        // try {
-        // JSONArray diskOfferings = new
-        // JSONObject(jsonResponse.getContent()).optJSONObject(LIST_DISK_OFFERINGS_RESPONSE).optJSONArray("diskoffering");
-        // for (int i = 0; diskOfferings != null && i < diskOfferings.length(); i++) {
-        //
-        // JSONObject diskOffering = diskOfferings.optJSONObject(i);
-        // if (diskOffering.optString(DISK_SIZE).equals(volumeSize)) {
-        // diskOfferingId = diskOffering.optString(VOLUME_ID);
-        // break;
-        // }
-        //
-        // if (diskOffering.optBoolean(CUSTOMIZED) &&
-        // diskOffering.optString(DISK_SIZE).equals(ZERO_SIZE)) {
-        // customDiskOfferingId = diskOffering.getString(VOLUME_ID);
-        // }
-        // }
-        // } catch (JSONException e) {
-        // String message = "Irregular syntax.";
-        // throw new InvalidParameterException(message);
-        // }
+    }
 
-        // TODO Auto-generated method stub
+    private String getDiskOfferingIdCustomized(int volumeSize, String jsonResponse) {
+        GetAllDiskOfferingsResponse response = GetAllDiskOfferingsResponse.fromJson(jsonResponse);
+        boolean customized;
+        int size;
+        for (DiskOffering diskOffering : response.getDiskOfferings()) {
+            customized = diskOffering.isCustomized();
+            size = diskOffering.getDiskSize();
+            if (customized && size == 0) {
+                return diskOffering.getId();
+            }
+        }
+        return null;
+    }
+
+    private String getDiskOfferingIdCompatible(int volumeSize, String jsonResponse) {
+        GetAllDiskOfferingsResponse response = GetAllDiskOfferingsResponse.fromJson(jsonResponse);
+        int size;
+        for (DiskOffering diskOffering : response.getDiskOfferings()) {
+            size = diskOffering.getDiskSize();
+            if (size == volumeSize) {
+                return diskOffering.getId();
+            }
+        }
+        return null;
     }
     
     protected void setClient(HttpRequestClientUtil client) {
