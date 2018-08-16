@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.core.plugins.behavior.identity.openstack;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.models.tokens.OpenStackV3Token;
-import org.fogbowcloud.manager.core.models.tokens.generators.openstack.v3.KeystoneV3TokenGenerator;
+import org.fogbowcloud.manager.core.models.tokens.generators.openstack.v3.KeystoneV3TokenGeneratorPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.identity.FederationIdentityPlugin;
 
 public class KeystoneV3IdentityPlugin implements FederationIdentityPlugin<OpenStackV3Token> {
@@ -14,7 +14,7 @@ public class KeystoneV3IdentityPlugin implements FederationIdentityPlugin<OpenSt
     @Override
     public OpenStackV3Token createToken(String tokenValue) throws InvalidParameterException {
 
-        String split[] = tokenValue.split(KeystoneV3TokenGenerator.TOKEN_VALUE_SEPARATOR);
+        String split[] = tokenValue.split(KeystoneV3TokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
         if (split == null || split.length < 6) {
             LOGGER.error("Invalid token value: " + tokenValue);
             throw new InvalidParameterException();

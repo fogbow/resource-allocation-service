@@ -12,7 +12,7 @@ import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.manager.core.models.tokens.Token;
-import org.fogbowcloud.manager.core.models.tokens.TokenGenerator;
+import org.fogbowcloud.manager.core.models.tokens.TokenGeneratorPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.identity.FederationIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.manager.util.PropertiesUtil;
@@ -25,10 +25,10 @@ public class GenericAllToOneFederationToLocalMapper implements FederationToLocal
 
     private Map<String, String> credentials;
 
-    private TokenGenerator tokenGenerator;
+    private TokenGeneratorPlugin tokenGeneratorPlugin;
     private FederationIdentityPlugin federationIdentityPlugin;
 
-	public GenericAllToOneFederationToLocalMapper(TokenGenerator tokenGenerator,
+	public GenericAllToOneFederationToLocalMapper(TokenGeneratorPlugin tokenGeneratorPlugin,
                                                   FederationIdentityPlugin federationIdentityPlugin,
                                                   String configurationFileName)
             throws FatalErrorException {
@@ -36,13 +36,13 @@ public class GenericAllToOneFederationToLocalMapper implements FederationToLocal
         Properties properties = PropertiesUtil.readProperties(homeDir.getPath() +
                 File.separator + configurationFileName);
         this.credentials = getDefaultLocalTokenCredentials(properties);
-        this.tokenGenerator = tokenGenerator;
+        this.tokenGeneratorPlugin = tokenGeneratorPlugin;
         this.federationIdentityPlugin = federationIdentityPlugin;
     }
 
     @Override
     public Token map(FederationUserToken user) throws UnexpectedException, FogbowManagerException {
-	    String tokenString = this.tokenGenerator.createTokenValue(this.credentials);
+	    String tokenString = this.tokenGeneratorPlugin.createTokenValue(this.credentials);
 	    return this.federationIdentityPlugin.createToken(tokenString);
     }
 

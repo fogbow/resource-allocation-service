@@ -39,7 +39,6 @@ public class VolumeOrdersControllerTest {
             "{\"federationToken\": null, \"requestingMember\":\"req-member\", \"providingMember\":\"prov-member\", \"volumeSize\": 1}";
     private static final String VOLUME_END_POINT = "/" + VolumeOrdersController.VOLUME_ENDPOINT;
     private static final String FAKE_FEDERATION_TOKEN_VALUE = "fake-access-id";
-    private static final String FAKE_USER = "fake-user";
     private static final String FAKE_ID = "fake-id";
     private static final String FAKE_NAME = "fake-name";
 
@@ -122,7 +121,7 @@ public class VolumeOrdersControllerTest {
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 
-    // test case: When calling the deleteVolume() method, it must to receive the HttpStatus as Ok.
+    // test case: When calling the deleteVolume() method, it must receive the HttpStatus as Ok.
     @Test
     public void deleteVolumeTest() throws Exception {
 

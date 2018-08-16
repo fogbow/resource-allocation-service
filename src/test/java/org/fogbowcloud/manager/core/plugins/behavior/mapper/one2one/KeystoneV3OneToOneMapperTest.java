@@ -12,7 +12,7 @@ import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.tokens.OpenStackV3Token;
-import org.fogbowcloud.manager.core.models.tokens.generators.openstack.v3.KeystoneV3TokenGenerator;
+import org.fogbowcloud.manager.core.models.tokens.generators.openstack.v3.KeystoneV3TokenGeneratorPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.identity.openstack.KeystoneV3IdentityPlugin;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.junit.Assert;
@@ -40,7 +40,7 @@ public class KeystoneV3OneToOneMapperTest {
     private KeystoneV3OneToOneMapper mapper;
     private HttpClient client;
     private HttpRequestClientUtil httpRequestClientUtil;
-    private KeystoneV3TokenGenerator keystoneV3TokenGenerator;
+    private KeystoneV3TokenGeneratorPlugin keystoneV3TokenGenerator;
     private KeystoneV3IdentityPlugin keystoneV3IdentityPlugin;
     private String memberId;
 
@@ -50,7 +50,7 @@ public class KeystoneV3OneToOneMapperTest {
         this.mapper = new KeystoneV3OneToOneMapper();
         this.client = Mockito.spy(HttpClient.class);
         this.httpRequestClientUtil = Mockito.spy(new HttpRequestClientUtil(this.client));
-        this.keystoneV3TokenGenerator = Mockito.spy(new KeystoneV3TokenGenerator());
+        this.keystoneV3TokenGenerator = Mockito.spy(new KeystoneV3TokenGeneratorPlugin());
         this.keystoneV3TokenGenerator.setClient(this.httpRequestClientUtil);
         this.keystoneV3IdentityPlugin = new KeystoneV3IdentityPlugin();
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
@@ -72,14 +72,14 @@ public class KeystoneV3OneToOneMapperTest {
                 HttpStatus.SC_OK, "");
         Mockito.when(httpResponse1.getStatusLine()).thenReturn(basicStatus1);
         Header[] headers1 = new BasicHeader[1];
-        headers1[0] = new BasicHeader(KeystoneV3TokenGenerator.X_SUBJECT_TOKEN, FAKE_TOKEN_VALUE1);
+        headers1[0] = new BasicHeader(KeystoneV3TokenGeneratorPlugin.X_SUBJECT_TOKEN, FAKE_TOKEN_VALUE1);
         Mockito.when(httpResponse1.getAllHeaders()).thenReturn(headers1);
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse1);
 
         Map<String, String> userCredentials1 = new HashMap<String, String>();
-        userCredentials1.put(KeystoneV3TokenGenerator.USER_ID, FAKE_USER_ID1);
-        userCredentials1.put(KeystoneV3TokenGenerator.PASSWORD, "any password");
-        userCredentials1.put(KeystoneV3TokenGenerator.PROJECT_ID, FAKE_PROJECT_ID);
+        userCredentials1.put(KeystoneV3TokenGeneratorPlugin.USER_ID, FAKE_USER_ID1);
+        userCredentials1.put(KeystoneV3TokenGeneratorPlugin.PASSWORD, "any password");
+        userCredentials1.put(KeystoneV3TokenGeneratorPlugin.PROJECT_ID, FAKE_PROJECT_ID);
         String tokenValue1 = this.keystoneV3TokenGenerator.createTokenValue(userCredentials1);
         OpenStackV3Token token1 = this.keystoneV3IdentityPlugin.createToken(tokenValue1);
 
@@ -95,14 +95,14 @@ public class KeystoneV3OneToOneMapperTest {
                 HttpStatus.SC_OK, "");
         Mockito.when(httpResponse2.getStatusLine()).thenReturn(basicStatus2);
         Header[] headers2 = new BasicHeader[1];
-        headers2[0] = new BasicHeader(KeystoneV3TokenGenerator.X_SUBJECT_TOKEN, FAKE_TOKEN_VALUE2);
+        headers2[0] = new BasicHeader(KeystoneV3TokenGeneratorPlugin.X_SUBJECT_TOKEN, FAKE_TOKEN_VALUE2);
         Mockito.when(httpResponse2.getAllHeaders()).thenReturn(headers2);
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse2);
 
         Map<String, String> userCredentials2 = new HashMap<String, String>();
-        userCredentials2.put(KeystoneV3TokenGenerator.USER_ID, FAKE_USER_ID1);
-        userCredentials2.put(KeystoneV3TokenGenerator.PASSWORD, "any password");
-        userCredentials2.put(KeystoneV3TokenGenerator.PROJECT_ID, FAKE_PROJECT_ID);
+        userCredentials2.put(KeystoneV3TokenGeneratorPlugin.USER_ID, FAKE_USER_ID1);
+        userCredentials2.put(KeystoneV3TokenGeneratorPlugin.PASSWORD, "any password");
+        userCredentials2.put(KeystoneV3TokenGeneratorPlugin.PROJECT_ID, FAKE_PROJECT_ID);
         String tokenValue2 = this.keystoneV3TokenGenerator.createTokenValue(userCredentials2);
         OpenStackV3Token token2 = this.keystoneV3IdentityPlugin.createToken(tokenValue2);
 
