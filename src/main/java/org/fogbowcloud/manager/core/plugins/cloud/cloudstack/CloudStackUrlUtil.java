@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.util;
+package org.fogbowcloud.manager.core.plugins.cloud.cloudstack;
 
 import java.security.Key;
 import java.util.Map.Entry;
@@ -11,23 +11,23 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
+import org.fogbowcloud.manager.core.models.tokens.generators.cloudstack.CloudStackTokenGenerator;
 
-public class CloudStackHelper {
+public class CloudStackUrlUtil {
 
-    private static final Logger LOGGER = Logger.getLogger(CloudStackHelper.class);
+    private static final Logger LOGGER = Logger.getLogger(CloudStackUrlUtil.class);
     
-    private static final String API_KEY = "apiKey";
     private static final String COMMAND = "command";
     private static final String JSON = "json";
     private static final String RESPONSE_FORMAT = "response";
     private static final String SIGNATURE = "signature";
 
     public static void sign(URIBuilder requestEndpoint, String tokenValue) throws UnauthorizedRequestException {
-        String[] tokenValueSplit = tokenValue.split(":");
+        String[] tokenValueSplit = tokenValue.split(CloudStackTokenGenerator.TOKEN_VALUE_SEPARATOR);
         String apiKey = tokenValueSplit[0];
         String secretKey = tokenValueSplit[1];
         
-        requestEndpoint.addParameter(API_KEY, apiKey);
+        requestEndpoint.addParameter(CloudStackTokenGenerator.API_KEY, apiKey);
         requestEndpoint.addParameter(RESPONSE_FORMAT, JSON);
         
         String query = null;
