@@ -21,7 +21,7 @@ public class GenericAllToOneFederationToLocalMapper implements FederationToLocal
 	
     private static final Logger LOGGER = Logger.getLogger(GenericAllToOneFederationToLocalMapper.class);
     
-    private static String LOCAL_TOKEN_CREDENTIALS_PREFIX = "local_token_credentials_";
+    private static final String LOCAL_TOKEN_CREDENTIALS_PREFIX = "local_token_credentials_";
 
     private Map<String, String> credentials;
 
@@ -43,7 +43,6 @@ public class GenericAllToOneFederationToLocalMapper implements FederationToLocal
     @Override
     public Token map(FederationUserToken user) throws UnexpectedException, FogbowManagerException {
 	    String tokenString = this.tokenGenerator.createTokenValue(this.credentials);
-	    LOGGER.debug("token string: " + (tokenString == null ? "null" : tokenString));
 	    return this.federationIdentityPlugin.createToken(tokenString);
     }
 
@@ -57,7 +56,6 @@ public class GenericAllToOneFederationToLocalMapper implements FederationToLocal
     private Map<String, String> getDefaultLocalTokenCredentials(Properties properties) throws FatalErrorException {
         Map<String, String> localDefaultTokenCredentials = new HashMap<String, String>();
         if (properties == null) {
-            LOGGER.debug("Empty property map.");
             throw new FatalErrorException("Empty property map.");
         }
 
@@ -72,7 +70,6 @@ public class GenericAllToOneFederationToLocalMapper implements FederationToLocal
         }
 
         if (localDefaultTokenCredentials.isEmpty()) {
-            LOGGER.debug("Credentials not found.");
             throw new FatalErrorException("Default localidentity tokens credentials not found.");
         } else {
             return localDefaultTokenCredentials;

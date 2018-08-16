@@ -46,7 +46,6 @@ public class LdapAuthenticationPluginTest {
     public void testGetTokenValidTokenValue() throws Exception {
         //set up
         LdapFederationIdentityPlugin identityPlugin = Mockito.spy(new LdapFederationIdentityPlugin());
-        Mockito.doReturn(true).when(identityPlugin).verifySign(Mockito.anyString(), Mockito.anyString());
         LdapTokenGenerator tokenGenerator = Mockito.spy(new LdapTokenGenerator());
         Mockito.doReturn(this.name).when(tokenGenerator).ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
         Mockito.doReturn(true).when(this.authenticationPlugin).verifySign(Mockito.anyString(),
@@ -65,7 +64,6 @@ public class LdapAuthenticationPluginTest {
     public void testGetTokenExpiredTokenValue() throws Exception {
         //set up
         LdapFederationIdentityPlugin identityPlugin = Mockito.spy(new LdapFederationIdentityPlugin());
-        Mockito.doReturn(true).when(identityPlugin).verifySign(Mockito.anyString(), Mockito.anyString());
         LdapTokenGenerator tokenGenerator = Mockito.spy(new LdapTokenGenerator());
         Mockito.doReturn(this.name).when(tokenGenerator).ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
 
@@ -87,7 +85,6 @@ public class LdapAuthenticationPluginTest {
     public void testGetTokenInvalidTokenValue() throws Exception {
         //set up
         LdapFederationIdentityPlugin identityPlugin = Mockito.spy(new LdapFederationIdentityPlugin());
-        Mockito.doReturn(true).when(identityPlugin).verifySign(Mockito.anyString(), Mockito.anyString());
         LdapTokenGenerator tokenGenerator = Mockito.spy(new LdapTokenGenerator());
         Mockito.doReturn(this.name).when(tokenGenerator).ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
 
