@@ -11,6 +11,10 @@ import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
+import org.fogbowcloud.manager.core.exceptions.NoAvailableResourcesException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.models.HardwareRequirements;
+import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
@@ -18,6 +22,7 @@ import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackHttpToFog
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackStateMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.volume.v4_9.GetVolumeResponse;
+import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
