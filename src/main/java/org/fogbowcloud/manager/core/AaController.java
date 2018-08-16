@@ -6,22 +6,32 @@ import org.fogbowcloud.manager.core.constants.Operation;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.manager.core.models.tokens.TokenGeneratorPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.authentication.AuthenticationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.identity.FederationIdentityPlugin;
+
+import java.util.Map;
 
 public class AaController {
 
     private AuthenticationPlugin authenticationPlugin;
     private AuthorizationPlugin authorizationPlugin;
     private FederationIdentityPlugin federationIdentityPlugin;
+    private TokenGeneratorPlugin tokenGeneratorPlugin;
     private String localMemberIdentity;
 
     public AaController(BehaviorPluginsHolder behaviorPluginsHolder) {
+        this.tokenGeneratorPlugin = behaviorPluginsHolder.getTokenGeneratorPlugin();
         this.authenticationPlugin = behaviorPluginsHolder.getAuthenticationPlugin();
         this.authorizationPlugin = behaviorPluginsHolder.getAuthorizationPlugin();
         this.federationIdentityPlugin = behaviorPluginsHolder.getFederationIdentityPlugin();
         this.localMemberIdentity = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+    }
+
+    public String createTokenValue(Map<String, String> userCredentials) throws UnexpectedException,
+            FogbowManagerException {
+        return this.tokenGeneratorPlugin.createTokenValue(userCredentials);
     }
 
     public void authenticateAndAuthorize(FederationUserToken requester,

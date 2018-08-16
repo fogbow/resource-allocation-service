@@ -118,6 +118,12 @@ public class ApplicationFacade {
         deleteOrder(orderId, federationTokenValue, ResourceType.ATTACHMENT);
     }
 
+    public String createTokenValue(Map<String, String> userCredentials) throws UnexpectedException,
+            FogbowManagerException {
+        // There is no need to authenticate the user or authorize this operation
+        return this.aaController.createTokenValue(userCredentials);
+    }
+
     public List<InstanceStatus> getAllInstancesStatus(String federationTokenValue, ResourceType resourceType) throws
             UnauthenticatedUserException, UnauthorizedRequestException, UnavailableProviderException,
             InvalidParameterException {

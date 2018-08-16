@@ -2,7 +2,7 @@ package org.fogbowcloud.manager.core.plugins.behavior.identity.ldap;
 
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.models.tokens.LdapToken;
-import org.fogbowcloud.manager.core.models.tokens.generators.ldap.LdapTokenGenerator;
+import org.fogbowcloud.manager.core.models.tokens.generators.ldap.LdapTokenGeneratorPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.identity.FederationIdentityPlugin;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.*;
@@ -16,7 +16,7 @@ public class LdapFederationIdentityPlugin implements FederationIdentityPlugin<Ld
     @Override
     public LdapToken createToken(String federationTokenValue) throws InvalidParameterException {
 
-        String split[] = federationTokenValue.split(LdapTokenGenerator.TOKEN_VALUE_SEPARATOR);
+        String split[] = federationTokenValue.split(LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
         if (split == null || split.length < 5) {
             LOGGER.error("Invalid token value: " + federationTokenValue);
             throw new InvalidParameterException();
