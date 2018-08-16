@@ -19,4 +19,12 @@ public class CloudStackRestApiConstants {
         public static final String STATUS_KEY_JSON = "state";
         public static final String ADDRESS_KEY_JSON = "ipaddress";
     }
+    
+    public static class Volume {
+        public static final String LIST_DISK_OFFERING_RESPONSE_KEY_JSON = "listdiskofferingsresponse";
+        public static final String DISK_OFFERING_KEY_JSON = "diskoffering";
+        public static final String ID_KEY_JSON = "id";
+        public static final String DISK_SIZE_KEY_JSON = "disksize";
+        public static final String CUSTOMIZED_KEY_JSON = "iscustomized";
+    }
 }
