@@ -3,7 +3,6 @@ package org.fogbowcloud.manager.core.plugins.cloud.cloudstack.volume.v4_9;
 import static org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRestApiConstants.Volume.*;
 
 import java.util.List;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.compute.v2.GetAllFlavorsResponse;
 import org.fogbowcloud.manager.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
@@ -20,24 +19,23 @@ import com.google.gson.annotations.SerializedName;
  *          }] 
  *      }
  * }
+ * 
+ * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class GetAllDiskOfferingsResponse {
     
-    @SerializedName(LIST_DISK_OFFERING_RESPONSE_KEY_JSON)
-    private DisckOfferingsResponse response;
+    @SerializedName(LIST_DISK_OFFERINGS_RESPONSE_KEY_JSON)
+    private ListDiskOfferingsResponse response;
     
-    public class DisckOfferingsResponse {
+    public class ListDiskOfferingsResponse {
         
         @SerializedName(DISK_OFFERING_KEY_JSON)
         private List<DiskOffering> diskOfferings;
-        
-        public List<DiskOffering> getDiskOfferings() {
-            return this.diskOfferings;
-        }
+
     }
     
     public List<DiskOffering> getDiskOfferings() {
-        return this.response.getDiskOfferings();
+        return this.response.diskOfferings;
     }
     
     public static GetAllDiskOfferingsResponse fromJson(String json) {
