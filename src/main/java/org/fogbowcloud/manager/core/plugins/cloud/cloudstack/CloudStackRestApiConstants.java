@@ -21,4 +21,11 @@ public class CloudStackRestApiConstants {
         public static final String VOLUME_KEY_JSON = "volume";
         public static final String DISK_KEY_JSON = "disksize";
     }
+
+    public static class Network {
+
+        public static final String NETWORKS_KEY_JSON = "listnetworksresponse";
+        public static final String NETWORK_KEY_JSON = "network";
+
+    }
 }

@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack.network.v2;
 
+import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import org.fogbowcloud.manager.util.GsonHolder;
 
