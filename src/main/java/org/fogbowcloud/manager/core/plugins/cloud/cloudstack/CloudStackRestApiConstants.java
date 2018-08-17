@@ -21,10 +21,20 @@ public class CloudStackRestApiConstants {
     }
     
     public static class Volume {
-        public static final String LIST_DISK_OFFERING_RESPONSE_KEY_JSON = "listdiskofferingsresponse";
-        public static final String DISK_OFFERING_KEY_JSON = "diskoffering";
-        public static final String ID_KEY_JSON = "id";
-        public static final String DISK_SIZE_KEY_JSON = "disksize";
+        public static final String CREATE_VOLUME_RESPONSE_KEY_JSON = "createvolumeresponse";
         public static final String CUSTOMIZED_KEY_JSON = "iscustomized";
+        public static final String DELETE_VOLUME_RESPONSE_KEY_JSON = "deletevolumeresponse";
+        public static final String DISK_OFFERING_KEY_JSON = "diskoffering";
+        public static final String DISK_SIZE_KEY_JSON = "disksize";
+        public static final String DISPLAY_TEXT_KEY_JSON = "displaytext";
+        public static final String ID_KEY_JSON = "id";
+        public static final String JOB_ID_KEY_JSON = "jobid";
+        public static final String LIST_DISK_OFFERINGS_RESPONSE_KEY_JSON = "listdiskofferingsresponse";
+        public static final String LIST_VOLUMES_RESPONSE_KEY_JSON = "listvolumesresponse";
+        public static final String NAME_KEY_JSON = "name";
+        public static final String SIZE_KEY_JSON = "size";
+        public static final String STATE_KEY_JSON = "state";
+        public static final String SUCCESS_KEY_JSON = "success";
+        public static final String VOLUME_KEY_JSON = "volume";
     }
 }
