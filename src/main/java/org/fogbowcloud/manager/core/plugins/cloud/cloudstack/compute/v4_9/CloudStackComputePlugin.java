@@ -73,7 +73,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         LOGGER.debug("Getting instance from json: " + jsonResponse);
         ComputeInstance computeInstance = getInstanceFromJson(jsonResponse, cloudStackToken);
 
-        return new ComputeInstance(computeInstanceId);
+        return computeInstance;
 
     }
 
