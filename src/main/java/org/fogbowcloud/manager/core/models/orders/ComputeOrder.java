@@ -9,16 +9,48 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+
+@Entity
+@Table(name = "compute_order_table")
 public class ComputeOrder extends Order {
+	
+	private static final long serialVersionUID = 1L;
+	
+	@Column
     private int vCPU;
+	
     /** Memory attribute, must be set in MB. */
+	@Column
     private int memory;
+	
     /** Disk attribute, must be set in GB. */
+	@Column
     private int disk;
+	
+	@Column
     private String imageId;
+	
+	@JoinColumn
+	@OneToOne(cascade = CascadeType.ALL)
     private UserData userData;
+	
+	@Column
     private String publicKey;
+	
+	@JoinColumn
+	@OneToOne(cascade = CascadeType.ALL)
     private ComputeAllocation actualAllocation;
+	
+	@Column
+	@ElementCollection
     private List<String> networksId;
 
     public ComputeOrder() {

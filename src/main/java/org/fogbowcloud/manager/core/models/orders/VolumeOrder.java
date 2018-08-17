@@ -2,12 +2,23 @@ package org.fogbowcloud.manager.core.models.orders;
 
 import java.util.UUID;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 
+@Entity
+@Table(name = "volume_order_table")
 public class VolumeOrder extends Order {
-
+	
+	private static final long serialVersionUID = 1L;
+	
+	@Column
     private int volumeSize;
+	
+	@Column
     private String volumeName;
 
     public VolumeOrder() {

@@ -1,6 +1,7 @@
 package org.fogbowcloud.manager.core.datastore;
 
 import org.fogbowcloud.manager.core.PropertiesHolder;
+import org.fogbowcloud.manager.core.datastore.orderstorage.OrderRepository;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
@@ -25,14 +26,14 @@ import java.io.File;
 import java.lang.reflect.Field;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(PropertiesHolder.class)
+@PrepareForTest({PropertiesHolder.class, OrderRepository.class})
 public class DatabaseManagerTest {
 
     private static final String DATABASE_PATH = "/tmp/fogbow_history_test.db";
     private String DATABASE_URL = "jdbc:sqlite:" + DATABASE_PATH;
-
+    
     /**
-     * Cleaning all the enviromnent before running the tests.
+     * Cleaning all the environment before running the tests.
      */
     @BeforeClass
     public static void init() throws NoSuchFieldException, IllegalAccessException {
@@ -42,6 +43,7 @@ public class DatabaseManagerTest {
 
     @Before
     public void setUp() {
+
         PropertiesHolder propertiesHolder = Mockito.mock(PropertiesHolder.class);
         Mockito.when(propertiesHolder.getProperty(Mockito.anyString())).thenReturn(DATABASE_URL);
 
@@ -75,7 +77,8 @@ public class DatabaseManagerTest {
     // test case: Tests if a new compute order is added properly in the database.
     @Test
     public void testAddComputeOrder() throws InvalidParameterException, UnexpectedException {
-        // set up
+    	
+    	// set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
         FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
                 "token-value", "fake-id", "fake-user");
@@ -106,6 +109,7 @@ public class DatabaseManagerTest {
     @Test
     public void testUpdateComputeOrderState() throws InvalidParameterException, UnexpectedException {
         // set up
+    	
         DatabaseManager databaseManager = DatabaseManager.getInstance();
         FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
                 "token-value", "fake-id", "fake-user");
