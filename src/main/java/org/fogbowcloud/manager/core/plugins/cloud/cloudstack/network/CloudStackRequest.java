@@ -16,7 +16,7 @@ public abstract class CloudStackRequest {
 
     private URIBuilder uriBuilder;
 
-    protected CloudStackRequest(String endpoint, String command) throws InvalidParameterException {
+    protected CloudStackRequest() throws InvalidParameterException {
         HomeDir homeDir = HomeDir.getInstance();
         Properties properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME);
