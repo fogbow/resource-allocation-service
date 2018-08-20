@@ -19,7 +19,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class DeleteVolumeResponse {
 
-    @SerializedName(DELETE_VOLUME_RESPONSE_KEY_JSON)
+    @SerializedName(DELETE_VOLUME_KEY_JSON)
     private VolumeResponse response;
     
     public class VolumeResponse {

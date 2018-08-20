@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.models.tokens.generators.cloudstack.CloudStackTokenGenerator;
 import org.junit.Assert;
@@ -28,9 +29,9 @@ public class CloudStackTokenGeneratorTest {
         Map<String, String> tokenAttributes = new HashMap<String, String>();
         tokenAttributes.put(CloudStackTokenGenerator.API_KEY, "api");
         tokenAttributes.put(CloudStackTokenGenerator.SECRET_KEY, "key");
-        Token token = this.cloudStackTokenGenerator.createToken(tokenAttributes);
+        String token = this.cloudStackTokenGenerator.createTokenValue(tokenAttributes);
 
-        Assert.assertEquals(VALID_TOKEN_VALUE, token.getTokenValue());
+        Assert.assertEquals(VALID_TOKEN_VALUE, token);
     }
 
     @Test (expected = FogbowManagerException.class)
@@ -39,6 +40,6 @@ public class CloudStackTokenGeneratorTest {
         tokenAttributes.put(CloudStackTokenGenerator.API_KEY, null);
         tokenAttributes.put(CloudStackTokenGenerator.SECRET_KEY, "key");
 
-        Token token = this.cloudStackTokenGenerator.createToken(tokenAttributes);
+        String token = this.cloudStackTokenGenerator.createTokenValue(tokenAttributes);
     }
 }

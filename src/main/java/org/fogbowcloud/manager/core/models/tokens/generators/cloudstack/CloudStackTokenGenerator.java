@@ -49,5 +49,4 @@ public class CloudStackTokenGenerator implements TokenGenerator {
 
         return tokenValue;
     }
-    
 }

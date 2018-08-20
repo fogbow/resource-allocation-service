@@ -16,7 +16,9 @@ public class CloudStackHttpToFogbowManagerExceptionMapper {
             case HttpStatus.SC_NOT_FOUND:
                 throw new InstanceNotFoundException(e.getMessage(), e);
             default:
-                if (e.getStatusCode() > 204) throw new InvalidParameterException();
+                if (e.getStatusCode() > 204) {
+                    throw new InvalidParameterException();
+                }
         }
     }
 }

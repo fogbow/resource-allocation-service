@@ -24,7 +24,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class GetAllDiskOfferingsResponse {
     
-    @SerializedName(LIST_DISK_OFFERINGS_RESPONSE_KEY_JSON)
+    @SerializedName(DISK_OFFERINGS_KEY_JSON)
     private ListDiskOfferingsResponse response;
     
     public class ListDiskOfferingsResponse {
@@ -47,7 +47,7 @@ public class GetAllDiskOfferingsResponse {
         @SerializedName(ID_KEY_JSON)
         private String id;
         
-        @SerializedName(DISK_SIZE_KEY_JSON)
+        @SerializedName(DISK_KEY_JSON)
         private int diskSize;
         
         @SerializedName(CUSTOMIZED_KEY_JSON)

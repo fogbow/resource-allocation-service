@@ -20,7 +20,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class CreateVolumeResponse {
 
-    @SerializedName(CREATE_VOLUME_RESPONSE_KEY_JSON)
+    @SerializedName(CREATE_VOLUME_KEY_JSON)
     private VolumeResponse response;
     
     public class VolumeResponse {
