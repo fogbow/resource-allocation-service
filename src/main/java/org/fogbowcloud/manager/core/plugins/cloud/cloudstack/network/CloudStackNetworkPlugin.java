@@ -28,14 +28,12 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
     public static final String NETWORK_ID_KEY = "id";
 
     protected String networkOfferingId = null;
-    protected String endpoint = null;
 
     private HttpRequestClientUtil client;
 
     public CloudStackNetworkPlugin() {
         // TODO read attributes from file
         this.networkOfferingId = null;
-        this.endpoint = null;
 
         this.client = new HttpRequestClientUtil();
     }
@@ -43,29 +41,6 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
     @Override
     public String requestInstance(NetworkOrder networkOrder, CloudStackToken cloudStackToken) throws FogbowManagerException, UnexpectedException {
         return null;
-    }
-
-    public NetworkInstance getInstanceUsingURIBuilder(String networkInstanceId, CloudStackToken cloudStackToken) throws FogbowManagerException, UnexpectedException {
-        URIBuilder uriBuilder = CloudStackUrlUtil.createURIBuilder(this.endpoint, LIST_NETWORKS_COMMAND);
-        uriBuilder.addParameter(NETWORK_ID_KEY, networkInstanceId);
-        CloudStackUrlUtil.sign(uriBuilder, cloudStackToken.getTokenValue());
-
-        String jsonResponse = null;
-        try {
-            jsonResponse = this.client.doGetRequest(uriBuilder.toString(), cloudStackToken);
-        } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowManagerExceptionMapper.map(e);
-        }
-
-        GetNetworkResponse response = GetNetworkResponse.fromJson(jsonResponse);
-        List<GetNetworkResponse.Network> networks = response.getNetworks();
-
-        if (networks.size() > 0) {
-            // since an id were specified, there should be no more than one network in the response
-            return getNetworkInstance(networks.get(0));
-        } else {
-            throw new InstanceNotFoundException();
-        }
     }
 
     @Override
