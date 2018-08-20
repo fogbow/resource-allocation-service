@@ -25,7 +25,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class GetAllVolumesResponse {
 
-    @SerializedName(LIST_VOLUMES_RESPONSE_KEY_JSON)
+    @SerializedName(VOLUMES_KEY_JSON)
     private ListVolumesResponse response;
     
     public class ListVolumesResponse {

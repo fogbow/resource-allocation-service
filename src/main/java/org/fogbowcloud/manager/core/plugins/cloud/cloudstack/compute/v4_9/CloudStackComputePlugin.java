@@ -7,15 +7,17 @@ import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
-import org.fogbowcloud.manager.core.exceptions.NoAvailableResourcesException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
-import org.fogbowcloud.manager.core.models.HardwareRequirements;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackHttpToFogbowManagerExceptionMapper;
+import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackStateMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackUrlUtil;
+import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.volume.v4_9.GetVolumeResponse;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
@@ -29,6 +31,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
 
     private static final String CLOUDSTACK_URL_KEY = "cloudstack_api_url";
     protected static final String LIST_VMS_COMMAND = "listVirtualMachines";
+    protected static final String LIST_VOLUMES_COMMAND = "listVolumes";
     protected static final String VIRTUAL_MACHINE_ID = "id";
 
     private Properties properties;
@@ -52,62 +55,83 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     }
 
     @Override
-    public ComputeInstance getInstance(String computeInstanceId, CloudStackToken localToken)
+    public ComputeInstance getInstance(String computeInstanceId, CloudStackToken cloudStackToken)
             throws FogbowManagerException {
-        LOGGER.info("Getting instance " + computeInstanceId + " with tokens " + localToken);
+        LOGGER.info("Getting instance " + computeInstanceId + " with token " + cloudStackToken);
 
         URIBuilder uriBuilder = CloudStackUrlUtil.createURIBuilder(this.endpoint, LIST_VMS_COMMAND);
         uriBuilder.addParameter(VIRTUAL_MACHINE_ID, computeInstanceId);
-        CloudStackUrlUtil.sign(uriBuilder, localToken.getTokenValue());
+        CloudStackUrlUtil.sign(uriBuilder, cloudStackToken.getTokenValue());
 
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(uriBuilder.toString(), localToken);
+            jsonResponse = this.client.doGetRequest(uriBuilder.toString(), cloudStackToken);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowManagerExceptionMapper.map(e);
         }
 
         LOGGER.debug("Getting instance from json: " + jsonResponse);
-        ComputeInstance computeInstance = getInstanceFromJson(jsonResponse, localToken);
+        ComputeInstance computeInstance = getInstanceFromJson(jsonResponse, cloudStackToken);
 
         return new ComputeInstance(computeInstanceId);
 
     }
 
-    private ComputeInstance getInstanceFromJson(String jsonResponse, CloudStackToken cloudStackToken) {
-        GetComputeResponse getComputeResponse = GetComputeResponse.fromJson(jsonResponse);
-        /*
-        String flavorId = getComputeResponse.getFlavor().getId();
-        HardwareRequirements hardwareRequirements = getFlavorById(flavorId, cloudStackToken);
+    private ComputeInstance getInstanceFromJson(String jsonResponse, CloudStackToken cloudStackToken)
+            throws FogbowManagerException {
+        GetComputeResponse computeResponse = GetComputeResponse.fromJson(jsonResponse);
+        GetComputeResponse.VirtualMachine vm = computeResponse.getVirtualMachines().get(0);
 
-        if (hardwareRequirements == null) {
-            throw new NoAvailableResourcesException("No matching flavor");
-        }
+        String instanceId = vm.getId();
+        String hostName = vm.getName();
+        int vcpusCount = vm.getCpuNumber();
+        int memory = vm.getMemory();
 
-        int vcpusCount = hardwareRequirements.getCpu();
-        int memory = hardwareRequirements.getRam();
-        int disk = hardwareRequirements.getDisk();
+        String volumeJsonResponse = getInstanceVolume(instanceId, cloudStackToken);
+        int disk = getDiskSizeFromJson(volumeJsonResponse);
 
-        String openStackState = getComputeResponse.getStatus();
-        InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.COMPUTE, openStackState);
+        String cloudStackState = vm.getState();
+        InstanceState fogbowState = CloudStackStateMapper.map(ResourceType.COMPUTE, cloudStackState);
 
-        String instanceId = getComputeResponse.getId();
-        String hostName = getComputeResponse.getName();
-
-        GetComputeResponse.Addresses addressesContainer = getComputeResponse.getAddresses();
-
+        GetComputeResponse.Nic[] addresses = vm.getNic();
         String address = "";
-        if (addressesContainer != null) {
-            GetComputeResponse.Address[] addresses = addressesContainer.getProviderAddresses();
-            boolean firstAddressEmpty = addresses == null || addresses.length == 0 || addresses[0].getAddress() == null;
-            address = firstAddressEmpty ? "" : addresses[0].getAddress();
+        if (addresses != null) {
+            boolean firstAddressEmpty = addresses == null || addresses.length == 0 || addresses[0].getIpAddress() == null;
+            address = firstAddressEmpty ? "" : addresses[0].getIpAddress();
         }
 
         ComputeInstance computeInstance = new ComputeInstance(instanceId,
                 fogbowState, hostName, vcpusCount, memory, disk, address);
-         */
-        return new ComputeInstance("");
 
+        return computeInstance;
+    }
+
+    private String getInstanceVolume(String computeInstanceId, CloudStackToken cloudStackToken)
+            throws FogbowManagerException {
+        LOGGER.info("Getting volume for instance " + computeInstanceId + " with token " + cloudStackToken);
+
+        URIBuilder uriBuilder = CloudStackUrlUtil.createURIBuilder(this.endpoint, LIST_VOLUMES_COMMAND);
+        uriBuilder.addParameter(VIRTUAL_MACHINE_ID, computeInstanceId);
+        CloudStackUrlUtil.sign(uriBuilder, cloudStackToken.getTokenValue());
+
+        String jsonResponse = null;
+        try {
+            jsonResponse = this.client.doGetRequest(uriBuilder.toString(), cloudStackToken);
+        } catch (HttpResponseException e) {
+            CloudStackHttpToFogbowManagerExceptionMapper.map(e);
+        }
+
+        return jsonResponse;
+    }
+
+    private int getDiskSizeFromJson(String volumeJsonResponse) {
+        GetVolumeResponse volumeResponse = GetVolumeResponse.fromJson(volumeJsonResponse);
+        GetVolumeResponse.Volume volume = volumeResponse.getVolumes().get(0);
+
+        // TODO(pauloewerton): Check case when there's no volume attached to instance
+        int diskSize = volume.getDiskSize();
+
+        return diskSize;
     }
 
     @Override
