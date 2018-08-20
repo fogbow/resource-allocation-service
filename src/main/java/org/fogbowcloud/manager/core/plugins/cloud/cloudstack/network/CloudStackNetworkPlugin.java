@@ -27,7 +27,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
     public static final String LIST_NETWORKS_COMMAND = "listNetworks";
     public static final String NETWORK_ID_KEY = "id";
 
-    private String networkOfferingId = null;
+    protected String networkOfferingId = null;
     protected String endpoint = null;
 
     private HttpRequestClientUtil client;
@@ -45,8 +45,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
         return null;
     }
 
-    @Override
-    public NetworkInstance getInstance(String networkInstanceId, CloudStackToken cloudStackToken) throws FogbowManagerException, UnexpectedException {
+    public NetworkInstance getInstanceUsingURIBuilder(String networkInstanceId, CloudStackToken cloudStackToken) throws FogbowManagerException, UnexpectedException {
         URIBuilder uriBuilder = CloudStackUrlUtil.createURIBuilder(this.endpoint, LIST_NETWORKS_COMMAND);
         uriBuilder.addParameter(NETWORK_ID_KEY, networkInstanceId);
         CloudStackUrlUtil.sign(uriBuilder, cloudStackToken.getTokenValue());
@@ -61,11 +60,37 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
         GetNetworkResponse response = GetNetworkResponse.fromJson(jsonResponse);
         List<GetNetworkResponse.Network> networks = response.getNetworks();
 
-        if (networks.size() < 1) {
-            throw new InstanceNotFoundException();
-        } else {
+        if (networks.size() > 0) {
             // since an id were specified, there should be no more than one network in the response
             return getNetworkInstance(networks.get(0));
+        } else {
+            throw new InstanceNotFoundException();
+        }
+    }
+
+    @Override
+    public NetworkInstance getInstance(String networkInstanceId, CloudStackToken cloudStackToken) throws FogbowManagerException, UnexpectedException {
+        GetNetworkRequest request = new GetNetworkRequest.Builder()
+                .id(networkInstanceId)
+                .build();
+
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
+
+        String jsonResponse = null;
+        try {
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
+        } catch (HttpResponseException e) {
+            CloudStackHttpToFogbowManagerExceptionMapper.map(e);
+        }
+
+        GetNetworkResponse response = GetNetworkResponse.fromJson(jsonResponse);
+        List<GetNetworkResponse.Network> networks = response.getNetworks();
+
+        if (networks.size() > 0) {
+            // since an id were specified, there should be no more than one network in the response
+            return getNetworkInstance(networks.get(0));
+        } else {
+            throw new InstanceNotFoundException();
         }
     }
 
