@@ -34,7 +34,7 @@ public class CloudStackTokenGeneratorTest {
         Assert.assertEquals(VALID_TOKEN_VALUE, token);
     }
 
-    @Test (expected = FogbowManagerException.class)
+    @Test(expected = FogbowManagerException.class)
     public void testInvalidTokenParameters() throws FogbowManagerException {
         Map<String, String> tokenAttributes = new HashMap<String, String>();
         tokenAttributes.put(CloudStackTokenGenerator.API_KEY, null);
