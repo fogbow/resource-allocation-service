@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.models.tokens.generators;
+package org.fogbowcloud.manager.core.models.tokens.generators.cloudstack;
 
 import java.util.HashMap;
 import java.util.Map;
