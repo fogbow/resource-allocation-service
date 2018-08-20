@@ -5,7 +5,7 @@ import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRequest;
 
 public class GetComputeRequest extends CloudStackRequest {
 
-    public static final String LIST_VMS_COMMAND = "listNetworks";
+    public static final String LIST_VMS_COMMAND = "listVirtualMachines";
     public static final String VIRTUAL_MACHINE_ID_KEY = "id";
 
     private GetComputeRequest(Builder builder) throws InvalidParameterException {

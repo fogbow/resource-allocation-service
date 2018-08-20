@@ -34,8 +34,13 @@ public class GetComputeResponse {
     private ListVirtualMachinesResponse virtualMachinesResponse;
 
     public class ListVirtualMachinesResponse {
+
         @SerializedName(VIRTUAL_MACHINE_KEY_JSON)
         private List<VirtualMachine> virtualMachines;
+    }
+
+    public List<VirtualMachine> getVirtualMachines() {
+        return virtualMachinesResponse.virtualMachines;
     }
 
     public class VirtualMachine {
@@ -83,11 +88,8 @@ public class GetComputeResponse {
         }
     }
 
-    public List<VirtualMachine> getVirtualMachines() {
-        return virtualMachinesResponse.virtualMachines;
-    }
-
     public class Nic {
+
         @SerializedName(IP_ADDRESS_KEY_JSON)
         private String ipAddress;
 
@@ -99,4 +101,5 @@ public class GetComputeResponse {
     public static GetComputeResponse fromJson(String json) {
         return GsonHolder.getInstance().fromJson(json, GetComputeResponse.class);
     }
+
 }
