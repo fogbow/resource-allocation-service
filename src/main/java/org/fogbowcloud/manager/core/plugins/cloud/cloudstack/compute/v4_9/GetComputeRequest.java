@@ -9,7 +9,7 @@ public class GetComputeRequest extends CloudStackRequest {
     public static final String VIRTUAL_MACHINE_ID_KEY = "id";
 
     private GetComputeRequest(Builder builder) throws InvalidParameterException {
-        super(builder.endpoint, builder.command);
+        super();
         addParameter(VIRTUAL_MACHINE_ID_KEY, builder.id);
     }
 
