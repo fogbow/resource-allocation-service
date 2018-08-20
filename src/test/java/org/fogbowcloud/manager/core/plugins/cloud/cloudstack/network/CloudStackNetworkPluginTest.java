@@ -19,7 +19,6 @@ public class CloudStackNetworkPluginTest {
     @Test
     public void testTemp() throws UnexpectedException, FogbowManagerException {
         CloudStackNetworkPlugin p = new CloudStackNetworkPlugin();
-        p.endpoint = "https://compute.rnp.br/client/api";
 
         String apiKey = "Xp2TRynMLZpFAchsTpLpcj8zW_omWCWaP6NNxmb2fV9Nv_Ga6J8QcNRbPCcZUSY2NDS83d7svGhdikV7XrVkcQ";
         String secretKey = "pnDkW2amt9w-9pjn5tB4DAIc50bCdK3m6CO99r_r5xoDTTJjpormiTfj_5QEbbkVhdE5mHbTq5t8X-fKhHcJeg";
