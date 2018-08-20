@@ -27,6 +27,7 @@ public class CloudStackNetworkPluginTest {
         CloudStackToken token = new CloudStackToken(tokenValue);
         String networkId = "6fc82e5a-1d96-4d10-b9bf-96693c89dda8";
         NetworkInstance i = p.getInstance(networkId, token);
+
     }
 
 }
