@@ -29,23 +29,42 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
 
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputePlugin.class);
 
+    private static final String SERVICE_OFFERING_ID_KEY = "service_offering_id";
+    private static final String TEMPLATE_ID_KEY = "template_id";
+    private static final String ZONE_ID_KEY = "zone_id";
+
     private Properties properties;
     private HttpRequestClientUtil client;
+
+    private String serviceOfferingId;
+    private String templateId;
+    private String zoneId;
 
     public CloudStackComputePlugin() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
         this.properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME);
 
-        // TODO read attributes from file
+        this.serviceOfferingId = properties.getProperty(SERVICE_OFFERING_ID_KEY);
+        this.templateId = properties.getProperty(TEMPLATE_ID_KEY);
+        this.zoneId = properties.getProperty(ZONE_ID_KEY);
+
         initClient();
     }
 
     @Override
-    public String requestInstance(ComputeOrder computeOrder, CloudStackToken localToken)
+    public String requestInstance(ComputeOrder computeOrder, CloudStackToken cloudStackToken)
             throws FogbowManagerException, UnexpectedException {
-        return "";
+        DeployComputeRequest request = new DeployComputeRequest.Builder()
+                .serviceOfferingId(this.serviceOfferingId)
+                .templateId(this.templateId)
+                .zoneId(this.zoneId)
+                .build();
 
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
+
+
+        return "";
     }
 
     @Override
