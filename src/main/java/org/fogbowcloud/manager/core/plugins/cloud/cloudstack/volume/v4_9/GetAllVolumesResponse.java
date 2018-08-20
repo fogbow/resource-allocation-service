@@ -3,7 +3,6 @@ package org.fogbowcloud.manager.core.plugins.cloud.cloudstack.volume.v4_9;
 import static org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRestApiConstants.Volume.*;
 
 import java.util.List;
-import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.volume.v4_9.GetAllDiskOfferingsResponse.DiskOffering;
 import org.fogbowcloud.manager.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
@@ -57,6 +56,22 @@ public class GetAllVolumesResponse {
         
         @SerializedName(STATE_KEY_JSON)
         private String state;
+
+        public String getId() {
+            return this.id;
+        }
+
+        public String getName() {
+            return this.name;
+        }
+
+        public int getSize() {
+            return this.size;
+        }
+
+        public String getState() {
+            return this.state;
+        }
         
     }
     
