@@ -1,10 +1,11 @@
 package org.fogbowcloud.manager.core.plugins.cloud.cloudstack.network;
 
+import org.apache.commons.net.util.SubnetUtils;
 import org.apache.http.client.HttpResponseException;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
@@ -24,23 +25,61 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
 
     private static final Logger LOGGER = Logger.getLogger(CloudStackNetworkPlugin.class);
 
-    public static final String LIST_NETWORKS_COMMAND = "listNetworks";
-    public static final String NETWORK_ID_KEY = "id";
-
     protected String networkOfferingId = null;
+    protected String zoneId = null;
 
     private HttpRequestClientUtil client;
 
     public CloudStackNetworkPlugin() {
         // TODO read attributes from file
         this.networkOfferingId = null;
+        this.zoneId = null;
 
         this.client = new HttpRequestClientUtil();
     }
 
     @Override
     public String requestInstance(NetworkOrder networkOrder, CloudStackToken cloudStackToken) throws FogbowManagerException, UnexpectedException {
-        return null;
+        SubnetUtils.SubnetInfo subnetInfo = getSubnetInfo(networkOrder.getAddress());
+        if (subnetInfo == null) {
+            throw new InvalidParameterException("cidr <" + networkOrder.getAddress() + "> is not valid");
+        }
+
+        String name = "fogbow_network_" + ((int) Math.random());
+        String startingIp = subnetInfo.getLowAddress();
+        String endingIp = subnetInfo.getHighAddress();
+        String gateway = networkOrder.getGateway();
+
+        CreateNetworkRequest request = new CreateNetworkRequest.Builder()
+                .name(name)
+                .displayText(name)
+                .networkOfferingId(this.networkOfferingId)
+                .zoneId(this.zoneId)
+                .startIp(startingIp)
+                .endingIp(endingIp)
+                .gateway(gateway)
+                .netmask(subnetInfo.getNetmask())
+                .build();
+
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
+
+        String jsonResponse = null;
+        try {
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
+        } catch (HttpResponseException e) {
+            CloudStackHttpToFogbowManagerExceptionMapper.map(e);
+        }
+
+        CreateNetworkResponse response = CreateNetworkResponse.fromJson(jsonResponse);
+        return response.getId();
+    }
+
+    private SubnetUtils.SubnetInfo getSubnetInfo(String cidrNotation) {
+        try {
+            return new SubnetUtils(cidrNotation).getInfo();
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     @Override
