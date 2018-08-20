@@ -29,26 +29,42 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
 
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputePlugin.class);
 
-    private static final String CLOUDSTACK_URL_KEY = "cloudstack_api_url";
-    protected static final String LIST_VOLUMES_COMMAND = "listVolumes";
+    private static final String SERVICE_OFFERING_ID_KEY = "service_offering_id";
+    private static final String TEMPLATE_ID_KEY = "template_id";
+    private static final String ZONE_ID_KEY = "zone_id";
 
     private Properties properties;
     private HttpRequestClientUtil client;
+
+    private String serviceOfferingId;
+    private String templateId;
+    private String zoneId;
 
     public CloudStackComputePlugin() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
         this.properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME);
 
-        // TODO read attributes from file
+        this.serviceOfferingId = properties.getProperty(SERVICE_OFFERING_ID_KEY);
+        this.templateId = properties.getProperty(TEMPLATE_ID_KEY);
+        this.zoneId = properties.getProperty(ZONE_ID_KEY);
+
         initClient();
     }
 
     @Override
-    public String requestInstance(ComputeOrder computeOrder, CloudStackToken localToken)
+    public String requestInstance(ComputeOrder computeOrder, CloudStackToken cloudStackToken)
             throws FogbowManagerException, UnexpectedException {
-        return "";
+        DeployComputeRequest request = new DeployComputeRequest.Builder()
+                .serviceOfferingId(this.serviceOfferingId)
+                .templateId(this.templateId)
+                .zoneId(this.zoneId)
+                .build();
 
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
+
+
+        return "";
     }
 
     @Override
@@ -72,17 +88,18 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         LOGGER.debug("Getting instance from json: " + jsonResponse);
 
         GetComputeResponse computeResponse = GetComputeResponse.fromJson(jsonResponse);
-        List<GetComputeResponse.VirtualMachine> vms = computeResponse.getVirtualMachines();
 
-        if (vms.size() > 0) {
-            return getComputeInstance(vms.get(0), cloudStackToken);
-        } else {
+        try {
+            List<GetComputeResponse.VirtualMachine> vms = computeResponse.getVirtualMachines();
+            return getComputeInstance(vms.get(0));
+        } catch (NullPointerException e) {
+            // NOTE(pauloewerton): when the instance is not found, the response has no 'virtualmachine' key
+            // causing gson to raise a NullPointerException
             throw new InstanceNotFoundException();
         }
     }
 
-    private ComputeInstance getComputeInstance(GetComputeResponse.VirtualMachine vm, CloudStackToken cloudStackToken)
-            throws FogbowManagerException {
+    private ComputeInstance getComputeInstance(GetComputeResponse.VirtualMachine vm) throws FogbowManagerException {
         String instanceId = vm.getId();
         String hostName = vm.getName();
         int vcpusCount = vm.getCpuNumber();
