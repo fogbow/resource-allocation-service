@@ -14,9 +14,12 @@ import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.models.ResourceType;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.tokens.Token;
+import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackStateMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackHttpToFogbowManagerExceptionMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackUrlUtil;
@@ -51,12 +54,14 @@ public class CloudStackVolumePlugin implements VolumePlugin<Token>{
     
     public CloudStackVolumePlugin() {
         HomeDir homeDir = HomeDir.getInstance();
-        String filePath = homeDir.getPath() + File.separator + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
+        String filePath = homeDir.getPath() + File.separator
+                + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
+        
         Properties properties = PropertiesUtil.readProperties(filePath);
 
         this.endpoint = properties.getProperty(CLOUDSTACK_URL_KEY);
         this.zoneId = properties.getProperty(CLOUDSTACK_ZONE_ID);
-        
+
         initClient();
     }
     
@@ -110,7 +115,8 @@ public class CloudStackVolumePlugin implements VolumePlugin<Token>{
             throws FogbowManagerException, UnexpectedException {
         
         LOGGER.debug("Getting storage instance " + volumeInstanceId + ", with token " + localUserAttributes);
-        List<VolumeInstance> volumeInstances = getAllVolumeInstances(localUserAttributes);
+        
+        List<VolumeInstance> volumeInstances = getAllInstances(localUserAttributes);
         for (VolumeInstance volumeInstance : volumeInstances) {
             if (volumeInstance.getId().equals(volumeInstanceId)) {
                 return volumeInstance;
@@ -124,6 +130,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<Token>{
             throws FogbowManagerException, UnexpectedException {
         
         LOGGER.debug("Removing storage instance " + volumeInstanceId + ". With token: " + localUserAttributes);
+        
         URIBuilder volumeUriBuilder = CloudStackUrlUtil.createURIBuilder(endpoint, DELETE_VOLUME_COMMAND);
         volumeUriBuilder.addParameter(VOLUME_ID, volumeInstanceId);
 
@@ -193,35 +200,53 @@ public class CloudStackVolumePlugin implements VolumePlugin<Token>{
         return null;
     }
     
-    private List<VolumeInstance> getAllVolumeInstances(Token localUserAttributes) throws InvalidParameterException, UnauthorizedRequestException {
-        
-        LOGGER.debug("Listing cloudstack volumes with this token value: " + localUserAttributes.getTokenValue());
-        
-        URIBuilder volumeUriBuilder = CloudStackUrlUtil.createURIBuilder(endpoint, LIST_VOLUMES_COMMAND);
-        
+    private List<VolumeInstance> getAllInstances(Token localUserAttributes)
+            throws FogbowManagerException {
+
+        LOGGER.debug("Listing cloudstack volumes with this token value: "
+                + localUserAttributes.getTokenValue());
+
+        URIBuilder volumeUriBuilder =
+                CloudStackUrlUtil.createURIBuilder(endpoint, LIST_VOLUMES_COMMAND);
+
         CloudStackUrlUtil.sign(volumeUriBuilder, localUserAttributes.getTokenValue());
-        
+
+
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(volumeUriBuilder.toString(), localUserAttributes);
-        } catch (HttpResponseException | UnavailableProviderException e) {
-            // TODO Auto-generated catch block
+            jsonResponse =
+                    this.client.doGetRequest(volumeUriBuilder.toString(), localUserAttributes);
+        } catch (HttpResponseException e) {
+            CloudStackHttpToFogbowManagerExceptionMapper.map(e);
         }
 
-        List<VolumeInstance> volumeInstances = new LinkedList<VolumeInstance>();
         GetAllVolumesResponse response = GetAllVolumesResponse.fromJson(jsonResponse);
+
+        List<VolumeInstance> volumeInstances = listInstances(response);
+        return volumeInstances;
+    }
+
+    private List<VolumeInstance> listInstances(GetAllVolumesResponse response) {
+        List<VolumeInstance> volumeInstances = new LinkedList<VolumeInstance>();
+        
         for (Volume volume : response.getVolumes()) {
             if (volume != null) {
-                volumeInstances.add(loadVolumeInstance(volume));
+                volumeInstances.add(loadInstance(volume));
             }
         }
-         
         return volumeInstances;
     }
     
-    private VolumeInstance loadVolumeInstance(Volume volume) {
-        // TODO Auto-generated method stub
-        return null;
+    private VolumeInstance loadInstance(Volume volume) {
+        String id = volume.getId();
+        String state = volume.getState();
+        String name = volume.getName();
+        int size = volume.getSize();
+        
+        InstanceState instanceState = CloudStackStateMapper.map(ResourceType.VOLUME, state);
+        
+        VolumeInstance volumeInstance = new VolumeInstance(id, instanceState, name, size);
+        return volumeInstance;
     }
 
     protected void setClient(HttpRequestClientUtil client) {
