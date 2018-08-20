@@ -29,9 +29,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
 
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputePlugin.class);
 
-    private static final String CLOUDSTACK_URL_KEY = "cloudstack_api_url";
-    protected static final String LIST_VOLUMES_COMMAND = "listVolumes";
-
     private Properties properties;
     private HttpRequestClientUtil client;
 
@@ -72,17 +69,18 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         LOGGER.debug("Getting instance from json: " + jsonResponse);
 
         GetComputeResponse computeResponse = GetComputeResponse.fromJson(jsonResponse);
-        List<GetComputeResponse.VirtualMachine> vms = computeResponse.getVirtualMachines();
 
-        if (vms.size() > 0) {
-            return getComputeInstance(vms.get(0), cloudStackToken);
-        } else {
+        try {
+            List<GetComputeResponse.VirtualMachine> vms = computeResponse.getVirtualMachines();
+            return getComputeInstance(vms.get(0));
+        } catch (NullPointerException e) {
+            // NOTE(pauloewerton): when the instance is not found, the response has no 'virtualmachine' key
+            // causing gson to raise a NullPointerException
             throw new InstanceNotFoundException();
         }
     }
 
-    private ComputeInstance getComputeInstance(GetComputeResponse.VirtualMachine vm, CloudStackToken cloudStackToken)
-            throws FogbowManagerException {
+    private ComputeInstance getComputeInstance(GetComputeResponse.VirtualMachine vm) throws FogbowManagerException {
         String instanceId = vm.getId();
         String hostName = vm.getName();
         int vcpusCount = vm.getCpuNumber();
