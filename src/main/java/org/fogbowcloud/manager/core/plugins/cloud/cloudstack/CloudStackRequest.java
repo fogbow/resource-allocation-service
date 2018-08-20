@@ -1,4 +1,4 @@
-package org.fogbowcloud.manager.core.plugins.cloud.cloudstack.network;
+package org.fogbowcloud.manager.core.plugins.cloud.cloudstack;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.fogbowcloud.manager.core.HomeDir;

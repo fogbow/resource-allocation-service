@@ -1,16 +1,16 @@
-package org.fogbowcloud.manager.core.plugins.cloud.cloudstack.network;
+package org.fogbowcloud.manager.core.plugins.cloud.cloudstack.compute.v4_9;
 
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRequest;
 
-public class GetNetworkRequest extends CloudStackRequest {
+public class GetComputeRequest extends CloudStackRequest {
 
-    public static final String LIST_NETWORKS_COMMAND = "listNetworks";
-    public static final String NETWORK_ID_KEY = "id";
+    public static final String LIST_VMS_COMMAND = "listNetworks";
+    public static final String VIRTUAL_MACHINE_ID_KEY = "id";
 
-    private GetNetworkRequest(Builder builder) throws InvalidParameterException {
+    private GetComputeRequest(Builder builder) throws InvalidParameterException {
         super(builder.endpoint, builder.command);
-        addParameter(NETWORK_ID_KEY, builder.id);
+        addParameter(VIRTUAL_MACHINE_ID_KEY, builder.id);
     }
 
     @Override
@@ -20,7 +20,7 @@ public class GetNetworkRequest extends CloudStackRequest {
 
     @Override
     public String getCommand() {
-        return LIST_NETWORKS_COMMAND;
+        return LIST_VMS_COMMAND;
     }
 
     public static class Builder {
@@ -44,8 +44,8 @@ public class GetNetworkRequest extends CloudStackRequest {
             return this;
         }
 
-        public GetNetworkRequest build() throws InvalidParameterException {
-            return new GetNetworkRequest(this);
+        public GetComputeRequest build() throws InvalidParameterException {
+            return new GetComputeRequest(this);
         }
 
     }
