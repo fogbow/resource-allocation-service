@@ -171,8 +171,6 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
                 .securityGroupId(securityGroupId)
                 .remoteIpPrefix(remoteIpPrefix)
                 .protocol(ICMP_PROTOCOL)
-                .minPort(ANY_PORT)
-                .maxPort(ANY_PORT)
                 .build();
     }
 
