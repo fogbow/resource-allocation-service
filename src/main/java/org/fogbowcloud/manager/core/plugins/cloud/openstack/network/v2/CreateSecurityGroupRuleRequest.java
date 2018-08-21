@@ -48,10 +48,10 @@ public class CreateSecurityGroupRuleRequest {
         private String protocol;
 
         @SerializedName(MIN_PORT_KEY_JSON)
-        private int minPort;
+        private Integer minPort;
 
         @SerializedName(MAX_PORT_KEY_JSON)
-        private int maxPort;
+        private Integer maxPort;
 
         public SecurityGroupRule(Builder builder) {
             this.direction = builder.direction;
@@ -70,8 +70,8 @@ public class CreateSecurityGroupRuleRequest {
         private String securityGroupId;
         private String remoteIpPrefix;
         private String protocol;
-        private int minPort;
-        private int maxPort;
+        private Integer minPort;
+        private Integer maxPort;
 
         public Builder direction(String direction) {
             this.direction = direction;
