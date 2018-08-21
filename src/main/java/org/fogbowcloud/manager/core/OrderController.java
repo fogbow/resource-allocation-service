@@ -78,7 +78,9 @@ public class OrderController {
         synchronized (order) {
             CloudConnector cloudConnector =
                     CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
-            return cloudConnector.getInstance(order);
+            Instance instance = cloudConnector.getInstance(order);
+            order.setCachedInstanceState(instance.getState());
+            return instance;
         }
     }
 
