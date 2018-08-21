@@ -1,18 +1,32 @@
 package org.fogbowcloud.manager.core.plugins.cloud.cloudstack.network;
 
 import com.google.gson.annotations.SerializedName;
+import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRestApiConstants;
 import org.fogbowcloud.manager.util.GsonHolder;
 
 public class CreateNetworkResponse {
 
-    // FIXME add @SerializedName tag
-    private String id;
+    private Response response;
+
 
     public static CreateNetworkResponse fromJson(String json) {
         return GsonHolder.getInstance().fromJson(json, CreateNetworkResponse.class);
     }
 
     public String getId() {
-        return id;
+        return response.network.id;
+    }
+
+    private class Response {
+
+        private Network network;
+
+    }
+
+    private class Network {
+
+        @SerializedName(CloudStackRestApiConstants.Network.ID_KEY)
+        private String id;
+
     }
 }

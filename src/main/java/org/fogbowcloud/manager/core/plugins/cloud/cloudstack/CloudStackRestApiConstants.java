@@ -19,6 +19,6 @@ public class CloudStackRestApiConstants {
 
         public static final String NETWORKS_KEY_JSON = "listnetworksresponse";
         public static final String NETWORK_KEY_JSON = "network";
-
+        public static final String ID_KEY = "id";
     }
 }
