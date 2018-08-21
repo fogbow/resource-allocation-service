@@ -10,8 +10,6 @@ import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
-import org.fogbowcloud.manager.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
@@ -35,6 +33,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<Token>{
 
     private HttpRequestClientUtil client;
     private String zoneId;
+    private boolean diskOfferingCustomized;
     
     public CloudStackVolumePlugin() {
         HomeDir homeDir = HomeDir.getInstance();
@@ -42,9 +41,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<Token>{
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
 
         Properties properties = PropertiesUtil.readProperties(filePath);
-
         this.zoneId = properties.getProperty(CLOUDSTACK_ZONE_ID_KEY);
-
         this.client = new HttpRequestClientUtil();
     }
     
@@ -53,39 +50,15 @@ public class CloudStackVolumePlugin implements VolumePlugin<Token>{
             throws FogbowManagerException, UnexpectedException {
         
         LOGGER.debug("Requesting volume instance with token " + localUserAttributes);
-        
-        String name = volumeOrder.getVolumeName();
-        int volumeSize = volumeOrder.getVolumeSize();
-        
-        String diskOfferingsResponse = null;
-        try {
-            diskOfferingsResponse = doGetRequestToListDiskOfferings(volumeOrder, localUserAttributes);
-        } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowManagerExceptionMapper.map(e);
-        }
-        
-        String diskOfferingId = getDiskOfferingIdCompatible(volumeSize, diskOfferingsResponse);
+        String diskOfferingId = getDiskOfferingId(volumeOrder, localUserAttributes);
 
         CreateVolumeRequest request;
-        if (diskOfferingId != null) {
-            request = new CreateVolumeRequest.Builder()
-                    .zoneId(this.zoneId)
-                    .name(name)
-                    .diskOfferingId(diskOfferingId)
-                    .build();
+        if (!isDiskOfferingCustomized()) {
+            request = createVolumeCompatible(volumeOrder, diskOfferingId);
         } else {
-            diskOfferingId = getDiskOfferingIdCustomized(volumeSize, diskOfferingsResponse);
-
-            String size = String.valueOf(volumeSize);
-            request = new CreateVolumeRequest.Builder()
-                    .zoneId(this.zoneId)
-                    .name(name)
-                    .diskOfferingId(diskOfferingId)
-                    .size(size)
-                    .build();
+            request = createVolumeCustomized(volumeOrder, diskOfferingId);
         }
-        // TODO throw exception for diskOfferingId null...
-                
+        
         CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
         
         String jsonResponse = null;
@@ -97,8 +70,8 @@ public class CloudStackVolumePlugin implements VolumePlugin<Token>{
         
         LOGGER.debug("Getting instance from json: " + jsonResponse);
         CreateVolumeResponse volumeResponse = CreateVolumeResponse.fromJson(jsonResponse);
-
-        return volumeResponse.getId();
+        String volumeId = volumeResponse.getId();
+        return volumeId;
     }
 
     @Override
@@ -106,8 +79,8 @@ public class CloudStackVolumePlugin implements VolumePlugin<Token>{
             throws FogbowManagerException, UnexpectedException {
         
         LOGGER.debug("Getting storage instance " + volumeInstanceId + ", with token " + localUserAttributes);
-        
         List<VolumeInstance> volumeInstances = getAllInstances(localUserAttributes);
+
         for (VolumeInstance volumeInstance : volumeInstances) {
             if (volumeInstance.getId().equals(volumeInstanceId)) {
                 return volumeInstance;
@@ -123,7 +96,6 @@ public class CloudStackVolumePlugin implements VolumePlugin<Token>{
         LOGGER.debug("Removing storage instance " + volumeInstanceId + ". With token: " + localUserAttributes);
         
         DeleteVolumeRequest request = new DeleteVolumeRequest.Builder().id(volumeInstanceId).build();
-        
         CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
         
         String jsonResponse = null;
@@ -142,22 +114,33 @@ public class CloudStackVolumePlugin implements VolumePlugin<Token>{
         }
     }
 
-    
-    private String doGetRequestToListDiskOfferings(VolumeOrder volumeOrder, Token localUserAttributes)
-            throws InvalidParameterException, UnauthorizedRequestException, HttpResponseException,
-            UnavailableProviderException {
+    private String getDiskOfferingId(VolumeOrder volumeOrder, Token localUserAttributes)
+            throws FogbowManagerException {
 
-        LOGGER.debug("Getting disk offerings available in cloudstack with token: "
-                + localUserAttributes + " and volume size: " + volumeOrder.getVolumeSize());
+        int volumeSize = volumeOrder.getVolumeSize();
+        LOGGER.debug("Getting disk offerings available in cloudstack with token: " 
+                + localUserAttributes + " and volume size: " + volumeSize);
 
         GetAllDiskOfferingsRequest request = new GetAllDiskOfferingsRequest.Builder().build();
         CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
 
-        String jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), localUserAttributes);
-        return jsonResponse;
-        
-    }
+        String jsonResponse = null;
+        try {
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), localUserAttributes);
+        } catch (HttpResponseException e) {
+            CloudStackHttpToFogbowManagerExceptionMapper.map(e);
+        }
 
+        String diskOfferingId = getDiskOfferingIdCompatible(volumeSize, jsonResponse);
+        
+        if (diskOfferingId != null) {
+            this.diskOfferingCustomized = false;
+        } else {
+            diskOfferingId = getDiskOfferingIdCustomized(volumeSize, jsonResponse);
+        }
+        return diskOfferingId;
+    }
+    
     private String getDiskOfferingIdCustomized(int volumeSize, String jsonResponse) {
         GetAllDiskOfferingsResponse response = GetAllDiskOfferingsResponse.fromJson(jsonResponse);
         boolean customized;
@@ -166,9 +149,11 @@ public class CloudStackVolumePlugin implements VolumePlugin<Token>{
             customized = diskOffering.isCustomized();
             size = diskOffering.getDiskSize();
             if (customized && size == 0) {
+                this.diskOfferingCustomized = customized;
                 return diskOffering.getId();
             }
         }
+        LOGGER.debug("There is not disk offering customized in cloudstack");
         return null;
     }
 
@@ -181,7 +166,32 @@ public class CloudStackVolumePlugin implements VolumePlugin<Token>{
                 return diskOffering.getId();
             }
         }
+        LOGGER.debug("There is not compatible disk offering in cloudstack");
         return null;
+    }
+
+    private CreateVolumeRequest createVolumeCustomized(VolumeOrder volumeOrder,
+            String diskOfferingId) throws InvalidParameterException {
+        
+        String name = volumeOrder.getVolumeName();
+        String size = String.valueOf(volumeOrder.getVolumeSize());
+        return new CreateVolumeRequest.Builder()
+                .zoneId(this.zoneId)
+                .name(name)
+                .diskOfferingId(diskOfferingId)
+                .size(size)
+                .build();
+    }
+
+    private CreateVolumeRequest createVolumeCompatible(VolumeOrder volumeOrder, String diskOfferingId)
+            throws InvalidParameterException {
+        
+        String name = volumeOrder.getVolumeName();
+        return new CreateVolumeRequest.Builder()
+                .zoneId(this.zoneId)
+                .name(name)
+                .diskOfferingId(diskOfferingId)
+                .build();
     }
     
     private List<VolumeInstance> getAllInstances(Token localUserAttributes)
@@ -233,6 +243,10 @@ public class CloudStackVolumePlugin implements VolumePlugin<Token>{
 
     protected void setClient(HttpRequestClientUtil client) {
         this.client = client;
+    }
+
+    protected boolean isDiskOfferingCustomized() {
+        return diskOfferingCustomized;
     }
     
 }
