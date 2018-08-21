@@ -1,5 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.cloud.cloudstack.compute.v4_9;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
@@ -22,6 +23,7 @@ import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
 
 import java.io.File;
+import java.util.Base64;
 import java.util.List;
 import java.util.Properties;
 
@@ -55,16 +57,32 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     @Override
     public String requestInstance(ComputeOrder computeOrder, CloudStackToken cloudStackToken)
             throws FogbowManagerException, UnexpectedException {
+        String disk = Integer.toString(computeOrder.getDisk());
+        String userData = Base64.getEncoder().encodeToString(computeOrder.getUserData().toString().getBytes());
+        String networksId = StringUtils.join(computeOrder.getNetworksId(), ",");
+
+        // NOTE(pauloewerton): diskofferingid and hypervisor required in case of ISO image
         DeployComputeRequest request = new DeployComputeRequest.Builder()
                 .serviceOfferingId(this.serviceOfferingId)
                 .templateId(this.templateId)
                 .zoneId(this.zoneId)
+                .diskSize(disk)
+                .userData(userData)
+                .networksId(networksId)
                 .build();
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
 
+        String jsonResponse = null;
+        try {
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
+        } catch (HttpResponseException e) {
+            CloudStackHttpToFogbowManagerExceptionMapper.map(e);
+        }
 
-        return "";
+        DeployComputeResponse response = DeployComputeResponse.fromJson(jsonResponse);
+
+        return response.getId();
     }
 
     @Override
