@@ -1,15 +1,41 @@
 class GeneralConfigurations:
 
+  #
+  #test configurations
+  #
   #deploy configurations
   base_url = 'http://localhost:8080/'
   local_member = 'fake-localidentity-member'
   remote_member = 'fake-localidentity-member2'
 
+  #time to wait
+  max_tries = 6
+  sleep_time_secs = 15
+
+  #quota usage in tests
+  #compute confs
+  max_computes = 2
+  vCPU = 1
+  memory = 1024
+  disk = 8
+  publicKey = ''
+  imageId = '9b672abd-67f7-463e-b926-a87adbc80860'
+  #network confs
+  max_networks = 3
+  address = "10.15.20.1/28"
+  allocation = "dynamic"
+  #volume confs
+  max_volumes = 1
+  volume_size = 1
+  #attachment confs
+  max_attachment = 1
+
+  #
+  #internal configurations
+  #
   #general attributes
   json_header = {"Content-Type": "application/json"}
   status_endpoint = 'status'
-  max_tries = 6
-  sleep_time_secs = 15
   providingMember = 'providingMember'
 
   #http status
@@ -30,31 +56,18 @@ class GeneralConfigurations:
   allocation_endpoint = 'allocation/'
   available_quota = 'availableQuota'
   instances_quota = 'instances'
-  max_computes = 2
-  #compute datas
-  vCPU = 1
-  memory = 1024
-  disk = 8
-  publicKey = ''
-  imageId = '9b672abd-67f7-463e-b926-a87adbc80860'
   networksId_key = 'networksId'
 
   #network attributes
   networks_endpoint = 'networks/'
-  address = "10.15.20.1/28"
-  allocation = "dynamic"
-  max_networks = 3
 
   #volume attributes
   volumes_endpoint = 'volumes/'
-  volume_size = 1
-  max_volumes = 1
 
   #attachment attributes
   attachments_endpoint = 'attachments/'
   source = 'source'
   target = 'target'
-  max_attachment = 1
 
   #images attributes
   images_endpoint = 'images/'
