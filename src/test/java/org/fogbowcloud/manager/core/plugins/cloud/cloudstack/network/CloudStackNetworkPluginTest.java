@@ -17,7 +17,7 @@ public class CloudStackNetworkPluginTest {
     }
 
     @Test
-    public void testTemp() throws UnexpectedException, FogbowManagerException {
+    public void testGetTemp() throws UnexpectedException, FogbowManagerException {
         CloudStackNetworkPlugin p = new CloudStackNetworkPlugin();
 
         String apiKey = "Xp2TRynMLZpFAchsTpLpcj8zW_omWCWaP6NNxmb2fV9Nv_Ga6J8QcNRbPCcZUSY2NDS83d7svGhdikV7XrVkcQ";
@@ -27,6 +27,9 @@ public class CloudStackNetworkPluginTest {
         CloudStackToken token = new CloudStackToken(tokenValue);
         String networkId = "6fc82e5a-1d96-4d10-b9bf-96693c89dda8";
         NetworkInstance i = p.getInstance(networkId, token);
+    }
+
+    public void testCreateTemp() {
 
     }
 
