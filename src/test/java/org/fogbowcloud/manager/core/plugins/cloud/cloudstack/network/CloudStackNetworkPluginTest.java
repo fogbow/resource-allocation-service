@@ -13,6 +13,7 @@ import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -66,6 +67,71 @@ public class CloudStackNetworkPluginTest {
         NetworkInstance i = p.getInstance(networkId, token);
     }
 
+    @Test
+    public void test() {
+        // create success
+    }
+
+    @Test
+    public void test2() {
+        // create fail
+    }
+
+    @Test
+    // test case: when getting a network, the token should be signed and an HTTP GET request should be made
+    public void testGettingAValidNetwork() throws FogbowManagerException, UnexpectedException, HttpResponseException {
+        // set up
+        String expectedRequestUrl = String.format("%s?command=%s&id=%s",
+                getBaseEndpointFromCloudStackConf(), GetNetworkRequest.LIST_NETWORKS_COMMAND, FAKE_ID);
+
+        String id = FAKE_ID;
+        String name = "fake-name";
+        String gateway = "10.0.0.1";
+        String cidr = "10.0.0.0/24";
+        String state = "Allocated";
+        String successfulResponse = getSuccessfulGetNetworkResponse(id, name, gateway, cidr, state);
+
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+
+        Mockito.when(this.client.doGetRequest(expectedRequestUrl, FAKE_TOKEN)).thenReturn(successfulResponse);
+
+        // exercise
+        NetworkInstance retrievedInstance = this.plugin.getInstance(FAKE_ID, FAKE_TOKEN);
+
+        // verify
+        Assert.assertEquals(id, retrievedInstance.getId());
+        Assert.assertEquals(id, retrievedInstance.getId());
+        Assert.assertEquals(cidr, retrievedInstance.getAddress());
+        Assert.assertEquals(gateway, retrievedInstance.getGateway());
+        Assert.assertEquals(name, retrievedInstance.getLabel());
+
+        PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
+        CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
+
+        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(expectedRequestUrl, FAKE_TOKEN);
+    }
+
+    // test case: getting a non-existing network should throw an InstanceNotFoundException
+    @Test(expected = InstanceNotFoundException.class)
+    public void testGetNonExistingNetwork() throws FogbowManagerException, HttpResponseException, UnexpectedException {
+        // set up
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+
+        Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackToken.class)))
+                .thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));
+
+        try {
+            // exercise
+            this.plugin.deleteInstance(FAKE_ID, FAKE_TOKEN);
+        } finally {
+            // verify
+            Mockito.verify(this.client, Mockito.times(1))
+                    .doGetRequest(Mockito.anyString(), Mockito.any(CloudStackToken.class));
+        }
+    }
+
     // test case: when deleting a network, the token should be signed and an HTTP GET request should be made
     @Test
     public void testDeleteNetworkSignsTokenBeforeMakingRequest() throws FogbowManagerException, UnexpectedException, HttpResponseException {
@@ -86,6 +152,8 @@ public class CloudStackNetworkPluginTest {
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(expectedRequestUrl, FAKE_TOKEN);
     }
 
+    // test case: an UnauthorizedRequestException should be thrown when the user tries to delete
+    // a network and was not allowed to do that
     @Test(expected = UnauthorizedRequestException.class)
     public void testUnauthorizedExceptionIsThrownWhenOrchestratorForbids() throws UnexpectedException, FogbowManagerException, HttpResponseException {
         // set up
@@ -105,8 +173,9 @@ public class CloudStackNetworkPluginTest {
         }
     }
 
+    // test case: deleting a non-existing network should throw an InstanceNotFoundException
     @Test(expected = InstanceNotFoundException.class)
-    public void testDelete() throws UnexpectedException, FogbowManagerException, HttpResponseException {
+    public void testDeleteNonExistingNetwork() throws UnexpectedException, FogbowManagerException, HttpResponseException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
@@ -122,6 +191,19 @@ public class CloudStackNetworkPluginTest {
             Mockito.verify(this.client, Mockito.times(1))
                     .doGetRequest(Mockito.anyString(), Mockito.any(CloudStackToken.class));
         }
+    }
+
+    private String getSuccessfulGetNetworkResponse(String id, String name, String gateway, String cidr, String state) {
+        String format = "{\"listnetworksresponse\":{\"count\":1" +
+                ",\"network\":[" +
+                "{\"id\":\"%s\"" +
+                ",\"name\":\"%s\"" +
+                ",\"gateway\":\"%s\"" +
+                ",\"cidr\":\"%s\"" +
+                ",\"state\":\"%s\"" +
+                "}]}}";
+
+        return String.format(format, id, name, gateway, cidr, state);
     }
 
     private String getBaseEndpointFromCloudStackConf() {
