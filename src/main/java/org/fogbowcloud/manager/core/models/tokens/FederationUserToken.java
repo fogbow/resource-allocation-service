@@ -1,10 +1,14 @@
 package org.fogbowcloud.manager.core.models.tokens;
 
+import java.io.Serializable;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 
 @Entity
-public class FederationUserToken extends Token {
+public class FederationUserToken extends Token implements Serializable{
+	
+	private static final long serialVersionUID = 1L;
 
     // An identification of the token provider
 	@Column
@@ -17,6 +21,10 @@ public class FederationUserToken extends Token {
 	// This field is a human-friendly identification of the user, typically used by the CLI/GUI, but need not be unique.
 	@Column
 	private String userName;
+	
+	public FederationUserToken() {
+		
+	}
 
     public FederationUserToken(String tokenProvider, String federationUserTokenValue, String userId, String userName) {
         super(federationUserTokenValue);

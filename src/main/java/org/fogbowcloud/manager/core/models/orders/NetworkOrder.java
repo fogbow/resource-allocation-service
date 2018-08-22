@@ -5,6 +5,8 @@ import java.util.UUID;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
@@ -22,6 +24,7 @@ public class NetworkOrder extends Order {
     private String address;
 	
 	@Column
+	@Enumerated(EnumType.STRING)
     private NetworkAllocationMode allocation;
 
     public NetworkOrder() {

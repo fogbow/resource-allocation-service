@@ -12,6 +12,8 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorColumn;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
@@ -33,6 +35,7 @@ public abstract class Order implements Serializable{
     private String id;
 	
 	@Column
+	@Enumerated(EnumType.STRING)
     private OrderState orderState;
 	
 	@JoinColumn

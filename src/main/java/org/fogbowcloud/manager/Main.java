@@ -5,11 +5,14 @@ import org.fogbowcloud.manager.core.*;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.datastore.DatabaseManager;
+import org.fogbowcloud.manager.core.datastore.orderstorage.RecoveryService;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppComponentManager;
 import org.fogbowcloud.manager.core.PluginInstantiator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -18,13 +21,19 @@ import org.xmpp.component.ComponentException;
 @Component
 public class Main implements ApplicationRunner {
 	
+	@Autowired
+	private RecoveryService recoveryService;
+	
 	private final Logger LOGGER = Logger.getLogger(Main.class);
 	
     @Override
     public void run(ApplicationArguments args) {
-        HomeDir.getInstance().setPath(setHomeDirectory(args));
-
+        //HomeDir.getInstance().setPath(setHomeDirectory(args));
+    	HomeDir.getInstance().setPath("src/test/resources/plugins_instantiator");
         try {
+        	
+        	DatabaseManager.getInstance().setRecoveryService(recoveryService);
+        	
             PluginInstantiator instantiationInitService = PluginInstantiator.getInstance();
 
             // Setting up cloud plugins
@@ -37,8 +46,8 @@ public class Main implements ApplicationRunner {
             String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
             AaController aaController = new AaController(behaviorPluginsHolder);
+            
             OrderController orderController = new OrderController();
-
             ApplicationFacade applicationFacade = ApplicationFacade.getInstance();
             RemoteFacade remoteFacade = RemoteFacade.getInstance();
             applicationFacade.setAaController(aaController);
@@ -83,4 +92,10 @@ public class Main implements ApplicationRunner {
         String homeDir = args.getSourceArgs()[0];
         return (homeDir == null ? DefaultConfigurationConstants.FOGBOW_HOME : homeDir);
     }
+    
+//    @EventListener(ApplicationReadyEvent.class)
+//    //@PostConstruct
+//    public void init() {
+//    	SharedOrderHolders.getInstance().readDatabaseOrders(dbService);
+//    }
 }

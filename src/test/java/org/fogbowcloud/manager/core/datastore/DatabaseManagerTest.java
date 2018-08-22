@@ -19,21 +19,31 @@ import org.junit.Test;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.PowerMockRunnerDelegate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.File;
 import java.lang.reflect.Field;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({PropertiesHolder.class, OrderRepository.class})
+@PrepareForTest(PropertiesHolder.class)
+//@PowerMockRunnerDelegate(SpringRunner.class)
+//@SpringBootTest
+@PowerMockIgnore( {"javax.management.*"})
 public class DatabaseManagerTest {
 
     private static final String DATABASE_PATH = "/tmp/fogbow_history_test.db";
     private String DATABASE_URL = "jdbc:sqlite:" + DATABASE_PATH;
-    
+
     /**
-     * Cleaning all the environment before running the tests.
+     * Cleaning all the enviromnent before running the tests.
      */
     @BeforeClass
     public static void init() throws NoSuchFieldException, IllegalAccessException {
@@ -43,7 +53,6 @@ public class DatabaseManagerTest {
 
     @Before
     public void setUp() {
-
         PropertiesHolder propertiesHolder = Mockito.mock(PropertiesHolder.class);
         Mockito.when(propertiesHolder.getProperty(Mockito.anyString())).thenReturn(DATABASE_URL);
 
@@ -77,8 +86,7 @@ public class DatabaseManagerTest {
     // test case: Tests if a new compute order is added properly in the database.
     @Test
     public void testAddComputeOrder() throws InvalidParameterException, UnexpectedException {
-    	
-    	// set up
+        // set up
         DatabaseManager databaseManager = DatabaseManager.getInstance();
         FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
                 "token-value", "fake-id", "fake-user");
@@ -109,7 +117,6 @@ public class DatabaseManagerTest {
     @Test
     public void testUpdateComputeOrderState() throws InvalidParameterException, UnexpectedException {
         // set up
-    	
         DatabaseManager databaseManager = DatabaseManager.getInstance();
         FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
                 "token-value", "fake-id", "fake-user");

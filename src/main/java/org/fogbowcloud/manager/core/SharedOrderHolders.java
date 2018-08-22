@@ -4,12 +4,16 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.fogbowcloud.manager.core.datastore.DatabaseManager;
-
+import org.fogbowcloud.manager.core.datastore.orderstorage.RecoveryService;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
+import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
+import org.fogbowcloud.manager.core.models.orders.UserData;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.manager.core.plugins.cloud.util.CloudInitUserDataBuilder;
+
 
 public class SharedOrderHolders {
 
@@ -24,12 +28,28 @@ public class SharedOrderHolders {
     private SynchronizedDoublyLinkedList pendingOrders;
     private SynchronizedDoublyLinkedList closedOrders;
 
-    private SharedOrderHolders() {
-        DatabaseManager databaseManager = DatabaseManager.getInstance();
+    public SharedOrderHolders() {
+    	
+    	DatabaseManager databaseManager = DatabaseManager.getInstance();
 
         this.activeOrdersMap = new ConcurrentHashMap<>();
-
-        try {
+        
+//        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+//                "token-value", "fake-id", "fake-user");
+//    	
+//    	Order computeOrder = new ComputeOrder(federationUserToken,
+//                "requestingMember", "fake-localidentity-member", 8, 1024,
+//                30, "fake_image_name", new UserData("extraUserDataFile",
+//                CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), "fake_public_key", null);
+//        computeOrder.setOrderStateInTestMode(OrderState.OPEN);
+//        
+//        try {
+//        	databaseManager.add(computeOrder);
+//		} catch (Exception e) {
+//			System.out.println(e.getMessage());
+//		}
+//        
+    	try {
             this.openOrders = databaseManager.readActiveOrders(OrderState.OPEN);
             addOrdersToMap(this.openOrders, this.activeOrdersMap);
             this.spawningOrders = databaseManager.readActiveOrders(OrderState.SPAWNING);
@@ -42,10 +62,11 @@ public class SharedOrderHolders {
             addOrdersToMap(this.pendingOrders, this.activeOrdersMap);
             this.closedOrders = databaseManager.readActiveOrders(OrderState.CLOSED);
             addOrdersToMap(this.closedOrders, this.activeOrdersMap);
-        } catch (UnexpectedException e) {
+        } catch (Exception e) {
             throw new FatalErrorException(e.getMessage());
         }
     }
+   
 
     private void addOrdersToMap(SynchronizedDoublyLinkedList ordersList, Map<String, Order> activeOrdersMap) {
         Order order;

@@ -54,6 +54,7 @@ public class OrderStorage {
     }
 
     protected Connection getConnection() throws SQLException {
+    	
         try {
             return DriverManager.getConnection(this.databaseUrl,
                     this.databaseUsername, this.databasePassword);

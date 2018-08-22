@@ -24,7 +24,7 @@ public class PluginFactory {
             LOGGER.debug(msg);
             throw new FatalErrorException(msg);
         } catch (Exception e) {
-            LOGGER.debug("Exception " + e.getMessage());
+            LOGGER.info("Exception " + e.getMessage());
             throw new FatalErrorException(e.getMessage(), e);
         }
 

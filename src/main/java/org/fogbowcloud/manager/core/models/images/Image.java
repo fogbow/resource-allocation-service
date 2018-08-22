@@ -1,12 +1,29 @@
 package org.fogbowcloud.manager.core.models.images;
 
-public class Image {
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 
+@Entity
+public class Image {
+	
+	@Column
+	@Id
 	private String id;
+	
+	@Column
     private String name;
+	
+	@Column
     private long size; // in bytes
+	
+	@Column
     private long minDisk; // in GB
+	
+	@Column
     private long minRam; // in MB
+	
+	@Column
     private String status;
 
     public Image(String id, String name, long size, long minDisk, long minRam, String status) {
@@ -16,6 +33,10 @@ public class Image {
         this.minDisk = minDisk;
         this.minRam = minRam;
         this.status = status;
+    }
+    
+    public Image() {
+    	
     }
 
     public String getId() {

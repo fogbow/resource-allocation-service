@@ -13,6 +13,7 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -50,7 +51,7 @@ public class ComputeOrder extends Order {
     private ComputeAllocation actualAllocation;
 	
 	@Column
-	@ElementCollection
+	@ElementCollection(fetch = FetchType.EAGER)
     private List<String> networksId;
 
     public ComputeOrder() {
