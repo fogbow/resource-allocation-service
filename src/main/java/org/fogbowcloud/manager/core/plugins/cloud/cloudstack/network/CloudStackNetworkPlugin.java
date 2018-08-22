@@ -2,6 +2,7 @@ package org.fogbowcloud.manager.core.plugins.cloud.cloudstack.network;
 
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
@@ -139,6 +140,10 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
 
         return new NetworkInstance(networkId, fogbowState, label, address, gateway, null, allocationMode,
                 null, null, null);
+    }
+
+    protected void setClient(HttpRequestClientUtil client) {
+        this.client = client;
     }
 
 }
