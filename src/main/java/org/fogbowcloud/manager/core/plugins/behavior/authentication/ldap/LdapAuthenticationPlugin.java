@@ -12,7 +12,7 @@ import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.manager.core.models.tokens.generators.ldap.LdapTokenGenerator;
+import org.fogbowcloud.manager.core.models.tokens.generators.ldap.LdapTokenGeneratorPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.authentication.AuthenticationPlugin;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.RSAUtil;
@@ -58,7 +58,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     private void checkTokenValue(String federationTokenValue)
             throws ExpiredTokenException, UnauthenticTokenException {
 
-        String split[] = federationTokenValue.split(LdapTokenGenerator.TOKEN_VALUE_SEPARATOR);
+        String split[] = federationTokenValue.split(LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
         if (split == null || split.length < 5) {
             throw new UnauthenticTokenException("Invalid tokens: " + federationTokenValue);
         }
@@ -66,8 +66,8 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         Date currentDate = new Date(System.currentTimeMillis());
         Date expirationDate = new Date(new Long(split[3]).longValue());
 
-        String tokenValue = split[0] + LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + split[1] +
-                LdapTokenGenerator.TOKEN_VALUE_SEPARATOR + split[2] + LdapTokenGenerator.TOKEN_VALUE_SEPARATOR +
+        String tokenValue = split[0] + LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR + split[1] +
+                LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR + split[2] + LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR +
                 split[3];
         String signature = split[4];
 

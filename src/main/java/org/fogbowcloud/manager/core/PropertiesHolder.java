@@ -20,7 +20,6 @@ public class PropertiesHolder {
         List<String> configFilesNames = new ArrayList<>();
         configFilesNames.add(path+DefaultConfigurationConstants.MANAGER_CONF_FILE_NAME);
         configFilesNames.add(path+DefaultConfigurationConstants.INTERCOMPONENT_CONF_FILE_NAME);
-        configFilesNames.add(path+DefaultConfigurationConstants.REVERSE_TUNNEL_CONF_FILE_NAME);
         this.properties = PropertiesUtil.readProperties(configFilesNames);
     }
 

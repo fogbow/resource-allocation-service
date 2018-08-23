@@ -38,9 +38,6 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
     private final String sshCommonUser;
     private final String managerSshPublicKey;
 
-    private final String reverseTunnelPrivateIP;
-    private final String reverseTunnelHttpPort;
-
     private static final Logger LOGGER = Logger.getLogger(DefaultLaunchCommandGenerator.class);
 
     public DefaultLaunchCommandGenerator() throws FatalErrorException {
@@ -55,14 +52,6 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
             this.managerSshPublicKey = IOUtils.toString(new FileInputStream(new File(managerSshPublicKeyFilePath)));
             checkPropertyNotEmpty(this.managerSshPublicKey, ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH);
 
-            this.reverseTunnelPrivateIP = PropertiesHolder.getInstance().
-                    getProperty(ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY);
-            checkPropertyNotEmpty(this.reverseTunnelPrivateIP,
-                    ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY);
-
-            this.reverseTunnelHttpPort =
-                    PropertiesHolder.getInstance().getProperty(ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY);
-            checkPropertyNotEmpty(this.reverseTunnelHttpPort, ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY);
         } catch (IOException e) {
             throw new FatalErrorException(e.getMessage());
         }
@@ -132,8 +121,6 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
         Map<String, String> replacements = new HashMap<String, String>();
         replacements.put(TOKEN_ID, orderId);
-        replacements.put(TOKEN_HOST, this.reverseTunnelPrivateIP);
-        replacements.put(TOKEN_HOST_HTTP_PORT, this.reverseTunnelHttpPort);
 
         String userPublicKey = order.getPublicKey();
         if (userPublicKey == null) {

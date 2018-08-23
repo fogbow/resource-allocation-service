@@ -1,10 +1,5 @@
 package org.fogbowcloud.manager.core.plugins.behavior.mapper.all2one;
 
-import org.apache.http.*;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicStatusLine;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
@@ -13,19 +8,16 @@ import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.tokens.LdapToken;
 import org.fogbowcloud.manager.core.models.tokens.OpenStackV3Token;
-import org.fogbowcloud.manager.core.models.tokens.generators.ldap.LdapTokenGenerator;
-import org.fogbowcloud.manager.core.models.tokens.generators.openstack.v3.KeystoneV3TokenGenerator;
+import org.fogbowcloud.manager.core.models.tokens.generators.ldap.LdapTokenGeneratorPlugin;
+import org.fogbowcloud.manager.core.models.tokens.generators.openstack.v3.KeystoneV3TokenGeneratorPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.identity.ldap.LdapFederationIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.identity.openstack.KeystoneV3IdentityPlugin;
-import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,42 +34,33 @@ public class KeystoneV3AllToOneMapperTest {
     private static final String FAKE_PROJECT_ID = "fake-project-id";
     private static final String FAKE_PROJECT_NAME = "fake-project-name";
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
-    private static final String UTF_8 = "UTF-8";
 
-    private HttpClient client;
-    private HttpRequestClientUtil httpRequestClientUtil;
-    private KeystoneV3AllToOneMapper mapper;
-    private LdapTokenGenerator ldapTokenGenerator;
-    private LdapFederationIdentityPlugin ldapIdentityPlugin;
-    private KeystoneV3TokenGenerator keystoneV3TokenGenerator;
-    private KeystoneV3IdentityPlugin keystoneV3IdentityPlugin;
     private String memberId;
+    private KeystoneV3AllToOneMapper mapper;
+    private LdapTokenGeneratorPlugin ldapTokenGenerator;
+    private LdapFederationIdentityPlugin ldapIdentityPlugin;
+    private KeystoneV3TokenGeneratorPlugin keystoneV3TokenGenerator;
 
     @Before
     public void setUp() {
-        this.mapper = new KeystoneV3AllToOneMapper();
-        this.ldapTokenGenerator = Mockito.spy(new LdapTokenGenerator());
-        this.ldapIdentityPlugin = new LdapFederationIdentityPlugin();
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
-        this.client = Mockito.spy(HttpClient.class);
-        this.httpRequestClientUtil = Mockito.spy(new HttpRequestClientUtil(this.client));
-        this.keystoneV3TokenGenerator = Mockito.spy(new KeystoneV3TokenGenerator());
-        this.keystoneV3TokenGenerator.setClient(this.httpRequestClientUtil);
-        this.keystoneV3IdentityPlugin = new KeystoneV3IdentityPlugin();
+        this.ldapTokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
+        this.ldapIdentityPlugin = new LdapFederationIdentityPlugin();
+        this.keystoneV3TokenGenerator = Mockito.spy(new KeystoneV3TokenGeneratorPlugin());
         GenericAllToOneFederationToLocalMapper genericMapper = new
-                GenericAllToOneFederationToLocalMapper(keystoneV3TokenGenerator, keystoneV3IdentityPlugin,
-                "keystoneV3-mapper.conf");
+                GenericAllToOneFederationToLocalMapper(keystoneV3TokenGenerator, new KeystoneV3IdentityPlugin(),
+                "keystone-v3-mapper.conf");
+        this.mapper = new KeystoneV3AllToOneMapper();
         this.mapper.setGenericMapper(genericMapper);
     }
 
     //test case: two different Federation Tokens should be mapped to the same Local Token
-    @Ignore
     @Test
     public void testCreate2Tokens() throws java.io.IOException, UnexpectedException, FogbowManagerException {
         //set up
         Map<String, String> userCredentials1 = new HashMap<String, String>();
-        userCredentials1.put(LdapTokenGenerator.CRED_USERNAME, FAKE_LOGIN1);
-        userCredentials1.put(LdapTokenGenerator.CRED_PASSWORD, FAKE_PASSWORD);
+        userCredentials1.put(LdapTokenGeneratorPlugin.CRED_USERNAME, FAKE_LOGIN1);
+        userCredentials1.put(LdapTokenGeneratorPlugin.CRED_PASSWORD, FAKE_PASSWORD);
         Mockito.doReturn(FAKE_NAME1).when(this.ldapTokenGenerator).
                 ldapAuthenticate(Mockito.eq(FAKE_LOGIN1), Mockito.eq(FAKE_PASSWORD));
         String tokenValue1 = this.ldapTokenGenerator.createTokenValue(userCredentials1);
@@ -85,31 +68,21 @@ public class KeystoneV3AllToOneMapperTest {
         LOGGER.debug("token1: " + token1.getTokenValue() + " token value1: " + tokenValue1);
 
         Map<String, String> userCredentials2 = new HashMap<String, String>();
-        userCredentials2.put(LdapTokenGenerator.CRED_USERNAME, FAKE_LOGIN2);
-        userCredentials2.put(LdapTokenGenerator.CRED_PASSWORD, FAKE_PASSWORD);
+        userCredentials2.put(LdapTokenGeneratorPlugin.CRED_USERNAME, FAKE_LOGIN2);
+        userCredentials2.put(LdapTokenGeneratorPlugin.CRED_PASSWORD, FAKE_PASSWORD);
         Mockito.doReturn(FAKE_NAME2).when(ldapTokenGenerator).
                 ldapAuthenticate(Mockito.eq(FAKE_LOGIN2), Mockito.eq(FAKE_PASSWORD));
         String tokenValue2 = this.ldapTokenGenerator.createTokenValue(userCredentials2);
         LdapToken token2 = this.ldapIdentityPlugin.createToken(tokenValue2);
         LOGGER.debug("token2: " + token2.getTokenValue() + " token value2: " + tokenValue2);
 
-        String jsonResponse1 = "{\"token\":{\"user\":{\"id\":\"" + FAKE_USER_ID + "\",\"name\": \"" + FAKE_USER_NAME +
-                "\"}, \"project\":{\"id\": \"" + FAKE_PROJECT_ID + "\", \"name\": \"" + FAKE_PROJECT_NAME +
-                "\"}}}"+"{\"token\":{\"user\":{\"id\":\"" + FAKE_USER_ID + "\",\"name\": \"" + FAKE_USER_NAME +
-                "\"}, \"project\":{\"id\": \"" + FAKE_PROJECT_ID + "\", \"name\": \"" + FAKE_PROJECT_NAME +
-                "\"}}}";
-        HttpResponse httpResponse1 = Mockito.mock(HttpResponse.class);
-        HttpEntity httpEntity1 = Mockito.mock(HttpEntity.class);
-        InputStream contentInputStream1 = new ByteArrayInputStream(jsonResponse1.getBytes(UTF_8));
-        Mockito.when(httpEntity1.getContent()).thenReturn(contentInputStream1);
-        Mockito.when(httpResponse1.getEntity()).thenReturn(httpEntity1);
-        BasicStatusLine basicStatus1 = new BasicStatusLine(new ProtocolVersion("", 0, 0),
-                HttpStatus.SC_OK, "");
-        Mockito.when(httpResponse1.getStatusLine()).thenReturn(basicStatus1);
-        Header[] headers1 = new BasicHeader[1];
-        headers1[0] = new BasicHeader(KeystoneV3TokenGenerator.X_SUBJECT_TOKEN, FAKE_TOKEN_VALUE);
-        Mockito.when(httpResponse1.getAllHeaders()).thenReturn(headers1);
-        Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse1);
+        String tokenValue = this.memberId + KeystoneV3TokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR +
+                FAKE_TOKEN_VALUE + KeystoneV3TokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR +
+                FAKE_USER_ID + KeystoneV3TokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR +
+                FAKE_USER_NAME + KeystoneV3TokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR +
+                FAKE_PROJECT_ID + KeystoneV3TokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR + FAKE_PROJECT_NAME;
+
+        Mockito.doReturn(tokenValue).when(this.keystoneV3TokenGenerator).createTokenValue(Mockito.anyMap());
 
         //exercise
         OpenStackV3Token mappedToken1 = (OpenStackV3Token) this.mapper.map(token1);

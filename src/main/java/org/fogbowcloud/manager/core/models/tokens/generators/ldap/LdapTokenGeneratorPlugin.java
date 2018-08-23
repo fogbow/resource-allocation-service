@@ -5,7 +5,7 @@ import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.models.tokens.TokenGenerator;
+import org.fogbowcloud.manager.core.models.tokens.TokenGeneratorPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.identity.ldap.LdapFederationIdentityPlugin;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.RSAUtil;
@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-public class LdapTokenGenerator implements TokenGenerator {
+public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
     private static final Logger LOGGER = Logger.getLogger(LdapFederationIdentityPlugin.class);
     private static final String LDAP_PLUGIN_CONF_FILE = "ldap-identity-plugin.conf";
 
@@ -64,7 +64,7 @@ public class LdapTokenGenerator implements TokenGenerator {
     private String publicKeyPath;
     private RSAPrivateKey privateKey;
 
-    public LdapTokenGenerator() throws FatalErrorException {
+    public LdapTokenGeneratorPlugin() throws FatalErrorException {
         this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
         Properties properties = PropertiesUtil.readProperties(

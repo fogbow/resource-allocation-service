@@ -3,19 +3,19 @@ package org.fogbowcloud.manager.core.constants;
 public class ConfigurationConstants {
 
 	public static final String LOCAL_MEMBER_ID = "xmpp_jid";
-    // PLUGINS CLASSES
 
+	// PLUGINS CLASSES
     public static final String ATTACHMENT_PLUGIN_CLASS_KEY = "attachment_plugin_class";
     public static final String COMPUTE_PLUGIN_CLASS_KEY = "compute_plugin_class";
     public static final String COMPUTE_QUOTA_PLUGIN_CLASS_KEY = "compute_quota_plugin_class";
-    public static final String LOCAL_IDENTITY_PLUGIN_CLASS_KEY = "local_identity_plugin_class";
     public static final String NETWORK_PLUGIN_CLASS_KEY = "network_plugin_class";
     public static final String VOLUME_PLUGIN_CLASS_KEY = "volume_plugin_class";
     public static final String IMAGE_PLUGIN_CLASS_KEY = "image_plugin_class";
 
+    public static final String TOKEN_GENERATOR_PLUGIN_CLASS = "token_generator_plugin_class";
+    public static final String FEDERATION_IDENTITY_PLUGIN_CLASS_KEY = "federation_identity_plugin_class";
     public static final String AUTHENTICATION_PLUGIN_CLASS_KEY = "authentication_plugin_class";
     public static final String AUTHORIZATION_PLUGIN_CLASS_KEY = "authorization_plugin_class";
-    public static final String FEDERATION_IDENTITY_PLUGIN_CLASS_KEY = "federation_identity_plugin_class";
     public static final String LOCAL_USER_CREDENTIALS_MAPPER_PLUGIN_CLASS_KEY =
             "local_user_credentials_mapper_plugin_class";
 
@@ -35,12 +35,8 @@ public class ConfigurationConstants {
     public static final String XMPP_SERVER_PORT_KEY = "xmpp_server_port";
     public static final String XMPP_TIMEOUT_KEY = "xmpp_timeout";
 
-    // REVERSE TUNNEL CONF
-    public static final String REVERSE_TUNNEL_PUBLIC_ADDRESS_KEY = "reverse_tunnel_public_address";
+    // SSH CONF
     public static final String SSH_COMMON_USER_KEY = "ssh_common_user";
-    public static final String REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY = "reverse_tunnel_private_address";
-    public static final String REVERSE_TUNNEL_PORT_KEY = "reverse_tunnel_port";
-    public static final String REVERSE_TUNNEL_HTTP_PORT_KEY = "reverse_tunnel_http_port";
 
     // HISTORY & RECOVERY DATABASE CONF
     public static final String DATABASE_URL = "jdbc_database_url";

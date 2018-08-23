@@ -22,8 +22,6 @@ public class DefaultLaunchCommandGeneratorTest {
     private DefaultLaunchCommandGenerator launchCommandGenerator;
 
     private final static String MANAGER_PUBLIC_KEY_FILE_PATH = "src/test/resources/fake-manager-public-key";
-    private final static String REVERSE_TUNNEL_PRIVATE_IP = "fake-private-ip";
-    private final static String REVERSE_TUNNEL_HTTP_PORT = "fake-http-port";
     private final static String EXTRA_USER_DATA_FILE = "fake-extra-user-data-file";
     
     private CloudInitUserDataBuilder.FileType extraUserDataFileType =
@@ -36,11 +34,6 @@ public class DefaultLaunchCommandGeneratorTest {
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
         this.properties.setProperty(
                 ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, MANAGER_PUBLIC_KEY_FILE_PATH);
-        this.properties.setProperty(
-                ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
-                REVERSE_TUNNEL_PRIVATE_IP);
-        this.properties.setProperty(
-                ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, REVERSE_TUNNEL_HTTP_PORT);
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
     }
     
@@ -151,12 +144,6 @@ public class DefaultLaunchCommandGeneratorTest {
         String mimeString = "";
         String expectedMimeString = "";
 
-        mimeString += DefaultLaunchCommandGenerator.TOKEN_HOST + System.lineSeparator();
-        expectedMimeString += REVERSE_TUNNEL_PRIVATE_IP + System.lineSeparator();
-
-        mimeString += DefaultLaunchCommandGenerator.TOKEN_HOST_HTTP_PORT + System.lineSeparator();
-        expectedMimeString += REVERSE_TUNNEL_HTTP_PORT + System.lineSeparator();
-
         mimeString += DefaultLaunchCommandGenerator.TOKEN_ID + System.lineSeparator();
         expectedMimeString += order.getId() + System.lineSeparator();
 
@@ -188,52 +175,11 @@ public class DefaultLaunchCommandGeneratorTest {
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
         this.properties.setProperty(
                 ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, "");
-        this.properties.setProperty(
-                ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
-                REVERSE_TUNNEL_PRIVATE_IP);
-        this.properties.setProperty(
-                ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, REVERSE_TUNNEL_HTTP_PORT);
         
         // exercise
         new DefaultLaunchCommandGenerator();
     }
-    
-    // test case: An exception must be thrown when the reverse tunnel private address key is empty.
-    @Test(expected = FatalErrorException.class)
-    public void testPropertiesWithoutReverseTunnelPrivateAddress() throws Exception {
-    	
-    	// set up
-        this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
-        this.properties.setProperty(
-                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, MANAGER_PUBLIC_KEY_FILE_PATH);
-        this.properties.setProperty(
-                ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY, "");
-        this.properties.setProperty(
-                ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, REVERSE_TUNNEL_HTTP_PORT);
-        
-        // exercise
-        new DefaultLaunchCommandGenerator();
-    }
-    
-    
-    // test case: An exception must be thrown when the reverse tunnel http port key is empty.
-    @Test(expected = FatalErrorException.class)
-    public void testPropertiesWithoutReverseTunnelHttpPort() throws Exception {
-    	
-    	// set up
-        this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
-        this.properties.setProperty(
-                ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, MANAGER_PUBLIC_KEY_FILE_PATH);
-        this.properties.setProperty(
-                ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
-                REVERSE_TUNNEL_PRIVATE_IP);
-        this.properties.setProperty(
-                ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, "");
-        
-        // exercise
-        new DefaultLaunchCommandGenerator();
-    }
-    
+
     // test case: The path to manager ssh public key doesn't exist, so a fatal error exception must be thrown
     @Test(expected = FatalErrorException.class)
     public void testPropertiesWithWrongManagerSshPublicKeyFilePath() throws FatalErrorException {
@@ -244,11 +190,7 @@ public class DefaultLaunchCommandGeneratorTest {
         
         this.properties.setProperty(
                 ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH, emptyManagerPublicKeyFilePath);
-        this.properties.setProperty(
-                ConfigurationConstants.REVERSE_TUNNEL_PRIVATE_ADDRESS_KEY,
-                REVERSE_TUNNEL_PRIVATE_IP);
-        this.properties.setProperty(
-                ConfigurationConstants.REVERSE_TUNNEL_HTTP_PORT_KEY, REVERSE_TUNNEL_HTTP_PORT);
+
         
         // exercise
         new DefaultLaunchCommandGenerator();
