@@ -4,7 +4,6 @@ import org.apache.commons.net.util.SubnetUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
-import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
@@ -16,7 +15,6 @@ import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
 import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.tokens.CloudStackToken;
-import org.fogbowcloud.manager.core.models.tokens.generators.cloudstack.CloudStackTokenGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackHttpToFogbowManagerExceptionMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackStateMapper;
@@ -25,9 +23,9 @@ import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 
 import java.io.File;
-import java.util.*;
-
-import static org.fogbowcloud.manager.core.models.tokens.generators.cloudstack.CloudStackTokenGenerator.CLOUDSTACK_URL;
+import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
 
 public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
 
