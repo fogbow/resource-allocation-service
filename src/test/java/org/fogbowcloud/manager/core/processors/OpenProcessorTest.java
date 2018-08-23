@@ -41,8 +41,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     @Before
     public void setUp() throws UnexpectedException {
         mockReadOrdersFromDataBase();
-        HomeDir.getInstance().setPath("src/test/resources/private");
-        
+
         LocalCloudConnector localCloudConnector = Mockito.mock(LocalCloudConnector.class);
 
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);

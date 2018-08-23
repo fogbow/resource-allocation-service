@@ -35,7 +35,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @PrepareForTest(CloudConnectorFactory.class)
 public class FulfilledProcessorTest extends BaseUnitTests {
 
-    private static final String TEST_PATH = "src/test/resources/private";
     private static final String REMOTE_MEMBER_ID = "fake-intercomponent-member";
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
     private static final String FAKE_IMAGE_NAME = "fake-image-name";
@@ -60,8 +59,6 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         super.mockReadOrdersFromDataBase();
         
-        HomeDir.getInstance().setPath(TEST_PATH);
-
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
 
         this.properties = propertiesHolder.getProperties();

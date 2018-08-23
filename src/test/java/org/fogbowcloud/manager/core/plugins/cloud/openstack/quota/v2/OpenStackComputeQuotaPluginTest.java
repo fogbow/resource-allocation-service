@@ -35,7 +35,6 @@ public class OpenStackComputeQuotaPluginTest {
 
     @Before
     public void setUp() throws InvalidParameterException {
-        HomeDir.getInstance().setPath("src/test/resources/private");
         this.plugin = Mockito.spy(new OpenStackComputeQuotaPlugin());
 
         this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);

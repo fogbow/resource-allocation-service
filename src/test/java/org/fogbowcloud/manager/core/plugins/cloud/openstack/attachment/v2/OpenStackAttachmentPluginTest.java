@@ -56,7 +56,6 @@ public class OpenStackAttachmentPluginTest {
     
     @Before
     public void setUp() throws InvalidParameterException {
-        HomeDir.getInstance().setPath("src/test/resources/private");
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         Properties properties = propertiesHolder.getProperties();
         properties.put(OpenStackNovaV2AttachmentPlugin.COMPUTE_NOVAV2_URL_KEY, FAKE_ENDPOINT);

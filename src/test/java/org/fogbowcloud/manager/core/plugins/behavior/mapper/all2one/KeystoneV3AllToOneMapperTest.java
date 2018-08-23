@@ -55,7 +55,6 @@ public class KeystoneV3AllToOneMapperTest {
 
     @Before
     public void setUp() {
-        HomeDir.getInstance().setPath("src/test/resources/private");
         this.mapper = new KeystoneV3AllToOneMapper();
         this.ldapTokenGenerator = Mockito.spy(new LdapTokenGenerator());
         this.ldapIdentityPlugin = new LdapFederationIdentityPlugin();

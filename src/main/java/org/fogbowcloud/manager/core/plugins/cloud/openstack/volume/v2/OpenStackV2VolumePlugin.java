@@ -40,9 +40,8 @@ public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackV3Token> {
 	private static final Logger LOGGER = Logger.getLogger(OpenStackV2VolumePlugin.class);
 
 	public OpenStackV2VolumePlugin() throws FatalErrorException {
-		HomeDir homeDir = HomeDir.getInstance();
-        Properties properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
-                + DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
+        Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
+                DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
 		this.volumeV2APIEndpoint = properties.getProperty(VOLUME_NOVAV2_URL_KEY) + V2_API_ENDPOINT;
 
 		initClient();

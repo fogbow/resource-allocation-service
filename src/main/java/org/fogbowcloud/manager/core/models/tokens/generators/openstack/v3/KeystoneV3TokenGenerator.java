@@ -38,9 +38,8 @@ public class KeystoneV3TokenGenerator implements TokenGenerator {
     public KeystoneV3TokenGenerator() throws FatalErrorException {
         this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
-        HomeDir homeDir = HomeDir.getInstance();
-        Properties properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
-                + DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
+        Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
+                DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
 
         String identityUrl = properties.getProperty(OPENSTACK_KEYSTONE_V3_URL);
         if (isUrlValid(identityUrl)) {

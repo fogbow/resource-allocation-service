@@ -46,7 +46,6 @@ public class KeystoneV3OneToOneMapperTest {
 
     @Before
     public void setUp() {
-        HomeDir.getInstance().setPath("src/test/resources/private");
         this.mapper = new KeystoneV3OneToOneMapper();
         this.client = Mockito.spy(HttpClient.class);
         this.httpRequestClientUtil = Mockito.spy(new HttpRequestClientUtil(this.client));

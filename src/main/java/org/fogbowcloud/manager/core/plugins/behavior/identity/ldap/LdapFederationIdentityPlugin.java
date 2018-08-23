@@ -28,9 +28,8 @@ public class LdapFederationIdentityPlugin implements FederationIdentityPlugin<Ld
     private RSAPublicKey publicKey;
 
     public LdapFederationIdentityPlugin() throws FatalErrorException {
-        HomeDir homeDir = HomeDir.getInstance();
         Properties properties = PropertiesUtil.readProperties(
-                homeDir.getPath() + File.separator + LDAP_PLUGIN_CONF_FILE);
+                HomeDir.getPath() + LDAP_PLUGIN_CONF_FILE);
         String publicKeyPath = properties.getProperty(PUBLIC_KEY_PATH);
         try {
             this.publicKey = RSAUtil.getPublicKey(publicKeyPath);

@@ -46,7 +46,6 @@ public class OpenStackImagePluginTest {
 
     @Before
     public void setUp() throws InvalidParameterException {
-        HomeDir.getInstance().setPath("src/test/resources/private");
         this.plugin = new OpenStackImagePlugin();
         this.client = Mockito.mock(HttpRequestClientUtil.class);
         this.properties = Mockito.mock(Properties.class);

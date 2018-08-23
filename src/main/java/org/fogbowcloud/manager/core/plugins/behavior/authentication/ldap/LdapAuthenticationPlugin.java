@@ -28,12 +28,11 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     private RSAPublicKey publicKey;
 
     public LdapAuthenticationPlugin() throws FatalErrorException {
-        HomeDir homeDir = HomeDir.getInstance();
         this.localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
         Properties properties =
                 PropertiesUtil.readProperties(
-                        homeDir.getPath() + File.separator + LDAP_PLUGIN_CONF_FILE);
+                        HomeDir.getPath() + LDAP_PLUGIN_CONF_FILE);
         String publicKeyPath = properties.getProperty(PUBLIC_KEY_PATH);
         try {
             this.publicKey = getPublicKey(publicKeyPath);

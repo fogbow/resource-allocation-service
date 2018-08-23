@@ -32,8 +32,7 @@ public class PluginInstantiator {
      * ii) this.getInstance method.
      */
     protected PluginInstantiator() {
-        HomeDir homeDir = HomeDir.getInstance();
-        String path = homeDir.getPath() + File.separator;
+        String path = HomeDir.getPath();
         List<String> configFilesNames = new ArrayList<>();
         configFilesNames.add(path+DefaultConfigurationConstants.CLOUD_CONF_FILE_NAME);
         configFilesNames.add(path+DefaultConfigurationConstants.BEHAVIOR_CONF_FILE_NAME);

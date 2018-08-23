@@ -30,8 +30,6 @@ public class AaControllerTest {
         this.federationToLocalMapperPluginMock = Mockito.mock(FederationToLocalMapperPlugin.class);
         this.federationIdentityPluginMock = Mockito.mock(FederationIdentityPlugin.class);
 
-        HomeDir.getInstance().setPath("src/test/resources/private");
-
         Mockito.when(this.behaviorPluginsHolderMock.getAuthorizationPlugin()).thenReturn(this.authorizationPluginMock);
     	Mockito.when(this.behaviorPluginsHolderMock.getAuthenticationPlugin()).thenReturn(this.authenticationPluginMock);
         Mockito.when(this.behaviorPluginsHolderMock.getFederationToLocalMapperPlugin()).thenReturn(this.federationToLocalMapperPluginMock);

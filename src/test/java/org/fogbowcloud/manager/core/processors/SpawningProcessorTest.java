@@ -50,8 +50,6 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
         super.mockReadOrdersFromDataBase();
 
-        HomeDir.getInstance().setPath(TEST_PATH);
-
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
 
         PowerMockito.mockStatic(CloudConnectorFactory.class);
