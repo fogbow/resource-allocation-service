@@ -145,7 +145,7 @@ public class ApplicationFacade {
             memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         }
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
-        return (Image) cloudConnector.getImage(imageId, requester);
+        return cloudConnector.getImage(imageId, requester);
     }
 
     public String createTokenValue(Map<String, String> userCredentials) throws UnexpectedException,

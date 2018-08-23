@@ -21,6 +21,8 @@ public class TokenRequestController {
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<String> createTokenValue(@RequestBody HashMap<String, String> userCredentials)
             throws FogbowManagerException, UnexpectedException {
+        LOGGER.info("New token create request received; size of credentials is: " + userCredentials.size() + ".");
+
         String tokenValue = ApplicationFacade.getInstance().createTokenValue(userCredentials);
         return new ResponseEntity<String>(tokenValue, HttpStatus.CREATED);
     }
