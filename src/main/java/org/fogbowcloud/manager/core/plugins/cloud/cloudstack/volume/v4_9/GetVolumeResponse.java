@@ -23,7 +23,7 @@ import com.google.gson.annotations.SerializedName;
  *
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
-public class GetAllVolumesResponse {
+public class GetVolumeResponse {
 
     @SerializedName(VOLUMES_KEY_JSON)
     private ListVolumesResponse response;
@@ -39,8 +39,8 @@ public class GetAllVolumesResponse {
         return this.response.volumes;
     }
     
-    public static GetAllVolumesResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, GetAllVolumesResponse.class);
+    public static GetVolumeResponse fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, GetVolumeResponse.class);
     }
     
     public class Volume {

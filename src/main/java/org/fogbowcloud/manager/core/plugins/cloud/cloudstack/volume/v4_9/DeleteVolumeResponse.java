@@ -10,7 +10,7 @@ import com.google.gson.annotations.SerializedName;
  * 
  * {
  *      "deletevolumeresponse": {
- *          "displaytext": "error description"
+ *          "displaytext": "error description",
  *          "success": "false"
  *      }
  * }
