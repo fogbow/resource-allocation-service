@@ -48,7 +48,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     public void setUp() throws UnexpectedException {
         this.aaController = Mockito.mock(AaController.class);
 
-        HomeDir.getInstance().setPath("src/test/resources/private");
         super.mockReadOrdersFromDataBase();
 
         this.orderController = Mockito.spy(new OrderController());

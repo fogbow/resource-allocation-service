@@ -16,8 +16,7 @@ public class PropertiesHolder {
     private static PropertiesHolder instance;
 
     private PropertiesHolder() throws FatalErrorException {
-        HomeDir homeDir = HomeDir.getInstance();
-        String path = homeDir.getPath() + File.separator;
+        String path = HomeDir.getPath();
         List<String> configFilesNames = new ArrayList<>();
         configFilesNames.add(path+DefaultConfigurationConstants.MANAGER_CONF_FILE_NAME);
         configFilesNames.add(path+DefaultConfigurationConstants.INTERCOMPONENT_CONF_FILE_NAME);

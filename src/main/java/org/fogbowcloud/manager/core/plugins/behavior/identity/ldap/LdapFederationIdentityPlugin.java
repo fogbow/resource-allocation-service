@@ -10,8 +10,7 @@ import org.fogbowcloud.manager.core.exceptions.*;
 public class LdapFederationIdentityPlugin implements FederationIdentityPlugin<LdapToken> {
     private static final Logger LOGGER = Logger.getLogger(LdapFederationIdentityPlugin.class);
 
-    public LdapFederationIdentityPlugin() throws FatalErrorException {
-    }
+    public LdapFederationIdentityPlugin() throws FatalErrorException { }
 
     @Override
     public LdapToken createToken(String federationTokenValue) throws InvalidParameterException {

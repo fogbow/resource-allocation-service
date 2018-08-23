@@ -29,7 +29,6 @@ public class DefaultLaunchCommandGeneratorTest {
 
     @Before
     public void setUp() throws Exception {
-        HomeDir.getInstance().setPath("src/test/resources/private");
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         this.properties = propertiesHolder.getProperties();
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");

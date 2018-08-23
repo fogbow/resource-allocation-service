@@ -32,9 +32,7 @@ public class GenericAllToOneFederationToLocalMapper implements FederationToLocal
                                                   FederationIdentityPlugin federationIdentityPlugin,
                                                   String configurationFileName)
             throws FatalErrorException {
-        HomeDir homeDir = HomeDir.getInstance();
-        Properties properties = PropertiesUtil.readProperties(homeDir.getPath() +
-                File.separator + configurationFileName);
+        Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() + configurationFileName);
         this.credentials = getDefaultLocalTokenCredentials(properties);
         this.tokenGeneratorPlugin = tokenGeneratorPlugin;
         this.federationIdentityPlugin = federationIdentityPlugin;

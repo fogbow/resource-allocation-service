@@ -40,9 +40,8 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
     private HttpRequestClientUtil client;
     
     public OpenStackNovaV2AttachmentPlugin() throws FatalErrorException {
-        HomeDir homeDir = HomeDir.getInstance();
-        this.properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
-                + DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
+        this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
+                DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
         initClient();
     }
 

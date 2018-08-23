@@ -75,9 +75,8 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
     private static final Logger LOGGER = Logger.getLogger(OpenStackV2NetworkPlugin.class);
 
     public OpenStackV2NetworkPlugin() throws FatalErrorException {
-        HomeDir homeDir = HomeDir.getInstance();
-        Properties properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
-                + DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
+        Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
+                DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
 
         this.networkV2APIEndpoint =
                 properties.getProperty(NETWORK_NEUTRONV2_URL_KEY)

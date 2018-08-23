@@ -43,7 +43,6 @@ public class KeystoneV3AllToOneMapperTest {
 
     @Before
     public void setUp() {
-        HomeDir.getInstance().setPath("src/test/resources/private");
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         this.ldapTokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
         this.ldapIdentityPlugin = new LdapFederationIdentityPlugin();

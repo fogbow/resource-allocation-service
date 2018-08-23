@@ -78,9 +78,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
 	private LaunchCommandGenerator launchCommandGenerator;
 
 	public OpenStackNovaV2ComputePlugin() throws FatalErrorException {
-		HomeDir homeDir = HomeDir.getInstance();
-		this.properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
-				+ DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
+		this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
+				DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
 		this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
 		instantiateOtherAttributes();
 	}

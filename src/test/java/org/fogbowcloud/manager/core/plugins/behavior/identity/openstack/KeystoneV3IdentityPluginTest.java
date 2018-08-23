@@ -25,7 +25,6 @@ public class KeystoneV3IdentityPluginTest {
 
     @Before
     public void setUp() {
-        HomeDir.getInstance().setPath("src/test/resources/private");
         this.identityPlugin = new KeystoneV3IdentityPlugin();
         this.tokenGenerator = Mockito.spy(new KeystoneV3TokenGeneratorPlugin());
     }

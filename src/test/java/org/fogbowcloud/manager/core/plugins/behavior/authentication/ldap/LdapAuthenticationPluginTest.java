@@ -22,9 +22,6 @@ public class LdapAuthenticationPluginTest {
 
     @Before
     public void setUp() {
-        HomeDir homeDir = HomeDir.getInstance();
-        homeDir.setPath("src/test/resources/private");
-
         this.authenticationPlugin = Mockito.spy(new LdapAuthenticationPlugin());
 
         this.name = "ldapUser";

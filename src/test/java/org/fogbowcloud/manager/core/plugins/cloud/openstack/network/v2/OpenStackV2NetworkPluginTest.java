@@ -73,7 +73,6 @@ public class OpenStackV2NetworkPluginTest {
 	
 	@Before
 	public void setUp() throws InvalidParameterException {
-	    HomeDir.getInstance().setPath("src/test/resources/private");
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         this.properties = propertiesHolder.getProperties();
         this.properties.put(OpenStackV2NetworkPlugin.KEY_EXTERNAL_GATEWAY_INFO, DEFAULT_GATEWAY_INFO);

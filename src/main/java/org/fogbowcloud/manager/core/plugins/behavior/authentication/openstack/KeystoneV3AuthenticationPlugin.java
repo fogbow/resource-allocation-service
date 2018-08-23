@@ -26,9 +26,8 @@ public class KeystoneV3AuthenticationPlugin implements AuthenticationPlugin {
     private String localProviderId;
 
     public KeystoneV3AuthenticationPlugin() {
-        HomeDir homeDir = HomeDir.getInstance();
-        Properties properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
-                + DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
+        Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
+                DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
 
         String identityUrl = properties.getProperty(KeystoneV3TokenGeneratorPlugin.OPENSTACK_KEYSTONE_V3_URL);
         if (isUrlValid(identityUrl)) {

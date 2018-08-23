@@ -27,9 +27,8 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 	private HttpRequestClientUtil client;
 
 	public OpenStackComputeQuotaPlugin() throws FatalErrorException {
-		HomeDir homeDir = HomeDir.getInstance();
-        this.properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
-                + DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
+        this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
+                DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
 
 		this.client = new HttpRequestClientUtil();
 	}

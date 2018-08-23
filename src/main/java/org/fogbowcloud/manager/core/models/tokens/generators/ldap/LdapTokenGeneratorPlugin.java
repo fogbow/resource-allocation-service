@@ -67,9 +67,8 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
     public LdapTokenGeneratorPlugin() throws FatalErrorException {
         this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
-        HomeDir homeDir = HomeDir.getInstance();
         Properties properties = PropertiesUtil.readProperties(
-                homeDir.getPath() + File.separator + LDAP_PLUGIN_CONF_FILE);
+                HomeDir.getPath() + LDAP_PLUGIN_CONF_FILE);
         this.ldapBase = properties.getProperty(PROP_LDAP_BASE);
         this.ldapUrl = properties.getProperty(PROP_LDAP_URL);
         this.encryptType = properties.getProperty(PROP_LDAP_ENCRYPT_TYPE);

@@ -26,7 +26,6 @@ public class LdapTokenGeneratorPluginTest {
 
     @Before
     public void setUp() {
-        HomeDir.getInstance().setPath("src/test/resources/private");
         this.ldapTokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
         this.ldapAuthenticationPlugin = new LdapAuthenticationPlugin();
         this.ldapFederationIdentityPlugin = new LdapFederationIdentityPlugin();

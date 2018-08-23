@@ -27,7 +27,6 @@ public class LdapFederationIdentityPluginTest {
 
     @Before
     public void setUp() {
-        HomeDir.getInstance().setPath("src/test/resources/private");
         this.userCredentials.put(LdapTokenGeneratorPlugin.CRED_USERNAME, FAKE_USER_ID);
         this.userCredentials.put(LdapTokenGeneratorPlugin.CRED_PASSWORD, this.password);
         this.userCredentials.put(LdapTokenGeneratorPlugin.CRED_AUTH_URL, "ldapUrl");

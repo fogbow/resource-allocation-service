@@ -22,8 +22,6 @@ public class Main implements ApplicationRunner {
 	
     @Override
     public void run(ApplicationArguments args) {
-        HomeDir.getInstance().setPath(setHomeDirectory(args));
-
         try {
             PluginInstantiator instantiationInitService = PluginInstantiator.getInstance();
 
