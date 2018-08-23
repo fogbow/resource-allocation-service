@@ -26,6 +26,7 @@
 
 ### Private Folder ###
 src/main/resources/private/
+src/test/resources/private/
 
 ### LOGS ###
 *.log
