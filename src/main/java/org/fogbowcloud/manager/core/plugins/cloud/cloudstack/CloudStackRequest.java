@@ -4,6 +4,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.manager.core.models.tokens.generators.cloudstack.CloudStackTokenGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 
@@ -12,8 +13,6 @@ import java.util.Properties;
 
 public abstract class CloudStackRequest {
 
-    private static final String CLOUDSTACK_URL_KEY = "cloudstack_api_url";
-
     private URIBuilder uriBuilder;
 
     protected CloudStackRequest() throws InvalidParameterException {
@@ -21,7 +20,7 @@ public abstract class CloudStackRequest {
         Properties properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME);
 
-        String baseEndpoint = properties.getProperty(CLOUDSTACK_URL_KEY);
+        String baseEndpoint = properties.getProperty(CloudStackTokenGenerator.CLOUDSTACK_URL);
         this.uriBuilder = CloudStackUrlUtil.createURIBuilder(baseEndpoint, getCommand());
     }
 

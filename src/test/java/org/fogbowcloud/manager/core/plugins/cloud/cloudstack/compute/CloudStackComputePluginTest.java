@@ -21,7 +21,6 @@ public class CloudStackComputePluginTest {
 
     @Test
     public void getTestTemp() throws UnexpectedException, FogbowManagerException {
-
     }
 
     @Test
