@@ -41,7 +41,6 @@ public class DatabaseManager implements StableStorage {
 
 	@Override
 	public void add(Order order) throws UnexpectedException {
-		System.out.println("DB Manager repo add");
 		try {
 			this.recoveryService.save(order);
 			this.orderTimestampStorage.addOrder(order);

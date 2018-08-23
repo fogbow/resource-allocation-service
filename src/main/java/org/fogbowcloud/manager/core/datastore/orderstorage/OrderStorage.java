@@ -53,8 +53,7 @@ public class OrderStorage {
         return gson.fromJson(jsonString, mapType);
     }
 
-    protected Connection getConnection() throws SQLException {
-    	
+    protected Connection getConnection() throws SQLException {    	
         try {
             return DriverManager.getConnection(this.databaseUrl,
                     this.databaseUsername, this.databasePassword);

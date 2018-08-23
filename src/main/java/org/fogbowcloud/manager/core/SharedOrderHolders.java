@@ -33,22 +33,7 @@ public class SharedOrderHolders {
     	DatabaseManager databaseManager = DatabaseManager.getInstance();
 
         this.activeOrdersMap = new ConcurrentHashMap<>();
-        
-//        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
-//                "token-value", "fake-id", "fake-user");
-//    	
-//    	Order computeOrder = new ComputeOrder(federationUserToken,
-//                "requestingMember", "fake-localidentity-member", 8, 1024,
-//                30, "fake_image_name", new UserData("extraUserDataFile",
-//                CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), "fake_public_key", null);
-//        computeOrder.setOrderStateInTestMode(OrderState.OPEN);
-//        
-//        try {
-//        	databaseManager.add(computeOrder);
-//		} catch (Exception e) {
-//			System.out.println(e.getMessage());
-//		}
-//        
+              
     	try {
             this.openOrders = databaseManager.readActiveOrders(OrderState.OPEN);
             addOrdersToMap(this.openOrders, this.activeOrdersMap);
