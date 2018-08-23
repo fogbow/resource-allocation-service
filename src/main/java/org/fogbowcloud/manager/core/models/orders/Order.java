@@ -8,24 +8,19 @@ import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 
 import java.io.Serializable;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
-import javax.persistence.DiscriminatorColumn;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
-import javax.persistence.JoinColumn;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "order_table")
-//@DiscriminatorColumn(name="descriminatorColumn")
 public abstract class Order implements Serializable{
 	
 	private static final long serialVersionUID = 1L;
@@ -38,8 +33,7 @@ public abstract class Order implements Serializable{
 	@Enumerated(EnumType.STRING)
     private OrderState orderState;
 	
-	@JoinColumn
-	@OneToOne(cascade = CascadeType.ALL)
+	@Embedded
     private FederationUserToken federationUserToken;
 	
 	@Column
@@ -60,6 +54,7 @@ public abstract class Order implements Serializable{
 
     public Order(String id) {
         this.id = id;
+        this.federationUserToken = new FederationUserToken();
     }
 
     /** Creating Order with predefined Id. */

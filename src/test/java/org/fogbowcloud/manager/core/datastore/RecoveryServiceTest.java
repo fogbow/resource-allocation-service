@@ -132,7 +132,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
         computeOrder = new ComputeOrder(FAKE_ID_1, federationUserToken,
         		FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
         		FAKE_DISK_AMOUNT, FAKE_IMAGE_NAME, new UserData(FAKE_USER_DATA_FILE,
-                CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), FAKE_PUBLIC_KEY, null);
+                        CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), FAKE_PUBLIC_KEY, null);
         computeOrder.setOrderStateInTestMode(OrderState.OPEN);
         
         // exercise

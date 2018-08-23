@@ -1,6 +1,5 @@
 package org.fogbowcloud.manager.core.datastore.orderstorage;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -9,13 +9,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 
@@ -39,15 +37,13 @@ public class ComputeOrder extends Order {
 	@Column
     private String imageId;
 	
-	@JoinColumn
-	@OneToOne(cascade = CascadeType.ALL)
+	@Embedded
     private UserData userData;
 	
 	@Column
     private String publicKey;
-	
-	@JoinColumn
-	@OneToOne(cascade = CascadeType.ALL)
+
+	@Embedded
     private ComputeAllocation actualAllocation;
 	
 	@Column
@@ -70,6 +66,7 @@ public class ComputeOrder extends Order {
         this.userData = userData;
         this.publicKey = publicKey;
         this.networksId = networksId;
+        this.actualAllocation = new ComputeAllocation();
     }
 
     public ComputeOrder(FederationUserToken federationUserToken, String requestingMember, String providingMember,

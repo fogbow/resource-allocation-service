@@ -1,25 +1,17 @@
 package org.fogbowcloud.manager.core.models.tokens;
 
-import java.io.Serializable;
+import javax.persistence.Embeddable;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-
-@Entity
-public class FederationUserToken extends Token implements Serializable{
-	
-	private static final long serialVersionUID = 1L;
+@Embeddable
+public class FederationUserToken extends Token {
 
     // An identification of the token provider
-	@Column
     private String tokenProvider;
 	
     // The userId must uniquely identify a user in the federation; two tokens issued to the same user must have the same userId.
-	@Column
     private String userId;
     	
 	// This field is a human-friendly identification of the user, typically used by the CLI/GUI, but need not be unique.
-	@Column
 	private String userName;
 	
 	public FederationUserToken() {

@@ -14,8 +14,6 @@ import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppComponentManager;
-import org.junit.runner.JUnitCore;
-import org.junit.runners.JUnit4;
 import org.fogbowcloud.manager.core.PluginInstantiator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;

@@ -34,9 +34,9 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 
 	private static final String EXPECTED_QUOTA = "\n<iq type=\"result\" id=\"%s\" from=\"%s\">\n"
 					+ "  <query xmlns=\"remoteGetUserQuota\">\n"
-					+ "    <userQuota>{\"totalQuota\":{\"id\":0,\"vCPU\":1,\"ram\":1,\"instances\":1},"
-									+ "\"usedQuota\":{\"id\":0,\"vCPU\":1,\"ram\":1,\"instances\":1},"
-									+ "\"availableQuota\":{\"id\":0,\"vCPU\":0,\"ram\":0,\"instances\":0}}"
+					+ "    <userQuota>{\"totalQuota\":{\"vCPU\":1,\"ram\":1,\"instances\":1},"
+									+ "\"usedQuota\":{\"vCPU\":1,\"ram\":1,\"instances\":1},"
+									+ "\"availableQuota\":{\"vCPU\":0,\"ram\":0,\"instances\":0}}"
 						+ "</userQuota>\n"
 					+ "    <userQuotaClassName>org.fogbowcloud.manager.core.models.quotas.ComputeQuota</userQuotaClassName>\n"
 					+ "  </query>\n</iq>";
