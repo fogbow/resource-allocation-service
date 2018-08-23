@@ -1,10 +1,5 @@
 package org.fogbowcloud.manager.core.plugins.behavior.mapper.all2one;
 
-import org.apache.http.*;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.message.BasicHeader;
-import org.apache.http.message.BasicStatusLine;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
@@ -17,15 +12,12 @@ import org.fogbowcloud.manager.core.models.tokens.generators.ldap.LdapTokenGener
 import org.fogbowcloud.manager.core.models.tokens.generators.openstack.v3.KeystoneV3TokenGeneratorPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.identity.ldap.LdapFederationIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.identity.openstack.KeystoneV3IdentityPlugin;
-import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,13 +36,10 @@ public class KeystoneV3AllToOneMapperTest {
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
 
     private String memberId;
-    private HttpClient client;
-    private HttpRequestClientUtil httpRequestClientUtil;
     private KeystoneV3AllToOneMapper mapper;
     private LdapTokenGeneratorPlugin ldapTokenGenerator;
     private LdapFederationIdentityPlugin ldapIdentityPlugin;
     private KeystoneV3TokenGeneratorPlugin keystoneV3TokenGenerator;
-    private KeystoneV3IdentityPlugin keystoneV3IdentityPlugin;
 
     @Before
     public void setUp() {
@@ -58,13 +47,9 @@ public class KeystoneV3AllToOneMapperTest {
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         this.ldapTokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
         this.ldapIdentityPlugin = new LdapFederationIdentityPlugin();
-        this.client = Mockito.spy(HttpClient.class);
-        this.httpRequestClientUtil = Mockito.spy(new HttpRequestClientUtil(this.client));
         this.keystoneV3TokenGenerator = Mockito.spy(new KeystoneV3TokenGeneratorPlugin());
-        this.keystoneV3TokenGenerator.setClient(this.httpRequestClientUtil);
-        this.keystoneV3IdentityPlugin = new KeystoneV3IdentityPlugin();
         GenericAllToOneFederationToLocalMapper genericMapper = new
-                GenericAllToOneFederationToLocalMapper(keystoneV3TokenGenerator, keystoneV3IdentityPlugin,
+                GenericAllToOneFederationToLocalMapper(keystoneV3TokenGenerator, new KeystoneV3IdentityPlugin(),
                 "keystone-v3-mapper.conf");
         this.mapper = new KeystoneV3AllToOneMapper();
         this.mapper.setGenericMapper(genericMapper);
