@@ -1,6 +1,6 @@
 package org.fogbowcloud.manager.core.datastore.commands;
 
-public class TimestampSQLCommands extends OrderTableAttributes {
+public class TimestampSQLCommands extends OrderTimestampTableAttributes {
 
     public static final String CREATE_TIMESTAMP_TABLE_SQL = "CREATE TABLE IF NOT EXISTS " + TIMESTAMP_TABLE_NAME
             + "(" + ORDER_ID + " VARCHAR(255), " + ORDER_STATE + " VARCHAR(255), " + FEDERATION_USER_ID + " VARCHAR(255), "

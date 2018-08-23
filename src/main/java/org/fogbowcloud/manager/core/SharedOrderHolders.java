@@ -4,16 +4,10 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.fogbowcloud.manager.core.datastore.DatabaseManager;
-import org.fogbowcloud.manager.core.datastore.orderstorage.RecoveryService;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
-import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.orders.UserData;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.manager.core.plugins.cloud.util.CloudInitUserDataBuilder;
-
 
 public class SharedOrderHolders {
 

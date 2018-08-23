@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.*;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.datastore.DatabaseManager;
 import org.fogbowcloud.manager.core.datastore.orderstorage.RecoveryService;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
@@ -55,9 +56,11 @@ public class Main implements ApplicationRunner {
             String xmppPassword = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_PASSWORD_KEY);
             String xmppServerIp = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_SERVER_IP_KEY);
             int xmppServerPort = Integer.parseInt(PropertiesHolder.getInstance().
-                            getProperty(ConfigurationConstants.XMPP_SERVER_PORT_KEY));
+                            getProperty(ConfigurationConstants.XMPP_SERVER_PORT_KEY,
+                                    DefaultConfigurationConstants.XMPP_SERVER_PORT));
             long xmppTimeout =
-                    Long.parseLong(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_TIMEOUT_KEY));
+                    Long.parseLong(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_TIMEOUT_KEY,
+                            DefaultConfigurationConstants.XMPP_TIMEOUT));
             XmppComponentManager xmppComponentManager = new XmppComponentManager(xmppJid, xmppPassword, xmppServerIp,
                     xmppServerPort, xmppTimeout);
             xmppComponentManager.connect();

@@ -24,7 +24,6 @@ public class Image {
     }
     
     public Image() {
-    	
     }
 
     public String getId() {
