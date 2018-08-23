@@ -9,16 +9,20 @@ import org.fogbowcloud.manager.core.datastore.orderstorage.OrderRepository;
 import org.fogbowcloud.manager.core.datastore.orderstorage.RecoveryService;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
+import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
+import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
+import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.manager.core.plugins.cloud.util.CloudInitUserDataBuilder;
-import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
@@ -31,7 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import junit.framework.Assert;
+
 
 @PowerMockIgnore( {"javax.management.*"})
 @PrepareForTest({DatabaseManager.class, PropertiesHolder.class})
@@ -119,7 +123,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
 	
 	// test case: Adding a new compute order to database and checking with a query.
 	@Test
-	public void testAddComputeOrder() {
+	public void testAddComputeOrder() throws UnexpectedException {
 		
 		// set up
 		FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
@@ -141,10 +145,9 @@ public class RecoveryServiceTest extends BaseUnitTests {
 	}
 	
 	// test case: Adding a new open compute order to database and checking that there is one element in open state
-	// and there is no elements in closed state. After set the order state to closed, check reverse situation.
-		@SuppressWarnings("deprecation")
+	// and there is no elements in pending state. After set the order state to pending, check reverse situation.
 		@Test
-		public void testAddComputeOrderSettingState() {
+		public void testAddComputeOrderSettingState() throws UnexpectedException {
 			
 			// set up
 			FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
@@ -159,7 +162,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
 	        // exercise
 			recoveryService.save(computeOrder);
 			List<Order> openOrders = recoveryService.readActiveOrders(OrderState.OPEN);
-			List<Order> closedOrders = recoveryService.readActiveOrders(OrderState.CLOSED);
+			List<Order> closedOrders = recoveryService.readActiveOrders(OrderState.PENDING);
 			
 			// verify
 			Assert.assertEquals(1, openOrders.size());
@@ -167,12 +170,12 @@ public class RecoveryServiceTest extends BaseUnitTests {
 			Assert.assertEquals(computeOrder, openOrders.get(0));
 			
 			// set up
-			computeOrder.setOrderStateInTestMode(OrderState.CLOSED);
+			computeOrder.setOrderStateInTestMode(OrderState.PENDING);
 			
 			 // exercise
-			recoveryService.save(computeOrder);
+			recoveryService.update(computeOrder);
 			openOrders = recoveryService.readActiveOrders(OrderState.OPEN);
-			closedOrders = recoveryService.readActiveOrders(OrderState.CLOSED);
+			closedOrders = recoveryService.readActiveOrders(OrderState.PENDING);
 			
 			// verify
 			Assert.assertTrue(openOrders.isEmpty());
@@ -180,9 +183,119 @@ public class RecoveryServiceTest extends BaseUnitTests {
 			Assert.assertEquals(computeOrder, closedOrders.get(0));		
 		}
 		
-		
+		// test case: If the order is closed and it doesn't have an instance id, it must not be recovered.
 		@Test
-		public void testAddOrdersOfAllTypes() {
+		public void testNotRecoverClosedOrdersWithoutInstanceId() throws UnexpectedException {
+			
+			// set up
+			FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
+					FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
+
+	        computeOrder = new ComputeOrder(FAKE_ID_1, federationUserToken,
+	        		FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
+	        		FAKE_DISK_AMOUNT, FAKE_IMAGE_NAME, new UserData(FAKE_USER_DATA_FILE,
+	                CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), FAKE_PUBLIC_KEY, null);
+	        
+	        computeOrder.setOrderStateInTestMode(OrderState.CLOSED);
+	        
+	        // exercise
+			recoveryService.save(computeOrder);
+			List<Order> openOrders = recoveryService.readActiveOrders(OrderState.OPEN);
+			List<Order> closedOrders = recoveryService.readActiveOrders(OrderState.CLOSED);
+			
+			// verify. ClosedOrders list must be empty too, because the order doesn't have an instance id.
+			Assert.assertTrue(openOrders.isEmpty());
+			Assert.assertTrue(closedOrders.isEmpty());
+			
+		}
+		
+		// test case: If the order is closed and it has an instance id, it must be recovered.
+		@Test
+		public void testRecoverClosedOrdersWithInstanceId() throws UnexpectedException {
+			
+			// set up
+			FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
+					FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
+
+	        computeOrder = new ComputeOrder(FAKE_ID_1, federationUserToken,
+	        		FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
+	        		FAKE_DISK_AMOUNT, FAKE_IMAGE_NAME, new UserData(FAKE_USER_DATA_FILE,
+	                CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), FAKE_PUBLIC_KEY, null);
+	        
+	        computeOrder.setOrderStateInTestMode(OrderState.CLOSED);
+	        computeOrder.setInstanceId("fake-instance-id");
+	        
+	        // exercise
+			recoveryService.save(computeOrder);
+			List<Order> openOrders = recoveryService.readActiveOrders(OrderState.OPEN);
+			List<Order> closedOrders = recoveryService.readActiveOrders(OrderState.CLOSED);
+			
+			// verify. ClosedOrders list must be empty too, because the order doesn't have an instance id.
+			Assert.assertTrue(openOrders.isEmpty());
+			Assert.assertFalse(closedOrders.isEmpty());
+			Assert.assertEquals(1, closedOrders.size());
+			Assert.assertEquals(computeOrder, closedOrders.get(0));
+			
+			
+			// set up. Setting the instance id to null again
+			computeOrder.setInstanceId(null);
+			
+			// exercise
+			recoveryService.update(computeOrder);
+			closedOrders = recoveryService.readActiveOrders(OrderState.CLOSED);
+			
+			// verify
+			Assert.assertTrue(closedOrders.isEmpty());
+		}
+		
+		
+		// test case: Adding orders of all types and checking the method readOrders
+		@Test
+		public void testAddOrdersOfAllTypes() throws UnexpectedException {
+			
+			// set up
+			FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
+					FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
+			
+			// creating computing order with open state
+	        computeOrder = new ComputeOrder(FAKE_ID_1, federationUserToken,
+	        		FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
+	        		FAKE_DISK_AMOUNT, FAKE_IMAGE_NAME, new UserData(FAKE_USER_DATA_FILE,
+	                CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), FAKE_PUBLIC_KEY, null);
+	        computeOrder.setOrderStateInTestMode(OrderState.OPEN);
+	        
+	        // creating attachment order with open state
+	        Order attachmentOrder = new AttachmentOrder("fake-att-id", federationUserToken, "requestingMember",
+	                "providingMember", "source", "target", "device");
+	        attachmentOrder.setOrderStateInTestMode(OrderState.OPEN);
+	        
+	        // creating network order with fulfilled state
+	        Order networkOrder = new NetworkOrder("fake-net-id", federationUserToken,
+	                "requestingMember", "providingMember", "gateway",
+	                "address", NetworkAllocationMode.STATIC);
+	        networkOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+	        
+	        // creating volume order with fulfilled state
+	        Order volumeOrder = new VolumeOrder("fake-vol-id", federationUserToken,
+	                "requestingMember", "providingMember", 0, "volume-name");
+	        volumeOrder.setOrderStateInTestMode(OrderState.FULFILLED);      
+
+	        // exercise
+			recoveryService.save(computeOrder);
+			recoveryService.save(attachmentOrder);
+			recoveryService.save(networkOrder);
+			recoveryService.save(volumeOrder);			
+			List<Order> openOrders = recoveryService.readActiveOrders(OrderState.OPEN);
+			List<Order> fulfilledOrders = recoveryService.readActiveOrders(OrderState.FULFILLED);
+			
+			// verify
+			Assert.assertEquals(2, openOrders.size());
+			Assert.assertEquals(2, fulfilledOrders.size());
+		}
+		
+		// test case: Adding the same order twice and checking the exception
+		@Test(expected = UnexpectedException.class)
+		public void testSaveExistentOrder() throws UnexpectedException {
 			
 			// set up
 			FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
@@ -196,11 +309,27 @@ public class RecoveryServiceTest extends BaseUnitTests {
 	        
 	        // exercise
 			recoveryService.save(computeOrder);
-			List<Order> orders = recoveryService.readActiveOrders(OrderState.OPEN);
+			recoveryService.save(computeOrder);
 			
-			// verify
-			Assert.assertEquals(1, orders.size());
-			Assert.assertEquals(computeOrder, orders.get(0));
+		}
+		
+		// test case: Call the update method of a non-existent order and checking the exception
+		@Test(expected = UnexpectedException.class)
+		public void testUpdateNonExistentOrder() throws UnexpectedException {
+			
+			// set up
+			FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
+					FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
+
+	        computeOrder = new ComputeOrder(FAKE_ID_1, federationUserToken,
+	        		FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
+	        		FAKE_DISK_AMOUNT, FAKE_IMAGE_NAME, new UserData(FAKE_USER_DATA_FILE,
+	                CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), FAKE_PUBLIC_KEY, null);
+	        computeOrder.setOrderStateInTestMode(OrderState.OPEN);
+	        
+	        // exercise
+			recoveryService.update(computeOrder);
+			
 		}
 
 }

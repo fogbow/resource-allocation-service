@@ -1,5 +1,8 @@
 package org.fogbowcloud.manager;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.*;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
@@ -11,6 +14,8 @@ import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppComponentManager;
+import org.junit.runner.JUnitCore;
+import org.junit.runners.JUnit4;
 import org.fogbowcloud.manager.core.PluginInstantiator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
@@ -28,8 +33,16 @@ public class Main implements ApplicationRunner {
 	
     @Override
     public void run(ApplicationArguments args) {
-        //HomeDir.getInstance().setPath(setHomeDirectory(args));
-    	HomeDir.getInstance().setPath("src/test/resources/plugins_instantiator");
+    	
+    	// set path of HomeDir to test mode
+    	if (isJUnitTest()) {
+    		HomeDir.getInstance().setPath(DefaultConfigurationConstants.FOGBOW_TEST_PATH);
+    		
+    	// set path of HomeDir to production mode	
+    	} else {
+    		HomeDir.getInstance().setPath(setHomeDirectory(args));
+    	}
+    	
         try {
         	
         	DatabaseManager.getInstance().setRecoveryService(recoveryService);
@@ -93,9 +106,14 @@ public class Main implements ApplicationRunner {
         return (homeDir == null ? DefaultConfigurationConstants.FOGBOW_HOME : homeDir);
     }
     
-//    @EventListener(ApplicationReadyEvent.class)
-//    //@PostConstruct
-//    public void init() {
-//    	SharedOrderHolders.getInstance().readDatabaseOrders(dbService);
-//    }
+    private boolean isJUnitTest() {
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        List<StackTraceElement> list = Arrays.asList(stackTrace);
+        for (StackTraceElement element : list) {
+            if (element.getClassName().startsWith("org.junit.")) {
+                return true;
+            }           
+        }
+        return false;
+    }
 }

@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit;
 public class DefaultConfigurationConstants {
     // Default Working Directory
     public static final String FOGBOW_HOME = "src/main/resources/private";
+    public static final String FOGBOW_TEST_PATH = "src/test/resources/plugins_instantiator";
 
     // CONFIGURATION FILES PATHS
     public static final String MANAGER_CONF_FILE_NAME = "manager.conf";
