@@ -20,22 +20,11 @@ public class CloudStackComputePluginTest {
     }
 
     @Test
-    public void testGetInstance() {
+    public void getTestTemp() throws UnexpectedException, FogbowManagerException {
 
     }
 
     @Test
-    public void testTemp() throws UnexpectedException, FogbowManagerException {
-        CloudStackComputePlugin p = new CloudStackComputePlugin();
-
-        String apiKey = "Xp2TRynMLZpFAchsTpLpcj8zW_omWCWaP6NNxmb2fV9Nv_Ga6J8QcNRbPCcZUSY2NDS83d7svGhdikV7XrVkcQ";
-        String secretKey = "pnDkW2amt9w-9pjn5tB4DAIc50bCdK3m6CO99r_r5xoDTTJjpormiTfj_5QEbbkVhdE5mHbTq5t8X-fKhHcJeg";
-
-        String tokenValue = apiKey + CloudStackTokenGenerator.TOKEN_VALUE_SEPARATOR + secretKey;
-        CloudStackToken token = new CloudStackToken(tokenValue);
-        String computeInstanceId = "97637962-2244-4159-b72c-120834757514";
-        ComputeInstance i = p.getInstance(computeInstanceId, token);
-        System.out.println(i.getLocalIpAddress());
+    public void createTestTemp() throws UnexpectedException, FogbowManagerException {
     }
-
 }

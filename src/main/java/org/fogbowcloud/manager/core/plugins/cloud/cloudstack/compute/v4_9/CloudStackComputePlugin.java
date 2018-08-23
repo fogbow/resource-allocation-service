@@ -31,14 +31,12 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
 
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputePlugin.class);
 
-    private static final String SERVICE_OFFERING_ID_KEY = "service_offering_id";
     private static final String TEMPLATE_ID_KEY = "template_id";
     private static final String ZONE_ID_KEY = "zone_id";
 
     private Properties properties;
     private HttpRequestClientUtil client;
 
-    private String serviceOfferingId;
     private String templateId;
     private String zoneId;
 
@@ -47,7 +45,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         this.properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME);
 
-        this.serviceOfferingId = properties.getProperty(SERVICE_OFFERING_ID_KEY);
         this.templateId = properties.getProperty(TEMPLATE_ID_KEY);
         this.zoneId = properties.getProperty(ZONE_ID_KEY);
 
@@ -61,7 +58,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         String userData = Base64.getEncoder().encodeToString(computeOrder.getUserData().toString().getBytes());
         String networksId = StringUtils.join(computeOrder.getNetworksId(), ",");
 
-        // NOTE(pauloewerton): diskofferingid and hypervisor required in case of ISO image
+        // NOTE(pauloewerton): diskofferingid and hypervisor are required in case of ISO image
         DeployComputeRequest request = new DeployComputeRequest.Builder()
                 .serviceOfferingId(this.serviceOfferingId)
                 .templateId(this.templateId)
