@@ -2,8 +2,10 @@ package org.fogbowcloud.manager.core.plugins.cloud.cloudstack.network;
 
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.http.client.HttpResponseException;
-import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.HomeDir;
+import org.fogbowcloud.manager.core.PropertiesHolder;
+import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
@@ -14,17 +16,25 @@ import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
 import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.tokens.CloudStackToken;
+import org.fogbowcloud.manager.core.models.tokens.generators.cloudstack.CloudStackTokenGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackHttpToFogbowManagerExceptionMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackStateMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackUrlUtil;
+import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 
+import java.io.File;
 import java.util.*;
+
+import static org.fogbowcloud.manager.core.models.tokens.generators.cloudstack.CloudStackTokenGenerator.CLOUDSTACK_URL;
 
 public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
 
     private static final Logger LOGGER = Logger.getLogger(CloudStackNetworkPlugin.class);
+
+    public static final java.lang.String NETWORK_OFFERING_ID = "network_offering_id";
+    public static final java.lang.String ZONE_ID = "zone_id";
 
     protected String networkOfferingId = null;
     protected String zoneId = null;
@@ -32,9 +42,13 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
     private HttpRequestClientUtil client;
 
     public CloudStackNetworkPlugin() {
-        // TODO read attributes from file
-        this.networkOfferingId = null;
-        this.zoneId = null;
+        String cloudStackConfFilePath = HomeDir.getInstance().getPath() + File.separator
+                + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
+
+        Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
+
+        this.networkOfferingId = properties.getProperty(NETWORK_OFFERING_ID);
+        this.zoneId = properties.getProperty(ZONE_ID);
 
         this.client = new HttpRequestClientUtil();
     }
@@ -117,7 +131,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
     }
 
     private String generateRandomNetworkName() {
-        return "fogbow_network_" + ((int) Math.random());
+        return "fogbow_network_" + UUID.randomUUID();
     }
 
     private SubnetUtils.SubnetInfo getSubnetInfo(String cidrNotation) {
