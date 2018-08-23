@@ -22,11 +22,10 @@ import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class KeystoneV3TokenGeneratorTest {
+public class KeystoneV3TokenGeneratorPluginTest {
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USER_NAME = "fake-user-name";
     private static final String FAKE_PROJECT_ID = "fake-project-id";
@@ -36,15 +35,14 @@ public class KeystoneV3TokenGeneratorTest {
 
     private HttpClient client;
     private HttpRequestClientUtil httpRequestClientUtil;
-    private KeystoneV3TokenGenerator keystoneV3TokenGenerator;
+    private KeystoneV3TokenGeneratorPlugin keystoneV3TokenGenerator;
     private String memberId;
 
     @Before
     public void setUp() {
-        HomeDir.getInstance().setPath("src/test/resources/private");
         this.client = Mockito.spy(HttpClient.class);
         this.httpRequestClientUtil = Mockito.spy(new HttpRequestClientUtil(this.client));
-        this.keystoneV3TokenGenerator = Mockito.spy(new KeystoneV3TokenGenerator());
+        this.keystoneV3TokenGenerator = Mockito.spy(new KeystoneV3TokenGeneratorPlugin());
         this.keystoneV3TokenGenerator.setClient(this.httpRequestClientUtil);
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
     }
@@ -66,20 +64,20 @@ public class KeystoneV3TokenGeneratorTest {
                 HttpStatus.SC_OK, "");
         Mockito.when(httpResponse.getStatusLine()).thenReturn(basicStatus);
         Header[] headers = new BasicHeader[1];
-        headers[0] = new BasicHeader(KeystoneV3TokenGenerator.X_SUBJECT_TOKEN, FAKE_TOKEN_VALUE);
+        headers[0] = new BasicHeader(KeystoneV3TokenGeneratorPlugin.X_SUBJECT_TOKEN, FAKE_TOKEN_VALUE);
         Mockito.when(httpResponse.getAllHeaders()).thenReturn(headers);
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
 
         Map<String, String> userCredentials = new HashMap<String, String>();
-        userCredentials.put(KeystoneV3TokenGenerator.USER_ID, FAKE_USER_ID);
-        userCredentials.put(KeystoneV3TokenGenerator.PASSWORD, "any password");
-        userCredentials.put(KeystoneV3TokenGenerator.PROJECT_ID, FAKE_PROJECT_ID);
+        userCredentials.put(KeystoneV3TokenGeneratorPlugin.USER_ID, FAKE_USER_ID);
+        userCredentials.put(KeystoneV3TokenGeneratorPlugin.PASSWORD, "any password");
+        userCredentials.put(KeystoneV3TokenGeneratorPlugin.PROJECT_ID, FAKE_PROJECT_ID);
 
         //exercise
         String tokenValue = this.keystoneV3TokenGenerator.createTokenValue(userCredentials);
 
         //verify
-        String split[] = tokenValue.split(KeystoneV3TokenGenerator.TOKEN_VALUE_SEPARATOR);
+        String split[] = tokenValue.split(KeystoneV3TokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
         Assert.assertEquals(split.length,6);
         Assert.assertEquals(split[0], memberId);
         Assert.assertEquals(split[1], FAKE_TOKEN_VALUE);
@@ -105,14 +103,14 @@ public class KeystoneV3TokenGeneratorTest {
                 HttpStatus.SC_UNAUTHORIZED, "");
         Mockito.when(httpResponse.getStatusLine()).thenReturn(basicStatus);
         Header[] headers = new BasicHeader[1];
-        headers[0] = new BasicHeader(KeystoneV3TokenGenerator.X_SUBJECT_TOKEN, FAKE_TOKEN_VALUE);
+        headers[0] = new BasicHeader(KeystoneV3TokenGeneratorPlugin.X_SUBJECT_TOKEN, FAKE_TOKEN_VALUE);
         Mockito.when(httpResponse.getAllHeaders()).thenReturn(headers);
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
 
         Map<String, String> userCredentials = new HashMap<String, String>();
-        userCredentials.put(KeystoneV3TokenGenerator.USER_ID, FAKE_USER_ID);
-        userCredentials.put(KeystoneV3TokenGenerator.PASSWORD, "any password");
-        userCredentials.put(KeystoneV3TokenGenerator.PROJECT_ID, FAKE_PROJECT_ID);
+        userCredentials.put(KeystoneV3TokenGeneratorPlugin.USER_ID, FAKE_USER_ID);
+        userCredentials.put(KeystoneV3TokenGeneratorPlugin.PASSWORD, "any password");
+        userCredentials.put(KeystoneV3TokenGeneratorPlugin.PROJECT_ID, FAKE_PROJECT_ID);
 
         //exercise
         String tokenValue = this.keystoneV3TokenGenerator.createTokenValue(userCredentials);

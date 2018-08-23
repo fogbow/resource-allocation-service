@@ -15,19 +15,18 @@ import org.mockito.Mockito;
 import java.util.HashMap;
 import java.util.Map;
 
-public class LdapTokenGeneratorTest {
+public class LdapTokenGeneratorPluginTest {
     private static final String FAKE_NAME = "fake-name";
     private static final String FAKE_LOGIN = "fake-login";
     private static final String FAKE_PASSWORD = "fake-password";
 
-    private LdapTokenGenerator ldapTokenGenerator;
+    private LdapTokenGeneratorPlugin ldapTokenGenerator;
     private LdapAuthenticationPlugin ldapAuthenticationPlugin;
     private LdapFederationIdentityPlugin ldapFederationIdentityPlugin;
 
     @Before
     public void setUp() {
-        HomeDir.getInstance().setPath("src/test/resources/private");
-        this.ldapTokenGenerator = Mockito.spy(new LdapTokenGenerator());
+        this.ldapTokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
         this.ldapAuthenticationPlugin = new LdapAuthenticationPlugin();
         this.ldapFederationIdentityPlugin = new LdapFederationIdentityPlugin();
     }
@@ -38,8 +37,8 @@ public class LdapTokenGeneratorTest {
             InvalidUserCredentialsException {
         //set up
         Map<String, String> userCredentials = new HashMap<String, String>();
-        userCredentials.put(LdapTokenGenerator.CRED_USERNAME, FAKE_LOGIN);
-        userCredentials.put(LdapTokenGenerator.CRED_PASSWORD, FAKE_PASSWORD);
+        userCredentials.put(LdapTokenGeneratorPlugin.CRED_USERNAME, FAKE_LOGIN);
+        userCredentials.put(LdapTokenGeneratorPlugin.CRED_PASSWORD, FAKE_PASSWORD);
 
         Mockito.doReturn(FAKE_NAME).when(ldapTokenGenerator).
                 ldapAuthenticate(Mockito.eq(FAKE_LOGIN), Mockito.eq(FAKE_PASSWORD));
@@ -49,7 +48,7 @@ public class LdapTokenGeneratorTest {
         LdapToken token = this.ldapFederationIdentityPlugin.createToken(tokenValue);
 
         //verify
-        String split[] = tokenValue.split(LdapTokenGenerator.TOKEN_VALUE_SEPARATOR);
+        String split[] = tokenValue.split(LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
         Assert.assertEquals(split.length,5);
         Assert.assertEquals(split[0], PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID));
         Assert.assertEquals(split[1], FAKE_LOGIN);
@@ -63,8 +62,8 @@ public class LdapTokenGeneratorTest {
             InvalidUserCredentialsException {
         //set up
         Map<String, String> userCredentials = new HashMap<String, String>();
-        userCredentials.put(LdapTokenGenerator.CRED_USERNAME, FAKE_LOGIN);
-        userCredentials.put(LdapTokenGenerator.CRED_PASSWORD, FAKE_PASSWORD);
+        userCredentials.put(LdapTokenGeneratorPlugin.CRED_USERNAME, FAKE_LOGIN);
+        userCredentials.put(LdapTokenGeneratorPlugin.CRED_PASSWORD, FAKE_PASSWORD);
 
         Mockito.doThrow(new InvalidUserCredentialsException())
                 .when(this.ldapTokenGenerator).ldapAuthenticate(Mockito.eq(FAKE_LOGIN), Mockito.eq(FAKE_PASSWORD));
@@ -79,8 +78,8 @@ public class LdapTokenGeneratorTest {
             InvalidUserCredentialsException {
         //set up
         Map<String, String> userCredentials = new HashMap<String, String>();
-        userCredentials.put(LdapTokenGenerator.CRED_USERNAME, FAKE_LOGIN);
-        userCredentials.put(LdapTokenGenerator.CRED_PASSWORD, FAKE_PASSWORD);
+        userCredentials.put(LdapTokenGeneratorPlugin.CRED_USERNAME, FAKE_LOGIN);
+        userCredentials.put(LdapTokenGeneratorPlugin.CRED_PASSWORD, FAKE_PASSWORD);
 
         Mockito.doThrow(new InvalidParameterException())
                 .when(this.ldapTokenGenerator).ldapAuthenticate(Mockito.eq(FAKE_LOGIN), Mockito.eq(FAKE_PASSWORD));

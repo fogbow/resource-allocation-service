@@ -23,7 +23,6 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -55,8 +54,6 @@ public class OrderControllerTest extends BaseUnitTests {
 
     @Before
     public void setUp() throws UnexpectedException {
-        HomeDir.getInstance().setPath(RESOURCES_PATH_TEST);
-
         // mocking database to return empty instances of SynchronizedDoublyLinkedList.
         super.mockReadOrdersFromDataBase();
 

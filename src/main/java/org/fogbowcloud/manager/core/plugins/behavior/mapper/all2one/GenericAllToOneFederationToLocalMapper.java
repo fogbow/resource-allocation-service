@@ -12,7 +12,7 @@ import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.manager.core.models.tokens.Token;
-import org.fogbowcloud.manager.core.models.tokens.TokenGenerator;
+import org.fogbowcloud.manager.core.models.tokens.TokenGeneratorPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.identity.FederationIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.manager.util.PropertiesUtil;
@@ -21,29 +21,26 @@ public class GenericAllToOneFederationToLocalMapper implements FederationToLocal
 	
     private static final Logger LOGGER = Logger.getLogger(GenericAllToOneFederationToLocalMapper.class);
     
-    private static String LOCAL_TOKEN_CREDENTIALS_PREFIX = "local_token_credentials_";
+    private static final String LOCAL_TOKEN_CREDENTIALS_PREFIX = "local_token_credentials_";
 
     private Map<String, String> credentials;
 
-    private TokenGenerator tokenGenerator;
+    private TokenGeneratorPlugin tokenGeneratorPlugin;
     private FederationIdentityPlugin federationIdentityPlugin;
 
-	public GenericAllToOneFederationToLocalMapper(TokenGenerator tokenGenerator,
+	public GenericAllToOneFederationToLocalMapper(TokenGeneratorPlugin tokenGeneratorPlugin,
                                                   FederationIdentityPlugin federationIdentityPlugin,
                                                   String configurationFileName)
             throws FatalErrorException {
-        HomeDir homeDir = HomeDir.getInstance();
-        Properties properties = PropertiesUtil.readProperties(homeDir.getPath() +
-                File.separator + configurationFileName);
+        Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() + configurationFileName);
         this.credentials = getDefaultLocalTokenCredentials(properties);
-        this.tokenGenerator = tokenGenerator;
+        this.tokenGeneratorPlugin = tokenGeneratorPlugin;
         this.federationIdentityPlugin = federationIdentityPlugin;
     }
 
     @Override
     public Token map(FederationUserToken user) throws UnexpectedException, FogbowManagerException {
-	    String tokenString = this.tokenGenerator.createTokenValue(this.credentials);
-	    LOGGER.debug("token string: " + (tokenString == null ? "null" : tokenString));
+	    String tokenString = this.tokenGeneratorPlugin.createTokenValue(this.credentials);
 	    return this.federationIdentityPlugin.createToken(tokenString);
     }
 
@@ -57,7 +54,6 @@ public class GenericAllToOneFederationToLocalMapper implements FederationToLocal
     private Map<String, String> getDefaultLocalTokenCredentials(Properties properties) throws FatalErrorException {
         Map<String, String> localDefaultTokenCredentials = new HashMap<String, String>();
         if (properties == null) {
-            LOGGER.debug("Empty property map.");
             throw new FatalErrorException("Empty property map.");
         }
 
@@ -72,7 +68,6 @@ public class GenericAllToOneFederationToLocalMapper implements FederationToLocal
         }
 
         if (localDefaultTokenCredentials.isEmpty()) {
-            LOGGER.debug("Credentials not found.");
             throw new FatalErrorException("Default localidentity tokens credentials not found.");
         } else {
             return localDefaultTokenCredentials;

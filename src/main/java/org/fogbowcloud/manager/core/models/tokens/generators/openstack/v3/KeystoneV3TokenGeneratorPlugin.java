@@ -12,15 +12,14 @@ import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.models.tokens.TokenGenerator;
+import org.fogbowcloud.manager.core.models.tokens.TokenGeneratorPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackHttpToFogbowManagerExceptionMapper;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
-import org.json.JSONException;
 
-public class KeystoneV3TokenGenerator implements TokenGenerator {
+public class KeystoneV3TokenGeneratorPlugin implements TokenGeneratorPlugin {
 
-    private static final Logger LOGGER = Logger.getLogger(KeystoneV3TokenGenerator.class);
+    private static final Logger LOGGER = Logger.getLogger(KeystoneV3TokenGeneratorPlugin.class);
 
     public static final String OPENSTACK_KEYSTONE_V3_URL = "openstack_keystone_v3_url";
     public static final String V3_TOKENS_ENDPOINT_PATH = "/auth/tokens";
@@ -35,12 +34,11 @@ public class KeystoneV3TokenGenerator implements TokenGenerator {
     private HttpRequestClientUtil client;
     private String tokenProviderId;
 
-    public KeystoneV3TokenGenerator() throws FatalErrorException {
+    public KeystoneV3TokenGeneratorPlugin() throws FatalErrorException {
         this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
-        HomeDir homeDir = HomeDir.getInstance();
-        Properties properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
-                + DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
+        Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
+                DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
 
         String identityUrl = properties.getProperty(OPENSTACK_KEYSTONE_V3_URL);
         if (isUrlValid(identityUrl)) {

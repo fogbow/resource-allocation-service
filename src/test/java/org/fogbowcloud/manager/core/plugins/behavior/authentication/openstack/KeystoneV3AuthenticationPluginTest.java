@@ -34,9 +34,6 @@ public class KeystoneV3AuthenticationPluginTest {
 
     @Before
     public void setUp() {
-        HomeDir homeDir = HomeDir.getInstance();
-        homeDir.setPath("src/test/resources/private");
-
         this.client = Mockito.spy(HttpClient.class);
         this.httpRequestClientUtil = Mockito.spy(new HttpRequestClientUtil(this.client));
 

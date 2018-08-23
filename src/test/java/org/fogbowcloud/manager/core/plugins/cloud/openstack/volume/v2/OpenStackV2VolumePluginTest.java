@@ -46,7 +46,6 @@ public class OpenStackV2VolumePluginTest {
 
     @Before
     public void setUp() throws Exception {
-        HomeDir.getInstance().setPath("src/test/resources/private");
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         Properties properties = propertiesHolder.getProperties();
         properties.put(OpenStackV2VolumePlugin.VOLUME_NOVAV2_URL_KEY, FAKE_STORAGE_URL);

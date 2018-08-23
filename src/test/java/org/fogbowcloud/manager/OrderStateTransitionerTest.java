@@ -27,11 +27,6 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
 
     private MockUtil mockUtil = new MockUtil();
 
-    @Before
-    public void setUp() {
-        HomeDir.getInstance().setPath("src/test/resources/private");
-    }
-
     @After
     public void tearDown() {
         SharedOrderHolders instance = SharedOrderHolders.getInstance();

@@ -9,16 +9,25 @@ import org.fogbowcloud.manager.core.plugins.cloud.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.BDDMockito;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({HomeDir.class})
 public class PluginInstantiatorTest {
 
     private PluginInstantiator pluginInstantiator;
 
-    private static final String TEST_CONF_PATH = "src/test/resources/plugins_instantiator";
+    private static final String TEST_CONF_PATH = "src/test/resources/plugins_instantiator/";
 
     @Before
     public void setUp() throws Exception {
-        HomeDir.getInstance().setPath(TEST_CONF_PATH);
+        PowerMockito.mockStatic(HomeDir.class);
+        BDDMockito.given(HomeDir.getPath()).willReturn(TEST_CONF_PATH);
         this.pluginInstantiator = new PluginInstantiator();
     }
 

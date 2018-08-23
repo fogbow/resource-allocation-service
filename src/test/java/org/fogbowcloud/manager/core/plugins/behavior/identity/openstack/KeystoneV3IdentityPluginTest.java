@@ -3,7 +3,7 @@ package org.fogbowcloud.manager.core.plugins.behavior.identity.openstack;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.tokens.OpenStackV3Token;
-import org.fogbowcloud.manager.core.models.tokens.generators.openstack.v3.KeystoneV3TokenGenerator;
+import org.fogbowcloud.manager.core.models.tokens.generators.openstack.v3.KeystoneV3TokenGeneratorPlugin;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,38 +21,37 @@ public class KeystoneV3IdentityPluginTest {
     private static final String FAKE_PROJECT_NAME = "fake-project-name";
 
     private KeystoneV3IdentityPlugin identityPlugin;
-    private KeystoneV3TokenGenerator tokenGenerator;
+    private KeystoneV3TokenGeneratorPlugin tokenGenerator;
 
     @Before
     public void setUp() {
-        HomeDir.getInstance().setPath("src/test/resources/private");
         this.identityPlugin = new KeystoneV3IdentityPlugin();
-        this.tokenGenerator = Mockito.spy(new KeystoneV3TokenGenerator());
+        this.tokenGenerator = Mockito.spy(new KeystoneV3TokenGeneratorPlugin());
     }
 
     //test case: check if the token value information is correct when creating a token with the correct user credentials.
     @Test
     public void testCreateToken() throws Exception {
         //set up
-        String fakeTokenValue = FAKE_PROVIDER + KeystoneV3TokenGenerator.TOKEN_VALUE_SEPARATOR + FAKE_TOKEN_VALUE +
-                KeystoneV3TokenGenerator.TOKEN_VALUE_SEPARATOR + FAKE_USER_ID +
-                KeystoneV3TokenGenerator.TOKEN_VALUE_SEPARATOR + FAKE_NAME +
-                KeystoneV3TokenGenerator.TOKEN_VALUE_SEPARATOR + FAKE_PROJECT_ID +
-                KeystoneV3TokenGenerator.TOKEN_VALUE_SEPARATOR + FAKE_PROJECT_NAME;
+        String fakeTokenValue = FAKE_PROVIDER + KeystoneV3TokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR + FAKE_TOKEN_VALUE +
+                KeystoneV3TokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR + FAKE_USER_ID +
+                KeystoneV3TokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR + FAKE_NAME +
+                KeystoneV3TokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR + FAKE_PROJECT_ID +
+                KeystoneV3TokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR + FAKE_PROJECT_NAME;
         Mockito.doReturn(fakeTokenValue).when(this.tokenGenerator).createTokenValue(Mockito.anyMap());
         Map<String, String> userCredentials = new HashMap<String, String>();
         userCredentials = new HashMap<String, String>();
-        userCredentials.put(KeystoneV3TokenGenerator.USER_ID, "userId");
-        userCredentials.put(KeystoneV3TokenGenerator.PASSWORD, "userPass");
-        userCredentials.put(KeystoneV3TokenGenerator.PROJECT_ID, "projectId");
-        userCredentials.put(KeystoneV3TokenGenerator.AUTH_URL, "http://localhost");
+        userCredentials.put(KeystoneV3TokenGeneratorPlugin.USER_ID, "userId");
+        userCredentials.put(KeystoneV3TokenGeneratorPlugin.PASSWORD, "userPass");
+        userCredentials.put(KeystoneV3TokenGeneratorPlugin.PROJECT_ID, "projectId");
+        userCredentials.put(KeystoneV3TokenGeneratorPlugin.AUTH_URL, "http://localhost");
 
         //exercise
         String federationTokenValue = this.tokenGenerator.createTokenValue(userCredentials);
         OpenStackV3Token token = this.identityPlugin.createToken(federationTokenValue);
 
         //verify
-        String split[] = federationTokenValue.split(KeystoneV3TokenGenerator.TOKEN_VALUE_SEPARATOR);
+        String split[] = federationTokenValue.split(KeystoneV3TokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
         Assert.assertEquals(split[0], FAKE_PROVIDER);
         Assert.assertEquals(split[1], FAKE_TOKEN_VALUE);
         Assert.assertEquals(split[2], FAKE_USER_ID);
