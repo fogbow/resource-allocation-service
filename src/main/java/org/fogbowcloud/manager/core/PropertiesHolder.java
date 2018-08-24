@@ -4,7 +4,6 @@ import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -18,8 +17,8 @@ public class PropertiesHolder {
     private PropertiesHolder() throws FatalErrorException {
         String path = HomeDir.getPath();
         List<String> configFilesNames = new ArrayList<>();
-        configFilesNames.add(path+DefaultConfigurationConstants.MANAGER_CONF_FILE_NAME);
-        configFilesNames.add(path+DefaultConfigurationConstants.INTERCOMPONENT_CONF_FILE_NAME);
+        configFilesNames.add(path + DefaultConfigurationConstants.MANAGER_CONF_FILE_NAME);
+        configFilesNames.add(path + DefaultConfigurationConstants.INTERCOMPONENT_CONF_FILE_NAME);
         this.properties = PropertiesUtil.readProperties(configFilesNames);
     }
 
@@ -41,7 +40,7 @@ public class PropertiesHolder {
         }
         return propertyValue;
     }
-    
+
     public Properties getProperties() {
         return this.properties;
     }

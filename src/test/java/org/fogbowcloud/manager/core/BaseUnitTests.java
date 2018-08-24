@@ -1,7 +1,5 @@
 package org.fogbowcloud.manager.core;
 
-import java.util.Map;
-
 import org.fogbowcloud.manager.core.datastore.DatabaseManager;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
@@ -11,15 +9,14 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
-
 import org.junit.After;
-
 import org.mockito.BDDMockito;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
-
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
+
+import java.util.Map;
 
 @PrepareForTest(DatabaseManager.class)
 public class BaseUnitTests {

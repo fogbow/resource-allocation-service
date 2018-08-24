@@ -1,10 +1,12 @@
 package org.fogbowcloud.manager.core.plugins.cloud.cloudstack.network;
 
 import com.google.gson.annotations.SerializedName;
-import static org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRestApiConstants.Network.*;
 import org.fogbowcloud.manager.util.GsonHolder;
 
 import java.util.List;
+
+import static org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRestApiConstants.Network.NETWORKS_KEY_JSON;
+import static org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRestApiConstants.Network.NETWORK_KEY_JSON;
 
 /*
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/listNetworks.html

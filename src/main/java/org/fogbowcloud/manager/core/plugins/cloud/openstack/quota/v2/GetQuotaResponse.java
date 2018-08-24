@@ -7,22 +7,22 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/compute/#limits-limits
- *
+ * <p>
  * Response Example:
  * {
- *   "limits":{
- *     "absolute":{
- *       "maxTotalCores":20,
- *       "maxTotalInstances":10,
- *       "maxTotalRAMSize":51200,
- *       "totalCoresUsed":0,
- *       "totalInstancesUsed":0,
- *       "totalRAMUsed":0
- *     },
- *     "rate":[
- *
- *     ]
- *   }
+ * "limits":{
+ * "absolute":{
+ * "maxTotalCores":20,
+ * "maxTotalInstances":10,
+ * "maxTotalRAMSize":51200,
+ * "totalCoresUsed":0,
+ * "totalInstancesUsed":0,
+ * "totalRAMUsed":0
+ * },
+ * "rate":[
+ * <p>
+ * ]
+ * }
  * }
  */
 public class GetQuotaResponse {
@@ -33,6 +33,7 @@ public class GetQuotaResponse {
     public static GetQuotaResponse fromJson(String json) {
         return GsonHolder.getInstance().fromJson(json, GetQuotaResponse.class);
     }
+
     public class Limits {
 
         @SerializedName(ABSOLUTE_KEY_JSON)

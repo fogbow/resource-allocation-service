@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager;
 
 import org.fogbowcloud.manager.core.BaseUnitTests;
-import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.datastore.DatabaseManager;
@@ -11,7 +10,6 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
@@ -55,7 +53,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
         OrderState destinationState = OrderState.SPAWNING;
 
         super.mockReadOrdersFromDataBase();
-        
+
         SharedOrderHolders orderHolders = SharedOrderHolders.getInstance();
 
         SynchronizedDoublyLinkedList openOrdersList = orderHolders.getOpenOrdersList();

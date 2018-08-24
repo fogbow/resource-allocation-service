@@ -1,21 +1,23 @@
 package org.fogbowcloud.manager.core.plugins.behavior.authentication.ldap;
 
-import java.io.File;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.interfaces.RSAPublicKey;
-import java.util.Date;
-import java.util.Properties;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.exceptions.ExpiredTokenException;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
+import org.fogbowcloud.manager.core.exceptions.UnauthenticTokenException;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.manager.core.models.tokens.generators.ldap.LdapTokenGeneratorPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.authentication.AuthenticationPlugin;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.RSAUtil;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.interfaces.RSAPublicKey;
+import java.util.Date;
+import java.util.Properties;
 
 public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 

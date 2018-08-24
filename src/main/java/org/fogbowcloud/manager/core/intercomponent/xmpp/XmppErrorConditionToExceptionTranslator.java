@@ -18,7 +18,7 @@ public class XmppErrorConditionToExceptionTranslator {
     }
 
     private static void throwException(PacketError.Condition condition, String message) throws Exception {
-        switch(condition) {
+        switch (condition) {
             case forbidden:
                 throw new UnauthorizedRequestException(message);
             case not_authorized:

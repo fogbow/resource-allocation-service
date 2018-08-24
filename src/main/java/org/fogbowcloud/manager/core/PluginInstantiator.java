@@ -1,25 +1,19 @@
 package org.fogbowcloud.manager.core;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.models.tokens.TokenGeneratorPlugin;
-import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.authentication.AuthenticationPlugin;
+import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.identity.FederationIdentityPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.ImagePlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.ComputeQuotaPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.*;
 import org.fogbowcloud.manager.util.PropertiesUtil;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 public class PluginInstantiator {
 
@@ -28,15 +22,15 @@ public class PluginInstantiator {
     private static PluginInstantiator instance;
 
     /**
-     * THERE ARE ONLY TWO CALLEES ALLOWED TO CALL THIS METHOD: 
-     * i) test code; and 
+     * THERE ARE ONLY TWO CALLEES ALLOWED TO CALL THIS METHOD:
+     * i) test code; and
      * ii) this.getInstance method.
      */
     protected PluginInstantiator() {
         String path = HomeDir.getPath();
         List<String> configFilesNames = new ArrayList<>();
-        configFilesNames.add(path+DefaultConfigurationConstants.CLOUD_CONF_FILE_NAME);
-        configFilesNames.add(path+DefaultConfigurationConstants.BEHAVIOR_CONF_FILE_NAME);
+        configFilesNames.add(path + DefaultConfigurationConstants.CLOUD_CONF_FILE_NAME);
+        configFilesNames.add(path + DefaultConfigurationConstants.BEHAVIOR_CONF_FILE_NAME);
         this.properties = PropertiesUtil.readProperties(configFilesNames);
         this.pluginFactory = new PluginFactory();
     }
@@ -103,9 +97,11 @@ public class PluginInstantiator {
         return (FederationToLocalMapperPlugin) this.pluginFactory.createPluginInstance(className);
     }
 
-    /** Used only for tests */
+    /**
+     * Used only for tests
+     */
     protected Properties getProperties() {
         return this.properties;
     }
-    
+
 }

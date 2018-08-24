@@ -1,9 +1,9 @@
 package org.fogbowcloud.manager.core.cloudconnector;
 
-import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
@@ -15,8 +15,8 @@ public interface CloudConnector {
     /**
      * Requests an instance in the cloud (either locally or remotely) using the requirements contained in order.
      *
-     * @return the string that represents the instance Id
      * @param order the order
+     * @return the string that represents the instance Id
      * @throws FogbowManagerException
      */
     String requestInstance(Order order) throws Exception;
@@ -27,26 +27,26 @@ public interface CloudConnector {
      * @param order the order
      * @throws FogbowManagerException
      */
-     void deleteInstance(Order order) throws Exception;
+    void deleteInstance(Order order) throws Exception;
 
     /**
      * Gets from the cloud the instance currently associated to order.
      *
-     * @return the Instance whose instance Id is stored in the order
      * @param order the order
+     * @return the Instance whose instance Id is stored in the order
      * @throws FogbowManagerException
      */
-     Instance getInstance(Order order) throws Exception;
+    Instance getInstance(Order order) throws Exception;
 
     /**
      * Gets the quota of the federation user for resourceType.
      *
-     * @return the quota associated to the user
      * @param federationUserToken the attributes of the federation user
-     * @param resourceType the type of instance for which the quota was requested
+     * @param resourceType        the type of instance for which the quota was requested
+     * @return the quota associated to the user
      * @throws FogbowManagerException
      */
-     Quota getUserQuota(FederationUserToken federationUserToken, ResourceType resourceType) throws Exception;
+    Quota getUserQuota(FederationUserToken federationUserToken, ResourceType resourceType) throws Exception;
 
     /**
      * Gets the list of images that the federation user can see in the target cloud.
@@ -55,15 +55,15 @@ public interface CloudConnector {
      * @return a map where each element is a pair (image name, image id)
      * @throws FogbowManagerException
      */
-     Map<String, String> getAllImages(FederationUserToken federationUserToken) throws Exception;
+    Map<String, String> getAllImages(FederationUserToken federationUserToken) throws Exception;
 
     /**
      * Gets the information about a given image.
      *
-     * @return the requested image
-     * @param imageId the Id of the image to be retrieved
+     * @param imageId             the Id of the image to be retrieved
      * @param federationUserToken the attributes of the federation user
+     * @return the requested image
      * @throws FogbowManagerException
      */
-     Image getImage(String imageId, FederationUserToken federationUserToken) throws Exception;
+    Image getImage(String imageId, FederationUserToken federationUserToken) throws Exception;
 }

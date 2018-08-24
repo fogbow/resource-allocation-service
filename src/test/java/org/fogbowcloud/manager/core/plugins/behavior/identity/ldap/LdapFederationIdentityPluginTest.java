@@ -1,10 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.behavior.identity.ldap;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.fogbowcloud.manager.core.HomeDir;
-import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.models.tokens.LdapToken;
 import org.fogbowcloud.manager.core.models.tokens.generators.ldap.LdapTokenGeneratorPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.authentication.ldap.LdapAuthenticationPlugin;
@@ -12,6 +8,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class LdapFederationIdentityPluginTest {
 
@@ -41,7 +40,7 @@ public class LdapFederationIdentityPluginTest {
     //test case: check if the token information is correct when creating a token with the correct token value.
     @Test
     public void testCreateToken() throws Exception {
-    	//set up
+        //set up
         LdapTokenGeneratorPlugin tokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
         Mockito.doReturn(this.FAKE_NAME).when(tokenGenerator).ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
 
@@ -61,7 +60,7 @@ public class LdapFederationIdentityPluginTest {
     }
 
     //test case: check if the token information is correct when creating a token with the correct token value.
-    @Test (expected = InvalidParameterException.class)
+    @Test(expected = InvalidParameterException.class)
     public void testCreateTokenIncorrectTokenValue() throws Exception {
         //exercise
         LdapToken ldapToken = this.ldapFederationIdentityPlugin.createToken("anything");

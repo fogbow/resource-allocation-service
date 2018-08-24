@@ -10,8 +10,11 @@ import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMap
  */
 public class StubFederationToLocalMapperPlugin implements FederationToLocalMapperPlugin {
 
-    public StubFederationToLocalMapperPlugin() {}
+    public StubFederationToLocalMapperPlugin() {
+    }
 
     @Override
-    public Token map(FederationUserToken user) { return null; }
+    public Token map(FederationUserToken user) {
+        return null;
+    }
 }

@@ -11,8 +11,9 @@ import org.fogbowcloud.manager.core.plugins.behavior.authorization.Authorization
  */
 public class StubAuthorizationPlugin implements AuthorizationPlugin {
 
-    public StubAuthorizationPlugin() {}
-    
+    public StubAuthorizationPlugin() {
+    }
+
     @Override
     public boolean isAuthorized(FederationUserToken federationUserToken, Operation operation, ResourceType type) {
         return true;

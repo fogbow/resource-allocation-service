@@ -26,8 +26,8 @@ public class RemoteCreateOrderRequestTest {
     @Before
     public void setUp() throws InvalidParameterException {
         this.order = new ComputeOrder(null, "requesting-member", this.providingMember, 10, 20, 30,
-            "imageid", null,
-            "publicKey", null);
+                "imageid", null,
+                "publicKey", null);
         this.remoteCreateOrderRequest = new RemoteCreateOrderRequest(this.order);
         this.packetSender = Mockito.mock(PacketSender.class);
         PacketSenderHolder.init(packetSender);
@@ -41,7 +41,7 @@ public class RemoteCreateOrderRequestTest {
         IQ expectedIQ = RemoteCreateOrderRequest.marshal(this.order);
 
         Mockito.doReturn(this.iqResponse).when(this.packetSender)
-            .syncSendPacket(Mockito.any(IQ.class));
+                .syncSendPacket(Mockito.any(IQ.class));
 
         // exercise
         this.remoteCreateOrderRequest.send();
@@ -69,7 +69,7 @@ public class RemoteCreateOrderRequestTest {
     public void testSendWhenResponseReturnsForbidden() throws Exception {
         // set up
         Mockito.doReturn(this.iqResponse).when(this.packetSender)
-            .syncSendPacket(Mockito.any(IQ.class));
+                .syncSendPacket(Mockito.any(IQ.class));
         this.iqResponse.setError(new PacketError(PacketError.Condition.forbidden));
 
         // exercise/verify

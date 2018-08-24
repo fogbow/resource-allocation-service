@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.behavior.identity.openstack;
 
-import org.fogbowcloud.manager.core.HomeDir;
-import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.manager.core.models.tokens.generators.openstack.v3.KeystoneV3TokenGeneratorPlugin;
 import org.junit.Assert;
@@ -62,7 +61,7 @@ public class KeystoneV3IdentityPluginTest {
 
     //test case: check if createFederationTokenValue throws UnauthenticatedUserException when the user credentials
     // are invalid.
-    @Test (expected = InvalidParameterException.class)
+    @Test(expected = InvalidParameterException.class)
     public void testCreateTokenFail() throws Exception {
         //exercise/verify
         this.identityPlugin.createToken("anything");

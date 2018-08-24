@@ -1,23 +1,19 @@
 package org.fogbowcloud.manager.core.plugins.cloud.util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.PropertiesHolder;
-import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.UserData;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
@@ -43,7 +39,7 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
     public DefaultLaunchCommandGenerator() throws FatalErrorException {
         try {
             this.sshCommonUser = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.SSH_COMMON_USER_KEY,
-                            DefaultConfigurationConstants.SSH_COMMON_USER);
+                    DefaultConfigurationConstants.SSH_COMMON_USER);
 
             String managerSshPublicKeyFilePath =
                     PropertiesHolder.getInstance().getProperty(ConfigurationConstants.MANAGER_SSH_PUBLIC_KEY_FILE_PATH);
@@ -102,7 +98,7 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
     }
 
     protected void addExtraUserData(CloudInitUserDataBuilder cloudInitUserDataBuilder,
-            String extraUserDataFileContent, CloudInitUserDataBuilder.FileType extraUserDataFileType) {
+                                    String extraUserDataFileContent, CloudInitUserDataBuilder.FileType extraUserDataFileType) {
 
         if (extraUserDataFileContent != null && extraUserDataFileType != null) {
             String lineSeparator = "\n";

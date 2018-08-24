@@ -1,8 +1,5 @@
 package org.fogbowcloud.manager.core;
 
-import java.util.List;
-import java.util.Map;
-
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
@@ -10,19 +7,18 @@ import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.Operation;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.InstanceStatus;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.*;
-import org.fogbowcloud.manager.core.models.ResourceType;
-import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
-import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
-import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
+import org.fogbowcloud.manager.core.models.orders.*;
 import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
+
+import java.util.List;
+import java.util.Map;
 
 public class ApplicationFacade {
 
@@ -35,7 +31,8 @@ public class ApplicationFacade {
     private AaController aaController;
     private OrderController orderController;
 
-    private ApplicationFacade() {}
+    private ApplicationFacade() {
+    }
 
     public static ApplicationFacade getInstance() {
         synchronized (ApplicationFacade.class) {
@@ -131,7 +128,7 @@ public class ApplicationFacade {
     public Map<String, String> getAllImages(String memberId, String federationTokenValue) throws Exception {
         FederationUserToken requester = this.aaController.getFederationUser(federationTokenValue);
         this.aaController.authenticateAndAuthorize(requester, Operation.GET_ALL_IMAGES, ResourceType.IMAGE);
-        if(memberId == null) {
+        if (memberId == null) {
             memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         }
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
@@ -141,7 +138,7 @@ public class ApplicationFacade {
     public Image getImage(String memberId, String imageId, String federationTokenValue) throws Exception {
         FederationUserToken requester = this.aaController.getFederationUser(federationTokenValue);
         this.aaController.authenticateAndAuthorize(requester, Operation.GET_IMAGE, ResourceType.IMAGE);
-        if(memberId == null) {
+        if (memberId == null) {
             memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         }
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);

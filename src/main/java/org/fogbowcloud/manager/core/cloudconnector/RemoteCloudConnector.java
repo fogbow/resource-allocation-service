@@ -2,9 +2,9 @@ package org.fogbowcloud.manager.core.cloudconnector;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.requesters.*;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
@@ -33,7 +33,7 @@ public class RemoteCloudConnector implements CloudConnector {
     @Override
     public void deleteInstance(Order order) throws Exception {
         RemoteDeleteOrderRequest remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(order);
-		remoteDeleteOrderRequest.send();
+        remoteDeleteOrderRequest.send();
     }
 
     @Override
@@ -67,5 +67,6 @@ public class RemoteCloudConnector implements CloudConnector {
         RemoteGetImageRequest remoteGetImageRequest = new RemoteGetImageRequest(this.destinationMember, imageId,
                 federationUserToken);
         Image image = remoteGetImageRequest.send();
-        return image;    }
+        return image;
+    }
 }

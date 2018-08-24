@@ -1,16 +1,15 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 
+import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
-import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
-
-import com.google.gson.Gson;
 
 import java.util.Map;
 

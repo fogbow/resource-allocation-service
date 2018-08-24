@@ -1,6 +1,7 @@
 package org.fogbowcloud.manager.core.models.tokens;
 
-import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 
 import java.util.Map;
 

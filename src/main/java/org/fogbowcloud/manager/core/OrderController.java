@@ -1,26 +1,28 @@
 package org.fogbowcloud.manager.core;
 
+import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
+import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
+import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.models.InstanceStatus;
+import org.fogbowcloud.manager.core.models.ResourceType;
+import org.fogbowcloud.manager.core.models.instances.Instance;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
+import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.models.orders.OrderState;
+import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
+import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
+import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
-import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
-import org.fogbowcloud.manager.core.models.InstanceStatus;
-import org.fogbowcloud.manager.core.models.ResourceType;
-import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.quotas.allocation.Allocation;
-import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.instances.Instance;
-import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
-import org.apache.log4j.Logger;
 
 public class OrderController {
 
@@ -64,7 +66,7 @@ public class OrderController {
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.CLOSED)) {
                 OrderStateTransitioner.transition(order, OrderState.CLOSED);
-           } else {
+            } else {
                 String message = "Order [" + order.getId() + "] is already in the closed state";
                 LOGGER.error(message);
                 throw new InstanceNotFoundException(message);

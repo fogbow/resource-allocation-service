@@ -22,102 +22,102 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.xmpp.packet.IQ;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ RemoteFacade.class, PacketSenderHolder.class })
+@PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
 public class RemoteGetUserQuotaRequestHandlerTest {
-	private PacketSender packetSender;
-	private RemoteFacade remoteFacade;
+    private PacketSender packetSender;
+    private RemoteFacade remoteFacade;
 
-	private static final String FED_USER_ID = "fake-id";
-	private static final String PROVIDING_MEMBER = "providingmember";
-	
-	private RemoteGetUserQuotaRequestHandler remoteGetUserQuotaRequestHandler;
+    private static final String FED_USER_ID = "fake-id";
+    private static final String PROVIDING_MEMBER = "providingmember";
 
-	private static final String EXPECTED_QUOTA = "\n<iq type=\"result\" id=\"%s\" from=\"%s\">\n"
-					+ "  <query xmlns=\"remoteGetUserQuota\">\n"
-					+ "    <userQuota>{\"totalQuota\":{\"vCPU\":1,\"ram\":1,\"instances\":1},"
-									+ "\"usedQuota\":{\"vCPU\":1,\"ram\":1,\"instances\":1},"
-									+ "\"availableQuota\":{\"vCPU\":0,\"ram\":0,\"instances\":0}}"
-						+ "</userQuota>\n"
-					+ "    <userQuotaClassName>org.fogbowcloud.manager.core.models.quotas.ComputeQuota</userQuotaClassName>\n"
-					+ "  </query>\n</iq>";
+    private RemoteGetUserQuotaRequestHandler remoteGetUserQuotaRequestHandler;
 
-	private static final String IQ_ERROR_RESPONSE = "\n<iq type=\"error\" id=\"%s\" from=\"%s\">\n"
-					+ "  <error code=\"500\" type=\"wait\">\n"
-					+ "    <undefined-condition xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n"
-					+ "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">Unexpected exception: java.lang.Exception</text>\n"
-					+ "  </error>\n</iq>";
+    private static final String EXPECTED_QUOTA = "\n<iq type=\"result\" id=\"%s\" from=\"%s\">\n"
+            + "  <query xmlns=\"remoteGetUserQuota\">\n"
+            + "    <userQuota>{\"totalQuota\":{\"vCPU\":1,\"ram\":1,\"instances\":1},"
+            + "\"usedQuota\":{\"vCPU\":1,\"ram\":1,\"instances\":1},"
+            + "\"availableQuota\":{\"vCPU\":0,\"ram\":0,\"instances\":0}}"
+            + "</userQuota>\n"
+            + "    <userQuotaClassName>org.fogbowcloud.manager.core.models.quotas.ComputeQuota</userQuotaClassName>\n"
+            + "  </query>\n</iq>";
 
-	@Before
-	public void setUp() throws InvalidParameterException {
-		this.remoteGetUserQuotaRequestHandler = new RemoteGetUserQuotaRequestHandler();
-		this.remoteFacade = Mockito.mock(RemoteFacade.class);
-		PowerMockito.mockStatic(RemoteFacade.class);
+    private static final String IQ_ERROR_RESPONSE = "\n<iq type=\"error\" id=\"%s\" from=\"%s\">\n"
+            + "  <error code=\"500\" type=\"wait\">\n"
+            + "    <undefined-condition xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n"
+            + "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">Unexpected exception: java.lang.Exception</text>\n"
+            + "  </error>\n</iq>";
 
-		BDDMockito.given(RemoteFacade.getInstance()).willReturn(this.remoteFacade);
-		this.packetSender = Mockito.mock(PacketSender.class);
+    @Before
+    public void setUp() throws InvalidParameterException {
+        this.remoteGetUserQuotaRequestHandler = new RemoteGetUserQuotaRequestHandler();
+        this.remoteFacade = Mockito.mock(RemoteFacade.class);
+        PowerMockito.mockStatic(RemoteFacade.class);
 
-		PowerMockito.mockStatic(PacketSenderHolder.class);
-		BDDMockito.given(PacketSenderHolder.getPacketSender()).willReturn(this.packetSender);
-	}
+        BDDMockito.given(RemoteFacade.getInstance()).willReturn(this.remoteFacade);
+        this.packetSender = Mockito.mock(PacketSender.class);
 
-	// test case: When the handle method is called passing an IQ request, it must return the User Quota from that.
-	@Test
-	public void testWithValidIQ() throws Exception {
-		// set up
-		Quota expectedQuota = this.getQuota();
-		
-		Mockito.doReturn(expectedQuota)
-			.when(this.remoteFacade)
-				.getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any());
+        PowerMockito.mockStatic(PacketSenderHolder.class);
+        BDDMockito.given(PacketSenderHolder.getPacketSender()).willReturn(this.packetSender);
+    }
 
-		IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, this.createFederationUserToken(), ResourceType.COMPUTE);
+    // test case: When the handle method is called passing an IQ request, it must return the User Quota from that.
+    @Test
+    public void testWithValidIQ() throws Exception {
+        // set up
+        Quota expectedQuota = this.getQuota();
 
-		// exercise
-		IQ result = this.remoteGetUserQuotaRequestHandler.handle(iq);
+        Mockito.doReturn(expectedQuota)
+                .when(this.remoteFacade)
+                .getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any());
 
-		// verify
-		String expected = String.format(EXPECTED_QUOTA, iq.getID(), PROVIDING_MEMBER);
+        IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, this.createFederationUserToken(), ResourceType.COMPUTE);
 
-		Mockito.verify(this.remoteFacade, Mockito.times(1))
-			.getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any(ResourceType.class));
+        // exercise
+        IQ result = this.remoteGetUserQuotaRequestHandler.handle(iq);
 
-		Assert.assertEquals(expected, result.toString());
-	}
+        // verify
+        String expected = String.format(EXPECTED_QUOTA, iq.getID(), PROVIDING_MEMBER);
 
-	// test case: When an Exception occurs, the handle method must return a response error.
-	@Test
-	public void testUpdateResponseWhenExceptionIsThrown() throws Exception {
-		Mockito.when(this.remoteFacade
-			.getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any()))
-				.thenThrow(new Exception());
+        Mockito.verify(this.remoteFacade, Mockito.times(1))
+                .getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any(ResourceType.class));
 
-		IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, this.createFederationUserToken(), ResourceType.COMPUTE);
+        Assert.assertEquals(expected, result.toString());
+    }
 
-		// exercise
-		IQ result = this.remoteGetUserQuotaRequestHandler.handle(iq);
+    // test case: When an Exception occurs, the handle method must return a response error.
+    @Test
+    public void testUpdateResponseWhenExceptionIsThrown() throws Exception {
+        Mockito.when(this.remoteFacade
+                .getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any()))
+                .thenThrow(new Exception());
 
-		// verify
-		Mockito.verify(this.remoteFacade, Mockito.times(1))
-			.getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any(ResourceType.class));
+        IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, this.createFederationUserToken(), ResourceType.COMPUTE);
 
-		String expected = String.format(IQ_ERROR_RESPONSE, iq.getID(), PROVIDING_MEMBER);
-		Assert.assertEquals(expected, result.toString());
-	}
-	
-	private Quota getQuota() {
-		// set up
-		int vCPU = 1;
-		int ram = 1;
-		int instances = 1;
+        // exercise
+        IQ result = this.remoteGetUserQuotaRequestHandler.handle(iq);
 
-		ComputeAllocation totalQuota = new ComputeAllocation(vCPU, ram, instances);
-		ComputeAllocation usedQuota = new ComputeAllocation(vCPU, ram, instances);
-		return new ComputeQuota(totalQuota, usedQuota);
-	}
-	
-	private FederationUserToken createFederationUserToken() {
-		FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
-				"fake-federation-token-value", "fake-user-id", "fake-user-name");
-		return federationUserToken;
-	}
+        // verify
+        Mockito.verify(this.remoteFacade, Mockito.times(1))
+                .getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any(ResourceType.class));
+
+        String expected = String.format(IQ_ERROR_RESPONSE, iq.getID(), PROVIDING_MEMBER);
+        Assert.assertEquals(expected, result.toString());
+    }
+
+    private Quota getQuota() {
+        // set up
+        int vCPU = 1;
+        int ram = 1;
+        int instances = 1;
+
+        ComputeAllocation totalQuota = new ComputeAllocation(vCPU, ram, instances);
+        ComputeAllocation usedQuota = new ComputeAllocation(vCPU, ram, instances);
+        return new ComputeQuota(totalQuota, usedQuota);
+    }
+
+    private FederationUserToken createFederationUserToken() {
+        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+                "fake-federation-token-value", "fake-user-id", "fake-user-name");
+        return federationUserToken;
+    }
 }

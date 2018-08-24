@@ -10,22 +10,22 @@ import static org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRe
 
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/listVirtualMachines.html
- *
+ * <p>
  * Response example:
  * {
- * 	"listvirtualmachinesresponse": {
- * 		"count": 1,
- * 		"virtualmachine": [{
- * 			"id": "97637962-2244-4159-b72c-120834757514",
- * 			"name": "PreprocessingProducao",
- * 			"state": "Running",
- * 			"cpunumber": 4,
- * 			"memory": 6144,
- * 			"nic": [{
- * 				"ipaddress": "10.1.1.146",
- *           }]
- *       }]
- *  }
+ * "listvirtualmachinesresponse": {
+ * "count": 1,
+ * "virtualmachine": [{
+ * "id": "97637962-2244-4159-b72c-120834757514",
+ * "name": "PreprocessingProducao",
+ * "state": "Running",
+ * "cpunumber": 4,
+ * "memory": 6144,
+ * "nic": [{
+ * "ipaddress": "10.1.1.146",
+ * }]
+ * }]
+ * }
  * }
  */
 public class GetVirtualMachineResponse {

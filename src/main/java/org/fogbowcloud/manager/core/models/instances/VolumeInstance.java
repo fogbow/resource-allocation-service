@@ -10,10 +10,10 @@ public class VolumeInstance extends Instance {
         this.name = name;
         this.size = size;
     }
-    
+
     public VolumeInstance(String id) {
-    	super(id);
-	}
+        super(id);
+    }
 
     public String getName() {
         return name;
@@ -22,7 +22,7 @@ public class VolumeInstance extends Instance {
     public void setName(String name) {
         this.name = name;
     }
-    
+
     public int getSize() {
         return this.size;
     }
@@ -30,5 +30,5 @@ public class VolumeInstance extends Instance {
     public void setSize(int size) {
         this.size = size;
     }
-    
+
 }

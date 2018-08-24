@@ -1,17 +1,18 @@
 package org.fogbowcloud.manager.core.processors;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
-import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
-import org.fogbowcloud.manager.core.models.instances.InstanceState;
+import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.ResourceType;
+import org.fogbowcloud.manager.core.models.instances.Instance;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.instances.Instance;
 
 public class SpawningProcessor implements Runnable {
 
@@ -75,6 +76,7 @@ public class SpawningProcessor implements Runnable {
     /**
      * This method does not synchronize the order object because it is private and can only be
      * called by the processSpawningOrder method.
+     *
      * @throws FogbowManagerException
      */
     private void processInstance(Order order) throws Exception {

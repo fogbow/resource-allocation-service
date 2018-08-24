@@ -9,23 +9,23 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/network/v2/
- *
+ * <p>
  * Request Example:
  * {
- *   "subnet":{
- *     "name":"subnet-name-01",
- *     "project_id":"fake-project",
- *     "network_id":"d32019d3-bc6e-4319-9c1d-6722fc136a22",
- *     "ip_version":4,
- *     "gateway_ip":"192.0.0.1",
- *     "cidr":"192.168.199.0/24",
- *     "enable_dhcp":true,
- *     "dns_nameservers":[
- *
- *     ]
- *   }
+ * "subnet":{
+ * "name":"subnet-name-01",
+ * "project_id":"fake-project",
+ * "network_id":"d32019d3-bc6e-4319-9c1d-6722fc136a22",
+ * "ip_version":4,
+ * "gateway_ip":"192.0.0.1",
+ * "cidr":"192.168.199.0/24",
+ * "enable_dhcp":true,
+ * "dns_nameservers":[
+ * <p>
+ * ]
  * }
- *
+ * }
+ * <p>
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class CreateSubnetRequest {

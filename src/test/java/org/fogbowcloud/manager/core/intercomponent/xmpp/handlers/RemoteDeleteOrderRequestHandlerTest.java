@@ -104,7 +104,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
 
         //verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).deleteOrder(this.order.getId(),
-            this.order.getFederationUserToken(), this.order.getType());
+                this.order.getFederationUserToken(), this.order.getType());
 
         String orderId = order.getId();
         String orderProvidingMember = order.getProvidingMember();

@@ -1,6 +1,5 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack.network.v2;
 
-import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import org.fogbowcloud.manager.util.GsonHolder;
 
@@ -8,16 +7,16 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/network/v2/
- *
+ * <p>
  * Response Example:
  * {
- *     "subnet": {
- *         "gateway_ip": "192.0.0.1",
- *         "enable_dhcp": true,
- *         "cidr": "192.0.0.0/8"
- *     }
+ * "subnet": {
+ * "gateway_ip": "192.0.0.1",
+ * "enable_dhcp": true,
+ * "cidr": "192.0.0.0/8"
  * }
- *
+ * }
+ * <p>
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class GetSubnetResponse {

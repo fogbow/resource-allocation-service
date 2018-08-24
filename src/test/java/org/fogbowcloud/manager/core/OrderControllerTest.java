@@ -5,10 +5,10 @@ import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.datastore.DatabaseManager;
 import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.InstanceStatus;
+import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
-import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.*;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
@@ -23,6 +23,7 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
 import java.util.List;
 import java.util.Map;
 
@@ -41,7 +42,7 @@ public class OrderControllerTest extends BaseUnitTests {
     private static final String FAKE_USER = "fake-user";
     private static final String FAKE_IMAGE_NAME = "fake-image-name";
     private static final String FAKE_PUBLIC_KEY = "fake-public-key";
-    
+
     private OrderController ordersController;
     private Map<String, Order> activeOrdersMap;
     private ChainedList openOrdersList;
@@ -75,11 +76,11 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test(expected = InvalidParameterException.class) // verify
     public void testDeleteOrderThrowsInvalidParameterException()
             throws InstanceNotFoundException, InvalidParameterException, UnexpectedException {
-        
+
         // set up
         Order order = Mockito.mock(Order.class);
         String orderId = order.getId();
-        
+
         // verify
         Assert.assertNull(orderId);
 
@@ -91,7 +92,7 @@ public class OrderControllerTest extends BaseUnitTests {
     @Test(expected = InstanceNotFoundException.class) // verify
     public void testDeleteClosedOrderThrowsInstanceNotFoundException()
             throws InvalidParameterException, InstanceNotFoundException, UnexpectedException {
-        
+
         // set up
         String orderId = getComputeOrderCreationId(OrderState.CLOSED);
 

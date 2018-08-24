@@ -10,18 +10,18 @@ import static org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRe
 
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/listVirtualMachines.html
- *
+ * <p>
  * Response example:
  * {
- * 	"listserviceofferingsresponse": {
- * 		"count": 1,
- * 		"serviceoffering": [{
- * 			"id": "97637962-2244-4159-b72c-120834757514",
- * 			"name": "offering-name",
- * 			"cpunumber": 4,
- * 			"memory": 6144,
- *       }]
- *  }
+ * "listserviceofferingsresponse": {
+ * "count": 1,
+ * "serviceoffering": [{
+ * "id": "97637962-2244-4159-b72c-120834757514",
+ * "name": "offering-name",
+ * "cpunumber": 4,
+ * "memory": 6144,
+ * }]
+ * }
  * }
  */
 public class GetAllServiceOfferingsResponse {

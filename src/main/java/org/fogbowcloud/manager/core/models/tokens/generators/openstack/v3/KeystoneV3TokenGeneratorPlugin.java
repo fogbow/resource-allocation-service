@@ -1,9 +1,5 @@
 package org.fogbowcloud.manager.core.models.tokens.generators.openstack.v3;
 
-import java.io.File;
-import java.util.Map;
-import java.util.Properties;
-
 import org.apache.http.Header;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -11,11 +7,16 @@ import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.tokens.TokenGeneratorPlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackHttpToFogbowManagerExceptionMapper;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
+
+import java.util.Map;
+import java.util.Properties;
 
 public class KeystoneV3TokenGeneratorPlugin implements TokenGeneratorPlugin {
 

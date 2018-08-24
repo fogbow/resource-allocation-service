@@ -31,7 +31,7 @@ public class GetVolumeRequest extends CloudStackRequest {
             this.id = id;
             return this;
         }
-        
+
         public GetVolumeRequest build() throws InvalidParameterException {
             return new GetVolumeRequest(this);
         }

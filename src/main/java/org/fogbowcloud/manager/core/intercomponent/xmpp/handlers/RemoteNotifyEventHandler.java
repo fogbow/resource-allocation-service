@@ -5,9 +5,9 @@ import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.Event;
-import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
@@ -17,7 +17,7 @@ public class RemoteNotifyEventHandler extends AbstractQueryHandler {
     private static final Logger LOGGER = Logger.getLogger(RemoteNotifyEventHandler.class);
 
     public static final String REMOTE_NOTIFY_EVENT = RemoteMethod.REMOTE_NOTIFY_EVENT.toString();
-    
+
     public RemoteNotifyEventHandler() {
         super(REMOTE_NOTIFY_EVENT);
     }

@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.plugins.behavior.mapper.all2one;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
@@ -14,7 +13,6 @@ import org.fogbowcloud.manager.core.plugins.behavior.identity.ldap.LdapFederatio
 import org.fogbowcloud.manager.core.plugins.behavior.identity.openstack.KeystoneV3IdentityPlugin;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 

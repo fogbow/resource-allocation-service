@@ -1,24 +1,22 @@
 package org.fogbowcloud.manager.core.processors;
 
-import org.fogbowcloud.manager.core.*;
+import org.fogbowcloud.manager.core.BaseUnitTests;
+import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
-import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.Instance;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
-import org.fogbowcloud.manager.core.models.orders.AttachmentOrder;
-import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
-import org.fogbowcloud.manager.core.models.orders.Order;
-import org.fogbowcloud.manager.core.models.orders.OrderState;
-import org.fogbowcloud.manager.core.models.orders.UserData;
-import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
+import org.fogbowcloud.manager.core.models.orders.*;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
@@ -34,9 +32,9 @@ public class SpawningProcessorTest extends BaseUnitTests {
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
     private static final String FAKE_IMAGE_NAME = "fake-image-name";
     private static final String FAKE_PUBLIC_KEY = "fake-public-key";
-    
+
     private static final int DEFAULT_SLEEP_TIME = 500;
-    
+
     private ChainedList failedOrderList;
     private ChainedList fulfilledOrderList;
     private ChainedList openOrderList;
@@ -61,7 +59,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
         this.cloudConnector = CloudConnectorFactory.getInstance()
                 .getCloudConnector(BaseUnitTests.LOCAL_MEMBER_ID);
-        
+
         this.spawningProcessor = Mockito.spy(new SpawningProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
                 DefaultConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME));
 
@@ -133,7 +131,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.FULFILLED, test.getOrderState());
         Assert.assertNull(this.spawningOrderList.getNext());
     }
-    
+
     // test case: When running thread in the SpawningProcessor and the OrderType is not a
     // Compute, the processSpawningOrder() method must immediately change the OrderState to
     // Fulfilled by adding in that list, and removed from the Spawning list.
@@ -167,7 +165,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.FULFILLED, test.getOrderState());
         Assert.assertNull(this.spawningOrderList.getNext());
     }
-    
+
     // test case: When running thread in the SpawningProcessor and the OrderType is not a
     // Compute, the processSpawningOrder() method must immediately change the OrderState to
     // Fulfilled by adding in that list, and removed from the Spawning list.
@@ -249,7 +247,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
         Mockito.doReturn(orderInstance).when(this.cloudConnector)
                 .getInstance(Mockito.any(Order.class));
-        
+
         // exercise
         this.thread = new Thread(this.spawningProcessor);
         this.thread.start();

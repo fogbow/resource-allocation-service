@@ -5,9 +5,13 @@ public class ComputeInstance extends Instance {
 
     private String hostName;
     private int vCPU;
-    /** Memory attribute, must be set in MB. */
+    /**
+     * Memory attribute, must be set in MB.
+     */
     private int ram;
-    /** Disk attribute, must be set in GB. */
+    /**
+     * Disk attribute, must be set in GB.
+     */
     private int disk;
     private String localIpAddress;
 
@@ -28,15 +32,15 @@ public class ComputeInstance extends Instance {
     public int getDisk() {
         return this.disk;
     }
-    
+
     public String getHostName() {
         return this.hostName;
     }
-    
+
     public String getLocalIpAddress() {
         return this.localIpAddress;
     }
-    
+
     public int getRam() {
         return this.ram;
     }

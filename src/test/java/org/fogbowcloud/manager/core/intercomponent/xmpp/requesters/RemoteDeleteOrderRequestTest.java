@@ -1,8 +1,6 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 
 import com.google.gson.Gson;
-import java.util.HashMap;
-import java.util.Map;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
@@ -38,8 +36,8 @@ public class RemoteDeleteOrderRequestTest {
                 "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
         this.order = new ComputeOrder(federationUserToken, "requesting-member",
-            "providing-member", 10, 20, 30, "imageid",
-            null, "publicKey", null);
+                "providing-member", 10, 20, 30, "imageid",
+                null, "publicKey", null);
 
         this.remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(this.order);
         this.packetSender = Mockito.mock(PacketSender.class);
@@ -52,7 +50,7 @@ public class RemoteDeleteOrderRequestTest {
     public void testSend() throws Exception {
         // set up
         Mockito.doReturn(this.response).when(this.packetSender).syncSendPacket(
-            iqArgumentCaptor.capture());
+                iqArgumentCaptor.capture());
         String federationUserJson = new Gson().toJson(this.order.getFederationUserToken());
 
         // exercise
@@ -67,17 +65,17 @@ public class RemoteDeleteOrderRequestTest {
 
         Element iqElementQuery = iq.getElement().element(IqElement.QUERY.toString());
         Assert.assertEquals(RemoteMethod.REMOTE_DELETE_ORDER.toString(),
-            iqElementQuery.getNamespaceURI());
+                iqElementQuery.getNamespaceURI());
 
         String iqQueryOrderId = iqElementQuery.element(IqElement.ORDER_ID.toString()).getText();
         Assert.assertEquals(this.order.getId(), iqQueryOrderId);
 
         String iqQueryInstanceType = iqElementQuery.element(IqElement.INSTANCE_TYPE.toString())
-            .getText();
+                .getText();
         Assert.assertEquals(this.order.getType().toString(), iqQueryInstanceType.toString());
 
         Element iqElementFederationUser = iq.getElement()
-            .element(IqElement.FEDERATION_USER.toString());
+                .element(IqElement.FEDERATION_USER.toString());
         Assert.assertEquals(federationUserJson, iqElementFederationUser.getText());
     }
 
@@ -87,7 +85,7 @@ public class RemoteDeleteOrderRequestTest {
     public void testSendWhenResponseIsNull() throws Exception {
         // set up
         Mockito.doReturn(null).when(this.packetSender).syncSendPacket(
-            this.iqArgumentCaptor.capture());
+                this.iqArgumentCaptor.capture());
 
         // exercise/verify
         this.remoteDeleteOrderRequest.send();
@@ -99,7 +97,7 @@ public class RemoteDeleteOrderRequestTest {
     public void testSendWhenResponseReturnsForbidden() throws Exception {
         // set up
         Mockito.doReturn(this.response).when(this.packetSender)
-            .syncSendPacket(this.iqArgumentCaptor.capture());
+                .syncSendPacket(this.iqArgumentCaptor.capture());
         this.response.setError(new PacketError(PacketError.Condition.forbidden));
 
         // exercise/verify

@@ -48,19 +48,19 @@ public class NetworkOrdersControllerTest {
     public void setUp() {
         this.facade = Mockito.spy(ApplicationFacade.class);
     }
-    
+
     // test case: Create a network instance
     @Test
     public void createdNetworkTest() throws Exception {
-    	
-    	// set up
+
+        // set up
         PowerMockito.mockStatic(ApplicationFacade.class);
         BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
         String orderId = "orderId";
         Mockito.doReturn(orderId).when(this.facade).createNetwork(Mockito.any(NetworkOrder.class), Mockito.anyString());
 
         HttpHeaders headers = getHttpHeaders();
-        
+
         // exercise
         MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.post(NETWORK_END_POINT)
                 .headers(headers)
@@ -68,18 +68,18 @@ public class NetworkOrdersControllerTest {
                 .content(CORRECT_BODY)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
-        
+
         // verify
         int expectedStatus = HttpStatus.CREATED.value();
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
         Mockito.verify(this.facade, Mockito.times(1)).createNetwork(Mockito.any(NetworkOrder.class), Mockito.anyString());
     }
-    
+
     // test case: Get a network instance
     @Test
     public void getNetworkTest() throws Exception {
-    	
-    	// set up
+
+        // set up
         NetworkInstance instance = createNetworkInstance();
 
         String networkId = instance.getId();
@@ -89,14 +89,14 @@ public class NetworkOrdersControllerTest {
         Mockito.doReturn(instance).when(this.facade).getNetwork(Mockito.anyString(), Mockito.anyString());
 
         HttpHeaders headers = getHttpHeaders();
-        
-        
+
+
         // exercise
         MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(NETWORK_END_POINT + "/" + networkId)
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
-        
+
         // verify
         int expectedStatus = HttpStatus.OK.value();
         NetworkInstance resultInstance = new Gson().fromJson(result.getResponse().getContentAsString(), NetworkInstance.class);
@@ -104,12 +104,12 @@ public class NetworkOrdersControllerTest {
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
         Mockito.verify(this.facade, Mockito.times(1)).getNetwork(Mockito.anyString(), Mockito.anyString());
     }
-    
+
     // test case: Delete an existing network instance
     @Test
     public void deleteNetworkTest() throws Exception {
-    	
-    	// set up
+
+        // set up
         NetworkOrder networkOrder = createNetworkOrder();
 
         String networkId = networkOrder.getId();
@@ -119,15 +119,15 @@ public class NetworkOrdersControllerTest {
         Mockito.doNothing().when(this.facade).deleteNetwork(Mockito.anyString(), Mockito.anyString());
 
         HttpHeaders headers = getHttpHeaders();
-        
-        
+
+
         // exercise
         MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.delete(NETWORK_END_POINT + "/" + networkId)
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
-        
-        
+
+
         // verify
         int expectedStatus = HttpStatus.OK.value();
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());

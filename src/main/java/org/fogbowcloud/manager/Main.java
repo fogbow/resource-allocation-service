@@ -19,17 +19,17 @@ import org.xmpp.component.ComponentException;
 
 @Component
 public class Main implements ApplicationRunner {
-	
-	@Autowired
-	private RecoveryService recoveryService;
-	
-	private final Logger LOGGER = Logger.getLogger(Main.class);
-	
+
+    @Autowired
+    private RecoveryService recoveryService;
+
+    private final Logger LOGGER = Logger.getLogger(Main.class);
+
     @Override
     public void run(ApplicationArguments args) {
         try {
-        	DatabaseManager.getInstance().setRecoveryService(recoveryService);
-        	
+            DatabaseManager.getInstance().setRecoveryService(recoveryService);
+
             PluginInstantiator instantiationInitService = PluginInstantiator.getInstance();
 
             // Setting up cloud plugins
@@ -42,7 +42,7 @@ public class Main implements ApplicationRunner {
             String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
             AaController aaController = new AaController(behaviorPluginsHolder);
-            
+
             OrderController orderController = new OrderController();
             ApplicationFacade applicationFacade = ApplicationFacade.getInstance();
             RemoteFacade remoteFacade = RemoteFacade.getInstance();
@@ -56,8 +56,8 @@ public class Main implements ApplicationRunner {
             String xmppPassword = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_PASSWORD_KEY);
             String xmppServerIp = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_SERVER_IP_KEY);
             int xmppServerPort = Integer.parseInt(PropertiesHolder.getInstance().
-                            getProperty(ConfigurationConstants.XMPP_SERVER_PORT_KEY,
-                                    DefaultConfigurationConstants.XMPP_SERVER_PORT));
+                    getProperty(ConfigurationConstants.XMPP_SERVER_PORT_KEY,
+                            DefaultConfigurationConstants.XMPP_SERVER_PORT));
             long xmppTimeout =
                     Long.parseLong(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_TIMEOUT_KEY,
                             DefaultConfigurationConstants.XMPP_TIMEOUT));

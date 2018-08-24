@@ -1,17 +1,18 @@
 package org.fogbowcloud.manager.core.models.orders;
 
-import javax.persistence.Embeddable;
-
 import org.fogbowcloud.manager.core.plugins.cloud.util.CloudInitUserDataBuilder;
+
+import javax.persistence.Embeddable;
 
 @Embeddable
 public class UserData {
-	
+
     private String extraUserDataFileContent;
-	
+
     private CloudInitUserDataBuilder.FileType extraUserDataFileType;
 
-    public UserData() {}
+    public UserData() {
+    }
 
     public UserData(String extraUserDataFile, CloudInitUserDataBuilder.FileType extraUserDataFileType) {
         this.extraUserDataFileContent = extraUserDataFile;

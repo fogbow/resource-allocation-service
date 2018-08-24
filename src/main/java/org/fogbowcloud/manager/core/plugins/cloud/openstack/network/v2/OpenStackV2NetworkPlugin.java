@@ -1,18 +1,12 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack.network.v2;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
-
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.ResourceType;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
 import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
@@ -25,6 +19,11 @@ import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
 
 public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
     private static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
@@ -57,7 +56,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
     protected static final int DEFAULT_IP_VERSION = 4;
     protected static final String DEFAULT_NETWORK_NAME = "fogbow-network";
     protected static final String DEFAULT_SUBNET_NAME = "fogbow-subnet";
-    protected static final String[] DEFAULT_DNS_NAME_SERVERS = new String[] {"8.8.8.8", "8.8.4.4"};
+    protected static final String[] DEFAULT_DNS_NAME_SERVERS = new String[]{"8.8.8.8", "8.8.4.4"};
     protected static final String DEFAULT_NETWORK_ADDRESS = "192.168.0.1/24";
 
     // security group properties
@@ -350,7 +349,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
     }
 
     protected String generateJsonEntityToCreateSubnet(String networkId, String tenantId,
-                                                          NetworkOrder order) {
+                                                      NetworkOrder order) {
         String subnetName = DEFAULT_SUBNET_NAME + "-" + UUID.randomUUID();
         int ipVersion = DEFAULT_IP_VERSION;
 

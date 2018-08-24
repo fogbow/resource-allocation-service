@@ -1,8 +1,6 @@
 package org.fogbowcloud.manager.core.processors;
 
-import java.util.Properties;
 import org.fogbowcloud.manager.core.BaseUnitTests;
-import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
@@ -11,14 +9,14 @@ import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
+import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 import org.fogbowcloud.manager.core.models.orders.UserData;
-import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
-import org.fogbowcloud.manager.core.models.instances.Instance;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.junit.After;
 import org.junit.Assert;
@@ -30,6 +28,8 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.util.Properties;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(CloudConnectorFactory.class)
@@ -43,7 +43,9 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     private static final String FAKE_TARGET = "fake-target";
     private static final String FAKE_DEVICE = "fake-device";
 
-    /** Maximum value that the thread should wait in sleep time */
+    /**
+     * Maximum value that the thread should wait in sleep time
+     */
     private static final int MAX_SLEEP_TIME = 10000;
     private static final int DEFAULT_SLEEP_TIME = 500;
 
@@ -58,7 +60,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
     public void setUp() throws UnexpectedException {
 
         super.mockReadOrdersFromDataBase();
-        
+
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
 
         this.properties = propertiesHolder.getProperties();
@@ -109,7 +111,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Assert.assertNotNull(this.fulfilledOrderList.getNext());
         Assert.assertNull(this.failedOrderList.getNext());
     }
-    
+
     // test case: When running thread in the FulfilledProcessor and the InstanceState is Failed,
     // the processFulfilledOrder() method must change the OrderState to Failed by adding in that
     // list, and removed from the Fulfilled list.
@@ -318,7 +320,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.fulfilledOrderList.addItem(order);
 
         spyFulfiledProcessor();
-       
+
         Mockito.doThrow(new UnexpectedException()).when(this.fulfilledProcessor)
                 .processFulfilledOrder(order);
 

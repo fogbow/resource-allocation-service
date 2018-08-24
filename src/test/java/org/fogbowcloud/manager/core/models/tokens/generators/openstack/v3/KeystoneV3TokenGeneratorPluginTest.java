@@ -1,29 +1,25 @@
 package org.fogbowcloud.manager.core.models.tokens.generators.openstack.v3;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.ProtocolVersion;
+import org.apache.http.*;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicStatusLine;
-import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 public class KeystoneV3TokenGeneratorPluginTest {
     private static final String FAKE_USER_ID = "fake-user-id";
@@ -78,7 +74,7 @@ public class KeystoneV3TokenGeneratorPluginTest {
 
         //verify
         String split[] = tokenValue.split(KeystoneV3TokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
-        Assert.assertEquals(split.length,6);
+        Assert.assertEquals(split.length, 6);
         Assert.assertEquals(split[0], memberId);
         Assert.assertEquals(split[1], FAKE_TOKEN_VALUE);
         Assert.assertEquals(split[2], FAKE_USER_ID);
@@ -88,7 +84,7 @@ public class KeystoneV3TokenGeneratorPluginTest {
     }
 
     //test case: createTokenValue with invalid credentials should throw FogbowManagerException
-    @Test (expected = FogbowManagerException.class)
+    @Test(expected = FogbowManagerException.class)
     public void testCreateTokenValueIncorrectCredentials() throws UnexpectedException, FogbowManagerException,
             IOException {
         String jsonResponse = "{\"token\":{\"user\":{\"id\":\"" + FAKE_USER_ID + "\",\"name\": \"" + FAKE_USER_NAME +

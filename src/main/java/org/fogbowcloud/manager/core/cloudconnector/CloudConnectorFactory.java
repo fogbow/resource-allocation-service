@@ -22,9 +22,9 @@ public class CloudConnectorFactory {
         CloudConnector cloudConnector;
 
         if (memberId.equals(this.localMemberId)) {
-                cloudConnector = new LocalCloudConnector(this.mapperPlugin, this.cloudPluginsHolder);
+            cloudConnector = new LocalCloudConnector(this.mapperPlugin, this.cloudPluginsHolder);
         } else {
-                cloudConnector = new RemoteCloudConnector(memberId);
+            cloudConnector = new RemoteCloudConnector(memberId);
         }
 
         return cloudConnector;

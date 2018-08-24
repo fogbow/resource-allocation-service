@@ -10,7 +10,7 @@ public class CloudStackStateMapper {
 
     private static final String CREATING_STATUS = "creating";
     private static final String READY_STATUS = "ready";
-    
+
     public static final String RUNNING_STATUS = "Running";
     public static final String DOWN_STATUS = "Shutdowned";
     public static final String ERROR_STATUS = "Error";

@@ -2,9 +2,9 @@ package org.fogbowcloud.manager.core.constants;
 
 public class ConfigurationConstants {
 
-	public static final String LOCAL_MEMBER_ID = "xmpp_jid";
+    public static final String LOCAL_MEMBER_ID = "xmpp_jid";
 
-	// PLUGINS CLASSES
+    // PLUGINS CLASSES
     public static final String ATTACHMENT_PLUGIN_CLASS_KEY = "attachment_plugin_class";
     public static final String COMPUTE_PLUGIN_CLASS_KEY = "compute_plugin_class";
     public static final String COMPUTE_QUOTA_PLUGIN_CLASS_KEY = "compute_quota_plugin_class";
@@ -19,7 +19,7 @@ public class ConfigurationConstants {
     public static final String LOCAL_USER_CREDENTIALS_MAPPER_PLUGIN_CLASS_KEY =
             "local_user_credentials_mapper_plugin_class";
 
-	// MANAGER CONF
+    // MANAGER CONF
     public static final String MANAGER_SSH_PRIVATE_KEY_FILE_PATH = "manager_ssh_private_key_file_path";
     public static final String MANAGER_SSH_PUBLIC_KEY_FILE_PATH = "manager_ssh_public_key_file_path";
     public static final String OPEN_ORDERS_SLEEP_TIME_KEY = "open_orders_sleep_time";

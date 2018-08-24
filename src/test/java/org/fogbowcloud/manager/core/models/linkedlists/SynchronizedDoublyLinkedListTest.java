@@ -1,10 +1,9 @@
 package org.fogbowcloud.manager.core.models.linkedlists;
 
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
-import org.junit.Assert;
-
 import org.fogbowcloud.manager.core.BaseUnitTests;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.orders.Order;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

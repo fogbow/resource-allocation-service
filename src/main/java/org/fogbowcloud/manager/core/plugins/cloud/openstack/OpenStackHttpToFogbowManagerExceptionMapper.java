@@ -8,7 +8,7 @@ public class OpenStackHttpToFogbowManagerExceptionMapper {
 
     public static void map(HttpResponseException e)
             throws FogbowManagerException, UnexpectedException {
-        switch(e.getStatusCode()) {
+        switch (e.getStatusCode()) {
             case HttpStatus.SC_FORBIDDEN:
                 throw new UnauthorizedRequestException(e.getMessage(), e);
             case HttpStatus.SC_UNAUTHORIZED:

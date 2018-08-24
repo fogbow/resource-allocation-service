@@ -1,7 +1,5 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 
-import java.util.ArrayList;
-
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
@@ -23,21 +21,23 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.xmpp.packet.IQ;
 
+import java.util.ArrayList;
+
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
 public class RemoteGetOrderRequestHandlerTest {
 
     private static final String IQ_RESULT = "\n<iq type=\"result\" id=\"%s\" from=\"%s\">\n"
-        + "  <query xmlns=\"remoteGetOrder\">\n"
-        + "    <instance>{\"id\":\"fake-instance-id\"}</instance>\n"
-        + "    <instanceClassName>org.fogbowcloud.manager.core.models.instances.Instance</instanceClassName>\n"
-        + "  </query>\n" + "</iq>";
+            + "  <query xmlns=\"remoteGetOrder\">\n"
+            + "    <instance>{\"id\":\"fake-instance-id\"}</instance>\n"
+            + "    <instanceClassName>org.fogbowcloud.manager.core.models.instances.Instance</instanceClassName>\n"
+            + "  </query>\n" + "</iq>";
 
     private static final String IQ_ERROR_RESULT = "\n<iq type=\"error\" id=\"%s\" from=\"%s\">\n"
-        + "  <error code=\"500\" type=\"wait\">\n"
-        + "    <undefined-condition xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n"
-        + "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">Unexpected exception: java.lang.Exception</text>\n"
-        + "  </error>\n" + "</iq>";
+            + "  <error code=\"500\" type=\"wait\">\n"
+            + "    <undefined-condition xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n"
+            + "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">Unexpected exception: java.lang.Exception</text>\n"
+            + "  </error>\n" + "</iq>";
 
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
 
@@ -70,8 +70,8 @@ public class RemoteGetOrderRequestHandlerTest {
         Instance instance = new Instance(FAKE_INSTANCE_ID);
 
         Mockito.when(
-            this.remoteFacade.getResourceInstance(Mockito.eq(orderId), Mockito.eq(federationUserToken),
-                Mockito.eq(ResourceType.COMPUTE))).thenReturn(instance);
+                this.remoteFacade.getResourceInstance(Mockito.eq(orderId), Mockito.eq(federationUserToken),
+                        Mockito.eq(ResourceType.COMPUTE))).thenReturn(instance);
 
         IQ iq = RemoteGetOrderRequest.marshal(order);
 
@@ -80,7 +80,7 @@ public class RemoteGetOrderRequestHandlerTest {
 
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).getResourceInstance(Mockito.eq(orderId),
-            Mockito.eq(federationUserToken), Mockito.eq(ResourceType.COMPUTE));
+                Mockito.eq(federationUserToken), Mockito.eq(ResourceType.COMPUTE));
 
         String iqId = iq.getID();
         String providingMember = order.getProvidingMember();
@@ -100,8 +100,8 @@ public class RemoteGetOrderRequestHandlerTest {
         String orderId = order.getId();
 
         Mockito.when(
-            this.remoteFacade.getResourceInstance(Mockito.eq(orderId), Mockito.eq(federationUserToken),
-                Mockito.eq(ResourceType.COMPUTE))).thenThrow(new Exception());
+                this.remoteFacade.getResourceInstance(Mockito.eq(orderId), Mockito.eq(federationUserToken),
+                        Mockito.eq(ResourceType.COMPUTE))).thenThrow(new Exception());
 
         IQ iq = RemoteGetOrderRequest.marshal(order);
 
@@ -110,7 +110,7 @@ public class RemoteGetOrderRequestHandlerTest {
 
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).getResourceInstance(Mockito.eq(orderId),
-            Mockito.eq(federationUserToken), Mockito.eq(ResourceType.COMPUTE));
+                Mockito.eq(federationUserToken), Mockito.eq(ResourceType.COMPUTE));
 
         String iqId = iq.getID();
         String providingMember = order.getProvidingMember();
@@ -122,8 +122,8 @@ public class RemoteGetOrderRequestHandlerTest {
     private Order createOrder(FederationUserToken federationUserToken) {
         return new ComputeOrder(federationUserToken, "requestingMember",
                 "providingmember", 1, 2, 3,
-            "imageId", null,
-            "publicKey", new ArrayList<>());
+                "imageId", null,
+                "publicKey", new ArrayList<>());
     }
 
     private FederationUserToken createFederationUserToken() throws InvalidParameterException {

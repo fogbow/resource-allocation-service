@@ -1,8 +1,5 @@
 package org.fogbowcloud.manager.util.connectivity;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -20,19 +17,22 @@ import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
 public class HttpRequestClientUtil {
 
-	private static final Logger LOGGER = Logger.getLogger(HttpRequestClientUtil.class);
-	private HttpClient client;
+    private static final Logger LOGGER = Logger.getLogger(HttpRequestClientUtil.class);
+    private HttpClient client;
 
-	public HttpRequestClientUtil() throws FatalErrorException {
+    public HttpRequestClientUtil() throws FatalErrorException {
         HttpRequestUtil.init();
         this.client = HttpRequestUtil.createHttpClient();
-	}
-	
-	public HttpRequestClientUtil(HttpClient httpClient) {
-		this.client = httpClient;
-	}
+    }
+
+    public HttpRequestClientUtil(HttpClient httpClient) {
+        this.client = httpClient;
+    }
 
     public String doGetRequest(String endpoint, Token token)
             throws UnavailableProviderException, HttpResponseException {
@@ -64,7 +64,7 @@ public class HttpRequestClientUtil {
         }
         return response;
     }
-    
+
     public String doPostRequest(String endpoint, Token token, String body)
             throws UnavailableProviderException, HttpResponseException {
         HttpPost request = new HttpPost(endpoint);
@@ -77,11 +77,11 @@ public class HttpRequestClientUtil {
         HttpResponse response = null;
 
         try {
-            response = this.client.execute(request);            
+            response = this.client.execute(request);
             if (response.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
                 String message = response.getStatusLine().getReasonPhrase();
-                throw new HttpResponseException(response.getStatusLine().getStatusCode(), message); 
-            }            
+                throw new HttpResponseException(response.getStatusLine().getStatusCode(), message);
+            }
             responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         } catch (HttpResponseException e) {
             throw e;
@@ -108,8 +108,8 @@ public class HttpRequestClientUtil {
             response = this.client.execute(request);
             if (response.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
                 String message = response.getStatusLine().getReasonPhrase();
-                throw new HttpResponseException(response.getStatusLine().getStatusCode(), message); 
-            }            
+                throw new HttpResponseException(response.getStatusLine().getStatusCode(), message);
+            }
         } catch (HttpResponseException e) {
             throw e;
         } catch (IOException e) {
@@ -121,7 +121,7 @@ public class HttpRequestClientUtil {
                 LOGGER.error("Error while consuming the response: " + t);
             }
         }
-	}
+    }
 
     public Response doPostRequest(String endpoint, String body)
             throws HttpResponseException, UnavailableProviderException {
@@ -138,14 +138,14 @@ public class HttpRequestClientUtil {
             LOGGER.debug("Request: " + request + " Response: " + response);
             if (response.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
                 String message = response.getStatusLine().getReasonPhrase();
-                throw new HttpResponseException(response.getStatusLine().getStatusCode(), message); 
-            }    
+                throw new HttpResponseException(response.getStatusLine().getStatusCode(), message);
+            }
             responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         } catch (HttpResponseException e) {
-        	LOGGER.debug("Throwing HttpResponseException: " + e.getMessage());
+            LOGGER.debug("Throwing HttpResponseException: " + e.getMessage());
             throw e;
         } catch (IOException e) {
-        	LOGGER.debug("Throwing UnavailableProviderException: " + e.getMessage());
+            LOGGER.debug("Throwing UnavailableProviderException: " + e.getMessage());
             throw new UnavailableProviderException(e.getMessage(), e);
         } finally {
             try {
@@ -174,8 +174,8 @@ public class HttpRequestClientUtil {
             response = this.client.execute(request);
             if (response.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
                 String message = response.getStatusLine().getReasonPhrase();
-                throw new HttpResponseException(response.getStatusLine().getStatusCode(), message); 
-            }         
+                throw new HttpResponseException(response.getStatusLine().getStatusCode(), message);
+            }
             responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         } catch (HttpResponseException e) {
             throw e;

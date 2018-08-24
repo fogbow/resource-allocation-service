@@ -1,8 +1,9 @@
 package org.fogbowcloud.manager.core;
 
-import java.lang.reflect.Constructor;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
+
+import java.lang.reflect.Constructor;
 
 public class PluginFactory {
 

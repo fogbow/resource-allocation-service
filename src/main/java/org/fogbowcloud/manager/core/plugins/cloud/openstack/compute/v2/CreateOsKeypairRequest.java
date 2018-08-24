@@ -3,20 +3,21 @@ package org.fogbowcloud.manager.core.plugins.cloud.openstack.compute.v2;
 import com.google.gson.annotations.SerializedName;
 import org.fogbowcloud.manager.util.GsonHolder;
 import org.fogbowcloud.manager.util.JsonSerializable;
+
 import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRestApiConstants.Compute.*;
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/compute/
- *
+ * <p>
  * Request Example:
  * {
- *   "keypair":{
- *     "name":"keypair-d20a3d59-9433-4b79-8726-20b431d89c78",
- *     "public_key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDx8nkQv/zgGgB4rMYmIf+6A4l6Rr+o/6lHBQdW5aYd44bd8JttDCE/F/pNRr0lRE+PiqSPO8nDPHw0010JeMH9gYgnnFlyY3/OcJ02RhIPyyxYpv9FhY+2YiUkpwFOcLImyrxEsYXpD/0d3ac30bNH6Sw9JD9UZHYcpSxsIbECHw== Generated-by-Nova",
- *     "user_id":"fake"
- *   }
+ * "keypair":{
+ * "name":"keypair-d20a3d59-9433-4b79-8726-20b431d89c78",
+ * "public_key":"ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAgQDx8nkQv/zgGgB4rMYmIf+6A4l6Rr+o/6lHBQdW5aYd44bd8JttDCE/F/pNRr0lRE+PiqSPO8nDPHw0010JeMH9gYgnnFlyY3/OcJ02RhIPyyxYpv9FhY+2YiUkpwFOcLImyrxEsYXpD/0d3ac30bNH6Sw9JD9UZHYcpSxsIbECHw== Generated-by-Nova",
+ * "user_id":"fake"
  * }
- *
+ * }
+ * <p>
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class CreateOsKeypairRequest implements JsonSerializable {

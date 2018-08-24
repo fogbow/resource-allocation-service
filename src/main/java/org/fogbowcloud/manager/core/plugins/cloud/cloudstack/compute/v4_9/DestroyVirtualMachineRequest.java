@@ -44,5 +44,5 @@ public class DestroyVirtualMachineRequest extends CloudStackRequest {
             return new DestroyVirtualMachineRequest(this);
         }
     }
-    
+
 }

@@ -1,9 +1,10 @@
 package org.fogbowcloud.manager.core.models.tokens.generators.ldap;
 
-import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.manager.core.exceptions.InvalidUserCredentialsException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.tokens.LdapToken;
 import org.fogbowcloud.manager.core.plugins.behavior.authentication.ldap.LdapAuthenticationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.identity.ldap.LdapFederationIdentityPlugin;
@@ -49,7 +50,7 @@ public class LdapTokenGeneratorPluginTest {
 
         //verify
         String split[] = tokenValue.split(LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
-        Assert.assertEquals(split.length,5);
+        Assert.assertEquals(split.length, 5);
         Assert.assertEquals(split[0], PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID));
         Assert.assertEquals(split[1], FAKE_LOGIN);
         Assert.assertEquals(split[2], FAKE_NAME);
@@ -57,7 +58,7 @@ public class LdapTokenGeneratorPluginTest {
     }
 
     //test case: createTokenValue with invalid credentials should throw InvalidUserCredentialsException
-    @Test (expected = InvalidUserCredentialsException.class)
+    @Test(expected = InvalidUserCredentialsException.class)
     public void testCreateTokenValueInvalidCredentials() throws InvalidParameterException, UnexpectedException,
             InvalidUserCredentialsException {
         //set up
@@ -73,7 +74,7 @@ public class LdapTokenGeneratorPluginTest {
     }
 
     //test case: createTokenValue with incorrect credentials should throw InvalidParameterException
-    @Test (expected = InvalidParameterException.class)
+    @Test(expected = InvalidParameterException.class)
     public void testCreateTokenValueIncorrectCredentials() throws InvalidParameterException, UnexpectedException,
             InvalidUserCredentialsException {
         //set up

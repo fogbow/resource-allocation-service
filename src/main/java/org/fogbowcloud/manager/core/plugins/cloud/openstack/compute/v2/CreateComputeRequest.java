@@ -4,34 +4,35 @@ import com.google.gson.annotations.SerializedName;
 import org.fogbowcloud.manager.util.GsonHolder;
 import org.fogbowcloud.manager.util.JsonSerializable;
 
-import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRestApiConstants.Compute.*;
 import java.util.List;
+
+import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRestApiConstants.Compute.*;
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/compute/
- *
+ * <p>
  * Request Example:
  * {
- *   "server":{
- *     "name":"new-server-test",
- *     "imageRef":"70a599e0-31e7-49b7-b260-868f441e862b",
- *     "flavorRef":"1",
- *     "user_data":"IyEvYmluL2Jhc2gKL2Jpbi9zdQplY2hvICJJIGFtIGluIHlvdSEiCg==",
- *     "key_name":"keypair-d20a3d59-9433-4b79-8726-20b431d89c78",
- *     "networks":[
- *       {
- *         "uuid":"ff608d40-75e9-48cb-b745-77bb55b5eaf2",
- *         "tag":"nic1"
- *       }
- *     ],
- *     "security_groups":[
- *       {
- *         "name":"default"
- *       }
- *     ]
- *   }
+ * "server":{
+ * "name":"new-server-test",
+ * "imageRef":"70a599e0-31e7-49b7-b260-868f441e862b",
+ * "flavorRef":"1",
+ * "user_data":"IyEvYmluL2Jhc2gKL2Jpbi9zdQplY2hvICJJIGFtIGluIHlvdSEiCg==",
+ * "key_name":"keypair-d20a3d59-9433-4b79-8726-20b431d89c78",
+ * "networks":[
+ * {
+ * "uuid":"ff608d40-75e9-48cb-b745-77bb55b5eaf2",
+ * "tag":"nic1"
  * }
- *
+ * ],
+ * "security_groups":[
+ * {
+ * "name":"default"
+ * }
+ * ]
+ * }
+ * }
+ * <p>
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class CreateComputeRequest implements JsonSerializable {

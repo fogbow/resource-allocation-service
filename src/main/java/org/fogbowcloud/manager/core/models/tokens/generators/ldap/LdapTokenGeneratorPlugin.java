@@ -4,7 +4,10 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
+import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.manager.core.exceptions.InvalidUserCredentialsException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.tokens.TokenGeneratorPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.identity.ldap.LdapFederationIdentityPlugin;
 import org.fogbowcloud.manager.util.PropertiesUtil;
@@ -17,7 +20,6 @@ import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
-import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
@@ -132,7 +134,7 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
             ctls.setSearchScope(SearchControls.SUBTREE_SCOPE);
             ctls.setReturningAttributes(new String[0]);
             ctls.setReturningObjFlag(true);
-            NamingEnumeration enm = ctx.search(this.ldapBase, filter, new String[] {uid}, ctls);
+            NamingEnumeration enm = ctx.search(this.ldapBase, filter, new String[]{uid}, ctls);
 
             String dn = null;
 

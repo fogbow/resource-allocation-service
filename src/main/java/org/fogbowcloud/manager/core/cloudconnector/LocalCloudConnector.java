@@ -3,7 +3,9 @@ package org.fogbowcloud.manager.core.cloudconnector;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.CloudPluginsHolder;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
-import org.fogbowcloud.manager.core.exceptions.*;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.instances.*;
@@ -12,12 +14,7 @@ import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.ImagePlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.ComputeQuotaPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -151,9 +148,9 @@ public class LocalCloudConnector implements CloudConnector {
         Instance instance;
         Token token = this.mapperPlugin.map(order.getFederationUserToken());
         synchronized (order) {
-        	if (order.getOrderState() == OrderState.DEACTIVATED || order.getOrderState() == OrderState.CLOSED) {
-        		throw new InstanceNotFoundException();
-        	}
+            if (order.getOrderState() == OrderState.DEACTIVATED || order.getOrderState() == OrderState.CLOSED) {
+                throw new InstanceNotFoundException();
+            }
             String instanceId = order.getInstanceId();
             if (instanceId != null) {
                 instance = getResourceInstance(order, order.getType(), token);
@@ -212,7 +209,9 @@ public class LocalCloudConnector implements CloudConnector {
         return this.imagePlugin.getImage(imageId, token);
     }
 
-    /** protected visibility for tests */
+    /**
+     * protected visibility for tests
+     */
     protected List<String> getNetworkInstanceIdsFromNetworkOrderIds(ComputeOrder order) {
         List<String> networkOrdersId = order.getNetworksId();
         List<String> networkInstanceIDs = new LinkedList<String>();
@@ -250,16 +249,16 @@ public class LocalCloudConnector implements CloudConnector {
         instance.setProvider(order.getProvidingMember());
         return instance;
     }
-    
+
     private InstanceState getInstanceStateBasedOnOrderState(Order order) {
-    	InstanceState instanceState = null;
-    	// If order state is DEACTIVATED or CLOSED, an exception is throw before method call.
-    	// If order state is FULFILLED or SPAWNING, the order has an instance id, so this method is never called.
-    	if (order.getOrderState() == OrderState.OPEN || order.getOrderState() == OrderState.PENDING) {
-    		instanceState = InstanceState.DISPATCHED;
-    	} else if (order.getOrderState() == OrderState.FAILED) {
-    		instanceState = InstanceState.FAILED;
-    	}
-    	return instanceState;
+        InstanceState instanceState = null;
+        // If order state is DEACTIVATED or CLOSED, an exception is throw before method call.
+        // If order state is FULFILLED or SPAWNING, the order has an instance id, so this method is never called.
+        if (order.getOrderState() == OrderState.OPEN || order.getOrderState() == OrderState.PENDING) {
+            instanceState = InstanceState.DISPATCHED;
+        } else if (order.getOrderState() == OrderState.FAILED) {
+            instanceState = InstanceState.FAILED;
+        }
+        return instanceState;
     }
 }

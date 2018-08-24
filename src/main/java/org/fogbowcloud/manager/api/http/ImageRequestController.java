@@ -1,13 +1,13 @@
 package org.fogbowcloud.manager.api.http;
 
-import java.util.Map;
-
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.ApplicationFacade;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping(value = ImageRequestController.IMAGE_ENDPOINT)

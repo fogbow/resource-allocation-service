@@ -1,19 +1,27 @@
 package org.fogbowcloud.manager.core.models;
 
 public class HardwareRequirements implements Comparable<HardwareRequirements> {
-    
-    /** the lower value, the greater relevance. */
+
+    /**
+     * the lower value, the greater relevance.
+     */
     private final int VCPU_VALUE_RELEVANCE = 1;
     private final int MEM_VALUE_RELEVANCE = 1;
 
     private String name;
     private String flavorId;
 
-    /** Number of cores of the CPU. */
+    /**
+     * Number of cores of the CPU.
+     */
     private int cpu;
-    /** RAM memory in MB. */
+    /**
+     * RAM memory in MB.
+     */
     private int ram;
-    /** Disk in GB. */
+    /**
+     * Disk in GB.
+     */
     private int disk;
 
     public HardwareRequirements(String name, String flavorId, int cpu, int ram, int disk) {

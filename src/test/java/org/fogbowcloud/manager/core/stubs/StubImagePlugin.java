@@ -1,11 +1,12 @@
 package org.fogbowcloud.manager.core.stubs;
 
-import java.util.Map;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.images.Image;
 import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.ImagePlugin;
+
+import java.util.Map;
 
 /**
  * This class is a stub for the ImagePlugin interface used for tests only.
@@ -13,8 +14,9 @@ import org.fogbowcloud.manager.core.plugins.cloud.ImagePlugin;
  */
 public class StubImagePlugin implements ImagePlugin<Token> {
 
-    public StubImagePlugin() {}
-    
+    public StubImagePlugin() {
+    }
+
     @Override
     public Map<String, String> getAllImages(Token token)
             throws FogbowManagerException, UnexpectedException {

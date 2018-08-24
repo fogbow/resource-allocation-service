@@ -1,11 +1,6 @@
 package org.fogbowcloud.manager.core;
 
-import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.ImagePlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.ComputeQuotaPlugin;
-import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
+import org.fogbowcloud.manager.core.plugins.cloud.*;
 
 public class CloudPluginsHolder {
 

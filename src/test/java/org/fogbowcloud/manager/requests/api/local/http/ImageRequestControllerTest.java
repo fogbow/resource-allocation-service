@@ -89,7 +89,8 @@ public class ImageRequestControllerTest {
         int expectedStatus = HttpStatus.OK.value();
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 
-        TypeToken<Map<String, String>> token = new TypeToken<Map<String, String>>(){};
+        TypeToken<Map<String, String>> token = new TypeToken<Map<String, String>>() {
+        };
         Map<String, String> resultMap = new Gson().fromJson(result.getResponse().getContentAsString(), token.getType());
         Assert.assertEquals(3, resultMap.size());
     }

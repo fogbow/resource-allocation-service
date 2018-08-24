@@ -26,10 +26,10 @@ public class CloudStackTokenGenerator implements TokenGeneratorPlugin {
     public CloudStackTokenGenerator() {
         Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() + File.separator
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME);
-        
+
         this.endpoint = properties.getProperty(CLOUDSTACK_URL);
     }
-    
+
     @Override
     public String createTokenValue(Map<String, String> credentials) throws FogbowManagerException {
         LOGGER.debug("Creating token with credentials: " + credentials);

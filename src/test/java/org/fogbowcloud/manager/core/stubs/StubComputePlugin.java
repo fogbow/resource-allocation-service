@@ -12,8 +12,9 @@ import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
  * Should not have a proper implementation.
  */
 public class StubComputePlugin implements ComputePlugin<Token> {
-    
-    public StubComputePlugin() {}
+
+    public StubComputePlugin() {
+    }
 
     @Override
     public String requestInstance(ComputeOrder computeOrder, Token token)

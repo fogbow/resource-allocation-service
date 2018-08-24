@@ -1,6 +1,5 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack.quota.v2;
 
-import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
@@ -50,7 +49,7 @@ public class OpenStackComputeQuotaPluginTest {
         int maxTotalCores = getQuotaResponse.getMaxTotalCores();
         int maxTotalRamSize = getQuotaResponse.getMaxTotalRamSize();
         int maxTotalInstances = getQuotaResponse.getMaxTotalInstances();
-        ComputeAllocation totalQuota = new ComputeAllocation(maxTotalCores,	maxTotalRamSize, maxTotalInstances);
+        ComputeAllocation totalQuota = new ComputeAllocation(maxTotalCores, maxTotalRamSize, maxTotalInstances);
 
         int totalCoresUsed = getQuotaResponse.getTotalCoresUsed();
         int totalRamUsed = getQuotaResponse.getTotalRamUsed();

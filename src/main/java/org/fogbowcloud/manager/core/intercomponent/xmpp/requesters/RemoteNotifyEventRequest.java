@@ -32,7 +32,7 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
 
     public static IQ marshall(Order order, Event event) {
         LOGGER.debug("Creating IQ for order: " + order.getId() + " event: " + event);
-        
+
         IQ iq = new IQ(IQ.Type.set);
         iq.setTo(order.getRequestingMember());
         iq.setID(order.getId());

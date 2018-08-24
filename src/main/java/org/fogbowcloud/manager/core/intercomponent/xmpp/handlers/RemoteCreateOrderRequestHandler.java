@@ -1,13 +1,12 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 
 import com.google.gson.Gson;
-
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
-import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
@@ -27,13 +26,13 @@ public class RemoteCreateOrderRequestHandler extends AbstractQueryHandler {
         LOGGER.info("Received request for order: " + iq.getID());
         String orderJsonStr = unmarshalOrder(iq);
         String className = unmarshalClassName(iq);
-        
+
         IQ response = IQ.createResultIQ(iq);
-        
+
         Gson gson = new Gson();
         Order order = null;
-		try {
-			order = (Order) gson.fromJson(orderJsonStr, Class.forName(className));
+        try {
+            order = (Order) gson.fromJson(orderJsonStr, Class.forName(className));
             RemoteFacade.getInstance().activateOrder(order);
         } catch (Throwable e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);

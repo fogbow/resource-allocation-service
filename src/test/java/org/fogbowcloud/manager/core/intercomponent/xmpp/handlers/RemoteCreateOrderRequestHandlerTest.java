@@ -1,6 +1,5 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 
-import java.util.ArrayList;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
@@ -21,6 +20,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.xmpp.packet.IQ;
+
+import java.util.ArrayList;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
@@ -45,7 +46,7 @@ public class RemoteCreateOrderRequestHandlerTest {
         this.remoteFacade = Mockito.mock(RemoteFacade.class);
         PowerMockito.mockStatic(RemoteFacade.class);
         BDDMockito.given(RemoteFacade.getInstance()).willReturn(this.remoteFacade);
-        
+
         this.packetSender = Mockito.mock(PacketSender.class);
         PowerMockito.mockStatic(PacketSenderHolder.class);
         BDDMockito.given(PacketSenderHolder.getPacketSender()).willReturn(this.packetSender);
@@ -68,11 +69,11 @@ public class RemoteCreateOrderRequestHandlerTest {
 
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).activateOrder(Mockito.eq(order));
-        
+
         String orderId = order.getId();
         String providingMember = order.getProvidingMember();
         String expected = String.format(IQ_RESULT, orderId, providingMember);
-        
+
         Assert.assertEquals(expected, result.toString());
     }
 
@@ -90,7 +91,7 @@ public class RemoteCreateOrderRequestHandlerTest {
 
         // exercise
         IQ result = this.remoteCreateOrderRequestHandler.handle(iq);
-        
+
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).activateOrder(Mockito.eq(order));
 
@@ -100,7 +101,7 @@ public class RemoteCreateOrderRequestHandlerTest {
 
         Assert.assertEquals(expected, result.toString());
     }
-    
+
     private Order createOrder(FederationUserToken federationUserToken) {
         return new ComputeOrder(federationUserToken, "requestingMember", "providingmember", 1, 2,
                 3, "imageId", null, "publicKey", new ArrayList<>());

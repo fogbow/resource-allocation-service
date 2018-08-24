@@ -3,7 +3,11 @@ package org.fogbowcloud.manager.core.datastore.orderstorage;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
-import java.sql.*;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 public class OrderStorage {
 

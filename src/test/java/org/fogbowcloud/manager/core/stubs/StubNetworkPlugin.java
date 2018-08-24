@@ -13,8 +13,9 @@ import org.fogbowcloud.manager.core.plugins.cloud.NetworkPlugin;
  */
 public class StubNetworkPlugin implements NetworkPlugin<Token> {
 
-    public StubNetworkPlugin() {}
-    
+    public StubNetworkPlugin() {
+    }
+
     @Override
     public String requestInstance(NetworkOrder networkOrder, Token token)
             throws FogbowManagerException, UnexpectedException {

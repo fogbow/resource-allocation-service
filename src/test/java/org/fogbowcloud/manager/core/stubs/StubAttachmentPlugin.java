@@ -13,8 +13,9 @@ import org.fogbowcloud.manager.core.plugins.cloud.AttachmentPlugin;
  */
 public class StubAttachmentPlugin implements AttachmentPlugin<Token> {
 
-    public StubAttachmentPlugin() {}
-    
+    public StubAttachmentPlugin() {
+    }
+
     @Override
     public String requestInstance(AttachmentOrder attachmentOrder, Token token)
             throws FogbowManagerException, UnexpectedException {

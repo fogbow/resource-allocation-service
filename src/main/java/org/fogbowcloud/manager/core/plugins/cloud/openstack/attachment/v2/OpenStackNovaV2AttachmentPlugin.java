@@ -1,17 +1,10 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack.attachment.v2;
 
-import java.io.File;
-import java.util.Properties;
-
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
-import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
@@ -25,6 +18,8 @@ import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
 import org.json.JSONException;
 
+import java.util.Properties;
+
 public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenStackV3Token> {
 
     private final String PROJECT_ID_IS_NOT_SPECIFIED_ERROR = "Project id is not specified.";
@@ -35,10 +30,10 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
     private static final String SERVERS = "/servers/";
 
     private final Logger LOGGER = Logger.getLogger(OpenStackNovaV2AttachmentPlugin.class);
-    
+
     private Properties properties;
     private HttpRequestClientUtil client;
-    
+
     public OpenStackNovaV2AttachmentPlugin() throws FatalErrorException {
         this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
                 DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
@@ -49,7 +44,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
     public String requestInstance(AttachmentOrder attachmentOrder, OpenStackV3Token openStackV3Token)
             throws FogbowManagerException, UnexpectedException {
         String projectId = openStackV3Token.getProjectId();
-        
+
         String serverId = attachmentOrder.getSource();
         String volumeId = attachmentOrder.getTarget();
 
@@ -61,7 +56,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
             LOGGER.error(errorMsg, e);
             throw new InvalidParameterException(errorMsg, e);
         }
-        
+
         String endpoint = getPrefixEndpoint(projectId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS;
         try {
             this.client.doPostRequest(endpoint, openStackV3Token, jsonRequest);
@@ -70,7 +65,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
         }
         return attachmentOrder.getSource() + SEPARATOR_ID + attachmentOrder.getTarget();
     }
-    
+
     @Override
     public void deleteInstance(String instanceId, OpenStackV3Token openStackV3Token)
             throws FogbowManagerException, UnexpectedException {
@@ -96,16 +91,16 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
     public AttachmentInstance getInstance(String instanceId, OpenStackV3Token openStackV3Token)
             throws FogbowManagerException, UnexpectedException {
         LOGGER.info("Getting instance " + instanceId + " with tokens " + openStackV3Token);
-    	String projectId = openStackV3Token.getProjectId();
-    	
-    	String[] separatorInstanceId = instanceId.split(SEPARATOR_ID);
-    	
-    	// this variable refers to computeInstanceId received in the first part of the vector
-    	String serverId = separatorInstanceId[0];
-    	
-    	// this variable refers to volumeInstanceId received in the second part of the vector
-    	String volumeId = separatorInstanceId[1];
-        
+        String projectId = openStackV3Token.getProjectId();
+
+        String[] separatorInstanceId = instanceId.split(SEPARATOR_ID);
+
+        // this variable refers to computeInstanceId received in the first part of the vector
+        String serverId = separatorInstanceId[0];
+
+        // this variable refers to volumeInstanceId received in the second part of the vector
+        String volumeId = separatorInstanceId[1];
+
         String requestEndpoint = getPrefixEndpoint(projectId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + "/" + volumeId;
 
         String jsonResponse = null;
@@ -115,33 +110,33 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
             OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
 
-        LOGGER.debug("Getting instance from json: " + jsonResponse);        
+        LOGGER.debug("Getting instance from json: " + jsonResponse);
         AttachmentInstance attachmentInstance = getInstanceFromJson(jsonResponse);
-               
+
         return attachmentInstance;
     }
-    
+
     protected AttachmentInstance getInstanceFromJson(String jsonResponse) throws UnexpectedException {
-    	try {
-    		GetAttachmentResponse getAttachmentResponse = GetAttachmentResponse.fromJson(jsonResponse);
+        try {
+            GetAttachmentResponse getAttachmentResponse = GetAttachmentResponse.fromJson(jsonResponse);
             String id = getAttachmentResponse.getId();
             String serverId = getAttachmentResponse.getServerId();
             String volumeId = getAttachmentResponse.getVolumeId();
             String device = getAttachmentResponse.getDevice();
 
-        	// There is no OpenStackState for attachments; we set it to empty string to allow its mapping
+            // There is no OpenStackState for attachments; we set it to empty string to allow its mapping
             // by the OpenStackStateMapper.map() function.
             String openStackState = "";
             InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.ATTACHMENT, openStackState);
 
-            AttachmentInstance attachmentInstance = new AttachmentInstance(id,fogbowState, serverId, volumeId, device);
-        	return attachmentInstance;
-        	
-    	} catch (JSONException e) {
+            AttachmentInstance attachmentInstance = new AttachmentInstance(id, fogbowState, serverId, volumeId, device);
+            return attachmentInstance;
+
+        } catch (JSONException e) {
             String errorMsg = "There was an exception while getting attchment instance from json.";
-    		LOGGER.error(errorMsg, e);
-        	throw new UnexpectedException(errorMsg, e);
-    	}
+            LOGGER.error(errorMsg, e);
+            throw new UnexpectedException(errorMsg, e);
+        }
     }
 
     private String getPrefixEndpoint(String projectId) {
@@ -149,12 +144,12 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
     }
 
     protected String generateJsonToAttach(String volume) throws JSONException {
-    	CreateAttachmentRequest createAttachmentRequest = new CreateAttachmentRequest.Builder()
-    			.volumeId(volume)
-    			.build();
+        CreateAttachmentRequest createAttachmentRequest = new CreateAttachmentRequest.Builder()
+                .volumeId(volume)
+                .build();
         return createAttachmentRequest.toJson();
     }
-    
+
     private void initClient() {
         HttpRequestUtil.init();
         this.client = new HttpRequestClientUtil();
@@ -163,7 +158,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
     protected void setClient(HttpRequestClientUtil client) {
         this.client = client;
     }
-    
+
     protected void setProperties(Properties properties) {
         this.properties = properties;
     }

@@ -1,13 +1,8 @@
 package org.fogbowcloud.manager.core.plugins.behavior.mapper.all2one;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
+import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
-import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
@@ -17,10 +12,14 @@ import org.fogbowcloud.manager.core.plugins.behavior.identity.FederationIdentity
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
 public class GenericAllToOneFederationToLocalMapper implements FederationToLocalMapperPlugin {
-	
+
     private static final Logger LOGGER = Logger.getLogger(GenericAllToOneFederationToLocalMapper.class);
-    
+
     private static final String LOCAL_TOKEN_CREDENTIALS_PREFIX = "local_token_credentials_";
 
     private Map<String, String> credentials;
@@ -28,7 +27,7 @@ public class GenericAllToOneFederationToLocalMapper implements FederationToLocal
     private TokenGeneratorPlugin tokenGeneratorPlugin;
     private FederationIdentityPlugin federationIdentityPlugin;
 
-	public GenericAllToOneFederationToLocalMapper(TokenGeneratorPlugin tokenGeneratorPlugin,
+    public GenericAllToOneFederationToLocalMapper(TokenGeneratorPlugin tokenGeneratorPlugin,
                                                   FederationIdentityPlugin federationIdentityPlugin,
                                                   String configurationFileName)
             throws FatalErrorException {
@@ -40,8 +39,8 @@ public class GenericAllToOneFederationToLocalMapper implements FederationToLocal
 
     @Override
     public Token map(FederationUserToken user) throws UnexpectedException, FogbowManagerException {
-	    String tokenString = this.tokenGeneratorPlugin.createTokenValue(this.credentials);
-	    return this.federationIdentityPlugin.createToken(tokenString);
+        String tokenString = this.tokenGeneratorPlugin.createTokenValue(this.credentials);
+        return this.federationIdentityPlugin.createToken(tokenString);
     }
 
     /**

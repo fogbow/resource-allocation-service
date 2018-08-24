@@ -57,7 +57,7 @@ public class OrderStateTransitioner {
                             break;
                     }
                 } catch (Exception e) {
-                    String message = "Could not notify requesting member ["+ order.getRequestingMember() +
+                    String message = "Could not notify requesting member [" + order.getRequestingMember() +
                             " for order " + order.getId();
                     LOGGER.warn(message);
                     // Keep trying to notify until the site is up again

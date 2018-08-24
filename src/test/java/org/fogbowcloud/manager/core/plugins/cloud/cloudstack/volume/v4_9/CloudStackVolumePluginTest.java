@@ -1,9 +1,5 @@
 package org.fogbowcloud.manager.core.plugins.cloud.cloudstack.volume.v4_9;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
@@ -30,6 +26,11 @@ import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({CloudStackUrlUtil.class, HttpRequestUtil.class, DeleteVolumeResponse.class,
@@ -382,18 +383,18 @@ public class CloudStackVolumePluginTest {
 
     private String getListDiskOfferrings(String id, int diskSize, boolean customized) {
         String response = "{\"listdiskofferingsresponse\":{" + "\"diskoffering\":[{"
-                + "\"id\": \"%s\"," 
-                + "\"disksize\": %s," 
-                + "\"iscustomized\": %s" 
+                + "\"id\": \"%s\","
+                + "\"disksize\": %s,"
+                + "\"iscustomized\": %s"
                 + "}]}}";
 
         return String.format(response, id, diskSize, customized);
     }
 
     private String getCreateVolumeResponse(String id, String jobId) {
-        String response = "{\"createvolumeresponse\":{" 
-                + "\"id\": \"%s\", " 
-                + "\"jobid\": \"%s\"" 
+        String response = "{\"createvolumeresponse\":{"
+                + "\"id\": \"%s\", "
+                + "\"jobid\": \"%s\""
                 + "}}";
 
         return String.format(response, id, jobId);
@@ -406,10 +407,10 @@ public class CloudStackVolumePluginTest {
     }
 
     private String getVolumeResponse(String id, String name, String size, String state) {
-        String response = "{\"id\":\"%s\"," 
-                + "\"name\":\"%s\"," 
+        String response = "{\"id\":\"%s\","
+                + "\"name\":\"%s\","
                 + "\"size\":\"%s\","
-                + "\"state\":\"%s\"" 
+                + "\"state\":\"%s\""
                 + "}";
 
         return String.format(response, id, name, size, state);
@@ -417,9 +418,9 @@ public class CloudStackVolumePluginTest {
 
     private String getDeleteVolumeResponse(boolean success) {
         String value = String.valueOf(success);
-        String response = "{\"deletevolumeresponse\":{" 
+        String response = "{\"deletevolumeresponse\":{"
                 + "\"displaytext\": \"%s\","
-                + "\"success\": \"%s\"" 
+                + "\"success\": \"%s\""
                 + "}}";
 
         return String.format(response, DEFAULT_DISPLAY_TEXT, value);

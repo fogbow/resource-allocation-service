@@ -70,7 +70,7 @@ public class SynchronizedDoublyLinkedList implements ChainedList {
      *
      * @param order
      * @return True if it was removed from the list. False, if another thread removed this order
-     *     from the list and the order couldn't be find.
+     * from the list and the order couldn't be find.
      */
     @Override
     public synchronized boolean removeItem(Order order) {
@@ -98,7 +98,9 @@ public class SynchronizedDoublyLinkedList implements ChainedList {
         return true;
     }
 
-    /** @param order - Never null */
+    /**
+     * @param order - Never null
+     */
     protected synchronized Node findNodeToRemove(Order order) {
         Node currentNode = this.head;
         while (currentNode != null) {

@@ -7,7 +7,10 @@ import org.fogbowcloud.manager.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.ResourceType;
-import org.fogbowcloud.manager.core.models.instances.*;
+import org.fogbowcloud.manager.core.models.instances.AttachmentInstance;
+import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
+import org.fogbowcloud.manager.core.models.instances.NetworkInstance;
+import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.orders.*;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.junit.Assert;
@@ -198,7 +201,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // verify
         Mockito.verify(this.aaController, Mockito.times(1)).
                 authenticateAndAuthorize(Mockito.any(FederationUserToken.class),
-                Mockito.any(Operation.class), Mockito.any(ResourceType.class));
+                        Mockito.any(Operation.class), Mockito.any(ResourceType.class));
 
         //FIXME: we are missing the assert before the exercise
         Assert.assertEquals(OrderState.OPEN, order.getOrderState());
@@ -273,7 +276,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doThrow(new UnauthorizedRequestException()).when(this.aaController).
                 authenticateAndAuthorize(Mockito.any(FederationUserToken.class),
-                Mockito.any(Operation.class), Mockito.any(ResourceType.class));
+                        Mockito.any(Operation.class), Mockito.any(ResourceType.class));
 
         try {
             // exercise
@@ -378,7 +381,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doThrow(new UnauthorizedRequestException()).when(this.aaController).
                 authenticateAndAuthorize(Mockito.any(FederationUserToken.class),
-                Mockito.any(Operation.class), Mockito.any(ResourceType.class), Mockito.any(Order.class));
+                        Mockito.any(Operation.class), Mockito.any(ResourceType.class), Mockito.any(Order.class));
 
         // exercise
         this.application.getCompute(order.getId(), FAKE_FEDERATION_TOKEN_VALUE);
@@ -406,7 +409,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // verify
         Mockito.verify(this.aaController, Mockito.times(1)).
                 authenticateAndAuthorize(Mockito.any(FederationUserToken.class), Mockito.any(Operation.class),
-                Mockito.any(ResourceType.class));
+                        Mockito.any(ResourceType.class));
 
         Assert.assertEquals(OrderState.OPEN, order.getOrderState());
     }
@@ -480,7 +483,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doThrow(new UnauthorizedRequestException()).when(this.aaController).
                 authenticateAndAuthorize(Mockito.any(FederationUserToken.class), Mockito.any(Operation.class),
-                Mockito.any(ResourceType.class));
+                        Mockito.any(ResourceType.class));
 
         try {
             // exercise
@@ -490,7 +493,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
             // verify
             Mockito.verify(this.aaController, Mockito.times(1)).
                     authenticateAndAuthorize(Mockito.any(FederationUserToken.class), Mockito.any(Operation.class),
-                    Mockito.any(ResourceType.class));
+                            Mockito.any(ResourceType.class));
 
             Assert.assertNull(order.getOrderState());
         }
@@ -575,7 +578,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doThrow(new UnauthorizedRequestException()).when(this.aaController).
                 authenticateAndAuthorize(Mockito.any(FederationUserToken.class),
-                Mockito.any(Operation.class), Mockito.any(ResourceType.class), Mockito.any(Order.class));
+                        Mockito.any(Operation.class), Mockito.any(ResourceType.class), Mockito.any(Order.class));
 
         // exercise
         this.application.getVolume(order.getId(), FAKE_FEDERATION_TOKEN_VALUE);
@@ -602,7 +605,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // verify
         Mockito.verify(this.aaController, Mockito.times(1)).
                 authenticateAndAuthorize(Mockito.any(FederationUserToken.class),
-                Mockito.any(Operation.class), Mockito.any(ResourceType.class), Mockito.any(Order.class));
+                        Mockito.any(Operation.class), Mockito.any(ResourceType.class), Mockito.any(Order.class));
 
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
@@ -678,7 +681,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doThrow(new UnauthorizedRequestException()).when(this.aaController).
                 authenticateAndAuthorize(Mockito.any(FederationUserToken.class),
-                Mockito.any(Operation.class), Mockito.any(ResourceType.class), Mockito.any(Order.class));
+                        Mockito.any(Operation.class), Mockito.any(ResourceType.class), Mockito.any(Order.class));
 
         try {
             // exercise
@@ -716,7 +719,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // verify
         Mockito.verify(this.aaController, Mockito.times(1)).
                 authenticateAndAuthorize(Mockito.any(FederationUserToken.class), Mockito.any(Operation.class),
-                Mockito.any(ResourceType.class));
+                        Mockito.any(ResourceType.class));
 
         Assert.assertEquals(OrderState.OPEN, order.getOrderState());
     }
@@ -794,7 +797,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doThrow(new UnauthorizedRequestException()).when(this.aaController).
                 authenticateAndAuthorize(Mockito.any(FederationUserToken.class), Mockito.any(Operation.class),
-                Mockito.any(ResourceType.class));
+                        Mockito.any(ResourceType.class));
 
         try {
             // exercise
@@ -804,7 +807,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
             // verify
             Mockito.verify(this.aaController, Mockito.times(1)).
                     authenticateAndAuthorize(Mockito.any(FederationUserToken.class), Mockito.any(Operation.class),
-                    Mockito.any(ResourceType.class));
+                            Mockito.any(ResourceType.class));
 
             Assert.assertNull(order.getOrderState());
         }
@@ -894,7 +897,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doThrow(new UnauthorizedRequestException()).when(this.aaController).
                 authenticateAndAuthorize(Mockito.any(FederationUserToken.class),
-                Mockito.any(Operation.class), Mockito.any(ResourceType.class), Mockito.any(Order.class));
+                        Mockito.any(Operation.class), Mockito.any(ResourceType.class), Mockito.any(Order.class));
 
         // exercise
         this.application.getNetwork(order.getId(), FAKE_FEDERATION_TOKEN_VALUE);
@@ -1084,7 +1087,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doThrow(new UnauthorizedRequestException()).when(this.aaController).
                 authenticateAndAuthorize(Mockito.any(FederationUserToken.class), Mockito.any(Operation.class),
-                Mockito.any(ResourceType.class));
+                        Mockito.any(ResourceType.class));
 
         try {
             // exercise
@@ -1094,7 +1097,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
             // verify
             Mockito.verify(this.aaController, Mockito.times(1)).
                     authenticateAndAuthorize(Mockito.any(FederationUserToken.class), Mockito.any(Operation.class),
-                    Mockito.any(ResourceType.class));
+                            Mockito.any(ResourceType.class));
 
             Assert.assertNull(order.getOrderState());
         }
@@ -1129,8 +1132,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     // test case: When calling the getAttachment() method without authentication, it must
     // expected a UnauthenticatedUserException.
     @Test
-    // verify
-    (expected = UnauthenticatedUserException.class)
+            // verify
+            (expected = UnauthenticatedUserException.class)
     public void testGetAttachmentOrderWithoutAuthentication() throws Exception {
 
         // set up
@@ -1181,7 +1184,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doThrow(new UnauthorizedRequestException()).when(this.aaController).
                 authenticateAndAuthorize(Mockito.any(FederationUserToken.class),
-                Mockito.any(Operation.class), Mockito.any(ResourceType.class), Mockito.any(Order.class));
+                        Mockito.any(Operation.class), Mockito.any(ResourceType.class), Mockito.any(Order.class));
 
         // exercise
         this.application.getAttachment(order.getId(), FAKE_FEDERATION_TOKEN_VALUE);
@@ -1283,7 +1286,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         Mockito.doThrow(new UnauthorizedRequestException()).when(this.aaController).
                 authenticateAndAuthorize(Mockito.any(FederationUserToken.class),
-                Mockito.any(Operation.class), Mockito.any(ResourceType.class), Mockito.any(Order.class));
+                        Mockito.any(Operation.class), Mockito.any(ResourceType.class), Mockito.any(Order.class));
 
         try {
             // exercise

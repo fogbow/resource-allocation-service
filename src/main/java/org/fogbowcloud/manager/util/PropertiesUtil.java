@@ -1,13 +1,14 @@
 package org.fogbowcloud.manager.util;
 
+import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import org.apache.log4j.Logger;
-import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 
 public class PropertiesUtil {
 
@@ -47,7 +48,7 @@ public class PropertiesUtil {
                 try {
                     fileInputStream.close();
                 } catch (IOException e) {
-                   LOGGER.error("Could not close file " + fileName, e);
+                    LOGGER.error("Could not close file " + fileName, e);
                 }
             }
         }

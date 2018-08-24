@@ -1,37 +1,36 @@
 package org.fogbowcloud.manager.core.models.tokens.generators.openstack.v3;
 
+import com.google.gson.annotations.SerializedName;
 import org.fogbowcloud.manager.util.GsonHolder;
 import org.fogbowcloud.manager.util.JsonSerializable;
 
 import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRestApiConstants.Identity.*;
 
-import com.google.gson.annotations.SerializedName;
-
 /**
  * Documentation: https://developer.openstack.org/api-ref/identity/v3/
- *
+ * <p>
  * Request Example:
  * {
- *   "auth":{
- *      "scope":{
- *        "project":{
- *          "id":"3324431f606d4a74a060cf78c16fcb2111"
- *        }
- *      },
- *      "identity":{
- *        "methods":[
- *          "password"
- *        ],
- *        "password":{
- *          "user":{
- *            "id":"6642431f606d4a74a060cf78c16fcb2121",
- *            "password":"password"
- *           }
- *        }
- *     }
- *   }
+ * "auth":{
+ * "scope":{
+ * "project":{
+ * "id":"3324431f606d4a74a060cf78c16fcb2111"
  * }
- *
+ * },
+ * "identity":{
+ * "methods":[
+ * "password"
+ * ],
+ * "password":{
+ * "user":{
+ * "id":"6642431f606d4a74a060cf78c16fcb2121",
+ * "password":"password"
+ * }
+ * }
+ * }
+ * }
+ * }
+ * <p>
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class CreateTokenRequest implements JsonSerializable {
@@ -40,97 +39,97 @@ public class CreateTokenRequest implements JsonSerializable {
     private Auth auth;
 
     public CreateTokenRequest(Auth auth) {
-    	this.auth = auth;
-	}
-    
+        this.auth = auth;
+    }
+
     @Override
     public String toJson() {
         return GsonHolder.getInstance().toJson(this);
     }
-    
+
     private static class Auth {
-    
-    	@SerializedName(SCOPE_KEY_JSON)
-    	private Scope scope;
-    	
-    	@SerializedName(IDENTITY_KEY_JSON)
-    	private Identity identity;    	
-    	
-    	public Auth(Builder builder) {
-    		this.scope = new Scope(builder);
-    		this.identity = new Identity(builder);
-		}
-    	
+
+        @SerializedName(SCOPE_KEY_JSON)
+        private Scope scope;
+
+        @SerializedName(IDENTITY_KEY_JSON)
+        private Identity identity;
+
+        public Auth(Builder builder) {
+            this.scope = new Scope(builder);
+            this.identity = new Identity(builder);
+        }
+
     }
-    
+
     private static class Scope {
-    	
-    	@SerializedName(PROJECT_KEY_JSON)
-    	private Project project;
-    	
-    	public Scope(Builder builder) {
-    		this.project = new Project(builder);
-		}
-    	
+
+        @SerializedName(PROJECT_KEY_JSON)
+        private Project project;
+
+        public Scope(Builder builder) {
+            this.project = new Project(builder);
+        }
+
     }
-    
+
     private static class Identity {
-    	
-    	@SerializedName(PASSWORD_KEY_JSON)
-    	private Password password; 
-    	
-    	@SerializedName(METHODS_KEY_JSON)
-    	private String[] methods;
-    	
-    	public Identity(Builder builder) {
-    		this.password = new Password(builder);
-    		this.methods = new String[]{ METHODS_PASSWORD_VALUE_JSON };
-		}
-    	
+
+        @SerializedName(PASSWORD_KEY_JSON)
+        private Password password;
+
+        @SerializedName(METHODS_KEY_JSON)
+        private String[] methods;
+
+        public Identity(Builder builder) {
+            this.password = new Password(builder);
+            this.methods = new String[]{METHODS_PASSWORD_VALUE_JSON};
+        }
+
     }
-    
+
     private static class Project {
-    	
-    	@SerializedName(ID_KEY_JSON)
-    	private String id;
-    	
-    	public Project(Builder builder) {
-    		this.id = builder.projectId;
-		}
-    	
+
+        @SerializedName(ID_KEY_JSON)
+        private String id;
+
+        public Project(Builder builder) {
+            this.id = builder.projectId;
+        }
+
     }
-    
+
     private static class Password {
-    	
-    	@SerializedName(USER_KEY_JSON)
-    	private User user;
-    	
-    	public Password(Builder builder) {
-    		this.user = new User(builder);
-		}
-    	
+
+        @SerializedName(USER_KEY_JSON)
+        private User user;
+
+        public Password(Builder builder) {
+            this.user = new User(builder);
+        }
+
     }
-    
+
     private static class User {
-    	
-    	@SerializedName(ID_KEY_JSON)
-    	private String id;
-    	
-    	@SerializedName(PASSWORD_KEY_JSON)
-    	private String password;
-    	
-    	public User(Builder builder) {
-    		this.id = builder.userId;
-    		this.password = builder.password;
-		}
-    	
+
+        @SerializedName(ID_KEY_JSON)
+        private String id;
+
+        @SerializedName(PASSWORD_KEY_JSON)
+        private String password;
+
+        public User(Builder builder) {
+            this.id = builder.userId;
+            this.password = builder.password;
+        }
+
     }
-    
+
     public static class Builder {
 
-    	private String projectId;    	
-    	private String userId;
-    	private String password;
+        private String projectId;
+        private String userId;
+        private String password;
 
         public Builder projectId(String projectId) {
             this.projectId = projectId;
@@ -151,6 +150,6 @@ public class CreateTokenRequest implements JsonSerializable {
             return new CreateTokenRequest(new Auth(this));
         }
 
-    }    
-    
+    }
+
 }

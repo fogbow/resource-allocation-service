@@ -1,8 +1,6 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 
 import com.google.gson.Gson;
-import java.util.HashMap;
-import java.util.Map;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
@@ -20,6 +18,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class RemoteGetAllImagesRequestTest {
 
@@ -105,14 +106,14 @@ public class RemoteGetAllImagesRequestTest {
     }
 
     private IQ getImagesResponse(Map<String, String> imagesMap,
-        String className) {
+                                 String className) {
         IQ iqResponse = new IQ();
         Element queryEl = iqResponse.getElement()
-            .addElement(IqElement.QUERY.toString(), RemoteMethod.REMOTE_GET_ALL_IMAGES.toString());
+                .addElement(IqElement.QUERY.toString(), RemoteMethod.REMOTE_GET_ALL_IMAGES.toString());
         Element imagesMapElement = queryEl.addElement(IqElement.IMAGES_MAP.toString());
 
         Element imagesMapClassNameElement = queryEl
-            .addElement(IqElement.IMAGES_MAP_CLASS_NAME.toString());
+                .addElement(IqElement.IMAGES_MAP_CLASS_NAME.toString());
         imagesMapClassNameElement.setText(className);
 
         imagesMapElement.setText(new Gson().toJson(imagesMap));

@@ -41,11 +41,11 @@ public class RemoteGetImageRequestHandler extends AbstractQueryHandler {
 
     private void updateResponse(IQ response, Image image) {
         Element queryEl = response.getElement()
-            .addElement(IqElement.QUERY.toString(), REMOTE_GET_IMAGE);
+                .addElement(IqElement.QUERY.toString(), REMOTE_GET_IMAGE);
         Element imageElement = queryEl.addElement(IqElement.IMAGE.toString());
 
         Element imageClassNameElement = queryEl
-            .addElement(IqElement.IMAGE_CLASS_NAME.toString());
+                .addElement(IqElement.IMAGE_CLASS_NAME.toString());
         imageClassNameElement.setText(image.getClass().getName());
 
         imageElement.setText(new Gson().toJson(image));

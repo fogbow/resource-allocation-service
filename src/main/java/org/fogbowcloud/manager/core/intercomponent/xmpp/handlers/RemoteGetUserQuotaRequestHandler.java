@@ -1,17 +1,17 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.handlers;
 
+import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
-import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.quotas.Quota;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
-import com.google.gson.Gson;
 
 public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
 
@@ -25,7 +25,7 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
-    	LOGGER.info("Received request for order: " + iq.getID());
+        LOGGER.info("Received request for order: " + iq.getID());
         String memberId = unmarshalMemberId(iq);
         FederationUserToken federationUserToken = unmarshalFederatedUser(iq);
         ResourceType resourceType = unmarshalInstanceType(iq);
@@ -40,7 +40,7 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
         }
         return response;
     }
-    
+
     private String unmarshalMemberId(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
 
@@ -48,7 +48,7 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
         String memberId = new Gson().fromJson(memberIdElement.getText(), String.class);
         return memberId;
     }
-    
+
     private FederationUserToken unmarshalFederatedUser(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
 
@@ -56,7 +56,7 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
         FederationUserToken federationUserToken = new Gson().fromJson(federationUserTokenElement.getText(), FederationUserToken.class);
         return federationUserToken;
     }
-    
+
     private ResourceType unmarshalInstanceType(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
 
@@ -64,14 +64,14 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
         ResourceType resourceType = new Gson().fromJson(instanceTypeElementRequest.getText(), ResourceType.class);
         return resourceType;
     }
-    
+
     private void updateResponse(IQ iq, Quota quota) {
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_USER_QUOTA);
         Element instanceElement = queryElement.addElement(IqElement.USER_QUOTA.toString());
-        
+
         Element instanceClassNameElement = queryElement.addElement(IqElement.USER_QUOTA_CLASS_NAME.toString());
         instanceClassNameElement.setText(quota.getClass().getName());
-        
+
         instanceElement.setText(new Gson().toJson(quota));
     }
 }

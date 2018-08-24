@@ -7,18 +7,18 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/compute/
- *
+ * <p>
  * Response Example:
  * {
- *   "flavor":{
- *     "id":"7",
- *     "name":"m1.small.description",
- *     "disk":20,
- *     "ram":2048,
- *     "vcpus":1
- *   }
+ * "flavor":{
+ * "id":"7",
+ * "name":"m1.small.description",
+ * "disk":20,
+ * "ram":2048,
+ * "vcpus":1
  * }
- *
+ * }
+ * <p>
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class GetFlavorResponse {

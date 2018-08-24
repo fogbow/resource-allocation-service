@@ -4,57 +4,57 @@ import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Table;
-
 
 @Entity
 @Table(name = "compute_order_table")
 public class ComputeOrder extends Order {
-	
-	private static final long serialVersionUID = 1L;
-	
-	@Column
+
+    private static final long serialVersionUID = 1L;
+
+    @Column
     private int vCPU;
-	
-    /** Memory attribute, must be set in MB. */
-	@Column
+
+    /**
+     * Memory attribute, must be set in MB.
+     */
+    @Column
     private int memory;
-	
-    /** Disk attribute, must be set in GB. */
-	@Column
+
+    /**
+     * Disk attribute, must be set in GB.
+     */
+    @Column
     private int disk;
-	
-	@Column
+
+    @Column
     private String imageId;
-	
-	@Embedded
+
+    @Embedded
     private UserData userData;
-	
-	@Column
+
+    @Column
     private String publicKey;
 
-	@Embedded
+    @Embedded
     private ComputeAllocation actualAllocation;
-	
-	@Column
-	@ElementCollection(fetch = FetchType.EAGER)
+
+    @Column
+    @ElementCollection(fetch = FetchType.EAGER)
     private List<String> networksId;
 
     public ComputeOrder() {
         super(UUID.randomUUID().toString());
     }
 
-    /** Creating Order with predefined Id. */
+    /**
+     * Creating Order with predefined Id.
+     */
     public ComputeOrder(String id, FederationUserToken federationUserToken, String requestingMember, String providingMember,
                         int vCPU, int memory, int disk, String imageId, UserData userData, String publicKey,
                         List<String> networksId) {

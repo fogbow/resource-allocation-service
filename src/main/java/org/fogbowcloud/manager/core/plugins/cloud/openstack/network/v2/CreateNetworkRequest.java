@@ -7,15 +7,15 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/network/v2/
- *
+ * <p>
  * Request Example:
  * {
- *   "network":{
- *     "name":"net1",
- *     "tenant_id":"fake-tenant"
- *   }
+ * "network":{
+ * "name":"net1",
+ * "tenant_id":"fake-tenant"
  * }
- *
+ * }
+ * <p>
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class CreateNetworkRequest {

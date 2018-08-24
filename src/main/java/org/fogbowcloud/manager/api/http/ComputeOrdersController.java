@@ -1,19 +1,20 @@
 package org.fogbowcloud.manager.api.http;
 
-import java.util.List;
-
-import org.fogbowcloud.manager.core.exceptions.*;
-import org.fogbowcloud.manager.core.ApplicationFacade;
-import org.fogbowcloud.manager.core.models.ResourceType;
-import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
-import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
-import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
-import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.manager.core.ApplicationFacade;
+import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
+import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.InstanceStatus;
+import org.fogbowcloud.manager.core.models.ResourceType;
+import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
+import org.fogbowcloud.manager.core.models.orders.ComputeOrder;
+import org.fogbowcloud.manager.core.models.quotas.ComputeQuota;
+import org.fogbowcloud.manager.core.models.quotas.allocation.ComputeAllocation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @CrossOrigin
 @RestController
@@ -21,13 +22,13 @@ import org.springframework.web.bind.annotation.*;
 public class ComputeOrdersController {
 
     public static final String COMPUTE_ENDPOINT = "computes";
-	public static final String STATUS_ENDPOINT = "status";
-	public static final String QUOTA_ENDPOINT = "quota";
-	public static final String ALLOCATION_ENDPOINT = "allocation";
+    public static final String STATUS_ENDPOINT = "status";
+    public static final String QUOTA_ENDPOINT = "quota";
+    public static final String ALLOCATION_ENDPOINT = "allocation";
 
-	public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
+    public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
-	private final Logger LOGGER = Logger.getLogger(ComputeOrdersController.class);
+    private final Logger LOGGER = Logger.getLogger(ComputeOrdersController.class);
 
     // HttpExceptionToErrorConditionTranslator handles the possible problems in request
     @RequestMapping(method = RequestMethod.POST)
@@ -69,26 +70,26 @@ public class ComputeOrdersController {
         ApplicationFacade.getInstance().deleteCompute(computeId, federationTokenValue);
         return new ResponseEntity<>(HttpStatus.OK);
     }
-    
-	@RequestMapping(value = "/" + QUOTA_ENDPOINT + "/{memberId:.+}", method = RequestMethod.GET)
-	public ResponseEntity<ComputeQuota> getUserQuota(@PathVariable String memberId,
-			@RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+
+    @RequestMapping(value = "/" + QUOTA_ENDPOINT + "/{memberId:.+}", method = RequestMethod.GET)
+    public ResponseEntity<ComputeQuota> getUserQuota(@PathVariable String memberId,
+                                                     @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
 
-		LOGGER.info("User " + QUOTA_ENDPOINT + " information request for member <" + memberId + "> received.");
-		ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(memberId, federationTokenValue);
-		return new ResponseEntity<>(quotaInstance, HttpStatus.OK);
-	}
+        LOGGER.info("User " + QUOTA_ENDPOINT + " information request for member <" + memberId + "> received.");
+        ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(memberId, federationTokenValue);
+        return new ResponseEntity<>(quotaInstance, HttpStatus.OK);
+    }
 
-	@RequestMapping(value = "/" + ALLOCATION_ENDPOINT + "/{memberId:.+}", method = RequestMethod.GET)
-	public ResponseEntity<ComputeAllocation> getUserAllocation(@PathVariable String memberId,
-			@RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+    @RequestMapping(value = "/" + ALLOCATION_ENDPOINT + "/{memberId:.+}", method = RequestMethod.GET)
+    public ResponseEntity<ComputeAllocation> getUserAllocation(@PathVariable String memberId,
+                                                               @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowManagerException, UnexpectedException {
 
-		LOGGER.info("User " + ALLOCATION_ENDPOINT + " information request for member <" + memberId + "> received.");
-		ComputeAllocation computeAllocation =
+        LOGGER.info("User " + ALLOCATION_ENDPOINT + " information request for member <" + memberId + "> received.");
+        ComputeAllocation computeAllocation =
                 ApplicationFacade.getInstance().getComputeAllocation(memberId, federationTokenValue);
-		return new ResponseEntity<>(computeAllocation, HttpStatus.OK);
-	}    
-    
+        return new ResponseEntity<>(computeAllocation, HttpStatus.OK);
+    }
+
 }

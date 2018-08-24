@@ -14,7 +14,6 @@ import org.fogbowcloud.manager.core.plugins.behavior.authentication.Authenticati
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 
-import java.io.File;
 import java.util.Properties;
 
 public class KeystoneV3AuthenticationPlugin implements AuthenticationPlugin {

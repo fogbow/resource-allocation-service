@@ -1,10 +1,5 @@
 package org.fogbowcloud.manager.core.plugins.behavior.authentication.ldap;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.manager.core.models.tokens.generators.ldap.LdapTokenGeneratorPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.identity.ldap.LdapFederationIdentityPlugin;
@@ -12,6 +7,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LdapAuthenticationPluginTest {
 

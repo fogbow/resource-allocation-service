@@ -1,8 +1,6 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 
 import com.google.gson.Gson;
-import java.util.HashMap;
-import java.util.Map;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
@@ -99,7 +97,7 @@ public class RemoteGetImageRequestTest {
     private IQ getImageIQResponse(Image image) {
         IQ iqResponse = new IQ();
         Element queryEl = iqResponse.getElement()
-            .addElement(IqElement.QUERY.toString(), RemoteMethod.REMOTE_GET_IMAGE.toString());
+                .addElement(IqElement.QUERY.toString(), RemoteMethod.REMOTE_GET_IMAGE.toString());
         Element imageElement = queryEl.addElement(IqElement.IMAGE.toString());
         Element imageClassNameElement = queryEl.addElement(IqElement.IMAGE_CLASS_NAME.toString());
         imageClassNameElement.setText(image.getClass().getName());
@@ -110,7 +108,7 @@ public class RemoteGetImageRequestTest {
     private IQ getImageIQResponseWithWrongClass(Image image) {
         IQ iqResponse = new IQ();
         Element queryEl = iqResponse.getElement()
-            .addElement(IqElement.QUERY.toString(), RemoteMethod.REMOTE_GET_IMAGE.toString());
+                .addElement(IqElement.QUERY.toString(), RemoteMethod.REMOTE_GET_IMAGE.toString());
         Element imageElement = queryEl.addElement(IqElement.IMAGE.toString());
         Element imageClassNameElement = queryEl.addElement(IqElement.IMAGE_CLASS_NAME.toString());
         imageClassNameElement.setText("wrong-class-name");

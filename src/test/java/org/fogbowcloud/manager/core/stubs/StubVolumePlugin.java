@@ -13,8 +13,9 @@ import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
  */
 public class StubVolumePlugin implements VolumePlugin<Token> {
 
-    public StubVolumePlugin() {}
-    
+    public StubVolumePlugin() {
+    }
+
     @Override
     public String requestInstance(VolumeOrder volumeOrder, Token token)
             throws FogbowManagerException, UnexpectedException {

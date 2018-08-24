@@ -4,6 +4,13 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import com.google.common.io.CharStreams;
+import org.apache.commons.codec.binary.Base64;
+
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
@@ -11,18 +18,12 @@ import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.util.Properties;
 import java.util.Set;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import org.apache.commons.codec.binary.Base64;
 
 /**
  * Build a <a href="https://help.ubuntu.com/community/CloudInit">CloudInit</a> UserData file.
- *
+ * <p>
  * <p>Sample:
- *
+ * <p>
  * <pre>
  * <code>
  * // base64 encoded user data
@@ -42,20 +43,22 @@ import org.apache.commons.codec.binary.Base64;
  * RunInstancesResult runInstances = ec2.runInstances(runInstancesRequest);
  * </code>
  * </pre>
- *
+ * <p>
  * <p>Inspired by ubuntu-on-ec2 cloud-util <a href=
  * "http://bazaar.launchpad.net/~ubuntu-on-ec2/ubuntu-on-ec2/cloud-utils/view/head:/write-mime-multipart"
  * >write-mime-multipart</a> python script.
  *
+ * @author <a href="mailto:cyrille@cyrilleleclerc.com">Cyrille Le Clerc</a>
  * @see com.amazonaws.services.ec2.model.RunInstancesRequest#withUserData(String)
  * @see com.amazonaws.services.ec2.AmazonEC2.runInstances(RunInstancesRequest)
- * @author <a href="mailto:cyrille@cyrilleleclerc.com">Cyrille Le Clerc</a>
  */
 public class CloudInitUserDataBuilder {
 
     private int userDataCounter = 1;
 
-    /** File types supported by CloudInit */
+    /**
+     * File types supported by CloudInit
+     */
     public enum FileType {
         /**
          * This content is "boothook" data. It is stored in a file under /var/lib/cloud and then
@@ -68,7 +71,7 @@ public class CloudInitUserDataBuilder {
         /**
          * This content is "cloud-config" data. See the examples for a commented example of
          * supported config formats.
-         *
+         * <p>
          * <p>Example: <a href=
          * "http://bazaar.launchpad.net/~cloud-init-dev/cloud-init/trunk/view/head:/doc/examples/cloud-config.txt"
          * >cloud-config.txt</a>
@@ -78,7 +81,7 @@ public class CloudInitUserDataBuilder {
          * This content is a "include" file. The file contains a list of urls, one per line. Each of
          * the URLs will be read, and their content will be passed through this same set of rules.
          * Ie, the content read from the URL can be gzipped, mime-multi-part, or plain text
-         *
+         * <p>
          * <p>Example: <a href=
          * "http://bazaar.launchpad.net/~cloud-init-dev/cloud-init/trunk/view/head:/doc/examples/include.txt"
          * >include.txt</a>
@@ -89,7 +92,7 @@ public class CloudInitUserDataBuilder {
          * its filename. This must be python code that contains a list_types method and a
          * handle_type method. Once the section is read the 'list_types' method will be called. It
          * must return a list of mime-types that this part-handler handlers.
-         *
+         * <p>
          * <p>Example: <a href=
          * "http://bazaar.launchpad.net/~cloud-init-dev/cloud-init/trunk/view/head:/doc/examples/part-handler.txt"
          * >part-handler.txt</a>
@@ -98,7 +101,7 @@ public class CloudInitUserDataBuilder {
         /**
          * Script will be executed at "rc.localidentity-like" level during first boot. rc.localidentity-like means
          * "very late in the boot sequence"
-         *
+         * <p>
          * <p>Example: <a href=
          * "http://bazaar.launchpad.net/~cloud-init-dev/cloud-init/trunk/view/head:/doc/examples/user-script.txt"
          * >user-script.txt</a>
@@ -107,16 +110,20 @@ public class CloudInitUserDataBuilder {
         /**
          * Content is placed into a file in /etc/init, and will be consumed by upstart as any other
          * upstart job.
-         *
+         * <p>
          * <p>Example: <a href=
          * "http://bazaar.launchpad.net/~cloud-init-dev/cloud-init/trunk/view/head:/doc/examples/upstart-rclocal.txt"
          * >upstart-rclocal.txt</a>
          */
         UPSTART_JOB("text/upstart-job", "cloudinit-upstart-job.txt");
 
-        /** Name of the file. */
+        /**
+         * Name of the file.
+         */
         private final String fileName;
-        /** Mime Type of the file. */
+        /**
+         * Mime Type of the file.
+         */
         private final String mimeType;
 
         private FileType(String mimeType, String fileName) {
@@ -124,17 +131,23 @@ public class CloudInitUserDataBuilder {
             this.fileName = Preconditions.checkNotNull(fileName);
         }
 
-        /** @return name of the file */
+        /**
+         * @return name of the file
+         */
         public String getFileName() {
             return fileName;
         }
 
-        /** e.g. "cloud-config" for "text/cloud-config" */
+        /**
+         * e.g. "cloud-config" for "text/cloud-config"
+         */
         public String getMimeTextSubType() {
             return getMimeType().substring("text/".length());
         }
 
-        /** e.g. "text/cloud-config" */
+        /**
+         * e.g. "text/cloud-config"
+         */
         public String getMimeType() {
             return mimeType;
         }
@@ -145,7 +158,9 @@ public class CloudInitUserDataBuilder {
         }
     }
 
-    /** Initiates a new instance of the builder with the "UTF-8" charset. */
+    /**
+     * Initiates a new instance of the builder with the "UTF-8" charset.
+     */
     public static CloudInitUserDataBuilder start() {
         return new CloudInitUserDataBuilder(Charsets.UTF_8);
     }
@@ -159,16 +174,24 @@ public class CloudInitUserDataBuilder {
         return new CloudInitUserDataBuilder(Charset.forName(charset));
     }
 
-    /** File types already added because cloud-init only supports one file of each type. */
+    /**
+     * File types already added because cloud-init only supports one file of each type.
+     */
     private final Set<FileType> alreadyAddedFileTypes = Sets.newHashSet();
 
-    /** Charset used to generate the mime message. */
+    /**
+     * Charset used to generate the mime message.
+     */
     private final Charset charset;
 
-    /** Mime message under creation */
+    /**
+     * Mime message under creation
+     */
     private final MimeMessage userDataMimeMessage;
 
-    /** Mime message's content under creation */
+    /**
+     * Mime message's content under creation
+     */
     private final MimeMultipart userDataMultipart;
 
     private CloudInitUserDataBuilder(Charset charset) {
@@ -186,11 +209,11 @@ public class CloudInitUserDataBuilder {
     /**
      * Add a boot-hook file.
      *
-     * @see FileType#CLOUD_BOOTHOOK
      * @param bootHook
      * @return the builder
      * @throws IllegalArgumentException a boot-hook file was already added to this cloud-init mime
-     *     message.
+     *                                  message.
+     * @see FileType#CLOUD_BOOTHOOK
      */
     public CloudInitUserDataBuilder addBootHook(Readable bootHook) {
         return addFile(FileType.CLOUD_BOOTHOOK, bootHook);
@@ -199,11 +222,11 @@ public class CloudInitUserDataBuilder {
     /**
      * Add a cloud-config file.
      *
-     * @see FileType#CLOUD_CONFIG
      * @param cloudConfig
      * @return the builder
      * @throws IllegalArgumentException a cloud-config file was already added to this cloud-init
-     *     mime message.
+     *                                  mime message.
+     * @see FileType#CLOUD_CONFIG
      */
     public CloudInitUserDataBuilder addCloudConfig(Readable cloudConfig) {
         return addFile(FileType.CLOUD_CONFIG, cloudConfig);
@@ -212,11 +235,11 @@ public class CloudInitUserDataBuilder {
     /**
      * Add a cloud-config file.
      *
-     * @see FileType#CLOUD_CONFIG
      * @param cloudConfig
      * @return the builder
      * @throws IllegalArgumentException a cloud-config file was already added to this cloud-init
-     *     mime message.
+     *                                  mime message.
+     * @see FileType#CLOUD_CONFIG
      */
     public CloudInitUserDataBuilder addCloudConfig(String cloudConfig) {
         return addCloudConfig(new StringReader(cloudConfig));
@@ -226,10 +249,10 @@ public class CloudInitUserDataBuilder {
      * Add given file <code>in</code> to the cloud-init mime message.
      *
      * @param fileType
-     * @param in file to add as readable
+     * @param in       file to add as readable
      * @return the builder
      * @throws IllegalArgumentException the given <code>fileType</code> was already added to this
-     *     cloud-init mime message.
+     *                                  cloud-init mime message.
      */
     public CloudInitUserDataBuilder addFile(FileType fileType, Readable in)
             throws IllegalArgumentException {
@@ -258,11 +281,11 @@ public class CloudInitUserDataBuilder {
     /**
      * Add a include-url file.
      *
-     * @see FileType#INCLUDE_URL
      * @param includeUrl
      * @return the builder
      * @throws IllegalArgumentException a include-url file was already added to this cloud-init mime
-     *     message.
+     *                                  message.
+     * @see FileType#INCLUDE_URL
      */
     public CloudInitUserDataBuilder addIncludeUrl(Readable includeUrl) {
         return addFile(FileType.INCLUDE_URL, includeUrl);
@@ -271,11 +294,11 @@ public class CloudInitUserDataBuilder {
     /**
      * Add a include-url file.
      *
-     * @see FileType#INCLUDE_URL
      * @param includeUrl
      * @return the builder
      * @throws IllegalArgumentException a include-url file was already added to this cloud-init mime
-     *     message.
+     *                                  message.
+     * @see FileType#INCLUDE_URL
      */
     public CloudInitUserDataBuilder addIncludeUrl(String includeUrl) {
         return addIncludeUrl(new StringReader(includeUrl));
@@ -284,11 +307,11 @@ public class CloudInitUserDataBuilder {
     /**
      * Add a part-handler file.
      *
-     * @see FileType#PART_HANDLER
      * @param partHandler
      * @return the builder
      * @throws IllegalArgumentException a part-handler file was already added to this cloud-init
-     *     mime message.
+     *                                  mime message.
+     * @see FileType#PART_HANDLER
      */
     public CloudInitUserDataBuilder addPartHandler(Readable partHandler) {
         return addFile(FileType.PART_HANDLER, partHandler);
@@ -297,11 +320,11 @@ public class CloudInitUserDataBuilder {
     /**
      * Add a part-handler file.
      *
-     * @see FileType#PART_HANDLER
      * @param partHandler
      * @return the builder
      * @throws IllegalArgumentException a part-handler file was already added to this cloud-init
-     *     mime message.
+     *                                  mime message.
+     * @see FileType#PART_HANDLER
      */
     public CloudInitUserDataBuilder addPartHandler(String partHandler) {
         return addPartHandler(new StringReader(partHandler));
@@ -310,11 +333,11 @@ public class CloudInitUserDataBuilder {
     /**
      * Add a shell-script file.
      *
-     * @see FileType#SHELL_SCRIPT
      * @param shellScript
      * @return the builder
      * @throws IllegalArgumentException a shell-script file was already added to this cloud-init
-     *     mime message.
+     *                                  mime message.
+     * @see FileType#SHELL_SCRIPT
      */
     public CloudInitUserDataBuilder addShellScript(Readable shellScript) {
         return addFile(FileType.SHELL_SCRIPT, shellScript);
@@ -323,11 +346,11 @@ public class CloudInitUserDataBuilder {
     /**
      * Add a shell-script file.
      *
-     * @see FileType#SHELL_SCRIPT
      * @param shellScript
      * @return the builder
      * @throws IllegalArgumentException a shell-script file was already added to this cloud-init
-     *     mime message.
+     *                                  mime message.
+     * @see FileType#SHELL_SCRIPT
      */
     public CloudInitUserDataBuilder addShellScript(String shellScript) {
         return addShellScript(new StringReader(shellScript));
@@ -336,11 +359,11 @@ public class CloudInitUserDataBuilder {
     /**
      * Add a upstart-job file.
      *
-     * @see FileType#UPSTART_JOB
      * @param shellScript
      * @return the builder
      * @throws IllegalArgumentException a upstart-job file was already added to this cloud-init mime
-     *     message.
+     *                                  message.
+     * @see FileType#UPSTART_JOB
      */
     public CloudInitUserDataBuilder addUpstartJob(Readable in) {
         return addFile(FileType.UPSTART_JOB, in);
@@ -349,11 +372,11 @@ public class CloudInitUserDataBuilder {
     /**
      * Add a upstart-job file.
      *
-     * @see FileType#UPSTART_JOB
      * @param shellScript
      * @return the builder
      * @throws IllegalArgumentException a upstart-job file was already added to this cloud-init mime
-     *     message.
+     *                                  message.
+     * @see FileType#UPSTART_JOB
      */
     public CloudInitUserDataBuilder addUpstartJob(String upstartJob) {
         return addUpstartJob(new StringReader(upstartJob));

@@ -2,18 +2,19 @@ package org.fogbowcloud.manager.core.plugins.cloud.openstack.network.v2;
 
 import com.google.gson.annotations.SerializedName;
 import org.fogbowcloud.manager.util.GsonHolder;
-import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRestApiConstants.Network.*;
+
+import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRestApiConstants.Network.ID_KEY_JSON;
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/network/v2/
- *
+ * <p>
  * Response Example:
  * {
- *   "network":{
- *     "id": "4e8e5957-649f-477b-9e5b-f1f75b21c03c"
- *   }
+ * "network":{
+ * "id": "4e8e5957-649f-477b-9e5b-f1f75b21c03c"
  * }
- *
+ * }
+ * <p>
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class CreateNetworkResponse {

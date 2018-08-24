@@ -1,17 +1,13 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack.volume.v2;
 
-import java.util.Properties;
-
 import org.apache.http.client.HttpResponseException;
-import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
-import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.models.tokens.OpenStackV3Token;
-import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenStackStateMapper;
+import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRestApiConstants;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONException;
@@ -21,7 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import com.google.gson.JsonObject;
+import java.util.Properties;
 
 public class OpenStackV2VolumePluginTest {
 
@@ -129,7 +125,7 @@ public class OpenStackV2VolumePluginTest {
     }
 
     // test case: Deleting an instance without a project ID must raise FogbowManagerException.
-    @Test(expected=FogbowManagerException.class)
+    @Test(expected = FogbowManagerException.class)
     public void testRemoveInstanceWithoutProjectId() throws Exception {
         // set up
         this.openStackV3Token.setProjectId(null);

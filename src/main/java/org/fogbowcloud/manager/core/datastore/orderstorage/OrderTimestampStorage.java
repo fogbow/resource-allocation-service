@@ -5,11 +5,8 @@ import org.fogbowcloud.manager.core.datastore.commands.TimestampSQLCommands;
 import org.fogbowcloud.manager.core.models.orders.Order;
 
 import java.sql.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * This class is used to store the time when the order change its state.
@@ -79,43 +76,43 @@ public class OrderTimestampStorage extends OrderStorage {
 
     // Used for tests. Returns a map of found order and the list of states
     protected Map<String, List<String>> selectOrderById(String orderId) throws SQLException {
-    	PreparedStatement selectMemberStatement = null;
+        PreparedStatement selectMemberStatement = null;
 
-		Connection connection = null;
+        Connection connection = null;
 
-		Map<String, List<String>> listOfOrders = new HashMap<>();
-		listOfOrders.put(orderId, new ArrayList<>());
-		try {
-			connection = getConnection();
-			connection.setAutoCommit(false);
+        Map<String, List<String>> listOfOrders = new HashMap<>();
+        listOfOrders.put(orderId, new ArrayList<>());
+        try {
+            connection = getConnection();
+            connection.setAutoCommit(false);
 
-			selectMemberStatement = connection
-					.prepareStatement(TimestampSQLCommands.SELECT_TIMESTAMP_BY_ORDER_ID_SQL);
+            selectMemberStatement = connection
+                    .prepareStatement(TimestampSQLCommands.SELECT_TIMESTAMP_BY_ORDER_ID_SQL);
 
-			selectMemberStatement.setString(1, orderId);
+            selectMemberStatement.setString(1, orderId);
 
-			ResultSet rs = selectMemberStatement.executeQuery();
-			while (rs.next()) {
-				String state = rs.getString("order_state");
-				listOfOrders.get(orderId).add(state);
-			}
+            ResultSet rs = selectMemberStatement.executeQuery();
+            while (rs.next()) {
+                String state = rs.getString("order_state");
+                listOfOrders.get(orderId).add(state);
+            }
 
-			connection.commit();
+            connection.commit();
 
-		} catch (SQLException e) {
-			try {
-				if (connection != null) {
-					connection.rollback();
-				}
-			} catch (SQLException e1) {
-				e1.printStackTrace();
-				System.out.println("Couldn't rollback transaction.");
-			}
+        } catch (SQLException e) {
+            try {
+                if (connection != null) {
+                    connection.rollback();
+                }
+            } catch (SQLException e1) {
+                e1.printStackTrace();
+                System.out.println("Couldn't rollback transaction.");
+            }
 
-		} finally {
-			closeConnection(selectMemberStatement, connection);
-		}
+        } finally {
+            closeConnection(selectMemberStatement, connection);
+        }
 
-		return listOfOrders;
+        return listOfOrders;
     }
 }

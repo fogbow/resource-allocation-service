@@ -1,15 +1,16 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 
+import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
-import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.xmpp.packet.IQ;
-import com.google.gson.Gson;
+
 import java.util.HashMap;
 
 public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, String>> {

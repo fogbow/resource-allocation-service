@@ -6,7 +6,8 @@ public class GsonHolder {
 
     private static Gson gson;
 
-    private GsonHolder() {}
+    private GsonHolder() {
+    }
 
     public static synchronized Gson getInstance() {
         if (gson == null) {

@@ -1,67 +1,65 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack.volume.v2;
 
-import org.fogbowcloud.manager.util.GsonHolder;
-
 import com.google.gson.annotations.SerializedName;
+import org.fogbowcloud.manager.util.GsonHolder;
 
 import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRestApiConstants.Volume.*;
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/block-storage/v2/
- * 
- * Response example: 
+ * <p>
+ * Response example:
  * {
- *   "volume": {
- *     "status": "creating",
- *     "name": "test-volume-attachments",
- *     "id": "6edbc2f4-1507-44f8-ac0d-eed1d2608d38",
- *     "size": 2
- *   }
+ * "volume": {
+ * "status": "creating",
+ * "name": "test-volume-attachments",
+ * "id": "6edbc2f4-1507-44f8-ac0d-eed1d2608d38",
+ * "size": 2
  * }
- * 
+ * }
  */
 public class GetVolumeResponse {
 
-	@SerializedName(VOLUME_KEY_JSON)
-	private Volume volume;
-	
-	public Volume getVolume() {
-		return this.volume;
-	}
-	
-	public String getId() {
-		return volume.id;
-	}
+    @SerializedName(VOLUME_KEY_JSON)
+    private Volume volume;
 
-	public static GetVolumeResponse fromJson(String json) {
-		return GsonHolder.getInstance().fromJson(json, GetVolumeResponse.class);
-	}
+    public Volume getVolume() {
+        return this.volume;
+    }
 
-	public String getName() {
-		return volume.name;
-	}
+    public String getId() {
+        return volume.id;
+    }
 
-	public Integer getSize() {
-		return volume.size;
-	}
+    public static GetVolumeResponse fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, GetVolumeResponse.class);
+    }
 
-	public String getStatus() {
-		return volume.status;
-	}
+    public String getName() {
+        return volume.name;
+    }
 
-	public class Volume {
+    public Integer getSize() {
+        return volume.size;
+    }
 
-		@SerializedName(ID_KEY_JSON)
-		private String id;
+    public String getStatus() {
+        return volume.status;
+    }
 
-		@SerializedName(NAME_KEY_JSON)
-		private String name;
+    public class Volume {
 
-		@SerializedName(SIZE_KEY_JSON)
-		private Integer size;
+        @SerializedName(ID_KEY_JSON)
+        private String id;
 
-		@SerializedName(STATUS_KEY_JSON)
-		private String status;
+        @SerializedName(NAME_KEY_JSON)
+        private String name;
 
-	}
+        @SerializedName(SIZE_KEY_JSON)
+        private Integer size;
+
+        @SerializedName(STATUS_KEY_JSON)
+        private String status;
+
+    }
 }

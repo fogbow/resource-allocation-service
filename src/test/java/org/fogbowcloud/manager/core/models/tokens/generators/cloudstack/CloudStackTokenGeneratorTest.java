@@ -1,28 +1,25 @@
 package org.fogbowcloud.manager.core.models.tokens.generators.cloudstack;
 
-import java.util.HashMap;
-import java.util.Map;
-import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
-import org.fogbowcloud.manager.core.models.tokens.CloudStackToken;
-import org.fogbowcloud.manager.core.models.tokens.Token;
-import org.fogbowcloud.manager.core.models.tokens.generators.cloudstack.CloudStackTokenGenerator;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class CloudStackTokenGeneratorTest {
 
     private static final String VALID_TOKEN_VALUE = "api:key";
-    
+
     private CloudStackTokenGenerator cloudStackTokenGenerator;
-    
+
     @Before
     public void setUp() throws Exception {
         this.cloudStackTokenGenerator = Mockito.spy(new CloudStackTokenGenerator());
     }
-    
+
     @Test
     public void testCreateToken() throws FogbowManagerException {
         Map<String, String> tokenAttributes = new HashMap<String, String>();

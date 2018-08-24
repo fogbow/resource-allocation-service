@@ -7,25 +7,25 @@ import java.util.List;
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/compute/
- *
+ * <p>
  * Response Example:
  * {
- *   "flavors":[
- *     {
- *       "id":"1"
- *     },
- *     {
- *       "id":"2"
- *     },
- *     {
- *       "id":"3"
- *     },
- *     {
- *       "id":"4"
- *     }
- *   ]
+ * "flavors":[
+ * {
+ * "id":"1"
+ * },
+ * {
+ * "id":"2"
+ * },
+ * {
+ * "id":"3"
+ * },
+ * {
+ * "id":"4"
  * }
- *
+ * ]
+ * }
+ * <p>
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class GetAllFlavorsResponse {

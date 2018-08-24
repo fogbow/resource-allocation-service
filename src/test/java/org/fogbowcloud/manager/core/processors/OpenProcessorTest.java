@@ -1,14 +1,6 @@
 package org.fogbowcloud.manager.core.processors;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.when;
 import org.fogbowcloud.manager.core.BaseUnitTests;
-import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.OrderStateTransitioner;
 import org.fogbowcloud.manager.core.SharedOrderHolders;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnector;
@@ -30,6 +22,11 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import static org.junit.Assert.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.when;
+
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(CloudConnectorFactory.class)
 public class OpenProcessorTest extends BaseUnitTests {
@@ -37,7 +34,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     private OpenProcessor openProcessor;
     private Thread thread;
     private CloudConnector cloudConnector;
-    
+
     @Before
     public void setUp() throws UnexpectedException {
         mockReadOrdersFromDataBase();
@@ -64,12 +61,12 @@ public class OpenProcessorTest extends BaseUnitTests {
         }
         super.tearDown();
     }
-    
+
     //test case: test if the open processor is setting to spawning an open order when the request
     //instance method of instance provider returns an instance.
     @Test
     public void testProcessOpenLocalOrder() throws Exception {
-    	//set up
+        //set up
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
         OrderStateTransitioner.activateOrder(localOrder);
@@ -82,9 +79,9 @@ public class OpenProcessorTest extends BaseUnitTests {
         //exercise
         this.thread = new Thread(this.openProcessor);
         this.thread.start();
-        
+
         Thread.sleep(500);
-        
+
         //verify
         assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
 
@@ -101,7 +98,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     //method of instance provider returns a null instance.
     @Test
     public void testProcessOpenLocalOrderWithNullInstance() throws Exception {
-    	//set up
+        //set up
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
         OrderStateTransitioner.activateOrder(localOrder);
@@ -113,9 +110,9 @@ public class OpenProcessorTest extends BaseUnitTests {
         //exercise
         this.thread = new Thread(this.openProcessor);
         this.thread.start();
-        
+
         Thread.sleep(500);
-        
+
         //verify
         assertEquals(OrderState.FAILED, localOrder.getOrderState());
 
@@ -132,7 +129,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     //method of instance provider throws an exception.
     @Test
     public void testProcessLocalOpenOrderRequestingException() throws Exception {
-    	//set up
+        //set up
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
         OrderStateTransitioner.activateOrder(localOrder);
@@ -140,13 +137,13 @@ public class OpenProcessorTest extends BaseUnitTests {
         Mockito.doThrow(new RuntimeException("Any Exception"))
                 .when(this.cloudConnector)
                 .requestInstance(Mockito.any(Order.class));
-        
+
         //exercise
         this.thread = new Thread(this.openProcessor);
         this.thread.start();
         Thread.sleep(500);
-        
-        
+
+
         //verify
         assertEquals(OrderState.FAILED, localOrder.getOrderState());
 
@@ -163,20 +160,20 @@ public class OpenProcessorTest extends BaseUnitTests {
     @Test
     public void testProcessOpenRemoteOrder() throws Exception {
         //set up
-    	Order remoteOrder = this.createRemoteOrder(getLocalMemberId());
+        Order remoteOrder = this.createRemoteOrder(getLocalMemberId());
 
         OrderStateTransitioner.activateOrder(remoteOrder);
 
         Mockito.doReturn(null)
                 .when(this.cloudConnector)
                 .requestInstance(Mockito.any(Order.class));
-        
+
         //exercise
         this.thread = new Thread(this.openProcessor);
         this.thread.start();
-        
+
         Thread.sleep(500);
-        
+
         //verify
         assertEquals(OrderState.PENDING, remoteOrder.getOrderState());
 
@@ -193,7 +190,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     //method of intercomponent instance provider throws an exception.
     @Test
     public void testProcessRemoteOpenOrderRequestingException() throws Exception {
-    	//set up
+        //set up
         Order remoteOrder = this.createRemoteOrder(getLocalMemberId());
 
         OrderStateTransitioner.activateOrder(remoteOrder);
@@ -201,13 +198,13 @@ public class OpenProcessorTest extends BaseUnitTests {
         Mockito.doThrow(new RuntimeException("Any Exception"))
                 .when(this.cloudConnector)
                 .requestInstance(Mockito.any(Order.class));
-        
+
         //exercise
         this.thread = new Thread(this.openProcessor);
         this.thread.start();
 
-        Thread.sleep(500);        	
-        
+        Thread.sleep(500);
+
         //verify
         assertEquals(OrderState.FAILED, remoteOrder.getOrderState());
 
@@ -224,18 +221,18 @@ public class OpenProcessorTest extends BaseUnitTests {
     @Test
     public void testProcessNotOpenOrder() throws InterruptedException, UnexpectedException {
         //set up
-    	Order order = this.createLocalOrder(getLocalMemberId());
+        Order order = this.createLocalOrder(getLocalMemberId());
 
         OrderStateTransitioner.activateOrder(order);
 
         order.setOrderStateInTestMode(OrderState.PENDING);
-        
+
         //exercise
         this.thread = new Thread(this.openProcessor);
         this.thread.start();
 
         Thread.sleep(500);
-        
+
         //verify
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
@@ -246,7 +243,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     //test case: test if the open processor still running if it try to process a null order.
     @Test
     public void testRunProcessWithNullOpenOrder() throws InterruptedException {
-    	//verify
+        //verify
         this.thread = new Thread(this.openProcessor);
         this.thread.start();
 
@@ -257,7 +254,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     //processOpenOrder throws an exception.
     @Test
     public void testProcessOpenOrderThrowingAnException() throws Exception {
-    	//set up
+        //set up
         Order order = this.createLocalOrder(getLocalMemberId());
 
         OrderStateTransitioner.activateOrder(order);
@@ -265,13 +262,13 @@ public class OpenProcessorTest extends BaseUnitTests {
         Mockito.doThrow(Exception.class)
                 .when(this.openProcessor)
                 .processOpenOrder(Mockito.any(Order.class));
-        
+
         //exercise
         this.thread = new Thread(this.openProcessor);
         this.thread.start();
 
         Thread.sleep(500);
-        
+
         //verify
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
@@ -283,7 +280,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     //test case: this method tests a race condition when this class thread has the order operation priority.
     @Test
     public void testRaceConditionWithThisThreadPriority() throws Exception {
-    	//set up
+        //set up
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
         OrderStateTransitioner.activateOrder(localOrder);
@@ -292,7 +289,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         Mockito.doReturn(id)
                 .when(this.cloudConnector)
                 .requestInstance(Mockito.any(Order.class));
-        
+
         //exercise
         synchronized (localOrder) {
             this.thread = new Thread(this.openProcessor);
@@ -304,7 +301,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         }
 
         Thread.sleep(500);
-        
+
         //verify
         assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
     }
@@ -314,11 +311,11 @@ public class OpenProcessorTest extends BaseUnitTests {
     @Test
     public void testRaceConditionWithThisThreadPriorityAndNotOpenOrder()
             throws Exception {
-    	//set up
+        //set up
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
         OrderStateTransitioner.activateOrder(localOrder);
-        
+
         //exercise
         synchronized (localOrder) {
             this.thread = new Thread(this.openProcessor);
@@ -330,7 +327,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         }
 
         Thread.sleep(500);
-        
+
         //verify
         assertEquals(OrderState.CLOSED, localOrder.getOrderState());
     }
@@ -338,7 +335,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     //test case: this method tests a race condition when the attend open order thread has the order operation priority.
     @Test
     public void testRaceConditionWithOpenProcessorThreadPriority() throws Exception {
-    	//set up
+        //set up
         Order localOrder = this.createLocalOrder(getLocalMemberId());
 
         OrderStateTransitioner.activateOrder(localOrder);
@@ -366,7 +363,7 @@ public class OpenProcessorTest extends BaseUnitTests {
             assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
             localOrder.setOrderStateInTestMode(OrderState.OPEN);
         }
-        
+
         //verify
         assertEquals(OrderState.OPEN, localOrder.getOrderState());
     }

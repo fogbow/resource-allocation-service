@@ -1,15 +1,15 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp.requesters;
 
+import com.google.gson.Gson;
 import org.dom4j.Element;
 import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
-import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.RemoteMethod;
-import org.fogbowcloud.manager.core.models.orders.Order;
+import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
 import org.fogbowcloud.manager.core.models.instances.Instance;
+import org.fogbowcloud.manager.core.models.orders.Order;
 import org.xmpp.packet.IQ;
-import com.google.gson.Gson;
 
 public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
 
@@ -56,16 +56,16 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
 
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
         String instanceStr = queryElement.element(IqElement.INSTANCE.toString()).getText();
-        
+
         String instanceClassName = queryElement.element(IqElement.INSTANCE_CLASS_NAME.toString()).getText();
-        
+
         Instance instance = null;
-		try {
-			instance = (Instance) new Gson().fromJson(instanceStr, Class.forName(instanceClassName));
-		} catch (Exception e) {
-			throw new UnexpectedException(e.getMessage());
-		}
-        
+        try {
+            instance = (Instance) new Gson().fromJson(instanceStr, Class.forName(instanceClassName));
+        } catch (Exception e) {
+            throw new UnexpectedException(e.getMessage());
+        }
+
         return instance;
     }
 }

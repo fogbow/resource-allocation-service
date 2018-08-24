@@ -1,10 +1,5 @@
 package org.fogbowcloud.manager.core.plugins.cloud.cloudstack;
 
-import java.security.Key;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.Charsets;
 import org.apache.http.client.utils.URIBuilder;
@@ -13,10 +8,16 @@ import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.manager.core.models.tokens.generators.cloudstack.CloudStackTokenGenerator;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.Key;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+
 public class CloudStackUrlUtil {
 
     private static final Logger LOGGER = Logger.getLogger(CloudStackUrlUtil.class);
-    
+
     private static final String COMMAND = "command";
     private static final String JSON = "json";
     private static final String RESPONSE_FORMAT = "response";
@@ -26,10 +27,10 @@ public class CloudStackUrlUtil {
         String[] tokenValueSplit = tokenValue.split(CloudStackTokenGenerator.TOKEN_VALUE_SEPARATOR);
         String apiKey = tokenValueSplit[0];
         String secretKey = tokenValueSplit[1];
-        
+
         requestEndpoint.addParameter(CloudStackTokenGenerator.API_KEY, apiKey);
         requestEndpoint.addParameter(RESPONSE_FORMAT, JSON);
-        
+
         String query = null;
         try {
             query = requestEndpoint.toString().substring(
@@ -55,7 +56,7 @@ public class CloudStackUrlUtil {
             orderedQuery.append(queryPartEntry.getKey()).append("=")
                     .append(queryPartEntry.getValue());
         }
-        
+
         try {
             Mac mac = Mac.getInstance("HmacSHA1");
             byte[] secretKeyBytes = secretKey.getBytes(Charsets.UTF_8);
@@ -63,7 +64,7 @@ public class CloudStackUrlUtil {
             mac.init(key);
             String signature = Base64.encodeBase64String(
                     mac.doFinal(orderedQuery.toString().getBytes(Charsets.UTF_8)));
-            
+
             requestEndpoint.addParameter(SIGNATURE, signature);
         } catch (Exception e) {
             LOGGER.warn("Couldn't generate signature.", e);

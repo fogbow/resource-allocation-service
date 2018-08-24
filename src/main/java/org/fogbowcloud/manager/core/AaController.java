@@ -1,14 +1,14 @@
 package org.fogbowcloud.manager.core;
 
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.constants.Operation;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.manager.core.models.tokens.TokenGeneratorPlugin;
-import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.authentication.AuthenticationPlugin;
+import org.fogbowcloud.manager.core.plugins.behavior.authorization.AuthorizationPlugin;
 import org.fogbowcloud.manager.core.plugins.behavior.identity.FederationIdentityPlugin;
 
 import java.util.Map;
@@ -57,7 +57,7 @@ public class AaController {
     }
 
     public void remoteAuthenticateAndAuthorize(FederationUserToken federationUserToken, Operation operation,
-                                                ResourceType type, String memberId) throws FogbowManagerException {
+                                               ResourceType type, String memberId) throws FogbowManagerException {
         if (!memberId.equals(this.localMemberIdentity)) {
             throw new InstanceNotFoundException("This is not the correct providing member");
         } else {
@@ -66,7 +66,7 @@ public class AaController {
     }
 
     public void remoteAuthenticateAndAuthorize(FederationUserToken federationUserToken, Operation operation,
-                                                ResourceType type, Order order) throws FogbowManagerException {
+                                               ResourceType type, Order order) throws FogbowManagerException {
         if (!order.getProvidingMember().equals(this.localMemberIdentity)) {
             throw new InstanceNotFoundException("This is not the correct providing member");
         } else {

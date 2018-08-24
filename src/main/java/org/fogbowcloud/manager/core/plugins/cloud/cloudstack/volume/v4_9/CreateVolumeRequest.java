@@ -10,7 +10,7 @@ public class CreateVolumeRequest extends CloudStackRequest {
     protected static final String VOLUME_NAME = "name";
     protected static final String DISK_OFFERING_ID = "diskofferingid";
     protected static final String VOLUME_SIZE = "size";
-    
+
     protected CreateVolumeRequest(Builder builder) throws InvalidParameterException {
         super();
         addParameter(ZONE_ID, builder.zoneId);
@@ -23,12 +23,12 @@ public class CreateVolumeRequest extends CloudStackRequest {
     public String getCommand() {
         return CREATE_VOLUME_COMMAND;
     }
-    
+
     @Override
     public String toString() {
         return super.toString();
     }
-    
+
     public static class Builder {
 
         private String zoneId;
@@ -45,21 +45,21 @@ public class CreateVolumeRequest extends CloudStackRequest {
             this.name = name;
             return this;
         }
-        
+
         public Builder diskOfferingId(String diskOfferingId) {
             this.diskOfferingId = diskOfferingId;
             return this;
         }
-        
+
         public Builder size(String size) {
             this.size = size;
             return this;
         }
-        
+
         public CreateVolumeRequest build() throws InvalidParameterException {
             return new CreateVolumeRequest(this);
         }
-        
+
     }
 
 }

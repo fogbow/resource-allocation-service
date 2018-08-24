@@ -1,7 +1,7 @@
 package org.fogbowcloud.manager.core.plugins.cloud.openstack;
 
-import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.ResourceType;
+import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.junit.Assert;
 import org.junit.Test;
 

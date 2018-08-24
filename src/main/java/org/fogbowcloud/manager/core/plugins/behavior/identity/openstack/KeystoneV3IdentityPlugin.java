@@ -9,7 +9,8 @@ import org.fogbowcloud.manager.core.plugins.behavior.identity.FederationIdentity
 public class KeystoneV3IdentityPlugin implements FederationIdentityPlugin<OpenStackV3Token> {
     private static final Logger LOGGER = Logger.getLogger(KeystoneV3IdentityPlugin.class);
 
-    public KeystoneV3IdentityPlugin() {}
+    public KeystoneV3IdentityPlugin() {
+    }
 
     @Override
     public OpenStackV3Token createToken(String tokenValue) throws InvalidParameterException {

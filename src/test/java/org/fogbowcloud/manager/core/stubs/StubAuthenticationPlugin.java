@@ -9,7 +9,8 @@ import org.fogbowcloud.manager.core.plugins.behavior.authentication.Authenticati
  */
 public class StubAuthenticationPlugin implements AuthenticationPlugin {
 
-    public StubAuthenticationPlugin() {}
+    public StubAuthenticationPlugin() {
+    }
 
     @Override
     public boolean isAuthentic(FederationUserToken federationToken) {

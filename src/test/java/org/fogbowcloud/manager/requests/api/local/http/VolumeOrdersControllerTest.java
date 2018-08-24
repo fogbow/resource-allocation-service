@@ -1,7 +1,5 @@
 package org.fogbowcloud.manager.requests.api.local.http;
 
-import static org.mockito.Mockito.times;
-
 import com.google.gson.Gson;
 import org.fogbowcloud.manager.api.http.VolumeOrdersController;
 import org.fogbowcloud.manager.core.ApplicationFacade;
@@ -28,6 +26,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
+import static org.mockito.Mockito.times;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
@@ -106,7 +106,7 @@ public class VolumeOrdersControllerTest {
 
         MvcResult result = this.mockMvc
                 .perform(MockMvcRequestBuilders.get(VOLUME_END_POINT + "/" + volumeId)
-                .headers(headers).contentType(MediaType.APPLICATION_JSON))
+                        .headers(headers).contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
         int expectedStatus = HttpStatus.OK.value();
@@ -140,7 +140,7 @@ public class VolumeOrdersControllerTest {
 
         MvcResult result = this.mockMvc
                 .perform(MockMvcRequestBuilders.delete(VOLUME_END_POINT + "/" + volumeId)
-                .headers(headers).contentType(MediaType.APPLICATION_JSON))
+                        .headers(headers).contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
         int expectedStatus = HttpStatus.OK.value();
@@ -155,7 +155,7 @@ public class VolumeOrdersControllerTest {
         HttpHeaders headers = new HttpHeaders();
         headers.set(VolumeOrdersController.FEDERATION_TOKEN_VALUE_HEADER_KEY,
                 FAKE_FEDERATION_TOKEN_VALUE);
-        
+
         return headers;
     }
 
