@@ -15,6 +15,8 @@ import org.fogbowcloud.manager.core.plugins.cloud.ComputePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackHttpToFogbowManagerExceptionMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackStateMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackUrlUtil;
+import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.volume.v4_9.GetAllDiskOfferingsRequest;
+import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.volume.v4_9.GetAllDiskOfferingsResponse;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 
@@ -91,13 +93,14 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     }
 
     public String getServiceOfferingId(int vcpusRequirement, int memoryRequirement, CloudStackToken cloudStackToken)
-            throws NoAvailableResourcesException {
-        GetServiceOfferingsResponse serviceOfferingsResponse = getServiceOfferings(cloudStackToken);
-        List<GetServiceOfferingsResponse.ServiceOffering> serviceOfferings = serviceOfferingsResponse.getServiceOfferings();
+            throws FogbowManagerException {
+        GetAllServiceOfferingsResponse serviceOfferingsResponse = getServiceOfferings(cloudStackToken);
+        List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings = serviceOfferingsResponse.getServiceOfferings();
 
         if (serviceOfferings != null) {
-            for (GetServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferings) {
-                if (serviceOffering.getVcpus() >= vcpusRequirement && serviceOffering.getMemory() >= memoryRequirement) {
+            for (GetAllServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferings) {
+                if (serviceOffering.getCpuNumber() >= vcpusRequirement &&
+                        serviceOffering.getMemory() >= memoryRequirement) {
                     return serviceOffering.getId();
                 }
             }
@@ -108,20 +111,53 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         return null;
     }
 
-    public String getDiskOfferingId(int diskSize, CloudStackToken cloudStackToken) {
-        GetDiskOfferingsResponse serviceOfferingsResponse = getDiskOfferings(cloudStackToken);
-        List<GetServiceOfferingsResponse.ServiceOffering> serviceOfferings = serviceOfferingsResponse.getServiceOfferings();
+    public GetAllServiceOfferingsResponse getServiceOfferings(CloudStackToken cloudStackToken)
+            throws FogbowManagerException {
+        GetAllServiceOfferingsRequest request = new GetAllServiceOfferingsRequest().Builder().build();
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
 
-        if (serviceOfferings != null) {
-            for (GetServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferings) {
-                if (serviceOffering.getVcpus() >= requirements.get("vcpus") &&
-                        serviceOffering.getMemory() >= requirements.get("memory")) {
-                    return serviceOffering.getId();
+        String jsonResponse = null;
+        try {
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
+        } catch (HttpResponseException e) {
+            CloudStackHttpToFogbowManagerExceptionMapper.map(e);
+        }
+
+        GetAllServiceOfferingsResponse serviceOfferingsResponse = GetAllServiceOfferingsResponse.fromJson(jsonResponse);
+
+        return serviceOfferingsResponse;
+    }
+
+    public String getDiskOfferingId(int diskSize, CloudStackToken cloudStackToken) throws FogbowManagerException {
+        GetAllDiskOfferingsResponse diskOfferingsResponse = getDiskOfferings(cloudStackToken);
+        List<GetAllDiskOfferingsResponse.DiskOffering> diskOfferings = diskOfferingsResponse.getDiskOfferings();
+
+        if (diskOfferings != null) {
+            for (GetAllDiskOfferingsResponse.DiskOffering diskOffering : diskOfferings) {
+                if (diskOffering.getDiskSize() >= diskSize) {
+                    return diskOffering.getId();
                 }
             }
         }
 
         return null;
+    }
+
+    public GetAllDiskOfferingsResponse getDiskOfferings(CloudStackToken cloudStackToken)
+            throws FogbowManagerException {
+        GetAllDiskOfferingsRequest request = new GetAllDiskOfferingsRequest.Builder().build();
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
+
+        String jsonResponse = null;
+        try {
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
+        } catch (HttpResponseException e) {
+            CloudStackHttpToFogbowManagerExceptionMapper.map(e);
+        }
+
+        GetAllDiskOfferingsResponse diskOfferingsResponse = GetAllDiskOfferingsResponse.fromJson(jsonResponse);
+
+        return diskOfferingsResponse;
     }
 
     @Override
@@ -176,7 +212,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     @Override
     public void deleteInstance(String computeInstanceId, CloudStackToken cloudStackToken)
             throws FogbowManagerException, UnexpectedException {
-        DeleteInstanceRequest request = new DeleteInstanceRequest.Builder()
+        DestroyVirtualMachineRequest request = new DestroyVirtualMachineRequest.Builder()
                 .id(computeInstanceId)
                 .expunge(this.expungeOnDestroy)
                 .build();
