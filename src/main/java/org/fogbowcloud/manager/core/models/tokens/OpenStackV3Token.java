@@ -1,9 +1,20 @@
 package org.fogbowcloud.manager.core.models.tokens;
 
-public class OpenStackV3Token extends FederationUserToken {
+import javax.persistence.Column;
+import javax.persistence.Entity;
 
+@Entity
+public class OpenStackV3Token extends FederationUserToken {
+	
+	@Column
     private String projectId;
+	
+	@Column
     private String projectName;
+	
+	public OpenStackV3Token() {
+		
+	}
 
     public OpenStackV3Token(String tokenProvider, String tokenValue, String userId, String name, String projectId,
                             String projectName) {

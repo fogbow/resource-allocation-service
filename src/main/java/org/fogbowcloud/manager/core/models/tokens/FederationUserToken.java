@@ -1,18 +1,33 @@
 package org.fogbowcloud.manager.core.models.tokens;
 
-import javax.persistence.Embeddable;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 
-@Embeddable
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
 public class FederationUserToken extends Token {
+	
+	@Id
+	@Column
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	private long id;
 
     // An identification of the token provider
+	@Column
     private String tokenProvider;
 	
     // The userId must uniquely identify a user in the federation; two tokens issued to the same user must have the same userId.
-    private String userId;
+    @Column
+	private String userId;
     	
 	// This field is a human-friendly identification of the user, typically used by the CLI/GUI, but need not be unique.
-	private String userName;
+	@Column
+    private String userName;
 
     public FederationUserToken() {
     }

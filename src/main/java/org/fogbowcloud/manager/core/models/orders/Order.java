@@ -8,14 +8,16 @@ import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 
 import java.io.Serializable;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
-import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 @Entity
@@ -33,7 +35,8 @@ public abstract class Order implements Serializable{
 	@Enumerated(EnumType.STRING)
     private OrderState orderState;
 	
-	@Embedded
+	@JoinColumn
+	@OneToOne(cascade = CascadeType.ALL)
     private FederationUserToken federationUserToken;
 	
 	@Column
