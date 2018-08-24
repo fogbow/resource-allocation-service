@@ -11,6 +11,7 @@ public class DefaultConfigurationConstants {
     
     // CLOUD PLUGINS CONF FILES PATHS
     public static final String OPENSTACK_CONF_FILE_NAME = "openstack.conf";
+    public static final String CLOUDSTACK_CONF_FILE_NAME = "cloudstack.conf";
 
     // MANAGER CONF DEFAULTS
     public static final String OPEN_ORDERS_SLEEP_TIME =
