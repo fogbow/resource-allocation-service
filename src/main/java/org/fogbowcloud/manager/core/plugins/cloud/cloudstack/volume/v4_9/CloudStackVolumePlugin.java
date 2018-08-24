@@ -17,9 +17,9 @@ import org.fogbowcloud.manager.core.models.instances.VolumeInstance;
 import org.fogbowcloud.manager.core.models.orders.VolumeOrder;
 import org.fogbowcloud.manager.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.manager.core.models.tokens.Token;
-import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackStateMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.VolumePlugin;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackHttpToFogbowManagerExceptionMapper;
+import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackStateMapper;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.volume.v4_9.GetAllDiskOfferingsResponse.DiskOffering;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.volume.v4_9.GetVolumeResponse.Volume;
@@ -45,7 +45,6 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken>{
 
         Properties properties = PropertiesUtil.readProperties(filePath);
         this.zoneId = properties.getProperty(CLOUDSTACK_ZONE_ID_KEY);
-        
         this.client = new HttpRequestClientUtil();
     }
     
@@ -212,41 +211,6 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken>{
                 .diskOfferingId(diskOfferingId)
                 .build();
     }
-    
-//    private List<VolumeInstance> getAllInstances(Token localUserAttributes)
-//            throws FogbowManagerException {
-//
-//        LOGGER.debug("Listing cloudstack volumes with this token value: "
-//                + localUserAttributes.getTokenValue());
-//
-//        GetVolumeRequest request = new GetVolumeRequest.Builder().build();
-//        
-//        CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
-//
-//        String jsonResponse = null;
-//        try {
-//            jsonResponse =
-//                    this.client.doGetRequest(request.getUriBuilder().toString(), localUserAttributes);
-//        } catch (HttpResponseException e) {
-//            CloudStackHttpToFogbowManagerExceptionMapper.map(e);
-//        }
-//
-//        GetVolumeResponse response = GetVolumeResponse.fromJson(jsonResponse);
-//
-//        List<VolumeInstance> volumeInstances = listInstances(response);
-//        return volumeInstances;
-//    }
-//
-//    private List<VolumeInstance> listInstances(GetVolumeResponse response) {
-//        List<VolumeInstance> volumeInstances = new LinkedList<VolumeInstance>();
-//        
-//        for (Volume volume : response.getVolumes()) {
-//            if (volume != null) {
-//                volumeInstances.add(loadInstance(volume));
-//            }
-//        }
-//        return volumeInstances;
-//    }
     
     private VolumeInstance loadInstance(Volume volume) {
         String id = volume.getId();
