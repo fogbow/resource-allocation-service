@@ -91,7 +91,10 @@ public class RecoveryServiceTest extends BaseUnitTests {
 	// Delete all orders in database
 	@After
 	public void deleteDB() {
-		orderRepository.deleteAll();
+		
+		for (Order order: orderRepository.findAll()) {
+			orderRepository.delete(order);
+		}
 	}
 	
 	// test case: All lists of orders must be empty

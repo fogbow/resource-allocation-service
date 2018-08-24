@@ -36,7 +36,7 @@ public abstract class Order implements Serializable{
     private OrderState orderState;
 	
 	@JoinColumn
-	@OneToOne(cascade = CascadeType.ALL)
+	@OneToOne(cascade = CascadeType.ALL, orphanRemoval=true)
     private FederationUserToken federationUserToken;
 	
 	@Column
