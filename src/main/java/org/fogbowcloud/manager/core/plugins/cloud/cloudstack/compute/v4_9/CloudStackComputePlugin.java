@@ -113,7 +113,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
 
     public GetAllServiceOfferingsResponse getServiceOfferings(CloudStackToken cloudStackToken)
             throws FogbowManagerException {
-        GetAllServiceOfferingsRequest request = new GetAllServiceOfferingsRequest().Builder().build();
+        GetAllServiceOfferingsRequest request = new GetAllServiceOfferingsRequest.Builder().build();
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
 
         String jsonResponse = null;
