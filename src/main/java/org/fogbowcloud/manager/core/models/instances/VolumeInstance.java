@@ -26,4 +26,9 @@ public class VolumeInstance extends Instance {
     public int getSize() {
         return this.size;
     }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+    
 }
