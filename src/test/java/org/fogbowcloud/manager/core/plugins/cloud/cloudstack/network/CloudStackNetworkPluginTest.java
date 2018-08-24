@@ -17,15 +17,14 @@ import org.fogbowcloud.manager.core.models.orders.NetworkOrder;
 import org.fogbowcloud.manager.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.manager.core.models.tokens.generators.cloudstack.CloudStackTokenGenerator;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackUrlUtil;
+import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackUrlMatcher;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatcher;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.powermock.api.mockito.PowerMockito;
@@ -34,7 +33,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.util.*;
-
 
 
 @RunWith(PowerMockRunner.class)
@@ -109,7 +107,7 @@ public class CloudStackNetworkPluginTest {
         expectedParams.put(NETMASK_KEY, subnetInfo.getNetmask());
         expectedParams.put(GATEWAY_KEY, FAKE_GATEWAY);
         expectedParams.put(DISPLAY_TEXT_KEY, FAKE_NAME);
-        UrlMatcher urlMatcher = new UrlMatcher(expectedParams, NAME_KEY, DISPLAY_TEXT_KEY);
+        CloudStackUrlMatcher urlMatcher = new CloudStackUrlMatcher(expectedParams, NAME_KEY, DISPLAY_TEXT_KEY);
 
         String successfulResponse = generateSuccessfulCreateNetworkResponse(FAKE_ID);
         Mockito.when(this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN))).thenReturn(successfulResponse);
@@ -282,51 +280,4 @@ public class CloudStackNetworkPluginTest {
         return properties.getProperty(CloudStackTokenGenerator.CLOUDSTACK_URL);
     }
 
-    private class UrlMatcher extends ArgumentMatcher<String> {
-
-        public static final String URL_SEPARATOR = "?";
-        public static final String PARAMS_SEPARATOR = "&";
-        public static final String EQUAL_SIGN = "=";
-
-        private Map<String, String> expectedParams;
-        private List<String> ignoredKeys;
-
-        public UrlMatcher(Map<String, String> expectedParams, String... ignoredKeys) {
-            this.expectedParams = expectedParams;
-            this.ignoredKeys = Arrays.asList(ignoredKeys);
-        }
-
-        @Override
-        public boolean matches(Object o) {
-            if (o instanceof String) {
-                String url = (String) o;
-                return compareWith(getUrlParams(url));
-            }
-
-            return false;
-        }
-
-        private boolean compareWith(Map<String, String> map) {
-            for (String key : this.expectedParams.keySet()) {
-                if (!this.ignoredKeys.contains(key) &&
-                        !this.expectedParams.get(key).equals(map.get(key))) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        private Map<String, String> getUrlParams(String url) {
-            String params = url.substring(url.indexOf(URL_SEPARATOR) + 1);
-            String[] keysAndValues = params.split(PARAMS_SEPARATOR);
-
-            Map<String, String> urlParams = new HashMap<>();
-            for (int i = 0; i < keysAndValues.length; i++) {
-                String[] keyAndValue = keysAndValues[i].split(EQUAL_SIGN);
-                urlParams.put(keyAndValue[0], keyAndValue[1]);
-            }
-            return urlParams;
-        }
-
-    }
 }
