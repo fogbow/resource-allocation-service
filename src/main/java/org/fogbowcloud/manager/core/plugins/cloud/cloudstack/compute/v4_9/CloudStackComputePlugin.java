@@ -17,7 +17,6 @@ import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackStateMapp
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.manager.util.PropertiesUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
-import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
 
 import java.io.File;
 import java.util.*;
@@ -29,25 +28,20 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     private static final String ZONE_ID_KEY = "zone_id";
     private static final String EXPUNGE_ON_DESTROY_KEY = "compute_cloudstack_expunge_on_destroy";
 
-    private Properties properties;
     private HttpRequestClientUtil client;
 
     private String zoneId;
     private String expungeOnDestroy;
 
     public CloudStackComputePlugin() throws FatalErrorException {
-        HomeDir homeDir = HomeDir.getInstance();
-        this.properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
-                + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME);
+        String cloudStackConfFilePath = HomeDir.getInstance().getPath() + File.separator
+                + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
+
+        Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
 
         this.zoneId = properties.getProperty(ZONE_ID_KEY);
         this.expungeOnDestroy = properties.getProperty(EXPUNGE_ON_DESTROY_KEY, "true");
 
-        initClient();
-    }
-
-    private void initClient() {
-        HttpRequestUtil.init();
         this.client = new HttpRequestClientUtil();
     }
 
@@ -73,7 +67,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
 
         // NOTE(pauloewerton): diskofferingid and hypervisor are required in case of ISO image. I haven't
         // found any clue pointing that ISO images were being used in mono though.
-        DeployComputeRequest request = new DeployComputeRequest.Builder()
+        DeployVirtualMachineRequest request = new DeployVirtualMachineRequest.Builder()
                 .serviceOfferingId(serviceOfferingId)
                 .templateId(templateId)
                 .zoneId(this.zoneId)
@@ -91,7 +85,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
             CloudStackHttpToFogbowManagerExceptionMapper.map(e);
         }
 
-        DeployComputeResponse response = DeployComputeResponse.fromJson(jsonResponse);
+        DeployVirtualMachineResponse response = DeployVirtualMachineResponse.fromJson(jsonResponse);
 
         return response.getId();
     }
@@ -133,7 +127,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     @Override
     public ComputeInstance getInstance(String computeInstanceId, CloudStackToken cloudStackToken)
             throws FogbowManagerException {
-        GetComputeRequest request = new GetComputeRequest.Builder()
+        GetVirtualMachineRequest request = new GetVirtualMachineRequest.Builder()
                 .id(computeInstanceId)
                 .build();
 
@@ -146,8 +140,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
             CloudStackHttpToFogbowManagerExceptionMapper.map(e);
         }
 
-        GetComputeResponse computeResponse = GetComputeResponse.fromJson(jsonResponse);
-        List<GetComputeResponse.VirtualMachine> vms = computeResponse.getVirtualMachines();
+        GetVirtualMachineResponse computeResponse = GetVirtualMachineResponse.fromJson(jsonResponse);
+        List<GetVirtualMachineResponse.VirtualMachine> vms = computeResponse.getVirtualMachines();
         if (vms != null) {
             return getComputeInstance(vms.get(0));
         } else {
@@ -155,7 +149,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         }
     }
 
-    private ComputeInstance getComputeInstance(GetComputeResponse.VirtualMachine vm) throws FogbowManagerException {
+    private ComputeInstance getComputeInstance(GetVirtualMachineResponse.VirtualMachine vm) throws FogbowManagerException {
         String instanceId = vm.getId();
         String hostName = vm.getName();
         int vcpusCount = vm.getCpuNumber();
@@ -166,7 +160,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         String cloudStackState = vm.getState();
         InstanceState fogbowState = CloudStackStateMapper.map(ResourceType.COMPUTE, cloudStackState);
 
-        GetComputeResponse.Nic[] addresses = vm.getNic();
+        GetVirtualMachineResponse.Nic[] addresses = vm.getNic();
         String address = "";
         if (addresses != null) {
             boolean firstAddressEmpty = addresses == null || addresses.length == 0 || addresses[0].getIpAddress() == null;
@@ -184,6 +178,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
             throws FogbowManagerException, UnexpectedException {
         DeleteInstanceRequest request = new DeleteInstanceRequest.Builder()
                 .id(computeInstanceId)
+                .expunge(this.expungeOnDestroy)
                 .build();
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());

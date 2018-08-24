@@ -3,9 +3,7 @@ package org.fogbowcloud.manager.core.plugins.cloud.cloudstack.compute.v4_9;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRequest;
 
-import java.util.List;
-
-public class DeployComputeRequest extends CloudStackRequest {
+public class DeployVirtualMachineRequest extends CloudStackRequest {
 
     public static final String DEPLOY_VM_COMMAND = "deployVirtualMachine";
     public static final String SERVICE_OFFERING_ID_KEY = "serviceofferingid";
@@ -15,7 +13,7 @@ public class DeployComputeRequest extends CloudStackRequest {
     public static final String USER_DATA = "userdata";
     public static final String NETWORKS_ID = "networksid";
 
-    private DeployComputeRequest(Builder builder) throws InvalidParameterException {
+    private DeployVirtualMachineRequest(Builder builder) throws InvalidParameterException {
         addParameter(SERVICE_OFFERING_ID_KEY, builder.serviceOfferingId);
         addParameter(TEMPLATE_ID_KEY, builder.templateId);
         addParameter(ZONE_ID_KEY, builder.zoneId);
@@ -73,8 +71,8 @@ public class DeployComputeRequest extends CloudStackRequest {
             return this;
         }
 
-        public DeployComputeRequest build() throws InvalidParameterException {
-            return new DeployComputeRequest(this);
+        public DeployVirtualMachineRequest build() throws InvalidParameterException {
+            return new DeployVirtualMachineRequest(this);
         }
     }
 }

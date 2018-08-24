@@ -28,7 +28,7 @@ import static org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRe
  *  }
  * }
  */
-public class GetComputeResponse {
+public class GetVirtualMachineResponse {
 
     @SerializedName(VIRTUAL_MACHINES_KEY_JSON)
     private ListVirtualMachinesResponse virtualMachinesResponse;
@@ -98,12 +98,12 @@ public class GetComputeResponse {
         }
     }
 
-    public static GetComputeResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, GetComputeResponse.class);
+    public static GetVirtualMachineResponse fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, GetVirtualMachineResponse.class);
     }
 
     public static void main(String[] args) {
-        GetComputeResponse response = fromJson("{\"listvirtualmachines\":{}}");
+        GetVirtualMachineResponse response = fromJson("{\"listvirtualmachines\":{}}");
         response.getVirtualMachines();
     }
 

@@ -3,12 +3,12 @@ package org.fogbowcloud.manager.core.plugins.cloud.cloudstack.compute.v4_9;
 import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRequest;
 
-public class GetComputeRequest extends CloudStackRequest {
+public class GetVirtualMachineRequest extends CloudStackRequest {
 
     public static final String LIST_VMS_COMMAND = "listVirtualMachines";
     public static final String VIRTUAL_MACHINE_ID_KEY = "id";
 
-    private GetComputeRequest(Builder builder) throws InvalidParameterException {
+    private GetVirtualMachineRequest(Builder builder) throws InvalidParameterException {
         super();
         addParameter(VIRTUAL_MACHINE_ID_KEY, builder.id);
     }
@@ -32,8 +32,8 @@ public class GetComputeRequest extends CloudStackRequest {
             return this;
         }
 
-        public GetComputeRequest build() throws InvalidParameterException {
-            return new GetComputeRequest(this);
+        public GetVirtualMachineRequest build() throws InvalidParameterException {
+            return new GetVirtualMachineRequest(this);
         }
 
     }
