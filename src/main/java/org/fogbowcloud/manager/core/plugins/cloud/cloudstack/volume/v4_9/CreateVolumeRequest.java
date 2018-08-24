@@ -5,11 +5,11 @@ import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRequest;
 
 public class CreateVolumeRequest extends CloudStackRequest {
 
-    private static final String CREATE_VOLUME_COMMAND = "createVolume";
-    private static final String ZONE_ID = "zoneid";
-    private static final String VOLUME_NAME = "name";
-    private static final String DISK_OFFERING_ID = "diskofferingid";
-    private static final String VOLUME_SIZE = "size";
+    protected static final String CREATE_VOLUME_COMMAND = "createVolume";
+    protected static final String ZONE_ID = "zoneid";
+    protected static final String VOLUME_NAME = "name";
+    protected static final String DISK_OFFERING_ID = "diskofferingid";
+    protected static final String VOLUME_SIZE = "size";
     
     protected CreateVolumeRequest(Builder builder) throws InvalidParameterException {
         super();

@@ -5,7 +5,7 @@ import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRequest;
 
 public class GetAllDiskOfferingsRequest extends CloudStackRequest {
 
-    private static final String DISK_OFFERINGS_COMMAND = "listDiskOfferings";
+    protected static final String LIST_DISK_OFFERINGS_COMMAND = "listDiskOfferings";
     
     protected GetAllDiskOfferingsRequest(Builder builder) throws InvalidParameterException {
         super();
@@ -13,7 +13,7 @@ public class GetAllDiskOfferingsRequest extends CloudStackRequest {
 
     @Override
     public String getCommand() {
-        return DISK_OFFERINGS_COMMAND;
+        return LIST_DISK_OFFERINGS_COMMAND;
     }
 
     @Override

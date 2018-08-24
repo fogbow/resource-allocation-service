@@ -35,9 +35,9 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken>{
     private static final int FIRST_ELEMENT_POSITION = 0;
 
     private HttpRequestClientUtil client;
+    private boolean diskOfferingCompatible;
     private String zoneId;
-    private boolean diskOfferingCustomized;
-    
+
     public CloudStackVolumePlugin() {
         HomeDir homeDir = HomeDir.getInstance();
         String filePath = homeDir.getPath() + File.separator
@@ -56,7 +56,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken>{
         String diskOfferingId = getDiskOfferingId(volumeOrder, localUserAttributes);
 
         CreateVolumeRequest request;
-        if (!isDiskOfferingCustomized()) {
+        if (isDiskOfferingCompatible()) {
             request = createVolumeCompatible(volumeOrder, diskOfferingId);
         } else {
             request = createVolumeCustomized(volumeOrder, diskOfferingId);
@@ -98,7 +98,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken>{
         GetVolumeResponse response = GetVolumeResponse.fromJson(jsonResponse);
         List<GetVolumeResponse.Volume> volumes = response.getVolumes();
         
-        if (volumes.size() > 0) {
+        if (volumes != null && volumes.size() > 0) {
             // since an id were specified, there should be no more than one volume in the response
             return loadInstance(volumes.get(FIRST_ELEMENT_POSITION));
         } else {
@@ -151,11 +151,10 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken>{
 
         String diskOfferingId = getDiskOfferingIdCompatible(volumeSize, jsonResponse);
         
-        if (diskOfferingId != null) {
-            this.diskOfferingCustomized = false;
-        } else {
+        if (!isDiskOfferingCompatible()) {
             diskOfferingId = getDiskOfferingIdCustomized(volumeSize, jsonResponse);
         }
+
         return diskOfferingId;
     }
     
@@ -167,7 +166,6 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken>{
             customized = diskOffering.isCustomized();
             size = diskOffering.getDiskSize();
             if (customized && size == 0) {
-                this.diskOfferingCustomized = customized;
                 return diskOffering.getId();
             }
         }
@@ -181,10 +179,12 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken>{
         for (DiskOffering diskOffering : response.getDiskOfferings()) {
             size = diskOffering.getDiskSize();
             if (size == volumeSize) {
+                this.diskOfferingCompatible = true;
                 return diskOffering.getId();
             }
         }
         LOGGER.debug("There is not compatible disk offering in cloudstack");
+        this.diskOfferingCompatible = false;
         return null;
     }
 
@@ -228,8 +228,12 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken>{
         this.client = client;
     }
 
-    protected boolean isDiskOfferingCustomized() {
-        return diskOfferingCustomized;
+    protected boolean isDiskOfferingCompatible() {
+        return diskOfferingCompatible;
+    }
+    
+    public String getZoneId() {
+        return this.zoneId;
     }
 
 }
