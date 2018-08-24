@@ -5,7 +5,7 @@ import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRequest;
 
 public class GetComputeRequest extends CloudStackRequest {
 
-    public static final String LIST_VMS_COMMAND = "listNetworks";
+    public static final String LIST_VMS_COMMAND = "listVirtualMachines";
     public static final String VIRTUAL_MACHINE_ID_KEY = "id";
 
     private GetComputeRequest(Builder builder) throws InvalidParameterException {
@@ -26,21 +26,9 @@ public class GetComputeRequest extends CloudStackRequest {
     public static class Builder {
 
         private String id;
-        private String endpoint;
-        private String command;
 
         public Builder id(String id) {
             this.id = id;
-            return this;
-        }
-
-        public Builder endpoint(String endpoint) {
-            this.endpoint = endpoint;
-            return this;
-        }
-
-        public Builder command(String command) {
-            this.command = command;
             return this;
         }
 
