@@ -69,7 +69,6 @@ public class CloudStackVolumePluginTest {
 
     @Before
     public void setUp() {
-        HomeDir.getInstance().setPath(TEST_PATH);
         PowerMockito.mockStatic(HttpRequestUtil.class);
 
         this.httpClient = Mockito.mock(HttpRequestClientUtil.class);
@@ -374,7 +373,7 @@ public class CloudStackVolumePluginTest {
     }
 
     private String getBaseEndpointFromCloudStackConf() {
-        String filePath = HomeDir.getInstance().getPath() + File.separator
+        String filePath = HomeDir.getPath() + File.separator
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
 
         Properties properties = PropertiesUtil.readProperties(filePath);

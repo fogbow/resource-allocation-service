@@ -39,8 +39,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken>{
     private String zoneId;
 
     public CloudStackVolumePlugin() {
-        HomeDir homeDir = HomeDir.getInstance();
-        String filePath = homeDir.getPath() + File.separator
+        String filePath = HomeDir.getPath() + File.separator
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
 
         Properties properties = PropertiesUtil.readProperties(filePath);

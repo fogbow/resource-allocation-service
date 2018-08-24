@@ -3,9 +3,6 @@ package org.fogbowcloud.manager.core.constants;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultConfigurationConstants {
-    // Default Working Directory
-    public static final String FOGBOW_HOME = "src/main/resources/private";
-
     // CONFIGURATION FILES PATHS
     public static final String MANAGER_CONF_FILE_NAME = "manager.conf";
     public static final String INTERCOMPONENT_CONF_FILE_NAME = "intercomponent.conf";

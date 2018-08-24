@@ -4,9 +4,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.fogbowcloud.manager.core.datastore.DatabaseManager;
-
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import org.fogbowcloud.manager.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
@@ -24,12 +22,13 @@ public class SharedOrderHolders {
     private SynchronizedDoublyLinkedList pendingOrders;
     private SynchronizedDoublyLinkedList closedOrders;
 
-    private SharedOrderHolders() {
-        DatabaseManager databaseManager = DatabaseManager.getInstance();
+    public SharedOrderHolders() {
+    	
+    	DatabaseManager databaseManager = DatabaseManager.getInstance();
 
         this.activeOrdersMap = new ConcurrentHashMap<>();
-
-        try {
+              
+    	try {
             this.openOrders = databaseManager.readActiveOrders(OrderState.OPEN);
             addOrdersToMap(this.openOrders, this.activeOrdersMap);
             this.spawningOrders = databaseManager.readActiveOrders(OrderState.SPAWNING);
@@ -42,10 +41,11 @@ public class SharedOrderHolders {
             addOrdersToMap(this.pendingOrders, this.activeOrdersMap);
             this.closedOrders = databaseManager.readActiveOrders(OrderState.CLOSED);
             addOrdersToMap(this.closedOrders, this.activeOrdersMap);
-        } catch (UnexpectedException e) {
+        } catch (Exception e) {
             throw new FatalErrorException(e.getMessage());
         }
     }
+   
 
     private void addOrdersToMap(SynchronizedDoublyLinkedList ordersList, Map<String, Order> activeOrdersMap) {
         Order order;

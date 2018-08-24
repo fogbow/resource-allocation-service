@@ -1,15 +1,9 @@
 package org.fogbowcloud.manager.core.datastore.orderstorage;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.PropertiesHolder;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
-import org.fogbowcloud.manager.core.models.orders.Order;
-
-import java.lang.reflect.Type;
 import java.sql.*;
-import java.util.Map;
 
 public class OrderStorage {
 
@@ -32,25 +26,6 @@ public class OrderStorage {
         } catch (ClassNotFoundException e) {
             LOGGER.error("Invalid datastore driver", e);
         }
-    }
-
-    /**
-     * Add all order attributes that are commom for all orders.
-     */
-    protected void addOverallOrderAttributes(PreparedStatement orderStatement, Order order) throws SQLException {
-        orderStatement.setString(1, order.getId());
-        orderStatement.setString(2, order.getInstanceId());
-        orderStatement.setString(3, order.getOrderState().name());
-        orderStatement.setString(4, order.getFederationUserToken().getUserId());
-        orderStatement.setString(5, order.getRequestingMember());
-        orderStatement.setString(6, order.getProvidingMember());
-    }
-
-    protected Map<String, String> getFederationUserAttrFromString(String jsonString) {
-        Gson gson = new Gson();
-        Type mapType = new TypeToken<Map<String, String>>(){}.getType();
-
-        return gson.fromJson(jsonString, mapType);
     }
 
     protected Connection getConnection() throws SQLException {

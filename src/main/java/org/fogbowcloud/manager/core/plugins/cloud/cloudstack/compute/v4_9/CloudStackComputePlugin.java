@@ -36,7 +36,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     private String expungeOnDestroy;
 
     public CloudStackComputePlugin() throws FatalErrorException {
-        String cloudStackConfFilePath = HomeDir.getInstance().getPath() + File.separator
+        String cloudStackConfFilePath = HomeDir.getPath() + File.separator
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
 
         Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);

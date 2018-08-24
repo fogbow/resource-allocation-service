@@ -14,11 +14,6 @@ import org.junit.Test;
 
 public class CloudStackComputePluginTest {
 
-    @Before
-    public void setUp() {
-        HomeDir.getInstance().setPath("src/test/resources/private");
-    }
-
     @Test
     public void getTestTemp() throws UnexpectedException, FogbowManagerException {
     }

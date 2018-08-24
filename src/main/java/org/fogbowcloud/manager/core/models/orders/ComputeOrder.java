@@ -9,16 +9,45 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Table;
+
+
+@Entity
+@Table(name = "compute_order_table")
 public class ComputeOrder extends Order {
+	
+	private static final long serialVersionUID = 1L;
+	
+	@Column
     private int vCPU;
+	
     /** Memory attribute, must be set in MB. */
+	@Column
     private int memory;
+	
     /** Disk attribute, must be set in GB. */
+	@Column
     private int disk;
+	
+	@Column
     private String imageId;
+	
+	@Embedded
     private UserData userData;
+	
+	@Column
     private String publicKey;
+
+	@Embedded
     private ComputeAllocation actualAllocation;
+	
+	@Column
+	@ElementCollection(fetch = FetchType.EAGER)
     private List<String> networksId;
 
     public ComputeOrder() {
@@ -37,6 +66,7 @@ public class ComputeOrder extends Order {
         this.userData = userData;
         this.publicKey = publicKey;
         this.networksId = networksId;
+        this.actualAllocation = new ComputeAllocation();
     }
 
     public ComputeOrder(FederationUserToken federationUserToken, String requestingMember, String providingMember,

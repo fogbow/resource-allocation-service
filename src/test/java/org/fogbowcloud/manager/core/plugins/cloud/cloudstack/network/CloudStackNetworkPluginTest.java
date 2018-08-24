@@ -67,7 +67,7 @@ public class CloudStackNetworkPluginTest {
     private HttpRequestClientUtil client;
 
     private void initializeProperties() {
-        String cloudStackConfFilePath = HomeDir.getInstance().getPath() + File.separator
+        String cloudStackConfFilePath = HomeDir.getPath() + File.separator
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
 
         Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
@@ -77,7 +77,6 @@ public class CloudStackNetworkPluginTest {
 
     @Before
     public void setUp() {
-        HomeDir.getInstance().setPath("src/test/resources/private");
         initializeProperties();
         // we dont want HttpRequestUtil code to be executed in this test
         PowerMockito.mockStatic(HttpRequestUtil.class);
@@ -273,7 +272,7 @@ public class CloudStackNetworkPluginTest {
     }
 
     private String getBaseEndpointFromCloudStackConf() {
-        String filePath = HomeDir.getInstance().getPath() + File.separator
+        String filePath = HomeDir.getPath() + File.separator
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
 
         Properties properties = PropertiesUtil.readProperties(filePath);

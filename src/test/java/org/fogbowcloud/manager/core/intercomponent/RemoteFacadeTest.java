@@ -47,7 +47,6 @@ public class RemoteFacadeTest extends BaseUnitTests {
 
     @Before
     public void setUp() throws UnexpectedException {
-        HomeDir.getInstance().setPath(TEST_PATH);
         super.mockReadOrdersFromDataBase();
 
         this.orderController = Mockito.spy(new OrderController());

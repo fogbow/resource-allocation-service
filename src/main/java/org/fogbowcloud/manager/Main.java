@@ -5,11 +5,13 @@ import org.fogbowcloud.manager.core.*;
 import org.fogbowcloud.manager.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.manager.core.constants.ConfigurationConstants;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.manager.core.datastore.DatabaseManager;
+import org.fogbowcloud.manager.core.datastore.orderstorage.RecoveryService;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 import org.fogbowcloud.manager.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.manager.core.intercomponent.xmpp.XmppComponentManager;
-import org.fogbowcloud.manager.core.PluginInstantiator;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -18,11 +20,16 @@ import org.xmpp.component.ComponentException;
 @Component
 public class Main implements ApplicationRunner {
 	
+	@Autowired
+	private RecoveryService recoveryService;
+	
 	private final Logger LOGGER = Logger.getLogger(Main.class);
 	
     @Override
     public void run(ApplicationArguments args) {
         try {
+        	DatabaseManager.getInstance().setRecoveryService(recoveryService);
+        	
             PluginInstantiator instantiationInitService = PluginInstantiator.getInstance();
 
             // Setting up cloud plugins
@@ -35,8 +42,8 @@ public class Main implements ApplicationRunner {
             String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
             AaController aaController = new AaController(behaviorPluginsHolder);
+            
             OrderController orderController = new OrderController();
-
             ApplicationFacade applicationFacade = ApplicationFacade.getInstance();
             RemoteFacade remoteFacade = RemoteFacade.getInstance();
             applicationFacade.setAaController(aaController);
@@ -49,9 +56,11 @@ public class Main implements ApplicationRunner {
             String xmppPassword = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_PASSWORD_KEY);
             String xmppServerIp = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_SERVER_IP_KEY);
             int xmppServerPort = Integer.parseInt(PropertiesHolder.getInstance().
-                            getProperty(ConfigurationConstants.XMPP_SERVER_PORT_KEY));
+                            getProperty(ConfigurationConstants.XMPP_SERVER_PORT_KEY,
+                                    DefaultConfigurationConstants.XMPP_SERVER_PORT));
             long xmppTimeout =
-                    Long.parseLong(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_TIMEOUT_KEY));
+                    Long.parseLong(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_TIMEOUT_KEY,
+                            DefaultConfigurationConstants.XMPP_TIMEOUT));
             XmppComponentManager xmppComponentManager = new XmppComponentManager(xmppJid, xmppPassword, xmppServerIp,
                     xmppServerPort, xmppTimeout);
             xmppComponentManager.connect();
@@ -72,13 +81,5 @@ public class Main implements ApplicationRunner {
             LOGGER.fatal("Unable to connect to XMPP, check XMPP configuration file.", componentException);
             System.exit(1);
         }
-    }
-
-    private String setHomeDirectory(ApplicationArguments args) {
-        if (args.getSourceArgs().length == 0) {
-            return DefaultConfigurationConstants.FOGBOW_HOME;
-        }
-        String homeDir = args.getSourceArgs()[0];
-        return (homeDir == null ? DefaultConfigurationConstants.FOGBOW_HOME : homeDir);
     }
 }

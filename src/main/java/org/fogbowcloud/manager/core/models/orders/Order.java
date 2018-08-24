@@ -6,24 +6,58 @@ import org.fogbowcloud.manager.core.models.instances.InstanceState;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 
-public abstract class Order {
+import java.io.Serializable;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
+@Table(name = "order_table")
+public abstract class Order implements Serializable{
+	
+	private static final long serialVersionUID = 1L;
+	
+	@Column
+	@Id
     private String id;
-
+	
+	@Column
+	@Enumerated(EnumType.STRING)
     private OrderState orderState;
-
+	
+	@JoinColumn
+	@OneToOne(cascade = CascadeType.ALL, orphanRemoval=true)
     private FederationUserToken federationUserToken;
-
+	
+	@Column
     private String requestingMember;
-
+	
+	@Column
     private String providingMember;
-
+	
+	@Column
     private String instanceId;
-
+	
+	@Column
     private InstanceState cachedInstanceState;
+	
+    public Order() {
+    	
+    }
 
     public Order(String id) {
         this.id = id;
+        this.federationUserToken = new FederationUserToken();
     }
 
     /** Creating Order with predefined Id. */

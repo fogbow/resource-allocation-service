@@ -40,7 +40,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
     private HttpRequestClientUtil client;
 
     public CloudStackNetworkPlugin() {
-        String cloudStackConfFilePath = HomeDir.getInstance().getPath() + File.separator
+        String cloudStackConfFilePath = HomeDir.getPath() + File.separator
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
 
         Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);

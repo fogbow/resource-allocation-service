@@ -20,7 +20,6 @@ public class CloudStackTokenGeneratorTest {
     
     @Before
     public void setUp() throws Exception {
-        HomeDir.getInstance().setPath("src/test/resources/private");
         this.cloudStackTokenGenerator = Mockito.spy(new CloudStackTokenGenerator());
     }
     
