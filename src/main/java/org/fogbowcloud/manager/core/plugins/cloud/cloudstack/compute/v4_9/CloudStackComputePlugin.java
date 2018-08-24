@@ -5,10 +5,7 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.manager.core.HomeDir;
 import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
-import org.fogbowcloud.manager.core.exceptions.FogbowManagerException;
-import org.fogbowcloud.manager.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
+import org.fogbowcloud.manager.core.exceptions.*;
 import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.instances.ComputeInstance;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
@@ -23,47 +20,64 @@ import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
 
 import java.io.File;
-import java.util.Base64;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
 
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputePlugin.class);
 
-    private static final String TEMPLATE_ID_KEY = "template_id";
     private static final String ZONE_ID_KEY = "zone_id";
+    private static final String EXPUNGE_ON_DESTROY_KEY = "compute_cloudstack_expunge_on_destroy";
 
     private Properties properties;
     private HttpRequestClientUtil client;
 
-    private String templateId;
     private String zoneId;
+    private String expungeOnDestroy;
 
     public CloudStackComputePlugin() throws FatalErrorException {
         HomeDir homeDir = HomeDir.getInstance();
         this.properties = PropertiesUtil.readProperties(homeDir.getPath() + File.separator
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME);
 
-        this.templateId = properties.getProperty(TEMPLATE_ID_KEY);
         this.zoneId = properties.getProperty(ZONE_ID_KEY);
+        this.expungeOnDestroy = properties.getProperty(EXPUNGE_ON_DESTROY_KEY, "true");
 
         initClient();
+    }
+
+    private void initClient() {
+        HttpRequestUtil.init();
+        this.client = new HttpRequestClientUtil();
     }
 
     @Override
     public String requestInstance(ComputeOrder computeOrder, CloudStackToken cloudStackToken)
             throws FogbowManagerException, UnexpectedException {
-        String disk = Integer.toString(computeOrder.getDisk());
-        String userData = Base64.getEncoder().encodeToString(computeOrder.getUserData().toString().getBytes());
+        String templateId = computeOrder.getImageId();
+        if (templateId == null || this.zoneId == null) {
+            throw new InvalidParameterException();
+        }
+
+        // FIXME(pauloewerton): should this be creating a cloud-init script for cloudstack?
+        String userData = Base64.getEncoder().encodeToString(computeOrder.getUserData().getExtraUserDataFileContent().getBytes());
         String networksId = StringUtils.join(computeOrder.getNetworksId(), ",");
 
-        // NOTE(pauloewerton): diskofferingid and hypervisor are required in case of ISO image
+        String serviceOfferingId = getServiceOfferingId(computeOrder.getvCPU(), computeOrder.getMemory(), cloudStackToken);
+        if (serviceOfferingId == null) {
+            throw new NoAvailableResourcesException();
+        }
+
+        int disk = computeOrder.getDisk();
+        String diskOfferingId = disk > 0 ? getDiskOfferingId(disk, cloudStackToken) : null;
+
+        // NOTE(pauloewerton): diskofferingid and hypervisor are required in case of ISO image. I haven't
+        // found any clue pointing that ISO images were being used in mono though.
         DeployComputeRequest request = new DeployComputeRequest.Builder()
-                .serviceOfferingId(this.serviceOfferingId)
-                .templateId(this.templateId)
+                .serviceOfferingId(serviceOfferingId)
+                .templateId(templateId)
                 .zoneId(this.zoneId)
-                .diskSize(disk)
+                .diskOfferingId(diskOfferingId)
                 .userData(userData)
                 .networksId(networksId)
                 .build();
@@ -82,11 +96,43 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         return response.getId();
     }
 
+    public String getServiceOfferingId(int vcpusRequirement, int memoryRequirement, CloudStackToken cloudStackToken)
+            throws NoAvailableResourcesException {
+        GetServiceOfferingsResponse serviceOfferingsResponse = getServiceOfferings(cloudStackToken);
+        List<GetServiceOfferingsResponse.ServiceOffering> serviceOfferings = serviceOfferingsResponse.getServiceOfferings();
+
+        if (serviceOfferings != null) {
+            for (GetServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferings) {
+                if (serviceOffering.getVcpus() >= vcpusRequirement && serviceOffering.getMemory() >= memoryRequirement) {
+                    return serviceOffering.getId();
+                }
+            }
+        } else {
+            throw new NoAvailableResourcesException();
+        }
+
+        return null;
+    }
+
+    public String getDiskOfferingId(int diskSize, CloudStackToken cloudStackToken) {
+        GetDiskOfferingsResponse serviceOfferingsResponse = getDiskOfferings(cloudStackToken);
+        List<GetServiceOfferingsResponse.ServiceOffering> serviceOfferings = serviceOfferingsResponse.getServiceOfferings();
+
+        if (serviceOfferings != null) {
+            for (GetServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferings) {
+                if (serviceOffering.getVcpus() >= requirements.get("vcpus") &&
+                        serviceOffering.getMemory() >= requirements.get("memory")) {
+                    return serviceOffering.getId();
+                }
+            }
+        }
+
+        return null;
+    }
+
     @Override
     public ComputeInstance getInstance(String computeInstanceId, CloudStackToken cloudStackToken)
             throws FogbowManagerException {
-        LOGGER.info("Getting instance " + computeInstanceId + " with token " + cloudStackToken);
-
         GetComputeRequest request = new GetComputeRequest.Builder()
                 .id(computeInstanceId)
                 .build();
@@ -100,16 +146,11 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
             CloudStackHttpToFogbowManagerExceptionMapper.map(e);
         }
 
-        LOGGER.debug("Getting instance from json: " + jsonResponse);
-
         GetComputeResponse computeResponse = GetComputeResponse.fromJson(jsonResponse);
-
-        try {
-            List<GetComputeResponse.VirtualMachine> vms = computeResponse.getVirtualMachines();
+        List<GetComputeResponse.VirtualMachine> vms = computeResponse.getVirtualMachines();
+        if (vms != null) {
             return getComputeInstance(vms.get(0));
-        } catch (NullPointerException e) {
-            // NOTE(pauloewerton): when the instance is not found, the response has no 'virtualmachine' key
-            // causing gson to raise a NullPointerException
+        } else {
             throw new InstanceNotFoundException();
         }
     }
@@ -139,13 +180,18 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     }
 
     @Override
-    public void deleteInstance(String computeInstanceId, CloudStackToken localToken)
+    public void deleteInstance(String computeInstanceId, CloudStackToken cloudStackToken)
             throws FogbowManagerException, UnexpectedException {
+        DeleteInstanceRequest request = new DeleteInstanceRequest.Builder()
+                .id(computeInstanceId)
+                .build();
 
-    }
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
 
-    private void initClient() {
-        HttpRequestUtil.init();
-        this.client = new HttpRequestClientUtil();
+        try {
+            this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
+        } catch (HttpResponseException e) {
+            CloudStackHttpToFogbowManagerExceptionMapper.map(e);
+        }
     }
 }

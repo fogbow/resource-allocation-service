@@ -102,4 +102,9 @@ public class GetComputeResponse {
         return GsonHolder.getInstance().fromJson(json, GetComputeResponse.class);
     }
 
+    public static void main(String[] args) {
+        GetComputeResponse response = fromJson("{\"listvirtualmachines\":{}}");
+        response.getVirtualMachines();
+    }
+
 }
