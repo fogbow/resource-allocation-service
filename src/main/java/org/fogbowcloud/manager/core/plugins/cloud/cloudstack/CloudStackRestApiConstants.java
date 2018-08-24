@@ -13,6 +13,10 @@ public class CloudStackRestApiConstants {
         public static final String MEMORY_KEY_JSON = "memory";
         public static final String NIC_KEY_JSON = "nic";
         public static final String IP_ADDRESS_KEY_JSON = "ipaddress";
+
+        public static final String LIST_SERVICE_OFFERINGS_KEY_JSON = "listserviceofferingsresponse";
+        public static final String SERVICE_OFFERING_KEY_JSON = "serviceoffering";
+
     }
 
     public static class Network {
