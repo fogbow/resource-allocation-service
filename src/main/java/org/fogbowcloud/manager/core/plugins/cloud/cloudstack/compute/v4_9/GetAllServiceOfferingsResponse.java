@@ -24,7 +24,7 @@ import static org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRe
  *  }
  * }
  */
-public class GetAllServiceOfferings {
+public class GetAllServiceOfferingsResponse {
 
     @SerializedName(LIST_SERVICE_OFFERINGS_KEY_JSON)
     private ListServiceOfferingsResponse response;
@@ -33,8 +33,8 @@ public class GetAllServiceOfferings {
         return response.serviceOfferings;
     }
 
-    public static GetAllServiceOfferings fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, GetAllServiceOfferings.class);
+    public static GetAllServiceOfferingsResponse fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, GetAllServiceOfferingsResponse.class);
     }
 
     public class ListServiceOfferingsResponse {
