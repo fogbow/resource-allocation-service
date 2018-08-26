@@ -14,7 +14,6 @@ import org.fogbowcloud.manager.core.plugins.behavior.identity.FederationIdentity
 import java.util.Map;
 
 public class AaController {
-
     private AuthenticationPlugin authenticationPlugin;
     private AuthorizationPlugin authorizationPlugin;
     private FederationIdentityPlugin federationIdentityPlugin;

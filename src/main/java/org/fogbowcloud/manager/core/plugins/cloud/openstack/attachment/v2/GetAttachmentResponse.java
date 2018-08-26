@@ -20,7 +20,6 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
  * }
  */
 public class GetAttachmentResponse {
-
     @SerializedName(VOLUME_ATTACHMENT_KEY_JSON)
     private Attachment attachment;
 
@@ -49,19 +48,13 @@ public class GetAttachmentResponse {
     }
 
     public class Attachment {
-
         @SerializedName(ID_KEY_JSON)
         private String id;
-
         @SerializedName(VOLUME_ID_KEY_JSON)
         private String volumeId;
-
         @SerializedName(SERVER_ID_KEY_JSON)
         private String serverId;
-
         @SerializedName(DEVICE_KEY_JSON)
         private String device;
-
     }
-
 }

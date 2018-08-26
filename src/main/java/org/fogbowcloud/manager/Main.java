@@ -19,30 +19,25 @@ import org.xmpp.component.ComponentException;
 
 @Component
 public class Main implements ApplicationRunner {
+    private final Logger LOGGER = Logger.getLogger(Main.class);
 
     @Autowired
     private RecoveryService recoveryService;
 
-    private final Logger LOGGER = Logger.getLogger(Main.class);
-
     @Override
     public void run(ApplicationArguments args) {
         try {
+            // Setting up stable storage
             DatabaseManager.getInstance().setRecoveryService(recoveryService);
 
+            // Setting up plugins
             PluginInstantiator instantiationInitService = PluginInstantiator.getInstance();
-
-            // Setting up cloud plugins
             CloudPluginsHolder cloudPluginsHolder = new CloudPluginsHolder(instantiationInitService);
-
-            // Setting up behavior plugins
             BehaviorPluginsHolder behaviorPluginsHolder = new BehaviorPluginsHolder(instantiationInitService);
 
             // Setting up controllers, application and remote facades
             String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
-
             AaController aaController = new AaController(behaviorPluginsHolder);
-
             OrderController orderController = new OrderController();
             ApplicationFacade applicationFacade = ApplicationFacade.getInstance();
             RemoteFacade remoteFacade = RemoteFacade.getInstance();
@@ -70,10 +65,11 @@ public class Main implements ApplicationRunner {
             cloudConnectorFactory.setMapperPlugin(behaviorPluginsHolder.getFederationToLocalMapperPlugin());
             cloudConnectorFactory.setCloudPluginsHolder(cloudPluginsHolder);
 
-            // Setting up order processors and starting threads
+            // Setting up order processors
             ProcessorsThreadController processorsThreadController = new ProcessorsThreadController(localMemberId);
-            processorsThreadController.startManagerThreads();
 
+            // Starting threads
+            processorsThreadController.startManagerThreads();
         } catch (FatalErrorException errorException) {
             LOGGER.fatal(errorException.getMessage(), errorException);
             System.exit(1);

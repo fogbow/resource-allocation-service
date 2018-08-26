@@ -21,6 +21,7 @@ import org.json.JSONException;
 import java.util.Properties;
 
 public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenStackV3Token> {
+    private final Logger LOGGER = Logger.getLogger(OpenStackNovaV2AttachmentPlugin.class);
 
     private final String PROJECT_ID_IS_NOT_SPECIFIED_ERROR = "Project id is not specified.";
     protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
@@ -28,9 +29,6 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
     private static final String OS_VOLUME_ATTACHMENTS = "/os-volume_attachments";
     private static final String SEPARATOR_ID = " ";
     private static final String SERVERS = "/servers/";
-
-    private final Logger LOGGER = Logger.getLogger(OpenStackNovaV2AttachmentPlugin.class);
-
     private Properties properties;
     private HttpRequestClientUtil client;
 
@@ -44,7 +42,6 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
     public String requestInstance(AttachmentOrder attachmentOrder, OpenStackV3Token openStackV3Token)
             throws FogbowManagerException, UnexpectedException {
         String projectId = openStackV3Token.getProjectId();
-
         String serverId = attachmentOrder.getSource();
         String volumeId = attachmentOrder.getTarget();
 
@@ -109,8 +106,6 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
-
-        LOGGER.debug("Getting instance from json: " + jsonResponse);
         AttachmentInstance attachmentInstance = getInstanceFromJson(jsonResponse);
 
         return attachmentInstance;

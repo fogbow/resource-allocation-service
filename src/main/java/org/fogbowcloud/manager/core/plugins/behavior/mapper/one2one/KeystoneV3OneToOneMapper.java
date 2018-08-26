@@ -8,7 +8,6 @@ import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMap
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.all2one.KeystoneV3AllToOneMapper;
 
 public class KeystoneV3OneToOneMapper implements FederationToLocalMapperPlugin {
-
     private GenericOneToOneFederationToLocalMapper genericMapper;
 
     public KeystoneV3OneToOneMapper() {

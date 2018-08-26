@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Properties;
 
 public class KeystoneV3TokenGeneratorPlugin implements TokenGeneratorPlugin {
-
     private static final Logger LOGGER = Logger.getLogger(KeystoneV3TokenGeneratorPlugin.class);
 
     public static final String OPENSTACK_KEYSTONE_V3_URL = "openstack_keystone_v3_url";
@@ -30,7 +29,6 @@ public class KeystoneV3TokenGeneratorPlugin implements TokenGeneratorPlugin {
     public static final String PASSWORD = "password";
     public static final String USER_ID = "userId";
     public static final String AUTH_URL = "authUrl";
-
     private String v3TokensEndpoint;
     private HttpRequestClientUtil client;
     private String tokenProviderId;
@@ -88,7 +86,6 @@ public class KeystoneV3TokenGeneratorPlugin implements TokenGeneratorPlugin {
 
         try {
             CreateTokenResponse createTokenResponse = CreateTokenResponse.fromJson(response.getContent());
-            LOGGER.debug("Response: " + response.getContent());
             CreateTokenResponse.User userTokenResponse = createTokenResponse.getUser();
             String userId = userTokenResponse.getId();
             String userName = userTokenResponse.getName();

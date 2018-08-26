@@ -25,15 +25,12 @@ import static org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRe
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class GetVolumeResponse {
-
     @SerializedName(VOLUMES_KEY_JSON)
     private ListVolumesResponse response;
 
     public class ListVolumesResponse {
-
         @SerializedName(VOLUME_KEY_JSON)
         private List<Volume> volumes;
-
     }
 
     public List<Volume> getVolumes() {
@@ -45,16 +42,12 @@ public class GetVolumeResponse {
     }
 
     public class Volume {
-
         @SerializedName(ID_KEY_JSON)
         private String id;
-
         @SerializedName(NAME_KEY_JSON)
         private String name;
-
         @SerializedName(SIZE_KEY_JSON)
         private int size;
-
         @SerializedName(STATE_KEY_JSON)
         private String state;
 
@@ -73,7 +66,5 @@ public class GetVolumeResponse {
         public String getState() {
             return this.state;
         }
-
     }
-
 }

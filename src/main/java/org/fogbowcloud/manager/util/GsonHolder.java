@@ -3,7 +3,6 @@ package org.fogbowcloud.manager.util;
 import com.google.gson.Gson;
 
 public class GsonHolder {
-
     private static Gson gson;
 
     private GsonHolder() {
@@ -15,5 +14,4 @@ public class GsonHolder {
         }
         return gson;
     }
-
 }

@@ -13,7 +13,6 @@ import org.fogbowcloud.manager.core.models.orders.OrderState;
 import java.util.Map;
 
 public class OrderStateTransitioner {
-
     private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
 
     public static void activateOrder(Order order) throws UnexpectedException {
@@ -42,7 +41,6 @@ public class OrderStateTransitioner {
     }
 
     public static void transition(Order order, OrderState newState) throws UnexpectedException {
-
         String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         synchronized (order) {
             if (order.isRequesterRemote(localMemberId)) {
@@ -72,7 +70,6 @@ public class OrderStateTransitioner {
     }
 
     public static void deactivateOrder(Order order) throws UnexpectedException {
-
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
         ChainedList closedOrders = sharedOrderHolders.getClosedOrdersList();

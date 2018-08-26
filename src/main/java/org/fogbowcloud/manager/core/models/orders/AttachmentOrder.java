@@ -8,25 +8,20 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.util.UUID;
 
-
 @Entity
 @Table(name = "attachment_order_table")
 public class AttachmentOrder extends Order {
-
     private static final long serialVersionUID = 1L;
-
     /**
      * this attribute refers to the instance of the computer where the volume will be attached
      */
     @Column
     private String source;
-
     /**
      * this attribute refers to the instanceId of the target volume of the attachment
      */
     @Column
     private String target;
-
     /**
      * this attribute refers to the mount point of the volume device
      */

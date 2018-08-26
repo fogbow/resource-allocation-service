@@ -24,15 +24,12 @@ import static org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRe
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class GetAllDiskOfferingsResponse {
-
     @SerializedName(DISK_OFFERINGS_KEY_JSON)
     private ListDiskOfferingsResponse response;
 
     public class ListDiskOfferingsResponse {
-
         @SerializedName(DISK_OFFERING_KEY_JSON)
         private List<DiskOffering> diskOfferings;
-
     }
 
     public List<DiskOffering> getDiskOfferings() {
@@ -44,13 +41,10 @@ public class GetAllDiskOfferingsResponse {
     }
 
     public class DiskOffering {
-
         @SerializedName(ID_KEY_JSON)
         private String id;
-
         @SerializedName(DISK_KEY_JSON)
         private int diskSize;
-
         @SerializedName(CUSTOMIZED_KEY_JSON)
         private boolean customized;
 
@@ -65,7 +59,5 @@ public class GetAllDiskOfferingsResponse {
         public boolean isCustomized() {
             return customized;
         }
-
     }
-
 }

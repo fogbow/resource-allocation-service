@@ -21,8 +21,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public class HttpRequestClientUtil {
-
     private static final Logger LOGGER = Logger.getLogger(HttpRequestClientUtil.class);
+
     private HttpClient client;
 
     public HttpRequestClientUtil() throws FatalErrorException {
@@ -135,17 +135,14 @@ public class HttpRequestClientUtil {
 
         try {
             response = this.client.execute(request);
-            LOGGER.debug("Request: " + request + " Response: " + response);
             if (response.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
                 String message = response.getStatusLine().getReasonPhrase();
                 throw new HttpResponseException(response.getStatusLine().getStatusCode(), message);
             }
             responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         } catch (HttpResponseException e) {
-            LOGGER.debug("Throwing HttpResponseException: " + e.getMessage());
             throw e;
         } catch (IOException e) {
-            LOGGER.debug("Throwing UnavailableProviderException: " + e.getMessage());
             throw new UnavailableProviderException(e.getMessage(), e);
         } finally {
             try {
@@ -154,7 +151,6 @@ public class HttpRequestClientUtil {
                 LOGGER.error("Error while consuming the response: " + t);
             }
         }
-        LOGGER.debug("Returning: " + responseStr);
         return new Response(responseStr, response.getAllHeaders());
     }
 

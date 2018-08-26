@@ -4,7 +4,6 @@ import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRequest;
 
 public class GetAllServiceOfferingsRequest extends CloudStackRequest {
-
     protected static final String LIST_SERVICE_OFFERINGS_COMMAND = "listServiceOfferings";
 
     protected GetAllServiceOfferingsRequest(Builder builder) throws InvalidParameterException {
@@ -28,5 +27,4 @@ public class GetAllServiceOfferingsRequest extends CloudStackRequest {
         }
 
     }
-
 }

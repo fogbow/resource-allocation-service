@@ -21,13 +21,10 @@ import java.util.List;
 import java.util.Map;
 
 public class ApplicationFacade {
-
-    private static ApplicationFacade instance;
-
-    public static final String VERSION_NUMBER = "2.0.1";
-
     private final Logger LOGGER = Logger.getLogger(ApplicationFacade.class);
 
+    private static ApplicationFacade instance;
+    public static final String VERSION_NUMBER = "2.1.1";
     private AaController aaController;
     private OrderController orderController;
 
@@ -62,7 +59,6 @@ public class ApplicationFacade {
 
     public void deleteCompute(String computeId, String federationTokenValue) throws FogbowManagerException,
             UnexpectedException {
-        LOGGER.debug("deleting order " + computeId + federationTokenValue);
         deleteOrder(computeId, federationTokenValue, ResourceType.COMPUTE);
     }
 

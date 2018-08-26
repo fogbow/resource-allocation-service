@@ -3,7 +3,6 @@ package org.fogbowcloud.manager.core.models.linkedlists;
 import org.fogbowcloud.manager.core.models.orders.Order;
 
 public class Node {
-
     private Node next;
     private Node previous;
     private Order order;

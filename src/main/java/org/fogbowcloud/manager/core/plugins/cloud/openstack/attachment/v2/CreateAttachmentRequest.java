@@ -18,7 +18,6 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
  * }
  */
 public class CreateAttachmentRequest implements JsonSerializable {
-
     @SerializedName(VOLUME_ATTACHMENT_KEY_JSON)
     private Attachment attachment;
 
@@ -32,18 +31,15 @@ public class CreateAttachmentRequest implements JsonSerializable {
     }
 
     public static class Attachment {
-
         @SerializedName(VOLUME_ID_KEY_JSON)
         private final String volumeId;
 
         public Attachment(Builder builder) {
             this.volumeId = builder.volumeId;
         }
-
     }
 
     public static class Builder {
-
         private String volumeId;
 
         public Builder volumeId(String volumeId) {
@@ -55,7 +51,5 @@ public class CreateAttachmentRequest implements JsonSerializable {
             Attachment attachment = new Attachment(this);
             return new CreateAttachmentRequest(attachment);
         }
-
     }
-
 }

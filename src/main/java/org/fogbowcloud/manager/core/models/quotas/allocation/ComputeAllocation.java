@@ -5,13 +5,10 @@ import javax.persistence.Embeddable;
 
 @Embeddable
 public class ComputeAllocation extends Allocation {
-
     @Column(name = "allocation_vcpu")
     private int vCPU;
-
     @Column(name = "allocation_ram")
     private int ram;
-
     @Column(name = "allocation_instances")
     private int instances;
 
@@ -22,7 +19,6 @@ public class ComputeAllocation extends Allocation {
     }
 
     public ComputeAllocation() {
-
     }
 
     public int getvCPU() {

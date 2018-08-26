@@ -4,9 +4,7 @@ import org.fogbowcloud.manager.core.CloudPluginsHolder;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 
 public class CloudConnectorFactory {
-
     private static CloudConnectorFactory instance;
-
     private String localMemberId;
     private FederationToLocalMapperPlugin mapperPlugin;
     private CloudPluginsHolder cloudPluginsHolder;

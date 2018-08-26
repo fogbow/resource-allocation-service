@@ -5,7 +5,6 @@ import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRequest;
 
 public class DeleteNetworkRequest extends CloudStackRequest {
-
     public static final String DELETE_NETWORK_COMMAND = "deleteNetwork";
     public static final String NETWORK_ID_KEY = "id";
 
@@ -19,7 +18,6 @@ public class DeleteNetworkRequest extends CloudStackRequest {
     }
 
     public static class Builder {
-
         private String id;
 
         public Builder id(String id) {
@@ -31,5 +29,4 @@ public class DeleteNetworkRequest extends CloudStackRequest {
             return new DeleteNetworkRequest(this);
         }
     }
-
 }

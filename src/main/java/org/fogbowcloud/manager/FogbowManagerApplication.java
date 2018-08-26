@@ -9,5 +9,4 @@ public class FogbowManagerApplication {
     public static void main(String[] args) {
         SpringApplication.run(FogbowManagerApplication.class, args);
     }
-
 }

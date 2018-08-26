@@ -13,7 +13,6 @@ import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.xmpp.packet.IQ;
 
 public class RemoteGetImageRequest implements RemoteRequest<Image> {
-
     private static final Logger LOGGER = Logger.getLogger(RemoteGetImageRequest.class);
 
     private String provider;
@@ -66,5 +65,4 @@ public class RemoteGetImageRequest implements RemoteRequest<Image> {
             throw new UnexpectedException(e.getMessage());
         }
     }
-
 }

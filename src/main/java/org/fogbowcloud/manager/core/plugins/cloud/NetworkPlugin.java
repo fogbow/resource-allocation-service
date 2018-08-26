@@ -8,10 +8,12 @@ import org.fogbowcloud.manager.core.models.tokens.Token;
 
 public interface NetworkPlugin<T extends Token> {
 
-    public String requestInstance(NetworkOrder networkOrder, T localUserAttributes) throws FogbowManagerException, UnexpectedException;
+    public String requestInstance(NetworkOrder networkOrder, T localUserAttributes)
+            throws FogbowManagerException, UnexpectedException;
 
-    public NetworkInstance getInstance(String networkInstanceId, T localUserAttributes) throws FogbowManagerException, UnexpectedException;
+    public NetworkInstance getInstance(String networkInstanceId, T localUserAttributes)
+            throws FogbowManagerException, UnexpectedException;
 
-    public void deleteInstance(String networkInstanceId, T localUserAttributes) throws FogbowManagerException, UnexpectedException;
-
+    public void deleteInstance(String networkInstanceId, T localUserAttributes)
+            throws FogbowManagerException, UnexpectedException;
 }

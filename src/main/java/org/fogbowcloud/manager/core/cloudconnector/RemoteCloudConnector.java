@@ -12,7 +12,6 @@ import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import java.util.HashMap;
 
 public class RemoteCloudConnector implements CloudConnector {
-
     private static final Logger LOGGER = Logger.getLogger(RemoteCloudConnector.class);
 
     private String destinationMember;

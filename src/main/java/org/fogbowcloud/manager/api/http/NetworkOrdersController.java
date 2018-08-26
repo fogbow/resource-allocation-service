@@ -19,14 +19,13 @@ import java.util.List;
 public class NetworkOrdersController {
 
     public static final String NETWORK_ENDPOINT = "networks";
-
     public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
     private final Logger LOGGER = Logger.getLogger(NetworkOrdersController.class);
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<String> createNetwork(@RequestBody NetworkOrder networkOrder,
-                                                @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowManagerException, UnexpectedException {
         LOGGER.info("New network order request received <" + networkOrder.getId() + ">.");
 
@@ -46,7 +45,7 @@ public class NetworkOrdersController {
 
     @RequestMapping(value = "/{networkId}", method = RequestMethod.GET)
     public ResponseEntity<NetworkInstance> getNetwork(@PathVariable String networkId,
-                                                      @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
         LOGGER.info("Get request for network order <" + networkId + "> received.");
         NetworkInstance networkInstance = ApplicationFacade.getInstance().getNetwork(networkId, federationTokenValue);
@@ -55,11 +54,10 @@ public class NetworkOrdersController {
 
     @RequestMapping(value = "/{networkId}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> deleteNetwork(@PathVariable String networkId,
-                                                 @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowManagerException, UnexpectedException {
         LOGGER.info("Delete compute order <" + networkId + "> received.");
         ApplicationFacade.getInstance().deleteNetwork(networkId, federationTokenValue);
         return new ResponseEntity<Boolean>(HttpStatus.OK);
     }
-
 }

@@ -8,5 +8,4 @@ import org.fogbowcloud.manager.core.models.tokens.Token;
 public interface ComputeQuotaPlugin {
 
     public ComputeQuota getUserQuota(Token token) throws FogbowManagerException, UnexpectedException;
-
 }

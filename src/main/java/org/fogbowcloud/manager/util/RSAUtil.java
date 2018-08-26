@@ -17,9 +17,6 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
 import java.util.Random;
 
-/**
- * FIXME: Add documentation to this code.
- */
 public class RSAUtil {
 
     private static String getKey(String filename) throws IOException {
@@ -80,6 +77,14 @@ public class RSAUtil {
         sign.initSign(privateKey);
         sign.update(message.getBytes("UTF-8"));
         return new String(Base64.encode(sign.sign()), "UTF-8");
+    }
+
+    public static boolean verify(PublicKey publicKey, String message, String signature)
+            throws SignatureException, NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException {
+        Signature sign = Signature.getInstance("SHA1withRSA");
+        sign.initVerify(publicKey);
+        sign.update(message.getBytes("UTF-8"));
+        return sign.verify(Base64.decode(signature.getBytes("UTF-8")));
     }
 
     public static String encrypt(String rawText, PublicKey publicKey)
@@ -144,14 +149,6 @@ public class RSAUtil {
 
         Arrays.fill(packed, (byte) 0);
         return key64;
-    }
-
-    public static boolean verify(PublicKey publicKey, String message, String signature)
-            throws SignatureException, NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException {
-        Signature sign = Signature.getInstance("SHA1withRSA");
-        sign.initVerify(publicKey);
-        sign.update(message.getBytes("UTF-8"));
-        return sign.verify(Base64.decode(signature.getBytes("UTF-8")));
     }
 
     public static String decrypt(String cipherText, PrivateKey privateKey)

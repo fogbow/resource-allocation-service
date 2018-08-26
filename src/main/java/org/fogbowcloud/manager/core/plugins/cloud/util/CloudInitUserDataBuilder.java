@@ -53,7 +53,6 @@ import java.util.Set;
  * @see com.amazonaws.services.ec2.AmazonEC2.runInstances(RunInstancesRequest)
  */
 public class CloudInitUserDataBuilder {
-
     private int userDataCounter = 1;
 
     /**
@@ -116,7 +115,6 @@ public class CloudInitUserDataBuilder {
          * >upstart-rclocal.txt</a>
          */
         UPSTART_JOB("text/upstart-job", "cloudinit-upstart-job.txt");
-
         /**
          * Name of the file.
          */

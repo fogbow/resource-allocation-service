@@ -15,7 +15,6 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 
 public class CloudStackUrlUtil {
-
     private static final Logger LOGGER = Logger.getLogger(CloudStackUrlUtil.class);
 
     private static final String COMMAND = "command";

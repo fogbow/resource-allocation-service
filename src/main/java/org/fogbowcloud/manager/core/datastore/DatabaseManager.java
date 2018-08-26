@@ -12,14 +12,11 @@ import org.fogbowcloud.manager.core.models.orders.OrderState;
 import java.sql.SQLException;
 
 public class DatabaseManager implements StableStorage {
-
     private static final Logger LOGGER = Logger.getLogger(DatabaseManager.class);
+
     private static final String ERROR_MESSAGE = "Error instantiating database manager";
-
     private static DatabaseManager instance;
-
     private RecoveryService recoveryService;
-
     private OrderTimestampStorage orderTimestampStorage;
 
     private DatabaseManager() throws SQLException {
@@ -35,7 +32,6 @@ public class DatabaseManager implements StableStorage {
                 throw new FatalErrorException(ERROR_MESSAGE, e);
             }
         }
-
         return instance;
     }
 

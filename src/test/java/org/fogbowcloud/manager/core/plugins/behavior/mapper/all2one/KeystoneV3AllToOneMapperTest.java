@@ -63,7 +63,6 @@ public class KeystoneV3AllToOneMapperTest {
                 ldapAuthenticate(Mockito.eq(FAKE_LOGIN1), Mockito.eq(FAKE_PASSWORD));
         String tokenValue1 = this.ldapTokenGenerator.createTokenValue(userCredentials1);
         LdapToken token1 = this.ldapIdentityPlugin.createToken(tokenValue1);
-        LOGGER.debug("token1: " + token1.getTokenValue() + " token value1: " + tokenValue1);
 
         Map<String, String> userCredentials2 = new HashMap<String, String>();
         userCredentials2.put(LdapTokenGeneratorPlugin.CRED_USERNAME, FAKE_LOGIN2);
@@ -72,7 +71,6 @@ public class KeystoneV3AllToOneMapperTest {
                 ldapAuthenticate(Mockito.eq(FAKE_LOGIN2), Mockito.eq(FAKE_PASSWORD));
         String tokenValue2 = this.ldapTokenGenerator.createTokenValue(userCredentials2);
         LdapToken token2 = this.ldapIdentityPlugin.createToken(tokenValue2);
-        LOGGER.debug("token2: " + token2.getTokenValue() + " token value2: " + tokenValue2);
 
         String tokenValue = this.memberId + KeystoneV3TokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR +
                 FAKE_TOKEN_VALUE + KeystoneV3TokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR +
@@ -84,9 +82,7 @@ public class KeystoneV3AllToOneMapperTest {
 
         //exercise
         OpenStackV3Token mappedToken1 = (OpenStackV3Token) this.mapper.map(token1);
-        LOGGER.debug("token1: " + token1.getTokenValue() + " mapped: " + mappedToken1.getTokenValue());
         OpenStackV3Token mappedToken2 = (OpenStackV3Token) this.mapper.map(token2);
-        LOGGER.debug("token2: " + token2.getTokenValue() + " mapped: " + mappedToken2.getTokenValue());
 
         //verify
         Assert.assertNotEquals(token1, token2);

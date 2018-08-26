@@ -22,11 +22,9 @@ import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import java.util.Map;
 
 public class RemoteFacade {
-
     private static final Logger LOGGER = Logger.getLogger(RemoteFacade.class);
 
     private static RemoteFacade instance;
-
     private AaController aaController;
     private OrderController orderController;
 

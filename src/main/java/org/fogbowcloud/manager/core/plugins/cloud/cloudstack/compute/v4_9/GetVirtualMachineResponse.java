@@ -7,7 +7,6 @@ import java.util.List;
 
 import static org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRestApiConstants.Compute.*;
 
-
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/listVirtualMachines.html
  * <p>
@@ -29,12 +28,10 @@ import static org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRe
  * }
  */
 public class GetVirtualMachineResponse {
-
     @SerializedName(VIRTUAL_MACHINES_KEY_JSON)
     private ListVirtualMachinesResponse virtualMachinesResponse;
 
     public class ListVirtualMachinesResponse {
-
         @SerializedName(VIRTUAL_MACHINE_KEY_JSON)
         private List<VirtualMachine> virtualMachines;
     }
@@ -44,22 +41,16 @@ public class GetVirtualMachineResponse {
     }
 
     public class VirtualMachine {
-
         @SerializedName(ID_KEY_JSON)
         private String id;
-
         @SerializedName(NAME_KEY_JSON)
         private String name;
-
         @SerializedName(STATE_KEY_JSON)
         private String state;
-
         @SerializedName(CPU_NUMBER_KEY_JSON)
         private int cpuNumber;
-
         @SerializedName(MEMORY_KEY_JSON)
         private int memory;
-
         @SerializedName(NIC_KEY_JSON)
         private Nic[] nic;
 
@@ -89,7 +80,6 @@ public class GetVirtualMachineResponse {
     }
 
     public class Nic {
-
         @SerializedName(IP_ADDRESS_KEY_JSON)
         private String ipAddress;
 
@@ -106,5 +96,4 @@ public class GetVirtualMachineResponse {
         GetVirtualMachineResponse response = fromJson("{\"listvirtualmachines\":{}}");
         response.getVirtualMachines();
     }
-
 }

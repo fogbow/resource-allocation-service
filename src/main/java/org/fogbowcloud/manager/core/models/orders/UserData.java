@@ -6,7 +6,6 @@ import javax.persistence.Embeddable;
 
 @Embeddable
 public class UserData {
-
     private String extraUserDataFileContent;
 
     private CloudInitUserDataBuilder.FileType extraUserDataFileType;

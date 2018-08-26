@@ -13,7 +13,6 @@ import java.util.Date;
  * Therefore, it can be useful for billing services or whatever you want.
  */
 public class OrderTimestampStorage extends OrderStorage {
-
     private static final Logger LOGGER = Logger.getLogger(OrderTimestampStorage.class);
 
     public OrderTimestampStorage() throws SQLException {

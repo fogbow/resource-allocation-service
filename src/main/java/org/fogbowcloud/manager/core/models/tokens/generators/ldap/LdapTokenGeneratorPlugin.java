@@ -34,17 +34,14 @@ import java.util.concurrent.TimeUnit;
 
 public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
     private static final Logger LOGGER = Logger.getLogger(LdapFederationIdentityPlugin.class);
+
     private static final String LDAP_PLUGIN_CONF_FILE = "ldap-identity-plugin.conf";
-
     private static final long EXPIRATION_INTERVAL = TimeUnit.DAYS.toMillis(365); // One year
-
     private static final String PROP_LDAP_BASE = "ldap_base";
     private static final String PROP_LDAP_URL = "ldap_identity_url";
     private static final String PROP_LDAP_ENCRYPT_TYPE = "ldap_encrypt_type";
-
     private static final String PRIVATE_KEY_PATH = "private_key_path";
     private static final String PUBLIC_KEY_PATH = "public_key_path";
-
     public static final String CRED_USERNAME = "username";
     public static final String CRED_PASSWORD = "password";
     public static final String CRED_AUTH_URL = "authUrl";
@@ -53,11 +50,9 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
     public static final String CRED_PRIVATE_KEY = "privateKey";
     public static final String CRED_PUBLIC_KEY = "publicKey";
     public static final String TOKEN_VALUE_SEPARATOR = "!#!";
-
     private static final String ENCRYPT_TYPE = ":TYPE:";
     private static final String ENCRYPT_PASS = ":PASS:";
     private static final String PASSWORD_ENCRYPTED = "{" + ENCRYPT_TYPE + "}" + ENCRYPT_PASS;
-
     private String tokenProviderId;
     private String ldapBase;
     private String ldapUrl;

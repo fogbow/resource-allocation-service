@@ -13,10 +13,9 @@ import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 
 public class RemoteGetImageRequestHandler extends AbstractQueryHandler {
-
     private static final Logger LOGGER = Logger.getLogger(RemoteGetImageRequestHandler.class);
 
-    public static final String REMOTE_GET_IMAGE = RemoteMethod.REMOTE_GET_IMAGE.toString();
+    private static final String REMOTE_GET_IMAGE = RemoteMethod.REMOTE_GET_IMAGE.toString();
 
     public RemoteGetImageRequestHandler() {
         super(REMOTE_GET_IMAGE);
@@ -71,5 +70,4 @@ public class RemoteGetImageRequestHandler extends AbstractQueryHandler {
         Element federationUserTokenElement = queryElement.element(IqElement.FEDERATION_USER.toString());
         return new Gson().fromJson(federationUserTokenElement.getText(), FederationUserToken.class);
     }
-
 }

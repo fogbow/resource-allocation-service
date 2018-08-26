@@ -25,7 +25,6 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class CreateTokenResponse {
-
     @SerializedName(TOKEN_KEY_JSON)
     private Token token;
 
@@ -42,20 +41,15 @@ public class CreateTokenResponse {
     }
 
     private class Token {
-
         @SerializedName(USER_KEY_JSON)
         private User user;
-
         @SerializedName(PROJECT_KEY_JSON)
         private Project project;
-
     }
 
     public class User {
-
         @SerializedName(ID_KEY_JSON)
         private String id;
-
         @SerializedName(NAME_KEY_JSON)
         private String name;
 
@@ -66,14 +60,11 @@ public class CreateTokenResponse {
         public String getName() {
             return name;
         }
-
     }
 
     public class Project {
-
         @SerializedName(ID_KEY_JSON)
         private String id;
-
         @SerializedName(NAME_KEY_JSON)
         private String name;
 
@@ -84,7 +75,5 @@ public class CreateTokenResponse {
         public String getName() {
             return name;
         }
-
     }
-
 }

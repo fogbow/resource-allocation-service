@@ -26,7 +26,6 @@ import static org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRe
  * }
  */
 public class GetNetworkResponse {
-
     @SerializedName(NETWORKS_KEY_JSON)
     private ListNetworksResponse listNetworksResponse;
 
@@ -39,14 +38,11 @@ public class GetNetworkResponse {
     }
 
     public class ListNetworksResponse {
-
         @SerializedName(NETWORK_KEY_JSON)
         private List<Network> networks;
-
     }
 
     public class Network {
-
         private String id;
         private String name;
         private String gateway;
@@ -73,5 +69,4 @@ public class GetNetworkResponse {
             return state;
         }
     }
-
 }

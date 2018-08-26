@@ -5,7 +5,6 @@ import org.fogbowcloud.manager.core.intercomponent.xmpp.handlers.*;
 import org.jamppa.component.XMPPComponent;
 
 public class XmppComponentManager extends XMPPComponent {
-
     private static Logger LOGGER = Logger.getLogger(XmppComponentManager.class);
 
     public XmppComponentManager(String jid, String password, String xmppServerIp, int xmppServerPort, long timeout) {
@@ -20,5 +19,4 @@ public class XmppComponentManager extends XMPPComponent {
         addGetHandler(new RemoteGetOrderRequestHandler());
         addGetHandler(new RemoteGetUserQuotaRequestHandler());
     }
-
 }

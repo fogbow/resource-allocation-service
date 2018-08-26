@@ -1,8 +1,6 @@
 package org.fogbowcloud.manager.core.models.instances;
 
-// TODO: We need to discuss about these attributes
 public class ComputeInstance extends Instance {
-
     private String hostName;
     private int vCPU;
     /**
@@ -63,5 +61,4 @@ public class ComputeInstance extends Instance {
         if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
         return localIpAddress != null ? localIpAddress.equals(that.localIpAddress) : that.localIpAddress == null;
     }
-
 }

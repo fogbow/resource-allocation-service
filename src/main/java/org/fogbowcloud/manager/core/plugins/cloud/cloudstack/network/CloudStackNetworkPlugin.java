@@ -28,15 +28,12 @@ import java.util.Properties;
 import java.util.UUID;
 
 public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
-
     private static final Logger LOGGER = Logger.getLogger(CloudStackNetworkPlugin.class);
 
     public static final java.lang.String NETWORK_OFFERING_ID = "network_offering_id";
     public static final java.lang.String ZONE_ID = "zone_id";
-
     protected String networkOfferingId = null;
     protected String zoneId = null;
-
     private HttpRequestClientUtil client;
 
     public CloudStackNetworkPlugin() {
@@ -52,7 +49,8 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
     }
 
     @Override
-    public String requestInstance(NetworkOrder networkOrder, CloudStackToken cloudStackToken) throws FogbowManagerException, UnexpectedException {
+    public String requestInstance(NetworkOrder networkOrder, CloudStackToken cloudStackToken)
+            throws FogbowManagerException {
         SubnetUtils.SubnetInfo subnetInfo = getSubnetInfo(networkOrder.getAddress());
         if (subnetInfo == null) {
             throw new InvalidParameterException("cidr <" + networkOrder.getAddress() + "> is not valid");
@@ -88,7 +86,8 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
     }
 
     @Override
-    public NetworkInstance getInstance(String networkInstanceId, CloudStackToken cloudStackToken) throws FogbowManagerException, UnexpectedException {
+    public NetworkInstance getInstance(String networkInstanceId, CloudStackToken cloudStackToken)
+            throws FogbowManagerException {
         GetNetworkRequest request = new GetNetworkRequest.Builder()
                 .id(networkInstanceId)
                 .build();
@@ -114,7 +113,8 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
     }
 
     @Override
-    public void deleteInstance(String networkInstanceId, CloudStackToken cloudStackToken) throws FogbowManagerException, UnexpectedException {
+    public void deleteInstance(String networkInstanceId, CloudStackToken cloudStackToken)
+            throws FogbowManagerException {
         DeleteNetworkRequest request = new DeleteNetworkRequest.Builder()
                 .id(networkInstanceId)
                 .build();
@@ -157,5 +157,4 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
     protected void setClient(HttpRequestClientUtil client) {
         this.client = client;
     }
-
 }

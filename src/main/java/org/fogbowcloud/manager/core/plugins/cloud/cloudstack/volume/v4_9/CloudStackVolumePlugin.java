@@ -28,20 +28,16 @@ import java.util.List;
 import java.util.Properties;
 
 public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
-
     private static final Logger LOGGER = Logger.getLogger(CloudStackVolumePlugin.class);
 
     private static final String CLOUDSTACK_ZONE_ID_KEY = "cloudstack_zone_id";
-
     private static final int FIRST_ELEMENT_POSITION = 0;
-
     private HttpRequestClientUtil client;
     private boolean diskOfferingCompatible;
     private String zoneId;
 
     public CloudStackVolumePlugin() {
-        String filePath = HomeDir.getPath() + File.separator
-                + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
+        String filePath = HomeDir.getPath() + File.separator + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
 
         Properties properties = PropertiesUtil.readProperties(filePath);
         this.zoneId = properties.getProperty(CLOUDSTACK_ZONE_ID_KEY);
@@ -50,9 +46,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
 
     @Override
     public String requestInstance(VolumeOrder volumeOrder, CloudStackToken localUserAttributes)
-            throws FogbowManagerException, UnexpectedException {
-
-        LOGGER.debug("Requesting volume instance with token " + localUserAttributes);
+            throws FogbowManagerException {
         String diskOfferingId = getDiskOfferingId(volumeOrder, localUserAttributes);
 
         CreateVolumeRequest request;
@@ -70,8 +64,6 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowManagerExceptionMapper.map(e);
         }
-
-        LOGGER.debug("Getting instance from json: " + jsonResponse);
         CreateVolumeResponse volumeResponse = CreateVolumeResponse.fromJson(jsonResponse);
         String volumeId = volumeResponse.getId();
         return volumeId;
@@ -79,9 +71,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
 
     @Override
     public VolumeInstance getInstance(String volumeInstanceId, CloudStackToken localUserAttributes)
-            throws FogbowManagerException, UnexpectedException {
-
-        LOGGER.debug("Getting volume instance " + volumeInstanceId + ", with token " + localUserAttributes);
+            throws FogbowManagerException {
         GetVolumeRequest request = new GetVolumeRequest.Builder()
                 .id(volumeInstanceId)
                 .build();
@@ -104,15 +94,11 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
         } else {
             throw new InstanceNotFoundException();
         }
-
     }
 
     @Override
     public void deleteInstance(String volumeInstanceId, CloudStackToken localUserAttributes)
-            throws FogbowManagerException, UnexpectedException {
-
-        LOGGER.debug("Removing volume instance " + volumeInstanceId + ". With token: " + localUserAttributes);
-
+            throws FogbowManagerException {
         DeleteVolumeRequest request = new DeleteVolumeRequest.Builder().id(volumeInstanceId).build();
         CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
 
@@ -128,7 +114,6 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
 
         if (!success) {
             String message = volumeResponse.getDisplayText();
-            LOGGER.debug("Could not remove volume instance " + volumeInstanceId + ". " + message);
         }
     }
 
@@ -136,9 +121,6 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
             throws FogbowManagerException {
 
         int volumeSize = volumeOrder.getVolumeSize();
-        LOGGER.debug("Getting disk offerings available in cloudstack with token: "
-                + localUserAttributes + " and volume size: " + volumeSize);
-
         GetAllDiskOfferingsRequest request = new GetAllDiskOfferingsRequest.Builder().build();
         CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
 
@@ -169,7 +151,6 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
                 return diskOffering.getId();
             }
         }
-        LOGGER.debug("There is not disk offering customized in cloudstack");
         return null;
     }
 
@@ -183,13 +164,12 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
                 return diskOffering.getId();
             }
         }
-        LOGGER.debug("There is not compatible disk offering in cloudstack");
         this.diskOfferingCompatible = false;
         return null;
     }
 
-    private CreateVolumeRequest createVolumeCustomized(VolumeOrder volumeOrder,
-                                                       String diskOfferingId) throws InvalidParameterException {
+    private CreateVolumeRequest createVolumeCustomized(VolumeOrder volumeOrder, String diskOfferingId)
+            throws InvalidParameterException {
 
         String name = volumeOrder.getVolumeName();
         String size = String.valueOf(volumeOrder.getVolumeSize());
@@ -235,5 +215,4 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
     public String getZoneId() {
         return this.zoneId;
     }
-
 }

@@ -8,7 +8,6 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import org.xmpp.packet.IQ;
 
 public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
-
     private static final Logger LOGGER = Logger.getLogger(RemoteNotifyEventRequest.class);
 
     private Order order;
@@ -21,18 +20,14 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
 
     @Override
     public Void send() throws Exception {
-
         IQ iq = RemoteNotifyEventRequest.marshall(this.order, this.event);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getRequestingMember());
-        LOGGER.debug("Request for order: " + this.order.getId() + " has been sent to " + order.getProvidingMember());
         return null;
     }
 
     public static IQ marshall(Order order, Event event) {
-        LOGGER.debug("Creating IQ for order: " + order.getId() + " event: " + event);
-
         IQ iq = new IQ(IQ.Type.set);
         iq.setTo(order.getRequestingMember());
         iq.setID(order.getId());
@@ -53,5 +48,4 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
 
         return iq;
     }
-
 }

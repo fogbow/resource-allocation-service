@@ -29,19 +29,16 @@ import java.util.List;
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class GetAllFlavorsResponse {
-
     @SerializedName("flavors")
     private List<Flavor> flavors;
 
     public class Flavor {
-
         @SerializedName("id")
         private String id;
 
         public String getId() {
             return id;
         }
-
     }
 
     public List<Flavor> getFlavors() {
@@ -51,5 +48,4 @@ public class GetAllFlavorsResponse {
     public static GetAllFlavorsResponse fromJson(String json) {
         return GsonHolder.getInstance().fromJson(json, GetAllFlavorsResponse.class);
     }
-
 }

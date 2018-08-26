@@ -3,7 +3,6 @@ package org.fogbowcloud.manager.core.plugins.cloud.cloudstack;
 public class CloudStackRestApiConstants {
 
     public static class Compute {
-
         public static final String VIRTUAL_MACHINES_KEY_JSON = "listvirtualmachinesresponse";
         public static final String VIRTUAL_MACHINE_KEY_JSON = "virtualmachine";
         public static final String ID_KEY_JSON = "id";
@@ -13,11 +12,8 @@ public class CloudStackRestApiConstants {
         public static final String MEMORY_KEY_JSON = "memory";
         public static final String NIC_KEY_JSON = "nic";
         public static final String IP_ADDRESS_KEY_JSON = "ipaddress";
-
         public static final String LIST_SERVICE_OFFERINGS_KEY_JSON = "listserviceofferingsresponse";
         public static final String SERVICE_OFFERING_KEY_JSON = "serviceoffering";
-
-        public static final String DESTROY_VIRTUAL_MACHINE_KEY_JSON = "destroyvirtualmachinesresponse";
     }
 
     public static class Volume {
@@ -47,5 +43,4 @@ public class CloudStackRestApiConstants {
         public static final String NETWORK_KEY_JSON = "network";
         public static final String ID_KEY = "id";
     }
-
 }

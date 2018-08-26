@@ -3,7 +3,6 @@ package org.fogbowcloud.manager.core;
 import org.fogbowcloud.manager.core.plugins.cloud.*;
 
 public class CloudPluginsHolder {
-
     private final AttachmentPlugin attachmentPlugin;
     private final ComputePlugin computePlugin;
     private final ComputeQuotaPlugin computeQuotaPlugin;

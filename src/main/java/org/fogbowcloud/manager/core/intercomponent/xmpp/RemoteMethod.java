@@ -19,5 +19,4 @@ public enum RemoteMethod {
     public String toString() {
         return method;
     }
-
 }

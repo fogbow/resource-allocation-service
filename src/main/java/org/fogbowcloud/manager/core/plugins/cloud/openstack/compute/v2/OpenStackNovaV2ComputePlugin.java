@@ -25,10 +25,10 @@ import org.fogbowcloud.manager.util.connectivity.HttpRequestUtil;
 import java.util.*;
 
 public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3Token> {
+    protected static final Logger LOGGER = Logger.getLogger(OpenStackNovaV2ComputePlugin.class);
 
     protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
     protected static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
-
     protected static final String ID_JSON_FIELD = "id";
     protected static final String NAME_JSON_FIELD = "name";
     protected static final String SERVER_JSON_FIELD = "server";
@@ -51,17 +51,13 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
     protected static final String UUID_JSON_FIELD = "uuid";
     protected static final String FOGBOW_INSTANCE_NAME = "fogbow-instance-";
     protected static final String PROJECT_ID = "projectId";
-
     protected static final String SERVERS = "/servers";
     protected static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
     protected static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
     protected static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
-
-    protected static final Logger LOGGER = Logger.getLogger(OpenStackNovaV2ComputePlugin.class);
     protected static final String ADDRESS_FIELD = "addresses";
     protected static final String PROVIDER_NETWORK_FIELD = "provider";
     protected static final String ADDR_FIELD = "addr";
-
     private TreeSet<HardwareRequirements> hardwareRequirementsList;
     private Properties properties;
     private HttpRequestClientUtil client;
@@ -77,10 +73,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
     /**
      * Constructor used for testing only
      */
-    protected OpenStackNovaV2ComputePlugin(Properties properties,
-                                           LaunchCommandGenerator launchCommandGenerator,
+    protected OpenStackNovaV2ComputePlugin(Properties properties, LaunchCommandGenerator launchCommandGenerator,
                                            HttpRequestClientUtil client) {
-        LOGGER.debug("Creating OpenStackNovaV2ComputePlugin with properties=" + properties.toString());
         this.properties = properties;
         this.launchCommandGenerator = launchCommandGenerator;
         this.client = client;
@@ -89,8 +83,6 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
 
     public String requestInstance(ComputeOrder computeOrder, OpenStackV3Token openStackV3Token)
             throws FogbowManagerException, UnexpectedException {
-        LOGGER.debug("Requesting instance with tokens=" + openStackV3Token);
-
         HardwareRequirements hardwareRequirements = findSmallestFlavor(computeOrder, openStackV3Token);
         String flavorId = hardwareRequirements.getFlavorId();
         String projectId = getProjectId(openStackV3Token);
@@ -124,8 +116,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
         return instanceId;
     }
 
-    private String doRequestInstance(OpenStackV3Token openStackV3Token, String flavorId, List<String> networksId, String imageId,
-                                     String userData, String keyName, String endpoint) throws UnavailableProviderException, HttpResponseException {
+    private String doRequestInstance(OpenStackV3Token openStackV3Token, String flavorId, List<String> networksId,
+                                     String imageId, String userData, String keyName, String endpoint)
+            throws UnavailableProviderException, HttpResponseException {
         CreateComputeRequest createBody = getRequestBody(imageId, flavorId, userData, keyName, networksId);
 
         String body = createBody.toJson();
@@ -149,15 +142,13 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
-
-        LOGGER.debug("Getting instance from json: " + jsonResponse);
-
         ComputeInstance computeInstance = getInstanceFromJson(jsonResponse, openStackV3Token);
         return computeInstance;
     }
 
     @Override
-    public void deleteInstance(String instanceId, OpenStackV3Token openStackV3Token) throws FogbowManagerException, UnexpectedException {
+    public void deleteInstance(String instanceId, OpenStackV3Token openStackV3Token)
+            throws FogbowManagerException, UnexpectedException {
         LOGGER.info("Deleting instance " + instanceId + " with tokens " + openStackV3Token);
         String endpoint = getComputeEndpoint(getProjectId(openStackV3Token), SERVERS + "/" + instanceId);
         try {
@@ -225,7 +216,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
         return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + projectId + suffix;
     }
 
-    private void deleteKeyName(String projectId, OpenStackV3Token openStackV3Token, String keyName) throws FogbowManagerException, UnexpectedException {
+    private void deleteKeyName(String projectId, OpenStackV3Token openStackV3Token, String keyName)
+            throws FogbowManagerException, UnexpectedException {
         String suffixEndpoint = SUFFIX_ENDPOINT_KEYPAIRS + "/" + keyName;
         String keyNameEndpoint = getComputeEndpoint(projectId, suffixEndpoint);
 
@@ -277,7 +269,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
         return bestFlavor;
     }
 
-    private HardwareRequirements getBestFlavor(ComputeOrder computeOrder, OpenStackV3Token openStackV3Token) throws FogbowManagerException, UnexpectedException {
+    private HardwareRequirements getBestFlavor(ComputeOrder computeOrder, OpenStackV3Token openStackV3Token)
+            throws FogbowManagerException, UnexpectedException {
         updateFlavors(openStackV3Token);
         TreeSet<HardwareRequirements> hardwareRequirementsList = getHardwareRequirementsList();
         for (HardwareRequirements hardwareRequirements : hardwareRequirementsList) {
@@ -291,8 +284,6 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
     }
 
     private void updateFlavors(OpenStackV3Token openStackV3Token) throws FogbowManagerException, UnexpectedException {
-        LOGGER.debug("Updating hardwareRequirements from OpenStack");
-
         String projectId = getProjectId(openStackV3Token);
         String flavorsEndpoint = getComputeEndpoint(projectId, SUFFIX_ENDPOINT_FLAVORS);
 
@@ -305,14 +296,16 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
                 flavorsIds.add(flavor.getId());
             }
 
-            TreeSet<HardwareRequirements> newHardwareRequirements = detailFlavors(flavorsEndpoint, openStackV3Token, flavorsIds);
+            TreeSet<HardwareRequirements> newHardwareRequirements =
+                    detailFlavors(flavorsEndpoint, openStackV3Token, flavorsIds);
             setHardwareRequirementsList(newHardwareRequirements);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
     }
 
-    private TreeSet<HardwareRequirements> detailFlavors(String endpoint, OpenStackV3Token openStackV3Token, List<String> flavorsIds)
+    private TreeSet<HardwareRequirements> detailFlavors(String endpoint, OpenStackV3Token openStackV3Token,
+                                                        List<String> flavorsIds)
             throws FogbowManagerException, UnexpectedException {
         TreeSet<HardwareRequirements> newHardwareRequirements = new TreeSet<>();
         TreeSet<HardwareRequirements> flavorsCopy = new TreeSet<>(getHardwareRequirementsList());
@@ -350,7 +343,6 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
                 newHardwareRequirements.add(new HardwareRequirements(name, id, vcpusCount, memory, disk));
             }
         }
-
         return newHardwareRequirements;
     }
 

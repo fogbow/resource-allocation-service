@@ -19,7 +19,6 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class CreateSecurityGroupRequest {
-
     @SerializedName(SECURITY_GROUP_KEY_JSON)
     private final SecurityGroup securityGroup;
 
@@ -32,10 +31,8 @@ public class CreateSecurityGroupRequest {
     }
 
     private static class SecurityGroup {
-
         @SerializedName(NAME_KEY_JSON)
         private String name;
-
         @SerializedName(PROJECT_ID_KEY_JSON)
         private String projectId;
 
@@ -43,11 +40,9 @@ public class CreateSecurityGroupRequest {
             this.name = builder.name;
             this.projectId = builder.projectId;
         }
-
     }
 
     public static class Builder {
-
         private String name;
         private String projectId;
 
@@ -65,7 +60,5 @@ public class CreateSecurityGroupRequest {
             SecurityGroup securityGroup = new SecurityGroup(this);
             return new CreateSecurityGroupRequest(securityGroup);
         }
-
     }
-
 }

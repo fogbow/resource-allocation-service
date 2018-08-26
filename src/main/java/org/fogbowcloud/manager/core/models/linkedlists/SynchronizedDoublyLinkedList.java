@@ -3,7 +3,6 @@ package org.fogbowcloud.manager.core.models.linkedlists;
 import org.fogbowcloud.manager.core.models.orders.Order;
 
 public class SynchronizedDoublyLinkedList implements ChainedList {
-
     private Node head;
     private Node tail;
     private Node current;

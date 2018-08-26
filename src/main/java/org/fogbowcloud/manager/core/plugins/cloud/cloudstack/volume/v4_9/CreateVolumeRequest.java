@@ -4,7 +4,6 @@ import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRequest;
 
 public class CreateVolumeRequest extends CloudStackRequest {
-
     protected static final String CREATE_VOLUME_COMMAND = "createVolume";
     protected static final String ZONE_ID = "zoneid";
     protected static final String VOLUME_NAME = "name";
@@ -30,7 +29,6 @@ public class CreateVolumeRequest extends CloudStackRequest {
     }
 
     public static class Builder {
-
         private String zoneId;
         private String name;
         private String diskOfferingId;
@@ -59,7 +57,5 @@ public class CreateVolumeRequest extends CloudStackRequest {
         public CreateVolumeRequest build() throws InvalidParameterException {
             return new CreateVolumeRequest(this);
         }
-
     }
-
 }

@@ -26,7 +26,6 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class GetNetworkResponse {
-
     @SerializedName(NETWORK_KEY_JSON)
     private Network network;
 
@@ -35,22 +34,16 @@ public class GetNetworkResponse {
     }
 
     public class Network {
-
         @SerializedName(ID_KEY_JSON)
         private String id;
-
         @SerializedName(NAME_KEY_JSON)
         private String name;
-
         @SerializedName(PROVIDER_SEGMENTATION_ID_KEY_JSON)
         private String segmentationId;
-
         @SerializedName(SUBNETS_KEY_JSON)
         private List<String> subnets;
-
         @SerializedName(STATUS_KEY_JSON)
         private String status;
-
     }
 
     public String getId() {
@@ -72,5 +65,4 @@ public class GetNetworkResponse {
     public String getStatus() {
         return network.status;
     }
-
 }

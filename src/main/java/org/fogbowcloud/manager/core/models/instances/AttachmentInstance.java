@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.models.instances;
 
 public class AttachmentInstance extends Instance {
-
     private String serverId;
     private String volumeId;
     private String device;

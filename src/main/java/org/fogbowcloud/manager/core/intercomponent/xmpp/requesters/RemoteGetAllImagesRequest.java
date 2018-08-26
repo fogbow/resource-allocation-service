@@ -14,7 +14,6 @@ import org.xmpp.packet.IQ;
 import java.util.HashMap;
 
 public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, String>> {
-
     private static final Logger LOGGER = Logger.getLogger(RemoteGetAllImagesRequest.class);
 
     private String provider;
@@ -36,8 +35,6 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
     }
 
     public static IQ marshal(String provider, FederationUserToken federationUserToken) {
-        LOGGER.debug("Marshalling provider <" + provider + "> and federationUserToken <" + federationUserToken + ">");
-
         IQ iq = new IQ(IQ.Type.get);
         iq.setTo(provider);
 
@@ -69,5 +66,4 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
 
         return imagesMap;
     }
-
 }

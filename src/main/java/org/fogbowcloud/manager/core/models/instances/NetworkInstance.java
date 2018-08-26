@@ -3,7 +3,6 @@ package org.fogbowcloud.manager.core.models.instances;
 import org.fogbowcloud.manager.core.models.orders.NetworkAllocationMode;
 
 public class NetworkInstance extends Instance {
-
     private String label;
     private String address;
     private String gateway;

@@ -19,17 +19,15 @@ import java.util.List;
 public class VolumeOrdersController {
 
     public static final String VOLUME_ENDPOINT = "volumes";
-
     public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
     private final Logger LOGGER = Logger.getLogger(VolumeOrdersController.class);
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<String> createVolume(@RequestBody VolumeOrder volumeOrder,
-                                               @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowManagerException, UnexpectedException {
         LOGGER.info("New volume order request received <" + volumeOrder.getId() + ">.");
-
         String volumeId = ApplicationFacade.getInstance().createVolume(volumeOrder, federationTokenValue);
         return new ResponseEntity<String>(volumeId, HttpStatus.CREATED);
     }
@@ -46,7 +44,7 @@ public class VolumeOrdersController {
 
     @RequestMapping(value = "/{volumeId}", method = RequestMethod.GET)
     public ResponseEntity<VolumeInstance> getVolume(@PathVariable String volumeId,
-                                                    @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
         LOGGER.info("Get request for volume order <" + volumeId + "> received.");
         VolumeInstance volume = ApplicationFacade.getInstance().getVolume(volumeId, federationTokenValue);
@@ -55,11 +53,10 @@ public class VolumeOrdersController {
 
     @RequestMapping(value = "/{volumeId}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> deleteVolume(@PathVariable String volumeId,
-                                                @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowManagerException, UnexpectedException {
         LOGGER.info("Delete compute order <" + volumeId + "> received.");
         ApplicationFacade.getInstance().deleteVolume(volumeId, federationTokenValue);
         return new ResponseEntity<>(HttpStatus.OK);
     }
-
 }

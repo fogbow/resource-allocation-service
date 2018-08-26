@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Properties;
 
 public class PluginInstantiator {
-
     private PluginFactory pluginFactory;
     private Properties properties;
     private static PluginInstantiator instance;
@@ -103,5 +102,4 @@ public class PluginInstantiator {
     protected Properties getProperties() {
         return this.properties;
     }
-
 }

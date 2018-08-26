@@ -16,25 +16,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
+    private static final Logger LOGGER = Logger.getLogger(DefaultLaunchCommandGenerator.class);
 
     protected static final String TOKEN_ID = "#TOKEN_ID#";
-    protected static final String TOKEN_HOST = "#TOKEN_HOST#";
-    protected static final String TOKEN_HOST_HTTP_PORT = "#TOKEN_HOST_HTTP_PORT#";
     protected static final String TOKEN_SSH_USER = "#TOKEN_SSH_USER#";
     protected static final String TOKEN_USER_SSH_PUBLIC_KEY = "#TOKEN_USER_SSH_PUBLIC_KEY#";
     protected static final String TOKEN_MANAGER_SSH_PUBLIC_KEY = "#TOKEN_MANAGER_SSH_PUBLIC_KEY#";
-
     public static final String USER_DATA_LINE_BREAKER = "[[\\n]]";
-
     private final String SSH_REVERSE_TUNNEL_SCRIPT_PATH = "bin/create-reverse-tunnel";
     private final String BRING_UP_NETWORK_INTERFACE_SCRIPT_PATH = "bin/bring-up-network-interface";
-
     private final String CLOUD_CONFIG_FILE_PATH = "bin/cloud-config.cfg";
-
     private final String sshCommonUser;
     private final String managerSshPublicKey;
-
-    private static final Logger LOGGER = Logger.getLogger(DefaultLaunchCommandGenerator.class);
 
     public DefaultLaunchCommandGenerator() throws FatalErrorException {
         try {
@@ -97,8 +90,8 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
         return base64String;
     }
 
-    protected void addExtraUserData(CloudInitUserDataBuilder cloudInitUserDataBuilder,
-                                    String extraUserDataFileContent, CloudInitUserDataBuilder.FileType extraUserDataFileType) {
+    protected void addExtraUserData(CloudInitUserDataBuilder cloudInitUserDataBuilder, String extraUserDataFileContent,
+                                    CloudInitUserDataBuilder.FileType extraUserDataFileType) {
 
         if (extraUserDataFileContent != null && extraUserDataFileType != null) {
             String lineSeparator = "\n";
@@ -130,7 +123,6 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
         String messageTemplate = "Replacing %s with %s";
         for (String key : replacements.keySet()) {
             String value = replacements.get(key);
-            LOGGER.debug(String.format(messageTemplate, key, value));
             mimeString = mimeString.replace(key, value);
         }
         return mimeString;

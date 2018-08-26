@@ -9,7 +9,6 @@ import org.fogbowcloud.manager.core.models.tokens.Token;
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 
 public class GenericOneToOneFederationToLocalMapper implements FederationToLocalMapperPlugin {
-
     private FederationToLocalMapperPlugin remoteMapper;
     private String memberId;
 

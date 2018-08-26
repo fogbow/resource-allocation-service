@@ -25,15 +25,13 @@ public class ComputeOrdersController {
     public static final String STATUS_ENDPOINT = "status";
     public static final String QUOTA_ENDPOINT = "quota";
     public static final String ALLOCATION_ENDPOINT = "allocation";
-
     public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
 
     private final Logger LOGGER = Logger.getLogger(ComputeOrdersController.class);
 
     // HttpExceptionToErrorConditionTranslator handles the possible problems in request
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<String> createCompute(
-            @RequestBody ComputeOrder computeOrder,
+    public ResponseEntity<String> createCompute(@RequestBody ComputeOrder computeOrder,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowManagerException, UnexpectedException {
         LOGGER.info("New compute order request received <" + computeOrder.getId() + ">.");
@@ -52,8 +50,7 @@ public class ComputeOrdersController {
     }
 
     @RequestMapping(value = "/{computeId}", method = RequestMethod.GET)
-    public ResponseEntity<ComputeInstance> getCompute(
-            @PathVariable String computeId,
+    public ResponseEntity<ComputeInstance> getCompute(@PathVariable String computeId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
         LOGGER.info("Get request for compute order <" + computeId + "> received.");
@@ -62,8 +59,7 @@ public class ComputeOrdersController {
     }
 
     @RequestMapping(value = "/{computeId}", method = RequestMethod.DELETE)
-    public ResponseEntity<Boolean> deleteCompute(
-            @PathVariable String computeId,
+    public ResponseEntity<Boolean> deleteCompute(@PathVariable String computeId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowManagerException, UnexpectedException {
         LOGGER.info("Delete compute order <" + computeId + "> received.");
@@ -73,9 +69,8 @@ public class ComputeOrdersController {
 
     @RequestMapping(value = "/" + QUOTA_ENDPOINT + "/{memberId:.+}", method = RequestMethod.GET)
     public ResponseEntity<ComputeQuota> getUserQuota(@PathVariable String memberId,
-                                                     @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-
         LOGGER.info("User " + QUOTA_ENDPOINT + " information request for member <" + memberId + "> received.");
         ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(memberId, federationTokenValue);
         return new ResponseEntity<>(quotaInstance, HttpStatus.OK);
@@ -83,13 +78,11 @@ public class ComputeOrdersController {
 
     @RequestMapping(value = "/" + ALLOCATION_ENDPOINT + "/{memberId:.+}", method = RequestMethod.GET)
     public ResponseEntity<ComputeAllocation> getUserAllocation(@PathVariable String memberId,
-                                                               @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowManagerException, UnexpectedException {
-
         LOGGER.info("User " + ALLOCATION_ENDPOINT + " information request for member <" + memberId + "> received.");
         ComputeAllocation computeAllocation =
                 ApplicationFacade.getInstance().getComputeAllocation(memberId, federationTokenValue);
         return new ResponseEntity<>(computeAllocation, HttpStatus.OK);
     }
-
 }

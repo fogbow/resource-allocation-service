@@ -13,14 +13,12 @@ import java.util.Map;
 import java.util.Properties;
 
 public class CloudStackTokenGenerator implements TokenGeneratorPlugin {
-
     private static final Logger LOGGER = Logger.getLogger(CloudStackTokenGenerator.class);
 
     public static final String API_KEY = "apiKey";
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
-    public static final String SECRET_KEY = "secretKey";
     public static final String TOKEN_VALUE_SEPARATOR = ":";
-
+    protected static final String SECRET_KEY = "secretKey";
     private String endpoint;
 
     public CloudStackTokenGenerator() {
@@ -32,10 +30,7 @@ public class CloudStackTokenGenerator implements TokenGeneratorPlugin {
 
     @Override
     public String createTokenValue(Map<String, String> credentials) throws FogbowManagerException {
-        LOGGER.debug("Creating token with credentials: " + credentials);
-
-        if ((credentials == null) || (credentials.get(API_KEY) == null)
-                || (credentials.get(SECRET_KEY) == null)) {
+        if ((credentials == null) || (credentials.get(API_KEY) == null) || (credentials.get(SECRET_KEY) == null)) {
             String errorMsg = "User credentials can't be null";
             throw new InvalidParameterException(errorMsg);
         }

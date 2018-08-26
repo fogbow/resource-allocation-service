@@ -12,10 +12,9 @@ import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 
 public class RemoteCreateOrderRequestHandler extends AbstractQueryHandler {
-
     private static final Logger LOGGER = Logger.getLogger(RemoteCreateOrderRequestHandler.class);
 
-    public static final String REMOTE_CREATE_ORDER = RemoteMethod.REMOTE_CREATE_ORDER.toString();
+    private static final String REMOTE_CREATE_ORDER = RemoteMethod.REMOTE_CREATE_ORDER.toString();
 
     public RemoteCreateOrderRequestHandler() {
         super(REMOTE_CREATE_ORDER);
@@ -53,5 +52,4 @@ public class RemoteCreateOrderRequestHandler extends AbstractQueryHandler {
         String className = orderClassNameElement.getText();
         return className;
     }
-
 }

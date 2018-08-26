@@ -14,9 +14,7 @@ import java.util.Map;
 public class ImageRequestController {
 
     public static final String IMAGE_ENDPOINT = "images";
-
     public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
-
     public static final String MEMBER_ID_HEADER_KEY = "memberId";
 
     private final Logger LOGGER = Logger.getLogger(ImageRequestController.class);
@@ -32,8 +30,7 @@ public class ImageRequestController {
     }
 
     @RequestMapping(value = "/{imageId}", method = RequestMethod.GET)
-    public ResponseEntity<Image> getImage(
-            @PathVariable String imageId,
+    public ResponseEntity<Image> getImage(@PathVariable String imageId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
             @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId)
             throws Exception {

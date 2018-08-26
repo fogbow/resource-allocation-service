@@ -12,13 +12,12 @@ import org.fogbowcloud.manager.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.manager.core.exceptions.FatalErrorException;
 
 public class HttpRequestUtil {
+    private static final Logger LOGGER = Logger.getLogger(HttpRequestUtil.class);
 
     public static final String CONTENT_TYPE_KEY = "Content-Type";
     public static final String ACCEPT_KEY = "Accept";
     public static final String JSON_CONTENT_TYPE_KEY = "application/json";
     public static final String X_AUTH_TOKEN_KEY = "X-Auth-Token";
-
-    private static final Logger LOGGER = Logger.getLogger(HttpRequestUtil.class);
     private static Integer timeoutHttpRequest;
 
     public static void init() throws FatalErrorException {
@@ -45,8 +44,8 @@ public class HttpRequestUtil {
         return createHttpClient(null, null, connManager);
     }
 
-    public static CloseableHttpClient createHttpClient(Integer timeout,
-                                                       SSLConnectionSocketFactory sslsf, HttpClientConnectionManager connManager) throws FatalErrorException {
+    public static CloseableHttpClient createHttpClient(Integer timeout, SSLConnectionSocketFactory sslsf,
+                                               HttpClientConnectionManager connManager) throws FatalErrorException {
         if (timeoutHttpRequest == null) {
             init(); // Set to default timeout.
         }

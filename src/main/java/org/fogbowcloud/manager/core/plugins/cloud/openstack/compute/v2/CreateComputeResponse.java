@@ -19,7 +19,6 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class CreateComputeResponse {
-
     @SerializedName(SERVER_KEY_JSON)
     private Server server;
 
@@ -32,10 +31,7 @@ public class CreateComputeResponse {
     }
 
     public class Server {
-
         @SerializedName(ID_KEY_JSON)
         private String id;
-
     }
-
 }

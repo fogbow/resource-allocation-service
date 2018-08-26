@@ -4,7 +4,6 @@ import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRequest;
 
 public class DeleteVolumeRequest extends CloudStackRequest {
-
     protected static final String DELETE_VOLUME_COMMAND = "deleteVolume";
     private static final String VOLUME_ID_KEY = "id";
 
@@ -24,7 +23,6 @@ public class DeleteVolumeRequest extends CloudStackRequest {
     }
 
     public static class Builder {
-
         private String id;
 
         public Builder id(String id) {
@@ -36,5 +34,4 @@ public class DeleteVolumeRequest extends CloudStackRequest {
             return new DeleteVolumeRequest(this);
         }
     }
-
 }

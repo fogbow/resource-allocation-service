@@ -10,11 +10,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 public class OrderStorage {
-
     private static final Logger LOGGER = Logger.getLogger(OrderStorage.class);
 
     private static final String MANAGER_DATASTORE_SQLITE_DRIVER = "org.sqlite.JDBC";
-
     private String databaseUrl;
     private String databaseUsername;
     private String databasePassword;

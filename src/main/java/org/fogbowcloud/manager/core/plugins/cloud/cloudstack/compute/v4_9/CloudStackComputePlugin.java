@@ -26,14 +26,11 @@ import java.util.List;
 import java.util.Properties;
 
 public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
-
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputePlugin.class);
 
     private static final String ZONE_ID_KEY = "zone_id";
     private static final String EXPUNGE_ON_DESTROY_KEY = "compute_cloudstack_expunge_on_destroy";
-
     private HttpRequestClientUtil client;
-
     private String zoneId;
     private String expungeOnDestroy;
 
@@ -58,10 +55,12 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         }
 
         // FIXME(pauloewerton): should this be creating a cloud-init script for cloudstack?
-        String userData = Base64.getEncoder().encodeToString(computeOrder.getUserData().getExtraUserDataFileContent().getBytes());
+        String userData = Base64.getEncoder().encodeToString(computeOrder.getUserData().
+                getExtraUserDataFileContent().getBytes());
         String networksId = StringUtils.join(computeOrder.getNetworksId(), ",");
 
-        String serviceOfferingId = getServiceOfferingId(computeOrder.getvCPU(), computeOrder.getMemory(), cloudStackToken);
+        String serviceOfferingId = getServiceOfferingId(computeOrder.getvCPU(), computeOrder.getMemory(),
+                cloudStackToken);
         if (serviceOfferingId == null) {
             throw new NoAvailableResourcesException();
         }
@@ -97,7 +96,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     public String getServiceOfferingId(int vcpusRequirement, int memoryRequirement, CloudStackToken cloudStackToken)
             throws FogbowManagerException {
         GetAllServiceOfferingsResponse serviceOfferingsResponse = getServiceOfferings(cloudStackToken);
-        List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings = serviceOfferingsResponse.getServiceOfferings();
+        List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings = serviceOfferingsResponse.
+                getServiceOfferings();
 
         if (serviceOfferings != null) {
             for (GetAllServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferings) {
@@ -187,7 +187,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         }
     }
 
-    private ComputeInstance getComputeInstance(GetVirtualMachineResponse.VirtualMachine vm) throws FogbowManagerException {
+    private ComputeInstance getComputeInstance(GetVirtualMachineResponse.VirtualMachine vm) {
         String instanceId = vm.getId();
         String hostName = vm.getName();
         int vcpusCount = vm.getCpuNumber();

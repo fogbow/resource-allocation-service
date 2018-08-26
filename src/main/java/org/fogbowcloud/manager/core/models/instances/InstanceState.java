@@ -21,5 +21,4 @@ public enum InstanceState {
     public String getValue() {
         return this.value;
     }
-
 }

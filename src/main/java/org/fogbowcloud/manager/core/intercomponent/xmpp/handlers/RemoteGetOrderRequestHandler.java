@@ -13,8 +13,7 @@ import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 
 public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
-
-    public static final String REMOTE_GET_INSTANCE = RemoteMethod.REMOTE_GET_ORDER.toString();
+    private static final String REMOTE_GET_INSTANCE = RemoteMethod.REMOTE_GET_ORDER.toString();
 
     public RemoteGetOrderRequestHandler() {
         super(REMOTE_GET_INSTANCE);

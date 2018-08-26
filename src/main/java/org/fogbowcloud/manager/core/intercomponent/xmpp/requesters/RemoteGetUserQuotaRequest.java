@@ -14,14 +14,14 @@ import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 import org.xmpp.packet.IQ;
 
 public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
-
     private static final Logger LOGGER = Logger.getLogger(RemoteGetUserQuotaRequest.class);
 
     private String provider;
     private FederationUserToken federationUserToken;
     private ResourceType resourceType;
 
-    public RemoteGetUserQuotaRequest(String provider, FederationUserToken federationUserToken, ResourceType resourceType) {
+    public RemoteGetUserQuotaRequest(String provider, FederationUserToken federationUserToken,
+                                     ResourceType resourceType) {
         this.provider = provider;
         this.federationUserToken = federationUserToken;
         this.resourceType = resourceType;

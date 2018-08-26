@@ -22,7 +22,6 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class GetFlavorResponse {
-
     @SerializedName(FLAVOR_KEY_JSON)
     private Flavor flavor;
 
@@ -51,22 +50,15 @@ public class GetFlavorResponse {
     }
 
     public class Flavor {
-
         @SerializedName(ID_KEY_JSON)
         private String id;
-
         @SerializedName(NAME_KEY_JSON)
         private String name;
-
         @SerializedName(DISK_KEY_JSON)
         private int disk;
-
         @SerializedName(MEMORY_KEY_JSON)
         private int memory;
-
         @SerializedName(VCPUS_KEY_JSON)
         private int vcpusCount;
-
     }
-
 }

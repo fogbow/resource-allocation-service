@@ -14,10 +14,9 @@ import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 
 public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
-
     private static final Logger LOGGER = Logger.getLogger(RemoteGetUserQuotaRequestHandler.class);
 
-    public static final String REMOTE_GET_USER_QUOTA = RemoteMethod.REMOTE_GET_USER_QUOTA.toString();
+    private static final String REMOTE_GET_USER_QUOTA = RemoteMethod.REMOTE_GET_USER_QUOTA.toString();
 
     public RemoteGetUserQuotaRequestHandler() {
         super(REMOTE_GET_USER_QUOTA);
@@ -53,7 +52,8 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
 
         Element federationUserTokenElement = queryElement.element(IqElement.FEDERATION_USER.toString());
-        FederationUserToken federationUserToken = new Gson().fromJson(federationUserTokenElement.getText(), FederationUserToken.class);
+        FederationUserToken federationUserToken = new Gson().fromJson(federationUserTokenElement.getText(),
+                FederationUserToken.class);
         return federationUserToken;
     }
 

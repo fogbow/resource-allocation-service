@@ -1,17 +1,11 @@
 package org.fogbowcloud.manager.core.models.images;
 
 public class Image {
-
     private String id;
-
     private String name;
-
     private long size; // in bytes
-
     private long minDisk; // in GB
-
     private long minRam; // in MB
-
     private String status;
 
     public Image(String id, String name, long size, long minDisk, long minRam, String status) {

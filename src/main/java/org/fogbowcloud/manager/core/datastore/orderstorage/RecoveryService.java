@@ -12,13 +12,11 @@ import java.util.List;
 @Service
 public class RecoveryService {
 
-    public RecoveryService() {
-
-    }
-
     @Autowired
     private OrderRepository orderRepository;
 
+    public RecoveryService() {
+    }
 
     public List<Order> readActiveOrders(OrderState orderState) {
 
@@ -55,6 +53,4 @@ public class RecoveryService {
 
         return orderRepository.save(order);
     }
-
-
 }

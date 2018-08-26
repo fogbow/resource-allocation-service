@@ -5,7 +5,6 @@ import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRestApiCo
 import org.fogbowcloud.manager.util.GsonHolder;
 
 public class CreateNetworkResponse {
-
     @SerializedName(CloudStackRestApiConstants.Network.CREATE_NETWORK_RESPONSE_KEY_JSON)
     private Response response;
 
@@ -18,16 +17,12 @@ public class CreateNetworkResponse {
     }
 
     private class Response {
-
         @SerializedName(CloudStackRestApiConstants.Network.NETWORK_KEY_JSON)
         private Network network;
-
     }
 
     private class Network {
-
         @SerializedName(CloudStackRestApiConstants.Network.ID_KEY)
         private String id;
-
     }
 }

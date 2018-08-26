@@ -29,7 +29,6 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class CreateSubnetRequest {
-
     @SerializedName(SUBNET_KEY_JSON)
     private final Subnet subnet;
 
@@ -42,28 +41,20 @@ public class CreateSubnetRequest {
     }
 
     public static class Subnet {
-
         @SerializedName(NAME_KEY_JSON)
         private final String name;
-
         @SerializedName(PROJECT_ID_KEY_JSON)
         private final String projectId;
-
         @SerializedName(NETWORK_ID_KEY_JSON)
         private final String networkId;
-
         @SerializedName(IP_VERSION_KEY_JSON)
         private final int ipVersion;
-
         @SerializedName(GATEWAY_IP_KEY_JSON)
         private final String gatewayIp;
-
         @SerializedName(CIDR_KEY_JSON)
         private final String networkAddress;
-
         @SerializedName(ENABLE_DHCP_KEY_JSON)
         private final boolean dhcpEnabled;
-
         @SerializedName(DNS_NAMESERVERS_KEY_JSON)
         private final List<String> dnsNameServers;
 
@@ -77,11 +68,9 @@ public class CreateSubnetRequest {
             this.dhcpEnabled = builder.dhcpEnabled;
             this.dnsNameServers = builder.dnsNameServers;
         }
-
     }
 
     public static class Builder {
-
         private String name;
         private String projectId;
         private String networkId;
@@ -136,5 +125,4 @@ public class CreateSubnetRequest {
             return new CreateSubnetRequest(subnet);
         }
     }
-
 }

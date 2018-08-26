@@ -10,11 +10,9 @@ import org.fogbowcloud.manager.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.manager.core.models.orders.Order;
 
 public class ClosedProcessor implements Runnable {
-
     private static final Logger LOGGER = Logger.getLogger(ClosedProcessor.class);
 
     private ChainedList closedOrders;
-
     private Long sleepTime;
 
     public ClosedProcessor(String sleepTimeStr) {

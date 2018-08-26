@@ -4,9 +4,7 @@ import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRequest;
 
 public class CreateNetworkRequest extends CloudStackRequest {
-
     public static final String CREATE_NETWORK_COMMAND = "createNetwork";
-
     public static final String NAME_KEY = "name";
     public static final String NETWORK_OFFERING_ID_KEY = "networkofferingid";
     public static final String ZONE_ID_KEY = "zoneid";
@@ -33,7 +31,6 @@ public class CreateNetworkRequest extends CloudStackRequest {
     }
 
     public static class Builder {
-
         private String name;
         private String displayText;
         private String networkOfferingId;

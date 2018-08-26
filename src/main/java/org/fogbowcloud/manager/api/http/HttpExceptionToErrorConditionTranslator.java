@@ -17,7 +17,6 @@ public class HttpExceptionToErrorConditionTranslator extends ResponseEntityExcep
     public final ResponseEntity<ExceptionResponse> handleAuthorizationException(Exception ex, WebRequest request) {
 
         ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
-
         return new ResponseEntity<>(errorDetails, HttpStatus.FORBIDDEN);
     }
 
@@ -25,7 +24,6 @@ public class HttpExceptionToErrorConditionTranslator extends ResponseEntityExcep
     public final ResponseEntity<ExceptionResponse> handleAuthenticationException(Exception ex, WebRequest request) {
 
         ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
-
         return new ResponseEntity<>(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 
@@ -33,7 +31,6 @@ public class HttpExceptionToErrorConditionTranslator extends ResponseEntityExcep
     public final ResponseEntity<ExceptionResponse> handleInvalidParameterException(Exception ex, WebRequest request) {
 
         ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
-
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
@@ -41,7 +38,6 @@ public class HttpExceptionToErrorConditionTranslator extends ResponseEntityExcep
     public final ResponseEntity<ExceptionResponse> handleInstanceNotFoundException(Exception ex, WebRequest request) {
 
         ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
-
         return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
     }
 
@@ -49,7 +45,6 @@ public class HttpExceptionToErrorConditionTranslator extends ResponseEntityExcep
     public final ResponseEntity<ExceptionResponse> handleQuotaExceededException(Exception ex, WebRequest request) {
 
         ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
-
         return new ResponseEntity<>(errorDetails, HttpStatus.CONFLICT);
     }
 
@@ -58,7 +53,6 @@ public class HttpExceptionToErrorConditionTranslator extends ResponseEntityExcep
             Exception ex, WebRequest request) {
 
         ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
-
         return new ResponseEntity<>(errorDetails, HttpStatus.NOT_ACCEPTABLE);
     }
 
@@ -67,7 +61,6 @@ public class HttpExceptionToErrorConditionTranslator extends ResponseEntityExcep
             Exception ex, WebRequest request) {
 
         ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
-
         return new ResponseEntity<>(errorDetails, HttpStatus.GATEWAY_TIMEOUT);
     }
 
@@ -75,7 +68,6 @@ public class HttpExceptionToErrorConditionTranslator extends ResponseEntityExcep
     public final ResponseEntity<ExceptionResponse> handleUnexpectedException(Exception ex, WebRequest request) {
 
         ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
-
         return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -83,7 +75,6 @@ public class HttpExceptionToErrorConditionTranslator extends ResponseEntityExcep
     public final ResponseEntity<ExceptionResponse> handleAnyException(Exception ex, WebRequest request) {
 
         ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
-
         return new ResponseEntity<>(errorDetails, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
     }
 
@@ -92,7 +83,6 @@ public class HttpExceptionToErrorConditionTranslator extends ResponseEntityExcep
             ServletRequestBindingException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
 
         ExceptionResponse errorDetails = new ExceptionResponse(ex.getMessage(), request.getDescription(false));
-
         return new ResponseEntity<>(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 }

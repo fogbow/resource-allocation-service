@@ -4,7 +4,6 @@ import org.fogbowcloud.manager.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 
 public interface AuthenticationPlugin {
-
     /**
      * Verifies if the federationTokenValue is valid against the identity service.
      *
@@ -12,5 +11,4 @@ public interface AuthenticationPlugin {
      * @return a boolean stating whether the tokens value is valid or not.
      */
     public boolean isAuthentic(FederationUserToken federationToken) throws UnavailableProviderException;
-
 }

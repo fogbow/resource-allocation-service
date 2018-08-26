@@ -12,7 +12,6 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import org.xmpp.packet.IQ;
 
 public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
-
     private Order order;
 
     public RemoteGetOrderRequest(Order order) {
@@ -31,7 +30,6 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
     }
 
     public static IQ marshal(Order order) {
-
         IQ iq = new IQ(IQ.Type.get);
         iq.setTo(order.getProvidingMember());
 

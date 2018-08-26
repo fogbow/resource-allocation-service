@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.models.instances;
 
 public class VolumeInstance extends Instance {
-
     private String name;
     private int size;
 
@@ -30,5 +29,4 @@ public class VolumeInstance extends Instance {
     public void setSize(int size) {
         this.size = size;
     }
-
 }

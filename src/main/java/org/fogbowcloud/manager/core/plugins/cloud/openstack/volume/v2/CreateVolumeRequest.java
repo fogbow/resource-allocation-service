@@ -18,7 +18,6 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
  * }
  */
 public class CreateVolumeRequest implements JsonSerializable {
-
     @SerializedName(VOLUME_KEY_JSON)
     private Volume volume;
 
@@ -32,10 +31,8 @@ public class CreateVolumeRequest implements JsonSerializable {
     }
 
     public static class Volume {
-
         @SerializedName(NAME_KEY_JSON)
         private final String name;
-
         @SerializedName(SIZE_KEY_JSON)
         private final String size;
 
@@ -43,11 +40,9 @@ public class CreateVolumeRequest implements JsonSerializable {
             this.name = builder.name;
             this.size = builder.size;
         }
-
     }
 
     public static class Builder {
-
         private String name;
         private String size;
 
@@ -65,7 +60,5 @@ public class CreateVolumeRequest implements JsonSerializable {
             Volume volume = new Volume(this);
             return new CreateVolumeRequest(volume);
         }
-
     }
-
 }

@@ -4,7 +4,6 @@ import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.models.tokens.FederationUserToken;
 
 public interface FederationIdentityPlugin<T extends FederationUserToken> {
-
     /**
      * Creates a token object from a token string.
      *

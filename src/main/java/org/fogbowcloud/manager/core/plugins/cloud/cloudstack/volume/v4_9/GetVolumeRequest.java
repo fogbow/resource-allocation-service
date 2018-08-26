@@ -4,7 +4,6 @@ import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRequest;
 
 public class GetVolumeRequest extends CloudStackRequest {
-
     protected static final String LIST_VOLUMES_COMMAND = "listVolumes";
     private static final String VOLUME_ID_KEY = "id";
 
@@ -24,7 +23,6 @@ public class GetVolumeRequest extends CloudStackRequest {
     }
 
     public static class Builder {
-
         private String id;
 
         public Builder id(String id) {
@@ -35,7 +33,5 @@ public class GetVolumeRequest extends CloudStackRequest {
         public GetVolumeRequest build() throws InvalidParameterException {
             return new GetVolumeRequest(this);
         }
-
     }
-
 }

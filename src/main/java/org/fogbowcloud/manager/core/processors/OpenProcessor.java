@@ -12,8 +12,8 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 
 public class OpenProcessor implements Runnable {
-
     private static final Logger LOGGER = Logger.getLogger(OpenProcessor.class);
+
     private String localMemberId;
     private ChainedList openOrdersList;
     /**
@@ -66,18 +66,13 @@ public class OpenProcessor implements Runnable {
         // order while this method is trying to get an Instance for this order.
         synchronized (order) {
             OrderState orderState = order.getOrderState();
-
             // Check if the order is still in the Open state (it could have been changed by another thread)
             if (orderState.equals(OrderState.OPEN)) {
-                LOGGER.debug("Trying to get an instance for order [" + order.getId() + "]");
-
                 try {
                     CloudConnector cloudConnector =
                             CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
-                    LOGGER.debug("Processing order [" + order.getId() + "]");
                     String orderInstanceId = cloudConnector.requestInstance(order);
                     order.setInstanceId(orderInstanceId);
-                    LOGGER.debug("Updating order state after processing [" + order.getId() + "]");
                     updateOrderStateAfterProcessing(order);
                 } catch (Exception e) {
                     LOGGER.error("Error while trying to get an instance for order: " + order, e);
@@ -96,17 +91,12 @@ public class OpenProcessor implements Runnable {
             String orderInstanceId = order.getInstanceId();
 
             if (orderInstanceId != null) {
-                LOGGER.debug("The open order [" + order.getId() + "] got an localidentity instance with id ["
-                        + orderInstanceId + "], setting your state to spawning");
-                LOGGER.debug("Transition [" + order.getId() + "] order state from open to spawning");
                 OrderStateTransitioner.transition(order, OrderState.SPAWNING);
             } else {
                 throw new UnexpectedException("Order instance id for order [" + order.getId() + "] is null");
             }
         } else {
-            LOGGER.debug("Transition [" + order.getId() + "] order state from open to pending");
             OrderStateTransitioner.transition(order, OrderState.PENDING);
         }
     }
-
 }

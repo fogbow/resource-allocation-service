@@ -11,12 +11,9 @@ import java.util.UUID;
 @Entity
 @Table(name = "volume_order_table")
 public class VolumeOrder extends Order {
-
     private static final long serialVersionUID = 1L;
-
     @Column
     private int volumeSize;
-
     @Column
     private String volumeName;
 
@@ -27,8 +24,8 @@ public class VolumeOrder extends Order {
     /**
      * Creating Order with predefined Id.
      */
-    public VolumeOrder(String id, FederationUserToken federationUserToken, String requestingMember, String providingMember,
-                       int volumeSize, String volumeName) {
+    public VolumeOrder(String id, FederationUserToken federationUserToken, String requestingMember,
+                       String providingMember, int volumeSize, String volumeName) {
         super(id, federationUserToken, requestingMember, providingMember);
         this.volumeSize = volumeSize;
         this.volumeName = volumeName;

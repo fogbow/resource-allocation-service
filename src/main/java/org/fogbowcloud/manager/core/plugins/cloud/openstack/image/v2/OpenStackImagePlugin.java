@@ -19,19 +19,15 @@ import java.io.File;
 import java.util.*;
 
 public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3Token> {
-
     private static final Logger LOGGER = Logger.getLogger(OpenStackImagePlugin.class);
 
     public static final String IMAGE_GLANCEV2_URL_KEY = "openstack_glance_v2_url";
-
     public static final String ACTIVE_STATE = "active";
     public static final String PUBLIC_VISIBILITY = "public";
     private static final String PRIVATE_VISIBILITY = "private";
-
     public static final String QUERY_ACTIVE_IMAGES = "?status=" + ACTIVE_STATE;
     public static final String IMAGE_V2_API_SUFFIX = "images";
     public static final String IMAGE_V2_API_ENDPOINT = "/v2/";
-
     private Properties properties;
     private HttpRequestClientUtil client;
 
@@ -42,18 +38,19 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3Token> {
     }
 
     @Override
-    public Map<String, String> getAllImages(OpenStackV3Token openStackV3Token) throws FogbowManagerException, UnexpectedException {
+    public Map<String, String> getAllImages(OpenStackV3Token openStackV3Token) throws FogbowManagerException,
+            UnexpectedException {
         Map<String, String> availableImages = getAvailableImages(
                 openStackV3Token, openStackV3Token.getProjectId());
         return availableImages;
     }
 
     @Override
-    public Image getImage(String imageId, OpenStackV3Token openStackV3Token) throws FogbowManagerException, UnexpectedException {
+    public Image getImage(String imageId, OpenStackV3Token openStackV3Token) throws FogbowManagerException,
+            UnexpectedException {
         GetImageResponse getImageResponse = getImageResponse(imageId, openStackV3Token);
         String id = getImageResponse.getId();
         String status = getImageResponse.getStatus();
-        LOGGER.debug("The image " + id + " status is " + status);
         if (status.equals(ACTIVE_STATE)) {
             Image image = new Image(id,
                     getImageResponse.getName(),
@@ -99,8 +96,9 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3Token> {
         return getImageResponses;
     }
 
-    private void getNextImageListResponseByPagination(Token token, GetAllImagesResponse getAllImagesResponse, List<GetImageResponse> imagesJson)
-            throws FogbowManagerException, UnexpectedException {
+    private void getNextImageListResponseByPagination(Token token, GetAllImagesResponse getAllImagesResponse,
+                                                      List<GetImageResponse> imagesJson) throws FogbowManagerException,
+                                                        UnexpectedException {
 
         String next = getAllImagesResponse.getNext();
         if (next != null && !next.isEmpty()) {
@@ -117,7 +115,6 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3Token> {
             getNextImageListResponseByPagination(token, getAllImagesResponse, imagesJson);
         }
     }
-
 
     private List<GetImageResponse> getPublicImagesResponse(List<GetImageResponse> imagesResponse) {
         List<GetImageResponse> publicImagesResponse = new ArrayList<GetImageResponse>();
@@ -145,13 +142,11 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3Token> {
         Map<String, String> availableImages = new HashMap<String, String>();
 
         List<GetImageResponse> allImagesResponse = getImagesResponse(token);
-
         List<GetImageResponse> filteredImagesResponse = filterImagesResponse(tenantId, allImagesResponse);
 
         for (GetImageResponse getImageResponse : filteredImagesResponse) {
             availableImages.put(getImageResponse.getId(), getImageResponse.getName());
         }
-
         return availableImages;
     }
 

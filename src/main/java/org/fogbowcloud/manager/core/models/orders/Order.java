@@ -13,35 +13,26 @@ import java.io.Serializable;
 @Inheritance(strategy = InheritanceType.JOINED)
 @Table(name = "order_table")
 public abstract class Order implements Serializable {
-
     private static final long serialVersionUID = 1L;
-
     @Column
     @Id
     private String id;
-
     @Column
     @Enumerated(EnumType.STRING)
     private OrderState orderState;
-
     @JoinColumn
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     private FederationUserToken federationUserToken;
-
     @Column
     private String requestingMember;
-
     @Column
     private String providingMember;
-
     @Column
     private String instanceId;
-
     @Column
     private InstanceState cachedInstanceState;
 
     public Order() {
-
     }
 
     public Order(String id) {
@@ -163,8 +154,8 @@ public abstract class Order implements Serializable {
 
     @Override
     public String toString() {
-        return "Order [id=" + this.id + ", orderState=" + this.orderState + ", federationUserToken=" + this.federationUserToken
-                + ", requestingMember=" + this.requestingMember + ", providingMember=" + this.providingMember
-                + ", instanceId=" + this.instanceId + "]";
+        return "Order [id=" + this.id + ", orderState=" + this.orderState + ", federationUserToken="
+                + this.federationUserToken + ", requestingMember=" + this.requestingMember + ", providingMember="
+                + this.providingMember + ", instanceId=" + this.instanceId + "]";
     }
 }

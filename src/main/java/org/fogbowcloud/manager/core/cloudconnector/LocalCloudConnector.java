@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 public class LocalCloudConnector implements CloudConnector {
+    private static final Logger LOGGER = Logger.getLogger(LocalCloudConnector.class);
 
     private final FederationToLocalMapperPlugin mapperPlugin;
     private final AttachmentPlugin attachmentPlugin;
@@ -29,8 +30,6 @@ public class LocalCloudConnector implements CloudConnector {
     private final NetworkPlugin networkPlugin;
     private final VolumePlugin volumePlugin;
     private final ImagePlugin imagePlugin;
-
-    private static final Logger LOGGER = Logger.getLogger(LocalCloudConnector.class);
 
     public LocalCloudConnector(FederationToLocalMapperPlugin mapperPlugin, CloudPluginsHolder cloudPluginsHolder) {
         this.mapperPlugin = mapperPlugin;

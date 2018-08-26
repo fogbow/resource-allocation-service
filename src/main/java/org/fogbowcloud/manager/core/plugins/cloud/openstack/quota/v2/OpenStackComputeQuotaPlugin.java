@@ -17,12 +17,9 @@ import org.fogbowcloud.manager.util.connectivity.HttpRequestClientUtil;
 import java.util.Properties;
 
 public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
-
     private static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
-
     private static final String SUFFIX = "limits";
     private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
-
     private Properties properties;
     private HttpRequestClientUtil client;
 
@@ -35,8 +32,7 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 
     @Override
     public ComputeQuota getUserQuota(Token token) throws FogbowManagerException, UnexpectedException {
-        String endpoint = this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY)
-                + COMPUTE_V2_API_ENDPOINT + SUFFIX;
+        String endpoint = this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + SUFFIX;
 
         String jsonResponse = null;
 
@@ -60,5 +56,4 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 
         return new ComputeQuota(totalQuota, usedQuota);
     }
-
 }

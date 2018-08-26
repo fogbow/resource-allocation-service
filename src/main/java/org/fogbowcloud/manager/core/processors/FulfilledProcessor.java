@@ -20,16 +20,11 @@ import java.util.Map;
  * initiated, to check for failures that may affect them.
  */
 public class FulfilledProcessor implements Runnable {
-
     private static final Logger LOGGER = Logger.getLogger(FulfilledProcessor.class);
 
     private String localMemberId;
-
     private CloudConnector localCloudConnector;
-
     private ChainedList fulfilledOrdersList;
-
-    private Map<String, Integer> connectionAttempts;
 
     /**
      * Attribute that represents the thread sleep time when there is no orders to be processed.
@@ -43,7 +38,6 @@ public class FulfilledProcessor implements Runnable {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
-        this.connectionAttempts = new HashMap<>();
     }
 
     /**
@@ -93,18 +87,15 @@ public class FulfilledProcessor implements Runnable {
 
         synchronized (order) {
             OrderState orderState = order.getOrderState();
-
             // Only orders that have been served by the local cloud are checked; remote ones are checked by
             // the Fogbow manager running in the other member, which reports back any changes in the status.
             if (!order.isProviderLocal(this.localMemberId)) {
                 return;
             }
-
             // Check if the order is still in the Fulfilled state (it could have been changed by another thread)
             if (!orderState.equals(OrderState.FULFILLED)) {
                 return;
             }
-
             LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
             try {
                 instance = this.localCloudConnector.getInstance(order);
@@ -120,8 +111,5 @@ public class FulfilledProcessor implements Runnable {
                 return;
             }
         }
-
-        LOGGER.debug("The instance was processed successfully");
     }
-
 }

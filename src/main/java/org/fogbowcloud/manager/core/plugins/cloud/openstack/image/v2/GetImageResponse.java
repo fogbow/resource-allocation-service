@@ -23,28 +23,20 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
  * }
  */
 public class GetImageResponse {
-
     @SerializedName(ID_KEY_JSON)
     private String id;
-
     @SerializedName(STATUS_KEY_JSON)
     private String status;
-
     @SerializedName(NAME_KEY_JSON)
     private String name;
-
     @SerializedName(SIZE_KEY_JSON)
     private Long size;
-
     @SerializedName(MIN_DISK_KEY_JSON)
     private Long minDisk;
-
     @SerializedName(MIN_RAM_KEY_JSON)
     private Long minRam;
-
     @SerializedName(VISIBILITY_KEY_JSON)
     private String visibility;
-
     @SerializedName(OWNER_KEY_JSON)
     private String owner;
 

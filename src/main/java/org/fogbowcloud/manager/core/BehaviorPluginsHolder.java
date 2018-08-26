@@ -7,7 +7,6 @@ import org.fogbowcloud.manager.core.plugins.behavior.identity.FederationIdentity
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 
 public class BehaviorPluginsHolder {
-
     private TokenGeneratorPlugin tokenGeneratorPlugin;
     private FederationIdentityPlugin federationIdentityPlugin;
     private AuthenticationPlugin authenticationPlugin;

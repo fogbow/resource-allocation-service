@@ -9,7 +9,6 @@ import org.fogbowcloud.manager.core.plugins.behavior.identity.openstack.Keystone
 import org.fogbowcloud.manager.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
 
 public class KeystoneV3AllToOneMapper implements FederationToLocalMapperPlugin {
-
     private GenericAllToOneFederationToLocalMapper genericMapper;
 
     public KeystoneV3AllToOneMapper() {

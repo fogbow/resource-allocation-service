@@ -20,25 +20,19 @@ import org.json.JSONException;
 import java.util.Properties;
 
 public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackV3Token> {
+    private static final Logger LOGGER = Logger.getLogger(OpenStackV2VolumePlugin.class);
 
     private final String PROJECT_ID_IS_NOT_SPECIFIED_ERROR = "Project id is not specified.";
-
     private final String V2_API_ENDPOINT = "/v2/";
     protected static final String SUFIX_ENDPOINT_VOLUMES = "/volumes";
-
     public static final String VOLUME_NOVAV2_URL_KEY = "openstack_cinder_url";
-    protected static final String DEFAULT_VOLUME_NAME = "fogbow-volume";
-
     private HttpRequestClientUtil client;
     private String volumeV2APIEndpoint;
-
-    private static final Logger LOGGER = Logger.getLogger(OpenStackV2VolumePlugin.class);
 
     public OpenStackV2VolumePlugin() throws FatalErrorException {
         Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
                 DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
         this.volumeV2APIEndpoint = properties.getProperty(VOLUME_NOVAV2_URL_KEY) + V2_API_ENDPOINT;
-
         initClient();
     }
 

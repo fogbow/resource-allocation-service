@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.models.tokens;
 
 public class Token {
-
     private String tokenValue;
 
     public Token() {

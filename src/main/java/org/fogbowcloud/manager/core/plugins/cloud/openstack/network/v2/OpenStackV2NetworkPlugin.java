@@ -26,18 +26,17 @@ import java.util.Properties;
 import java.util.UUID;
 
 public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
-    private static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
+    private static final Logger LOGGER = Logger.getLogger(OpenStackV2NetworkPlugin.class);
 
+    private static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
     protected static final String SUFFIX_ENDPOINT_NETWORK = "/networks";
     protected static final String SUFFIX_ENDPOINT_SUBNET = "/subnets";
     protected static final String SUFFIX_ENDPOINT_SECURITY_GROUP_RULES = "/security-group-rules";
     protected static final String SUFFIX_ENDPOINT_SECURITY_GROUP = "/security-groups";
     protected static final String V2_API_ENDPOINT = "/v2.0";
-
     protected static final String KEY_PROVIDER_SEGMENTATION_ID = "provider:segmentation_id";
     protected static final String KEY_EXTERNAL_GATEWAY_INFO = "external_gateway_info";
     protected static final String QUERY_NAME = "name";
-
     protected static final String KEY_DNS_NAMESERVERS = "dns_nameservers";
     protected static final String KEY_ENABLE_DHCP = "enable_dhcp";
     protected static final String KEY_IP_VERSION = "ip_version";
@@ -52,36 +51,26 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
     protected static final String KEY_NAME = "name";
     protected static final String KEY_CIDR = "cidr";
     protected static final String KEY_ID = "id";
-
     protected static final int DEFAULT_IP_VERSION = 4;
     protected static final String DEFAULT_NETWORK_NAME = "fogbow-network";
     protected static final String DEFAULT_SUBNET_NAME = "fogbow-subnet";
     protected static final String[] DEFAULT_DNS_NAME_SERVERS = new String[]{"8.8.8.8", "8.8.4.4"};
     protected static final String DEFAULT_NETWORK_ADDRESS = "192.168.0.1/24";
-
     // security group properties
     protected static final String INGRESS_DIRECTION = "ingress";
     protected static final String TCP_PROTOCOL = "tcp";
     protected static final String ICMP_PROTOCOL = "icmp";
     protected static final int SSH_PORT = 22;
-    protected static final int ANY_PORT = -1;
     public static final String SECURITY_GROUP_PREFIX = "fogbow-sg";
-
     private HttpRequestClientUtil client;
     private String networkV2APIEndpoint;
     private String[] dnsList;
 
-    private static final Logger LOGGER = Logger.getLogger(OpenStackV2NetworkPlugin.class);
-
     public OpenStackV2NetworkPlugin() throws FatalErrorException {
         Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
                 DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
-
-        this.networkV2APIEndpoint =
-                properties.getProperty(NETWORK_NEUTRONV2_URL_KEY)
-                        + V2_API_ENDPOINT;
+        this.networkV2APIEndpoint = properties.getProperty(NETWORK_NEUTRONV2_URL_KEY) + V2_API_ENDPOINT;
         setDNSList(properties);
-
         initClient();
     }
 
@@ -99,17 +88,16 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
 
         CreateNetworkResponse createNetworkResponse = createNetwork(openStackV3Token, tenantId);
         String createdNetworkId = createNetworkResponse.getId();
-
         createSubNet(openStackV3Token, order, createdNetworkId, tenantId);
-
         String securityGroupName = SECURITY_GROUP_PREFIX + "-" + createdNetworkId;
-        CreateSecurityGroupResponse securityGroupResponse = createSecurityGroup(openStackV3Token, securityGroupName, tenantId, createdNetworkId);
-
+        CreateSecurityGroupResponse securityGroupResponse = createSecurityGroup(openStackV3Token, securityGroupName,
+                tenantId, createdNetworkId);
         createSecurityGroupRules(order, openStackV3Token, createdNetworkId, securityGroupResponse.getId());
         return createdNetworkId;
     }
 
-    private CreateNetworkResponse createNetwork(OpenStackV3Token openStackV3Token, String tenantId) throws FogbowManagerException, UnexpectedException {
+    private CreateNetworkResponse createNetwork(OpenStackV3Token openStackV3Token, String tenantId)
+            throws FogbowManagerException, UnexpectedException {
         CreateNetworkResponse createNetworkResponse = null;
         try {
             String networkName = DEFAULT_NETWORK_NAME + "-" + UUID.randomUUID();
@@ -133,7 +121,8 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
         return createNetworkResponse;
     }
 
-    private void createSubNet(OpenStackV3Token openStackV3Token, NetworkOrder order, String networkId, String tenantId) throws UnexpectedException, FogbowManagerException {
+    private void createSubNet(OpenStackV3Token openStackV3Token, NetworkOrder order, String networkId, String tenantId)
+            throws UnexpectedException, FogbowManagerException {
         try {
             String jsonRequest = generateJsonEntityToCreateSubnet(networkId, tenantId, order);
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SUBNET;
@@ -144,7 +133,9 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
         }
     }
 
-    private CreateSecurityGroupResponse createSecurityGroup(OpenStackV3Token openStackV3Token, String name, String tenantId, String networkId) throws UnexpectedException, FogbowManagerException {
+    private CreateSecurityGroupResponse createSecurityGroup(OpenStackV3Token openStackV3Token, String name,
+                                                            String tenantId, String networkId)
+            throws UnexpectedException, FogbowManagerException {
         CreateSecurityGroupResponse creationResponse = null;
         try {
             CreateSecurityGroupRequest createSecurityGroupRequest = new CreateSecurityGroupRequest.Builder()
@@ -225,7 +216,6 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
             OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
         return getInstanceFromJson(responseStr, openStackV3Token);
-
     }
 
     @Override
@@ -264,12 +254,10 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
             OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
         return getSecurityGroupIdFromGetResponse(responseStr);
-
     }
 
     protected boolean removeSecurityGroup(OpenStackV3Token openStackV3Token, String securityGroupId)
             throws FogbowManagerException, UnexpectedException {
-        LOGGER.debug(String.format("Removing security group %s", securityGroupId));
         try {
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP + "/" + securityGroupId;
             this.client.doDeleteRequest(endpoint, openStackV3Token);
@@ -282,9 +270,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
 
     protected NetworkInstance getInstanceFromJson(String json, OpenStackV3Token openStackV3Token)
             throws FogbowManagerException, UnexpectedException {
-
         GetNetworkResponse getNetworkResponse = GetNetworkResponse.fromJson(json);
-
         String networkId = getNetworkResponse.getId();
         String label = getNetworkResponse.getName();
         String instanceState = getNetworkResponse.getStatus();
@@ -316,7 +302,6 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
             instance = new NetworkInstance(networkId, fogbowState, label, address, gateway,
                     vlan, allocationMode, null, null, null);
         }
-
         return instance;
     }
 
@@ -330,7 +315,6 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowManagerExceptionMapper.map(e);
         }
-
         return getSubnetResponse;
     }
 
@@ -374,12 +358,9 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
                 .build();
 
         return createSubnetRequest.toJson();
-
     }
 
     protected boolean removeNetwork(OpenStackV3Token openStackV3Token, String networkId) throws UnexpectedException, FogbowManagerException {
-        String messageTemplate = "Removing network %s";
-        LOGGER.debug(String.format(messageTemplate, networkId));
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK + "/" + networkId;
         try {
             this.client.doDeleteRequest(endpoint, openStackV3Token);
@@ -401,5 +382,4 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
     protected String[] getDnsList() {
         return dnsList;
     }
-
 }

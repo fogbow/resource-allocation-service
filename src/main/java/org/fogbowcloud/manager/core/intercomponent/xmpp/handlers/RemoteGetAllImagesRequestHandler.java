@@ -14,7 +14,6 @@ import org.xmpp.packet.IQ;
 import java.util.Map;
 
 public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
-
     private static final Logger LOGGER = Logger.getLogger(RemoteGetAllImagesRequestHandler.class);
 
     private static final String REMOTE_GET_ALL_IMAGES = RemoteMethod.REMOTE_GET_ALL_IMAGES.toString();
@@ -25,8 +24,6 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
-        LOGGER.debug("Received request for order: " + iq.getID());
-
         String memberId = unmarshalMemberId(iq);
         FederationUserToken federationUserToken = unmarshalFederationUser(iq);
 
@@ -51,7 +48,8 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
     private FederationUserToken unmarshalFederationUser(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
         Element federationUserTokenElement = queryElement.element(IqElement.FEDERATION_USER.toString());
-        FederationUserToken federationUserToken = new Gson().fromJson(federationUserTokenElement.getText(), FederationUserToken.class);
+        FederationUserToken federationUserToken = new Gson().fromJson(federationUserTokenElement.getText(),
+                FederationUserToken.class);
         return federationUserToken;
     }
 
@@ -64,5 +62,4 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
 
         imagesMapElement.setText(new Gson().toJson(imagesMap));
     }
-
 }

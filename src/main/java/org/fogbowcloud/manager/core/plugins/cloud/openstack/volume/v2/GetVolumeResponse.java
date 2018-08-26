@@ -19,7 +19,6 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
  * }
  */
 public class GetVolumeResponse {
-
     @SerializedName(VOLUME_KEY_JSON)
     private Volume volume;
 
@@ -48,18 +47,13 @@ public class GetVolumeResponse {
     }
 
     public class Volume {
-
         @SerializedName(ID_KEY_JSON)
         private String id;
-
         @SerializedName(NAME_KEY_JSON)
         private String name;
-
         @SerializedName(SIZE_KEY_JSON)
         private Integer size;
-
         @SerializedName(STATUS_KEY_JSON)
         private String status;
-
     }
 }

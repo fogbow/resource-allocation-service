@@ -22,7 +22,6 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class CreateSecurityGroupRuleRequest {
-
     @SerializedName(SECURITY_GROUP_RULE_KEY_JSON)
     private SecurityGroupRule securityGroupRule;
 
@@ -35,22 +34,16 @@ public class CreateSecurityGroupRuleRequest {
     }
 
     public static class SecurityGroupRule {
-
         @SerializedName(DIRECTION_KEY_JSON)
         private String direction;
-
         @SerializedName(SECURITY_GROUP_ID_KEY_JSON)
         private String securityGroupId;
-
         @SerializedName(REMOTE_IP_PREFIX_KEY_JSON)
         private String remoteIpPrefix;
-
         @SerializedName(PROTOCOL_KEY_JSON)
         private String protocol;
-
         @SerializedName(MIN_PORT_KEY_JSON)
         private Integer minPort;
-
         @SerializedName(MAX_PORT_KEY_JSON)
         private Integer maxPort;
 
@@ -62,11 +55,9 @@ public class CreateSecurityGroupRuleRequest {
             this.minPort = builder.minPort;
             this.maxPort = builder.maxPort;
         }
-
     }
 
     public static class Builder {
-
         private String direction;
         private String securityGroupId;
         private String remoteIpPrefix;
@@ -107,8 +98,6 @@ public class CreateSecurityGroupRuleRequest {
         public CreateSecurityGroupRuleRequest build() {
             SecurityGroupRule securityGroupRule = new SecurityGroupRule(this);
             return new CreateSecurityGroupRuleRequest(securityGroupRule);
-
         }
     }
-
 }

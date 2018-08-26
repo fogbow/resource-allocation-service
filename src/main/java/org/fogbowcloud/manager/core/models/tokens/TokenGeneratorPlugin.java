@@ -6,7 +6,6 @@ import org.fogbowcloud.manager.core.exceptions.UnexpectedException;
 import java.util.Map;
 
 public interface TokenGeneratorPlugin {
-
     /**
      * Creates a token string using the user's credentials.
      *

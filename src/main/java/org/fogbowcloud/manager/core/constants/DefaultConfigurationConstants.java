@@ -14,19 +14,21 @@ public class DefaultConfigurationConstants {
     public static final String CLOUDSTACK_CONF_FILE_NAME = "cloudstack.conf";
 
     // MANAGER CONF DEFAULTS
-    public static final String OPEN_ORDERS_SLEEP_TIME =
-            Long.toString(TimeUnit.SECONDS.toMillis(1)); // 1 second
-    public static final String CLOSED_ORDERS_SLEEP_TIME =
-            Long.toString(TimeUnit.SECONDS.toMillis(1)); // 1 second
-    public static final String SPAWNING_ORDERS_SLEEP_TIME =
-            Long.toString(TimeUnit.SECONDS.toMillis(5)); // reference value is 5 seconds
-    public static final String FULFILLED_ORDERS_SLEEP_TIME =
-            Long.toString(TimeUnit.SECONDS.toMillis(1)); // 1 second
-    public static final String HTTP_REQUEST_TIMEOUT = Long.toString(TimeUnit.MINUTES.toMillis(1)); // 1 minute
+    // reference value is 1 second
+    public static final String OPEN_ORDERS_SLEEP_TIME = Long.toString(TimeUnit.SECONDS.toMillis(1));
+    // reference value is 1 second
+    public static final String CLOSED_ORDERS_SLEEP_TIME = Long.toString(TimeUnit.SECONDS.toMillis(1));
+    // reference value is 5 seconds
+    public static final String SPAWNING_ORDERS_SLEEP_TIME = Long.toString(TimeUnit.SECONDS.toMillis(5));
+    // reference value is 1 second
+    public static final String FULFILLED_ORDERS_SLEEP_TIME = Long.toString(TimeUnit.SECONDS.toMillis(1));
+    // reference value is 1 minute
+    public static final String HTTP_REQUEST_TIMEOUT = Long.toString(TimeUnit.MINUTES.toMillis(1));
 
     // INTERCOMPONENT CONF DEFAULTS
     public static final String XMPP_SERVER_PORT = "5347";
-    public static final String XMPP_TIMEOUT = Long.toString(TimeUnit.SECONDS.toMillis(5)); // reference value is 5 seconds
+    // reference value is 5 seconds
+    public static final String XMPP_TIMEOUT = Long.toString(TimeUnit.SECONDS.toMillis(5));
 
     // SSH CONF DEFAULTS
     public static final String SSH_COMMON_USER = "fogbow";

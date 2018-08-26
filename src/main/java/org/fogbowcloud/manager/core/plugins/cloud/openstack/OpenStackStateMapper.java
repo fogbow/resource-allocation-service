@@ -5,7 +5,6 @@ import org.fogbowcloud.manager.core.models.ResourceType;
 import org.fogbowcloud.manager.core.models.instances.InstanceState;
 
 public class OpenStackStateMapper {
-
     private static final Logger LOGGER = Logger.getLogger(OpenStackStateMapper.class);
 
     public static final String ACTIVE_STATUS = "active";

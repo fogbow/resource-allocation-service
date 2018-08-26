@@ -36,7 +36,6 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class CreateComputeRequest implements JsonSerializable {
-
     @SerializedName(SERVER_KEY_JSON)
     private Server server;
 
@@ -50,25 +49,18 @@ public class CreateComputeRequest implements JsonSerializable {
     }
 
     public static class Server {
-
         @SerializedName(NAME_KEY_JSON)
         private final String name;
-
         @SerializedName(IMAGE_REFERENCE_KEY_JSON)
         private final String imageReference;
-
         @SerializedName(FLAVOR_REFERENCE_KEY_JSON)
         private final String flavorReference;
-
         @SerializedName(USER_DATA_KEY_JSON)
         private final String userData;
-
         @SerializedName(KEY_NAME_KEY_JSON)
         private final String keyName;
-
         @SerializedName(NETWORKS_KEY_JSON)
         private final List<Network> networks;
-
         @SerializedName(SECURITY_GROUPS_KEY_JSON)
         private final List<SecurityGroup> securityGroups;
 
@@ -81,33 +73,27 @@ public class CreateComputeRequest implements JsonSerializable {
             this.networks = builder.networks;
             this.securityGroups = builder.securityGroups;
         }
-
     }
 
     public static class Network {
-
         @SerializedName(UUID_KEY_JSON)
         private String uuid;
 
         public Network(String uuid) {
             this.uuid = uuid;
         }
-
     }
 
     public static class SecurityGroup {
-
         @SerializedName(NAME_KEY_JSON)
         private String name;
 
         public SecurityGroup(String name) {
             this.name = name;
         }
-
     }
 
     public static class Builder {
-
         private String name;
         private String imageReference;
         private String flavorReference;
@@ -155,7 +141,5 @@ public class CreateComputeRequest implements JsonSerializable {
             Server server = new Server(this);
             return new CreateComputeRequest(server);
         }
-
     }
-
 }

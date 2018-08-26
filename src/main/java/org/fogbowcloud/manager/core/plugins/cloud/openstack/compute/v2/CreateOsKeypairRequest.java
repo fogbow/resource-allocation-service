@@ -21,7 +21,6 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class CreateOsKeypairRequest implements JsonSerializable {
-
     @SerializedName(KEY_PAIR_KEY_JSON)
     private KeyPair keyPair;
 
@@ -30,10 +29,8 @@ public class CreateOsKeypairRequest implements JsonSerializable {
     }
 
     public static class KeyPair {
-
         @SerializedName(NAME_KEY_JSON)
         private String name;
-
         @SerializedName(PUBLIC_KEY_KEY_JSON)
         private String publicKey;
 
@@ -45,7 +42,6 @@ public class CreateOsKeypairRequest implements JsonSerializable {
     }
 
     public static class Builder {
-
         private String name;
         private String publicKey;
 
@@ -63,12 +59,10 @@ public class CreateOsKeypairRequest implements JsonSerializable {
             KeyPair keyPair = new KeyPair(this);
             return new CreateOsKeypairRequest(keyPair);
         }
-
     }
 
     @Override
     public String toJson() {
         return GsonHolder.getInstance().toJson(this);
     }
-
 }

@@ -9,9 +9,7 @@ import java.util.List;
 import java.util.Properties;
 
 public class PropertiesHolder {
-
     private Properties properties;
-
     private static PropertiesHolder instance;
 
     private PropertiesHolder() throws FatalErrorException {

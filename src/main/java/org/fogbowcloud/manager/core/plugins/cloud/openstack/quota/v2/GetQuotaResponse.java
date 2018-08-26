@@ -26,7 +26,6 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
  * }
  */
 public class GetQuotaResponse {
-
     @SerializedName(LIMITS_KEY_JSON)
     private Limits limits;
 
@@ -35,32 +34,23 @@ public class GetQuotaResponse {
     }
 
     public class Limits {
-
         @SerializedName(ABSOLUTE_KEY_JSON)
         private Absolute absolute;
 
         public class Absolute {
-
             @SerializedName(MAX_TOTAL_CORES_KEY_JSON)
             private int maxTotalCores;
-
             @SerializedName(MAX_TOTAL_RAM_SIZE_KEY_JSON)
             private int maxTotalRAMSize;
-
             @SerializedName(MAX_TOTAL_INSTANCES_KEY_JSON)
             private int maxTotalInstances;
-
             @SerializedName(TOTAL_CORES_USED_KEY_JSON)
             private int totalCoresUsed;
-
             @SerializedName(TOTAL_RAM_USED_KEY_JSON)
             private int totalRAMUsed;
-
             @SerializedName(TOTAL_INSTANCES_USED_KEY_JSON)
             private int totalInstancesUsed;
-
         }
-
     }
 
     public int getMaxTotalCores() {
@@ -86,5 +76,4 @@ public class GetQuotaResponse {
     public int getTotalInstancesUsed() {
         return limits.absolute.totalInstancesUsed;
     }
-
 }

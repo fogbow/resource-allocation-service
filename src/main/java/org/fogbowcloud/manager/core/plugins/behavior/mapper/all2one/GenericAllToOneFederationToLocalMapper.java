@@ -17,20 +17,16 @@ import java.util.Map;
 import java.util.Properties;
 
 public class GenericAllToOneFederationToLocalMapper implements FederationToLocalMapperPlugin {
-
     private static final Logger LOGGER = Logger.getLogger(GenericAllToOneFederationToLocalMapper.class);
 
     private static final String LOCAL_TOKEN_CREDENTIALS_PREFIX = "local_token_credentials_";
-
     private Map<String, String> credentials;
-
     private TokenGeneratorPlugin tokenGeneratorPlugin;
     private FederationIdentityPlugin federationIdentityPlugin;
 
     public GenericAllToOneFederationToLocalMapper(TokenGeneratorPlugin tokenGeneratorPlugin,
                                                   FederationIdentityPlugin federationIdentityPlugin,
-                                                  String configurationFileName)
-            throws FatalErrorException {
+                                                  String configurationFileName) throws FatalErrorException {
         Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() + configurationFileName);
         this.credentials = getDefaultLocalTokenCredentials(properties);
         this.tokenGeneratorPlugin = tokenGeneratorPlugin;

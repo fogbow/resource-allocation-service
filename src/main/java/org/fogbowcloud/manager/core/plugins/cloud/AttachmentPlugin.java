@@ -8,9 +8,12 @@ import org.fogbowcloud.manager.core.models.tokens.Token;
 
 public interface AttachmentPlugin<T extends Token> {
 
-    public String requestInstance(AttachmentOrder attachmentOrder, T localUserAttributes) throws FogbowManagerException, UnexpectedException;
+    public String requestInstance(AttachmentOrder attachmentOrder, T localUserAttributes)
+            throws FogbowManagerException, UnexpectedException;
 
-    public void deleteInstance(String attachmentInstanceId, T localUserAttributes) throws FogbowManagerException, UnexpectedException;
+    public void deleteInstance(String attachmentInstanceId, T localUserAttributes)
+            throws FogbowManagerException, UnexpectedException;
 
-    public AttachmentInstance getInstance(String attachmentInstanceId, T localUserAttributes) throws FogbowManagerException, UnexpectedException;
+    public AttachmentInstance getInstance(String attachmentInstanceId, T localUserAttributes)
+            throws FogbowManagerException, UnexpectedException;
 }

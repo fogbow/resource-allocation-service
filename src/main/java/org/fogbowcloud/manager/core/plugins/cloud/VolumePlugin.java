@@ -16,5 +16,4 @@ public interface VolumePlugin<T extends Token> {
 
     public void deleteInstance(String volumeInstanceId, T localUserAttributes)
             throws FogbowManagerException, UnexpectedException;
-
 }

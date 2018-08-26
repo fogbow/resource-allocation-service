@@ -1,7 +1,6 @@
 package org.fogbowcloud.manager.core.intercomponent.xmpp;
 
 public enum IqElement {
-
     QUERY("query"),
     ORDER("order"),
     ORDER_ID("orderId"),

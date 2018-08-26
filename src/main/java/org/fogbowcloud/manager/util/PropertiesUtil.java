@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Properties;
 
 public class PropertiesUtil {
-
     private static final Logger LOGGER = Logger.getLogger(PropertiesUtil.class.getName());
 
     public static Properties readProperties(String configFileName) throws FatalErrorException {
@@ -21,7 +20,6 @@ public class PropertiesUtil {
     }
 
     public static Properties readProperties(List<String> configFilesNames) throws FatalErrorException {
-
         Properties properties = new Properties();
 
         for (String fileName : configFilesNames) {

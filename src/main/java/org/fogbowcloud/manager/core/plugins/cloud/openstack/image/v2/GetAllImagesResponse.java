@@ -31,10 +31,8 @@ import static org.fogbowcloud.manager.core.plugins.cloud.openstack.OpenstackRest
  * }
  */
 public class GetAllImagesResponse {
-
     @SerializedName(IMAGES_KEY_JSON)
     private List<GetImageResponse> images;
-
     @SerializedName(NEXT_KEY_JSON)
     private String next;
 
@@ -49,5 +47,4 @@ public class GetAllImagesResponse {
     public static GetAllImagesResponse fromJson(String json) {
         return GsonHolder.getInstance().fromJson(json, GetAllImagesResponse.class);
     }
-
 }

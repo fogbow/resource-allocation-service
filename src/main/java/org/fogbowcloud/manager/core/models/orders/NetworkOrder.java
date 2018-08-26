@@ -9,19 +9,14 @@ import java.util.UUID;
 @Entity
 @Table(name = "network_order_table")
 public class NetworkOrder extends Order {
-
     private static final long serialVersionUID = 1L;
-
     @Column
     private String gateway;
-
     @Column
     private String address;
-
     @Column
     @Enumerated(EnumType.STRING)
     private NetworkAllocationMode allocation;
-
     public NetworkOrder() {
         super(UUID.randomUUID().toString());
     }
@@ -29,8 +24,8 @@ public class NetworkOrder extends Order {
     /**
      * Creating Order with predefined Id.
      */
-    public NetworkOrder(String id, FederationUserToken federationUserToken, String requestingMember, String providingMember,
-                        String gateway, String address, NetworkAllocationMode allocation) {
+    public NetworkOrder(String id, FederationUserToken federationUserToken, String requestingMember,
+                        String providingMember, String gateway, String address, NetworkAllocationMode allocation) {
         super(id, federationUserToken, requestingMember, providingMember);
         this.gateway = gateway;
         this.address = address;

@@ -11,7 +11,6 @@ import java.io.File;
 import java.util.Properties;
 
 public abstract class CloudStackRequest {
-
     private URIBuilder uriBuilder;
 
     protected CloudStackRequest() throws InvalidParameterException {

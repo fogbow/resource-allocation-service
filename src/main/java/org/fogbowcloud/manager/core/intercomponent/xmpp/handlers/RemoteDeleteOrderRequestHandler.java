@@ -13,10 +13,9 @@ import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 
 public class RemoteDeleteOrderRequestHandler extends AbstractQueryHandler {
-
     private static final Logger LOGGER = Logger.getLogger(RemoteDeleteOrderRequestHandler.class);
 
-    public static final String REMOTE_DELETE_ORDER = RemoteMethod.REMOTE_DELETE_ORDER.toString();
+    private static final String REMOTE_DELETE_ORDER = RemoteMethod.REMOTE_DELETE_ORDER.toString();
 
     public RemoteDeleteOrderRequestHandler() {
         super(REMOTE_DELETE_ORDER);
@@ -24,8 +23,6 @@ public class RemoteDeleteOrderRequestHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
-        LOGGER.debug("Received request for order: " + iq.getID());
-
         String orderId = unmarshalOrderId(iq);
         ResourceType resourceType = unmarshalInstanceType(iq);
         FederationUserToken federationUserToken = unmarshalFederationUser(iq);
@@ -55,8 +52,8 @@ public class RemoteDeleteOrderRequestHandler extends AbstractQueryHandler {
 
     private FederationUserToken unmarshalFederationUser(IQ iq) {
         Element federationUserTokenElement = iq.getElement().element(IqElement.FEDERATION_USER.toString());
-        FederationUserToken federationUserToken = new Gson().fromJson(federationUserTokenElement.getText(), FederationUserToken.class);
+        FederationUserToken federationUserToken = new Gson().fromJson(federationUserTokenElement.getText(),
+                FederationUserToken.class);
         return federationUserToken;
     }
-
 }

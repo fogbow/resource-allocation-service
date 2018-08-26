@@ -21,7 +21,6 @@ public class KeystoneV3AuthenticationPlugin implements AuthenticationPlugin {
 
     private String v3TokensEndpoint;
     private HttpRequestClientUtil client;
-
     private String localProviderId;
 
     public KeystoneV3AuthenticationPlugin() {

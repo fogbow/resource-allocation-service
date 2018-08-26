@@ -9,16 +9,14 @@ import org.fogbowcloud.manager.core.processors.OpenProcessor;
 import org.fogbowcloud.manager.core.processors.SpawningProcessor;
 
 public class ProcessorsThreadController {
+    private static final Logger LOGGER = Logger.getLogger(ProcessorsThreadController.class);
 
     private final Thread openProcessorThread;
     private final Thread spawningProcessorThread;
     private final Thread fulfilledProcessorThread;
     private final Thread closedProcessorThread;
 
-    private static final Logger LOGGER = Logger.getLogger(ProcessorsThreadController.class);
-
     public ProcessorsThreadController(String localMemberId) {
-
         String openOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
                 getProperty(ConfigurationConstants.OPEN_ORDERS_SLEEP_TIME_KEY,
                         DefaultConfigurationConstants.OPEN_ORDERS_SLEEP_TIME);

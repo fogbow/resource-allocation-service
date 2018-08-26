@@ -6,7 +6,6 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import org.fogbowcloud.manager.core.models.orders.OrderState;
 
 public interface StableStorage {
-
     /**
      * Add the order into database, so we can recovery it when necessary.
      *

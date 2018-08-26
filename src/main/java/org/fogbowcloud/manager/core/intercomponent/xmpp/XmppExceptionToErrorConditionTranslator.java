@@ -9,11 +9,8 @@ public class XmppExceptionToErrorConditionTranslator {
     private static final Logger LOGGER = Logger.getLogger(XmppExceptionToErrorConditionTranslator.class);
 
     public static void updateErrorCondition(IQ response, Throwable e) {
-        // FogbowManagerExceptions are part of the business logic and should be logged in debug level
-        // Other exceptions mean a possible bug in the code, and should be logged in error level
-        if (e instanceof FogbowManagerException) {
-            LOGGER.debug(e.getMessage(), e);
-        } else {
+        // Exceptions other than FogbowManagerException are possible bugs in the code, and should be logged in error level
+        if (!(e instanceof FogbowManagerException)) {
             LOGGER.error(e.getMessage(), e);
         }
         PacketError error = new PacketError(mapExceptionToCondition(e));

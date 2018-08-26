@@ -10,11 +10,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SharedOrderHolders {
-
     private static SharedOrderHolders instance;
-
     private Map<String, Order> activeOrdersMap;
-
     private SynchronizedDoublyLinkedList openOrders;
     private SynchronizedDoublyLinkedList spawningOrders;
     private SynchronizedDoublyLinkedList failedOrders;
@@ -23,9 +20,7 @@ public class SharedOrderHolders {
     private SynchronizedDoublyLinkedList closedOrders;
 
     public SharedOrderHolders() {
-
         DatabaseManager databaseManager = DatabaseManager.getInstance();
-
         this.activeOrdersMap = new ConcurrentHashMap<>();
 
         try {
@@ -46,14 +41,12 @@ public class SharedOrderHolders {
         }
     }
 
-
     private void addOrdersToMap(SynchronizedDoublyLinkedList ordersList, Map<String, Order> activeOrdersMap) {
         Order order;
 
         while ((order = ordersList.getNext()) != null) {
             activeOrdersMap.put(order.getId(), order);
         }
-
         ordersList.resetPointer();
     }
 
@@ -118,7 +111,6 @@ public class SharedOrderHolders {
             default:
                 break;
         }
-
         return list;
     }
 }

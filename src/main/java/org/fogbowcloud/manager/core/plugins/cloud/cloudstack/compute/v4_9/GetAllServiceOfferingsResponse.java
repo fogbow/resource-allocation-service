@@ -25,7 +25,6 @@ import static org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRe
  * }
  */
 public class GetAllServiceOfferingsResponse {
-
     @SerializedName(LIST_SERVICE_OFFERINGS_KEY_JSON)
     private ListServiceOfferingsResponse response;
 
@@ -38,23 +37,18 @@ public class GetAllServiceOfferingsResponse {
     }
 
     public class ListServiceOfferingsResponse {
-
         @SerializedName(SERVICE_OFFERING_KEY_JSON)
         private List<ServiceOffering> serviceOfferings;
 
     }
 
     public class ServiceOffering {
-
         @SerializedName(ID_KEY_JSON)
         private String id;
-
         @SerializedName(NAME_KEY_JSON)
         private String name;
-
         @SerializedName(CPU_NUMBER_KEY_JSON)
         private int cpuNumber;
-
         @SerializedName(MEMORY_KEY_JSON)
         private int memory;
 
@@ -77,5 +71,4 @@ public class GetAllServiceOfferingsResponse {
             return memory;
         }
     }
-
 }

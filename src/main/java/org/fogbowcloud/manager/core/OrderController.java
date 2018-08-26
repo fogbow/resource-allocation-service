@@ -25,7 +25,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class OrderController {
-
     private static final Logger LOGGER = Logger.getLogger(OrderController.class);
 
     private final SharedOrderHolders orderHolders;
@@ -34,7 +33,8 @@ public class OrderController {
         this.orderHolders = SharedOrderHolders.getInstance();
     }
 
-    public void setEmptyFieldsAndActivateOrder(Order order, FederationUserToken federationUserToken) throws UnexpectedException {
+    public void setEmptyFieldsAndActivateOrder(Order order, FederationUserToken federationUserToken)
+            throws UnexpectedException {
         // Set order fields that have not been provided by the requester
         order.setId(UUID.randomUUID().toString());
         order.setFederationUserToken(federationUserToken);
@@ -86,9 +86,8 @@ public class OrderController {
         }
     }
 
-    public Allocation getUserAllocation(String memberId, FederationUserToken federationUserToken, ResourceType resourceType)
-            throws UnexpectedException {
-
+    public Allocation getUserAllocation(String memberId, FederationUserToken federationUserToken,
+                                        ResourceType resourceType) throws UnexpectedException {
         Collection<Order> orders = this.orderHolders.getActiveOrdersMap().values();
 
         List<Order> filteredOrders = orders.stream()
@@ -118,7 +117,6 @@ public class OrderController {
             InstanceStatus instanceStatus = new InstanceStatus(order.getId(), order.getProvidingMember(),
                     order.getCachedInstanceState());
             instanceStatusList.add(instanceStatus);
-            LOGGER.debug("getInstancesStatus: orderId " + order.getId() + " provider " + order.getProvidingMember() + " status " + order.getCachedInstanceState());
         }
         return instanceStatusList;
     }

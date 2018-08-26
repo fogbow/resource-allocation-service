@@ -4,7 +4,6 @@ import org.fogbowcloud.manager.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.manager.core.plugins.cloud.cloudstack.CloudStackRequest;
 
 public class DeployVirtualMachineRequest extends CloudStackRequest {
-
     public static final String DEPLOY_VM_COMMAND = "deployVirtualMachine";
     public static final String SERVICE_OFFERING_ID_KEY = "serviceofferingid";
     public static final String TEMPLATE_ID_KEY = "templateid";
@@ -33,7 +32,6 @@ public class DeployVirtualMachineRequest extends CloudStackRequest {
     }
 
     public static class Builder {
-
         private String serviceOfferingId;
         private String templateId;
         private String zoneId;

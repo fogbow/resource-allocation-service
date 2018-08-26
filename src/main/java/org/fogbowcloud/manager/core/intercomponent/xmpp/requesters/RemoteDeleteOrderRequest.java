@@ -11,7 +11,6 @@ import org.fogbowcloud.manager.core.models.orders.Order;
 import org.xmpp.packet.IQ;
 
 public class RemoteDeleteOrderRequest implements RemoteRequest<Void> {
-
     private static final Logger LOGGER = Logger.getLogger(RemoteDeleteOrderRequest.class);
 
     private Order order;
@@ -30,8 +29,6 @@ public class RemoteDeleteOrderRequest implements RemoteRequest<Void> {
     }
 
     public static IQ marshal(Order order) {
-        LOGGER.debug("Creating IQ for order: " + order.getId());
-
         IQ iq = new IQ(IQ.Type.set);
         iq.setTo(order.getProvidingMember());
         iq.setID(order.getId());
