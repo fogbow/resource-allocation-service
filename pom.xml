@@ -12,12 +12,12 @@
     </repositories>
 
     <groupId>fogbow</groupId>
-    <artifactId>fogbow-manager-core</artifactId>
+    <artifactId>fogbow-ras-core</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>fogbow-manager</name>
-    <description>Fogbow Manager</description>
+    <name>fogbow-ras</name>
+    <description>Fogbow RAS</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
