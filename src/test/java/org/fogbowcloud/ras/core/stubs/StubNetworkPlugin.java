@@ -1,7 +1,5 @@
 package org.fogbowcloud.ras.core.stubs;
 
-import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
-import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 import org.fogbowcloud.ras.core.models.tokens.Token;
@@ -17,20 +15,16 @@ public class StubNetworkPlugin implements NetworkPlugin<Token> {
     }
 
     @Override
-    public String requestInstance(NetworkOrder networkOrder, Token token)
-            throws FogbowRasException, UnexpectedException {
+    public String requestInstance(NetworkOrder networkOrder, Token token) {
         return null;
     }
 
     @Override
-    public NetworkInstance getInstance(String networkInstanceId, Token token)
-            throws FogbowRasException, UnexpectedException {
+    public NetworkInstance getInstance(String networkInstanceId, Token token) {
         return null;
     }
 
     @Override
-    public void deleteInstance(String networkInstanceId, Token token)
-            throws FogbowRasException, UnexpectedException {
+    public void deleteInstance(String networkInstanceId, Token token) {
     }
-
 }

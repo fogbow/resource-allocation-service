@@ -2,7 +2,7 @@ package org.fogbowcloud.ras.core.plugins.aaa.identity.openstack;
 
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
-import org.fogbowcloud.ras.core.models.tokens.generators.openstack.v3.KeystoneV3TokenGeneratorPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.KeystoneV3TokenGeneratorPlugin;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

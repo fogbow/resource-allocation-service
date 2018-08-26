@@ -1,7 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.aaa.authentication.ldap;
 
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.ras.core.models.tokens.generators.ldap.LdapTokenGeneratorPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap.LdapTokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.ldap.LdapFederationIdentityPlugin;
 import org.junit.Assert;
 import org.junit.Before;

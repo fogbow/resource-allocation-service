@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.models.tokens.generators.openstack.v3;
+package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3;
 
 import org.apache.http.*;
 import org.apache.http.client.HttpClient;

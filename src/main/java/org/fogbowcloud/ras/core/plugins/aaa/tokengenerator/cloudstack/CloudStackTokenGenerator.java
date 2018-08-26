@@ -1,11 +1,11 @@
-package org.fogbowcloud.ras.core.models.tokens.generators.cloudstack;
+package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.ras.core.models.tokens.TokenGeneratorPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 
 import java.io.File;

@@ -4,7 +4,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.models.tokens.LdapToken;
-import org.fogbowcloud.ras.core.models.tokens.generators.ldap.LdapTokenGeneratorPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap.LdapTokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
 
 public class LdapFederationIdentityPlugin implements FederationIdentityPlugin<LdapToken> {

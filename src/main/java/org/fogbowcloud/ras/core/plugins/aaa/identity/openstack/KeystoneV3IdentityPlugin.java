@@ -3,7 +3,7 @@ package org.fogbowcloud.ras.core.plugins.aaa.identity.openstack;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
-import org.fogbowcloud.ras.core.models.tokens.generators.openstack.v3.KeystoneV3TokenGeneratorPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.KeystoneV3TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
 
 public class KeystoneV3IdentityPlugin implements FederationIdentityPlugin<OpenStackV3Token> {

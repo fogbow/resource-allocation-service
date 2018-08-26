@@ -3,7 +3,7 @@ package org.fogbowcloud.ras.core;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
-import org.fogbowcloud.ras.core.models.tokens.TokenGeneratorPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.authorization.AuthorizationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
@@ -71,7 +71,7 @@ public class PluginInstantiator {
         return (ImagePlugin) this.pluginFactory.createPluginInstance(className);
     }
 
-    public TokenGeneratorPlugin getTokenGenerator() {
+    public TokenGeneratorPlugin getTokenGeneratorPlugin() {
         String className = this.properties.getProperty(ConfigurationConstants.TOKEN_GENERATOR_PLUGIN_CLASS);
         return (TokenGeneratorPlugin) this.pluginFactory.createPluginInstance(className);
     }

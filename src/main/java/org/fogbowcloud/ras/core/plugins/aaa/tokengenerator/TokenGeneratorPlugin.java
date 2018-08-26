@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.models.tokens;
+package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator;
 
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;

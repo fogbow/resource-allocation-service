@@ -1,7 +1,5 @@
 package org.fogbowcloud.ras.core.stubs;
 
-import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
-import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.ras.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.ras.core.models.tokens.Token;
@@ -17,20 +15,16 @@ public class StubAttachmentPlugin implements AttachmentPlugin<Token> {
     }
 
     @Override
-    public String requestInstance(AttachmentOrder attachmentOrder, Token token)
-            throws FogbowRasException, UnexpectedException {
+    public String requestInstance(AttachmentOrder attachmentOrder, Token token) {
         return null;
     }
 
     @Override
-    public void deleteInstance(String attachmentInstanceId, Token token)
-            throws FogbowRasException, UnexpectedException {
+    public void deleteInstance(String attachmentInstanceId, Token token) {
     }
 
     @Override
-    public AttachmentInstance getInstance(String attachmentInstanceId, Token token)
-            throws FogbowRasException, UnexpectedException {
+    public AttachmentInstance getInstance(String attachmentInstanceId, Token token) {
         return null;
     }
-
 }

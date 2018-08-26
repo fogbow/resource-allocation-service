@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.models.tokens.generators.cloudstack;
+package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack;
 
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.junit.Assert;

@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.models.tokens.generators.ldap;
+package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap;
 
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;

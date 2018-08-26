@@ -1,6 +1,4 @@
-package org.fogbowcloud.ras.core.models.tokens.generators;
-
-import org.fogbowcloud.ras.core.models.tokens.TokenGeneratorPlugin;
+package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator;
 
 import java.util.Map;
 

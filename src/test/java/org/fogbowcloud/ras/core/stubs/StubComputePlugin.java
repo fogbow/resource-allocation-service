@@ -1,7 +1,5 @@
 package org.fogbowcloud.ras.core.stubs;
 
-import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
-import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.ComputeInstance;
 import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 import org.fogbowcloud.ras.core.models.tokens.Token;
@@ -17,20 +15,16 @@ public class StubComputePlugin implements ComputePlugin<Token> {
     }
 
     @Override
-    public String requestInstance(ComputeOrder computeOrder, Token token)
-            throws FogbowRasException, UnexpectedException {
+    public String requestInstance(ComputeOrder computeOrder, Token token) {
         return null;
     }
 
     @Override
-    public ComputeInstance getInstance(String computeInstanceId, Token token)
-            throws FogbowRasException, UnexpectedException {
+    public ComputeInstance getInstance(String computeInstanceId, Token token) {
         return null;
     }
 
     @Override
-    public void deleteInstance(String computeInstanceId, Token token)
-            throws FogbowRasException, UnexpectedException {
+    public void deleteInstance(String computeInstanceId, Token token) {
     }
-
 }

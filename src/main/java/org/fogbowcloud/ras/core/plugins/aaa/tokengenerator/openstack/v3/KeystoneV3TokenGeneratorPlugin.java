@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.models.tokens.generators.openstack.v3;
+package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3;
 
 import org.apache.http.Header;
 import org.apache.http.client.HttpResponseException;
@@ -10,7 +10,7 @@ import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
-import org.fogbowcloud.ras.core.models.tokens.TokenGeneratorPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;

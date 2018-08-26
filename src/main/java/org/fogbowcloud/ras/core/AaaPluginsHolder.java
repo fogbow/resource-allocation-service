@@ -1,6 +1,6 @@
 package org.fogbowcloud.ras.core;
 
-import org.fogbowcloud.ras.core.models.tokens.TokenGeneratorPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.authorization.AuthorizationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
@@ -14,7 +14,7 @@ public class AaaPluginsHolder {
     private FederationToLocalMapperPlugin federationToLocalMapperPlugin;
 
     public AaaPluginsHolder(PluginInstantiator instantiationInitService) {
-        this.tokenGeneratorPlugin = instantiationInitService.getTokenGenerator();
+        this.tokenGeneratorPlugin = instantiationInitService.getTokenGeneratorPlugin();
         this.federationIdentityPlugin = instantiationInitService.getFederationIdentityPlugin();
         this.authenticationPlugin = instantiationInitService.getAuthenticationPlugin();
         this.authorizationPlugin = instantiationInitService.getAuthorizationPlugin();

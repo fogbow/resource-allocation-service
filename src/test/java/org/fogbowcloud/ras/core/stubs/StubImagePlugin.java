@@ -1,7 +1,5 @@
 package org.fogbowcloud.ras.core.stubs;
 
-import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
-import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.ImagePlugin;
@@ -18,15 +16,12 @@ public class StubImagePlugin implements ImagePlugin<Token> {
     }
 
     @Override
-    public Map<String, String> getAllImages(Token token)
-            throws FogbowRasException, UnexpectedException {
+    public Map<String, String> getAllImages(Token token) {
         return null;
     }
 
     @Override
-    public Image getImage(String imageId, Token token)
-            throws FogbowRasException, UnexpectedException {
+    public Image getImage(String imageId, Token token) {
         return null;
     }
-
 }

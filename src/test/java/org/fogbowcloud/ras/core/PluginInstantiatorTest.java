@@ -5,6 +5,7 @@ import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.authorization.AuthorizationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
 import org.junit.Assert;
 import org.junit.Before;
@@ -41,18 +42,35 @@ public class PluginInstantiatorTest {
                 PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_JID_KEY));
     }
 
-    // test case: Tests if getAuthorizationPlugin() returns StubAuthorizationPlugin as the plugin class name.
+    // test case: Tests if getTokenGeneratorPlugin() returns StubTokenGeneratorPlugin
+    // as the plugin class name.
     @Test
-    public void testCreateAuthorizationPluginInstance() {
+    public void testCreateTokenGeneratorPluginInstance() {
         // set up
-        String expected_authorization_class_value =
-                "org.fogbowcloud.ras.core.stubs.StubAuthorizationPlugin";
+        String expected_tokengenerator_class_value =
+                "org.fogbowcloud.ras.core.stubs.StubTokenGeneratorPlugin";
 
         // exercise
-        AuthorizationPlugin plugin = this.pluginInstantiator.getAuthorizationPlugin();
+        TokenGeneratorPlugin plugin = this.pluginInstantiator.getTokenGeneratorPlugin();
 
         // verify
-        Assert.assertEquals(expected_authorization_class_value, plugin.getClass().getName());
+        Assert.assertEquals(expected_tokengenerator_class_value, plugin.getClass().getName());
+    }
+
+
+    // test case: Tests if getFederationIdentityPlugin() returns StubFederationIdentityPlugin
+    // as the plugin class name.
+    @Test
+    public void testCreateFederationIdentityPluginInstance() {
+        // set up
+        String expected_federation_identity_class_value =
+                "org.fogbowcloud.ras.core.stubs.StubFederationIdentityPlugin";
+
+        // exercise
+        FederationIdentityPlugin plugin = this.pluginInstantiator.getFederationIdentityPlugin();
+
+        // verify
+        Assert.assertEquals(expected_federation_identity_class_value, plugin.getClass().getName());
     }
 
     // test case: Tests if getAuthenticationPlugin() returns StubAuthenticationPlugin
@@ -70,19 +88,18 @@ public class PluginInstantiatorTest {
         Assert.assertEquals(expected_authentication_class_value, plugin.getClass().getName());
     }
 
-    // test case: Tests if getFederationIdentityPlugin() returns StubFederationIdentityPlugin
-    // as the plugin class name.
+    // test case: Tests if getAuthorizationPlugin() returns StubAuthorizationPlugin as the plugin class name.
     @Test
-    public void testCreateFederationIdentityPluginInstance() {
+    public void testCreateAuthorizationPluginInstance() {
         // set up
-        String expected_federation_identity_class_value =
-                "org.fogbowcloud.ras.core.stubs.StubFederationIdentityPlugin";
+        String expected_authorization_class_value =
+                "org.fogbowcloud.ras.core.stubs.StubAuthorizationPlugin";
 
         // exercise
-        FederationIdentityPlugin plugin = this.pluginInstantiator.getFederationIdentityPlugin();
+        AuthorizationPlugin plugin = this.pluginInstantiator.getAuthorizationPlugin();
 
         // verify
-        Assert.assertEquals(expected_federation_identity_class_value, plugin.getClass().getName());
+        Assert.assertEquals(expected_authorization_class_value, plugin.getClass().getName());
     }
 
     // test case: Tests if getFederationToLocalMapperPlugin() returns StubFederationToLocalMapperPlugin

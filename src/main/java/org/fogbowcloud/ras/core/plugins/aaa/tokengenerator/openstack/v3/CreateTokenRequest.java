@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.models.tokens.generators.openstack.v3;
+package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3;
 
 import com.google.gson.annotations.SerializedName;
 import org.fogbowcloud.ras.util.GsonHolder;

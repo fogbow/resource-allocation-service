@@ -1,7 +1,5 @@
 package org.fogbowcloud.ras.core.stubs;
 
-import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
-import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.VolumeInstance;
 import org.fogbowcloud.ras.core.models.orders.VolumeOrder;
 import org.fogbowcloud.ras.core.models.tokens.Token;
@@ -17,20 +15,16 @@ public class StubVolumePlugin implements VolumePlugin<Token> {
     }
 
     @Override
-    public String requestInstance(VolumeOrder volumeOrder, Token token)
-            throws FogbowRasException, UnexpectedException {
+    public String requestInstance(VolumeOrder volumeOrder, Token token) {
         return null;
     }
 
     @Override
-    public VolumeInstance getInstance(String volumeInstanceId, Token token)
-            throws FogbowRasException, UnexpectedException {
+    public VolumeInstance getInstance(String volumeInstanceId, Token token) {
         return null;
     }
 
     @Override
-    public void deleteInstance(String volumeInstanceId, Token token)
-            throws FogbowRasException, UnexpectedException {
+    public void deleteInstance(String volumeInstanceId, Token token) {
     }
-
 }

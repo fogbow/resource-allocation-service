@@ -2,7 +2,7 @@ package org.fogbowcloud.ras.core.plugins.aaa.identity.ldap;
 
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.models.tokens.LdapToken;
-import org.fogbowcloud.ras.core.models.tokens.generators.ldap.LdapTokenGeneratorPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap.LdapTokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.ldap.LdapAuthenticationPlugin;
 import org.junit.Assert;
 import org.junit.Before;

@@ -16,5 +16,4 @@ public class StubFederationIdentityPlugin implements FederationIdentityPlugin<Fe
     public FederationUserToken createToken(String tokenValue) {
         return null;
     }
-
 }
