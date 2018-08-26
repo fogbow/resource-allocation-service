@@ -5,7 +5,7 @@ import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 import org.fogbowcloud.ras.core.models.tokens.Token;
-import org.fogbowcloud.ras.core.plugins.cloud.NetworkPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.NetworkPlugin;
 
 /**
  * This class is a stub for the NetworkPlugin interface used for tests only.

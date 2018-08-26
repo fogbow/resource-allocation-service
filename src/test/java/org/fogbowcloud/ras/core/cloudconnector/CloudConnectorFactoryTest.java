@@ -1,7 +1,7 @@
 package org.fogbowcloud.ras.core.cloudconnector;
 
-import org.fogbowcloud.ras.core.CloudPluginsHolder;
-import org.fogbowcloud.ras.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.InteroperabilityPluginsHolder;
+import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,8 +28,8 @@ public class CloudConnectorFactoryTest {
                 Mockito.mock(FederationToLocalMapperPlugin.class);
         this.cloudConnectorFactory.setMapperPlugin(mapperPlugin);
 
-        CloudPluginsHolder cloudPluginsHolder = Mockito.mock(CloudPluginsHolder.class);
-        this.cloudConnectorFactory.setCloudPluginsHolder(cloudPluginsHolder);
+        InteroperabilityPluginsHolder interoperabilityPluginsHolder = Mockito.mock(InteroperabilityPluginsHolder.class);
+        this.cloudConnectorFactory.setInteroperabilityPluginsHolder(interoperabilityPluginsHolder);
 
         // exercise
         CloudConnector localCloudConnector =

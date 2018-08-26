@@ -1,13 +1,13 @@
 package org.fogbowcloud.ras.core.cloudconnector;
 
-import org.fogbowcloud.ras.core.CloudPluginsHolder;
-import org.fogbowcloud.ras.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.InteroperabilityPluginsHolder;
+import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
 
 public class CloudConnectorFactory {
     private static CloudConnectorFactory instance;
     private String localMemberId;
     private FederationToLocalMapperPlugin mapperPlugin;
-    private CloudPluginsHolder cloudPluginsHolder;
+    private InteroperabilityPluginsHolder interoperabilityPluginsHolder;
 
     public static synchronized CloudConnectorFactory getInstance() {
         if (instance == null) {
@@ -20,7 +20,7 @@ public class CloudConnectorFactory {
         CloudConnector cloudConnector;
 
         if (memberId.equals(this.localMemberId)) {
-            cloudConnector = new LocalCloudConnector(this.mapperPlugin, this.cloudPluginsHolder);
+            cloudConnector = new LocalCloudConnector(this.mapperPlugin, this.interoperabilityPluginsHolder);
         } else {
             cloudConnector = new RemoteCloudConnector(memberId);
         }
@@ -32,8 +32,8 @@ public class CloudConnectorFactory {
         this.mapperPlugin = mapperPlugin;
     }
 
-    public void setCloudPluginsHolder(CloudPluginsHolder cloudPluginsHolder) {
-        this.cloudPluginsHolder = cloudPluginsHolder;
+    public void setInteroperabilityPluginsHolder(InteroperabilityPluginsHolder interoperabilityPluginsHolder) {
+        this.interoperabilityPluginsHolder = interoperabilityPluginsHolder;
     }
 
     public void setLocalMemberId(String localMemberId) {

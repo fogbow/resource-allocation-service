@@ -1,7 +1,7 @@
 package org.fogbowcloud.ras.core.stubs;
 
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.ras.core.plugins.behavior.identity.FederationIdentityPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
 
 /**
  * This class is a stub for the FederationIdentityPlugin interface used for tests only.

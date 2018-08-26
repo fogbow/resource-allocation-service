@@ -4,11 +4,11 @@ import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.models.tokens.TokenGeneratorPlugin;
-import org.fogbowcloud.ras.core.plugins.behavior.authentication.AuthenticationPlugin;
-import org.fogbowcloud.ras.core.plugins.behavior.authorization.AuthorizationPlugin;
-import org.fogbowcloud.ras.core.plugins.behavior.identity.FederationIdentityPlugin;
-import org.fogbowcloud.ras.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
-import org.fogbowcloud.ras.core.plugins.cloud.*;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.authorization.AuthorizationPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.*;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 
 import java.util.ArrayList;
@@ -28,8 +28,8 @@ public class PluginInstantiator {
     protected PluginInstantiator() {
         String path = HomeDir.getPath();
         List<String> configFilesNames = new ArrayList<>();
-        configFilesNames.add(path + DefaultConfigurationConstants.CLOUD_CONF_FILE_NAME);
-        configFilesNames.add(path + DefaultConfigurationConstants.BEHAVIOR_CONF_FILE_NAME);
+        configFilesNames.add(path + DefaultConfigurationConstants.INTEROPERABILITY_CONF_FILE_NAME);
+        configFilesNames.add(path + DefaultConfigurationConstants.AAA_CONF_FILE_NAME);
         this.properties = PropertiesUtil.readProperties(configFilesNames);
         this.pluginFactory = new PluginFactory();
     }

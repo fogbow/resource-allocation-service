@@ -1,7 +1,7 @@
 package org.fogbowcloud.ras.core.cloudconnector;
 
 import org.fogbowcloud.ras.core.BaseUnitTests;
-import org.fogbowcloud.ras.core.CloudPluginsHolder;
+import org.fogbowcloud.ras.core.InteroperabilityPluginsHolder;
 import org.fogbowcloud.ras.core.SharedOrderHolders;
 import org.fogbowcloud.ras.core.datastore.DatabaseManager;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
@@ -15,8 +15,8 @@ import org.fogbowcloud.ras.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
-import org.fogbowcloud.ras.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
-import org.fogbowcloud.ras.core.plugins.cloud.*;
+import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -85,7 +85,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 
         // mocking class attributes
         FederationToLocalMapperPlugin mapperPlugin = Mockito.mock(FederationToLocalMapperPlugin.class);
-        CloudPluginsHolder cloudPluginsHolder = Mockito.mock(CloudPluginsHolder.class);
+        InteroperabilityPluginsHolder interoperabilityPluginsHolder = Mockito.mock(InteroperabilityPluginsHolder.class);
 
         this.federationUserToken = Mockito.mock(FederationUserToken.class);
         this.computePlugin = Mockito.mock(ComputePlugin.class);
@@ -111,17 +111,17 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         this.image = Mockito.mock(Image.class);
         Mockito.when(image.getId()).thenReturn(FAKE_IMAGE_ID);
 
-        // mocking cloudPluginsHolder to return the correct plugin for each call
-        Mockito.when(cloudPluginsHolder.getComputePlugin()).thenReturn(computePlugin);
-        Mockito.when(cloudPluginsHolder.getAttachmentPlugin()).thenReturn(attachmentPlugin);
-        Mockito.when(cloudPluginsHolder.getNetworkPlugin()).thenReturn(networkPlugin);
-        Mockito.when(cloudPluginsHolder.getVolumePlugin()).thenReturn(volumePlugin);
-        Mockito.when(cloudPluginsHolder.getImagePlugin()).thenReturn(imagePlugin);
-        Mockito.when(cloudPluginsHolder.getComputeQuotaPlugin()).thenReturn(computeQuotaPlugin);
+        // mocking interoperabilityPluginsHolder to return the correct plugin for each call
+        Mockito.when(interoperabilityPluginsHolder.getComputePlugin()).thenReturn(computePlugin);
+        Mockito.when(interoperabilityPluginsHolder.getAttachmentPlugin()).thenReturn(attachmentPlugin);
+        Mockito.when(interoperabilityPluginsHolder.getNetworkPlugin()).thenReturn(networkPlugin);
+        Mockito.when(interoperabilityPluginsHolder.getVolumePlugin()).thenReturn(volumePlugin);
+        Mockito.when(interoperabilityPluginsHolder.getImagePlugin()).thenReturn(imagePlugin);
+        Mockito.when(interoperabilityPluginsHolder.getComputeQuotaPlugin()).thenReturn(computeQuotaPlugin);
         Mockito.when(mapperPlugin.map(Mockito.any(FederationUserToken.class))).thenReturn(new Token());
 
         // starting the object we want to test
-        this.localCloudConnector = new LocalCloudConnector(mapperPlugin, cloudPluginsHolder);
+        this.localCloudConnector = new LocalCloudConnector(mapperPlugin, interoperabilityPluginsHolder);
     }
 
     // test case: When calling the method getNetworkInstanceIdsFromNetworkOrderIds(), it must return

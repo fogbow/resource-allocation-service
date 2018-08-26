@@ -1,7 +1,7 @@
 package org.fogbowcloud.ras.core.intercomponent;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.AaController;
+import org.fogbowcloud.ras.core.AaaController;
 import org.fogbowcloud.ras.core.OrderController;
 import org.fogbowcloud.ras.core.OrderStateTransitioner;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
@@ -25,7 +25,7 @@ public class RemoteFacade {
     private static final Logger LOGGER = Logger.getLogger(RemoteFacade.class);
 
     private static RemoteFacade instance;
-    private AaController aaController;
+    private AaaController aaaController;
     private OrderController orderController;
 
     private RemoteFacade() {
@@ -41,7 +41,7 @@ public class RemoteFacade {
     }
 
     public void activateOrder(Order order) throws FogbowRasException, UnexpectedException {
-        this.aaController.remoteAuthenticateAndAuthorize(order.getFederationUserToken(), Operation.CREATE,
+        this.aaaController.remoteAuthenticateAndAuthorize(order.getFederationUserToken(), Operation.CREATE,
                 order.getType(), order);
         OrderStateTransitioner.activateOrder(order);
     }
@@ -49,20 +49,20 @@ public class RemoteFacade {
     public Instance getResourceInstance(String orderId, FederationUserToken federationUserToken,
                                         ResourceType resourceType) throws Exception {
         Order order = this.orderController.getOrder(orderId);
-        this.aaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.GET, resourceType, order);
+        this.aaaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.GET, resourceType, order);
         return this.orderController.getResourceInstance(orderId);
     }
 
     public void deleteOrder(String orderId, FederationUserToken federationUserToken, ResourceType resourceType)
             throws FogbowRasException, UnexpectedException {
         Order order = this.orderController.getOrder(orderId);
-        this.aaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.DELETE, resourceType, order);
+        this.aaaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.DELETE, resourceType, order);
         this.orderController.deleteOrder(orderId);
     }
 
     public Quota getUserQuota(String memberId, FederationUserToken federationUserToken, ResourceType resourceType)
             throws Exception {
-        this.aaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.GET_USER_QUOTA, resourceType,
+        this.aaaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.GET_USER_QUOTA, resourceType,
                 memberId);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return cloudConnector.getUserQuota(federationUserToken, resourceType);
@@ -70,7 +70,7 @@ public class RemoteFacade {
 
     public Image getImage(String memberId, String imageId, FederationUserToken federationUserToken)
             throws Exception {
-        this.aaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.GET_IMAGE, ResourceType.IMAGE,
+        this.aaaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.GET_IMAGE, ResourceType.IMAGE,
                 memberId);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return cloudConnector.getImage(imageId, federationUserToken);
@@ -78,7 +78,7 @@ public class RemoteFacade {
 
     public Map<String, String> getAllImages(String memberId, FederationUserToken federationUserToken)
             throws Exception {
-        this.aaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.GET_ALL_IMAGES,
+        this.aaaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.GET_ALL_IMAGES,
                 ResourceType.IMAGE, memberId);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return cloudConnector.getAllImages(federationUserToken);
@@ -117,8 +117,8 @@ public class RemoteFacade {
         }
     }
 
-    public synchronized void setAaController(AaController AaController) {
-        this.aaController = AaController;
+    public synchronized void setAaaController(AaaController AaaController) {
+        this.aaaController = AaaController;
     }
 
     public synchronized void setOrderController(OrderController orderController) {

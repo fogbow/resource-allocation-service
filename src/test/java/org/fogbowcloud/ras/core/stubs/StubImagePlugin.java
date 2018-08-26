@@ -4,7 +4,7 @@ import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.tokens.Token;
-import org.fogbowcloud.ras.core.plugins.cloud.ImagePlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.ImagePlugin;
 
 import java.util.Map;
 

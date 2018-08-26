@@ -5,7 +5,7 @@ import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.ComputeInstance;
 import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 import org.fogbowcloud.ras.core.models.tokens.Token;
-import org.fogbowcloud.ras.core.plugins.cloud.ComputePlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.ComputePlugin;
 
 /**
  * This class is a stub for the ComputePlugin interface used for tests only.

@@ -32,18 +32,18 @@ public class Main implements ApplicationRunner {
 
             // Setting up plugins
             PluginInstantiator instantiationInitService = PluginInstantiator.getInstance();
-            CloudPluginsHolder cloudPluginsHolder = new CloudPluginsHolder(instantiationInitService);
-            BehaviorPluginsHolder behaviorPluginsHolder = new BehaviorPluginsHolder(instantiationInitService);
+            InteroperabilityPluginsHolder interoperabilityPluginsHolder = new InteroperabilityPluginsHolder(instantiationInitService);
+            AaaPluginsHolder aaaPluginsHolder = new AaaPluginsHolder(instantiationInitService);
 
             // Setting up controllers, application and remote facades
             String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
-            AaController aaController = new AaController(behaviorPluginsHolder);
+            AaaController aaaController = new AaaController(aaaPluginsHolder);
             OrderController orderController = new OrderController();
             ApplicationFacade applicationFacade = ApplicationFacade.getInstance();
             RemoteFacade remoteFacade = RemoteFacade.getInstance();
-            applicationFacade.setAaController(aaController);
+            applicationFacade.setAaaController(aaaController);
             applicationFacade.setOrderController(orderController);
-            remoteFacade.setAaController(aaController);
+            remoteFacade.setAaaController(aaaController);
             remoteFacade.setOrderController(orderController);
 
             // Setting up xmpp packet sender and cloud connector's factory
@@ -62,8 +62,8 @@ public class Main implements ApplicationRunner {
             PacketSenderHolder.init(xmppComponentManager);
             CloudConnectorFactory cloudConnectorFactory = CloudConnectorFactory.getInstance();
             cloudConnectorFactory.setLocalMemberId(localMemberId);
-            cloudConnectorFactory.setMapperPlugin(behaviorPluginsHolder.getFederationToLocalMapperPlugin());
-            cloudConnectorFactory.setCloudPluginsHolder(cloudPluginsHolder);
+            cloudConnectorFactory.setMapperPlugin(aaaPluginsHolder.getFederationToLocalMapperPlugin());
+            cloudConnectorFactory.setInteroperabilityPluginsHolder(interoperabilityPluginsHolder);
 
             // Setting up order processors
             ProcessorsThreadController processorsThreadController = new ProcessorsThreadController(localMemberId);

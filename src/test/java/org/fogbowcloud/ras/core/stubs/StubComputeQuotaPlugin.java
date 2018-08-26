@@ -4,7 +4,7 @@ import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.ras.core.models.tokens.Token;
-import org.fogbowcloud.ras.core.plugins.cloud.ComputeQuotaPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.ComputeQuotaPlugin;
 
 /**
  * This class is a stub for the ComputeQuotaPlugin interface used for tests only.

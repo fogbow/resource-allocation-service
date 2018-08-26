@@ -5,7 +5,7 @@ import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.AttachmentInstance;
 import org.fogbowcloud.ras.core.models.orders.AttachmentOrder;
 import org.fogbowcloud.ras.core.models.tokens.Token;
-import org.fogbowcloud.ras.core.plugins.cloud.AttachmentPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.AttachmentPlugin;
 
 /**
  * This class is a stub for the AttachmentPlugin interface used for tests only.

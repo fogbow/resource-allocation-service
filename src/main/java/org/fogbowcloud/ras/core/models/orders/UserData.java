@@ -1,6 +1,6 @@
 package org.fogbowcloud.ras.core.models.orders;
 
-import org.fogbowcloud.ras.core.plugins.cloud.util.CloudInitUserDataBuilder;
+import org.fogbowcloud.ras.core.plugins.interoperability.util.CloudInitUserDataBuilder;
 
 import javax.persistence.Embeddable;
 

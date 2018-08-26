@@ -1,6 +1,6 @@
 package org.fogbowcloud.ras.core.intercomponent;
 
-import org.fogbowcloud.ras.core.AaController;
+import org.fogbowcloud.ras.core.AaaController;
 import org.fogbowcloud.ras.core.BaseUnitTests;
 import org.fogbowcloud.ras.core.OrderController;
 import org.fogbowcloud.ras.core.OrderStateTransitioner;
@@ -43,7 +43,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
     private static final String REMOTE_MEMBER_ID = "fake-intercomponent-member";
 
-    private AaController aaController;
+    private AaaController aaaController;
     private OrderController orderController;
     private RemoteFacade remoteFacade;
     private CloudConnector cloudConnector;
@@ -53,11 +53,11 @@ public class RemoteFacadeTest extends BaseUnitTests {
         super.mockReadOrdersFromDataBase();
 
         this.orderController = Mockito.spy(new OrderController());
-        this.aaController = Mockito.mock(AaController.class);
+        this.aaaController = Mockito.mock(AaaController.class);
 
         this.remoteFacade = RemoteFacade.getInstance();
         this.remoteFacade.setOrderController(this.orderController);
-        this.remoteFacade.setAaController(this.aaController);
+        this.remoteFacade.setAaaController(this.aaaController);
 
         this.cloudConnector = Mockito.spy(new RemoteCloudConnector(REMOTE_MEMBER_ID));
     }
@@ -71,7 +71,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
         Order order = createOrder(federationUser);
         Assert.assertNull(order.getOrderState());
 
-        Mockito.doNothing().when(this.aaController).authorize(Mockito.eq(federationUser),
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.eq(federationUser),
                 Mockito.eq(Operation.CREATE), Mockito.eq(ResourceType.COMPUTE));
 
         // exercise
@@ -90,7 +90,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
         FederationUserToken federationUser = createFederationUser();
         Order order = createOrder(federationUser);
 
-        Mockito.doNothing().when(this.aaController).authorize(Mockito.eq(federationUser),
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.eq(federationUser),
                 Mockito.eq(Operation.CREATE), Mockito.eq(ResourceType.COMPUTE));
 
         Instance excepted = new ComputeInstance(FAKE_INSTANCE_ID);
@@ -119,14 +119,14 @@ public class RemoteFacadeTest extends BaseUnitTests {
         Order order = createOrder(federationUser);
         OrderStateTransitioner.activateOrder(order);
 
-        Mockito.doNothing().when(this.aaController).authorize(Mockito.eq(federationUser),
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.eq(federationUser),
                 Mockito.eq(Operation.CREATE), Mockito.eq(ResourceType.COMPUTE));
 
         // exercise
         this.remoteFacade.deleteOrder(order.getId(), federationUser, ResourceType.COMPUTE);
 
         // verify
-        Mockito.verify(this.aaController, Mockito.times(1)).authorize(
+        Mockito.verify(this.aaaController, Mockito.times(1)).authorize(
                 Mockito.any(FederationUserToken.class), Mockito.any(Operation.class),
                 Mockito.any(ResourceType.class));
 
@@ -141,7 +141,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
         // set up
         FederationUserToken federationUser = createFederationUser();
 
-        Mockito.doNothing().when(this.aaController).authorize(Mockito.eq(federationUser),
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.eq(federationUser),
                 Mockito.eq(Operation.CREATE), Mockito.eq(ResourceType.COMPUTE));
 
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
@@ -165,7 +165,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
                 ResourceType.COMPUTE);
 
         // verify
-        Mockito.verify(this.aaController, Mockito.times(1)).authorize(
+        Mockito.verify(this.aaaController, Mockito.times(1)).authorize(
                 Mockito.any(FederationUserToken.class), Mockito.any(Operation.class),
                 Mockito.any(ResourceType.class));
 

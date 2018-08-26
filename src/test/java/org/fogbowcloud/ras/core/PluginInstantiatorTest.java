@@ -1,11 +1,11 @@
 package org.fogbowcloud.ras.core;
 
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
-import org.fogbowcloud.ras.core.plugins.behavior.authentication.AuthenticationPlugin;
-import org.fogbowcloud.ras.core.plugins.behavior.authorization.AuthorizationPlugin;
-import org.fogbowcloud.ras.core.plugins.behavior.identity.FederationIdentityPlugin;
-import org.fogbowcloud.ras.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
-import org.fogbowcloud.ras.core.plugins.cloud.*;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.authorization.AuthorizationPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

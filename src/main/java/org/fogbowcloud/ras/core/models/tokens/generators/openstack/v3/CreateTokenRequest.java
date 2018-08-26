@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import org.fogbowcloud.ras.util.GsonHolder;
 import org.fogbowcloud.ras.util.JsonSerializable;
 
-import static org.fogbowcloud.ras.core.plugins.cloud.openstack.OpenstackRestApiConstants.Identity.*;
+import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Identity.*;
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/identity/v3/

@@ -6,8 +6,8 @@ public class DefaultConfigurationConstants {
     // CONFIGURATION FILES PATHS
     public static final String RAS_CONF_FILE_NAME = "ras.conf";
     public static final String INTERCOMPONENT_CONF_FILE_NAME = "intercomponent.conf";
-    public static final String CLOUD_CONF_FILE_NAME = "cloud.conf";
-    public static final String BEHAVIOR_CONF_FILE_NAME = "behavior.conf";
+    public static final String INTEROPERABILITY_CONF_FILE_NAME = "interoperability.conf";
+    public static final String AAA_CONF_FILE_NAME = "aaa.conf";
 
     // CLOUD PLUGINS CONF FILES PATHS
     public static final String OPENSTACK_CONF_FILE_NAME = "openstack.conf";

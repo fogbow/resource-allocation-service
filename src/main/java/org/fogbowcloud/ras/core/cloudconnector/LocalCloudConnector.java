@@ -1,7 +1,7 @@
 package org.fogbowcloud.ras.core.cloudconnector;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.CloudPluginsHolder;
+import org.fogbowcloud.ras.core.InteroperabilityPluginsHolder;
 import org.fogbowcloud.ras.core.SharedOrderHolders;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
@@ -13,8 +13,8 @@ import org.fogbowcloud.ras.core.models.orders.*;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
-import org.fogbowcloud.ras.core.plugins.behavior.mapper.FederationToLocalMapperPlugin;
-import org.fogbowcloud.ras.core.plugins.cloud.*;
+import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -31,14 +31,14 @@ public class LocalCloudConnector implements CloudConnector {
     private final VolumePlugin volumePlugin;
     private final ImagePlugin imagePlugin;
 
-    public LocalCloudConnector(FederationToLocalMapperPlugin mapperPlugin, CloudPluginsHolder cloudPluginsHolder) {
+    public LocalCloudConnector(FederationToLocalMapperPlugin mapperPlugin, InteroperabilityPluginsHolder interoperabilityPluginsHolder) {
         this.mapperPlugin = mapperPlugin;
-        this.attachmentPlugin = cloudPluginsHolder.getAttachmentPlugin();
-        this.computePlugin = cloudPluginsHolder.getComputePlugin();
-        this.computeQuotaPlugin = cloudPluginsHolder.getComputeQuotaPlugin();
-        this.networkPlugin = cloudPluginsHolder.getNetworkPlugin();
-        this.volumePlugin = cloudPluginsHolder.getVolumePlugin();
-        this.imagePlugin = cloudPluginsHolder.getImagePlugin();
+        this.attachmentPlugin = interoperabilityPluginsHolder.getAttachmentPlugin();
+        this.computePlugin = interoperabilityPluginsHolder.getComputePlugin();
+        this.computeQuotaPlugin = interoperabilityPluginsHolder.getComputeQuotaPlugin();
+        this.networkPlugin = interoperabilityPluginsHolder.getNetworkPlugin();
+        this.volumePlugin = interoperabilityPluginsHolder.getVolumePlugin();
+        this.imagePlugin = interoperabilityPluginsHolder.getImagePlugin();
     }
 
     @Override
