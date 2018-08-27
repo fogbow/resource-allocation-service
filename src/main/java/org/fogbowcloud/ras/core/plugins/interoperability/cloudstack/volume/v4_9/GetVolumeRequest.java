@@ -6,10 +6,12 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRe
 public class GetVolumeRequest extends CloudStackRequest {
     protected static final String LIST_VOLUMES_COMMAND = "listVolumes";
     private static final String VOLUME_ID_KEY = "id";
+    private static final String VIRTUAL_MACHINE_ID_KEY = "virtualmachineid";
 
     protected GetVolumeRequest(Builder builder) throws InvalidParameterException {
         super();
         addParameter(VOLUME_ID_KEY, builder.id);
+        addParameter(VIRTUAL_MACHINE_ID_KEY, builder.virtualMachineId);
     }
 
     @Override
@@ -24,9 +26,15 @@ public class GetVolumeRequest extends CloudStackRequest {
 
     public static class Builder {
         private String id;
+        private String virtualMachineId;
 
         public Builder id(String id) {
             this.id = id;
+            return this;
+        }
+
+        public Builder virtualMachineId(String virtualMachineId) {
+            this.virtualMachineId = virtualMachineId;
             return this;
         }
 
