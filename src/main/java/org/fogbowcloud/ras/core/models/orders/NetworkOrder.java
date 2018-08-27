@@ -54,4 +54,9 @@ public class NetworkOrder extends Order {
     public ResourceType getType() {
         return ResourceType.NETWORK;
     }
+
+	@Override
+	public String getUsage() {
+		return "";
+	}
 }
