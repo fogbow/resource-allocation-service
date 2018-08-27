@@ -40,7 +40,6 @@ public class DatabaseManager implements StableStorage {
         try {
             this.recoveryService.save(order);
             this.orderTimestampStorage.addOrder(order);
-
         } catch (SQLException e) {
             throw new UnexpectedException(e.getMessage());
         }
@@ -51,7 +50,6 @@ public class DatabaseManager implements StableStorage {
         try {
             this.recoveryService.update(order);
             this.orderTimestampStorage.addOrder(order);
-
         } catch (SQLException e) {
             throw new UnexpectedException(e.getMessage());
         }
@@ -65,7 +63,6 @@ public class DatabaseManager implements StableStorage {
         for (Order order : this.recoveryService.readActiveOrders(orderState)) {
             synchronizedDoublyLinkedList.addItem(order);
         }
-
         return synchronizedDoublyLinkedList;
     }
 

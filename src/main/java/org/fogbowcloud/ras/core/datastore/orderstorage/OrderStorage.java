@@ -32,8 +32,7 @@ public class OrderStorage {
 
     protected Connection getConnection() throws SQLException {
         try {
-            return DriverManager.getConnection(this.databaseUrl,
-                    this.databaseUsername, this.databasePassword);
+            return DriverManager.getConnection(this.databaseUrl, this.databaseUsername, this.databasePassword);
         } catch (SQLException e) {
             LOGGER.error("Error while getting a new connection from the connection pool.", e);
             throw e;
