@@ -32,6 +32,8 @@ public class CloudStackRestApiConstants {
         public static final String SIZE_KEY_JSON = "size";
         public static final String STATE_KEY_JSON = "state";
         public static final String SUCCESS_KEY_JSON = "success";
+        public static final String DEVICE_ID_KEY_JSON = "deviceid";
+        public static final String ATTACHED_KEY_JSON = "attached";
     }
 
     public static class Network {
