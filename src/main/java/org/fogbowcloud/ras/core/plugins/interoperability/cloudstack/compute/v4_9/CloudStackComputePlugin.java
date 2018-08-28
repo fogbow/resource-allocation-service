@@ -34,6 +34,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     public static final String ZONE_ID_KEY = "zone_id";
     public static final String EXPUNGE_ON_DESTROY_KEY = "expunge_on_destroy";
     public static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
+    public static final String DEFAULT_VOLUME_TYPE = "ROOT";
 
     private HttpRequestClientUtil client;
     private String zoneId;
@@ -210,13 +211,11 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         int vcpusCount = vm.getCpuNumber();
         int memory = vm.getMemory();
 
-        int disk = 0;
+        int disk = -1;
         try {
             disk = getVirtualMachineDisk(instanceId, cloudStackToken);
         } catch (FogbowRasException e) {
-            if (e instanceof InstanceNotFoundException) {
-                LOGGER.warn("No volume found for this virtual machine. Defaulting disk size to 0.");
-            }
+            LOGGER.warn("Root volume could not be retrieved for virtual machine " + vm.getId() + ". Assigning -1 to disk size.");
         }
 
         String cloudStackState = vm.getState();
@@ -229,8 +228,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
             address = firstAddressEmpty ? "" : addresses[0].getIpAddress();
         }
 
-        ComputeInstance computeInstance = new ComputeInstance(instanceId,
-                fogbowState, hostName, vcpusCount, memory, disk, address);
+        ComputeInstance computeInstance = new ComputeInstance(
+                instanceId, fogbowState, hostName, vcpusCount, memory, disk, address);
 
         return computeInstance;
     }
@@ -239,6 +238,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
             throws FogbowRasException {
         GetVolumeRequest request = new GetVolumeRequest.Builder()
                 .virtualMachineId(virtualMachineId)
+                .type(DEFAULT_VOLUME_TYPE)
                 .build();
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
@@ -257,7 +257,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         } else {
             throw new InstanceNotFoundException();
         }
-
     }
 
     @Override
@@ -273,8 +272,11 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         try {
             this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
         } catch (HttpResponseException e) {
+            LOGGER.error("Could not delete instance " + computeInstanceId);
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
+
+        LOGGER.info("Deleted instance " + computeInstanceId);
     }
 
     protected void setClient(HttpRequestClientUtil client) {
