@@ -28,8 +28,8 @@ public class DetachVolumeResponse {
         
     }
 
-    public static AttachVolumeResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, AttachVolumeResponse.class);
+    public static DetachVolumeResponse fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, DetachVolumeResponse.class);
     }
 
     public String getJobId() {
