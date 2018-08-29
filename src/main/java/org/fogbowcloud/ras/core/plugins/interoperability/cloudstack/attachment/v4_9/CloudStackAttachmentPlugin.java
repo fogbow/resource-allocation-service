@@ -138,4 +138,8 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackTo
         return attachmentInstance;
     }
 
+    protected void setClient(HttpRequestClientUtil client) {
+        this.client = client;
+    }
+
 }
