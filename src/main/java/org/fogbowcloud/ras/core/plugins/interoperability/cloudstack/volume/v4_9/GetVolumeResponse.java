@@ -52,10 +52,10 @@ public class GetVolumeResponse {
         private int size;
         @SerializedName(STATE_KEY_JSON)
         private String state;
-        @SerializedName(DEVICE_ID_KEY_JSON)
-        private int device;
-        @SerializedName(ATTACHED_KEY_JSON)
-        private String attached;
+//        @SerializedName(DEVICE_ID_KEY_JSON)
+//        private int device;
+//        @SerializedName(ATTACHED_KEY_JSON)
+//        private String attached;
 
         public String getId() {
             return this.id;
@@ -73,12 +73,12 @@ public class GetVolumeResponse {
             return this.state;
         }
         
-        public int getDevice() {
-            return this.device;
-        }
-
-        public String getAttached() {
-            return this.attached;
-        }
+//        public int getDevice() {
+//            return this.device;
+//        }
+//
+//        public String getAttached() {
+//            return this.attached;
+//        }
     }
 }
