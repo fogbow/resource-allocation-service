@@ -1,7 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.attachment.v4_9;
 
-import java.util.List;
 import org.apache.http.client.HttpResponseException;
+import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -14,16 +14,17 @@ import org.fogbowcloud.ras.core.plugins.interoperability.AttachmentPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
-import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeRequest;
-import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse;
-import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse.Volume;
+import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.attachment.v4_9.AttachmentJobStatusResponse;
+import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.attachment.v4_9.AttachmentJobStatusResponse.Volume;
+import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.CloudStackVolumePlugin;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
 public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackToken>{
+    private static final Logger LOGGER = Logger.getLogger(CloudStackVolumePlugin.class);
 
     private static final String ATTACHMENT_ID_FORMAT = "%s %s";
     private static final String SEPARATOR_ID = " ";
-    private static final int FIRST_ELEMENT_POSITION = 0;
+    private static final int JOB_STATUS_COMPLETE = 1;
     
     private HttpRequestClientUtil client;
     
@@ -55,13 +56,12 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackTo
         AttachVolumeResponse response = AttachVolumeResponse.fromJson(jsonResponse);
         
         if (response.getJobId() != null) {
-//            String attachmentId = response.getJobId();
-            String attachmentId = String.format(ATTACHMENT_ID_FORMAT, volumeId, virtualMachineId);
+            String jobId = response.getJobId();
+            String attachmentId = String.format(ATTACHMENT_ID_FORMAT, volumeId, jobId);
             return attachmentId;
         } else {
             throw new UnexpectedException();
         }
-        
     }
 
     @Override
@@ -96,13 +96,12 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackTo
             CloudStackToken localUserAttributes) throws FogbowRasException, UnexpectedException {
         
         String[] separatorInstanceId = attachmentInstanceId.split(SEPARATOR_ID);
-        String volumeId = separatorInstanceId[0];
-        String virtualMachineId = separatorInstanceId[1];
-        
-        GetVolumeRequest request = new GetVolumeRequest.Builder()
-                .id(volumeId)
-                .build();
+        String jobId = separatorInstanceId[1];
 
+        AttachmentJobStatusRequest request = new AttachmentJobStatusRequest.Builder()
+                .jobId(jobId)
+                .build();
+        
         CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
 
         String jsonResponse = null;
@@ -111,31 +110,30 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackTo
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
-
-        GetVolumeResponse response = GetVolumeResponse.fromJson(jsonResponse);
-        List<GetVolumeResponse.Volume> volumes = response.getVolumes();
         
-        if (volumes != null && volumes.size() > 0) {
-            // since an id were specified, there should be no more than one volume in the response
-            Volume volume = volumes.get(FIRST_ELEMENT_POSITION);
-            if (volume.getAttached() != null) {
-                return loadInstance(volume, virtualMachineId); 
-            } else {
-                throw new InstanceNotFoundException();
-            }
+        AttachmentJobStatusResponse response = AttachmentJobStatusResponse.fromJson(jsonResponse);
+        
+        
+        int status = response.getJobStatus();
+        
+        if (status == JOB_STATUS_COMPLETE) {
+            Volume volume = response.getVolume();
+            return loadInstance(volume);
         } else {
             throw new InstanceNotFoundException();
         }
     }
 
-    private AttachmentInstance loadInstance(Volume volume, String source) {
+    private AttachmentInstance loadInstance(Volume volume) {
+        String source = volume.getVirtualMachineId();
         String target = volume.getId();
-        String attachmentId = String.format(ATTACHMENT_ID_FORMAT, target, source);
-        String device = String.valueOf(volume.getDevice());
+        String jobId = volume.getJobId();
+        String attachmentId = String.format(ATTACHMENT_ID_FORMAT, target, jobId);
+        String device = String.valueOf(volume.getDeviceId());
         String state = volume.getState();
         
         InstanceState instanceState = CloudStackStateMapper.map(ResourceType.VOLUME, state);
-
+        
         AttachmentInstance attachmentInstance = new AttachmentInstance(attachmentId, instanceState, source, target, device);
         return attachmentInstance;
     }
