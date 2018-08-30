@@ -41,10 +41,6 @@ public class CloudStackImagePluginTest {
 
     public static final CloudStackToken FAKE_TOKEN = new CloudStackToken(FAKE_TOKEN_VALUE);
 
-    public static final String ID_KEY = "id";
-    public static final String NAME_KEY = "name";
-    public static final String COMMAND_KEY = "command";
-
     public static final String FAKE_ID = "fake-id";
     public static final String FAKE_NAME = "fake-name";
     public static final long FAKE_SIZE = 1000L;
