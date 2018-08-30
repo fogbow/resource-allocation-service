@@ -3,7 +3,6 @@ package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.attachment.
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
-import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.AttachmentInstance;
@@ -14,7 +13,6 @@ import org.fogbowcloud.ras.core.plugins.interoperability.AttachmentPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
-import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.attachment.v4_9.AttachmentJobStatusResponse;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.attachment.v4_9.AttachmentJobStatusResponse.Volume;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.CloudStackVolumePlugin;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
@@ -22,9 +20,9 @@ import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackToken>{
     private static final Logger LOGGER = Logger.getLogger(CloudStackVolumePlugin.class);
 
-    private static final String ATTACHMENT_ID_FORMAT = "%s %s";
     private static final String SEPARATOR_ID = " ";
-    private static final int JOB_STATUS_COMPLETE = 1;
+    protected static final String ATTACHMENT_ID_FORMAT = "%s %s";
+    protected static final int JOB_STATUS_COMPLETE = 1;
     
     private HttpRequestClientUtil client;
     
@@ -120,7 +118,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackTo
             Volume volume = response.getVolume();
             return loadInstance(volume);
         } else {
-            throw new InstanceNotFoundException();
+            throw new UnexpectedException();
         }
     }
 
