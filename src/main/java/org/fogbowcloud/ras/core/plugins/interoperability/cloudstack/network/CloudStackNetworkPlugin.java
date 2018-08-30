@@ -29,10 +29,12 @@ import java.util.UUID;
 public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackNetworkPlugin.class);
 
-    public static final java.lang.String NETWORK_OFFERING_ID = "network_offering_id";
-    public static final java.lang.String ZONE_ID = "zone_id";
+    public static final String NETWORK_OFFERING_ID = "network_offering_id";
+    public static final String ZONE_ID = "zone_id";
+
     protected String networkOfferingId = null;
     protected String zoneId = null;
+
     private HttpRequestClientUtil client;
 
     public CloudStackNetworkPlugin() {
@@ -103,7 +105,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
         GetNetworkResponse response = GetNetworkResponse.fromJson(jsonResponse);
         List<GetNetworkResponse.Network> networks = response.getNetworks();
 
-        if (networks.size() > 0) {
+        if (networks != null && networks.size() > 0) {
             // since an id were specified, there should be no more than one network in the response
             return getNetworkInstance(networks.get(0));
         } else {
@@ -156,4 +158,5 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
     protected void setClient(HttpRequestClientUtil client) {
         this.client = client;
     }
+
 }
