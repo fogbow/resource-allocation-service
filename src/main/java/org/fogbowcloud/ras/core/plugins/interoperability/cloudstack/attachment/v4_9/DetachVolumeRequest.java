@@ -5,7 +5,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRe
 
 public class DetachVolumeRequest extends CloudStackRequest {
 
-    protected static final String DETACH_VOLUME_COMMAND = "attachVolume";
+    protected static final String DETACH_VOLUME_COMMAND = "detachVolume";
     protected static final String ATTACH_VOLUME_ID = "id";
     
     protected DetachVolumeRequest(Builder builder) throws InvalidParameterException {
@@ -15,7 +15,7 @@ public class DetachVolumeRequest extends CloudStackRequest {
 
     @Override
     public String getCommand() {
-        return null;
+        return DETACH_VOLUME_COMMAND;
     }
 
     @Override
