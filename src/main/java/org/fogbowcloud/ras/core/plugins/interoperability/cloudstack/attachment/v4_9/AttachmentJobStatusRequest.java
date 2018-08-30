@@ -10,7 +10,7 @@ public class AttachmentJobStatusRequest extends CloudStackRequest {
     
     protected AttachmentJobStatusRequest(Builder builder) throws InvalidParameterException {
         super();
-        addParameter(QUERY_ASYNC_JOB_RESULT_COMMAND, builder.jobId);
+        addParameter(JOB_ID, builder.jobId);
     }
     
     @Override
