@@ -23,6 +23,7 @@ import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -59,12 +60,19 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
             throws FogbowRasException, UnexpectedException {
         String templateId = computeOrder.getImageId();
         if (templateId == null || this.zoneId == null || this.defaultNetworkId == null) {
+            LOGGER.error("Order cannot be completed. Template, zone and default network IDs are required parameters.");
             throw new InvalidParameterException();
         }
 
         // FIXME(pauloewerton): should this be creating a cloud-init script for cloudstack?
-        String userData = Base64.getEncoder().encodeToString(computeOrder.getUserData().
-                getExtraUserDataFileContent().getBytes());
+        String userData = computeOrder.getUserData().getExtraUserDataFileContent();
+        try {
+            userData = Base64.getEncoder().encodeToString(userData.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            LOGGER.warn("Could not encode user data. Sending request without it.");
+            userData = null;
+        }
+
         String networksId = resolveNetworksId(computeOrder);
 
         String serviceOfferingId = getServiceOfferingId(computeOrder.getvCPU(), computeOrder.getMemory(),
