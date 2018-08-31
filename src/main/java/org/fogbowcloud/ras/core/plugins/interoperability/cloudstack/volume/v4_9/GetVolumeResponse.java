@@ -18,8 +18,6 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.Cloud
  * "name": "ca43bccc-21a6-4f88-8fac-c88ea386a451",
  * "size": 1073741824,
  * "state": "Ready",
- * "deviceid": 1,
- * "attached": "2017-11-23T10:46:59-0200"
  * }]
  * }
  * }
@@ -52,10 +50,6 @@ public class GetVolumeResponse {
         private int size;
         @SerializedName(STATE_KEY_JSON)
         private String state;
-//        @SerializedName(DEVICE_ID_KEY_JSON)
-//        private int device;
-//        @SerializedName(ATTACHED_KEY_JSON)
-//        private String attached;
 
         public String getId() {
             return this.id;
@@ -72,13 +66,5 @@ public class GetVolumeResponse {
         public String getState() {
             return this.state;
         }
-        
-//        public int getDevice() {
-//            return this.device;
-//        }
-//
-//        public String getAttached() {
-//            return this.attached;
-//        }
     }
 }
