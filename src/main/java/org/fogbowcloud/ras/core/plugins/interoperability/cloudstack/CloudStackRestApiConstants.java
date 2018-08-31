@@ -17,7 +17,6 @@ public class CloudStackRestApiConstants {
     }
 
     public static class Volume {
-
         public static final String VOLUMES_KEY_JSON = "listvolumesresponse";
         public static final String VOLUME_KEY_JSON = "volume";
         public static final String DISK_KEY_JSON = "disksize";
@@ -42,5 +41,19 @@ public class CloudStackRestApiConstants {
 
         public static final String NETWORK_KEY_JSON = "network";
         public static final String ID_KEY = "id";
+    }
+    
+    public static class Attachment {
+        public static final String ATTACH_VOLUME_KEY_JSON = "attachvolumeresponse";
+        public static final String DETACH_VOLUME_KEY_JSON = "detachvolumeresponse";
+        public static final String JOB_ID_KEY_JSON = "jobid";
+        public static final String QUERY_ASYNC_JOB_RESULT_KEY_JSON = "queryasyncjobresultresponse";
+        public static final String JOB_STATUS_KEY_JSON = "jobstatus";
+        public static final String JOB_RESULT_KEY_JSON = "jobresult";
+        public static final String VOLUME_KEY_JSON = "volume";
+        public static final String ID_KEY_JSON = "id";
+        public static final String DEVICE_ID_KEY_JSON = "deviceid";
+        public static final String VIRTUAL_MACHINE_ID_KEY_JSON = "virtualmachineid";
+        public static final String STATE_KEY_JSON = "state";
     }
 }
