@@ -34,5 +34,13 @@ public class ListResourceLimitsResponse {
         private String max;
         private String resourceType;
 
+        public String getResourceType() {
+            return resourceType;
+        }
+
+        public String getMax() {
+            return max;
+        }
     }
+
 }
