@@ -14,6 +14,7 @@ public class CloudStackRestApiConstants {
         public static final String IP_ADDRESS_KEY_JSON = "ipaddress";
         public static final String LIST_SERVICE_OFFERINGS_KEY_JSON = "listserviceofferingsresponse";
         public static final String SERVICE_OFFERING_KEY_JSON = "serviceoffering";
+        public static final String JOB_RESULT_KEY_JSON = "jobresult";
     }
 
     public static class Volume {

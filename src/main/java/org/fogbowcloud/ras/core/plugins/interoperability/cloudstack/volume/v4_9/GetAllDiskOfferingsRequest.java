@@ -4,7 +4,7 @@ import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRequest;
 
 public class GetAllDiskOfferingsRequest extends CloudStackRequest {
-    protected static final String LIST_DISK_OFFERINGS_COMMAND = "listDiskOfferings";
+    public static final String LIST_DISK_OFFERINGS_COMMAND = "listDiskOfferings";
 
     protected GetAllDiskOfferingsRequest(Builder builder) throws InvalidParameterException {
         super();
