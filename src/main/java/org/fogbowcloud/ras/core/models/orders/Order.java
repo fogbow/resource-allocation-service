@@ -132,7 +132,7 @@ public abstract class Order implements Serializable {
 
     public abstract ResourceType getType();
     
-    public abstract String getUsage();
+    public abstract String getSpec();
 
     @Override
     public int hashCode() {

@@ -48,7 +48,7 @@ public class OrderTimestampStorage extends OrderStorage {
             orderStatement.setString(1, order.getId());
             orderStatement.setString(2, order.getOrderState().name());
             orderStatement.setString(3, String.valueOf(order.getType()));
-            orderStatement.setString(4, order.getUsage());
+            orderStatement.setString(4, order.getSpec());
             orderStatement.setString(5, order.getFederationUserToken().getUserId());
             orderStatement.setString(6, order.getFederationUserToken().getUserName());
             orderStatement.setString(7, order.getRequestingMember());

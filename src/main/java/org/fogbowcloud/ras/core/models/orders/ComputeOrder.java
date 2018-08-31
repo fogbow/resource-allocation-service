@@ -116,7 +116,7 @@ public class ComputeOrder extends Order {
     }
 
 	@Override
-	public String getUsage() {
+	public String getSpec() {
 		return this.actualAllocation.getvCPU() + "/" + this.actualAllocation.getRam();
 	}
 }

@@ -6,7 +6,7 @@ public class TimestampSQLCommands extends OrderTimestampTableAttributes {
             + "(" + ORDER_ID + " VARCHAR(255), " 
     		+ ORDER_STATE + " VARCHAR(255), "
             + RESOURCE_TYPE + " VARCHAR(255), "
-            + USAGE + " VARCHAR(255), "
+            + SPEC + " VARCHAR(255), "
     		+ FEDERATION_USER_ID + " VARCHAR(255), " 
             + FEDERATION_USER_NAME + " VARCHAR(255), " 
     		+ REQUESTING_MEMBER + " VARCHAR(255), "
@@ -15,7 +15,7 @@ public class TimestampSQLCommands extends OrderTimestampTableAttributes {
             + ORDER_STATE + "))";
 
     public static final String INSERT_TIMESTAMP_SQL = "INSERT INTO " + TIMESTAMP_TABLE_NAME
-            + " (" + ORDER_ID + "," + ORDER_STATE + "," + RESOURCE_TYPE + "," + USAGE + ","
+            + " (" + ORDER_ID + "," + ORDER_STATE + "," + RESOURCE_TYPE + "," + SPEC + ","
     		+ FEDERATION_USER_ID + "," + FEDERATION_USER_NAME + ","
             + REQUESTING_MEMBER + "," + PROVIDING_MEMBER + "," + TIMESTAMP + ")"
             + " VALUES (?,?,?,?,?,?,?,?,?)";

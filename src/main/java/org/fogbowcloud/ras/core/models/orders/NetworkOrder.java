@@ -56,7 +56,7 @@ public class NetworkOrder extends Order {
     }
 
 	@Override
-	public String getUsage() {
+	public String getSpec() {
 		return "";
 	}
 }

@@ -13,5 +13,5 @@ public class OrderTimestampTableAttributes {
     public static final String REQUESTING_MEMBER = "requesting_member";
     public static final String PROVIDING_MEMBER = "providing_member";
     public static final String RESOURCE_TYPE = "resource_type";
-    public static final String USAGE = "usage";
+    public static final String SPEC = "spec";
 }

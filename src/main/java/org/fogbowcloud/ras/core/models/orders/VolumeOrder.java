@@ -51,7 +51,7 @@ public class VolumeOrder extends Order {
     }
 
 	@Override
-	public String getUsage() {
+	public String getSpec() {
 		return String.valueOf(this.volumeSize);
 	}
 }

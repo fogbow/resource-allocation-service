@@ -120,25 +120,25 @@ public class OrderTimestampStorageTest {
     	ResultSet resultSet = makeRequestByOrderId("fake-id-1");
     	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.ORDER_STATE), "FULFILLED");
     	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.RESOURCE_TYPE), "COMPUTE");
-    	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.USAGE), "2/4");
+    	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.SPEC), "2/4");
     	
     	// verify 2
     	resultSet = makeRequestByOrderId("fake-id-2");
     	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.ORDER_STATE), "OPEN");
     	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.RESOURCE_TYPE), "NETWORK");
-    	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.USAGE), "");
+    	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.SPEC), "");
     	
     	// verify 3
     	resultSet = makeRequestByOrderId("fake-id-3");
     	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.ORDER_STATE), "SPAWNING");
     	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.RESOURCE_TYPE), "ATTACHMENT");
-    	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.USAGE), "");
+    	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.SPEC), "");
     	
     	// verify 4
     	resultSet = makeRequestByOrderId("fake-id-4");
     	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.ORDER_STATE), "CLOSED");
     	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.RESOURCE_TYPE), "VOLUME");
-    	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.USAGE), "50");
+    	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.SPEC), "50");
     	
     }
     
