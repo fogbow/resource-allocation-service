@@ -1,29 +1,40 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.openstack.publicip.v2;
 
+import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Properties;
 
+import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.PublicIpPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowRasExceptionMapper;
+import org.fogbowcloud.ras.core.plugins.interoperability.openstack.publicip.v2.CreateFloatingIpResponse.FloatingIp;
+import org.fogbowcloud.ras.core.plugins.interoperability.openstack.publicip.v2.GetNetworkPortsResponse.Port;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestUtil;
 
 public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token> {
 
-	// TODO add logs
+	private static final int MAXIMUM_PORTS_SIZE = 1;
+
 	private static final Logger LOGGER = Logger.getLogger(OpenStackPublicIpPlugin.class);
 	
 	// FIXME Parameter duplicated. Look the OpenStackV2NetworkPlugin
 	private static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
-	// TODO check this name
+	
 	private static final String EXTERNAL_NETWORK_ID_KEY = "external_network_id";
 	
 	protected static final String SUFFIX_ENDPOINT_FLOATINGIPS = "/floatingips";	
 	protected static final String NETWORK_V2_API_ENDPOINT = "/v2.0";
 	protected static final String SUFFIX_ENDPOINT_PORTS = "/ports";
+
+	private static final String DEFAULT_NETWORK_ID_KEY = null;
 
 
 	private Properties properties;
@@ -39,66 +50,88 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
 	}
 	
 	@Override
-	public boolean associate(String computeInstanceId, OpenStackV3Token openStackV3Token) throws Exception {
-		String endpoint = getCreateFloatingIpEndpoint() + NETWORK_V2_API_ENDPOINT + SUFFIX_ENDPOINT_FLOATINGIPS;
+	public String allocatePublicIp(String computeInstanceId, OpenStackV3Token openStackV3Token)
+			throws HttpResponseException, URISyntaxException, FogbowRasException, UnexpectedException {
 		
-		// TODO get port id
-		
+        LOGGER.info("Creating floating ip in the " + computeInstanceId + " with tokens " + openStackV3Token);
+
+		String portId = getNetworkPortIp(computeInstanceId, openStackV3Token);		
 		String floatingNetworkId = getExternalNetworkId();
 		String projectId = openStackV3Token.getProjectId();
 		
 		CreateFloatingIpRequest createBody = new CreateFloatingIpRequest.Builder()
 				.floatingNetworkId(floatingNetworkId)
 				.projectId(projectId)
-				.portId("")
+				.portId(portId)
 				.build();
-		
 		String body = createBody.toJson();
-		this.client.doPostRequest(endpoint, openStackV3Token, body);
 		
-		return true;
+		String responsePostFloatingIp = null;
+        try {
+        	String floatingIpEndpoint = getFloatingIpEndpoint();
+        	responsePostFloatingIp = this.client.doPostRequest(floatingIpEndpoint, openStackV3Token, body);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowRasExceptionMapper.map(e);
+        }
+		CreateFloatingIpResponse createFloatingIpResponse = CreateFloatingIpResponse.fromJson(responsePostFloatingIp);
+		
+		FloatingIp floatingIp = createFloatingIpResponse.getFloatingIp();
+		String floatingIpID = floatingIp.getId();
+		return floatingIpID;
 	}
-	
-	protected String getNetworkPortIp(String computeInstanceId, OpenStackV3Token openStackV3Token) throws Exception {
-		
-		String neutroUrlPrefix = getNetworkPortEndpoint();
+
+	protected String getNetworkPortIp(String computeInstanceId, OpenStackV3Token openStackV3Token)
+			throws URISyntaxException, HttpResponseException, FogbowRasException, UnexpectedException {
+		LOGGER.debug("Searching the network port of the VM (" 
+						+ computeInstanceId + ")  with tokens " + openStackV3Token);
+		String defaulNetworkId = getDefaultNetworkId();
+		String networkPortsEndpointBase = getNetworkPortsEndpoint();
+
 		GetNetworkPortsResquest getNetworkPortsResquest = new GetNetworkPortsResquest.Builder()
-				.url(neutroUrlPrefix)
-				.deviceId(computeInstanceId)
-				.build();
-		
-		String endpoint = getNetworkPortsResquest.getUrl();
-		String responseDoGetRequest = this.client.doGetRequest(endpoint, openStackV3Token);
-		
-		// 
-		
-		return null;
+				.url(networkPortsEndpointBase).deviceId(computeInstanceId).networkId(defaulNetworkId).build();
+
+		String responseGetPorts = null;
+        try {
+        	String networkPortsEndpoint = getNetworkPortsResquest.getUrl();
+        	responseGetPorts = this.client.doGetRequest(networkPortsEndpoint, openStackV3Token);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowRasExceptionMapper.map(e);
+        }
+
+		GetNetworkPortsResponse networkPortsResponse = GetNetworkPortsResponse.fromJson(responseGetPorts);
+
+		String networkPortId = null;
+		List<Port> ports = networkPortsResponse.getPorts();
+		// One is the maximum threshold of doors in the fogbow for default network
+		if (ports != null && ports.size() == MAXIMUM_PORTS_SIZE) {
+			networkPortId = ports.get(0).getId();
+		}
+
+		LOGGER.debug("The network port found was " + networkPortId + " of the VM (" + computeInstanceId + ")");
+		return networkPortId;
 	}
-	
-	protected String getFloatingIpId(String networkPortId, OpenStackV3Token openStackV3Token) {
-		return null;
-	}
-	
+
 	@Override
-	public boolean disassociate(String computeInstanceId, OpenStackV3Token openStackV3Token) throws Exception {
-		// TODO get port
-		
-		// TODO get floating ip ID
-		
-		// TODO delete floating ip
-		
-		return false;
+	public void releasePublicIp(String floatingIpId, OpenStackV3Token openStackV3Token) throws Exception {
+        LOGGER.info("Deleting instance " + floatingIpId + " with tokens " + openStackV3Token);
+        
+		String neutroUrlPrefix = getNetworkPortsEndpoint();
+		this.client.doDeleteRequest(neutroUrlPrefix, openStackV3Token);
 	}		
 	
-	private String getExternalNetworkId() {
+	protected String getDefaultNetworkId() {
+		return this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+	}
+	
+	protected String getExternalNetworkId() {
 		return this.properties.getProperty(EXTERNAL_NETWORK_ID_KEY);
 	}
 	
-    private String getNetworkPortEndpoint() {
+	protected String getNetworkPortsEndpoint() {
         return this.properties.getProperty(NETWORK_NEUTRONV2_URL_KEY) + NETWORK_V2_API_ENDPOINT + SUFFIX_ENDPOINT_PORTS;
     }
 	
-    private String getCreateFloatingIpEndpoint() {
+	protected String getFloatingIpEndpoint() {
         return this.properties.getProperty(NETWORK_NEUTRONV2_URL_KEY) + NETWORK_V2_API_ENDPOINT + SUFFIX_ENDPOINT_FLOATINGIPS;
     }
     
@@ -107,6 +140,8 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
         this.client = new HttpRequestClientUtil();
     }
     
-//	String deviceId = "a264d57b-aa53-4f08-b270-e5bf4e707384";
-	
+    protected void setClient(HttpRequestClientUtil client) {
+		this.client = client;
+	}
+    
 }

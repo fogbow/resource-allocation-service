@@ -4,8 +4,8 @@ import org.fogbowcloud.ras.core.models.tokens.Token;
 
 public interface PublicIpPlugin<T extends Token> {
 
-	public boolean associate(String computeInstanceId, T Token) throws Exception;
+	public String allocatePublicIp(String computeInstanceId, T localUserAttributes) throws Exception;
 	
-	public boolean disassociate(String computeInstanceId, T Token) throws Exception;
+	public void releasePublicIp(String computeInstanceId, T localUserAttributes) throws Exception;
 	
 }

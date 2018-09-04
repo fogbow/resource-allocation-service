@@ -1,13 +1,20 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.openstack.publicip.v2;
 
 import org.fogbowcloud.ras.util.GsonHolder;
+
 import org.fogbowcloud.ras.util.JsonSerializable;
 
 import com.google.gson.annotations.SerializedName;
 
+import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.PublicIp.FLOATING_IP_KEY_JSON;
+import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.PublicIp.FLOATING_NETWORK_ID_KEY_JSON;
+import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.PublicIp.PORT_ID_KEY_JSON;
+import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.PublicIp.PROJECT_ID_KEY_JSON;
+
 /**
  * Documentation : https://developer.openstack.org/api-ref/network/v2/#create-floating-ip
  * 
+ * Request Example:
  * {
  *   "floatingip": {
  *     "floating_network_id": "376da547-b977-4cfe-9cba-275c80debf57",
@@ -19,7 +26,7 @@ import com.google.gson.annotations.SerializedName;
  */
 public class CreateFloatingIpRequest implements JsonSerializable {
 
-	@SerializedName("floatingip")
+	@SerializedName(FLOATING_IP_KEY_JSON)
 	private FloatingIp floatingIp;
 	
 	public CreateFloatingIpRequest(FloatingIp floatingIp) {
@@ -33,11 +40,11 @@ public class CreateFloatingIpRequest implements JsonSerializable {
 	
 	private static class FloatingIp {
 	
-		@SerializedName("floating_network_id")
+		@SerializedName(FLOATING_NETWORK_ID_KEY_JSON)
 		private String floatingNetworkId;
-		@SerializedName("port_id")
+		@SerializedName(PORT_ID_KEY_JSON)
 		private String portId;
-		@SerializedName("project_id")
+		@SerializedName(PROJECT_ID_KEY_JSON)
 		private String projectId;
 		
 		public FloatingIp(Builder builder) {
