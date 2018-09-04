@@ -57,4 +57,11 @@ public class CloudStackRestApiConstants {
         public static final String VIRTUAL_MACHINE_ID_KEY_JSON = "virtualmachineid";
         public static final String STATE_KEY_JSON = "state";
     }
+    
+    public static class Quota {
+    	public static final String LIST_RESOURCE_LIMITS_KEY_JSON = "listresourcelimitsresponse";
+    	public static final String RESOURCE_LIMIT_KEY_JSON = "resourcelimit";
+    	public static final String RESOURCE_TYPE_KEY_JSON = "resourcetype";
+    	public static final String MAX_KEY_JSON = "max";
+    }
 }
