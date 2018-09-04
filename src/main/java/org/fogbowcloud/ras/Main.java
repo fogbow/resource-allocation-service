@@ -72,10 +72,10 @@ public class Main implements ApplicationRunner {
             processorsThreadController.startRasThreads();
         } catch (FatalErrorException errorException) {
             LOGGER.fatal(errorException.getMessage(), errorException);
-            System.exit(1);
+//            System.exit(1);
         } catch (ComponentException componentException) {
             LOGGER.fatal("Unable to connect to XMPP, check XMPP configuration file.", componentException);
-            System.exit(1);
+//            System.exit(1);
         }
     }
 }
