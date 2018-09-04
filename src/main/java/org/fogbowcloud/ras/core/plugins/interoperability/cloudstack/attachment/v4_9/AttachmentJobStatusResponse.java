@@ -5,7 +5,7 @@ import org.fogbowcloud.ras.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
 
 /**
- * Documentation: https://cloudstack.apache.org/api/apidocs-4.8/user/queryAsyncJobResult.html
+ * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/queryAsyncJobResult.html
  * <p>
  * {
  *  "queryasyncjobresultresponse": {

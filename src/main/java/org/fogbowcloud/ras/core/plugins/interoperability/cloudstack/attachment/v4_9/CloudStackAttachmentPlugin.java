@@ -23,6 +23,10 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackTo
     private static final String SEPARATOR_ID = " ";
     protected static final String ATTACHMENT_ID_FORMAT = "%s %s";
     protected static final int JOB_STATUS_COMPLETE = 1;
+    protected static final int JOB_STATUS_PENDING = 0;    
+    protected static final int JOB_STATUS_FAILURE = 2;
+    private static final String PENDING_STATE = "pending";
+    private static final String FAILURE_STATE = "failure";
     
     private HttpRequestClientUtil client;
     
@@ -111,18 +115,33 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackTo
         
         AttachmentJobStatusResponse response = AttachmentJobStatusResponse.fromJson(jsonResponse);
         
+        return loadInstanceByJobStatus(attachmentInstanceId, response);
+    }
+
+    private AttachmentInstance loadInstanceByJobStatus(String attachmentInstanceId,
+            AttachmentJobStatusResponse response) throws UnexpectedException {
         
+        InstanceState instanceState;
         int status = response.getJobStatus();
-        
-        if (status == JOB_STATUS_COMPLETE) {
-            Volume volume = response.getVolume();
-            return loadInstance(volume);
-        } else {
-            throw new UnexpectedException();
+        switch (status) {
+            case JOB_STATUS_PENDING:
+                instanceState = CloudStackStateMapper.map(ResourceType.ATTACHMENT, PENDING_STATE);
+                return new AttachmentInstance(attachmentInstanceId, instanceState, null, null, null);
+
+            case JOB_STATUS_COMPLETE:
+                Volume volume = response.getVolume();
+                return mountInstance(volume);
+                
+            case JOB_STATUS_FAILURE:
+                instanceState = CloudStackStateMapper.map(ResourceType.ATTACHMENT, FAILURE_STATE);
+                return new AttachmentInstance(attachmentInstanceId, instanceState, null, null, null);
+                
+            default:
+                throw new UnexpectedException();
         }
     }
 
-    private AttachmentInstance loadInstance(Volume volume) {
+    private AttachmentInstance mountInstance(Volume volume) {
         String source = volume.getVirtualMachineId();
         String target = volume.getId();
         String jobId = volume.getJobId();
@@ -130,7 +149,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackTo
         String device = String.valueOf(volume.getDeviceId());
         String state = volume.getState();
         
-        InstanceState instanceState = CloudStackStateMapper.map(ResourceType.VOLUME, state);
+        InstanceState instanceState = CloudStackStateMapper.map(ResourceType.ATTACHMENT, state);
         
         AttachmentInstance attachmentInstance = new AttachmentInstance(attachmentId, instanceState, source, target, device);
         return attachmentInstance;
