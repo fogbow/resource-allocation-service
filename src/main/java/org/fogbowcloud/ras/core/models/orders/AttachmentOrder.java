@@ -72,4 +72,9 @@ public class AttachmentOrder extends Order {
     public ResourceType getType() {
         return ResourceType.ATTACHMENT;
     }
+
+	@Override
+	public String getSpec() {
+		return "";
+	}
 }

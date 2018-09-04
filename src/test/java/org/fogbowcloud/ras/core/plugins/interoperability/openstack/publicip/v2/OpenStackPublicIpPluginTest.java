@@ -12,6 +12,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.models.orders.PublicIpOrder;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
@@ -50,9 +51,10 @@ public class OpenStackPublicIpPluginTest {
 	
 	// test case: success case
 	@Test
-	public void allocatePublicIpTest() throws Exception {
+	public void testROequestInstanceTest() throws Exception {
 		// set up
 		String computeInstanceId = "computeInstanceId";
+		PublicIpOrder publicIpOrder = new PublicIpOrder(computeInstanceId);
 		String externalNetworkId = "externalNetId";
 		String floatingIpEndpoint = "http://endpoint";
 		String portId = "portId";
@@ -69,7 +71,7 @@ public class OpenStackPublicIpPluginTest {
 				.thenReturn(responseCreateFloatingIp);
 		
 		// exercise
-		String publicIpId = this.openStackPublicIpPlugin.allocatePublicIp(computeInstanceId, this.openStackV3Token);
+		String publicIpId = this.openStackPublicIpPlugin.requestInstance(publicIpOrder, this.openStackV3Token);
 
 		// verify
 		Mockito.verify(this.httpClient, Mockito.times(1)).doPostRequest(
@@ -81,14 +83,15 @@ public class OpenStackPublicIpPluginTest {
 	
 	// test case: throw exception when trying to get the network port
 	@Test(expected=FogbowRasException.class)
-	public void allocatePublicIpErrorOnGetPortTest() throws HttpResponseException, URISyntaxException, FogbowRasException, UnexpectedException {
+	public void testRequestInstanceErrorOnGetPortTest() throws HttpResponseException, URISyntaxException, FogbowRasException, UnexpectedException {
 		// set up
 		String computeInstanceId = "computeInstanceId";
+		PublicIpOrder publicIpOrder = new PublicIpOrder(computeInstanceId);
 		Mockito.doThrow(new FogbowRasException()).when(this.openStackPublicIpPlugin).getNetworkPortIp(
 				Mockito.eq(computeInstanceId), Mockito.eq(this.openStackV3Token));
 		
 		// exercise
-		this.openStackPublicIpPlugin.allocatePublicIp(computeInstanceId, this.openStackV3Token);
+		this.openStackPublicIpPlugin.requestInstance(publicIpOrder, this.openStackV3Token);
 		
 		// verify
 		Mockito.verify(this.httpClient, Mockito.times(0)).doPostRequest(
@@ -188,7 +191,7 @@ public class OpenStackPublicIpPluginTest {
 	
 	// test case: success case
 	@Test
-	public void testReleasePublicIp()
+	public void testDeleteInstance()
 			throws Exception {
 		// set up
 		String floatingIpId = "floatingIpId";
@@ -197,7 +200,7 @@ public class OpenStackPublicIpPluginTest {
 		String endpointExcepted = String.format("%s/%s", floatingIpEndpoint, floatingIpId);		
 		
 		// exercise
-		this.openStackPublicIpPlugin.releasePublicIp(floatingIpId, openStackV3Token);
+		this.openStackPublicIpPlugin.deleteInstance(floatingIpId, openStackV3Token);
 		
 		// verify
 		Mockito.verify(this.httpClient, Mockito.times(1))
@@ -206,7 +209,7 @@ public class OpenStackPublicIpPluginTest {
 	
 	// test case: the cloud throws http exception
 	@Test(expected=InstanceNotFoundException.class)
-	public void testReleasePublicIpa()
+	public void testDeleteInstanceHttpException()
 			throws Exception {
 		// set up
 		String floatingIpId = "floatingIpId";
@@ -218,7 +221,7 @@ public class OpenStackPublicIpPluginTest {
 				this.httpClient).doDeleteRequest(Mockito.anyString(), Mockito.any(Token.class));
 		
 		// exercise
-		this.openStackPublicIpPlugin.releasePublicIp(floatingIpId, openStackV3Token);
+		this.openStackPublicIpPlugin.deleteInstance(floatingIpId, openStackV3Token);
 	}	
 	
 	@Ignore

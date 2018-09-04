@@ -9,9 +9,11 @@ public class CloudStackStateMapper {
 
     private static final String CREATING_STATUS = "creating";
     private static final String READY_STATUS = "ready";
-    public static final String RUNNING_STATUS = "Running";
-    public static final String DOWN_STATUS = "Shutdowned";
-    public static final String ERROR_STATUS = "Error";
+    public static final String RUNNING_STATUS = "running";
+    public static final String DOWN_STATUS = "shutdowned";
+    public static final String ERROR_STATUS = "error";
+    public static final String PENDING_STATUS = "pending";
+    public static final String FAILURE_STATUS = "failure";
 
     public static InstanceState map(ResourceType type, String cloudStackState) {
 
@@ -38,6 +40,22 @@ public class CloudStackStateMapper {
 
                     case READY_STATUS:
                         return InstanceState.READY;
+
+                    default:
+                        LOGGER.error(getDefaultLogMessage(cloudStackState, "CloudStackVolumePlugin"));
+                        return InstanceState.INCONSISTENT;
+                }
+            
+            case ATTACHMENT:
+                switch (cloudStackState) {
+                    case PENDING_STATUS:
+                        return InstanceState.ATTACHING;
+
+                    case READY_STATUS:
+                        return InstanceState.READY;
+                        
+                    case FAILURE_STATUS:
+                        return InstanceState.FAILED;
 
                     default:
                         LOGGER.error(getDefaultLogMessage(cloudStackState, "CloudStackVolumePlugin"));
