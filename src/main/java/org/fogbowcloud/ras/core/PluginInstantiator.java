@@ -41,6 +41,11 @@ public class PluginInstantiator {
         return instance;
     }
 
+    public PublicIpPlugin getPublicIpPlugin() {
+        String className = this.properties.getProperty(ConfigurationConstants.PUBLIC_IP_PLUGIN_CLASS_KEY);
+        return (PublicIpPlugin) this.pluginFactory.createPluginInstance(className);
+    }
+
     public AttachmentPlugin getAttachmentPlugin() {
         String className = this.properties.getProperty(ConfigurationConstants.ATTACHMENT_PLUGIN_CLASS_KEY);
         return (AttachmentPlugin) this.pluginFactory.createPluginInstance(className);
