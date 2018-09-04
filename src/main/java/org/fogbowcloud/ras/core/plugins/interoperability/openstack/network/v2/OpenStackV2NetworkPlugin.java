@@ -28,7 +28,7 @@ import java.util.UUID;
 public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
     private static final Logger LOGGER = Logger.getLogger(OpenStackV2NetworkPlugin.class);
 
-    private static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
+    public static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
     protected static final String SUFFIX_ENDPOINT_NETWORK = "/networks";
     protected static final String SUFFIX_ENDPOINT_SUBNET = "/subnets";
     protected static final String SUFFIX_ENDPOINT_SECURITY_GROUP_RULES = "/security-group-rules";

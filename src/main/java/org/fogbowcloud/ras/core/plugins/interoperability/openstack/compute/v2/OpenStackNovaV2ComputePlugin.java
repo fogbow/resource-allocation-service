@@ -28,7 +28,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
     protected static final Logger LOGGER = Logger.getLogger(OpenStackNovaV2ComputePlugin.class);
 
     protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
-    protected static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
+    public static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
     protected static final String ID_JSON_FIELD = "id";
     protected static final String NAME_JSON_FIELD = "name";
     protected static final String SERVER_JSON_FIELD = "server";

@@ -5,17 +5,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
+import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
+import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -26,8 +29,6 @@ public class OpenStackPublicIpPluginTest {
 	private OpenStackPublicIpPlugin openStackPublicIpPlugin;
 	private HttpRequestClientUtil httpClient;
 	private OpenStackV3Token openStackV3Token;
-	@SuppressWarnings("unused")
-	private Properties propertiesMock;
 	
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
@@ -38,11 +39,12 @@ public class OpenStackPublicIpPluginTest {
 
 	@Before
 	public void setUp() {
-        this.propertiesMock = Mockito.mock(Properties.class);
         this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
         this.httpClient = Mockito.mock(HttpRequestClientUtil.class);
         
-        this.openStackPublicIpPlugin = Mockito.spy(new OpenStackPublicIpPlugin());
+        boolean notCheckProperties = false;
+		this.openStackPublicIpPlugin = Mockito.spy(new OpenStackPublicIpPlugin(notCheckProperties));
+        
         this.openStackPublicIpPlugin.setClient(this.httpClient);
 	}
 	
@@ -77,7 +79,7 @@ public class OpenStackPublicIpPluginTest {
 		Assert.assertEquals(floatingIpId, publicIpId);
 	}
 	
-	// test case: Throw exception when trying to get the network port
+	// test case: throw exception when trying to get the network port
 	@Test(expected=FogbowRasException.class)
 	public void allocatePublicIpErrorOnGetPortTest() throws HttpResponseException, URISyntaxException, FogbowRasException, UnexpectedException {
 		// set up
@@ -97,7 +99,7 @@ public class OpenStackPublicIpPluginTest {
 	
 	// test case: success case
 	@Test
-	public void getNetworkPortIp()
+	public void testGetNetworkPortIp()
 			throws HttpResponseException, URISyntaxException, FogbowRasException, UnexpectedException {
 		// set up
 		String portId = "portId";
@@ -123,11 +125,117 @@ public class OpenStackPublicIpPluginTest {
 		Assert.assertEquals(portId, networkPortIp);
 	}
 	
-    private String getPortsResponseJson(String portId) {
-    	Map<String, Object> idJsonKey = new HashMap<String, Object>();
-    	idJsonKey.put(OpenstackRestApiConstants.PublicIp.ID_KEY_JSON, portId);
+	// test case: throw exception when happens an error on the request
+	@Test(expected=InstanceNotFoundException.class)
+	public void testGetNetworkPortIpErrorWhenRequest()
+			throws HttpResponseException, URISyntaxException, FogbowRasException, UnexpectedException {
+		// set up
+		String portsEndpoint = "http://endpoint";
+		String defaultNetworkId = "defaultNetworkId";
+		String computeInstanceId = "computeInstanceId";
+		Mockito.doReturn(defaultNetworkId).when(this.openStackPublicIpPlugin).getDefaultNetworkId();
+		Mockito.doReturn(portsEndpoint).when(this.openStackPublicIpPlugin).getNetworkPortsEndpoint();
+		
+		URIBuilder portsEndpointBuilder = new URIBuilder(defaultNetworkId);
+		portsEndpointBuilder.addParameter(GetNetworkPortsResquest.DEVICE_ID_KEY, computeInstanceId);
+		portsEndpointBuilder.addParameter(GetNetworkPortsResquest.NETWORK_ID_KEY, defaultNetworkId);
+		
+		HttpResponseException notFoundException = new HttpResponseException(HttpStatus.SC_NOT_FOUND, "");
+		Mockito.doThrow(notFoundException).when(this.httpClient).doGetRequest(
+				Mockito.anyString(), Mockito.any(OpenStackV3Token.class));
+		
+		// exercise
+		this.openStackPublicIpPlugin.getNetworkPortIp(computeInstanceId, this.openStackV3Token);		
+	}	
+	
+	// test case: throw FogbowRasException because the cloud found two or more ports. In the Fogbow scenario is not allowed
+	@Test
+	public void testGetNetworkPortIpPortsSizeIrregular()
+			throws HttpResponseException, URISyntaxException, FogbowRasException, UnexpectedException {
+		// set up
+		String portId = "portId";
+		String portsEndpoint = "http://endpoint";
+		String defaultNetworkId = "defaultNetworkId";
+		String computeInstanceId = "computeInstanceId";
+		Mockito.doReturn(defaultNetworkId).when(this.openStackPublicIpPlugin).getDefaultNetworkId();
+		Mockito.doReturn(portsEndpoint).when(this.openStackPublicIpPlugin).getNetworkPortsEndpoint();
+		
+		URIBuilder portsEndpointBuilder = new URIBuilder(defaultNetworkId);
+		portsEndpointBuilder.addParameter(GetNetworkPortsResquest.DEVICE_ID_KEY, computeInstanceId);
+		portsEndpointBuilder.addParameter(GetNetworkPortsResquest.NETWORK_ID_KEY, defaultNetworkId);
+		
+		String irregularPordId = "irregularPortId";
+		String responseGetPorts = getPortsResponseJson(portId, irregularPordId);
+		Mockito.when(this.httpClient.doGetRequest(
+				Mockito.anyString(), Mockito.any(OpenStackV3Token.class)))
+				.thenReturn(responseGetPorts);
+		
+		GetNetworkPortsResquest getNetworkPortsResquest = new GetNetworkPortsResquest.Builder()
+				.url(portsEndpoint).deviceId(computeInstanceId).networkId(defaultNetworkId).build();
+		String endpointExcepeted = getNetworkPortsResquest.getUrl();
+		
+		// exercise
+		try {
+			this.openStackPublicIpPlugin.getNetworkPortIp(computeInstanceId, this.openStackV3Token);
+			Assert.fail();
+		} catch (FogbowRasException e) {}
+		
+		// verify
+		Mockito.verify(this.httpClient, Mockito.times(1)).doGetRequest(
+				Mockito.eq(endpointExcepeted), 
+				Mockito.eq(this.openStackV3Token));		
+	}	
+	
+	// test case: success case
+	@Test
+	public void testReleasePublicIp()
+			throws Exception {
+		// set up
+		String floatingIpId = "floatingIpId";
+		String floatingIpEndpoint = "http://endpoint";
+		Mockito.doReturn(floatingIpEndpoint).when(this.openStackPublicIpPlugin).getFloatingIpEndpoint();
+		String endpointExcepted = String.format("%s/%s", floatingIpEndpoint, floatingIpId);		
+		
+		// exercise
+		this.openStackPublicIpPlugin.releasePublicIp(floatingIpId, openStackV3Token);
+		
+		// verify
+		Mockito.verify(this.httpClient, Mockito.times(1))
+				.doDeleteRequest(Mockito.eq(endpointExcepted), Mockito.eq(this.openStackV3Token));
+	}
+	
+	// test case: the cloud throws http exception
+	@Test(expected=InstanceNotFoundException.class)
+	public void testReleasePublicIpa()
+			throws Exception {
+		// set up
+		String floatingIpId = "floatingIpId";
+		String floatingIpEndpoint = "http://endpoint";
+		Mockito.doReturn(floatingIpEndpoint).when(this.openStackPublicIpPlugin).getFloatingIpEndpoint();
+
+		HttpResponseException notFoundException = new HttpResponseException(HttpStatus.SC_NOT_FOUND, "");
+		Mockito.doThrow(notFoundException).when(
+				this.httpClient).doDeleteRequest(Mockito.anyString(), Mockito.any(Token.class));
+		
+		// exercise
+		this.openStackPublicIpPlugin.releasePublicIp(floatingIpId, openStackV3Token);
+	}	
+	
+	@Ignore
+	@Test
+	public void testCheckProperties() {
+		// TODO implement
+	}
+	
+    private String getPortsResponseJson(String... portsId) {
     	List<Map<String, Object>> idsJsonKey = new ArrayList<Map<String, Object>>();
-    	idsJsonKey.add(idJsonKey);
+    	
+    	for (int i = 0; i < portsId.length; i++) {
+    		Map<String, Object> idJsonKey = new HashMap<String, Object>();
+    		idJsonKey.put(OpenstackRestApiConstants.PublicIp.ID_KEY_JSON, portsId[i]);
+    		idsJsonKey.add(idJsonKey);			
+		}
+    	
         Map<String, Object> portsJsonKey = new HashMap<String, Object>();
         portsJsonKey.put(OpenstackRestApiConstants.PublicIp.PORTS_KEY_JSON, idsJsonKey);
         
