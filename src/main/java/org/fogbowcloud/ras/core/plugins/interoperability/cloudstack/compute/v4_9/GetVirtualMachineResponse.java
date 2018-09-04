@@ -91,9 +91,4 @@ public class GetVirtualMachineResponse {
     public static GetVirtualMachineResponse fromJson(String json) {
         return GsonHolder.getInstance().fromJson(json, GetVirtualMachineResponse.class);
     }
-
-    public static void main(String[] args) {
-        GetVirtualMachineResponse response = fromJson("{\"listvirtualmachines\":{}}");
-        response.getVirtualMachines();
-    }
 }
