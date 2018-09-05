@@ -44,8 +44,8 @@ public class CloudStackComputeQuotaPluginTest {
 	private static final String INSTANCE_RESOURCE_TYPE = "0";
 	private static final String CPU_RESOURCE_TYPE = "8";
 	private static final String RAM_RESOURCE_TYPE = "9";
-    private static final int MAX_NUMBER_INSTANCES = 100;
-    private static final int MAX_NUMBER_VCPU = 8;
+	private static final int MAX_NUMBER_INSTANCES = 100;
+	private static final int MAX_NUMBER_VCPU = 8;
 	private static final int MAX_NUMBER_RAM = 32768;
 	private static final int INSTANCE_RESOURCE_USED = 1;
 	private static final int VCPU_RESOURCE_USED = 2;
@@ -53,25 +53,25 @@ public class CloudStackComputeQuotaPluginTest {
 	private static final int INSTANCES_AVAILABLE = 99;
 	private static final int VCPU_AVAILABLE = 6;
 	private static final int RAM_AVAILABLE = 26624;
-    
-    private CloudStackComputeQuotaPlugin plugin;
-    private HttpRequestClientUtil client;
-    private CloudStackToken token;
-    
-    @Before
-    public void setUp() {
-        PowerMockito.mockStatic(HttpRequestUtil.class);
 
-        this.client = Mockito.mock(HttpRequestClientUtil.class);
-        this.plugin = new CloudStackComputeQuotaPlugin();
-        this.plugin.setClient(this.client);
-        this.token = new CloudStackToken(FAKE_USER_ATTRIBUTES);
-    }
-    
+	private CloudStackComputeQuotaPlugin plugin;
+	private HttpRequestClientUtil client;
+	private CloudStackToken token;
+
+	@Before
+	public void setUp() {
+		PowerMockito.mockStatic(HttpRequestUtil.class);
+
+		this.client = Mockito.mock(HttpRequestClientUtil.class);
+		this.plugin = new CloudStackComputeQuotaPlugin();
+		this.plugin.setClient(this.client);
+		this.token = new CloudStackToken(FAKE_USER_ATTRIBUTES);
+	}
+
 	// test case: When calling the getUserQuota method, HTTP GET requests must be
 	// made with a signed token, one to get the total resource limit, and another to
-	// list the virtual machines in use, comparing them to calculate the number of available
-	// resources, and returning a Quota object .
+	// list the virtual machines in use, comparing them to calculate the number of
+	// available resources, and returning a Quota object .
 	@Test
 	public void testGetUserQuotaSuccessful() throws HttpResponseException, FogbowRasException, UnexpectedException {
 		// set up
@@ -87,7 +87,8 @@ public class CloudStackComputeQuotaPluginTest {
 		String instanceLimitResponse = getResourceLimitResponse(INSTANCE_RESOURCE_TYPE, MAX_NUMBER_INSTANCES);
 		String vCpuLimitResponse = getResourceLimitResponse(CPU_RESOURCE_TYPE, MAX_NUMBER_VCPU);
 		String ramLimitResponse = getResourceLimitResponse(RAM_RESOURCE_TYPE, MAX_NUMBER_RAM);
-		String resourceLimitResponse = getListResourceLimitsResponse(instanceLimitResponse, vCpuLimitResponse, ramLimitResponse);
+		String resourceLimitResponse = getListResourceLimitsResponse(instanceLimitResponse, vCpuLimitResponse,
+				ramLimitResponse);
 
 		Mockito.when(this.client.doGetRequest(resourceLimitRequest, this.token)).thenReturn(resourceLimitResponse);
 
@@ -114,7 +115,8 @@ public class CloudStackComputeQuotaPluginTest {
 		PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(2));
 		CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
-		Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(resourceLimitRequest), Mockito.eq(this.token));
+		Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(resourceLimitRequest),
+				Mockito.eq(this.token));
 
 		Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(vmRequest), Mockito.eq(this.token));
 
@@ -128,40 +130,39 @@ public class CloudStackComputeQuotaPluginTest {
 		Assert.assertEquals(VCPU_AVAILABLE, quota.getAvailableQuota().getvCPU());
 		Assert.assertEquals(RAM_AVAILABLE, quota.getAvailableQuota().getRam());
 	}
-    
-    // test case: When calling the getUserQuota method with a user without permission, an
-    // UnauthorizedRequestException must be thrown.
-    @Test(expected = UnauthorizedRequestException.class)
-    public void testGetUserQuotaThrowUnauthorizedRequestException()
-            throws HttpResponseException, FogbowRasException, UnexpectedException {
-        
-        // set up
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito
-                .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
-                .thenCallRealMethod();
 
-        Mockito.when(
-                this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackToken.class)))
-                .thenThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, null));
+	// test case: When calling the getUserQuota method with a user without
+	// permission, an UnauthorizedRequestException must be thrown.
+	@Test(expected = UnauthorizedRequestException.class)
+	public void testGetUserQuotaThrowUnauthorizedRequestException()
+			throws HttpResponseException, FogbowRasException, UnexpectedException {
 
-        try {
-        	// exercise
-            this.plugin.getUserQuota(this.token);
-        } finally {
-            // verify
-            PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
-            CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
+		// set up
+		PowerMockito.mockStatic(CloudStackUrlUtil.class);
+		PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
+				.thenCallRealMethod();
 
-            Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudStackToken.class));
-        }
-    }
-    
+		Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackToken.class)))
+				.thenThrow(new HttpResponseException(HttpStatus.SC_FORBIDDEN, null));
+
+		try {
+			// exercise
+			this.plugin.getUserQuota(this.token);
+		} finally {
+			// verify
+			PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
+			CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
+
+			Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
+					Mockito.any(CloudStackToken.class));
+		}
+	}
+
 	// test case: When calling the getUserQuota method and not found any resource
 	// limits, an InstanceNotFoundException must be thrown.
 	@Test(expected = InstanceNotFoundException.class)
-	public void testGetUserQuotaWithoutResourceLimitsThrowInstanceNotFoundException() throws HttpResponseException, FogbowRasException, UnexpectedException {
+	public void testGetUserQuotaWithoutResourceLimitsThrowInstanceNotFoundException()
+			throws HttpResponseException, FogbowRasException, UnexpectedException {
 		// set up
 		PowerMockito.mockStatic(CloudStackUrlUtil.class);
 		PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
@@ -182,7 +183,7 @@ public class CloudStackComputeQuotaPluginTest {
 					Mockito.any(CloudStackToken.class));
 		}
 	}
-	
+
 	// test case: When calling the getUserQuota method and not found any virtual
 	// machines, an InstanceNotFoundException must be thrown.
 	@Test(expected = InstanceNotFoundException.class)
@@ -227,75 +228,71 @@ public class CloudStackComputeQuotaPluginTest {
 			Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(vmRequest), Mockito.eq(this.token));
 		}
 	}
-    
-    // test case: When calling the getUserQuota method with a unauthenticated user, an
-    // UnauthenticatedUserException must be thrown.
-    @Test(expected = UnauthenticatedUserException.class)
-    public void testGetUserQuotaThrowUnauthenticatedUserException()
-            throws UnexpectedException, FogbowRasException, HttpResponseException {
 
-        // set up
-        PowerMockito.mockStatic(CloudStackUrlUtil.class);
-        PowerMockito
-                .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
-                .thenCallRealMethod();
+	// test case: When calling the getUserQuota method with a unauthenticated user,
+	// an UnauthenticatedUserException must be thrown.
+	@Test(expected = UnauthenticatedUserException.class)
+	public void testGetUserQuotaThrowUnauthenticatedUserException()
+			throws UnexpectedException, FogbowRasException, HttpResponseException {
 
-        Mockito.when(this.client.doGetRequest(Mockito.anyString(),
-                Mockito.any(CloudStackToken.class)))
-                .thenThrow(new HttpResponseException(HttpStatus.SC_UNAUTHORIZED, null));
+		// set up
+		PowerMockito.mockStatic(CloudStackUrlUtil.class);
+		PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
+				.thenCallRealMethod();
 
-        try {
-            // exercise
-        	this.plugin.getUserQuota(this.token);
-        } finally {
-            // verify
-            PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
-            CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
+		Mockito.when(this.client.doGetRequest(Mockito.anyString(), Mockito.any(CloudStackToken.class)))
+				.thenThrow(new HttpResponseException(HttpStatus.SC_UNAUTHORIZED, null));
 
-            Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
-                    Mockito.any(CloudStackToken.class));
-        }
-    }
-    
-    private String getNicResponse(String ipAddress) {
-    	String responseFormat = "{\"ipaddress\": \"%s\"}";
-    	return String.format(responseFormat, ipAddress);
-    }
-    
-    private String getVirtualMachineResponse(String id,  String name, String state, int cpu, int ram,  String nic) {
+		try {
+			// exercise
+			this.plugin.getUserQuota(this.token);
+		} finally {
+			// verify
+			PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
+			CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
+
+			Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.anyString(),
+					Mockito.any(CloudStackToken.class));
+		}
+	}
+
+	private String getNicResponse(String ipAddress) {
+		String responseFormat = "{\"ipaddress\": \"%s\"}";
+		return String.format(responseFormat, ipAddress);
+	}
+
+	private String getVirtualMachineResponse(String id, String name, String state, int cpu, int ram, String nic) {
 		String responseFormat = "{\"id\": \"%s\"," 
 				+ " \"name\": \"%s\"," 
-				+ " \"state\": \"%s\"," 
+				+ " \"state\": \"%s\","
 				+ " \"cpunumber\": %s," 
 				+ " \"memory\": %s," 
 				+ " \"nic\": [%s]}";
 		return String.format(responseFormat, id, name, state, cpu, ram, nic);
 	}
-    
-    private String getListVirtualMachinesResponse(String arg) {
-    	String responseFormat = "{\"listvirtualmachinesresponse\": {"
-    			+ "\"virtualmachine\": [%s]}}";
-    	return String.format(responseFormat, arg);
-    }
+
+	private String getListVirtualMachinesResponse(String arg) {
+		String responseFormat = "{\"listvirtualmachinesresponse\": {" 
+				+ "\"virtualmachine\": [%s]}}";
+		return String.format(responseFormat, arg);
+	}
 
 	private String getResourceLimitResponse(String arg, int value) {
-    	String responseFormat = "{\"resourcetype\": \"%s\", " 
-    			+ "\"max\": %s}";
-    	return String.format(responseFormat, arg, value);
-    }
-    
-    private String getListResourceLimitsResponse(String instanceLimit, String cpuLimit, String ramLimit) {
-    	String responseFormat = "{\"listresourcelimitsresponse\": {" 
-    			+ "\"resourcelimit\": [%s, %s, %s]}}";
+		String responseFormat = "{\"resourcetype\": \"%s\", " 
+				+ "\"max\": %s}";
+		return String.format(responseFormat, arg, value);
+	}
+
+	private String getListResourceLimitsResponse(String instanceLimit, String cpuLimit, String ramLimit) {
+		String responseFormat = "{\"listresourcelimitsresponse\": {" + "\"resourcelimit\": [%s, %s, %s]}}";
 		return String.format(responseFormat, instanceLimit, cpuLimit, ramLimit);
 	}
 
 	private String getBaseEndpointFromCloudStackConf() {
-        String filePath = HomeDir.getPath() + File.separator
-                + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
+		String filePath = HomeDir.getPath() + File.separator + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
 
-        Properties properties = PropertiesUtil.readProperties(filePath);
-        return properties.getProperty(BASE_ENDPOINT_KEY);
-    }
-	
+		Properties properties = PropertiesUtil.readProperties(filePath);
+		return properties.getProperty(BASE_ENDPOINT_KEY);
+	}
+
 }
