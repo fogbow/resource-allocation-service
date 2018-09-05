@@ -24,15 +24,17 @@ public class LocalCloudConnector implements CloudConnector {
     private static final Logger LOGGER = Logger.getLogger(LocalCloudConnector.class);
 
     private final FederationToLocalMapperPlugin mapperPlugin;
-    private final AttachmentPlugin attachmentPlugin;
-    private final ComputePlugin computePlugin;
+    private final PublicIpPlugin<Token> publicIpPlugin;
+    private final AttachmentPlugin<Token> attachmentPlugin;
+    private final ComputePlugin<Token> computePlugin;
     private final ComputeQuotaPlugin computeQuotaPlugin;
-    private final NetworkPlugin networkPlugin;
-    private final VolumePlugin volumePlugin;
-    private final ImagePlugin imagePlugin;
+    private final NetworkPlugin<Token> networkPlugin;
+    private final VolumePlugin<Token> volumePlugin;
+    private final ImagePlugin<Token> imagePlugin;
 
     public LocalCloudConnector(FederationToLocalMapperPlugin mapperPlugin, InteroperabilityPluginsHolder interoperabilityPluginsHolder) {
         this.mapperPlugin = mapperPlugin;
+        this.publicIpPlugin = interoperabilityPluginsHolder.getPublicIpPlugin();
         this.attachmentPlugin = interoperabilityPluginsHolder.getAttachmentPlugin();
         this.computePlugin = interoperabilityPluginsHolder.getComputePlugin();
         this.computeQuotaPlugin = interoperabilityPluginsHolder.getComputeQuotaPlugin();
@@ -97,6 +99,10 @@ public class LocalCloudConnector implements CloudConnector {
                     attachmentOrder.setTarget(savedTarget);
                 }
                 break;
+            case PUBLIC_IP:
+                PublicIpOrder publicIpOrder = (PublicIpOrder) order;
+                this.publicIpPlugin.requestInstance(publicIpOrder, token);
+                break;
             default:
                 String message = "No requestInstance plugin implemented for order " + order.getType();
                 throw new UnexpectedException(message);
@@ -126,6 +132,8 @@ public class LocalCloudConnector implements CloudConnector {
                     case ATTACHMENT:
                         this.attachmentPlugin.deleteInstance(order.getInstanceId(), token);
                         break;
+                    case PUBLIC_IP:
+                        this.publicIpPlugin.deleteInstance(order.getInstanceId(), token);
                     default:
                         LOGGER.error("No deleteInstance plugin implemented for order " + order.getType());
                         break;
@@ -170,6 +178,9 @@ public class LocalCloudConnector implements CloudConnector {
                         break;
                     case ATTACHMENT:
                         instance = new AttachmentInstance(order.getId());
+                        break;
+                    case PUBLIC_IP:
+                        instance = new PublicIpInstance(order.getId());
                         break;
                     default:
                         String message = "Not supported order type " + order.getType();
@@ -239,6 +250,9 @@ public class LocalCloudConnector implements CloudConnector {
                 break;
             case ATTACHMENT:
                 instance = this.attachmentPlugin.getInstance(instanceId, token);
+                break;
+            case PUBLIC_IP:
+                instance = this.publicIpPlugin.getInstance(instanceId, token);
                 break;
             default:
                 String message = "Not supported order type " + order.getType();

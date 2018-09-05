@@ -10,7 +10,7 @@ public class DeployVirtualMachineRequest extends CloudStackRequest {
     public static final String ZONE_ID_KEY = "zoneid";
     public static final String DISK_OFFERING_ID = "diskofferingid";
     public static final String USER_DATA = "userdata";
-    public static final String NETWORKS_ID = "networksid";
+    public static final String NETWORKS_ID = "networkids";
 
     private DeployVirtualMachineRequest(Builder builder) throws InvalidParameterException {
         addParameter(SERVICE_OFFERING_ID_KEY, builder.serviceOfferingId);

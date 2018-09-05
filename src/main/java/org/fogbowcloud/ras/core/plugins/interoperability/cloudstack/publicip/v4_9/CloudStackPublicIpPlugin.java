@@ -3,6 +3,9 @@ package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.models.instances.PublicIpInstance;
+import org.fogbowcloud.ras.core.models.orders.PublicIpOrder;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.PublicIpPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowRasExceptionMapper;
@@ -25,8 +28,10 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 	}
 	
 	@Override
-	public String allocatePublicIp(String computeInstanceId, CloudStackToken cloudStackToken) throws Exception {
+	public String requestInstance(PublicIpOrder publicIpOrder, CloudStackToken cloudStackToken) throws FogbowRasException, UnexpectedException {
 		LOGGER.info("");
+		
+		String computeInstanceId = publicIpOrder.getComputeInstanceId();
 		
 		// TODO use getInstance of the CloudStackComputePlugin
 		String networkId = "";
@@ -40,14 +45,14 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 		try {
 			enableStaticNat(computeInstanceId, ipAdressId, cloudStackToken);			
 		} catch (Exception e) {
-			releasePublicIp(computeInstanceId, cloudStackToken);
+			deleteInstance(computeInstanceId, cloudStackToken);
 		}
 		
 		try {
 			// asynchronous operation
 			createFirewallRule(ipAdressId, cloudStackToken);
 		} catch (Exception e) {
-			releasePublicIp(computeInstanceId, cloudStackToken);
+			deleteInstance(computeInstanceId, cloudStackToken);
 		}
 		
 		// TODO wait asynchronous operation and check the success
@@ -57,7 +62,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 	}
 
 	@Override
-	public void releasePublicIp(String ipAddressId, CloudStackToken cloudStackToken) throws Exception {
+	public void deleteInstance(String ipAddressId, CloudStackToken cloudStackToken) throws FogbowRasException, UnexpectedException {
 		LOGGER.info("");
 		
 		DisassocioateIpAddressRequest disassocioateIpAddressRequest = new DisassocioateIpAddressRequest
@@ -75,6 +80,13 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
         
 		// TODO wait asynchronous operation and check the success
 		checkOperation();
+	}
+	
+	@Override
+	public PublicIpInstance getInstance(String publicIpOrderId, CloudStackToken token)
+			throws FogbowRasException, UnexpectedException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 	protected String associateIpAdress(String networkId, CloudStackToken cloudStackToken) throws FogbowRasException {

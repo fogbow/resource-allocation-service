@@ -17,10 +17,14 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackSt
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsRequest;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsResponse;
+import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeRequest;
+import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Properties;
@@ -28,11 +32,15 @@ import java.util.Properties;
 public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputePlugin.class);
 
-    private static final String ZONE_ID_KEY = "zone_id";
-    private static final String EXPUNGE_ON_DESTROY_KEY = "compute_cloudstack_expunge_on_destroy";
+    public static final String ZONE_ID_KEY = "zone_id";
+    public static final String EXPUNGE_ON_DESTROY_KEY = "expunge_on_destroy";
+    public static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
+    public static final String DEFAULT_VOLUME_TYPE = "ROOT";
+
     private HttpRequestClientUtil client;
     private String zoneId;
     private String expungeOnDestroy;
+    private String defaultNetworkId;
 
     public CloudStackComputePlugin() throws FatalErrorException {
         String cloudStackConfFilePath = HomeDir.getPath() + File.separator
@@ -42,6 +50,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
 
         this.zoneId = properties.getProperty(ZONE_ID_KEY);
         this.expungeOnDestroy = properties.getProperty(EXPUNGE_ON_DESTROY_KEY, "true");
+        this.defaultNetworkId = properties.getProperty(DEFAULT_NETWORK_ID_KEY);
 
         this.client = new HttpRequestClientUtil();
     }
@@ -50,14 +59,21 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     public String requestInstance(ComputeOrder computeOrder, CloudStackToken cloudStackToken)
             throws FogbowRasException, UnexpectedException {
         String templateId = computeOrder.getImageId();
-        if (templateId == null || this.zoneId == null) {
+        if (templateId == null || this.zoneId == null || this.defaultNetworkId == null) {
+            LOGGER.error("Order cannot be completed. Template, zone and default network IDs are required parameters.");
             throw new InvalidParameterException();
         }
 
         // FIXME(pauloewerton): should this be creating a cloud-init script for cloudstack?
-        String userData = Base64.getEncoder().encodeToString(computeOrder.getUserData().
-                getExtraUserDataFileContent().getBytes());
-        String networksId = StringUtils.join(computeOrder.getNetworksId(), ",");
+        String userData = computeOrder.getUserData().getExtraUserDataFileContent();
+        try {
+            userData = Base64.getEncoder().encodeToString(userData.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            LOGGER.warn("Could not encode user data. Sending request without it.");
+            userData = null;
+        }
+
+        String networksId = resolveNetworksId(computeOrder);
 
         String serviceOfferingId = getServiceOfferingId(computeOrder.getvCPU(), computeOrder.getMemory(),
                 cloudStackToken);
@@ -66,9 +82,12 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         }
 
         int disk = computeOrder.getDisk();
+        // NOTE(pauloewerton): cloudstack allows creating a vm without explicitly choosing a disk size. in that case,
+        // a minimum root disk for the selected template is created. also zeroing disk param in case no minimum disk
+        // offering is found.
         String diskOfferingId = disk > 0 ? getDiskOfferingId(disk, cloudStackToken) : null;
 
-        // NOTE(pauloewerton): diskofferingid and hypervisor are required in case of ISO image. I haven't
+        // NOTE(pauloewerton): diskofferingid and hypervisor are required in case of ISO image. i haven't
         // found any clue pointing that ISO images were being used in mono though.
         DeployVirtualMachineRequest request = new DeployVirtualMachineRequest.Builder()
                 .serviceOfferingId(serviceOfferingId)
@@ -91,6 +110,16 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         DeployVirtualMachineResponse response = DeployVirtualMachineResponse.fromJson(jsonResponse);
 
         return response.getId();
+    }
+
+    private String resolveNetworksId(ComputeOrder computeOrder) {
+        List<String> requestedNetworksId = new ArrayList<>();
+
+        requestedNetworksId.add(this.defaultNetworkId);
+        requestedNetworksId.addAll(computeOrder.getNetworksId());
+        computeOrder.setNetworksId(requestedNetworksId);
+
+        return StringUtils.join(requestedNetworksId, ",");
     }
 
     public String getServiceOfferingId(int vcpusRequirement, int memoryRequirement, CloudStackToken cloudStackToken)
@@ -181,19 +210,24 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         GetVirtualMachineResponse computeResponse = GetVirtualMachineResponse.fromJson(jsonResponse);
         List<GetVirtualMachineResponse.VirtualMachine> vms = computeResponse.getVirtualMachines();
         if (vms != null) {
-            return getComputeInstance(vms.get(0));
+            return getComputeInstance(vms.get(0), cloudStackToken);
         } else {
             throw new InstanceNotFoundException();
         }
     }
 
-    private ComputeInstance getComputeInstance(GetVirtualMachineResponse.VirtualMachine vm) {
+    private ComputeInstance getComputeInstance(GetVirtualMachineResponse.VirtualMachine vm, CloudStackToken cloudStackToken) {
         String instanceId = vm.getId();
         String hostName = vm.getName();
         int vcpusCount = vm.getCpuNumber();
         int memory = vm.getMemory();
-        // TODO(pauloewerton): use volume plugin to request disk size
-        int disk = 0;
+
+        int disk = -1;
+        try {
+            disk = getVirtualMachineDisk(instanceId, cloudStackToken);
+        } catch (FogbowRasException e) {
+            LOGGER.warn("Root volume could not be retrieved for virtual machine " + vm.getId() + ". Assigning -1 to disk size.");
+        }
 
         String cloudStackState = vm.getState();
         InstanceState fogbowState = CloudStackStateMapper.map(ResourceType.COMPUTE, cloudStackState);
@@ -205,10 +239,35 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
             address = firstAddressEmpty ? "" : addresses[0].getIpAddress();
         }
 
-        ComputeInstance computeInstance = new ComputeInstance(instanceId,
-                fogbowState, hostName, vcpusCount, memory, disk, address);
+        ComputeInstance computeInstance = new ComputeInstance(
+                instanceId, fogbowState, hostName, vcpusCount, memory, disk, address);
 
         return computeInstance;
+    }
+
+    private int getVirtualMachineDisk(String virtualMachineId, CloudStackToken cloudStackToken)
+            throws FogbowRasException {
+        GetVolumeRequest request = new GetVolumeRequest.Builder()
+                .virtualMachineId(virtualMachineId)
+                .type(DEFAULT_VOLUME_TYPE)
+                .build();
+
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
+
+        String jsonResponse = null;
+        try {
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
+        } catch (HttpResponseException e) {
+            CloudStackHttpToFogbowRasExceptionMapper.map(e);
+        }
+
+        GetVolumeResponse volumeResponse = GetVolumeResponse.fromJson(jsonResponse);
+        List<GetVolumeResponse.Volume> volumes = volumeResponse.getVolumes();
+        if (volumes != null) {
+            return volumes.get(0).getSize();
+        } else {
+            throw new InstanceNotFoundException();
+        }
     }
 
     @Override
@@ -224,7 +283,14 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         try {
             this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
         } catch (HttpResponseException e) {
+            LOGGER.error("Could not delete instance " + computeInstanceId);
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
+
+        LOGGER.info("Deleted instance " + computeInstanceId);
+    }
+
+    protected void setClient(HttpRequestClientUtil client) {
+        this.client = client;
     }
 }

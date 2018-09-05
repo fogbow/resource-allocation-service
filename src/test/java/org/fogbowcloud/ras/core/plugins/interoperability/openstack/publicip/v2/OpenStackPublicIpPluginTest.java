@@ -5,20 +5,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
+import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.models.orders.PublicIpOrder;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -50,9 +52,10 @@ public class OpenStackPublicIpPluginTest {
 	
 	// test case: success case
 	@Test
-	public void allocatePublicIpTest() throws Exception {
+	public void testROequestInstanceTest() throws Exception {
 		// set up
 		String computeInstanceId = "computeInstanceId";
+		PublicIpOrder publicIpOrder = new PublicIpOrder(computeInstanceId);
 		String externalNetworkId = "externalNetId";
 		String floatingIpEndpoint = "http://endpoint";
 		String portId = "portId";
@@ -69,7 +72,7 @@ public class OpenStackPublicIpPluginTest {
 				.thenReturn(responseCreateFloatingIp);
 		
 		// exercise
-		String publicIpId = this.openStackPublicIpPlugin.allocatePublicIp(computeInstanceId, this.openStackV3Token);
+		String publicIpId = this.openStackPublicIpPlugin.requestInstance(publicIpOrder, this.openStackV3Token);
 
 		// verify
 		Mockito.verify(this.httpClient, Mockito.times(1)).doPostRequest(
@@ -81,14 +84,15 @@ public class OpenStackPublicIpPluginTest {
 	
 	// test case: throw exception when trying to get the network port
 	@Test(expected=FogbowRasException.class)
-	public void allocatePublicIpErrorOnGetPortTest() throws HttpResponseException, URISyntaxException, FogbowRasException, UnexpectedException {
+	public void testRequestInstanceErrorOnGetPortTest() throws HttpResponseException, URISyntaxException, FogbowRasException, UnexpectedException {
 		// set up
 		String computeInstanceId = "computeInstanceId";
+		PublicIpOrder publicIpOrder = new PublicIpOrder(computeInstanceId);
 		Mockito.doThrow(new FogbowRasException()).when(this.openStackPublicIpPlugin).getNetworkPortIp(
 				Mockito.eq(computeInstanceId), Mockito.eq(this.openStackV3Token));
 		
 		// exercise
-		this.openStackPublicIpPlugin.allocatePublicIp(computeInstanceId, this.openStackV3Token);
+		this.openStackPublicIpPlugin.requestInstance(publicIpOrder, this.openStackV3Token);
 		
 		// verify
 		Mockito.verify(this.httpClient, Mockito.times(0)).doPostRequest(
@@ -148,6 +152,28 @@ public class OpenStackPublicIpPluginTest {
 		this.openStackPublicIpPlugin.getNetworkPortIp(computeInstanceId, this.openStackV3Token);		
 	}	
 	
+	// test case: throw exception when endpoint is null
+	@Test
+	public void testGetNetworkPortIpWrongEndpoint()
+			throws HttpResponseException, URISyntaxException, FogbowRasException, UnexpectedException {
+		// set up
+		String portsEndpoint = null;
+		String defaultNetworkId = "defaultNetworkId";
+		String computeInstanceId = "computeInstanceId";
+		Mockito.doReturn(defaultNetworkId).when(this.openStackPublicIpPlugin).getDefaultNetworkId();
+		Mockito.doReturn(portsEndpoint).when(this.openStackPublicIpPlugin).getNetworkPortsEndpoint();
+		
+		// exercise
+		try {
+			this.openStackPublicIpPlugin.getNetworkPortIp(computeInstanceId, this.openStackV3Token);	
+			Assert.fail();
+		} catch (Exception e) {}
+		
+		// verify
+		Mockito.verify(this.httpClient, Mockito.never())
+				.doGetRequest(Mockito.anyString(), Mockito.any(Token.class));
+	}	
+	
 	// test case: throw FogbowRasException because the cloud found two or more ports. In the Fogbow scenario is not allowed
 	@Test
 	public void testGetNetworkPortIpPortsSizeIrregular()
@@ -188,7 +214,7 @@ public class OpenStackPublicIpPluginTest {
 	
 	// test case: success case
 	@Test
-	public void testReleasePublicIp()
+	public void testDeleteInstance()
 			throws Exception {
 		// set up
 		String floatingIpId = "floatingIpId";
@@ -197,7 +223,7 @@ public class OpenStackPublicIpPluginTest {
 		String endpointExcepted = String.format("%s/%s", floatingIpEndpoint, floatingIpId);		
 		
 		// exercise
-		this.openStackPublicIpPlugin.releasePublicIp(floatingIpId, openStackV3Token);
+		this.openStackPublicIpPlugin.deleteInstance(floatingIpId, openStackV3Token);
 		
 		// verify
 		Mockito.verify(this.httpClient, Mockito.times(1))
@@ -206,7 +232,7 @@ public class OpenStackPublicIpPluginTest {
 	
 	// test case: the cloud throws http exception
 	@Test(expected=InstanceNotFoundException.class)
-	public void testReleasePublicIpa()
+	public void testDeleteInstanceHttpException()
 			throws Exception {
 		// set up
 		String floatingIpId = "floatingIpId";
@@ -218,14 +244,147 @@ public class OpenStackPublicIpPluginTest {
 				this.httpClient).doDeleteRequest(Mockito.anyString(), Mockito.any(Token.class));
 		
 		// exercise
-		this.openStackPublicIpPlugin.releasePublicIp(floatingIpId, openStackV3Token);
+		this.openStackPublicIpPlugin.deleteInstance(floatingIpId, openStackV3Token);
 	}	
 	
-	@Ignore
+	// test case: success case
+	@Test
+	public void testDefaultNetworkId() {
+		// set up
+		Properties properties = new Properties();
+		String networkIdExpected = "id";
+		properties.setProperty(OpenStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY, networkIdExpected);
+		this.openStackPublicIpPlugin.setProperties(properties);
+		
+		// exercise
+		String defaultNetworkId = this.openStackPublicIpPlugin.getDefaultNetworkId();
+		
+		//verify
+		Assert.assertEquals(networkIdExpected, defaultNetworkId);
+	}
+	
+	// test case: success case
+	@Test
+	public void testExternalNetworkId() {
+		// set up
+		Properties properties = new Properties();
+		String networkIdExpected = "id";
+		properties.setProperty(OpenStackPublicIpPlugin.EXTERNAL_NETWORK_ID_KEY, networkIdExpected);
+		this.openStackPublicIpPlugin.setProperties(properties);
+		
+		// exercise
+		String externalNetworkId = this.openStackPublicIpPlugin.getExternalNetworkId();
+		
+		//verify
+		Assert.assertEquals(networkIdExpected, externalNetworkId);
+	}
+	
+	// test case: success case
+	@Test
+	public void testNeutroApiEndpoint() {
+		// set up
+		Properties properties = new Properties();
+		String neutroEndpoint = "id";
+		properties.setProperty(OpenStackPublicIpPlugin.NETWORK_NEUTRONV2_URL_KEY, neutroEndpoint);
+		this.openStackPublicIpPlugin.setProperties(properties);
+		
+		// exercise
+		String neutroApiEndpoint = this.openStackPublicIpPlugin.getNeutroApiEndpoint();
+		
+		//verify
+		Assert.assertEquals(neutroEndpoint, neutroApiEndpoint);
+	}	
+	
+	// test case: success case
 	@Test
 	public void testCheckProperties() {
-		// TODO implement
+		// set up
+		Properties properties = new Properties();
+		properties.setProperty(OpenStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY, "something");
+		properties.setProperty(OpenStackPublicIpPlugin.EXTERNAL_NETWORK_ID_KEY, "something");
+		properties.setProperty(OpenStackPublicIpPlugin.NETWORK_NEUTRONV2_URL_KEY, "something");
+		this.openStackPublicIpPlugin.setProperties(properties);
+		
+		// exercise
+		this.openStackPublicIpPlugin.checkProperties(true);
+		
+		// verify 
+		Mockito.verify(this.openStackPublicIpPlugin, Mockito.times(1))
+				.getDefaultNetworkId();
+		Mockito.verify(this.openStackPublicIpPlugin, Mockito.times(1))
+				.getExternalNetworkId();
+		Mockito.verify(this.openStackPublicIpPlugin, Mockito.times(1))
+				.getNeutroApiEndpoint();
 	}
+	
+	// test case: without default network in properties
+	@Test
+	public void testCheckPropertiesWithoutDefaultNetworkPropertie() {	
+		try {
+			// exercise
+			this.openStackPublicIpPlugin.checkProperties(true);
+			Assert.fail();
+		} catch (FatalErrorException e) {
+			// verify 
+			Mockito.verify(this.openStackPublicIpPlugin, Mockito.timeout(1))
+					.getDefaultNetworkId();
+			Mockito.verify(this.openStackPublicIpPlugin, Mockito.never())
+					.getExternalNetworkId();			
+		} catch (Exception e) {
+			Assert.fail();
+		}
+	}
+	
+	// test case: without external network in properties
+	@Test
+	public void testCheckPropertiesWithoutExternalNetworkPropertie() {	
+		// set up
+		Properties properties = new Properties();
+		properties.setProperty(OpenStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY, "something");
+		this.openStackPublicIpPlugin.setProperties(properties);
+		
+		try {
+			// exercise
+			this.openStackPublicIpPlugin.checkProperties(true);
+			Assert.fail();
+		} catch (FatalErrorException e) {
+			// verify 
+			Mockito.verify(this.openStackPublicIpPlugin, Mockito.timeout(1))
+					.getDefaultNetworkId();
+			Mockito.verify(this.openStackPublicIpPlugin, Mockito.timeout(1))
+					.getExternalNetworkId();		
+			Mockito.verify(this.openStackPublicIpPlugin, Mockito.never())
+					.getNeutroApiEndpoint();			
+		} catch (Exception e) {
+			Assert.fail();
+		}
+	}	
+	
+	// test case: without external network in properties
+	@Test
+	public void testCheckPropertiesWithoutNeutroEndpointPropertie() {	
+		// set up
+		Properties properties = new Properties();
+		properties.setProperty(OpenStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY, "something");
+		properties.setProperty(OpenStackPublicIpPlugin.EXTERNAL_NETWORK_ID_KEY, "something");
+		this.openStackPublicIpPlugin.setProperties(properties);
+		
+		try {
+			// exercise
+			this.openStackPublicIpPlugin.checkProperties(true);
+			Assert.fail();
+		} catch (FatalErrorException e) {
+			// verify 
+			Mockito.verify(this.openStackPublicIpPlugin, Mockito.timeout(1))
+					.getDefaultNetworkId();
+			Mockito.verify(this.openStackPublicIpPlugin, Mockito.timeout(1))
+					.getExternalNetworkId();		
+			Mockito.verify(this.openStackPublicIpPlugin, Mockito.timeout(1))
+					.getNeutroApiEndpoint();			
+		} catch (Exception e) {
+			Assert.fail();
+		}
+	}	
 	
     private String getPortsResponseJson(String... portsId) {
     	List<Map<String, Object>> idsJsonKey = new ArrayList<Map<String, Object>>();
