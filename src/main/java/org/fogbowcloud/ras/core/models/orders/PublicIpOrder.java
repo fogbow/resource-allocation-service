@@ -20,6 +20,10 @@ public class PublicIpOrder extends Order {
 		return computeInstanceId;
 	}
     
+    public void setIp(String ip) {
+		this.ip = ip;
+	}
+    
     @Override
     public String getSpec() {
         return "";

@@ -2,6 +2,7 @@ package org.fogbowcloud.ras.core.plugins.interoperability.openstack.publicip.v2;
 
 import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.PublicIp.ID_KEY_JSON;
 import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.PublicIp.FLOATING_IP_KEY_JSON;
+import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.PublicIp.FLOATING_IP_ADDRESS_KEY_JSON;
 
 import org.fogbowcloud.ras.util.GsonHolder;
 
@@ -27,10 +28,16 @@ public class CreateFloatingIpResponse {
 	public static class FloatingIp {
         @SerializedName(ID_KEY_JSON)
         private String id;
-
+        @SerializedName(FLOATING_IP_ADDRESS_KEY_JSON)        
+        private String floatingIpAddress;
+        
         public String getId() {
             return id;
         }
+        
+        public String getFloatingIpAddress() {
+			return floatingIpAddress;
+		}
 	}
 	
 	public FloatingIp getFloatingIp() {
