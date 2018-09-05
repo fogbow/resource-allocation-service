@@ -1,12 +1,15 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
+import java.io.File;
+import java.util.List;
+import java.util.Properties;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
-import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.instances.VolumeInstance;
@@ -21,10 +24,6 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse.Volume;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
-
-import java.io.File;
-import java.util.List;
-import java.util.Properties;
 
 public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackVolumePlugin.class);
@@ -70,7 +69,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
 
     @Override
     public VolumeInstance getInstance(String volumeInstanceId, CloudStackToken localUserAttributes)
-            throws FogbowRasException {
+            throws FogbowRasException, UnexpectedException {
         GetVolumeRequest request = new GetVolumeRequest.Builder()
                 .id(volumeInstanceId)
                 .build();
@@ -91,14 +90,18 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
             // since an id were specified, there should be no more than one volume in the response
             return loadInstance(volumes.get(FIRST_ELEMENT_POSITION));
         } else {
-            throw new InstanceNotFoundException();
+            throw new UnexpectedException();
         }
     }
 
     @Override
     public void deleteInstance(String volumeInstanceId, CloudStackToken localUserAttributes)
-            throws FogbowRasException {
-        DeleteVolumeRequest request = new DeleteVolumeRequest.Builder().id(volumeInstanceId).build();
+            throws FogbowRasException, UnexpectedException {
+        
+        DeleteVolumeRequest request = new DeleteVolumeRequest.Builder()
+                .id(volumeInstanceId)
+                .build();
+        
         CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
 
         String jsonResponse = null;
@@ -113,6 +116,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
 
         if (!success) {
             String message = volumeResponse.getDisplayText();
+            throw new UnexpectedException(message);
         }
     }
 

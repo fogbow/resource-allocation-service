@@ -10,6 +10,14 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.Cloud
  * <p>
  * {
  * "deletevolumeresponse": {
+ * "success": "true"
+ * }
+ * }
+ * 
+ * or
+ * 
+ * {
+ * "deletevolumeresponse": {
  * "displaytext": "error description",
  * "success": "false"
  * }

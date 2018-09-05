@@ -114,4 +114,9 @@ public class ComputeOrder extends Order {
     public void setNetworksId(List<String> networksId) {
         this.networksId = networksId;
     }
+
+	@Override
+	public String getSpec() {
+		return this.actualAllocation.getvCPU() + "/" + this.actualAllocation.getRam();
+	}
 }
