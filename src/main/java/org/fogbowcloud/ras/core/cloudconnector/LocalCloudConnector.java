@@ -103,8 +103,15 @@ public class LocalCloudConnector implements CloudConnector {
             case PUBLIC_IP:
                 PublicIpOrder publicIpOrder = (PublicIpOrder) order;
 
-                // FIXME get computeOrder from computeOrderId and get instanceId to requestInstance
-                this.publicIpPlugin.requestInstance(publicIpOrder, null, token);
+                String computeOrderId = publicIpOrder.getComputeOrderId();
+
+                Order retrievedComputeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap()
+                    .get(computeOrderId);
+
+                String computeInstanceId = retrievedComputeOrder.getInstanceId();
+                if (computeInstanceId != null) {
+                    requestInstance = this.publicIpPlugin.requestInstance(publicIpOrder, computeInstanceId, token);
+                }
                 break;
             default:
                 String message = "No requestInstance plugin implemented for order " + order.getType();
