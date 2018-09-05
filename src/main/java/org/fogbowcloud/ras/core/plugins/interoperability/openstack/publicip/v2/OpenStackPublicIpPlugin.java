@@ -28,9 +28,9 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
 
 	private static final Logger LOGGER = Logger.getLogger(OpenStackPublicIpPlugin.class);
 	
-	private static final String NETWORK_NEUTRONV2_URL_KEY = OpenStackV2NetworkPlugin.NETWORK_NEUTRONV2_URL_KEY;	
-	private static final String DEFAULT_NETWORK_ID_KEY = OpenStackNovaV2ComputePlugin.DEFAULT_NETWORK_ID_KEY;
-	private static final String EXTERNAL_NETWORK_ID_KEY = "external_network_id";
+	protected static final String NETWORK_NEUTRONV2_URL_KEY = OpenStackV2NetworkPlugin.NETWORK_NEUTRONV2_URL_KEY;	
+	protected static final String DEFAULT_NETWORK_ID_KEY = OpenStackNovaV2ComputePlugin.DEFAULT_NETWORK_ID_KEY;
+	protected static final String EXTERNAL_NETWORK_ID_KEY = "external_network_id";
 	
 	protected static final String SUFFIX_ENDPOINT_FLOATINGIPS = "/floatingips";	
 	protected static final String NETWORK_V2_API_ENDPOINT = "/v2.0";
@@ -80,8 +80,8 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
 		CreateFloatingIpResponse createFloatingIpResponse = CreateFloatingIpResponse.fromJson(responsePostFloatingIp);
 		
 		FloatingIp floatingIp = createFloatingIpResponse.getFloatingIp();
-		String floatingIpID = floatingIp.getId();
-		return floatingIpID;
+		String floatinRgIpId = floatingIp.getId();
+		return floatinRgIpId;
 	}
 
 	@Override
@@ -97,6 +97,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
         }
 	}		
 	
+	// TODO check if this method is necessary ?
 	public PublicIpInstance getInstance(String publicIpOrderId, OpenStackV3Token openStackV3Token) 
 			throws FogbowRasException, UnexpectedException {
 		return null;
@@ -202,6 +203,10 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
     
     protected void setClient(HttpRequestClientUtil client) {
 		this.client = client;
+	}
+    
+    public void setProperties(Properties properties) {
+		this.properties = properties;
 	}
     
 }
