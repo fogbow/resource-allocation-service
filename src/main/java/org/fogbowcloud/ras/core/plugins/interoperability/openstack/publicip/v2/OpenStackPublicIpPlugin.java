@@ -53,9 +53,8 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
 	}
 	
 	@Override
-	public String requestInstance(PublicIpOrder publicIpOrder, OpenStackV3Token openStackV3Token)
+	public String requestInstance(PublicIpOrder publicIpOrder, String computeInstanceId, OpenStackV3Token openStackV3Token)
 			throws FogbowRasException, UnexpectedException {
-		String computeInstanceId = publicIpOrder.getComputeInstanceId();
         LOGGER.info("Creating floating ip in the " + computeInstanceId + " with tokens " + openStackV3Token);
 
         // Network port id is the connection between the virtual machine and the network

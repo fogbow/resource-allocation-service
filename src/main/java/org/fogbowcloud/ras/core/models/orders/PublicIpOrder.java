@@ -4,24 +4,15 @@ import org.fogbowcloud.ras.core.models.ResourceType;
 
 public class PublicIpOrder extends Order {
 
-    public String ip;
-    private String computeInstanceId;
+    private String computeOrderId;
     
-    public PublicIpOrder(String computeInstanceId) {
-    	this.computeInstanceId = computeInstanceId;
-	}
-
     @Override
     public ResourceType getType() {
         return ResourceType.PUBLIC_IP;
     }
 
-    public String getComputeInstanceId() {
-		return computeInstanceId;
-	}
-    
-    public void setIp(String ip) {
-		this.ip = ip;
+    public String getComputeOrderId() {
+		return computeOrderId;
 	}
     
     @Override

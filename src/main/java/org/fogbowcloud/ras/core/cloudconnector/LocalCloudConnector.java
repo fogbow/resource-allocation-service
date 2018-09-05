@@ -2,6 +2,7 @@ package org.fogbowcloud.ras.core.cloudconnector;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.InteroperabilityPluginsHolder;
+import org.fogbowcloud.ras.core.OrderController;
 import org.fogbowcloud.ras.core.SharedOrderHolders;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
@@ -101,7 +102,9 @@ public class LocalCloudConnector implements CloudConnector {
                 break;
             case PUBLIC_IP:
                 PublicIpOrder publicIpOrder = (PublicIpOrder) order;
-                this.publicIpPlugin.requestInstance(publicIpOrder, token);
+
+                // FIXME get computeOrder from computeOrderId and get instanceId to requestInstance
+                this.publicIpPlugin.requestInstance(publicIpOrder, null, token);
                 break;
             default:
                 String message = "No requestInstance plugin implemented for order " + order.getType();

@@ -55,7 +55,7 @@ public class OpenStackPublicIpPluginTest {
 	public void testROequestInstanceTest() throws Exception {
 		// set up
 		String computeInstanceId = "computeInstanceId";
-		PublicIpOrder publicIpOrder = new PublicIpOrder(computeInstanceId);
+		PublicIpOrder publicIpOrder = new PublicIpOrder();
 		String externalNetworkId = "externalNetId";
 		String floatingIpEndpoint = "http://endpoint";
 		String portId = "portId";
@@ -72,7 +72,7 @@ public class OpenStackPublicIpPluginTest {
 				.thenReturn(responseCreateFloatingIp);
 		
 		// exercise
-		String publicIpId = this.openStackPublicIpPlugin.requestInstance(publicIpOrder, this.openStackV3Token);
+		String publicIpId = this.openStackPublicIpPlugin.requestInstance(publicIpOrder, computeInstanceId, this.openStackV3Token);
 
 		// verify
 		Mockito.verify(this.httpClient, Mockito.times(1)).doPostRequest(
@@ -87,12 +87,12 @@ public class OpenStackPublicIpPluginTest {
 	public void testRequestInstanceErrorOnGetPortTest() throws HttpResponseException, URISyntaxException, FogbowRasException, UnexpectedException {
 		// set up
 		String computeInstanceId = "computeInstanceId";
-		PublicIpOrder publicIpOrder = new PublicIpOrder(computeInstanceId);
+		PublicIpOrder publicIpOrder = new PublicIpOrder();
 		Mockito.doThrow(new FogbowRasException()).when(this.openStackPublicIpPlugin).getNetworkPortIp(
 				Mockito.eq(computeInstanceId), Mockito.eq(this.openStackV3Token));
 		
 		// exercise
-		this.openStackPublicIpPlugin.requestInstance(publicIpOrder, this.openStackV3Token);
+		this.openStackPublicIpPlugin.requestInstance(publicIpOrder, computeInstanceId, this.openStackV3Token);
 		
 		// verify
 		Mockito.verify(this.httpClient, Mockito.times(0)).doPostRequest(

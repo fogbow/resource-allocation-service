@@ -48,4 +48,14 @@ public class PublicIpOrdersController {
         ApplicationFacade.getInstance().deletePublicIp(publicIpId, federationTokenValue);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    @RequestMapping(value = "/status", method = RequestMethod.GET)
+    public ResponseEntity<List<InstanceStatus>> getAllPublicIpStatus(
+        @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+        throws Exception {
+        LOGGER.info("Get the status of all attachment order requests received.");
+        List<InstanceStatus> publicIpStatus =
+            ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.PUBLIC_IP);
+        return new ResponseEntity<>(publicIpStatus, HttpStatus.OK);
+    }
 }
