@@ -216,10 +216,10 @@
                         </goals>
                         <configuration>
                             <classifier>exec</classifier>
+                            <argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
                         </configuration>
                     </execution>
                 </executions>
-                <argLine>-Xmx1024m -XX:MaxPermSize=256m</argLine>
             </plugin>
         </plugins>
     </build>
