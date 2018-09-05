@@ -39,9 +39,6 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 		// asynchronous operation
 		String ipAdressId = associateIpAdress(networkId, cloudStackToken);
 		
-		// TODO wait asynchronous operation and check the success
-		checkOperation();
-		
 		try {
 			enableStaticNat(computeInstanceId, ipAdressId, cloudStackToken);			
 		} catch (Exception e) {
@@ -56,7 +53,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 		}
 		
 		// TODO wait asynchronous operation and check the success
-		checkOperation();
+//		checkOperation();
 		
 		return ipAdressId;
 	}
@@ -79,7 +76,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
         }     
         
 		// TODO wait asynchronous operation and check the success
-		checkOperation();
+//		checkOperation();
 	}
 	
 	@Override
@@ -103,6 +100,13 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }        
 		
+        AssociateIpAddressSyncJobIdResponse associateIpAddressSyncJobIdResponse = AssociateIpAddressSyncJobIdResponse.fromJson(jsonResponse);
+        
+        String jobId = associateIpAddressSyncJobIdResponse.getJobId();
+		// TODO wait asynchronous operation and check the success
+		checkOperation(associateIpAddressSyncJobIdResponse.getJobId(), cloudStackToken);
+		        
+		jsonResponse = getQueryJobResult(jobId, cloudStackToken);		
         AssociateIpAddressResponse associateIpAddressResponse = AssociateIpAddressResponse.fromJson(jsonResponse);
         
 		IpAddress ipAddress = associateIpAddressResponse.getIpAddress();
@@ -143,7 +147,36 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
         }     
 	}	
 	
-	// TODO
-	private void checkOperation() {}
+	private String getQueryJobResult(String jobId, CloudStackToken cloudStackToken) throws FogbowRasException {
+		QueryAsyncJobResultRequest queryAsyncJobResultRequest = new QueryAsyncJobResultRequest.Builder()
+				.jobId(jobId)
+				.build();
+		
+		CloudStackUrlUtil.sign(queryAsyncJobResultRequest.getUriBuilder(), cloudStackToken.getTokenValue());
+		
+		String jsonResponse = null;
+        try {
+            jsonResponse = this.client.doGetRequest(queryAsyncJobResultRequest.getUriBuilder().toString(), cloudStackToken);
+        } catch (HttpResponseException e) {
+            CloudStackHttpToFogbowRasExceptionMapper.map(e);
+        }    
+        
+        return jsonResponse;
+	}
+	
+	// TODO complete the implementation
+	private void checkOperation(String jobId, CloudStackToken cloudStackToken) throws FogbowRasException {		
+		// TODO implement the codition
+		boolean condition = true;
+		do {
+ 
+			getQueryJobResult(jobId, cloudStackToken);
+	        
+	        // TODO
+	        // jobStatus: 1 success
+	        // jobStatus: 2 failed
+		} while (condition);
+		
+	}
 
 }
