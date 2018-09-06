@@ -14,7 +14,11 @@ import java.util.UUID;
 @Entity
 @Table(name = "compute_order_table")
 public class ComputeOrder extends Order {
+    public static final String DEFAULT_NAME_PREFIX = "fogbow-compute-instance-";
+
     private static final long serialVersionUID = 1L;
+    @Column
+    private String instanceName;
     @Column
     private int vCPU;
     /**
@@ -47,9 +51,10 @@ public class ComputeOrder extends Order {
      * Creating Order with predefined Id.
      */
     public ComputeOrder(String id, FederationUserToken federationUserToken, String requestingMember,
-                        String providingMember, int vCPU, int memory, int disk, String imageId, UserData userData,
-                        String publicKey, List<String> networksId) {
+                        String providingMember, String instanceName, int vCPU, int memory, int disk, String imageId,
+                        UserData userData, String publicKey, List<String> networksId) {
         super(id, federationUserToken, requestingMember, providingMember);
+        this.instanceName = instanceName;
         this.vCPU = vCPU;
         this.memory = memory;
         this.disk = disk;
@@ -61,10 +66,10 @@ public class ComputeOrder extends Order {
     }
 
     public ComputeOrder(FederationUserToken federationUserToken, String requestingMember, String providingMember,
-                        int vCPU, int memory, int disk, String imageId, UserData userData, String publicKey,
+                        String name, int vCPU, int memory, int disk, String imageId, UserData userData, String publicKey,
                         List<String> networksId) {
         this(UUID.randomUUID().toString(), federationUserToken, requestingMember, providingMember,
-                vCPU, memory, disk, imageId, userData, publicKey, networksId);
+             name, vCPU, memory, disk, imageId, userData, publicKey, networksId);
     }
 
     public ComputeAllocation getActualAllocation() {
@@ -73,6 +78,10 @@ public class ComputeOrder extends Order {
 
     public void setActualAllocation(ComputeAllocation actualAllocation) {
         this.actualAllocation = actualAllocation;
+    }
+
+    public String getInstanceName() {
+        return instanceName;
     }
 
     public int getvCPU() {
