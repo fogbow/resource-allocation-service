@@ -27,7 +27,6 @@ public class DefaultLaunchCommandGeneratorTest {
     private CloudInitUserDataBuilder.FileType extraUserDataFileType =
             CloudInitUserDataBuilder.FileType.SHELL_SCRIPT;
 
-    private boolean isTravisEnv = Boolean.parseBoolean(System.getenv("SKIP_TEST_ON_TRAVIS"));;
     @Before
     public void setUp() throws Exception {
 
@@ -173,8 +172,6 @@ public class DefaultLaunchCommandGeneratorTest {
     // test case: An exception must be thrown when the ras ssh public key file path is empty.
     @Test(expected = FatalErrorException.class)
     public void testPropertiesWithoutRasSshPublicKeyFilePath() throws Exception {
-        Assume.assumeFalse(isTravisEnv);
-
         // set up
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
         this.properties.setProperty(
@@ -187,8 +184,6 @@ public class DefaultLaunchCommandGeneratorTest {
     // test case: The path to ras ssh public key doesn't exist, so a fatal error exception must be thrown
     @Test(expected = FatalErrorException.class)
     public void testPropertiesWithWrongRasSshPublicKeyFilePath() throws FatalErrorException {
-        Assume.assumeFalse(isTravisEnv);
-
         // set up
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
         String emptyRasPublicKeyFilePath = "src/test/resources/fake-empty-ras-public-key";
