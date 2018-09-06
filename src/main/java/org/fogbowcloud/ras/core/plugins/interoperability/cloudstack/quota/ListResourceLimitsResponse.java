@@ -1,6 +1,9 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.quota;
 
+import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.Quota.*;
 import java.util.List;
+import org.fogbowcloud.ras.util.GsonHolder;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/listResourceLimits.html
@@ -21,26 +24,37 @@ import java.util.List;
  */
 public class ListResourceLimitsResponse {
 
-    public static ListResourceLimitsResponse fromJson(String jsonResponse) {
-        return null;
-    }
+	@SerializedName(LIST_RESOURCE_LIMITS_KEY_JSON)
+	private ResourceLimitsResponse response;
 
-    public List<ResourceLimit> getResourceLimits() {
-        return null;
-    }
+	public List<ResourceLimit> getResourceLimits() {
+		return response.resourceLimits;
+	}
 
-    public static class ResourceLimit {
+	public static ListResourceLimitsResponse fromJson(String json) {
+		return GsonHolder.getInstance().fromJson(json, ListResourceLimitsResponse.class);
+	}
 
-        private String max;
-        private String resourceType;
+	public class ResourceLimitsResponse {
 
-        public String getResourceType() {
-            return resourceType;
-        }
+		@SerializedName(RESOURCE_LIMIT_KEY_JSON)
+		private List<ResourceLimit> resourceLimits;
+	}
 
-        public String getMax() {
-            return max;
-        }
-    }
+	public static class ResourceLimit {
 
+		@SerializedName(RESOURCE_TYPE_KEY_JSON)
+		private String resourceType;
+
+		@SerializedName(MAX_KEY_JSON)
+		private int max;
+
+		public String getResourceType() {
+			return resourceType;
+		}
+
+		public int getMax() {
+			return max;
+		}
+	}
 }
