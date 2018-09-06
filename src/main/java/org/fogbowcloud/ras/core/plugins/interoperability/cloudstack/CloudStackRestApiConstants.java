@@ -48,7 +48,7 @@ public class CloudStackRestApiConstants {
 
     public static class PublicIp {
 
-        public static final String ASSOCIATE_IP_ADDRESS_COMMAND = "associateIpAddress";
+        public static final String ASSOCIATE_IP_ADDRESS_COMMAND = "requestIpAddressAssociation";
         public static final String QUERY_ASYNC_JOB_RESULT = "queryAsyncJobResult";
         public static final String ENABLE_STATIC_NAT_COMMAND = "enableStaticNat";
 

@@ -26,7 +26,7 @@ import com.google.gson.annotations.SerializedName;
  * }
  *
  */
-// TODO think about a union with QueryAsyncJobResultResponse. To refactor.
+// TODO think about publicIpSubState union with QueryAsyncJobResultResponse. To refactor.
 public class AssociateIpAddressResponse {
 
 	@SerializedName(QUERY_ASYNC_JOB_RESULT_KEY_JSON)

@@ -23,18 +23,18 @@ import com.google.gson.annotations.SerializedName;
 public class AssociateIpAddressSyncJobIdResponse implements SyncJobIdResponse {
 
 	@SerializedName(ASSOCIATE_IP_ADDRESS_RESPONSE_KEY_JSON)
-	private Associateipaddressresponse associateipaddressresponse;
+	private AssociateIpAddressResponse associateIpAddressResponse;
 	
 	@Override
 	public String getJobId() {
-		return this.associateipaddressresponse.getJobId();
+		return this.associateIpAddressResponse.getJobId();
 	}
 		
     public static AssociateIpAddressSyncJobIdResponse fromJson(String json) {
         return GsonHolder.getInstance().fromJson(json, AssociateIpAddressSyncJobIdResponse.class);
     }
     
-    public class Associateipaddressresponse {
+    public class AssociateIpAddressResponse {
     	@SerializedName(JOB_ID_KEY_JSON)
     	private String jobId;
     	

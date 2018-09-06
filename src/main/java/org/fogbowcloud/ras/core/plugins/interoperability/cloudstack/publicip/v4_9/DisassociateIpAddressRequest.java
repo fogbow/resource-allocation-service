@@ -11,9 +11,9 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRe
  * Request Example: 
  *
  */	
-public class DisassocioateIpAddressRequest extends CloudStackRequest {
+public class DisassociateIpAddressRequest extends CloudStackRequest {
 
-	protected DisassocioateIpAddressRequest(Builder builder) throws InvalidParameterException {
+	protected DisassociateIpAddressRequest(Builder builder) throws InvalidParameterException {
 		addParameter(ID_KEY_JSON, builder.id);
 	}
 
@@ -31,8 +31,8 @@ public class DisassocioateIpAddressRequest extends CloudStackRequest {
 	        return this;
 	    }
     	
-        public DisassocioateIpAddressRequest build() throws InvalidParameterException {
-            return new DisassocioateIpAddressRequest(this);
+        public DisassociateIpAddressRequest build() throws InvalidParameterException {
+            return new DisassociateIpAddressRequest(this);
         }
     }
 
