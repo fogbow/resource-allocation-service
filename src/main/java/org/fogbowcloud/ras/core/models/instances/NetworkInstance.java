@@ -3,7 +3,7 @@ package org.fogbowcloud.ras.core.models.instances;
 import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
 
 public class NetworkInstance extends Instance {
-    private String label;
+    private String name;
     private String address;
     private String gateway;
     private String vLAN;
@@ -12,11 +12,11 @@ public class NetworkInstance extends Instance {
     private String MACInterface;
     private String interfaceState;
 
-    public NetworkInstance(String id, InstanceState instanceState, String label, String address, String gateway,
+    public NetworkInstance(String id, InstanceState instanceState, String name, String address, String gateway,
                            String vLAN, NetworkAllocationMode networkAllocationMode, String networkInterface,
                            String MACInterface, String interfaceState) {
         super(id, instanceState);
-        this.label = label;
+        this.name = name;
         this.address = address;
         this.gateway = gateway;
         this.vLAN = vLAN;
@@ -30,8 +30,8 @@ public class NetworkInstance extends Instance {
         super(id);
     }
 
-    public String getLabel() {
-        return label;
+    public String getName() {
+        return name;
     }
 
     public String getAddress() {

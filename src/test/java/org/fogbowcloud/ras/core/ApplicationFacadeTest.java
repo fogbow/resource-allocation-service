@@ -34,6 +34,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USER_NAME = "fake-user-name";
     private static final String FAKE_MEMBER_ID = "fake-member-id";
+    private static final String FAKE_NAME = "fake-name";
     private static final String FAKE_GATEWAY = "fake-gateway";
     private static final String FAKE_ADDRESS = "fake-address";
     private static final String FAKE_VOLUME_NAME = "fake-volume-name";
@@ -1307,7 +1308,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER, FAKE_FEDERATION_TOKEN_VALUE,
                 FAKE_USER_ID, FAKE_USER_NAME);
         NetworkOrder order = new NetworkOrder(federationUserToken, FAKE_MEMBER_ID, FAKE_MEMBER_ID,
-                FAKE_GATEWAY, FAKE_ADDRESS, NetworkAllocationMode.STATIC);
+                FAKE_NAME, FAKE_GATEWAY, FAKE_ADDRESS, NetworkAllocationMode.STATIC);
 
         NetworkInstance networtkInstanceExcepted = new NetworkInstance(order.getId());
         Mockito.doReturn(networtkInstanceExcepted).when(this.orderController)

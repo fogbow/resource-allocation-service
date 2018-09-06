@@ -52,8 +52,8 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
     protected static final String KEY_CIDR = "cidr";
     protected static final String KEY_ID = "id";
     protected static final int DEFAULT_IP_VERSION = 4;
-    protected static final String DEFAULT_NETWORK_NAME = "fogbow-network";
-    protected static final String DEFAULT_SUBNET_NAME = "fogbow-subnet";
+    protected static final String DEFAULT_NETWORK_NAME = "ras-network";
+    protected static final String DEFAULT_SUBNET_NAME = "ras-subnet";
     protected static final String[] DEFAULT_DNS_NAME_SERVERS = new String[]{"8.8.8.8", "8.8.4.4"};
     protected static final String DEFAULT_NETWORK_ADDRESS = "192.168.0.1/24";
     // security group properties
@@ -61,7 +61,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
     protected static final String TCP_PROTOCOL = "tcp";
     protected static final String ICMP_PROTOCOL = "icmp";
     protected static final int SSH_PORT = 22;
-    public static final String SECURITY_GROUP_PREFIX = "fogbow-sg";
+    public static final String SECURITY_GROUP_PREFIX = "ras-sg";
     private HttpRequestClientUtil client;
     private String networkV2APIEndpoint;
     private String[] dnsList;
@@ -86,7 +86,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
             throws FogbowRasException, UnexpectedException {
         String tenantId = openStackV3Token.getProjectId();
 
-        CreateNetworkResponse createNetworkResponse = createNetwork(openStackV3Token, tenantId);
+        CreateNetworkResponse createNetworkResponse = createNetwork(order.getName(), openStackV3Token, tenantId);
         String createdNetworkId = createNetworkResponse.getId();
         createSubNet(openStackV3Token, order, createdNetworkId, tenantId);
         String securityGroupName = SECURITY_GROUP_PREFIX + "-" + createdNetworkId;
@@ -96,11 +96,11 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
         return createdNetworkId;
     }
 
-    private CreateNetworkResponse createNetwork(OpenStackV3Token openStackV3Token, String tenantId)
+    private CreateNetworkResponse createNetwork(String name, OpenStackV3Token openStackV3Token, String tenantId)
             throws FogbowRasException, UnexpectedException {
         CreateNetworkResponse createNetworkResponse = null;
         try {
-            String networkName = DEFAULT_NETWORK_NAME + "-" + UUID.randomUUID();
+            String networkName = DEFAULT_NETWORK_NAME + "-" + name;
 
             CreateNetworkRequest createNetworkRequest = new CreateNetworkRequest.Builder()
                     .name(networkName)
@@ -334,7 +334,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
 
     protected String generateJsonEntityToCreateSubnet(String networkId, String tenantId,
                                                       NetworkOrder order) {
-        String subnetName = DEFAULT_SUBNET_NAME + "-" + UUID.randomUUID();
+        String subnetName = DEFAULT_SUBNET_NAME + "-" + order.getName();
         int ipVersion = DEFAULT_IP_VERSION;
 
         String gateway = order.getGateway();
