@@ -34,6 +34,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
     private static final String FAKE_PUBLIC_KEY = "fake-public-key";
 
     private static final int DEFAULT_SLEEP_TIME = 500;
+    private static final int SPAWNING_SLEEP_TIME = 1000;
 
     private ChainedList failedOrderList;
     private ChainedList fulfilledOrderList;
@@ -251,7 +252,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         // exercise
         this.thread = new Thread(this.spawningProcessor);
         this.thread.start();
-        this.thread.sleep(DEFAULT_SLEEP_TIME);
+        this.thread.sleep(SPAWNING_SLEEP_TIME);
 
         // verify
         Order test = this.fulfilledOrderList.getNext();
