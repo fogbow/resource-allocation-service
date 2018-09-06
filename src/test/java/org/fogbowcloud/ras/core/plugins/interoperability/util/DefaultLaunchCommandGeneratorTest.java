@@ -188,7 +188,7 @@ public class DefaultLaunchCommandGeneratorTest {
     @Test(expected = FatalErrorException.class)
     public void testPropertiesWithWrongRasSshPublicKeyFilePath() throws FatalErrorException {
         Assume.assumeFalse(isTravisEnv);
-        
+
         // set up
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
         String emptyRasPublicKeyFilePath = "src/test/resources/fake-empty-ras-public-key";
