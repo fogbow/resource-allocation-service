@@ -41,7 +41,7 @@ import static org.mockito.Mockito.never;
 public class CloudStackComputePluginTest {
 
     public static final String FAKE_ID = "fake-id";
-    public static final String FAKE_NAME = "fake-name";
+    public static final String FAKE_INSTANCE_NAME = "fake-name";
     public static final String FAKE_STATE = "Running";
     public static final String FAKE_CPU_NUMBER = "4";
     public static final String FAKE_MEMORY = "2024";
@@ -145,7 +145,7 @@ public class CloudStackComputePluginTest {
         Mockito.when(this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN))).thenReturn(computeResponse);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
@@ -173,7 +173,7 @@ public class CloudStackComputePluginTest {
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
@@ -204,7 +204,7 @@ public class CloudStackComputePluginTest {
                 .thenThrow(FogbowRasException.class);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
@@ -241,7 +241,7 @@ public class CloudStackComputePluginTest {
                 .thenReturn(serviceOfferingResponse);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
@@ -281,7 +281,7 @@ public class CloudStackComputePluginTest {
                 .thenThrow(FogbowRasException.class);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
@@ -342,7 +342,7 @@ public class CloudStackComputePluginTest {
         Mockito.when(this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN))).thenReturn(computeResponse);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
@@ -407,7 +407,7 @@ public class CloudStackComputePluginTest {
                 .thenThrow(FogbowRasException.class);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
@@ -436,10 +436,10 @@ public class CloudStackComputePluginTest {
                                                               VIRTUAL_MACHINE_ID_KEY, FAKE_ID,
                                                               TYPE_KEY, FAKE_TYPE);
 
-        String successfulComputeResponse = getVirtualMachineResponse(FAKE_ID, FAKE_NAME, FAKE_STATE,
+        String successfulComputeResponse = getVirtualMachineResponse(FAKE_ID, FAKE_INSTANCE_NAME, FAKE_STATE,
                                                                      FAKE_CPU_NUMBER, FAKE_MEMORY,
                                                                      FAKE_ADDRESS);
-        String volumeResponse = getVolumeResponse(FAKE_ID, FAKE_NAME, FAKE_DISK, FAKE_STATE);
+        String volumeResponse = getVolumeResponse(FAKE_ID, FAKE_INSTANCE_NAME, FAKE_DISK, FAKE_STATE);
         String successfulVolumeResponse = getListVolumesResponse(volumeResponse);
 
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
@@ -453,7 +453,7 @@ public class CloudStackComputePluginTest {
 
         // verify
         Assert.assertEquals(FAKE_ID, retrievedInstance.getId());
-        Assert.assertEquals(FAKE_NAME, retrievedInstance.getHostName());
+        Assert.assertEquals(FAKE_INSTANCE_NAME, retrievedInstance.getHostName());
         Assert.assertEquals("READY", retrievedInstance.getState().name());
         Assert.assertEquals(FAKE_CPU_NUMBER, String.valueOf(retrievedInstance.getvCPU()));
         Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance.getRam()));
@@ -481,7 +481,7 @@ public class CloudStackComputePluginTest {
                 VIRTUAL_MACHINE_ID_KEY, FAKE_ID,
                 TYPE_KEY, FAKE_TYPE);
 
-        String successfulComputeResponse = getVirtualMachineResponse(FAKE_ID, FAKE_NAME, FAKE_STATE,
+        String successfulComputeResponse = getVirtualMachineResponse(FAKE_ID, FAKE_INSTANCE_NAME, FAKE_STATE,
                 FAKE_CPU_NUMBER, FAKE_MEMORY,
                 FAKE_ADDRESS);
         String emptyVolumeResponse = getListVolumesResponse();
@@ -498,7 +498,7 @@ public class CloudStackComputePluginTest {
         ComputeInstance retrievedInstance = this.plugin.getInstance(FAKE_ID, FAKE_TOKEN);
 
         Assert.assertEquals(FAKE_ID, retrievedInstance.getId());
-        Assert.assertEquals(FAKE_NAME, retrievedInstance.getHostName());
+        Assert.assertEquals(FAKE_INSTANCE_NAME, retrievedInstance.getHostName());
         Assert.assertEquals("READY", retrievedInstance.getState().name());
         Assert.assertEquals(FAKE_CPU_NUMBER, String.valueOf(retrievedInstance.getvCPU()));
         Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance.getRam()));
@@ -509,7 +509,7 @@ public class CloudStackComputePluginTest {
         ComputeInstance retrievedInstance2 = this.plugin.getInstance(FAKE_ID, FAKE_TOKEN);
 
         Assert.assertEquals(FAKE_ID, retrievedInstance2.getId());
-        Assert.assertEquals(FAKE_NAME, retrievedInstance2.getHostName());
+        Assert.assertEquals(FAKE_INSTANCE_NAME, retrievedInstance2.getHostName());
         Assert.assertEquals("READY", retrievedInstance2.getState().name());
         Assert.assertEquals(FAKE_CPU_NUMBER, String.valueOf(retrievedInstance2.getvCPU()));
         Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance2.getRam()));

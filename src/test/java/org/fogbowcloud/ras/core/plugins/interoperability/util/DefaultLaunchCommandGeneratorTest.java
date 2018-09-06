@@ -204,12 +204,14 @@ public class DefaultLaunchCommandGeneratorTest {
         String providingMember =
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
         String publicKey = "fake-public-key";
+        String instanceName = "fake-instance-name";
 
         ComputeOrder localOrder =
                 new ComputeOrder(
                         federationUserToken,
                         requestingMember,
                         providingMember,
+                        instanceName,
                         8,
                         1024,
                         30,
@@ -229,12 +231,14 @@ public class DefaultLaunchCommandGeneratorTest {
         String providingMember =
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
         String publicKey = "fake-public-key";
+        String instanceName = "fake-instance-name";
 
         ComputeOrder localOrder =
                 new ComputeOrder(
                         federationUserToken,
                         requestingMember,
                         providingMember,
+                        instanceName,
                         8,
                         1024,
                         30,
@@ -253,12 +257,14 @@ public class DefaultLaunchCommandGeneratorTest {
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
         String providingMember =
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
+        String instanceName = "fake-instance-name";
 
         ComputeOrder localOrder =
                 new ComputeOrder(
                         federationUserToken,
                         requestingMember,
                         providingMember,
+                        instanceName,
                         8,
                         1024,
                         30,

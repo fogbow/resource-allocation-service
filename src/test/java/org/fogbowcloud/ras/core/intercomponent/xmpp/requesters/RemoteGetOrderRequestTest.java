@@ -36,7 +36,7 @@ public class RemoteGetOrderRequestTest {
         this.federationUserToken = new FederationUserToken("fake-token-provider",
                 "fake-federation-token-value", "fake-user-id", "fake-user-name");
         this.order = new ComputeOrder(this.federationUserToken, "requesting-member",
-                "providing-member", 10, 20, 30, "imageid", null,
+                "providing-member", "hostName", 10, 20, 30, "imageid", null,
                 "publicKey", null);
         this.remoteGetOrderRequest = new RemoteGetOrderRequest(this.order);
         this.packetSender = Mockito.mock(PacketSender.class);

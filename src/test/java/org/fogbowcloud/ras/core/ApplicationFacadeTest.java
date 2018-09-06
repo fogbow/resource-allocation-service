@@ -28,6 +28,7 @@ import java.util.Map;
 public class ApplicationFacadeTest extends BaseUnitTests {
 
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
+    private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_FEDERATION_TOKEN_VALUE = "federation-token-value";
     private static final String FAKE_USER_ID = "fake-user-id";
@@ -1333,7 +1334,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     private ComputeOrder createComputeOrder() throws Exception {
         FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER, FAKE_FEDERATION_TOKEN_VALUE,
                 FAKE_USER_ID, FAKE_USER_NAME);
-        ComputeOrder order = new ComputeOrder(federationUserToken, FAKE_MEMBER_ID, FAKE_MEMBER_ID, 2, 2,
+        ComputeOrder order = new ComputeOrder(federationUserToken, FAKE_MEMBER_ID, FAKE_MEMBER_ID, FAKE_INSTANCE_NAME, 2, 2,
                 30, FAKE_IMAGE_NAME, new UserData(), FAKE_PUBLIC_KEY, null);
 
         ComputeInstance computeInstanceExcepted = new ComputeInstance(order.getId());

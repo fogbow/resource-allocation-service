@@ -30,6 +30,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
     private static final String TEST_PATH = "src/test/resources/private";
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
+    private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
     private static final String FAKE_IMAGE_NAME = "fake-image-name";
     private static final String FAKE_PUBLIC_KEY = "fake-public-key";
 
@@ -302,7 +303,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         UserData userData = Mockito.mock(UserData.class);
 
         Order order = new ComputeOrder(federationUserToken, requestingMember,
-                providingMember, 8, 1024, 30, FAKE_IMAGE_NAME, userData, FAKE_PUBLIC_KEY, null);
+                providingMember, FAKE_INSTANCE_NAME, 8, 1024, 30, FAKE_IMAGE_NAME, userData, FAKE_PUBLIC_KEY, null);
 
         return order;
     }
