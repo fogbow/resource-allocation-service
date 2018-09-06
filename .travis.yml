@@ -12,4 +12,4 @@ cache:
     - $HOME/.m2
 
 notifications:
-  slack: fix-travis:STADNJdZ8M5dszVw545vNXbW
+  slack: fogbow:STADNJdZ8M5dszVw545vNXbW
