@@ -44,6 +44,28 @@ public class CloudStackRestApiConstants {
         public static final String ID_KEY = "id";
     }
     
+    public static class PublicIp {
+    	public static final String ASSOCIATE_IP_ADDRESS_COMMAND = "associateIpAddress";
+    	public static final String QUERY_ASYNC_JOB_RESULT = "queryAsyncJobResult";
+    	public static final String ENABLE_STATIC_NAT_COMMAND = "enableStaticNat";
+    	
+    	// TODO confirm this values !
+    	public static final String ASSOCIATE_ID_ADDRESS_KEY_JSON = "associateipaddressresponse";
+    	public static final String QUERY_ASYNC_JOB_RESULT_KEY_JSON = "queryAsyncJobResult";
+    	public static final String VM_ID_KEY_JSON = "virtualmachineid";
+    	public static final String NETWORK_ID_KEY_JSON = "networkid";
+    	public static final String PROTOCOL_KEY_JSON = "procotol";
+    	public static final String STARTPORT_KEY_JSON = "startport";
+    	public static final String ENDPORT_KEY_JSON = "endport";
+    	public static final String IP_ADDRESS_KEY_JSON = "ipaddress";
+    	public static final String JOB_STATUS_KEY_JSON = "jobstatus";
+    	public static final String JOB_RESULT_KEY_JSON = "jobresult";
+    	public static final String ID_KEY_JSON = "id";
+    	public static final String ASSOCIATE_IP_ADDRESS_RESPONSE_KEY_JSON = "associateipaddressresponse";
+    	public static final String JOB_ID_KEY_JSON = "jobid";
+    	
+    }
+    
     public static class Attachment {
         public static final String ATTACH_VOLUME_KEY_JSON = "attachvolumeresponse";
         public static final String DETACH_VOLUME_KEY_JSON = "detachvolumeresponse";
