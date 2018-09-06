@@ -479,12 +479,14 @@ public class OrderControllerTest extends BaseUnitTests {
         String requestingMember = "";
         String providingMember = "";
         String publicKey = "fake-public-key";
+        String instanceName = "fake-instance-name";
 
         Order localOrder =
                 new ComputeOrder(
                         federationUserToken,
                         requestingMember,
                         providingMember,
+                        instanceName,
                         8,
                         1024,
                         30,
