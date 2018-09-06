@@ -28,33 +28,30 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 	}
 	
 	@Override
-	public String requestInstance(PublicIpOrder publicIpOrder, CloudStackToken cloudStackToken) throws FogbowRasException, UnexpectedException {
-		LOGGER.info("");
-		
-		String computeInstanceId = publicIpOrder.getComputeInstanceId();
-		
+	public String requestInstance(PublicIpOrder publicIpOrder, String computeInstanceId,
+		CloudStackToken token) throws FogbowRasException, UnexpectedException {
 		// TODO use getInstance of the CloudStackComputePlugin
 		String networkId = "";
-		
+
 		// asynchronous operation
-		String ipAdressId = associateIpAdress(networkId, cloudStackToken);
-		
+		String ipAdressId = associateIpAdress(networkId, token);
+
 		try {
-			enableStaticNat(computeInstanceId, ipAdressId, cloudStackToken);			
+			enableStaticNat(computeInstanceId, ipAdressId, token);
 		} catch (Exception e) {
-			deleteInstance(computeInstanceId, cloudStackToken);
+			deleteInstance(computeInstanceId, token);
 		}
-		
+
 		try {
 			// asynchronous operation
-			createFirewallRule(ipAdressId, cloudStackToken);
+			createFirewallRule(ipAdressId, token);
 		} catch (Exception e) {
-			deleteInstance(computeInstanceId, cloudStackToken);
+			deleteInstance(computeInstanceId, token);
 		}
-		
+
 		// TODO wait asynchronous operation and check the success
 //		checkOperation();
-		
+
 		return ipAdressId;
 	}
 
