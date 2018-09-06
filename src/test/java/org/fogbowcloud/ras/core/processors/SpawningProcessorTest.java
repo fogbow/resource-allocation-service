@@ -35,7 +35,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
     private static final String FAKE_PUBLIC_KEY = "fake-public-key";
 
     private static final int DEFAULT_SLEEP_TIME = 500;
-    private static final int SPAWNING_SLEEP_TIME = 1000;
+    private static final int SPAWNING_SLEEP_TIME = 2000;
 
     private ChainedList failedOrderList;
     private ChainedList fulfilledOrderList;
