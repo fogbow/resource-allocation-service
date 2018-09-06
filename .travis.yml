@@ -3,10 +3,10 @@ jdk:
   - oraclejdk8
   - openjdk8
 
-cache:
-  directories:
-    - .autoconf
-    - $HOME/.m2
+#cache:
+#  directories:
+#    - .autoconf
+#    - $HOME/.m2
 
 notifications:
   slack: fix-travis:STADNJdZ8M5dszVw545vNXbW
