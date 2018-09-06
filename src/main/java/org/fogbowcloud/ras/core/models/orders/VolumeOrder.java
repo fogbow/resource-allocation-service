@@ -15,7 +15,7 @@ public class VolumeOrder extends Order {
     @Column
     private int volumeSize;
     @Column
-    private String volumeName;
+    private String name;
 
     public VolumeOrder() {
         super(UUID.randomUUID().toString());
@@ -25,24 +25,24 @@ public class VolumeOrder extends Order {
      * Creating Order with predefined Id.
      */
     public VolumeOrder(String id, FederationUserToken federationUserToken, String requestingMember,
-                       String providingMember, int volumeSize, String volumeName) {
+                       String providingMember, int volumeSize, String name) {
         super(id, federationUserToken, requestingMember, providingMember);
         this.volumeSize = volumeSize;
-        this.volumeName = volumeName;
+        this.name = name;
     }
 
     public VolumeOrder(FederationUserToken federationUserToken, String requestingMember, String providingMember,
-                       int volumeSize, String volumeName) {
+                       int volumeSize, String name) {
         this(UUID.randomUUID().toString(), federationUserToken, requestingMember, providingMember,
-                volumeSize, volumeName);
+                volumeSize, name);
     }
 
     public int getVolumeSize() {
         return volumeSize;
     }
 
-    public String getVolumeName() {
-        return volumeName;
+    public String getName() {
+        return name;
     }
 
     @Override
