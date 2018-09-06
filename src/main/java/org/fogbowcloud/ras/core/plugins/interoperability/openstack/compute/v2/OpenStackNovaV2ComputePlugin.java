@@ -49,7 +49,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
     protected static final String PUBLIC_KEY_JSON_FIELD = "public_key";
     protected static final String KEYPAIR_JSON_FIELD = "keypair";
     protected static final String UUID_JSON_FIELD = "uuid";
-    protected static final String FOGBOW_INSTANCE_NAME = "fogbow-instance-";
+    protected static final String FOGBOW_INSTANCE_NAME = "fogbow-compute-instance-";
     protected static final String PROJECT_ID = "projectId";
     protected static final String SERVERS = "/servers";
     protected static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
@@ -92,9 +92,11 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
         String keyName = getKeyName(projectId, openStackV3Token, computeOrder.getPublicKey());
         String endpoint = getComputeEndpoint(projectId, SERVERS);
         String instanceId = null;
+        String instanceName = computeOrder.getName();
 
         try {
-            instanceId = doRequestInstance(openStackV3Token, flavorId, networksId, imageId, userData, keyName, endpoint);
+            instanceId = doRequestInstance(openStackV3Token, flavorId, networksId, imageId, instanceName, userData,
+                    keyName, endpoint);
 
             synchronized (computeOrder) {
                 ComputeAllocation actualAllocation = new ComputeAllocation(
@@ -117,9 +119,9 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
     }
 
     private String doRequestInstance(OpenStackV3Token openStackV3Token, String flavorId, List<String> networksId,
-                                     String imageId, String userData, String keyName, String endpoint)
+                                     String imageId, String instanceName, String userData, String keyName, String endpoint)
             throws UnavailableProviderException, HttpResponseException {
-        CreateComputeRequest createBody = getRequestBody(imageId, flavorId, userData, keyName, networksId);
+        CreateComputeRequest createBody = getRequestBody(instanceName, imageId, flavorId, userData, keyName, networksId);
 
         String body = createBody.toJson();
         String response = this.client.doPostRequest(endpoint, openStackV3Token, body);
@@ -228,8 +230,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
         }
     }
 
-    private CreateComputeRequest getRequestBody(String imageRef, String flavorRef, String userdata, String keyName,
-                                                List<String> networksIds) {
+    private CreateComputeRequest getRequestBody(String instanceName, String imageRef, String flavorRef, String userdata,
+                                                String keyName, List<String> networksIds) {
         List<CreateComputeRequest.Network> networks = new ArrayList<>();
         List<CreateComputeRequest.SecurityGroup> securityGroups = new ArrayList<>();
         for (String networkId : networksIds) {
@@ -246,7 +248,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
         // do not specify security groups if no additional network was given
         securityGroups = securityGroups.size() == 0 ? null : securityGroups;
 
-        String name = FOGBOW_INSTANCE_NAME + getRandomUUID();
+        String name = instanceName == null ?  FOGBOW_INSTANCE_NAME + getRandomUUID() : instanceName;
         CreateComputeRequest createComputeRequest = new CreateComputeRequest.Builder()
                 .name(name)
                 .imageReference(imageRef)

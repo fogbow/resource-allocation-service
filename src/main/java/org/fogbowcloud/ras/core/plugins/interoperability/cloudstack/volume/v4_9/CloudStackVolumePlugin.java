@@ -174,7 +174,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
     private CreateVolumeRequest createVolumeCustomized(VolumeOrder volumeOrder, String diskOfferingId)
             throws InvalidParameterException {
 
-        String name = volumeOrder.getVolumeName();
+        String name = volumeOrder.getName();
         String size = String.valueOf(volumeOrder.getVolumeSize());
         return new CreateVolumeRequest.Builder()
                 .zoneId(this.zoneId)
@@ -187,7 +187,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
     private CreateVolumeRequest createVolumeCompatible(VolumeOrder volumeOrder, String diskOfferingId)
             throws InvalidParameterException {
 
-        String name = volumeOrder.getVolumeName();
+        String name = volumeOrder.getName();
         return new CreateVolumeRequest.Builder()
                 .zoneId(this.zoneId)
                 .name(name)

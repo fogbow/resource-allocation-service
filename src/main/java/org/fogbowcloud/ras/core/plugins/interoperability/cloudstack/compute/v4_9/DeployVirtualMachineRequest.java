@@ -8,6 +8,7 @@ public class DeployVirtualMachineRequest extends CloudStackRequest {
     public static final String SERVICE_OFFERING_ID_KEY = "serviceofferingid";
     public static final String TEMPLATE_ID_KEY = "templateid";
     public static final String ZONE_ID_KEY = "zoneid";
+    public static final String NAME_KEY = "name";
     public static final String DISK_OFFERING_ID = "diskofferingid";
     public static final String USER_DATA = "userdata";
     public static final String NETWORKS_ID = "networkids";
@@ -16,6 +17,7 @@ public class DeployVirtualMachineRequest extends CloudStackRequest {
         addParameter(SERVICE_OFFERING_ID_KEY, builder.serviceOfferingId);
         addParameter(TEMPLATE_ID_KEY, builder.templateId);
         addParameter(ZONE_ID_KEY, builder.zoneId);
+        addParameter(NAME_KEY, builder.name);
         addParameter(DISK_OFFERING_ID, builder.diskOfferingId);
         addParameter(USER_DATA, builder.userData);
         addParameter(NETWORKS_ID, builder.networksId);
@@ -35,6 +37,7 @@ public class DeployVirtualMachineRequest extends CloudStackRequest {
         private String serviceOfferingId;
         private String templateId;
         private String zoneId;
+        private String name;
         private String diskOfferingId;
         private String userData;
         private String networksId;
@@ -51,6 +54,11 @@ public class DeployVirtualMachineRequest extends CloudStackRequest {
 
         public Builder zoneId(String zoneId) {
             this.zoneId = zoneId;
+            return this;
+        }
+
+        public Builder name(String name) {
+            this.name = name;
             return this;
         }
 

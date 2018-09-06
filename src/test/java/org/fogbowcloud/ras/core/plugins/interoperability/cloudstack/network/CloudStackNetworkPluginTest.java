@@ -115,7 +115,7 @@ public class CloudStackNetworkPluginTest {
 
         // exercise
         NetworkOrder order = new NetworkOrder(null, FAKE_MEMBER, FAKE_MEMBER,
-                FAKE_GATEWAY, FAKE_ADDRESS, NetworkAllocationMode.DYNAMIC);
+                FAKE_NAME, FAKE_GATEWAY, FAKE_ADDRESS, NetworkAllocationMode.DYNAMIC);
         String createdNetworkId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
         // verify
@@ -149,7 +149,7 @@ public class CloudStackNetworkPluginTest {
         Assert.assertEquals(FAKE_ID, retrievedInstance.getId());
         Assert.assertEquals(FAKE_ADDRESS, retrievedInstance.getAddress());
         Assert.assertEquals(FAKE_GATEWAY, retrievedInstance.getGateway());
-        Assert.assertEquals(FAKE_NAME, retrievedInstance.getLabel());
+        Assert.assertEquals(FAKE_NAME, retrievedInstance.getName());
 
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());

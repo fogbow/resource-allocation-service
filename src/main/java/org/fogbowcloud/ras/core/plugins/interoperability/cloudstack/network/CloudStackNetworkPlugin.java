@@ -39,7 +39,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
 
     public CloudStackNetworkPlugin() {
         String cloudStackConfFilePath = HomeDir.getPath() + File.separator
-                + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
+                + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;  
 
         Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
 
@@ -57,7 +57,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
             throw new InvalidParameterException("cidr <" + networkOrder.getAddress() + "> is not valid");
         }
 
-        String name = generateRandomNetworkName();
+        String name = networkOrder.getName();
         String startingIp = subnetInfo.getLowAddress();
         String endingIp = subnetInfo.getHighAddress();
         String gateway = networkOrder.getGateway();

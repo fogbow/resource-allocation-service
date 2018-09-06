@@ -61,7 +61,7 @@ public class OrderTimestampStorageTest {
                 "token-value", "fake-id", "fake-user");
 
         orderTest = new ComputeOrder(federationUserToken,
-                "requestingMember", "providingMember", 8, 1024,
+                "requestingMember", "providingMember", "fake-instance-name", 8, 1024,
                 30, "fake_image_name", new UserData("extraUserDataFile",
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), "fake_public_key", null);
         orderTest.setOrderStateInTestMode(OrderState.OPEN);
