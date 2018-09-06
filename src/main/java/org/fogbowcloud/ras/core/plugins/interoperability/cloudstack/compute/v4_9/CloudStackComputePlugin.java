@@ -33,7 +33,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     public static final String EXPUNGE_ON_DESTROY_KEY = "expunge_on_destroy";
     public static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
     public static final String DEFAULT_VOLUME_TYPE = "ROOT";
-    public static final String FOGBOW_INSTANCE_NAME = "fogobow-compute-instance";
+    public static final String FOGBOW_INSTANCE_NAME = "fogbow-compute-instance-";
 
     private HttpRequestClientUtil client;
     private String zoneId;
@@ -85,7 +85,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         // offering is found.
         String diskOfferingId = disk > 0 ? getDiskOfferingId(disk, cloudStackToken) : null;
 
-        String instanceName = computeOrder.getInstanceName();
+        String instanceName = computeOrder.getName();
         if (instanceName == null) instanceName = FOGBOW_INSTANCE_NAME + getRandomUUID();
 
         // NOTE(pauloewerton): diskofferingid and hypervisor are required in case of ISO image. i haven't

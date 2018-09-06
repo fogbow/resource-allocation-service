@@ -14,11 +14,9 @@ import java.util.UUID;
 @Entity
 @Table(name = "compute_order_table")
 public class ComputeOrder extends Order {
-    public static final String DEFAULT_NAME_PREFIX = "fogbow-compute-instance-";
-
     private static final long serialVersionUID = 1L;
     @Column
-    private String instanceName;
+    private String name;
     @Column
     private int vCPU;
     /**
@@ -51,10 +49,10 @@ public class ComputeOrder extends Order {
      * Creating Order with predefined Id.
      */
     public ComputeOrder(String id, FederationUserToken federationUserToken, String requestingMember,
-                        String providingMember, String instanceName, int vCPU, int memory, int disk, String imageId,
+                        String providingMember, String name, int vCPU, int memory, int disk, String imageId,
                         UserData userData, String publicKey, List<String> networksId) {
         super(id, federationUserToken, requestingMember, providingMember);
-        this.instanceName = instanceName;
+        this.name = name;
         this.vCPU = vCPU;
         this.memory = memory;
         this.disk = disk;
@@ -80,8 +78,8 @@ public class ComputeOrder extends Order {
         this.actualAllocation = actualAllocation;
     }
 
-    public String getInstanceName() {
-        return instanceName;
+    public String getName() {
+        return name;
     }
 
     public int getvCPU() {

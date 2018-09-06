@@ -92,7 +92,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
         String keyName = getKeyName(projectId, openStackV3Token, computeOrder.getPublicKey());
         String endpoint = getComputeEndpoint(projectId, SERVERS);
         String instanceId = null;
-        String instanceName = computeOrder.getInstanceName();
+        String instanceName = computeOrder.getName();
 
         try {
             instanceId = doRequestInstance(openStackV3Token, flavorId, networksId, imageId, instanceName, userData,
