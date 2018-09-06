@@ -264,7 +264,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
 
         // creating network order with fulfilled state
         Order networkOrder = new NetworkOrder("fake-net-id", federationUserToken,
-                "requestingMember", "providingMember", "gateway",
+                "requestingMember", "providingMember", "name", "gateway",
                 "address", NetworkAllocationMode.STATIC);
         networkOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 

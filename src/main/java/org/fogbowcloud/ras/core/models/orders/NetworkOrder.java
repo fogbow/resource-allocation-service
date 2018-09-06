@@ -11,6 +11,8 @@ import java.util.UUID;
 public class NetworkOrder extends Order {
     private static final long serialVersionUID = 1L;
     @Column
+    private String name;
+    @Column
     private String gateway;
     @Column
     private String address;
@@ -25,17 +27,23 @@ public class NetworkOrder extends Order {
      * Creating Order with predefined Id.
      */
     public NetworkOrder(String id, FederationUserToken federationUserToken, String requestingMember,
-                        String providingMember, String gateway, String address, NetworkAllocationMode allocation) {
+                        String providingMember, String name, String gateway, String address,
+                        NetworkAllocationMode allocation) {
         super(id, federationUserToken, requestingMember, providingMember);
+        this.name = name;
         this.gateway = gateway;
         this.address = address;
         this.allocation = allocation;
     }
 
     public NetworkOrder(FederationUserToken federationUserToken, String requestingMember, String providingMember,
-                        String gateway, String address, NetworkAllocationMode allocation) {
+                        String name, String gateway, String address, NetworkAllocationMode allocation) {
         this(UUID.randomUUID().toString(), federationUserToken, requestingMember, providingMember,
-                gateway, address, allocation);
+                name, gateway, address, allocation);
+    }
+
+    public String getName() {
+        return name;
     }
 
     public String getGateway() {

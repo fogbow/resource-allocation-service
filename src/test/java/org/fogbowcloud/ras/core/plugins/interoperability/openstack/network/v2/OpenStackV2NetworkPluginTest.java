@@ -476,7 +476,7 @@ public class OpenStackV2NetworkPluginTest {
 
         //verify
         Assert.assertEquals(networkId, instance.getId());
-        Assert.assertEquals(networkName, instance.getLabel());
+        Assert.assertEquals(networkName, instance.getName());
         Assert.assertEquals(vlan, instance.getvLAN());
         Assert.assertEquals(InstanceState.READY, instance.getState());
         Assert.assertEquals(gatewayIp, instance.getGateway());
@@ -639,13 +639,14 @@ public class OpenStackV2NetworkPluginTest {
                                             NetworkAllocationMode allocation) {
         String requestingMember = "fake-requesting-member";
         String providingMember = "fake-providing-member";
+        String name = "name";
         NetworkOrder order = new NetworkOrder(networkId, Mockito.mock(FederationUserToken.class), requestingMember, providingMember,
-                gateway, address, allocation);
+                name, gateway, address, allocation);
         return order;
     }
 
     private NetworkOrder createEmptyOrder() {
-        return new NetworkOrder(null, null, null, null, null, null);
+        return new NetworkOrder(null, null, null, null, null, null, null);
     }
 
     private HttpResponse createHttpResponse(String content, int httpStatus) throws IOException {
