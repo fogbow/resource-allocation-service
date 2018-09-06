@@ -251,7 +251,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         // exercise
         this.thread = new Thread(this.spawningProcessor);
         this.thread.start();
-        this.thread.sleep(DEFAULT_SLEEP_TIME+1-1);
+        this.thread.sleep(5000);
 
         // verify
         Order test = this.fulfilledOrderList.getNext();
