@@ -79,11 +79,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
 		CreateFloatingIpResponse createFloatingIpResponse = CreateFloatingIpResponse.fromJson(responsePostFloatingIp);
 		
 		FloatingIp floatingIp = createFloatingIpResponse.getFloatingIp();
-		String ipAddress = floatingIp.getFloatingIpAddress();
-		publicIpOrder.setId(ipAddress);
-		
-		String floatingIpId = floatingIp.getId();
-		return floatingIpId;
+		return floatingIp.getId();
 	}
 
 	@Override
@@ -99,9 +95,19 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
         }
 	}		
 	
-	// TODO check if this method is necessary ?
 	public PublicIpInstance getInstance(String publicIpOrderId, OpenStackV3Token openStackV3Token) 
 			throws FogbowRasException, UnexpectedException {
+		
+		try {
+			
+			String floatingIpEndpointPrefix = getFloatingIpEndpoint();
+        	// publicIdOrderId is worng. The correct is publicIpInstanceId
+			String endpoint = String.format("%s/%s", floatingIpEndpointPrefix, publicIpOrderId);
+			this.client.doGetRequest(endpoint, openStackV3Token);
+		} catch (HttpResponseException e) {
+			OpenStackHttpToFogbowRasExceptionMapper.map(e);
+		}
+		
 		return null;
 	}
 	
