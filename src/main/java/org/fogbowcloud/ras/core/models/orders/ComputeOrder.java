@@ -123,7 +123,10 @@ public class ComputeOrder extends Order {
     }
 
 	@Override
-	public String getSpec() {
-		return this.actualAllocation.getvCPU() + "/" + this.actualAllocation.getRam();
-	}
+    public String getSpec() {
+        if (this.actualAllocation == null) {
+            return "";
+        }
+        return this.actualAllocation.getvCPU() + "/" + this.actualAllocation.getRam();
+    }
 }
