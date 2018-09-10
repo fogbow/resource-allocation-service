@@ -20,12 +20,11 @@ import com.google.gson.annotations.SerializedName;
  * }
  *
  */
-public class AssociateIpAddressSyncJobIdResponse implements SyncJobIdResponse {
+public class AssociateIpAddressSyncJobIdResponse {
 
 	@SerializedName(ASSOCIATE_IP_ADDRESS_RESPONSE_KEY_JSON)
 	private AssociateIpAddressResponse associateIpAddressResponse;
 	
-	@Override
 	public String getJobId() {
 		return this.associateIpAddressResponse.getJobId();
 	}

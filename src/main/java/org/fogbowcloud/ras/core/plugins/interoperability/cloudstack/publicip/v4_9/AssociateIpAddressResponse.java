@@ -5,6 +5,7 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.Cloud
 import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.PublicIp.QUERY_ASYNC_JOB_RESULT_KEY_JSON;
 import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.PublicIp.JOB_RESULT_KEY_JSON;
 
+import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackQueryAsyncJobResponse;
 import org.fogbowcloud.ras.util.GsonHolder;
 
 import com.google.gson.annotations.SerializedName;
@@ -26,45 +27,30 @@ import com.google.gson.annotations.SerializedName;
  * }
  *
  */
-// TODO think about publicIpSubState union with QueryAsyncJobResultResponse. To refactor.
-public class AssociateIpAddressResponse {
+public class AssociateIpAddressResponse extends CloudStackQueryAsyncJobResponse {
 
-	@SerializedName(QUERY_ASYNC_JOB_RESULT_KEY_JSON)
-	private QueryAsyncJobResult queryAsyncJobResult;
-	
-	public QueryAsyncJobResult getQueryAsyncJobResult() {
-		return this.queryAsyncJobResult;
-	}
-	
+    private JobResult jobResult;
+
 	public IpAddress getIpAddress() {
-		return this.queryAsyncJobResult.getJobResult().getIpAddress();
+		return this.jobResult.ipAddress;
 	}
 	
     public static AssociateIpAddressResponse fromJson(String json) {
         return GsonHolder.getInstance().fromJson(json, AssociateIpAddressResponse.class);
     }
 
-    public class QueryAsyncJobResult {
-        @SerializedName(JOB_RESULT_KEY_JSON)
-        private JobResult jobResult;
-
-        public JobResult getJobResult() {
-			return jobResult;
-		}
-    }
-	
     public class JobResult {
+
     	@SerializedName(IP_ADDRESS_KEY_JSON)
     	private IpAddress ipAddress;
     	
-    	public IpAddress getIpAddress() {
-    		return ipAddress;
-    	}    	
     }
 	
     public class IpAddress {
+
         @SerializedName(ID_KEY_JSON)
         private String id;
+
         @SerializedName(IP_ADDRESS_KEY_JSON)
         private String ip;
 
@@ -72,7 +58,7 @@ public class AssociateIpAddressResponse {
             return id;
         }
         
-        public String getIp() {
+        public String getIpAddress() {
 			return ip;
 		}
     }

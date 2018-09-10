@@ -54,7 +54,7 @@ public class CloudStackRestApiConstants {
 
         // TODO confirm this values !
         public static final String ASSOCIATE_ID_ADDRESS_KEY_JSON = "associateipaddressresponse";
-        public static final String QUERY_ASYNC_JOB_RESULT_KEY_JSON = "queryAsyncJobResult";
+        public static final String QUERY_ASYNC_JOB_RESULT_KEY_JSON = "queryasyncjobresultresponse";
         public static final String VM_ID_KEY_JSON = "virtualmachineid";
         public static final String NETWORK_ID_KEY_JSON = "networkid";
         public static final String PROTOCOL_KEY_JSON = "procotol";
