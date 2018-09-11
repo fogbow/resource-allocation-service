@@ -1,6 +1,9 @@
 package org.fogbowcloud.ras.core.datastore;
 
+import java.sql.SQLException;
+
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.datastore.orderstorage.OrderTimestampStorage;
 import org.fogbowcloud.ras.core.datastore.orderstorage.RecoveryService;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
@@ -9,12 +12,9 @@ import org.fogbowcloud.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.orders.OrderState;
 
-import java.sql.SQLException;
-
 public class DatabaseManager implements StableStorage {
     private static final Logger LOGGER = Logger.getLogger(DatabaseManager.class);
 
-    private static final String ERROR_MESSAGE = "Error instantiating database manager";
     private static DatabaseManager instance;
     private RecoveryService recoveryService;
     private OrderTimestampStorage orderTimestampStorage;
@@ -28,8 +28,8 @@ public class DatabaseManager implements StableStorage {
             try {
                 instance = new DatabaseManager();
             } catch (SQLException e) {
-                LOGGER.error(ERROR_MESSAGE, e);
-                throw new FatalErrorException(ERROR_MESSAGE, e);
+                LOGGER.error(Messages.Fatal.DATABASE_MANAGER_ERROR, e);
+                throw new FatalErrorException(Messages.Fatal.DATABASE_MANAGER_ERROR, e);
             }
         }
         return instance;

@@ -1,23 +1,24 @@
 package org.fogbowcloud.ras.core.plugins.aaa.authentication.ldap;
 
-import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
-import org.fogbowcloud.ras.core.PropertiesHolder;
-import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
-import org.fogbowcloud.ras.core.exceptions.ExpiredTokenException;
-import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
-import org.fogbowcloud.ras.core.exceptions.UnauthenticTokenException;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap.LdapTokenGeneratorPlugin;
-import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
-import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.RSAUtil;
-
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
 import java.util.Properties;
+
+import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.PropertiesHolder;
+import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.exceptions.ExpiredTokenException;
+import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
+import org.fogbowcloud.ras.core.exceptions.UnauthenticTokenException;
+import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap.LdapTokenGeneratorPlugin;
+import org.fogbowcloud.ras.util.PropertiesUtil;
+import org.fogbowcloud.ras.util.RSAUtil;
 
 public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     private static final Logger LOGGER = Logger.getLogger(LdapAuthenticationPlugin.class);
@@ -35,7 +36,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         try {
             this.publicKey = getPublicKey(publicKeyPath);
         } catch (IOException | GeneralSecurityException e) {
-            throw new FatalErrorException("Error reading public key: " + publicKeyPath);
+            throw new FatalErrorException(Messages.Fatal.PUBLIC_KEY_ERROR + publicKeyPath);
         }
     }
 
@@ -57,7 +58,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
         String split[] = federationTokenValue.split(LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
         if (split == null || split.length < 5) {
-            throw new UnauthenticTokenException("Invalid tokens: " + federationTokenValue);
+            throw new UnauthenticTokenException(Messages.Exception.INVALID_TOKENS + federationTokenValue);
         }
 
         Date currentDate = new Date(System.currentTimeMillis());
@@ -69,11 +70,11 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         String signature = split[4];
 
         if (expirationDate.before(currentDate)) {
-            throw new ExpiredTokenException("Expiration date: " + expirationDate);
+            throw new ExpiredTokenException(Messages.Exception.EXPIRATION_DATE + expirationDate);
         }
 
         if (!verifySign(tokenValue, signature)) {
-            throw new UnauthenticTokenException("Invalid tokens: " + federationTokenValue);
+            throw new UnauthenticTokenException(Messages.Exception.INVALID_TOKENS + federationTokenValue);
         }
     }
 
@@ -81,7 +82,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         try {
             return RSAUtil.verify(this.publicKey, tokenMessage, signature);
         } catch (Exception e) {
-            throw new RuntimeException("Error while trying to validate sing of the tokens.", e);
+            throw new RuntimeException(Messages.Exception.TOKEN_SIGNATURE_VALIDATION_ERROR, e);
         }
     }
 

@@ -10,6 +10,7 @@ public class Messages {
 		public static final String QUOTA_ENDPOINT_NOT_IMPLEMENTED = "Not yet implemented quota endpoint for ";
 		public static final String ORDER_ALREADY_EXISTS = "Order already exists";
 		public static final String ORDER_NOT_EXISTS = "Order doesn't exist";
+		public static final String FATAL_ERROR = "Fatal error exception";
 		public static final String FOGBOW_RAS = "Fogbow RAS exception";
 		public static final String INSTANCE_NOT_FOUND = "Instance not found exception";
 		public static final String INVALID_PARAMETER = "Invalid parameter exception";
@@ -39,6 +40,18 @@ public class Messages {
 		public static final String TRY_TO_REMOVE_ORDER_NOT_ACTIVE = "Tried to remove order %s from the active orders but it was not active";
 		public static final String COULD_NOT_FIND_LIST_FOR_STATE = "Could not find list for state %s";
 		public static final String COULD_NOT_FIND_DESTINATION_LIST_FOR_STATE = "Could not find destination list for state %s";
+		public static final String INVALID_TOKENS = "Invalid tokens: ";
+		public static final String EXPIRATION_DATE = "Expiration date: ";
+		public static final String TOKEN_SIGNATURE_VALIDATION_ERROR = "Error while trying to validate sing of the tokens.";
+	}
+	
+	public static class Fatal {
+		public static final String XMPP_CONNECTION_UNABLE = "Unable to connect to XMPP, check XMPP configuration file.";
+		public static final String DATABASE_MANAGER_ERROR = "Error instantiating database manager";
+		public static final String PUBLIC_KEY_ERROR = "Error reading public key: ";
+		public static final String INVALID_KEYSTONE_V3_URL = "Invalid Keystone_V3_URL ";
+		public static final String NO_CLASS_UNDER_REPOSITORY = "No %s class under this repository. Please inform a valid class.";
+		public static final String INITIALIZATION_NOT_POSSIBLE = "It is not possible to initialize HttpRequestUtil.";
 	}
 
 }
