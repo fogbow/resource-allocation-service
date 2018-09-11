@@ -23,15 +23,14 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     private static final Logger LOGGER = Logger.getLogger(LdapAuthenticationPlugin.class);
 
     private static final String LDAP_PLUGIN_CONF_FILE = "ldap-identity-plugin.conf";
-    private static final String PUBLIC_KEY_PATH = "public_key_path";
     private String localProviderId;
     private RSAPublicKey publicKey;
 
     public LdapAuthenticationPlugin() throws FatalErrorException {
         this.localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        String publicKeyPath = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PUBLIC_KEY_FILE_PATH);
 
         Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() + LDAP_PLUGIN_CONF_FILE);
-        String publicKeyPath = properties.getProperty(PUBLIC_KEY_PATH);
         try {
             this.publicKey = getPublicKey(publicKeyPath);
         } catch (IOException | GeneralSecurityException e) {
