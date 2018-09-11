@@ -12,6 +12,6 @@ public interface PublicIpPlugin<T extends Token> {
 
     void deleteInstance(String publicIpInstanceId, T token) throws FogbowRasException, UnexpectedException;
 
-    PublicIpInstance getInstance(String publicIpOrderId, T token) throws FogbowRasException, UnexpectedException;
+    PublicIpInstance getInstance(String publicIpInstanceId, T token) throws FogbowRasException, UnexpectedException;
 
 }
