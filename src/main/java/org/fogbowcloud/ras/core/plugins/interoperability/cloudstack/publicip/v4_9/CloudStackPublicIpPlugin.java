@@ -64,8 +64,6 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
                 jobId, null, computeInstanceId);
         publicIpSubState.put(publicIpOrder.getId(), currentAsyncRequest);
 
-        // TODO doAssociateRequest
-
         // we don't have the id of the ip address yet, but since the instance id is only used
         // by the plugin, we can map an orderId to an instanceId in the plugin
         return publicIpOrder.getId();
@@ -163,8 +161,6 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
-
-        // TODO wait asynchronous operation and check the success
     }
 
     protected String requestIpAddressAssociation(String networkId, CloudStackToken cloudStackToken)
