@@ -31,7 +31,7 @@ public class LoginResponse {
     }
 
     public String getSessionKey() {
-        return this.response.getSessionKey();
+        return this.response.sessionKey;
     }
 
     public static LoginResponse fromJson(String json) {

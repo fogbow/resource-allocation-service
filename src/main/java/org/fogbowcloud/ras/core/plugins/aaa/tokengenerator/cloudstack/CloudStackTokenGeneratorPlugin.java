@@ -2,25 +2,19 @@ package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack;
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.ras.core.exceptions.UnavailableProviderException;
+import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowRasExceptionMapper;
-import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineResponse;
-import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
-import java.io.File;
 import java.util.Map;
-import java.util.Properties;
 
-public class CloudStackTokenGenerator implements TokenGeneratorPlugin {
-    private static final Logger LOGGER = Logger.getLogger(CloudStackTokenGenerator.class);
+public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
+    private static final Logger LOGGER = Logger.getLogger(CloudStackTokenGeneratorPlugin.class);
 
     public static final String API_KEY = "apiKey";
     public static final String SECRET_KEY = "secretKey";
@@ -28,24 +22,19 @@ public class CloudStackTokenGenerator implements TokenGeneratorPlugin {
     public static final String PASSWORD = "password";
     public static final String DOMAIN = "secretKey";
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
-    public static final String TOKEN_VALUE_SEPARATOR = "!#!";
+    public static final String TOKEN_VALUE_SEPARATOR = ":";
+    public static final String TOKEN_STRING_SEPARATOR = "!#!";
 
-    private String endpoint;
     private String tokenProviderId;
     private HttpRequestClientUtil client;
 
-    public CloudStackTokenGenerator() {
+    public CloudStackTokenGeneratorPlugin() {
         this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
-
-        Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() + File.separator
-                + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME);
-
-        this.endpoint = properties.getProperty(CLOUDSTACK_URL);
         this.client = new HttpRequestClientUtil();
     }
 
     @Override
-    public String createTokenValue(Map<String, String> credentials) throws FogbowRasException {
+    public String createTokenValue(Map<String, String> credentials) throws FogbowRasException, UnexpectedException {
         if ((credentials == null) || (credentials.get(USERNAME) == null) || (credentials.get(PASSWORD) == null) ||
              credentials.get(DOMAIN) == null) {
             String errorMsg = "User credentials can't be null";
@@ -82,32 +71,40 @@ public class CloudStackTokenGenerator implements TokenGeneratorPlugin {
         return loginRequest;
     }
 
-    private String getTokenValue(String sessionKey) throws FogbowRasException {
+    private String getTokenValue(String sessionKey) throws FogbowRasException, UnexpectedException {
         ListAccountsRequest request = new ListAccountsRequest.Builder()
                 .sessionKey(sessionKey)
                 .build();
 
         String jsonResponse = null;
         try {
-            // NOTE(pauloewerton): no need to pass a token
+            // NOTE(pauloewerton): no need to pass a token in this request
             jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), null);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
 
-        ListAccountsResponse response = ListAccountsResponse.fromJson(jsonResponse);
+        String tokenString = null;
+        try {
+            ListAccountsResponse response = ListAccountsResponse.fromJson(jsonResponse);
+            // NOTE(pauloewerton): considering one account/user per request
+            ListAccountsResponse.User user = response.getAccounts().get(0).getUsers().get(0);
 
-        return null;
-    }
+            // FIXME(pauloewerton): should token value be split into two differnt values? Also, keeping a colon as
+            // separator just as expected by the other cloudstack plugins.
+            String tokenValue = user.getApiKey() + TOKEN_VALUE_SEPARATOR + user.getSecretKey();
+            String userId = user.getId();
+            String firstName = user.getFirstName();
+            String lastName = user.getLastName();
+            String userName = (firstName != null && lastName != null) ? firstName + " " + lastName : user.getUsername();
 
-    private ListAccountsRequest createListAccountsRequest(String sessionKey) {
-        String password = credentials.get(PASSWORD);
-        String domain = credentials.get(DOMAIN);
+            tokenString = this.tokenProviderId + TOKEN_STRING_SEPARATOR + tokenValue + TOKEN_STRING_SEPARATOR +
+                          userId + TOKEN_STRING_SEPARATOR + userName;
+        } catch(Exception e) {
+            LOGGER.error("Exception while getting tokens from json", e);
+            throw new UnexpectedException("Exception while getting tokens from json", e);
+        }
 
-        LoginRequest loginRequest = new LoginRequest.Builder()
-                .username(userId)
-                .password(password)
-                .domain(domain)
-                .build();
+        return tokenString;
     }
 }

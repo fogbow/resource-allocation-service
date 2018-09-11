@@ -6,7 +6,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnauthorizedRequestException;
-import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGenerator;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGeneratorPlugin;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -23,11 +23,11 @@ public class CloudStackUrlUtil {
     private static final String SIGNATURE = "signature";
 
     public static void sign(URIBuilder requestEndpoint, String tokenValue) throws UnauthorizedRequestException {
-        String[] tokenValueSplit = tokenValue.split(CloudStackTokenGenerator.TOKEN_VALUE_SEPARATOR);
+        String[] tokenValueSplit = tokenValue.split(CloudStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
         String apiKey = tokenValueSplit[0];
         String secretKey = tokenValueSplit[1];
 
-        requestEndpoint.addParameter(CloudStackTokenGenerator.API_KEY, apiKey);
+        requestEndpoint.addParameter(CloudStackTokenGeneratorPlugin.API_KEY, apiKey);
         requestEndpoint.addParameter(RESPONSE_FORMAT, JSON);
 
         String query = null;

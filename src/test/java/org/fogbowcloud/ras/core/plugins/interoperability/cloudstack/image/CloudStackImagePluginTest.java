@@ -10,7 +10,7 @@ import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
-import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGenerator;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
@@ -185,7 +185,7 @@ public class CloudStackImagePluginTest {
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
 
         Properties properties = PropertiesUtil.readProperties(filePath);
-        return properties.getProperty(CloudStackTokenGenerator.CLOUDSTACK_URL);
+        return properties.getProperty(CloudStackTokenGeneratorPlugin.CLOUDSTACK_URL);
     }
 
     private static class TemplateResponse {

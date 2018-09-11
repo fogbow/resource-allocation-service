@@ -9,23 +9,23 @@ import org.mockito.Mockito;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CloudStackTokenGeneratorTest {
+public class CloudStackTokenGeneratorPluginTest {
 
     private static final String VALID_TOKEN_VALUE = "api:key";
 
-    private CloudStackTokenGenerator cloudStackTokenGenerator;
+    private CloudStackTokenGeneratorPlugin cloudStackTokenGeneratorPlugin;
 
     @Before
     public void setUp() throws Exception {
-        this.cloudStackTokenGenerator = Mockito.spy(new CloudStackTokenGenerator());
+        this.cloudStackTokenGeneratorPlugin = Mockito.spy(new CloudStackTokenGeneratorPlugin());
     }
 
     @Test
     public void testCreateToken() throws FogbowRasException {
         Map<String, String> tokenAttributes = new HashMap<String, String>();
-        tokenAttributes.put(CloudStackTokenGenerator.API_KEY, "api");
-        tokenAttributes.put(CloudStackTokenGenerator.SECRET_KEY, "key");
-        String token = this.cloudStackTokenGenerator.createTokenValue(tokenAttributes);
+        tokenAttributes.put(CloudStackTokenGeneratorPlugin.API_KEY, "api");
+        tokenAttributes.put(CloudStackTokenGeneratorPlugin.SECRET_KEY, "key");
+        String token = this.cloudStackTokenGeneratorPlugin.createTokenValue(tokenAttributes);
 
         Assert.assertEquals(VALID_TOKEN_VALUE, token);
     }
@@ -33,9 +33,9 @@ public class CloudStackTokenGeneratorTest {
     @Test(expected = FogbowRasException.class)
     public void testInvalidTokenParameters() throws FogbowRasException {
         Map<String, String> tokenAttributes = new HashMap<String, String>();
-        tokenAttributes.put(CloudStackTokenGenerator.API_KEY, null);
-        tokenAttributes.put(CloudStackTokenGenerator.SECRET_KEY, "key");
+        tokenAttributes.put(CloudStackTokenGeneratorPlugin.API_KEY, null);
+        tokenAttributes.put(CloudStackTokenGeneratorPlugin.SECRET_KEY, "key");
 
-        String token = this.cloudStackTokenGenerator.createTokenValue(tokenAttributes);
+        String token = this.cloudStackTokenGeneratorPlugin.createTokenValue(tokenAttributes);
     }
 }

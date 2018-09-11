@@ -15,7 +15,7 @@ import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
 import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
-import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGenerator;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.util.PropertiesUtil;
@@ -278,7 +278,7 @@ public class CloudStackNetworkPluginTest {
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
 
         Properties properties = PropertiesUtil.readProperties(filePath);
-        return properties.getProperty(CloudStackTokenGenerator.CLOUDSTACK_URL);
+        return properties.getProperty(CloudStackTokenGeneratorPlugin.CLOUDSTACK_URL);
     }
 
 }

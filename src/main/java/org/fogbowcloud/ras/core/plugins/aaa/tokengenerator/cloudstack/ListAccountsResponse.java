@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack;
 
 import com.google.gson.annotations.SerializedName;
+import org.fogbowcloud.ras.util.GsonHolder;
 
 import java.util.List;
 
@@ -47,15 +48,19 @@ public class ListAccountsResponse {
     public class Account {
         @SerializedName(USER_KEY_JSON)
         private List<User> users;
+
+        public List<User> getUsers() {
+            return users;
+        }
     }
 
-    public List<User> getUsers() {
-        return this.listAccountsResponse.get(0).users;
+    public List<Account> getAccounts() {
+        return this.listAccountsResponse;
     }
 
     public class User {
         @SerializedName(USER_ID_KEY_JSON)
-        private String userId;
+        private String id;
         @SerializedName(USERNAME_KEY_JSON)
         private String username;
         @SerializedName(FIRST_NAME_KEY_JSON)
@@ -67,8 +72,8 @@ public class ListAccountsResponse {
         @SerializedName(SECRET_KEY_JSON)
         private String secretKey;
 
-        public String getUserId() {
-            return userId;
+        public String getId() {
+            return id;
         }
 
         public String getUsername() {
@@ -90,5 +95,9 @@ public class ListAccountsResponse {
         public String getSecretKey() {
             return secretKey;
         }
+    }
+
+    public static ListAccountsResponse fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, ListAccountsResponse.class);
     }
 }
