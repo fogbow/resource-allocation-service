@@ -8,10 +8,8 @@ import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.ras.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowRasExceptionMapper;
-import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineResponse;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
@@ -19,8 +17,8 @@ import java.io.File;
 import java.util.Map;
 import java.util.Properties;
 
-public class CloudStackTokenGenerator implements TokenGeneratorPlugin {
-    private static final Logger LOGGER = Logger.getLogger(CloudStackTokenGenerator.class);
+public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
+    private static final Logger LOGGER = Logger.getLogger(CloudStackTokenGeneratorPlugin.class);
 
     public static final String API_KEY = "apiKey";
     public static final String SECRET_KEY = "secretKey";
@@ -34,7 +32,7 @@ public class CloudStackTokenGenerator implements TokenGeneratorPlugin {
     private String tokenProviderId;
     private HttpRequestClientUtil client;
 
-    public CloudStackTokenGenerator() {
+    public CloudStackTokenGeneratorPlugin() {
         this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
         Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() + File.separator
@@ -95,19 +93,20 @@ public class CloudStackTokenGenerator implements TokenGeneratorPlugin {
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
 
-        ListAccountsResponse response = ListAccountsResponse.fromJson(jsonResponse);
+        //ListAccountsResponse response = ListAccountsResponse.fromJson(jsonResponse);
 
         return null;
     }
 
     private ListAccountsRequest createListAccountsRequest(String sessionKey) {
-        String password = credentials.get(PASSWORD);
-        String domain = credentials.get(DOMAIN);
+        //String password = credentials.get(PASSWORD);
+        //String domain = credentials.get(DOMAIN);
 
-        LoginRequest loginRequest = new LoginRequest.Builder()
-                .username(userId)
-                .password(password)
-                .domain(domain)
-                .build();
+//        LoginRequest loginRequest = new LoginRequest.Builder()
+//                .username(userId)
+//                .password(password)
+//                .domain(domain)
+//                .build();
+        return null;
     }
 }
