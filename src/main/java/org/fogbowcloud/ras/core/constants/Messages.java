@@ -57,5 +57,9 @@ public class Messages {
 	public static class Debug {
 		public static final String SEARCHING_NETWORK_PORT = "Searching the network port of the VM (%s) with tokens %s";
 	}
+	
+	public static class Out {
+		public static final String COULD_NOT_ROLLBACK_TRANSACTION = "Couldn't rollback transaction.";
+	}
 
 }

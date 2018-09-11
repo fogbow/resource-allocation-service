@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core.datastore.orderstorage;
 
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.datastore.commands.TimestampSQLCommands;
 import org.fogbowcloud.ras.core.models.orders.Order;
 
@@ -107,7 +108,7 @@ public class OrderTimestampStorage extends OrderStorage {
                 }
             } catch (SQLException e1) {
                 e1.printStackTrace();
-                System.out.println("Couldn't rollback transaction.");
+                System.out.println(Messages.Out.COULD_NOT_ROLLBACK_TRANSACTION);
             }
 
         } finally {
