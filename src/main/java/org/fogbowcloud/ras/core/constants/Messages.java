@@ -27,9 +27,6 @@ public class Messages {
 		public static final String REMOVE_NULL_ORDER_ATTEMPTING = "Attempting to remove a null order.";
 		public static final String PORT_NOT_FOUND = "None port found of the virtual machine(%s) and default network(%s) ";
 		public static final String IRREGULAR_PORT_SIZE = "Irregular ports size(%s) of the virtual machine(%s) and default network(%s) ";
-		public static final String DEFAULT_NETWORK_NOT_FOUND = "Default network not found";
-		public static final String EXTERNAL_NETWORK_NOT_FOUND = "External network not found";
-		public static final String NEUTRO_ENDPOINT_NOT_FOUND = "Neutro endpoint not found";
 		public static final String RESOURCE_TYPE_MISMATCHING = "Mismatching resource type";
 		public static final String NOT_OWN_ORDER_REQUESTER = "Requester does not own order";
 		public static final String NOT_CORRECT_PROVIDING_MEMBER = "This is not the correct providing member";
@@ -52,6 +49,13 @@ public class Messages {
 		public static final String INVALID_KEYSTONE_V3_URL = "Invalid Keystone_V3_URL ";
 		public static final String NO_CLASS_UNDER_REPOSITORY = "No %s class under this repository. Please inform a valid class.";
 		public static final String INITIALIZATION_NOT_POSSIBLE = "It is not possible to initialize HttpRequestUtil.";
+		public static final String DEFAULT_NETWORK_NOT_FOUND = "Default network not found";
+		public static final String EXTERNAL_NETWORK_NOT_FOUND = "External network not found";
+		public static final String NEUTRO_ENDPOINT_NOT_FOUND = "Neutro endpoint not found";
+	}
+	
+	public static class Debug {
+		public static final String SEARCHING_NETWORK_PORT = "Searching the network port of the VM (%s) with tokens %s";
 	}
 
 }
