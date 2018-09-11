@@ -36,7 +36,7 @@ public class RemoteDeleteOrderRequestTest {
                 "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
         this.order = new ComputeOrder(federationUserToken, "requesting-member",
-                "providing-member", 10, 20, 30, "imageid",
+                "providing-member", "hostName", 10, 20, 30, "imageid",
                 null, "publicKey", null);
 
         this.remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(this.order);

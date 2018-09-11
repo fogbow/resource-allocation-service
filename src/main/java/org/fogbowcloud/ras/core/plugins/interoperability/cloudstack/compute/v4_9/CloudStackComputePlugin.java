@@ -24,10 +24,7 @@ import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY;
 
@@ -37,6 +34,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     public static final String ZONE_ID_KEY = "zone_id";
     public static final String EXPUNGE_ON_DESTROY_KEY = "expunge_on_destroy";
     public static final String DEFAULT_VOLUME_TYPE = "ROOT";
+    public static final String FOGBOW_INSTANCE_NAME = "fogbow-compute-instance-";
 
     private HttpRequestClientUtil client;
     private String zoneId;
@@ -88,12 +86,16 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         // offering is found.
         String diskOfferingId = disk > 0 ? getDiskOfferingId(disk, cloudStackToken) : null;
 
+        String instanceName = computeOrder.getName();
+        if (instanceName == null) instanceName = FOGBOW_INSTANCE_NAME + getRandomUUID();
+
         // NOTE(pauloewerton): diskofferingid and hypervisor are required in case of ISO image. i haven't
         // found any clue pointing that ISO images were being used in mono though.
         DeployVirtualMachineRequest request = new DeployVirtualMachineRequest.Builder()
                 .serviceOfferingId(serviceOfferingId)
                 .templateId(templateId)
                 .zoneId(this.zoneId)
+                .name(instanceName)
                 .diskOfferingId(diskOfferingId)
                 .userData(userData)
                 .networksId(networksId)
@@ -289,6 +291,10 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         }
 
         LOGGER.info("Deleted instance " + computeInstanceId);
+    }
+
+    protected String getRandomUUID() {
+        return UUID.randomUUID().toString();
     }
 
     protected void setClient(HttpRequestClientUtil client) {

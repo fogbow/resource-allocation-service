@@ -37,6 +37,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
     private static final String REMOTE_MEMBER_ID = "fake-intercomponent-member";
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
+    private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
     private static final String FAKE_IMAGE_NAME = "fake-image-name";
     private static final String FAKE_PUBLIC_KEY = "fake-public-key";
     private static final String FAKE_SOURCE = "fake-source";
@@ -344,7 +345,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         String providingMember =
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
 
-        Order order = new ComputeOrder(federationUserToken, requestingMember, providingMember, 8, 1024,
+        Order order = new ComputeOrder(federationUserToken, requestingMember, providingMember, FAKE_INSTANCE_NAME, 8, 1024,
                 30, FAKE_IMAGE_NAME, userData, FAKE_PUBLIC_KEY, null);
 
         return order;

@@ -61,3 +61,7 @@
 
 16. ImageException
 	- estilo: não declarar public nas interfaces
+
+17. FatalErrorException
+    - Sempre que forem feitos casos de testque esperem essa exceção, o teste deve ser skipado caso a variável de ambiente SKIP_TEST_ON_TRAVIS esteja definada como true.
+

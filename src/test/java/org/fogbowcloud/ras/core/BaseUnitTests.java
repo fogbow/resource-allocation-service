@@ -76,12 +76,14 @@ public class BaseUnitTests {
         UserData userData = Mockito.mock(UserData.class);
         String imageName = "fake-image-name";
         String publicKey = "fake-public-key";
+        String instanceName = "fake-instance-name";
 
         Order localOrder =
                 new ComputeOrder(
                         federationUserToken,
                         requestingMember,
                         providingMember,
+                        instanceName,
                         8,
                         1024,
                         30,

@@ -16,6 +16,8 @@ import java.util.UUID;
 public class ComputeOrder extends Order {
     private static final long serialVersionUID = 1L;
     @Column
+    private String name;
+    @Column
     private int vCPU;
     /**
      * Memory attribute, must be set in MB.
@@ -47,9 +49,10 @@ public class ComputeOrder extends Order {
      * Creating Order with predefined Id.
      */
     public ComputeOrder(String id, FederationUserToken federationUserToken, String requestingMember,
-                        String providingMember, int vCPU, int memory, int disk, String imageId, UserData userData,
-                        String publicKey, List<String> networksId) {
+                        String providingMember, String name, int vCPU, int memory, int disk, String imageId,
+                        UserData userData, String publicKey, List<String> networksId) {
         super(id, federationUserToken, requestingMember, providingMember);
+        this.name = name;
         this.vCPU = vCPU;
         this.memory = memory;
         this.disk = disk;
@@ -61,10 +64,10 @@ public class ComputeOrder extends Order {
     }
 
     public ComputeOrder(FederationUserToken federationUserToken, String requestingMember, String providingMember,
-                        int vCPU, int memory, int disk, String imageId, UserData userData, String publicKey,
+                        String name, int vCPU, int memory, int disk, String imageId, UserData userData, String publicKey,
                         List<String> networksId) {
         this(UUID.randomUUID().toString(), federationUserToken, requestingMember, providingMember,
-                vCPU, memory, disk, imageId, userData, publicKey, networksId);
+             name, vCPU, memory, disk, imageId, userData, publicKey, networksId);
     }
 
     public ComputeAllocation getActualAllocation() {
@@ -73,6 +76,10 @@ public class ComputeOrder extends Order {
 
     public void setActualAllocation(ComputeAllocation actualAllocation) {
         this.actualAllocation = actualAllocation;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public int getvCPU() {
@@ -116,7 +123,10 @@ public class ComputeOrder extends Order {
     }
 
 	@Override
-	public String getSpec() {
-		return this.actualAllocation.getvCPU() + "/" + this.actualAllocation.getRam();
-	}
+    public String getSpec() {
+        if (this.actualAllocation == null) {
+            return "";
+        }
+        return this.actualAllocation.getvCPU() + "/" + this.actualAllocation.getRam();
+    }
 }

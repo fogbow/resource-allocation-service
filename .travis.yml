@@ -3,6 +3,9 @@ jdk:
   - oraclejdk8
   - openjdk8
 
+env:
+  SKIP_TEST_ON_TRAVIS=true
+
 cache:
   directories:
     - .autoconf

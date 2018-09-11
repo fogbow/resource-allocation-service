@@ -193,7 +193,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
     }
 
     private Order createOrder(FederationUserToken token) {
-        return new ComputeOrder(token, "fake-requesting-member", "fake-providing-member",
+        return new ComputeOrder(token, "fake-requesting-member", "fake-providing-member", "fake-instance-name",
                 -1, -1, -1, "fake-image-id", null, "fake-public-key", new ArrayList<String>());
     }
 

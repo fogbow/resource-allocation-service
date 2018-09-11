@@ -43,6 +43,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
     private static final String FAKE_USER = "fake-user";
     private static final String FAKE_REQUESTING_MEMBER = "fake-requesting-member";
     private static final String FAKE_PROVIDING_MEMBER = "fake-providing-member";
+    private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
     private static final int FAKE_CPU_AMOUNT = 8;
     private static final int FAKE_RAM_AMOUNT = 1024;
     private static final int FAKE_DISK_AMOUNT = 30;
@@ -123,7 +124,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
                 FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
 
         computeOrder = new ComputeOrder(FAKE_ID_1, federationUserToken,
-                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
+                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
                 FAKE_DISK_AMOUNT, FAKE_IMAGE_NAME, new UserData(FAKE_USER_DATA_FILE,
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), FAKE_PUBLIC_KEY, null);
         computeOrder.setOrderStateInTestMode(OrderState.OPEN);
@@ -147,7 +148,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
                 FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
 
         computeOrder = new ComputeOrder(FAKE_ID_1, federationUserToken,
-                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
+                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
                 FAKE_DISK_AMOUNT, FAKE_IMAGE_NAME, new UserData(FAKE_USER_DATA_FILE,
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), FAKE_PUBLIC_KEY, null);
         computeOrder.setOrderStateInTestMode(OrderState.OPEN);
@@ -185,7 +186,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
                 FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
 
         computeOrder = new ComputeOrder(FAKE_ID_1, federationUserToken,
-                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
+                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
                 FAKE_DISK_AMOUNT, FAKE_IMAGE_NAME, new UserData(FAKE_USER_DATA_FILE,
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), FAKE_PUBLIC_KEY, null);
 
@@ -211,7 +212,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
                 FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
 
         computeOrder = new ComputeOrder(FAKE_ID_1, federationUserToken,
-                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
+                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
                 FAKE_DISK_AMOUNT, FAKE_IMAGE_NAME, new UserData(FAKE_USER_DATA_FILE,
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), FAKE_PUBLIC_KEY, null);
 
@@ -252,7 +253,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
 
         // creating computing order with open state
         computeOrder = new ComputeOrder(FAKE_ID_1, federationUserToken,
-                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
+                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
                 FAKE_DISK_AMOUNT, FAKE_IMAGE_NAME, new UserData(FAKE_USER_DATA_FILE,
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), FAKE_PUBLIC_KEY, null);
         computeOrder.setOrderStateInTestMode(OrderState.OPEN);
@@ -264,7 +265,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
 
         // creating network order with fulfilled state
         Order networkOrder = new NetworkOrder("fake-net-id", federationUserToken,
-                "requestingMember", "providingMember", "gateway",
+                "requestingMember", "providingMember", "name", "gateway",
                 "address", NetworkAllocationMode.STATIC);
         networkOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 
@@ -295,7 +296,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
                 FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
 
         computeOrder = new ComputeOrder(FAKE_ID_1, federationUserToken,
-                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
+                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
                 FAKE_DISK_AMOUNT, FAKE_IMAGE_NAME, new UserData(FAKE_USER_DATA_FILE,
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), FAKE_PUBLIC_KEY, null);
         computeOrder.setOrderStateInTestMode(OrderState.OPEN);
@@ -315,7 +316,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
                 FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
 
         computeOrder = new ComputeOrder(FAKE_ID_1, federationUserToken,
-                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
+                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
                 FAKE_DISK_AMOUNT, FAKE_IMAGE_NAME, new UserData(FAKE_USER_DATA_FILE,
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), FAKE_PUBLIC_KEY, null);
         computeOrder.setOrderStateInTestMode(OrderState.OPEN);

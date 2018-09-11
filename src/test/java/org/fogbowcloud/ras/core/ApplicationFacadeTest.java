@@ -31,16 +31,20 @@ import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import javax.ws.rs.HEAD;
+
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(DatabaseManager.class)
 public class ApplicationFacadeTest extends BaseUnitTests {
 
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
+    private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_FEDERATION_TOKEN_VALUE = "federation-token-value";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USER_NAME = "fake-user-name";
     private static final String FAKE_MEMBER_ID = "fake-member-id";
+    private static final String FAKE_NAME = "fake-name";
     private static final String FAKE_GATEWAY = "fake-gateway";
     private static final String FAKE_ADDRESS = "fake-address";
     private static final String FAKE_VOLUME_NAME = "fake-volume-name";
@@ -1675,7 +1679,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
             FAKE_FEDERATION_TOKEN_VALUE,
             FAKE_USER_ID, FAKE_USER_NAME);
         NetworkOrder order = new NetworkOrder(federationUserToken, FAKE_MEMBER_ID, FAKE_MEMBER_ID,
-            FAKE_GATEWAY, FAKE_ADDRESS, NetworkAllocationMode.STATIC);
+                FAKE_NAME, FAKE_GATEWAY, FAKE_ADDRESS, NetworkAllocationMode.STATIC);
 
         NetworkInstance networtkInstanceExcepted = new NetworkInstance(order.getId());
         Mockito.doReturn(networtkInstanceExcepted).when(this.orderController)
@@ -1701,12 +1705,10 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     private ComputeOrder createComputeOrder() throws Exception {
-        FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
-            FAKE_FEDERATION_TOKEN_VALUE,
-            FAKE_USER_ID, FAKE_USER_NAME);
-        ComputeOrder order = new ComputeOrder(federationUserToken, FAKE_MEMBER_ID, FAKE_MEMBER_ID,
-            2, 2,
-            30, FAKE_IMAGE_NAME, new UserData(), FAKE_PUBLIC_KEY, null);
+        FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER, FAKE_FEDERATION_TOKEN_VALUE,
+                FAKE_USER_ID, FAKE_USER_NAME);
+        ComputeOrder order = new ComputeOrder(federationUserToken, FAKE_MEMBER_ID, FAKE_MEMBER_ID, FAKE_INSTANCE_NAME, 2, 2,
+                30, FAKE_IMAGE_NAME, new UserData(), FAKE_PUBLIC_KEY, null);
 
         ComputeInstance computeInstanceExcepted = new ComputeInstance(order.getId());
 

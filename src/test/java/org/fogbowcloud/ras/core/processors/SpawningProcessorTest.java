@@ -30,10 +30,12 @@ public class SpawningProcessorTest extends BaseUnitTests {
 
     private static final String TEST_PATH = "src/test/resources/private";
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
+    private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
     private static final String FAKE_IMAGE_NAME = "fake-image-name";
     private static final String FAKE_PUBLIC_KEY = "fake-public-key";
 
     private static final int DEFAULT_SLEEP_TIME = 500;
+    private static final int SPAWNING_SLEEP_TIME = 2000;
 
     private ChainedList failedOrderList;
     private ChainedList fulfilledOrderList;
@@ -251,7 +253,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         // exercise
         this.thread = new Thread(this.spawningProcessor);
         this.thread.start();
-        this.thread.sleep(DEFAULT_SLEEP_TIME);
+        this.thread.sleep(SPAWNING_SLEEP_TIME);
 
         // verify
         Order test = this.fulfilledOrderList.getNext();
@@ -302,7 +304,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         UserData userData = Mockito.mock(UserData.class);
 
         Order order = new ComputeOrder(federationUserToken, requestingMember,
-                providingMember, 8, 1024, 30, FAKE_IMAGE_NAME, userData, FAKE_PUBLIC_KEY, null);
+                providingMember, FAKE_INSTANCE_NAME, 8, 1024, 30, FAKE_IMAGE_NAME, userData, FAKE_PUBLIC_KEY, null);
 
         return order;
     }

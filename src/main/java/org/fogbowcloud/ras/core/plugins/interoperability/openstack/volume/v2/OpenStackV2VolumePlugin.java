@@ -48,7 +48,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackV3Token> {
         String jsonRequest = null;
         try {
             String size = String.valueOf(order.getVolumeSize());
-            String name = order.getVolumeName();
+            String name = order.getName();
             jsonRequest = generateJsonEntityToCreateInstance(size, name);
         } catch (JSONException e) {
             String errorMsg = "An error occurred when generating json.";
