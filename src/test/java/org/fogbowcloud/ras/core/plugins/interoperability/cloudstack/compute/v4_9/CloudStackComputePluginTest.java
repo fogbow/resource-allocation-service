@@ -10,6 +10,7 @@ import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 import org.fogbowcloud.ras.core.models.orders.UserData;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
+import org.fogbowcloud.ras.core.plugins.aaa.identity.cloudstack.CloudStackIdentityPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
@@ -48,13 +49,18 @@ public class CloudStackComputePluginTest {
     public static final String FAKE_DISK = "25";
     public static final String FAKE_ADDRESS = "10.0.0.0/24";
     public static final String FAKE_NETWORK_ID = "fake-network-id";
-    public static final String FAKE_TOKEN_VALUE = "fake-token-value";
     public static final String FAKE_TYPE = "ROOT";
     public static final String FAKE_EXPUNGE = "true";
     public static final String FAKE_MEMBER = "fake-member";
     public static final String FAKE_PUBLIC_KEY = "fake-member";
 
-    public static final CloudStackToken FAKE_TOKEN = new CloudStackToken(FAKE_TOKEN_VALUE);
+    private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
+    private static final String FAKE_USER_ID = "fake-user-id";
+    private static final String FAKE_USERNAME = "fake-username";
+    private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
+
+    public static final CloudStackToken FAKE_TOKEN = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE,
+        FAKE_USER_ID, FAKE_USERNAME);
 
     public static final String ID_KEY = "id";
     public static final String VIRTUAL_MACHINE_ID_KEY = "virtualmachineid";
@@ -596,7 +602,7 @@ public class CloudStackComputePluginTest {
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
 
         Properties properties = PropertiesUtil.readProperties(filePath);
-        return properties.getProperty(CloudStackTokenGenerator.CLOUDSTACK_URL);
+        return properties.getProperty(CloudStackTokenGeneratorPlugin.CLOUDSTACK_URL);
     }
 
     private String generateExpectedUrl(String endpoint, String command, String... keysAndValues) {
