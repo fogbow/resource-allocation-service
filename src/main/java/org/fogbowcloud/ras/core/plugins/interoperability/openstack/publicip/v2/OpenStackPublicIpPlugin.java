@@ -11,11 +11,14 @@ import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.models.ResourceType;
+import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.instances.PublicIpInstance;
 import org.fogbowcloud.ras.core.models.orders.PublicIpOrder;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.PublicIpPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowRasExceptionMapper;
+import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.compute.v2.OpenStackNovaV2ComputePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.network.v2.OpenStackV2NetworkPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.publicip.v2.CreateFloatingIpResponse.FloatingIp;
@@ -95,20 +98,30 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
         }
 	}		
 	
-	public PublicIpInstance getInstance(String publicIpOrderId, OpenStackV3Token openStackV3Token) 
+	//FIXME publicIdOrderId is worng in the interface. The correct is publicIpInstanceId
+	@Override
+	public PublicIpInstance getInstance(String publicIpInstanceId, OpenStackV3Token openStackV3Token) 
 			throws FogbowRasException, UnexpectedException {
+		LOGGER.info("Getting floating ip " + publicIpInstanceId + " with tokens " + openStackV3Token);
 		
+		String responseGetFloatingIp = null;
 		try {
-			
 			String floatingIpEndpointPrefix = getFloatingIpEndpoint();
-        	// publicIdOrderId is worng. The correct is publicIpInstanceId
-			String endpoint = String.format("%s/%s", floatingIpEndpointPrefix, publicIpOrderId);
-			this.client.doGetRequest(endpoint, openStackV3Token);
+			String endpoint = String.format("%s/%s", floatingIpEndpointPrefix, publicIpInstanceId);
+			responseGetFloatingIp = this.client.doGetRequest(endpoint, openStackV3Token);
 		} catch (HttpResponseException e) {
 			OpenStackHttpToFogbowRasExceptionMapper.map(e);
 		}
 		
-		return null;
+		GetFloatingIpResponse getFloatingIpResponse = GetFloatingIpResponse.fromJson(responseGetFloatingIp);
+		
+		String floatingIpStatus = getFloatingIpResponse.getFloatingIp().getStatus();
+		InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.PUBLIC_IP, floatingIpStatus);
+		
+		String ipAddressId = getFloatingIpResponse.getFloatingIp().getId();
+		String floatingIpAddress = getFloatingIpResponse.getFloatingIp().getFloatingIpAddress();
+		PublicIpInstance publicIpInstance = new PublicIpInstance(ipAddressId, fogbowState, floatingIpAddress);
+		return publicIpInstance;
 	}
 	
 	protected String getNetworkPortIp(String computeInstanceId, OpenStackV3Token openStackV3Token)

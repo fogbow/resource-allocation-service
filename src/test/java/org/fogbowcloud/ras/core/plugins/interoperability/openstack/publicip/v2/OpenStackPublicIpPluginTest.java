@@ -13,10 +13,14 @@ import org.apache.http.client.utils.URIBuilder;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
+import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.models.instances.InstanceState;
+import org.fogbowcloud.ras.core.models.instances.PublicIpInstance;
 import org.fogbowcloud.ras.core.models.orders.PublicIpOrder;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.models.tokens.Token;
+import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.junit.Assert;
@@ -384,7 +388,79 @@ public class OpenStackPublicIpPluginTest {
 		} catch (Exception e) {
 			Assert.fail();
 		}
-	}	
+	}
+	
+	// test case: success case with active status
+	@Test
+	public void testGetInstanceActive() throws HttpResponseException, FogbowRasException, UnexpectedException {	
+		// set up
+		String floatingIpId = "floatingIpId";
+		String floatingIpAddress = "floatingIpAddress";
+		String floatingIpStatus = OpenStackStateMapper.ACTIVE_STATUS;
+		String responseGetFloatingIp = getGetFloatingIpResponseJson(floatingIpId, floatingIpAddress,
+				floatingIpStatus);
+		
+		Mockito.when(this.httpClient.doGetRequest(
+				Mockito.anyString(), Mockito.any(OpenStackV3Token.class)))
+				.thenReturn(responseGetFloatingIp);
+		
+		// exercise
+		PublicIpInstance publicIpInstance = this.openStackPublicIpPlugin
+				.getInstance(floatingIpId, this.openStackV3Token);
+		
+		// verify
+		Assert.assertEquals(floatingIpId, publicIpInstance.getId());
+		Assert.assertEquals(floatingIpAddress, publicIpInstance.getIp());
+		Assert.assertEquals(InstanceState.READY, publicIpInstance.getState());		
+	}
+	
+	// test case: success case with unavailable status
+	@Test
+	public void testGetInstanceUnavailable() throws HttpResponseException, FogbowRasException, UnexpectedException {	
+		// set up
+		String floatingIpId = "floatingIpId";
+		String floatingIpAddress = "floatingIpAddress";
+		String floatingIpStatus = "";
+		String responseGetFloatingIp = getGetFloatingIpResponseJson(floatingIpId, floatingIpAddress,
+				floatingIpStatus);
+		
+		Mockito.when(this.httpClient.doGetRequest(
+				Mockito.anyString(), Mockito.any(OpenStackV3Token.class)))
+				.thenReturn(responseGetFloatingIp);
+		
+		// exercise
+		PublicIpInstance publicIpInstance = this.openStackPublicIpPlugin
+				.getInstance(floatingIpId, this.openStackV3Token);
+		
+		// verify
+		Assert.assertEquals(floatingIpId, publicIpInstance.getId());
+		Assert.assertEquals(floatingIpAddress, publicIpInstance.getIp());
+		Assert.assertEquals(InstanceState.UNAVAILABLE, publicIpInstance.getState());		
+	}
+	
+	// test case: throws FogbowRasException
+	@Test
+	public void testGetInstanceThrowFogbowRasException() throws HttpResponseException, FogbowRasException, UnexpectedException {	
+		// set up
+		String floatingIpId = "floatingIpId";
+		
+		HttpResponseException badRequestException = new HttpResponseException(HttpStatus.SC_BAD_REQUEST, "");
+		Mockito.doThrow(badRequestException).when(this.httpClient).doGetRequest(
+				Mockito.anyString(), Mockito.any(OpenStackV3Token.class));
+		
+		// exercise
+		try {
+			this.openStackPublicIpPlugin.getInstance(floatingIpId, this.openStackV3Token);
+			Assert.fail();
+		} catch (InvalidParameterException e) {}
+		
+		// verify
+		Mockito.verify(this.httpClient, Mockito.times(1)).doGetRequest(
+				Mockito.anyString(), 
+				Mockito.eq(this.openStackV3Token));				
+	}
+	
+
 	
     private String getPortsResponseJson(String... portsId) {
     	List<Map<String, Object>> idsJsonKey = new ArrayList<Map<String, Object>>();
@@ -405,6 +481,19 @@ public class OpenStackPublicIpPluginTest {
 	private String getCreateFloatingIpResponseJson(String floatingIpId) {
     	Map<String, Object> idJsonKey = new HashMap<String, Object>();
     	idJsonKey.put(OpenstackRestApiConstants.PublicIp.ID_KEY_JSON, floatingIpId);
+        Map<String, Object> floatingipJsonKey = new HashMap<String, Object>();
+        floatingipJsonKey.put(OpenstackRestApiConstants.PublicIp.FLOATING_IP_KEY_JSON, idJsonKey);
+        
+        Gson gson = new Gson();
+        return gson.toJson(floatingipJsonKey);
+    }
+	
+	private String getGetFloatingIpResponseJson(String floatingIpId,
+			String floatingIpAddress, String status) {
+    	Map<String, Object> idJsonKey = new HashMap<String, Object>();
+    	idJsonKey.put(OpenstackRestApiConstants.PublicIp.ID_KEY_JSON, floatingIpId);
+    	idJsonKey.put(OpenstackRestApiConstants.PublicIp.FLOATING_IP_ADDRESS_KEY_JSON, floatingIpAddress);
+    	idJsonKey.put(OpenstackRestApiConstants.PublicIp.STATUS_KEY_JSON, status);
         Map<String, Object> floatingipJsonKey = new HashMap<String, Object>();
         floatingipJsonKey.put(OpenstackRestApiConstants.PublicIp.FLOATING_IP_KEY_JSON, idJsonKey);
         

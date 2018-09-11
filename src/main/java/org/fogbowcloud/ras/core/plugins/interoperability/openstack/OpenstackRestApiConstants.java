@@ -106,6 +106,7 @@ public class OpenstackRestApiConstants {
     
     public static class PublicIp {
     	public static final String ID_KEY_JSON = "id";
+    	public static final String STATUS_KEY_JSON = "status";
     	public static final String FLOATING_IP_KEY_JSON = "floatingip";
     	public static final String FLOATING_IP_ADDRESS_KEY_JSON = "floating_ip_address";
     	public static final String FLOATING_NETWORK_ID_KEY_JSON = "floating_network_id";
