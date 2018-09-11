@@ -98,7 +98,6 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
         }
 	}		
 	
-	//FIXME publicIdOrderId is worng in the interface. The correct is publicIpInstanceId
 	@Override
 	public PublicIpInstance getInstance(String publicIpInstanceId, OpenStackV3Token openStackV3Token) 
 			throws FogbowRasException, UnexpectedException {
