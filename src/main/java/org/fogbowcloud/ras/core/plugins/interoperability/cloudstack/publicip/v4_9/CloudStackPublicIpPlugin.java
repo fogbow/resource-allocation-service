@@ -2,6 +2,8 @@ package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
@@ -12,14 +14,19 @@ import org.fogbowcloud.ras.core.plugins.interoperability.PublicIpPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackQueryAsyncJobResponse;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
+import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken> {
 
     private static final Logger LOGGER = Logger.getLogger(CloudStackPublicIpPlugin.class);
+
+    public static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
 
     public static final String DEFAULT_START_PORT = "22";
     public static final String DEFAULT_END_PORT = "60000";
@@ -29,11 +36,21 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
     public static final int SUCCESS = 1;
     public static final int FAILURE = 2;
 
+    private final String defaultNetworkId;
+
     private HttpRequestClientUtil client;
 
+    // since the ip creation and association involves multiple synchronous and asynchronous requests,
+    // we need to keep track of where we are in the process in order to fulfill the operation.
     Map<String, CurrentAsyncRequest> publicIpSubState;
 
     public CloudStackPublicIpPlugin() {
+        String cloudStackConfFilePath = HomeDir.getPath() + File.separator
+                + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
+
+        Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
+        this.defaultNetworkId = properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+
         this.client = new HttpRequestClientUtil();
         this.publicIpSubState = new HashMap<>();
     }
@@ -41,10 +58,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
     @Override
     public String requestInstance(PublicIpOrder publicIpOrder, String computeInstanceId,
                                   CloudStackToken token) throws FogbowRasException, UnexpectedException {
-        // TODO use getInstance of the CloudStackComputePlugin
-        String networkId = "";
-
-        String jobId = requestIpAddressAssociation(networkId, token);
+        String jobId = requestIpAddressAssociation(defaultNetworkId, token);
 
         CurrentAsyncRequest currentAsyncRequest = new CurrentAsyncRequest(PublicIpSubState.ASSOCIATING_IP_ADDRESS,
                 jobId, null, computeInstanceId);

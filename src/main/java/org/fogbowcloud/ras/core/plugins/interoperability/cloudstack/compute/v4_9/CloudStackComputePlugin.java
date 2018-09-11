@@ -29,12 +29,13 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Properties;
 
+import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY;
+
 public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputePlugin.class);
 
     public static final String ZONE_ID_KEY = "zone_id";
     public static final String EXPUNGE_ON_DESTROY_KEY = "expunge_on_destroy";
-    public static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
     public static final String DEFAULT_VOLUME_TYPE = "ROOT";
 
     private HttpRequestClientUtil client;
