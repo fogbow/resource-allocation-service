@@ -90,8 +90,7 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
             // NOTE(pauloewerton): considering one account/user per request
             ListAccountsResponse.User user = response.getAccounts().get(0).getUsers().get(0);
 
-            // FIXME(pauloewerton): should token value be split into two differnt values? Also, keeping a colon as
-            // separator just as expected by the other cloudstack plugins.
+            // NOTE(pauloewerton): Keeping a colon as separator just as expected by the other cloudstack plugins
             String tokenValue = user.getApiKey() + TOKEN_VALUE_SEPARATOR + user.getSecretKey();
             String userId = user.getId();
             String firstName = user.getFirstName();
