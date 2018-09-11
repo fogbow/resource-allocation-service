@@ -1,11 +1,19 @@
 package org.fogbowcloud.ras.core.models.orders;
 
 import java.util.UUID;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 
+@Entity
+@Table(name = "public_ip_order_table")
 public class PublicIpOrder extends Order {
 
+	@Column
     private String computeOrderId;
 
     public PublicIpOrder() {

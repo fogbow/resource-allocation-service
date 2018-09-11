@@ -33,7 +33,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
 	
 	protected static final String NETWORK_NEUTRONV2_URL_KEY = OpenStackV2NetworkPlugin.NETWORK_NEUTRONV2_URL_KEY;	
 	protected static final String DEFAULT_NETWORK_ID_KEY = OpenStackNovaV2ComputePlugin.DEFAULT_NETWORK_ID_KEY;
-	protected static final String EXTERNAL_NETWORK_ID_KEY = "external_network_id";
+	protected static final String EXTERNAL_NETWORK_ID_KEY = OpenStackV2NetworkPlugin.KEY_EXTERNAL_GATEWAY_INFO;
 	
 	protected static final String SUFFIX_ENDPOINT_FLOATINGIPS = "/floatingips";	
 	protected static final String NETWORK_V2_API_ENDPOINT = "/v2.0";
