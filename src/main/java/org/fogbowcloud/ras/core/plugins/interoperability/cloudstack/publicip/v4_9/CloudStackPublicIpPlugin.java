@@ -66,7 +66,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 
         // TODO doAssociateRequest
 
-        // we dont have the id of the ip address yet, but since the instance id is only used
+        // we don't have the id of the ip address yet, but since the instance id is only used
         // by the plugin, we can map an orderId to an instanceId in the plugin
         return publicIpOrder.getId();
     }
@@ -86,17 +86,18 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
         } else if (currentAsyncRequest.equals(PublicIpSubState.READY)) {
             result = instanceFromCurrentAsyncRequest(currentAsyncRequest, InstanceState.READY);
         } else {
-            result = getCurrentInstance(token, currentAsyncRequest);
+            result = getCurrentInstance(publicIpOrderId, token);
         }
 
         return result;
     }
 
-    private PublicIpInstance getCurrentInstance(CloudStackToken token, CurrentAsyncRequest currentAsyncRequest) throws FogbowRasException {
-        PublicIpInstance result;
+    private PublicIpInstance getCurrentInstance(String orderId, CloudStackToken token) throws FogbowRasException, UnexpectedException {
+        CurrentAsyncRequest currentAsyncRequest = publicIpSubState.get(orderId);
         String jsonResponse = getQueryJobResult(currentAsyncRequest.getCurrentJobId(), token);
         CloudStackQueryAsyncJobResponse queryAsyncJobResult = CloudStackQueryAsyncJobResponse.fromJson(jsonResponse);
 
+        PublicIpInstance result;
         switch (queryAsyncJobResult.getJobStatus()) {
             case PROCESSING:
                 result = new PublicIpInstance(null, InstanceState.SPAWNING, null);
@@ -123,8 +124,8 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
                 }
                 break;
             case FAILURE:
-                // any failure will lead to a disassociation of the ip address
-                rollback(currentAsyncRequest.getIpInstanceId());
+                // any failure should lead to a disassociation of the ip address
+                deleteInstance(orderId, token);
                 result = new PublicIpInstance(null, InstanceState.FAILED, null);
                 break;
             default:
@@ -141,21 +142,20 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
         return new PublicIpInstance(ipInstanceId, state, ip);
     }
 
-    private void rollback(String publicIpInstanceId) {
-
-    }
-
     @Override
-    public void deleteInstance(String ipAddressId, CloudStackToken cloudStackToken)
+    public void deleteInstance(String publicIpInstanceId, CloudStackToken cloudStackToken)
             throws FogbowRasException, UnexpectedException {
-        LOGGER.info("");
+        // since we returned the id of the order on requestInstance, publicIpInstanceId
+        // should be the id of the order
+        String orderId = publicIpInstanceId;
+        String ipAddressId = publicIpSubState.get(orderId).getIpInstanceId();
+        LOGGER.info("Requesting deletion for ipAddressId {}");
 
         DisassociateIpAddressRequest disassociateIpAddressRequest = new DisassociateIpAddressRequest.Builder()
                 .id(ipAddressId)
                 .build();
 
-        CloudStackUrlUtil
-                .sign(disassociateIpAddressRequest.getUriBuilder(), cloudStackToken.getTokenValue());
+        CloudStackUrlUtil.sign(disassociateIpAddressRequest.getUriBuilder(), cloudStackToken.getTokenValue());
 
         try {
             this.client.doGetRequest(disassociateIpAddressRequest.getUriBuilder().toString(),
@@ -188,14 +188,6 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
                 .fromJson(jsonResponse);
 
         return associateIpAddressSyncJobIdResponse.getJobId();
-//        checkOperation(associateIpAddressSyncJobIdResponse.getJobId(), cloudStackToken);
-//
-//        jsonResponse = getQueryJobResult(jobId, cloudStackToken);
-//        AssociateIpAddressResponse associateIpAddressResponse = AssociateIpAddressResponse
-//            .fromJson(jsonResponse);
-//
-//        IpAddress ipAddress = associateIpAddressResponse.getIpAddress();
-//        return ipAddress.getId();
     }
 
     protected void enableStaticNat(String computeInstanceId, String ipAdressId,
@@ -258,22 +250,6 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
         }
 
         return jsonResponse;
-    }
-
-    // TODO complete the implementation
-    private void checkOperation(String jobId, CloudStackToken cloudStackToken)
-            throws FogbowRasException {
-        // TODO implement the codition
-        boolean condition = true;
-        do {
-
-            getQueryJobResult(jobId, cloudStackToken);
-
-            // TODO
-            // jobStatus: 1 success
-            // jobStatus: 2 failed
-        } while (condition);
-
     }
 
     private enum PublicIpSubState {
