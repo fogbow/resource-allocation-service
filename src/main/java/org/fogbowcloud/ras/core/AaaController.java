@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.core;
 
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Operation;
 import org.fogbowcloud.ras.core.exceptions.*;
@@ -45,11 +46,11 @@ public class AaaController {
     public void authenticateAndAuthorize(FederationUserToken requester, Operation operation, ResourceType type,
                                          Order order) throws FogbowRasException {
         // Check if requested type matches order type
-        if (!order.getType().equals(type)) throw new InstanceNotFoundException("Mismatching resource type");
+        if (!order.getType().equals(type)) throw new InstanceNotFoundException(Messages.Exception.RESOURCE_TYPE_MISMATCHING);
         // Check whether requester owns order
         FederationUserToken orderOwner = order.getFederationUserToken();
         if (!orderOwner.getUserId().equals(requester.getUserId())) {
-            throw new UnauthorizedRequestException("Requester does not own order");
+            throw new UnauthorizedRequestException(Messages.Exception.NOT_OWN_ORDER_REQUESTER);
         }
         // Authenticate user and get authorization to perform generic operation on the type of resource
         authenticateAndAuthorize(requester, operation, type);
@@ -58,7 +59,7 @@ public class AaaController {
     public void remoteAuthenticateAndAuthorize(FederationUserToken federationUserToken, Operation operation,
                                                ResourceType type, String memberId) throws FogbowRasException {
         if (!memberId.equals(this.localMemberIdentity)) {
-            throw new InstanceNotFoundException("This is not the correct providing member");
+            throw new InstanceNotFoundException(Messages.Exception.NOT_CORRECT_PROVIDING_MEMBER);
         } else {
             authenticateAndAuthorize(federationUserToken, operation, type);
         }
@@ -67,7 +68,7 @@ public class AaaController {
     public void remoteAuthenticateAndAuthorize(FederationUserToken federationUserToken, Operation operation,
                                                ResourceType type, Order order) throws FogbowRasException {
         if (!order.getProvidingMember().equals(this.localMemberIdentity)) {
-            throw new InstanceNotFoundException("This is not the correct providing member");
+            throw new InstanceNotFoundException(Messages.Exception.NOT_CORRECT_PROVIDING_MEMBER);
         } else {
             authenticateAndAuthorize(federationUserToken, operation, type, order);
         }

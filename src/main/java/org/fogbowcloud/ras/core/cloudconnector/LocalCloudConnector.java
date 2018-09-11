@@ -3,6 +3,7 @@ package org.fogbowcloud.ras.core.cloudconnector;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.InteroperabilityPluginsHolder;
 import org.fogbowcloud.ras.core.SharedOrderHolders;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -98,12 +99,11 @@ public class LocalCloudConnector implements CloudConnector {
                 }
                 break;
             default:
-                String message = "No requestInstance plugin implemented for order " + order.getType();
-                throw new UnexpectedException(message);
+
+                throw new UnexpectedException(Messages.Exception.PLUGIN_FOR_REQUEST_INSTANCE_NOT_IMPLEMENTED + order.getType());
         }
         if (requestInstance == null) {
-            String message = "Plugin returned a null value for the instanceId.";
-            throw new UnexpectedException(message);
+            throw new UnexpectedException(Messages.Exception.NULL_VALUE_RETURNED);
         }
         return requestInstance;
     }
@@ -172,8 +172,7 @@ public class LocalCloudConnector implements CloudConnector {
                         instance = new AttachmentInstance(order.getId());
                         break;
                     default:
-                        String message = "Not supported order type " + order.getType();
-                        throw new UnexpectedException(message);
+                        throw new UnexpectedException(Messages.Exception.ORDER_TYPE_NOT_SUPPORTED);
                 }
                 InstanceState instanceState = getInstanceStateBasedOnOrderState(order);
                 instance.setState(instanceState);
@@ -190,7 +189,7 @@ public class LocalCloudConnector implements CloudConnector {
             case COMPUTE:
                 return this.computeQuotaPlugin.getUserQuota(token);
             default:
-                throw new UnexpectedException("Not yet implemented quota endpoint for " + resourceType);
+                throw new UnexpectedException(Messages.Exception.QUOTA_ENDPOINT_NOT_IMPLEMENTED + resourceType);
         }
     }
 
@@ -241,8 +240,7 @@ public class LocalCloudConnector implements CloudConnector {
                 instance = this.attachmentPlugin.getInstance(instanceId, token);
                 break;
             default:
-                String message = "Not supported order type " + order.getType();
-                throw new UnexpectedException(message);
+                throw new UnexpectedException(Messages.Exception.ORDER_TYPE_NOT_SUPPORTED + order.getType());
         }
         order.setCachedInstanceState(instance.getState());
         instance.setProvider(order.getProvidingMember());

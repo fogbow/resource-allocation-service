@@ -17,6 +17,7 @@ import org.fogbowcloud.ras.core.models.orders.OrderState;
 import org.fogbowcloud.ras.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.ras.core.constants.Messages;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -60,7 +61,7 @@ public class OrderController {
 
     public void deleteOrder(String orderId) throws InstanceNotFoundException, UnexpectedException,
             InvalidParameterException {
-        if (orderId == null) throw new InvalidParameterException("No instance id informed");
+        if (orderId == null) throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
         Order order = getOrder(orderId);
         synchronized (order) {
             OrderState orderState = order.getOrderState();
@@ -75,7 +76,7 @@ public class OrderController {
     }
 
     public Instance getResourceInstance(String orderId) throws Exception {
-        if (orderId == null) throw new InvalidParameterException("No instance id informed");
+        if (orderId == null) throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
         Order order = getOrder(orderId);
         synchronized (order) {
             CloudConnector cloudConnector =
@@ -105,7 +106,7 @@ public class OrderController {
                 }
                 return getUserComputeAllocation(computeOrders);
             default:
-                throw new UnexpectedException("Not yet implemented.");
+                throw new UnexpectedException(Messages.Exception.NOT_IMPLEMENTED);
         }
     }
 

@@ -1,5 +1,7 @@
 package org.fogbowcloud.ras.core.datastore.orderstorage;
 
+import org.fogbowcloud.ras.core.constants.Messages;
+
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.orders.OrderState;
@@ -40,7 +42,7 @@ public class RecoveryService {
 
     public Order save(Order order) throws UnexpectedException {
         if (orderRepository.exists(order.getId())) {
-            throw new UnexpectedException("Order already exists");
+            throw new UnexpectedException(Messages.Exception.ORDER_ALREADY_EXISTS);
         }
 
         return orderRepository.save(order);
@@ -48,7 +50,7 @@ public class RecoveryService {
 
     public Order update(Order order) throws UnexpectedException {
         if (!orderRepository.exists(order.getId())) {
-            throw new UnexpectedException("Order doesn't exist");
+            throw new UnexpectedException(Messages.Exception.ORDER_NOT_EXISTS);
         }
 
         return orderRepository.save(order);

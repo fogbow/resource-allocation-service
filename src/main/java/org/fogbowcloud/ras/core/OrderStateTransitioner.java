@@ -9,6 +9,7 @@ import org.fogbowcloud.ras.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.orders.OrderState;
+import org.fogbowcloud.ras.core.constants.Messages;
 
 import java.util.Map;
 
@@ -19,8 +20,7 @@ public class OrderStateTransitioner {
         LOGGER.info("Activating new compute order request received");
 
         if (order == null) {
-            String message = "Cannot process new order request. Order reference is null.";
-            throw new UnexpectedException(message);
+            throw new UnexpectedException(Messages.Exception.CAN_NOT_PROCESS_ORDER_REQUEST_NULL);
         }
 
         synchronized (order) {
@@ -31,7 +31,7 @@ public class OrderStateTransitioner {
             String orderId = order.getId();
 
             if (activeOrdersMap.containsKey(orderId)) {
-                String message = String.format("Order with id %s is already in active orders map.", orderId);
+                String message = String.format(Messages.Exception.ORDER_ID_ALREADY_ACTIVATED, orderId);
                 throw new UnexpectedException(message);
             }
             order.setOrderState(OrderState.OPEN);
@@ -78,8 +78,7 @@ public class OrderStateTransitioner {
             if (activeOrdersMap.containsKey(order.getId())) {
                 activeOrdersMap.remove(order.getId());
             } else {
-                String message = String.format(
-                        "Tried to remove order %s from the active orders but it was not active", order.getId());
+                String message = String.format(Messages.Exception.TRY_TO_REMOVE_ORDER_NOT_ACTIVE, order.getId());
                 throw new UnexpectedException(message);
             }
             closedOrders.removeItem(order);
@@ -102,10 +101,10 @@ public class OrderStateTransitioner {
         SynchronizedDoublyLinkedList destination = ordersHolder.getOrdersList(newState);
 
         if (origin == null) {
-            String message = String.format("Could not find list for state %s", currentState);
+            String message = String.format(Messages.Exception.COULD_NOT_FIND_LIST_FOR_STATE, currentState);
             throw new UnexpectedException(message);
         } else if (destination == null) {
-            String message = String.format("Could not find destination list for state %s", newState);
+            String message = String.format(Messages.Exception.COULD_NOT_FIND_DESTINATION_LIST_FOR_STATE, newState);
             throw new UnexpectedException(message);
         } else {
             // The order may have already been removed from the origin list by another thread

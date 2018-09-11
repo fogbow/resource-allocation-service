@@ -3,7 +3,7 @@ package org.fogbowcloud.ras.core.plugins.interoperability.openstack.publicip.v2;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Properties;
-
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
@@ -129,11 +129,9 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
 	protected void throwPortsException(List<Port> ports, String computeInstanceId, String defaulNetworkId) throws FogbowRasException {
 		String errorMsg = null;
 		if (ports == null || ports.size() == 0) {
-			errorMsg = String.format("None port found of the virtual machine(%s) and default network(%s) "
-					, computeInstanceId, defaulNetworkId); 
+			errorMsg = String.format(Messages.Exception.PORT_NOT_FOUND, computeInstanceId, defaulNetworkId); 
 		} else {
-			errorMsg = String.format("Irregular ports size(%s) of the virtual machine(%s) and default network(%s) "
-					, String.valueOf(ports.size()), computeInstanceId, defaulNetworkId);
+			errorMsg = String.format(Messages.Exception.IRREGULAR_PORT_SIZE, String.valueOf(ports.size()), computeInstanceId, defaulNetworkId);
 		}
 		throw new FogbowRasException(errorMsg);
 	}
@@ -145,15 +143,15 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
 		
 		String defaultNetworkId = getDefaultNetworkId();
 		if (defaultNetworkId == null || defaultNetworkId.isEmpty()) {
-        	throw new FatalErrorException("Default network not found");
+        	throw new FatalErrorException(Messages.Exception.DEFAULT_NETWORK_NOT_FOUND);
         }
         String externalNetworkId = getExternalNetworkId();
 		if (externalNetworkId == null || externalNetworkId.isEmpty()) {
-        	throw new FatalErrorException("External network not found");
+        	throw new FatalErrorException(Messages.Exception.EXTERNAL_NETWORK_NOT_FOUND);
         }
         String neutroApiEndpoint = getNeutroApiEndpoint();
 		if (neutroApiEndpoint == null || neutroApiEndpoint.isEmpty()) {
-        	throw new FatalErrorException("Neutro endpoint not found");
+        	throw new FatalErrorException(Messages.Exception.NEUTRO_ENDPOINT_NOT_FOUND);
         }
 	}	
 	
