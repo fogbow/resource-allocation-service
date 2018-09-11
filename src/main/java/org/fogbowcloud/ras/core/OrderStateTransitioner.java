@@ -1,7 +1,10 @@
 package org.fogbowcloud.ras.core;
 
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.Event;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
@@ -9,9 +12,6 @@ import org.fogbowcloud.ras.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.orders.OrderState;
-import org.fogbowcloud.ras.core.constants.Messages;
-
-import java.util.Map;
 
 public class OrderStateTransitioner {
     private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
@@ -55,9 +55,8 @@ public class OrderStateTransitioner {
                             break;
                     }
                 } catch (Exception e) {
-                    String message = "Could not notify requesting member [" + order.getRequestingMember() +
-                            " for order " + order.getId();
-                    LOGGER.warn(message);
+                    String message = String.format(Messages.Warn.COULD_NOT_NOTIFY_REQUESTING_MEMBER, order.getRequestingMember(), order.getId());
+                	LOGGER.warn(message);
                     // Keep trying to notify until the site is up again
                     // The site admin might want to monitor the warn log in case a site never
                     // recovers. In this case the site admin may delete the order using an

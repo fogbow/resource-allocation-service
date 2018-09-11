@@ -1,11 +1,25 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.ras.core.exceptions.*;
+import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
+import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
+import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.exceptions.NoAvailableResourcesException;
+import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.ComputeInstance;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
@@ -21,10 +35,6 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
-
-import java.io.File;
-import java.io.UnsupportedEncodingException;
-import java.util.*;
 
 public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackComputePlugin.class);
@@ -67,7 +77,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         try {
             userData = Base64.getEncoder().encodeToString(userData.getBytes("UTF-8"));
         } catch (UnsupportedEncodingException e) {
-            LOGGER.warn("Could not encode user data. Sending request without it.");
+            LOGGER.warn(Messages.Warn.USER_DATA_NOT_ENCODE);
             userData = null;
         }
 
@@ -228,7 +238,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         try {
             disk = getVirtualMachineDisk(instanceId, cloudStackToken);
         } catch (FogbowRasException e) {
-            LOGGER.warn("Root volume could not be retrieved for virtual machine " + vm.getId() + ". Assigning -1 to disk size.");
+            LOGGER.warn(String.format(Messages.Warn.COULD_NOT_RETRIEVE_ROOT_VOLUME, vm.getId()));
         }
 
         String cloudStackState = vm.getState();

@@ -1,19 +1,24 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.util;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 import org.fogbowcloud.ras.core.models.orders.UserData;
-
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 
 public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
     private static final Logger LOGGER = Logger.getLogger(DefaultLaunchCommandGenerator.class);
@@ -47,7 +52,7 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
     private void checkPropertyNotEmpty(String property, String propertyKey) throws FatalErrorException {
         if (property == null || property.trim().isEmpty()) {
-            String message = "Found end property" + propertyKey;
+            String message = String.format(Messages.Fatal.FOUND_END_PROPERTY, propertyKey);
             throw new FatalErrorException(message);
         }
     }
@@ -97,9 +102,9 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
             cloudInitUserDataBuilder.addFile(extraUserDataFileType, new StringReader(normalizedExtraUserData));
         } else if (extraUserDataFileContent == null) {
-            LOGGER.warn("It was not possible to add the extra user data file, whose content is null");
+            LOGGER.warn(Messages.Warn.NOT_POSSIBLE_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL);
         } else {
-            LOGGER.warn("It was not possible to add the extra user data file, the extra user data file type is null");
+            LOGGER.warn(Messages.Warn.NOT_POSSIBLE_ADD_EXTRA_USER_DATA_FILE_TYPE_NULL);
         }
     }
 

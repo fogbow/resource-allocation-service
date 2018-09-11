@@ -1,5 +1,9 @@
 package org.fogbowcloud.ras.core.cloudconnector;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.InteroperabilityPluginsHolder;
 import org.fogbowcloud.ras.core.SharedOrderHolders;
@@ -9,17 +13,28 @@ import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.images.Image;
-import org.fogbowcloud.ras.core.models.instances.*;
-import org.fogbowcloud.ras.core.models.orders.*;
+import org.fogbowcloud.ras.core.models.instances.AttachmentInstance;
+import org.fogbowcloud.ras.core.models.instances.ComputeInstance;
+import org.fogbowcloud.ras.core.models.instances.Instance;
+import org.fogbowcloud.ras.core.models.instances.InstanceState;
+import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
+import org.fogbowcloud.ras.core.models.instances.VolumeInstance;
+import org.fogbowcloud.ras.core.models.orders.AttachmentOrder;
+import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
+import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
+import org.fogbowcloud.ras.core.models.orders.Order;
+import org.fogbowcloud.ras.core.models.orders.OrderState;
+import org.fogbowcloud.ras.core.models.orders.VolumeOrder;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
-import org.fogbowcloud.ras.core.plugins.interoperability.*;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import org.fogbowcloud.ras.core.plugins.interoperability.AttachmentPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.ComputePlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.ComputeQuotaPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.ImagePlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.NetworkPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.VolumePlugin;
 
 public class LocalCloudConnector implements CloudConnector {
     private static final Logger LOGGER = Logger.getLogger(LocalCloudConnector.class);
@@ -137,7 +152,7 @@ public class LocalCloudConnector implements CloudConnector {
         } catch (InstanceNotFoundException e) {
             // This may happen if the resource-allocation-service crashed after the instance is deleted
             // but before the new state is updated in stable storage.
-            LOGGER.warn("Instance has already been deleted");
+            LOGGER.warn(Messages.Warn.INSTANCE_ALREADY_DELETED);
             return;
         }
     }

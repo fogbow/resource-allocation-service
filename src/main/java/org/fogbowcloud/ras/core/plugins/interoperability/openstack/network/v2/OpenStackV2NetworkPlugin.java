@@ -1,10 +1,19 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.openstack.network.v2;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
+
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.ras.core.exceptions.*;
+import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
+import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
+import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
@@ -19,11 +28,6 @@ import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
 
 public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
     private static final Logger LOGGER = Logger.getLogger(OpenStackV2NetworkPlugin.class);
@@ -224,8 +228,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
             removeNetwork(openStackV3Token, networkId);
         } catch (InstanceNotFoundException e) {
             // continue and try to delete the security group
-            String msg = String.format("Network with id %s not found, trying to delete security group with",
-                    networkId);
+            String msg = String.format(Messages.Warn.NETWORK_NOT_FOUND, networkId);
             LOGGER.warn(msg);
         } catch (UnexpectedException | FogbowRasException e) {
             String errorMsg = String.format("It was not possible delete network with id %s", networkId);

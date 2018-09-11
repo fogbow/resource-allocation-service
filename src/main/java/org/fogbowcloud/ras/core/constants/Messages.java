@@ -40,6 +40,7 @@ public class Messages {
 		public static final String INVALID_TOKENS = "Invalid tokens: ";
 		public static final String EXPIRATION_DATE = "Expiration date: ";
 		public static final String TOKEN_SIGNATURE_VALIDATION_ERROR = "Error while trying to validate sing of the tokens.";
+		public static final String IRREGULAR_SYNTAX = "Irregular syntax.";
 	}
 	
 	public static class Fatal {
@@ -52,6 +53,7 @@ public class Messages {
 		public static final String DEFAULT_NETWORK_NOT_FOUND = "Default network not found";
 		public static final String EXTERNAL_NETWORK_NOT_FOUND = "External network not found";
 		public static final String NEUTRO_ENDPOINT_NOT_FOUND = "Neutro endpoint not found";
+		public static final String FOUND_END_PROPERTY = "Found end property %s";
 	}
 	
 	public static class Debug {
@@ -60,6 +62,17 @@ public class Messages {
 	
 	public static class Out {
 		public static final String COULD_NOT_ROLLBACK_TRANSACTION = "Couldn't rollback transaction.";
+	}
+	
+	public static class Warn {
+		public static final String INSTANCE_ALREADY_DELETED = "Instance has already been deleted";
+		public static final String USER_DATA_NOT_ENCODE = "Could not encode user data. Sending request without it.";
+		public static final String COULD_NOT_RETRIEVE_ROOT_VOLUME = "Root volume could not be retrieved for virtual machine %s. Assigning -1 to disk size.";
+		public static final String SIGNATURE_NOT_GENERATE = "Couldn't generate signature.";
+		public static final String NETWORK_NOT_FOUND = "Network with id %s not found, trying to delete security group";
+		public static final String COULD_NOT_NOTIFY_REQUESTING_MEMBER = "Could not notify requesting member %s for order %s";
+		public static final String NOT_POSSIBLE_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL = "It was not possible to add the extra user data file, whose content is null";
+		public static final String NOT_POSSIBLE_ADD_EXTRA_USER_DATA_FILE_TYPE_NULL = "It was not possible to add the extra user data file, the extra user data file type is null";
 	}
 
 }
