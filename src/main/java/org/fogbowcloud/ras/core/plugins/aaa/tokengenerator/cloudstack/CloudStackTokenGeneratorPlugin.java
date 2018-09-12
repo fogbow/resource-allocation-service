@@ -16,11 +16,10 @@ import java.util.Map;
 public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     private static final Logger LOGGER = Logger.getLogger(CloudStackTokenGeneratorPlugin.class);
 
-    public static final String API_KEY = "apiKey";
-    public static final String SECRET_KEY = "secretKey";
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
-    public static final String DOMAIN = "secretKey";
+    public static final String DOMAIN = "domain";
+    public static final String API_KEY = "apikey";
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
     public static final String TOKEN_VALUE_SEPARATOR = ":";
     public static final String TOKEN_STRING_SEPARATOR = "!#!";
@@ -77,6 +76,7 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
                 .build();
 
         String jsonResponse = null;
+        System.out.println("accounts request: " + request.getUriBuilder().toString());
         try {
             // NOTE(pauloewerton): no need to pass a token in this request
             jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), null);
@@ -85,12 +85,14 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
         }
 
         String tokenString = null;
+        System.out.println("accounts json response: " + jsonResponse);
         try {
             ListAccountsResponse response = ListAccountsResponse.fromJson(jsonResponse);
-            // NOTE(pauloewerton): considering one account/user per request
+            System.out.println("accounts response: " + response);
+            // NOTE(pauloewerton): considering only one account/user per request
             ListAccountsResponse.User user = response.getAccounts().get(0).getUsers().get(0);
 
-            // NOTE(pauloewerton): Keeping a colon as separator just as expected by the other cloudstack plugins
+            // NOTE(pauloewerton): keeping a colon as separator as expected by the other cloudstack plugins
             String tokenValue = user.getApiKey() + TOKEN_VALUE_SEPARATOR + user.getSecretKey();
             String userId = user.getId();
             String firstName = user.getFirstName();
@@ -105,5 +107,10 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
         }
 
         return tokenString;
+    }
+
+    // Used for testing
+    protected void setClient(HttpRequestClientUtil client) {
+        this.client = client;
     }
 }

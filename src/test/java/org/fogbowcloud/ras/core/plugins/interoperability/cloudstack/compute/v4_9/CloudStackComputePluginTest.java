@@ -10,8 +10,6 @@ import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 import org.fogbowcloud.ras.core.models.orders.UserData;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
-import org.fogbowcloud.ras.core.plugins.aaa.identity.cloudstack.CloudStackIdentityPlugin;
-import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsRequest;
@@ -73,6 +71,7 @@ public class CloudStackComputePluginTest {
     public static final String DISK_OFFERING_ID_KEY = "diskofferingid";
     public static final String NETWORK_IDS_KEY = "networkids";
     public static final String USER_DATA_KEY = "userdata";
+    public static final String CLOUDSTACK_URL = "cloudstack_api_url";
 
     private String fakeZoneId;
 
@@ -602,7 +601,7 @@ public class CloudStackComputePluginTest {
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
 
         Properties properties = PropertiesUtil.readProperties(filePath);
-        return properties.getProperty(CloudStackTokenGeneratorPlugin.CLOUDSTACK_URL);
+        return properties.getProperty(CLOUDSTACK_URL);
     }
 
     private String generateExpectedUrl(String endpoint, String command, String... keysAndValues) {
