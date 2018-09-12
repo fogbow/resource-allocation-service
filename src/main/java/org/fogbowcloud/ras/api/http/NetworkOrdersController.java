@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin
 @RestController
 @RequestMapping(value = NetworkOrdersController.NETWORK_ENDPOINT)
 public class NetworkOrdersController {
