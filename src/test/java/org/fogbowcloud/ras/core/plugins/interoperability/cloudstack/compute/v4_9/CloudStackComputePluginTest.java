@@ -409,7 +409,7 @@ public class CloudStackComputePluginTest {
         Mockito.when(this.client.doGetRequest(Mockito.eq(expectedDiskOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
                 .thenReturn(diskOfferingResponse);
         Mockito.when(this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN)))
-                .thenThrow(FogbowRasException.class);
+                .thenThrow(new HttpResponseException(503, "service unavailable"));
 
         // exercise
         ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
@@ -678,8 +678,8 @@ public class CloudStackComputePluginTest {
         String response = "{\"listserviceofferingsresponse\":{" + "\"serviceoffering\":[{"
                 + "\"id\": \"%s\","
                 + "\"name\": \"%s\","
-                + "\"cpunumber\": %s,"
-                + "\"memory\": %s"
+                + "\"cpunumber\": \"%s\","
+                + "\"memory\": \"%s\""
                 + "}]}}";
 
         return String.format(response, id, name, cpuNumber, memory);

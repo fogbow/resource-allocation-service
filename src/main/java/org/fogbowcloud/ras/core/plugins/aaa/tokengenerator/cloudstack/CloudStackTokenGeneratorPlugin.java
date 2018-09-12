@@ -76,7 +76,6 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
                 .build();
 
         String jsonResponse = null;
-        System.out.println("accounts request: " + request.getUriBuilder().toString());
         try {
             // NOTE(pauloewerton): no need to pass a token in this request
             jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), null);
@@ -85,10 +84,8 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
         }
 
         String tokenString = null;
-        System.out.println("accounts json response: " + jsonResponse);
         try {
             ListAccountsResponse response = ListAccountsResponse.fromJson(jsonResponse);
-            System.out.println("accounts response: " + response);
             // NOTE(pauloewerton): considering only one account/user per request
             ListAccountsResponse.User user = response.getAccounts().get(0).getUsers().get(0);
 
@@ -102,8 +99,8 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
             tokenString = this.tokenProviderId + TOKEN_STRING_SEPARATOR + tokenValue + TOKEN_STRING_SEPARATOR +
                           userId + TOKEN_STRING_SEPARATOR + userName;
         } catch(Exception e) {
-            LOGGER.error("Exception while getting tokens from json", e);
-            throw new UnexpectedException("Exception while getting tokens from json", e);
+            LOGGER.error("Exception while getting token from json", e);
+            throw new UnexpectedException("Exception while getting token from json", e);
         }
 
         return tokenString;
