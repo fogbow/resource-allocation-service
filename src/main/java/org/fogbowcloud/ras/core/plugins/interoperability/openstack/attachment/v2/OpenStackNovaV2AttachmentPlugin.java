@@ -4,6 +4,7 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.AttachmentInstance;
@@ -87,7 +88,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
     @Override
     public AttachmentInstance getInstance(String instanceId, OpenStackV3Token openStackV3Token)
             throws FogbowRasException, UnexpectedException {
-        LOGGER.info("Getting instance " + instanceId + " with tokens " + openStackV3Token);
+        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, instanceId, openStackV3Token));
         String projectId = openStackV3Token.getProjectId();
 
         String[] separatorInstanceId = instanceId.split(SEPARATOR_ID);

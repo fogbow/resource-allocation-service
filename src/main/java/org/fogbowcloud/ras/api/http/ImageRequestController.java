@@ -2,6 +2,7 @@ package org.fogbowcloud.ras.api.http;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.ApplicationFacade;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.models.images.Image;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +25,7 @@ public class ImageRequestController {
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
             @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId)
             throws Exception {
-        LOGGER.info("Get all images request received.");
+        LOGGER.info(Messages.Info.REQUEST_RECEIVED_FOR_GET_ALL_IMAGES);
         Map<String, String> imagesMap = ApplicationFacade.getInstance().getAllImages(memberId, federationTokenValue);
         return new ResponseEntity<>(imagesMap, HttpStatus.OK);
     }
@@ -34,7 +35,7 @@ public class ImageRequestController {
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
             @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId)
             throws Exception {
-        LOGGER.info("Get image request for <" + imageId + "> received.");
+        LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_GET_IMAGE, imageId));
         Image image = ApplicationFacade.getInstance().getImage(memberId, imageId, federationTokenValue);
         return new ResponseEntity<>(image, HttpStatus.OK);
     }

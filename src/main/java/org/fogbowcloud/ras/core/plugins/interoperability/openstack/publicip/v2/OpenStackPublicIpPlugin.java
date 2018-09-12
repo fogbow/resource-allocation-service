@@ -55,8 +55,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
 	@Override
 	public String allocatePublicIp(String computeInstanceId, OpenStackV3Token openStackV3Token)
 			throws HttpResponseException, URISyntaxException, FogbowRasException, UnexpectedException {		
-        LOGGER.info("Creating floating ip in the " + computeInstanceId + " with tokens " + openStackV3Token);
-
+        LOGGER.info(String.format(Messages.Info.CREATING_FLOATING_IP, computeInstanceId, openStackV3Token));
         // Network port id is the connection between the virtual machine and the network
 		String networkPortId = getNetworkPortIp(computeInstanceId, openStackV3Token);
 		String floatingNetworkId = getExternalNetworkId();
@@ -85,8 +84,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
 
 	@Override
 	public void releasePublicIp(String floatingIpId, OpenStackV3Token openStackV3Token) throws HttpResponseException, FogbowRasException, UnexpectedException  {
-        LOGGER.info("Deleting floating ip " + floatingIpId + " with tokens " + openStackV3Token);     
-        
+        LOGGER.info(String.format(Messages.Info.DELETING_FLOATING_IP, floatingIpId, openStackV3Token));
         try {
         	String floatingIpEndpointPrefix = getFloatingIpEndpoint();
         	String endpoint = String.format("%s/%s", floatingIpEndpointPrefix, floatingIpId);

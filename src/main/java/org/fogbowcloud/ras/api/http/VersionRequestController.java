@@ -2,6 +2,7 @@ package org.fogbowcloud.ras.api.http;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.ApplicationFacade;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,7 +19,7 @@ public class VersionRequestController {
 
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<String> getVersion() {
-        LOGGER.info("New version request received.");
+        LOGGER.info(Messages.Info.REQUEST_RECEIVED_FOR_NEW_VERSION);
         String versionNumber = ApplicationFacade.getInstance().getVersionNumber();
         return new ResponseEntity<>(versionNumber, HttpStatus.OK);
     }

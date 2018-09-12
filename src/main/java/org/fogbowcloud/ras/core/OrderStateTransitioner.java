@@ -17,8 +17,8 @@ public class OrderStateTransitioner {
     private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
 
     public static void activateOrder(Order order) throws UnexpectedException {
-        LOGGER.info("Activating new compute order request received");
-
+        LOGGER.info(Messages.Info.ACTIVATING_NEW_ORDER);
+        
         if (order == null) {
             throw new UnexpectedException(Messages.Exception.CAN_NOT_PROCESS_ORDER_REQUEST_NULL);
         }

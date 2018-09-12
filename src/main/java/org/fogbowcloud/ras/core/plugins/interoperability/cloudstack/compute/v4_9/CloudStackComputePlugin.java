@@ -299,7 +299,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
 
-        LOGGER.info("Deleted instance " + computeInstanceId);
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, computeInstanceId, cloudStackToken));
     }
 
     protected String getRandomUUID() {

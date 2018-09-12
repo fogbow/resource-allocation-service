@@ -74,5 +74,24 @@ public class Messages {
 		public static final String NOT_POSSIBLE_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL = "It was not possible to add the extra user data file, whose content is null";
 		public static final String NOT_POSSIBLE_ADD_EXTRA_USER_DATA_FILE_TYPE_NULL = "It was not possible to add the extra user data file, the extra user data file type is null";
 	}
+	
+	public static class Info {
+		public static final String REQUEST_RECEIVED_FOR_ORDER = "Request received for order: %s.";
+		public static final String REQUEST_RECEIVED_FOR_NEW_ORDER = "New %s order request received <%s>.";
+		public static final String REQUEST_RECEIVED_FOR_GET_ALL_ORDER = "Get the status of all %s order requests received.";
+		public static final String REQUEST_RECEIVED_FOR_GET_ORDER = "Get request for %s order <%s> received.";
+		public static final String REQUEST_RECEIVED_FOR_DELETE_ORDER = "Delete %s order <%s> received.";
+		public static final String REQUEST_RECEIVED_FOR_USER_INFORMATION = "User %s information request for member <%s> received.";
+		public static final String REQUEST_RECEIVED_FOR_GET_ALL_IMAGES = "Get all images request received.";
+		public static final String REQUEST_RECEIVED_FOR_GET_IMAGE = "Get image request for <%s> received.";
+		public static final String REQUEST_RECEIVED_FOR_NEW_TOKEN_CREATE = "New token create request received; size of credentials is: %s.";
+		public static final String REQUEST_RECEIVED_FOR_NEW_VERSION = "New version request received.";
+		public static final String RECEIVED_REQUEST_FOR_ORDER = "Received request for order: %s.";
+		public static final String DELETING_INSTANCE = "Deleting instance %s with tokens %s.";
+		public static final String GETTING_INSTANCE = "Getting instance %s with tokens %s.";
+		public static final String CREATING_FLOATING_IP = "Creating floating ip in the %s with tokens %s.";
+		public static final String DELETING_FLOATING_IP = "Deleting floating ip %s with tokens %s.";
+		public static final String ACTIVATING_NEW_ORDER = "Activating new order request received";
+	}
 
 }
