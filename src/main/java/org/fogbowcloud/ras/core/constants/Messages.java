@@ -41,6 +41,7 @@ public class Messages {
 		public static final String EXPIRATION_DATE = "Expiration date: ";
 		public static final String TOKEN_SIGNATURE_VALIDATION_ERROR = "Error while trying to validate sing of the tokens.";
 		public static final String IRREGULAR_SYNTAX = "Irregular syntax.";
+		public static final String ORDER_INSTANCE_NULL = "Order instance id for order [%s] is null";
 	}
 	
 	public static class Fatal {
@@ -54,6 +55,7 @@ public class Messages {
 		public static final String EXTERNAL_NETWORK_NOT_FOUND = "External network not found";
 		public static final String NEUTRO_ENDPOINT_NOT_FOUND = "Neutro endpoint not found";
 		public static final String FOUND_END_PROPERTY = "Found end property %s";
+		public static final String RESOURCES_FILE_NOT_FOUND = "No %s file was found at resources";
 	}
 	
 	public static class Debug {
@@ -92,6 +94,39 @@ public class Messages {
 		public static final String CREATING_FLOATING_IP = "Creating floating ip in the %s with tokens %s.";
 		public static final String DELETING_FLOATING_IP = "Deleting floating ip %s with tokens %s.";
 		public static final String ACTIVATING_NEW_ORDER = "Activating new order request received";
+		public static final String GETTING_INTANCE_FOR_ORDER = "Trying to get an instance for order [%s]";
+		public static final String INSTANCE_STATE_FAILED = "Instance state is failed for order [%s]";
+	}
+	
+	public static class Error {
+		public static final String DELETE_INSTANCE_PLUGIN_NOT_IMPLEMENTED = "No deleteInstance plugin implemented for order %s.";
+		public static final String INVALID_DATASTORE_DRIVE = "Invalid datastore driver";
+		public static final String WHILE_GETTING_NEW_CONNECTION = "Error while getting a new connection from the connection pool.";
+		public static final String COULD_NOT_CLOSE_STATEMENT = "Couldn't close statement";
+		public static final String COULD_NOT_CLOSE_CONNECTION = "Couldn't close connection";
+		public static final String COULD_NOT_ROLLBACK_TRANSACTION = "Couldn't rollback transaction.";
+		public static final String INVALID_TOKEN_VALUE = "Invalid token value: %s.";
+		public static final String ORDER_CAN_NOT_BE_COMPLETED = "Order cannot be completed. Template, zone and default network IDs are required parameters.";
+		public static final String COULD_NOT_DELETE_INSTANCE = "Could not delete instance %s.";
+		public static final String CREATING_TIMESTAMP_TABLE = "Error creating timestamp table";
+		public static final String COULD_NOT_ADD_TIMESTAMP = "Couldn't add timestamp.";
+		public static final String COULD_NOT_GENERATING_JSON = "An error occurred when generating json.";
+		public static final String PROJECT_ID_NOT_SPECIFIED = "Project id is not specified.";
+		public static final String WHILE_GETTING_ATTACHMENT_INSTANCE = "There was an exception while getting attchment instance from json.";
+		public static final String NOT_POSSIBLE_RETRIEVE_NETWORK_ID = "It was not possible retrieve network id from json %s";
+		public static final String NOT_POSSIBLE_DELETE_NETWORK = "It was not possible delete network with id %s";
+		public static final String NOT_POSSIBLE_DELETE_SECURITY_GROUP = "It was not possible delete security group with id %s";
+		public static final String NOT_POSSIBLE_GET_NETWORK = "It was not possible to get network informations from json %s";
+		public static final String WHILE_GETTING_VOLUME_INSTANCE = "There was an exception while getting volume instance.";
+		public static final String INSTANCE_STATE_NOT_MAPPED = "%s was not mapped to a well-defined OpenStack instance state when %s were implemented.";
+		public static final String INSTANCE_TYPE_NOT_DEFINED = "Instance type not defined.";
+		public static final String THREAD_INTERRUPTED = "Thread interrupted";
+		public static final String UNEXPECTED = "Unexpected error";
+		public static final String WHILE_GETTING_INSTANCE_FROM_CLOUD = "Error while getting instance from the cloud.";
+		public static final String WHILE_GETTING_INSTANCE_FOR_ORDER = "Error while trying to get an instance for order: %s.";
+		public static final String ORDER_ALREADY_CLOSED = "Order [%s] is already in the closed state.";
+		public static final String WHILE_CONSUMING_RESPONSE = "Error while consuming the response: %s.";
+		public static final String COULD_NOT_CLOSE_FILE = "Could not close file %s.";
 	}
 
 }

@@ -52,7 +52,6 @@ public class OrderController {
 
     public Order getOrder(String orderId) throws InstanceNotFoundException {
         Order requestedOrder = this.orderHolders.getActiveOrdersMap().get(orderId);
-        String msg = (requestedOrder == null ? "null" : requestedOrder.toString());
         if (requestedOrder == null) {
             throw new InstanceNotFoundException();
         }
@@ -68,7 +67,7 @@ public class OrderController {
             if (!orderState.equals(OrderState.CLOSED)) {
                 OrderStateTransitioner.transition(order, OrderState.CLOSED);
             } else {
-                String message = "Order [" + order.getId() + "] is already in the closed state";
+            	String message = String.format(Messages.Error.ORDER_ALREADY_CLOSED, order.getId());
                 LOGGER.error(message);
                 throw new InstanceNotFoundException(message);
             }

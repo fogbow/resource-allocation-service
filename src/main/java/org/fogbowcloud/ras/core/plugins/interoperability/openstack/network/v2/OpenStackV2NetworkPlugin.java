@@ -115,9 +115,9 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
             String response = this.client.doPostRequest(endpoint, openStackV3Token, createNetworkRequest.toJson());
             createNetworkResponse = CreateNetworkResponse.fromJson(response);
         } catch (JSONException e) {
-            String errorMsg = "An error occurred when generating json.";
-            LOGGER.error(errorMsg, e);
-            throw new InvalidParameterException(errorMsg, e);
+        	String message = Messages.Error.COULD_NOT_GENERATING_JSON;
+            LOGGER.error(message, e);
+            throw new InvalidParameterException(message, e);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }
@@ -202,9 +202,9 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
             JSONObject securityGroup = securityGroupJSONArray.optJSONObject(0);
             securityGroupId = securityGroup.getString(KEY_ID);
         } catch (JSONException e) {
-            String errorMsg = String.format("It was not possible retrieve network id from json %s", json);
-            LOGGER.error(errorMsg);
-            throw new UnexpectedException(errorMsg, e);
+            String message = String.format(Messages.Error.NOT_POSSIBLE_RETRIEVE_NETWORK_ID, json);
+            LOGGER.error(message);
+            throw new UnexpectedException(message, e);
         }
         return securityGroupId;
     }
@@ -228,11 +228,9 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
             removeNetwork(openStackV3Token, networkId);
         } catch (InstanceNotFoundException e) {
             // continue and try to delete the security group
-            String msg = String.format(Messages.Warn.NETWORK_NOT_FOUND, networkId);
-            LOGGER.warn(msg);
+            LOGGER.warn(String.format(Messages.Warn.NETWORK_NOT_FOUND, networkId));
         } catch (UnexpectedException | FogbowRasException e) {
-            String errorMsg = String.format("It was not possible delete network with id %s", networkId);
-            LOGGER.error(errorMsg);
+            LOGGER.error(String.format(Messages.Error.NOT_POSSIBLE_DELETE_NETWORK, networkId));
             throw e;
         }
 
@@ -241,8 +239,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
         try {
             removeSecurityGroup(openStackV3Token, securityGroupId);
         } catch (UnexpectedException | FogbowRasException e) {
-            String errorMsg = String.format("It was not possible delete security group with id %s", securityGroupId);
-            LOGGER.error(errorMsg);
+            LOGGER.error(String.format(Messages.Error.NOT_POSSIBLE_DELETE_SECURITY_GROUP, securityGroupId));
             throw e;
         }
     }
@@ -294,9 +291,9 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
 
             allocationMode = dhcpEnabled ? NetworkAllocationMode.DYNAMIC : NetworkAllocationMode.STATIC;
         } catch (JSONException e) {
-            String errorMsg = String.format("It was not possible to get network informations from json %s", json);
-            LOGGER.error(errorMsg, e);
-            throw new InvalidParameterException(errorMsg, e);
+        	String message = String.format(Messages.Error.NOT_POSSIBLE_GET_NETWORK, json);
+            LOGGER.error(message, e);
+            throw new InvalidParameterException(message, e);
         }
 
         NetworkInstance instance = null;
@@ -328,9 +325,9 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
             JSONObject networkJSONObject = rootServer.optJSONObject(KEY_JSON_NETWORK);
             networkId = networkJSONObject.optString(KEY_ID);
         } catch (JSONException e) {
-            String errorMsg = String.format("It was not possible retrieve network id from json %s", json);
-            LOGGER.error(errorMsg);
-            throw new UnexpectedException(errorMsg, e);
+        	String message = String.format(Messages.Error.NOT_POSSIBLE_RETRIEVE_NETWORK_ID, json);
+            LOGGER.error(message);
+            throw new UnexpectedException(message, e);
         }
         return networkId;
     }

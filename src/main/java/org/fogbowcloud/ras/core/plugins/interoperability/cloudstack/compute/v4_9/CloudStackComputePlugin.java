@@ -68,7 +68,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
             throws FogbowRasException, UnexpectedException {
         String templateId = computeOrder.getImageId();
         if (templateId == null || this.zoneId == null || this.defaultNetworkId == null) {
-            LOGGER.error("Order cannot be completed. Template, zone and default network IDs are required parameters.");
+            LOGGER.error(Messages.Error.ORDER_CAN_NOT_BE_COMPLETED);
             throw new InvalidParameterException();
         }
 
@@ -295,7 +295,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         try {
             this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
         } catch (HttpResponseException e) {
-            LOGGER.error("Could not delete instance " + computeInstanceId);
+            LOGGER.error(String.format(Messages.Error.COULD_NOT_DELETE_INSTANCE, computeInstanceId));
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
 

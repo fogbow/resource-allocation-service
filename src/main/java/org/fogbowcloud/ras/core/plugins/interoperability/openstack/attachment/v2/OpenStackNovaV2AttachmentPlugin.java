@@ -24,7 +24,6 @@ import java.util.Properties;
 public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenStackV3Token> {
     private final Logger LOGGER = Logger.getLogger(OpenStackNovaV2AttachmentPlugin.class);
 
-    private final String PROJECT_ID_IS_NOT_SPECIFIED_ERROR = "Project id is not specified.";
     protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
     private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
     private static final String OS_VOLUME_ATTACHMENTS = "/os-volume_attachments";
@@ -50,9 +49,9 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
         try {
             jsonRequest = generateJsonToAttach(volumeId);
         } catch (JSONException e) {
-            String errorMsg = "An error occurred when generating json.";
-            LOGGER.error(errorMsg, e);
-            throw new InvalidParameterException(errorMsg, e);
+            String message = Messages.Error.COULD_NOT_GENERATING_JSON;
+        	LOGGER.error(message, e);
+            throw new InvalidParameterException(message, e);
         }
 
         String endpoint = getPrefixEndpoint(projectId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS;
@@ -69,8 +68,9 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
             throws FogbowRasException, UnexpectedException {
         String projectId = openStackV3Token.getProjectId();
         if (projectId == null) {
-            LOGGER.error(PROJECT_ID_IS_NOT_SPECIFIED_ERROR);
-            throw new UnauthenticatedUserException(PROJECT_ID_IS_NOT_SPECIFIED_ERROR);
+            String message = Messages.Error.PROJECT_ID_NOT_SPECIFIED;
+        	LOGGER.error(message);
+            throw new UnauthenticatedUserException(message);
         }
 
         String[] separatorInstanceId = instanceId.split(SEPARATOR_ID);
@@ -129,9 +129,9 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
             return attachmentInstance;
 
         } catch (JSONException e) {
-            String errorMsg = "There was an exception while getting attchment instance from json.";
-            LOGGER.error(errorMsg, e);
-            throw new UnexpectedException(errorMsg, e);
+        	String message = Messages.Error.WHILE_GETTING_ATTACHMENT_INSTANCE;
+            LOGGER.error(message, e);
+            throw new UnexpectedException(message, e);
         }
     }
 

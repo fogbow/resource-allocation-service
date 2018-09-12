@@ -11,6 +11,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.ras.core.models.tokens.Token;
@@ -59,7 +60,7 @@ public class HttpRequestClientUtil {
             try {
                 EntityUtils.consume(httpResponse.getEntity());
             } catch (Throwable t) {
-                LOGGER.error("Error while consuming the response: " + t);
+                LOGGER.error(String.format(Messages.Error.WHILE_CONSUMING_RESPONSE, t));
             }
         }
         return response;
@@ -91,7 +92,7 @@ public class HttpRequestClientUtil {
             try {
                 EntityUtils.consume(response.getEntity());
             } catch (Throwable t) {
-                LOGGER.error("Error while consuming the response: " + t);
+            	LOGGER.error(String.format(Messages.Error.WHILE_CONSUMING_RESPONSE, t));
             }
         }
         return responseStr;
@@ -118,7 +119,7 @@ public class HttpRequestClientUtil {
             try {
                 EntityUtils.consume(response.getEntity());
             } catch (Throwable t) {
-                LOGGER.error("Error while consuming the response: " + t);
+            	LOGGER.error(String.format(Messages.Error.WHILE_CONSUMING_RESPONSE, t));
             }
         }
     }
@@ -148,13 +149,12 @@ public class HttpRequestClientUtil {
             try {
                 EntityUtils.consume(response.getEntity());
             } catch (Throwable t) {
-                LOGGER.error("Error while consuming the response: " + t);
+            	LOGGER.error(String.format(Messages.Error.WHILE_CONSUMING_RESPONSE, t));
             }
         }
         return new Response(responseStr, response.getAllHeaders());
     }
 
-    @SuppressWarnings("unused")
     public String doPutRequest(String endpoint, Token token, JSONObject json)
             throws HttpResponseException, UnavailableProviderException {
         HttpPut request = new HttpPut(endpoint);
@@ -181,7 +181,7 @@ public class HttpRequestClientUtil {
             try {
                 EntityUtils.consume(response.getEntity());
             } catch (Throwable t) {
-                LOGGER.error("Error while consuming the response: " + t);
+            	LOGGER.error(String.format(Messages.Error.WHILE_CONSUMING_RESPONSE, t));
             }
         }
         return responseStr;

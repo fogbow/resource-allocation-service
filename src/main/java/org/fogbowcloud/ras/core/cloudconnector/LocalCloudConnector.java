@@ -142,7 +142,7 @@ public class LocalCloudConnector implements CloudConnector {
                         this.attachmentPlugin.deleteInstance(order.getInstanceId(), token);
                         break;
                     default:
-                        LOGGER.error("No deleteInstance plugin implemented for order " + order.getType());
+                        LOGGER.error(String.format(Messages.Error.DELETE_INSTANCE_PLUGIN_NOT_IMPLEMENTED, order.getType()));
                         break;
                 }
             } else {
