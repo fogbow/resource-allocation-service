@@ -107,7 +107,7 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     }
 
     // Used for testing
-    protected void setClient(HttpRequestClientUtil client) {
+    public void setClient(HttpRequestClientUtil client) {
         this.client = client;
     }
 }
