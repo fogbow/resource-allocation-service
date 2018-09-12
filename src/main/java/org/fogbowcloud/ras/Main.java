@@ -51,8 +51,7 @@ public class Main implements ApplicationRunner {
             String xmppPassword = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_PASSWORD_KEY);
             String xmppServerIp = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_SERVER_IP_KEY);
             int xmppServerPort = Integer.parseInt(PropertiesHolder.getInstance().
-                    getProperty(ConfigurationConstants.XMPP_SERVER_PORT_KEY,
-                            DefaultConfigurationConstants.XMPP_SERVER_PORT));
+                    getProperty(ConfigurationConstants.XMPP_C2S_PORT_KEY));
             long xmppTimeout =
                     Long.parseLong(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_TIMEOUT_KEY,
                             DefaultConfigurationConstants.XMPP_TIMEOUT));

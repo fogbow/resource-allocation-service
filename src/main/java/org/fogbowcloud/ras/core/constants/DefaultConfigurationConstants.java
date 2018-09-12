@@ -26,7 +26,6 @@ public class DefaultConfigurationConstants {
     public static final String HTTP_REQUEST_TIMEOUT = Long.toString(TimeUnit.MINUTES.toMillis(1));
 
     // INTERCOMPONENT CONF DEFAULTS
-    public static final String XMPP_SERVER_PORT = "5347";
     // reference value is 5 seconds
     public static final String XMPP_TIMEOUT = Long.toString(TimeUnit.SECONDS.toMillis(5));
 
