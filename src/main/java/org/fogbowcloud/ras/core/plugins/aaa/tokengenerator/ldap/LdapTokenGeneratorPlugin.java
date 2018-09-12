@@ -36,6 +36,7 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
     private static final Logger LOGGER = Logger.getLogger(LdapFederationIdentityPlugin.class);
 
     private static final String LDAP_PLUGIN_CONF_FILE = "ldap-token-generator-plugin.conf";
+    private static final String PRIVATE_KEY_FILE_PATH = "private_key_file_path";
     private static final long EXPIRATION_INTERVAL = TimeUnit.DAYS.toMillis(365); // One year
     private static final String PROP_LDAP_BASE = "ldap_base";
     private static final String PROP_LDAP_URL = "ldap_identity_url";
@@ -60,10 +61,10 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
     public LdapTokenGeneratorPlugin() throws FatalErrorException {
         this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
-        this.privateKeyPath = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PRIVATE_KEY_FILE_PATH);
 
         Properties properties = PropertiesUtil.readProperties(
                 HomeDir.getPath() + LDAP_PLUGIN_CONF_FILE);
+        this.privateKeyPath = properties.getProperty(PRIVATE_KEY_FILE_PATH);
         this.ldapBase = properties.getProperty(PROP_LDAP_BASE);
         this.ldapUrl = properties.getProperty(PROP_LDAP_URL);
         this.encryptType = properties.getProperty(PROP_LDAP_ENCRYPT_TYPE);
