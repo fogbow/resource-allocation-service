@@ -1,11 +1,9 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 
-import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.PublicIp.ENABLE_STATIC_NAT_COMMAND;
-import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.PublicIp.VM_ID_KEY_JSON;
-import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.PublicIp.IP_ADDRESS_KEY_JSON;
-
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRequest;
+
+import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.PublicIp.*;
 
 /**
  * Documentation : https://cloudstack.apache.org/api/apidocs-4.9/apis/enableStaticNat.html
@@ -17,7 +15,7 @@ public class EnableStaticNatRequest extends CloudStackRequest {
 
     protected EnableStaticNatRequest(Builder builder) throws InvalidParameterException {
     	addParameter(VM_ID_KEY_JSON, builder.virtualMachineId);
-    	addParameter(IP_ADDRESS_KEY_JSON, builder.ipAddressId);
+    	addParameter(IP_ADDRESS_ID_KEY_JSON, builder.ipAddressId);
 	}
 
 	@Override

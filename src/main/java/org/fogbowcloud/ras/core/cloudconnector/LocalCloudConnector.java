@@ -2,7 +2,6 @@ package org.fogbowcloud.ras.core.cloudconnector;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.InteroperabilityPluginsHolder;
-import org.fogbowcloud.ras.core.OrderController;
 import org.fogbowcloud.ras.core.SharedOrderHolders;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
