@@ -87,9 +87,6 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
             result = getCurrentInstance(publicIpOrderId, token);
         }
 
-        if (result == null) {
-            int a = 2;
-        }
         return result;
     }
 
