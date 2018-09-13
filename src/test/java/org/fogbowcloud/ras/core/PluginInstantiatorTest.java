@@ -4,8 +4,10 @@ import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.authorization.AuthorizationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPluginProtectionWrapper;
 import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPluginProtectionWrapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
 import org.junit.Assert;
 import org.junit.Before;
@@ -22,7 +24,7 @@ public class PluginInstantiatorTest {
 
     private PluginInstantiator pluginInstantiator;
 
-    private static final String TEST_CONF_PATH = "src/test/resources/plugins_instantiator/";
+    private static final String TEST_CONF_PATH = "src/test/resources/private/";
 
     @Before
     public void setUp() throws Exception {
@@ -47,14 +49,18 @@ public class PluginInstantiatorTest {
     @Test
     public void testCreateTokenGeneratorPluginInstance() {
         // set up
+        String expected_tokengenerator_wrapper_class_value =
+                "org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPluginProtectionWrapper";
         String expected_tokengenerator_class_value =
                 "org.fogbowcloud.ras.core.stubs.StubTokenGeneratorPlugin";
 
         // exercise
-        TokenGeneratorPlugin plugin = this.pluginInstantiator.getTokenGeneratorPlugin();
+        TokenGeneratorPluginProtectionWrapper plugin = (TokenGeneratorPluginProtectionWrapper)
+                this.pluginInstantiator.getTokenGeneratorPlugin();
 
         // verify
-        Assert.assertEquals(expected_tokengenerator_class_value, plugin.getClass().getName());
+        Assert.assertEquals(expected_tokengenerator_wrapper_class_value, plugin.getClass().getName());
+        Assert.assertEquals(expected_tokengenerator_class_value, plugin.getEmbeddedPlugin().getClass().getName());
     }
 
 
@@ -63,14 +69,18 @@ public class PluginInstantiatorTest {
     @Test
     public void testCreateFederationIdentityPluginInstance() {
         // set up
+        String expected_federation_identity_wrapper_class_value =
+                "org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPluginProtectionWrapper";
         String expected_federation_identity_class_value =
                 "org.fogbowcloud.ras.core.stubs.StubFederationIdentityPlugin";
 
         // exercise
-        FederationIdentityPlugin plugin = this.pluginInstantiator.getFederationIdentityPlugin();
+        FederationIdentityPluginProtectionWrapper plugin = (FederationIdentityPluginProtectionWrapper)
+                this.pluginInstantiator.getFederationIdentityPlugin();
 
         // verify
-        Assert.assertEquals(expected_federation_identity_class_value, plugin.getClass().getName());
+        Assert.assertEquals(expected_federation_identity_wrapper_class_value, plugin.getClass().getName());
+        Assert.assertEquals(expected_federation_identity_class_value, plugin.getEmbeddedPlugin().getClass().getName());
     }
 
     // test case: Tests if getAuthenticationPlugin() returns StubAuthenticationPlugin

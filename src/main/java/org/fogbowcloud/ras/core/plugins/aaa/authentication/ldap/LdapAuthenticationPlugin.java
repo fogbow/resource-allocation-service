@@ -23,22 +23,16 @@ import org.fogbowcloud.ras.util.RSAUtil;
 public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     private static final Logger LOGGER = Logger.getLogger(LdapAuthenticationPlugin.class);
 
-    private static final String LDAP_PLUGIN_CONF_FILE = "ldap-identity-plugin.conf";
-    private static final String PUBLIC_KEY_FILE_PATH = "public_key_file_path";
-
     private String localProviderId;
     private RSAPublicKey publicKey;
 
     public LdapAuthenticationPlugin() throws FatalErrorException {
         this.localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
-        Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() + LDAP_PLUGIN_CONF_FILE);
-        String publicKeyPath = properties.getProperty(PUBLIC_KEY_FILE_PATH);
-
         try {
-            this.publicKey = getPublicKey(publicKeyPath);
+            this.publicKey = getPublicKey();
         } catch (IOException | GeneralSecurityException e) {
-        	throw new FatalErrorException(String.format(Messages.Fatal.PUBLIC_KEY_ERROR, publicKeyPath));
+        	throw new FatalErrorException(Messages.Fatal.PUBLIC_KEY_ERROR);
         }
     }
 
@@ -88,7 +82,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         }
     }
 
-    protected RSAPublicKey getPublicKey(String publicKeyPath) throws IOException, GeneralSecurityException {
-        return RSAUtil.getPublicKey(publicKeyPath);
+    protected RSAPublicKey getPublicKey() throws IOException, GeneralSecurityException {
+        return RSAUtil.getPublicKey();
     }
 }

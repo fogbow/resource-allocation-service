@@ -18,6 +18,8 @@ public class ConfigurationConstants {
             "local_user_credentials_mapper_plugin_class";
 
     // RAS CONF
+    public static final String RAS_PUBLIC_KEY_FILE_PATH = "ras_public_key_file_path";
+    public static final String RAS_PRIVATE_KEY_FILE_PATH = "ras_private_key_file_path";
     public static final String OPEN_ORDERS_SLEEP_TIME_KEY = "open_orders_sleep_time";
     public static final String SPAWNING_ORDERS_SLEEP_TIME_KEY = "spawning_orders_sleep_time";
     public static final String FULFILLED_ORDERS_SLEEP_TIME_KEY = "fulfilled_orders_sleep_time";
