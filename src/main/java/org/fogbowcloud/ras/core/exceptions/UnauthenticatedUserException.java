@@ -1,11 +1,12 @@
 package org.fogbowcloud.ras.core.exceptions;
 
+import org.fogbowcloud.ras.core.constants.Messages;
+
 public class UnauthenticatedUserException extends FogbowRasException {
     private static final long serialVersionUID = 1L;
-    private static final String DEFAULT_MESSAGE = "Unauthenticated error";
 
     public UnauthenticatedUserException() {
-        super(DEFAULT_MESSAGE);
+        super(Messages.Exception.UNAUTHENTICATED_ERROR);
     }
 
     public UnauthenticatedUserException(String message) {

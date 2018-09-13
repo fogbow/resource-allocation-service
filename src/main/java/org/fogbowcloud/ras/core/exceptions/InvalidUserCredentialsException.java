@@ -1,11 +1,12 @@
 package org.fogbowcloud.ras.core.exceptions;
 
+import org.fogbowcloud.ras.core.constants.Messages;
+
 public class InvalidUserCredentialsException extends FogbowRasException {
     private static final long serialVersionUID = 1L;
-    private static final String message = "Invalid Credentials";
 
     public InvalidUserCredentialsException() {
-        super(message);
+        super(Messages.Exception.INVALID_CREDENTIALS);
     }
 
     public InvalidUserCredentialsException(String message) {

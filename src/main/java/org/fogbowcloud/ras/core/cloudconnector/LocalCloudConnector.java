@@ -1,24 +1,40 @@
 package org.fogbowcloud.ras.core.cloudconnector;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.InteroperabilityPluginsHolder;
 import org.fogbowcloud.ras.core.SharedOrderHolders;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.images.Image;
-import org.fogbowcloud.ras.core.models.instances.*;
-import org.fogbowcloud.ras.core.models.orders.*;
+import org.fogbowcloud.ras.core.models.instances.AttachmentInstance;
+import org.fogbowcloud.ras.core.models.instances.ComputeInstance;
+import org.fogbowcloud.ras.core.models.instances.Instance;
+import org.fogbowcloud.ras.core.models.instances.InstanceState;
+import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
+import org.fogbowcloud.ras.core.models.instances.VolumeInstance;
+import org.fogbowcloud.ras.core.models.orders.AttachmentOrder;
+import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
+import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
+import org.fogbowcloud.ras.core.models.orders.Order;
+import org.fogbowcloud.ras.core.models.orders.OrderState;
+import org.fogbowcloud.ras.core.models.orders.VolumeOrder;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
-import org.fogbowcloud.ras.core.plugins.interoperability.*;
-
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import org.fogbowcloud.ras.core.plugins.interoperability.AttachmentPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.ComputePlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.ComputeQuotaPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.ImagePlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.NetworkPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.VolumePlugin;
 
 public class LocalCloudConnector implements CloudConnector {
     private static final Logger LOGGER = Logger.getLogger(LocalCloudConnector.class);
@@ -113,12 +129,10 @@ public class LocalCloudConnector implements CloudConnector {
                 }
                 break;
             default:
-                String message = "No requestInstance plugin implemented for order " + order.getType();
-                throw new UnexpectedException(message);
+            	throw new UnexpectedException(String.format(Messages.Exception.PLUGIN_FOR_REQUEST_INSTANCE_NOT_IMPLEMENTED, order.getType()));
         }
         if (requestInstance == null) {
-            String message = "Plugin returned a null value for the instanceId.";
-            throw new UnexpectedException(message);
+            throw new UnexpectedException(Messages.Exception.RETURNED_NULL_VALUE);
         }
         return requestInstance;
     }
@@ -144,7 +158,7 @@ public class LocalCloudConnector implements CloudConnector {
                     case PUBLIC_IP:
                         this.publicIpPlugin.deleteInstance(order.getInstanceId(), token);
                     default:
-                        LOGGER.error("No deleteInstance plugin implemented for order " + order.getType());
+                        LOGGER.error(String.format(Messages.Error.DELETE_INSTANCE_PLUGIN_NOT_IMPLEMENTED, order.getType()));
                         break;
                 }
             } else {
@@ -154,7 +168,7 @@ public class LocalCloudConnector implements CloudConnector {
         } catch (InstanceNotFoundException e) {
             // This may happen if the resource-allocation-service crashed after the instance is deleted
             // but before the new state is updated in stable storage.
-            LOGGER.warn("Instance has already been deleted");
+            LOGGER.warn(Messages.Warn.INSTANCE_ALREADY_DELETED);
             return;
         }
     }
@@ -192,8 +206,7 @@ public class LocalCloudConnector implements CloudConnector {
                         instance = new PublicIpInstance(order.getId());
                         break;
                     default:
-                        String message = "Not supported order type " + order.getType();
-                        throw new UnexpectedException(message);
+                        throw new UnexpectedException(Messages.Exception.ORDER_TYPE_NOT_SUPPORTED);
                 }
                 InstanceState instanceState = getInstanceStateBasedOnOrderState(order);
                 instance.setState(instanceState);
@@ -210,7 +223,7 @@ public class LocalCloudConnector implements CloudConnector {
             case COMPUTE:
                 return this.computeQuotaPlugin.getUserQuota(token);
             default:
-                throw new UnexpectedException("Not yet implemented quota endpoint for " + resourceType);
+                throw new UnexpectedException(String.format(Messages.Exception.QUOTA_ENDPOINT_NOT_IMPLEMENTED, resourceType));
         }
     }
 
@@ -264,8 +277,7 @@ public class LocalCloudConnector implements CloudConnector {
                 instance = this.publicIpPlugin.getInstance(instanceId, token);
                 break;
             default:
-                String message = "Not supported order type " + order.getType();
-                throw new UnexpectedException(message);
+            	throw new UnexpectedException(String.format(Messages.Exception.ORDER_TYPE_NOT_SUPPORTED, order.getType()));
         }
         order.setCachedInstanceState(instance.getState());
         instance.setProvider(order.getProvidingMember());

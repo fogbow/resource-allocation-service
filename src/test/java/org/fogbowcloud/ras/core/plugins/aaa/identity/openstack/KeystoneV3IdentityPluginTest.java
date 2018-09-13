@@ -43,7 +43,6 @@ public class KeystoneV3IdentityPluginTest {
         userCredentials.put(KeystoneV3TokenGeneratorPlugin.USER_ID, "userId");
         userCredentials.put(KeystoneV3TokenGeneratorPlugin.PASSWORD, "userPass");
         userCredentials.put(KeystoneV3TokenGeneratorPlugin.PROJECT_ID, "projectId");
-        userCredentials.put(KeystoneV3TokenGeneratorPlugin.AUTH_URL, "http://localhost");
 
         //exercise
         String federationTokenValue = this.tokenGenerator.createTokenValue(userCredentials);

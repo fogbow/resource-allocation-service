@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.core.models.linkedlists;
 
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.models.orders.Order;
 
 public class SynchronizedDoublyLinkedList implements ChainedList {
@@ -26,7 +27,7 @@ public class SynchronizedDoublyLinkedList implements ChainedList {
     @Override
     public synchronized void addItem(Order order) {
         if (order == null) {
-            throw new IllegalArgumentException("Attempting to add a null order.");
+            throw new IllegalArgumentException(Messages.Exception.ATTEMPTING_ADD_NULL_ORDER);
         }
         if (this.head == null) {
             Node firstNode = new Node(null, order, null);
@@ -74,7 +75,7 @@ public class SynchronizedDoublyLinkedList implements ChainedList {
     @Override
     public synchronized boolean removeItem(Order order) {
         if (order == null) {
-            throw new IllegalArgumentException("Attempting to remove a null order.");
+            throw new IllegalArgumentException(Messages.Exception.ATTEMPTING_REMOVE_NULL_ORDER);
         }
         Node nodeToRemove = findNodeToRemove(order);
         if (nodeToRemove == null) {

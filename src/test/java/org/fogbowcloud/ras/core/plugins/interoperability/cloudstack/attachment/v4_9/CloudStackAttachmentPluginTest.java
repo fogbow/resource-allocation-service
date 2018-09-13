@@ -36,7 +36,10 @@ import org.powermock.modules.junit4.PowerMockRunner;
 public class CloudStackAttachmentPluginTest {
 
     private static final String BASE_ENDPOINT_KEY = "cloudstack_api_url";
-    private static final String FAKE_USER_ATTRIBUTES = "fake-apikey:fake-secretKey";
+    private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
+    private static final String FAKE_USER_ID = "fake-user-id";
+    private static final String FAKE_USERNAME = "fake-username";
+    private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
     private static final String REQUEST_FORMAT = "%s?command=%s";
     private static final String ID_FIELD = "&id=%s";
     private static final String JOB_ID_FIELD = "&jobid=%s";
@@ -70,7 +73,7 @@ public class CloudStackAttachmentPluginTest {
         this.client = Mockito.mock(HttpRequestClientUtil.class);
         this.plugin = new CloudStackAttachmentPlugin();
         this.plugin.setClient(this.client);
-        this.token = new CloudStackToken(FAKE_USER_ATTRIBUTES);
+        this.token = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_USERNAME);
     }
 
     // test case: When calling the requestInstance method a HTTP GET request must be made with a

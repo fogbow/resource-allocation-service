@@ -5,6 +5,7 @@ import org.fogbowcloud.ras.core.OrderStateTransitioner;
 import org.fogbowcloud.ras.core.SharedOrderHolders;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.linkedlists.ChainedList;
@@ -46,11 +47,11 @@ public class OpenProcessor implements Runnable {
                 }
             } catch (InterruptedException e) {
                 isActive = false;
-                LOGGER.error("Thread interrupted", e);
+                LOGGER.error(Messages.Error.THREAD_INTERRUPTED, e);
             } catch (UnexpectedException e) {
                 LOGGER.error(e.getMessage(), e);
             } catch (Throwable e) {
-                LOGGER.error("Unexpected error", e);
+                LOGGER.error(Messages.Error.UNEXPECTED, e);
             }
         }
     }
@@ -75,7 +76,7 @@ public class OpenProcessor implements Runnable {
                     order.setInstanceId(orderInstanceId);
                     updateOrderStateAfterProcessing(order);
                 } catch (Exception e) {
-                    LOGGER.error("Error while trying to get an instance for order: " + order, e);
+                    LOGGER.error(String.format(Messages.Error.WHILE_GETTING_INSTANCE_FOR_ORDER, order), e);
                     order.setCachedInstanceState(InstanceState.FAILED);
                     OrderStateTransitioner.transition(order, OrderState.FAILED);
                 }
@@ -93,7 +94,7 @@ public class OpenProcessor implements Runnable {
             if (orderInstanceId != null) {
                 OrderStateTransitioner.transition(order, OrderState.SPAWNING);
             } else {
-                throw new UnexpectedException("Order instance id for order [" + order.getId() + "] is null");
+            	throw new UnexpectedException(String.format(Messages.Exception.ORDER_INSTANCE_NULL, order.getId()));
             }
         } else {
             OrderStateTransitioner.transition(order, OrderState.PENDING);

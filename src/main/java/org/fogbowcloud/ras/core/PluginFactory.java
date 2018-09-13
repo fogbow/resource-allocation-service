@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core;
 
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 
 import java.lang.reflect.Constructor;
@@ -20,8 +21,8 @@ public class PluginFactory {
             constructor = classpath.getConstructor();
             pluginInstance = constructor.newInstance();
         } catch (ClassNotFoundException e) {
-            String msg = "No " + pluginClassName + " class under this repository. Please inform a valid class.";
-            throw new FatalErrorException(msg);
+            String msg = Messages.Fatal.NO_CLASS_UNDER_REPOSITORY;
+            throw new FatalErrorException(String.format(msg, pluginClassName));
         } catch (Exception e) {
             throw new FatalErrorException(e.getMessage(), e);
         }

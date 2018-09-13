@@ -1,11 +1,12 @@
 package org.fogbowcloud.ras.core.exceptions;
 
+import org.fogbowcloud.ras.core.constants.Messages;
+
 public class InvalidParameterException extends FogbowRasException {
     private static final long serialVersionUID = 1L;
-    private static final String DEFAULT_MESSAGE = "Invalid parameter exception";
 
     public InvalidParameterException() {
-        super(DEFAULT_MESSAGE);
+        super(Messages.Exception.INVALID_PARAMETER);
     }
 
     public InvalidParameterException(String message) {

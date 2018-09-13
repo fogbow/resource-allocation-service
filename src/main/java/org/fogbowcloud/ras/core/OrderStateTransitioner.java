@@ -1,7 +1,10 @@
 package org.fogbowcloud.ras.core;
 
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.Event;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
@@ -10,17 +13,14 @@ import org.fogbowcloud.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.orders.OrderState;
 
-import java.util.Map;
-
 public class OrderStateTransitioner {
     private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
 
     public static void activateOrder(Order order) throws UnexpectedException {
-        LOGGER.info("Activating new order request received");
+        LOGGER.info(Messages.Info.ACTIVATING_NEW_ORDER);
 
         if (order == null) {
-            String message = "Cannot process new order request. Order reference is null.";
-            throw new UnexpectedException(message);
+            throw new UnexpectedException(Messages.Exception.CANNOT_PROCESS_ORDER_REQUEST_NULL);
         }
 
         synchronized (order) {
@@ -31,7 +31,7 @@ public class OrderStateTransitioner {
             String orderId = order.getId();
 
             if (activeOrdersMap.containsKey(orderId)) {
-                String message = String.format("Order with id %s is already in active orders map.", orderId);
+                String message = String.format(Messages.Exception.ORDER_ID_ALREADY_ACTIVATED, orderId);
                 throw new UnexpectedException(message);
             }
             order.setOrderState(OrderState.OPEN);
@@ -55,9 +55,8 @@ public class OrderStateTransitioner {
                             break;
                     }
                 } catch (Exception e) {
-                    String message = "Could not notify requesting member [" + order.getRequestingMember() +
-                            " for order " + order.getId();
-                    LOGGER.warn(message);
+                    String message = String.format(Messages.Warn.COULD_NOT_NOTIFY_REQUESTING_MEMBER, order.getRequestingMember(), order.getId());
+                	LOGGER.warn(message);
                     // Keep trying to notify until the site is up again
                     // The site admin might want to monitor the warn log in case a site never
                     // recovers. In this case the site admin may delete the order using an
@@ -78,8 +77,7 @@ public class OrderStateTransitioner {
             if (activeOrdersMap.containsKey(order.getId())) {
                 activeOrdersMap.remove(order.getId());
             } else {
-                String message = String.format(
-                        "Tried to remove order %s from the active orders but it was not active", order.getId());
+                String message = String.format(Messages.Exception.REMOVE_ORDER_NOT_ACTIVE, order.getId());
                 throw new UnexpectedException(message);
             }
             closedOrders.removeItem(order);
@@ -102,10 +100,10 @@ public class OrderStateTransitioner {
         SynchronizedDoublyLinkedList destination = ordersHolder.getOrdersList(newState);
 
         if (origin == null) {
-            String message = String.format("Could not find list for state %s", currentState);
+            String message = String.format(Messages.Exception.COULD_NOT_FIND_LIST_FOR_STATE, currentState);
             throw new UnexpectedException(message);
         } else if (destination == null) {
-            String message = String.format("Could not find destination list for state %s", newState);
+            String message = String.format(Messages.Exception.COULD_NOT_FIND_DESTINATION_LIST_FOR_STATE, newState);
             throw new UnexpectedException(message);
         } else {
             // The order may have already been removed from the origin list by another thread

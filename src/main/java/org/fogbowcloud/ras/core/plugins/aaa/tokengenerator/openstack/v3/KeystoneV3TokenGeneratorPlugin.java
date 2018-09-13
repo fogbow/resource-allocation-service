@@ -28,7 +28,7 @@ public class KeystoneV3TokenGeneratorPlugin implements TokenGeneratorPlugin {
     public static final String PROJECT_ID = "projectId";
     public static final String PASSWORD = "password";
     public static final String USER_ID = "userId";
-    public static final String AUTH_URL = "authUrl";
+//    public static final String AUTH_URL = "authUrl";
     private String v3TokensEndpoint;
     private HttpRequestClientUtil client;
     private String tokenProviderId;
@@ -58,15 +58,16 @@ public class KeystoneV3TokenGeneratorPlugin implements TokenGeneratorPlugin {
             UnexpectedException {
 
         String jsonBody = mountJsonBody(credentials);
-        String authUrl = credentials.get(AUTH_URL);
-        String currentTokenEndpoint = this.v3TokensEndpoint;
-        if (authUrl != null && !authUrl.isEmpty()) {
-            currentTokenEndpoint = authUrl + V3_TOKENS_ENDPOINT_PATH;
-        }
+//        String authUrl = credentials.get(AUTH_URL);
+//        String currentTokenEndpoint = this.v3TokensEndpoint;
+//        if (authUrl != null && !authUrl.isEmpty()) {
+//            currentTokenEndpoint = authUrl + V3_TOKENS_ENDPOINT_PATH;
+//        }
 
         HttpRequestClientUtil.Response response = null;
         try {
-            response = this.client.doPostRequest(currentTokenEndpoint, jsonBody);
+//            response = this.client.doPostRequest(currentTokenEndpoint, jsonBody);
+            response = this.client.doPostRequest(this.v3TokensEndpoint, jsonBody);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }

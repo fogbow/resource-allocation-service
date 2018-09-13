@@ -3,6 +3,7 @@ package org.fogbowcloud.ras.core.datastore.orderstorage;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -26,7 +27,7 @@ public class OrderStorage {
         try {
             Class.forName(MANAGER_DATASTORE_SQLITE_DRIVER);
         } catch (ClassNotFoundException e) {
-            LOGGER.error("Invalid datastore driver", e);
+            LOGGER.error(Messages.Error.INVALID_DATASTORE_DRIVE, e);
         }
     }
 
@@ -34,7 +35,7 @@ public class OrderStorage {
         try {
             return DriverManager.getConnection(this.databaseUrl, this.databaseUsername, this.databasePassword);
         } catch (SQLException e) {
-            LOGGER.error("Error while getting a new connection from the connection pool.", e);
+            LOGGER.error(Messages.Error.WHILE_GETTING_NEW_CONNECTION, e);
             throw e;
         }
     }
@@ -46,7 +47,7 @@ public class OrderStorage {
                     statement.close();
                 }
             } catch (SQLException e) {
-                LOGGER.error("Couldn't close statement", e);
+                LOGGER.error(Messages.Error.COULD_NOT_CLOSE_STATEMENT, e);
                 throw e;
             }
         }
@@ -57,7 +58,7 @@ public class OrderStorage {
                     connection.close();
                 }
             } catch (SQLException e) {
-                LOGGER.error("Couldn't close connection", e);
+                LOGGER.error(Messages.Error.COULD_NOT_CLOSE_CONNECTION, e);
                 throw e;
             }
         }
