@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.core.intercomponent.xmpp.handlers;
 
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.intercomponent.RemoteFacade;
@@ -34,10 +35,9 @@ public class RemoteDeleteOrderRequestHandlerTest {
             "\n<iq type=\"error\" id=\"%s\" from=\"%s\">\n" +
                     "  <error code=\"500\" type=\"wait\">\n" +
                     "    <undefined-condition xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n" +
-                    "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">Fogbow RAS exception</text>\n" +
+                    "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">" + Messages.Exception.FOGBOW_RAS + "</text>\n" +
                     "  </error>\n" +
                     "</iq>";
-
 
     private RemoteDeleteOrderRequestHandler remoteDeleteOrderRequestHandler;
     private PacketSender packetSender;
