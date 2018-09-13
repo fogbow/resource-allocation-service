@@ -60,10 +60,11 @@ public class ApplicationFacade {
 
     public String createCompute(ComputeOrder order, String federationTokenValue) throws FogbowRasException,
             UnexpectedException {
-        if (order.getPublicKey().length() > ComputeOrder.MAX_PUBLIC_KEY_SIZE) {
+        if (order.getPublicKey() != null && order.getPublicKey().length() > ComputeOrder.MAX_PUBLIC_KEY_SIZE) {
             throw new InvalidParameterException(Messages.Exception.TOO_BIG_PUBLIC_KEY);
         }
-        if (order.getUserData().getExtraUserDataFileContent().length() > UserData.MAX_EXTRA_USER_DATA_FILE_CONTENT) {
+        if (order.getUserData() != null && order.getUserData().getExtraUserDataFileContent() != null &&
+                order.getUserData().getExtraUserDataFileContent().length() > UserData.MAX_EXTRA_USER_DATA_FILE_CONTENT) {
             throw new InvalidParameterException(Messages.Exception.TOO_BIG_USER_DATA_FILE_CONTENT);
         }
         return activateOrder(order, federationTokenValue);

@@ -103,6 +103,10 @@ public class ComputeOrder extends Order {
         return userData;
     }
 
+    public void setUserData(UserData userData) {
+        this.userData = userData;
+    }
+
     @Override
     public ResourceType getType() {
         return ResourceType.COMPUTE;
@@ -110,6 +114,10 @@ public class ComputeOrder extends Order {
 
     public String getPublicKey() {
         return publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
     }
 
     public List<String> getNetworksId() {
