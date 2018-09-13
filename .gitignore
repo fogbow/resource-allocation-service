@@ -29,3 +29,4 @@ src/main/resources/private/
 
 ### LOGS ###
 *.log
+.vscode/launch.test.json
