@@ -10,40 +10,43 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.Cloud
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/listAccounts.html
  * {
- *   "account": [
- *     {
- *       "name": "jondoe@lsd.ufcg.edu.br",
- *       "user": [
- *         {
- *           "account": "jondoe@myemail.com",
- *           "accountid": "accountid",
- *           "accounttype": 2,
- *           "apikey": "apikey",
- *           "created": "2016-10-17T12:28:48-0200",
- *           "domain": "FOGBOW",
- *           "domainid": "domainid",
- *           "email": "jondoe@myemail.com",
- *           "firstname": "Jon",
- *           "id": "userid",
- *           "iscallerchilddomain": false,
- *           "isdefault": false,
- *           "lastname": "Doe",
- *           "roleid": "roleid",
- *           "rolename": "Domain Admin",
- *           "roletype": "DomainAdmin",
- *           "secretkey": "secretkey",
- *           "state": "enabled",
- *           "username": "jondoe@myemail.com"
- *         }
- *       ],
- *     }
- *   ],
- *   "count": 1
+ * 	"listaccountsresponse": {
+ * 		"count": 1,
+ * 		"account": [{
+ * 			"user": [{
+ * 				"id": "anid",
+ * 				"username": "ausername@usernames.com",
+ * 				"firstname": "Jon",
+ * 				"lastname": "Doe",
+ * 				"email": "anemail@emails.com",
+ * 				"created": "2016-10-17T12:28:48-0200",
+ * 				"state": "enabled",
+ * 				"account": "account@accounts.com",
+ * 				"accounttype": 2,
+ * 				"roleid": "785e2b66-36b0-11e7-a516-0e043877b6cb",
+ * 				"roletype": "DomainAdmin",
+ * 				"rolename": "Domain Admin",
+ * 				"domainid": "adomainid",
+ * 				"domain": "adomain",
+ * 				"apikey": "anapikey",
+ * 				"secretkey": "asecretkey",
+ * 				"accountid": "anaccountid",
+ * 				"iscallerchilddomain": false,
+ * 				"isdefault": false
+ *                        }],
+ * 			"isdefault": false,
+ * 			"groups": []* 		}]
+ * 	}
  * }
  */
 public class ListAccountsResponse {
-    @SerializedName(ACCOUNT_KEY_JSON)
-    private List<Account> listAccountsResponse;
+    @SerializedName(LIST_ACCOUNTS_KEY_JSON)
+    private AccountsResponse accountsResponse;
+
+    public class AccountsResponse {
+        @SerializedName(ACCOUNT_KEY_JSON)
+        private List<Account> accounts;
+    }
 
     public class Account {
         @SerializedName(USER_KEY_JSON)
@@ -55,7 +58,7 @@ public class ListAccountsResponse {
     }
 
     public List<Account> getAccounts() {
-        return this.listAccountsResponse;
+        return accountsResponse.accounts;
     }
 
     public class User {

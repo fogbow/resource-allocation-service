@@ -28,7 +28,6 @@ public class CloudStackUrlUtil {
         String secretKey = tokenValueSplit[1];
 
         requestEndpoint.addParameter(CloudStackTokenGeneratorPlugin.API_KEY, apiKey);
-        requestEndpoint.addParameter(RESPONSE_FORMAT, JSON);
 
         String query = null;
         try {
@@ -76,6 +75,7 @@ public class CloudStackUrlUtil {
         try {
             URIBuilder uriBuilder = new URIBuilder(endpoint);
             uriBuilder.addParameter(COMMAND, command);
+            uriBuilder.addParameter(RESPONSE_FORMAT, JSON);
             return uriBuilder;
         } catch (Exception e) {
             String message = "Irregular syntax.";

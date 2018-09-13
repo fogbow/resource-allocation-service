@@ -7,6 +7,7 @@ import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
@@ -45,7 +46,7 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
         try {
             // NOTE(pauloewerton): since all cloudstack requests params are passed via url args, we do not need to
             // send a valid json body in the post request
-            jsonResponse = this.client.doPostRequest(request.getUriBuilder().toString(), null);
+            jsonResponse = this.client.doPostRequest(request.getUriBuilder().toString(), "data");
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
@@ -77,8 +78,8 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
         String jsonResponse = null;
         try {
-            // NOTE(pauloewerton): no need to pass a token in this request
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), null);
+            // NOTE(pauloewerton): passing a placeholder as there is no need to pass a valid token in this request
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), new Token("CloudStackTokenValue"));
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
@@ -103,9 +104,7 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
             throw new UnexpectedException("Exception while getting token from json", e);
         }
 
-        return tokenString;
-    }
-
+        return tokenString; }
     // Used for testing
     public void setClient(HttpRequestClientUtil client) {
         this.client = client;
