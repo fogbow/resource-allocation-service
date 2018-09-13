@@ -8,13 +8,12 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.Cloud
 
 /**
  * Documentation:
- * <p>
+ *
  * Response Example:
- * <p>
  * {
- * "associateipaddressresponse":{
- * "jobid":"7568bb4f-d925-437e-80b0-b2d984d225d4"
- * }
+ *   "associateipaddressresponse":{
+ *     "jobid":"7568bb4f-d925-437e-80b0-b2d984d225d4"
+ *   }
  * }
  */
 public class AssociateIpAddressAsyncJobIdResponse {
