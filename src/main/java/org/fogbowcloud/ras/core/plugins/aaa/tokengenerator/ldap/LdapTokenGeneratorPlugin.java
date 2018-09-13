@@ -35,13 +35,12 @@ import java.util.concurrent.TimeUnit;
 public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
     private static final Logger LOGGER = Logger.getLogger(LdapFederationIdentityPlugin.class);
 
-    private static final String LDAP_PLUGIN_CONF_FILE = "ldap-identity-plugin.conf";
+    private static final String LDAP_PLUGIN_CONF_FILE = "ldap-token-generator-plugin.conf";
+    private static final String PRIVATE_KEY_FILE_PATH = "private_key_file_path";
     private static final long EXPIRATION_INTERVAL = TimeUnit.DAYS.toMillis(365); // One year
     private static final String PROP_LDAP_BASE = "ldap_base";
     private static final String PROP_LDAP_URL = "ldap_identity_url";
     private static final String PROP_LDAP_ENCRYPT_TYPE = "ldap_encrypt_type";
-    private static final String PRIVATE_KEY_PATH = "private_key_path";
-    private static final String PUBLIC_KEY_PATH = "public_key_path";
     public static final String CRED_USERNAME = "username";
     public static final String CRED_PASSWORD = "password";
     public static final String CRED_AUTH_URL = "authUrl";
@@ -58,7 +57,6 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
     private String ldapUrl;
     private String encryptType;
     private String privateKeyPath;
-    private String publicKeyPath;
     private RSAPrivateKey privateKey;
 
     public LdapTokenGeneratorPlugin() throws FatalErrorException {
@@ -66,11 +64,10 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
         Properties properties = PropertiesUtil.readProperties(
                 HomeDir.getPath() + LDAP_PLUGIN_CONF_FILE);
+        this.privateKeyPath = properties.getProperty(PRIVATE_KEY_FILE_PATH);
         this.ldapBase = properties.getProperty(PROP_LDAP_BASE);
         this.ldapUrl = properties.getProperty(PROP_LDAP_URL);
         this.encryptType = properties.getProperty(PROP_LDAP_ENCRYPT_TYPE);
-        this.privateKeyPath = properties.getProperty(PRIVATE_KEY_PATH);
-        this.publicKeyPath = properties.getProperty(PUBLIC_KEY_PATH);
         try {
             this.privateKey = RSAUtil.getPrivateKey(this.privateKeyPath);
         } catch (IOException | GeneralSecurityException e) {
@@ -204,10 +201,6 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
         if (this.privateKeyPath == null || privateKeyPath.isEmpty()) {
             this.privateKeyPath = userCredentials.get(CRED_PRIVATE_KEY);
         }
-
-        if (this.publicKeyPath == null || publicKeyPath.isEmpty()) {
-            this.publicKeyPath = userCredentials.get(CRED_PUBLIC_KEY);
-        }
     }
 
     private String createSignature(String message) throws IOException, GeneralSecurityException {
@@ -231,11 +224,6 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
         String credPrivateKeyPath = userCredentials.get(CRED_PRIVATE_KEY);
         if (credPrivateKeyPath != null && !credPrivateKeyPath.isEmpty()) {
             this.privateKeyPath = credPrivateKeyPath;
-        }
-
-        String credPublicKeyPath = userCredentials.get(CRED_PUBLIC_KEY);
-        if (credPublicKeyPath != null && !credPublicKeyPath.isEmpty()) {
-            this.publicKeyPath = credPublicKeyPath;
         }
     }
 }

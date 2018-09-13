@@ -1,9 +1,12 @@
 package org.fogbowcloud.ras.core.models.tokens;
 
-public class CloudStackToken extends Token {
+import javax.persistence.Entity;
 
-    public CloudStackToken(String tokenValue) {
-        super(tokenValue);
+@Entity
+public class CloudStackToken extends FederationUserToken {
+
+    public CloudStackToken(String tokenProvider, String tokenValue, String userID, String userName) {
+        super(tokenProvider, tokenValue, userID, userName);
     }
 
 }

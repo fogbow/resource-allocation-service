@@ -16,7 +16,6 @@ public class LdapFederationIdentityPluginTest {
 
     private static final String FAKE_NAME = "fake-name";
     private static final String FAKE_USER_ID = "fake-user-id";
-    private static final String name = "ldapUser";
     private static final String password = "ldapUserPass";
     private static final String TOKEN_VALUE_SEPARATOR = "!#!";
     private LdapFederationIdentityPlugin ldapFederationIdentityPlugin;

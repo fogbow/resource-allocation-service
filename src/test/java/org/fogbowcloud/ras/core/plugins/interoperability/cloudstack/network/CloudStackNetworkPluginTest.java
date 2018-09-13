@@ -15,7 +15,7 @@ import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
 import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
-import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGenerator;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.util.PropertiesUtil;
@@ -46,10 +46,15 @@ public class CloudStackNetworkPluginTest {
     public static final String FAKE_GATEWAY = "10.0.0.1";
     public static final String FAKE_ADDRESS = "10.0.0.0/24";
     public static final String FAKE_STATE = "Allocated";
-    public static final String FAKE_TOKEN_VALUE = "fake-token-value";
     public static final String FAKE_MEMBER = "fake-member";
 
-    public static final CloudStackToken FAKE_TOKEN = new CloudStackToken(FAKE_TOKEN_VALUE);
+    private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
+    private static final String FAKE_USER_ID = "fake-user-id";
+    private static final String FAKE_USERNAME = "fake-username";
+    private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
+
+    public static final CloudStackToken FAKE_TOKEN = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE,
+            FAKE_USER_ID, FAKE_USERNAME);
 
     public static final String ID_KEY = "id";
     public static final String NAME_KEY = "name";
@@ -278,7 +283,7 @@ public class CloudStackNetworkPluginTest {
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
 
         Properties properties = PropertiesUtil.readProperties(filePath);
-        return properties.getProperty(CloudStackTokenGenerator.CLOUDSTACK_URL);
+        return properties.getProperty(CloudStackTokenGeneratorPlugin.CLOUDSTACK_URL);
     }
 
 }
