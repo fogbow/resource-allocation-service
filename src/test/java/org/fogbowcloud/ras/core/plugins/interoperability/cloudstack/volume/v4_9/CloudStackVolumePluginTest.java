@@ -43,7 +43,13 @@ public class CloudStackVolumePluginTest {
     private static final String REQUEST_FORMAT = "%s?command=%s";
     private static final String ID_FIELD = "&id=%s";
     private static final String EMPTY_INSTANCE = "";
-    private static final String ONE_GIGABYTES = "1073741824";
+
+    private static final int BYTE = 1;
+    private static final int KILOBYTE = 1024 * BYTE;
+    private static final int MEGABYTE = 1024 * KILOBYTE;
+    private static final int GIGABYTE = 1024 * MEGABYTE;
+
+//    private static final String ONE_GIGABYTE = "1";
     private static final String DEFAULT_STATE = "Ready";
     private static final String DEFAULT_DISPLAY_TEXT =
             "A description of the error will be shown if the success field is equal to false.";
@@ -112,7 +118,7 @@ public class CloudStackVolumePluginTest {
         expectedParams.put(ZONE_ID_KEY, this.plugin.getZoneId());
         expectedParams.put(NAME_KEY, FAKE_NAME);
         expectedParams.put(DISK_OFFERING_ID_KEY, FAKE_DISK_OFFERING_ID);
-        expectedParams.put(SIZE_KEY, ONE_GIGABYTES);
+        expectedParams.put(SIZE_KEY, new Long(diskSize * GIGABYTE).toString());
 
         CloudStackUrlMatcher urlMatcher = new CloudStackUrlMatcher(expectedParams, SIZE_KEY);
 
@@ -170,7 +176,7 @@ public class CloudStackVolumePluginTest {
         expectedParams.put(ZONE_ID_KEY, this.plugin.getZoneId());
         expectedParams.put(NAME_KEY, FAKE_NAME);
         expectedParams.put(DISK_OFFERING_ID_KEY, FAKE_DISK_OFFERING_ID);
-        expectedParams.put(SIZE_KEY, ONE_GIGABYTES);
+        expectedParams.put(SIZE_KEY, new Long(diskSize * GIGABYTE).toString());
 
         CloudStackUrlMatcher urlMatcher = new CloudStackUrlMatcher(expectedParams, SIZE_KEY);
 
@@ -340,7 +346,7 @@ public class CloudStackVolumePluginTest {
         String request = String.format(urlFormat, baseEndpoint, command, id);
 
         String name = FAKE_NAME;
-        String size = ONE_GIGABYTES;
+        String size = new Long(COMPATIBLE_SIZE * GIGABYTE).toString();
         String state = DEFAULT_STATE;
         String volume = getVolumeResponse(id, name, size, state);
         String response = getListVolumesResponse(volume);
@@ -356,11 +362,11 @@ public class CloudStackVolumePluginTest {
 
         Assert.assertEquals(id, recoveredInstance.getId());
         Assert.assertEquals(name, recoveredInstance.getName());
-        Assert.assertEquals(size, String.valueOf(recoveredInstance.getSize()));
+        Assert.assertEquals(COMPATIBLE_SIZE, recoveredInstance.getSize());
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(request, this.token);
     }
-    
+
     // test case: When calling the getInstance method with a user without permission, an
     // UnauthorizedRequestException must be thrown.
     @Test(expected = UnauthorizedRequestException.class)
