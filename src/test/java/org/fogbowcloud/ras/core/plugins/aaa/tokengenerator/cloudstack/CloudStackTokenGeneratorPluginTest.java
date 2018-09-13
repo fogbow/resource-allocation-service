@@ -1,10 +1,6 @@
 package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack;
 
-import org.apache.http.*;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpResponseException;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.message.BasicStatusLine;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
@@ -19,7 +15,6 @@ import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestUtil;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;

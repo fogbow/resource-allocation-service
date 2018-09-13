@@ -41,6 +41,7 @@ public class CloudStackVolumePluginTest {
 
     private static final String BASE_ENDPOINT_KEY = "cloudstack_api_url";
     private static final String REQUEST_FORMAT = "%s?command=%s";
+    private static final String RESPONSE_FORMAT = "&response=%s";
     private static final String ID_FIELD = "&id=%s";
     private static final String EMPTY_INSTANCE = "";
     private static final String ONE_GIGABYTES = "1073741824";
@@ -58,6 +59,8 @@ public class CloudStackVolumePluginTest {
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
     private static final String FAKE_MEMBER = "fake-member";
 
+    private static final String JSON_FORMAT = "json";
+    private static final String RESPONSE_KEY = "response";
     private static final String COMMAND_KEY = "command";
     private static final String DISK_OFFERING_ID_KEY = CreateVolumeRequest.DISK_OFFERING_ID;
     private static final String NAME_KEY = CreateVolumeRequest.VOLUME_NAME;
@@ -95,10 +98,11 @@ public class CloudStackVolumePluginTest {
                 .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
-        String urlFormat = REQUEST_FORMAT;
+        String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = GetAllDiskOfferingsRequest.LIST_DISK_OFFERINGS_COMMAND;
-        String request = String.format(urlFormat, baseEndpoint, command);
+        String jsonFormat = JSON_FORMAT;
+        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat);
 
         String id = FAKE_DISK_OFFERING_ID;
         int diskSize = COMPATIBLE_SIZE;
@@ -109,6 +113,7 @@ public class CloudStackVolumePluginTest {
 
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put(COMMAND_KEY, CreateVolumeRequest.CREATE_VOLUME_COMMAND);
+        expectedParams.put(RESPONSE_KEY, JSON_FORMAT);
         expectedParams.put(ZONE_ID_KEY, this.plugin.getZoneId());
         expectedParams.put(NAME_KEY, FAKE_NAME);
         expectedParams.put(DISK_OFFERING_ID_KEY, FAKE_DISK_OFFERING_ID);
@@ -153,10 +158,11 @@ public class CloudStackVolumePluginTest {
                 .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
-        String urlFormat = REQUEST_FORMAT;
+        String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = GetAllDiskOfferingsRequest.LIST_DISK_OFFERINGS_COMMAND;
-        String request = String.format(urlFormat, baseEndpoint, command);
+        String jsonFormat = JSON_FORMAT;
+        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat);
 
         String id = FAKE_DISK_OFFERING_ID;
         int diskSize = STANDARD_SIZE;
@@ -167,6 +173,7 @@ public class CloudStackVolumePluginTest {
 
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put(COMMAND_KEY, CreateVolumeRequest.CREATE_VOLUME_COMMAND);
+        expectedParams.put(RESPONSE_KEY, JSON_FORMAT);
         expectedParams.put(ZONE_ID_KEY, this.plugin.getZoneId());
         expectedParams.put(NAME_KEY, FAKE_NAME);
         expectedParams.put(DISK_OFFERING_ID_KEY, FAKE_DISK_OFFERING_ID);
@@ -333,11 +340,12 @@ public class CloudStackVolumePluginTest {
                 .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
-        String urlFormat = REQUEST_FORMAT + ID_FIELD;
+        String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + ID_FIELD;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = GetVolumeRequest.LIST_VOLUMES_COMMAND;
         String id = FAKE_ID;
-        String request = String.format(urlFormat, baseEndpoint, command, id);
+        String jsonFormat = JSON_FORMAT;
+        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, id);
 
         String name = FAKE_NAME;
         String size = ONE_GIGABYTES;
@@ -487,11 +495,12 @@ public class CloudStackVolumePluginTest {
                 .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
-        String urlFormat = REQUEST_FORMAT + ID_FIELD;
+        String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + ID_FIELD;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = GetVolumeRequest.LIST_VOLUMES_COMMAND;
         String id = FAKE_ID;
-        String request = String.format(urlFormat, baseEndpoint, command, id);
+        String jsonFormat = JSON_FORMAT;
+        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, id);
 
         String volume = EMPTY_INSTANCE;
         String response = getListVolumesResponse(volume);
@@ -529,11 +538,12 @@ public class CloudStackVolumePluginTest {
                 .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
-        String urlFormat = REQUEST_FORMAT + ID_FIELD;
+        String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + ID_FIELD;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = DeleteVolumeRequest.DELETE_VOLUME_COMMAND;
         String id = FAKE_ID;
-        String request = String.format(urlFormat, baseEndpoint, command, id);
+        String jsonFormat = JSON_FORMAT;
+        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, id);
 
         boolean success = true;
         String response = getDeleteVolumeResponse(success);
@@ -682,11 +692,12 @@ public class CloudStackVolumePluginTest {
                 .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
-        String urlFormat = REQUEST_FORMAT + ID_FIELD;
+        String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + ID_FIELD;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = DeleteVolumeRequest.DELETE_VOLUME_COMMAND;
         String id = FAKE_ID;
-        String request = String.format(urlFormat, baseEndpoint, command, id);
+        String jsonFormat = JSON_FORMAT;
+        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, id);
 
         boolean success = false;
         String response = getDeleteVolumeResponse(success);
