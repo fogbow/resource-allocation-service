@@ -3,11 +3,13 @@ package org.fogbowcloud.ras.core;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
+import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPluginProtectionWrapper;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.authorization.AuthorizationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPluginProtectionWrapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 
@@ -73,12 +75,14 @@ public class PluginInstantiator {
 
     public TokenGeneratorPlugin getTokenGeneratorPlugin() {
         String className = this.properties.getProperty(ConfigurationConstants.TOKEN_GENERATOR_PLUGIN_CLASS);
-        return (TokenGeneratorPlugin) this.pluginFactory.createPluginInstance(className);
+        return new TokenGeneratorPluginProtectionWrapper((TokenGeneratorPlugin)
+                this.pluginFactory.createPluginInstance(className));
     }
 
     public FederationIdentityPlugin getFederationIdentityPlugin() {
         String className = this.properties.getProperty(ConfigurationConstants.FEDERATION_IDENTITY_PLUGIN_CLASS_KEY);
-        return (FederationIdentityPlugin) this.pluginFactory.createPluginInstance(className);
+        return new FederationIdentityPluginProtectionWrapper((FederationIdentityPlugin)
+                this.pluginFactory.createPluginInstance(className));
     }
 
     public AuthenticationPlugin getAuthenticationPlugin() {

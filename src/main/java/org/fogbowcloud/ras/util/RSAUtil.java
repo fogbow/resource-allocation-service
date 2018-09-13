@@ -1,6 +1,8 @@
 package org.fogbowcloud.ras.util;
 
 import org.bouncycastle.util.encoders.Base64;
+import org.fogbowcloud.ras.core.PropertiesHolder;
+import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -31,7 +33,8 @@ public class RSAUtil {
         return strKeyPEM;
     }
 
-    public static RSAPrivateKey getPrivateKey(String filename) throws IOException, GeneralSecurityException {
+    public static RSAPrivateKey getPrivateKey() throws IOException, GeneralSecurityException {
+        String filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PRIVATE_KEY_FILE_PATH);
         String privateKeyPEM = getKey(filename);
         return getPrivateKeyFromString(privateKeyPEM);
     }
@@ -51,7 +54,8 @@ public class RSAUtil {
         return privKey;
     }
 
-    public static RSAPublicKey getPublicKey(String filename) throws IOException, GeneralSecurityException {
+    public static RSAPublicKey getPublicKey() throws IOException, GeneralSecurityException {
+        String filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PUBLIC_KEY_FILE_PATH);
         String publicKeyPEM = getKey(filename);
         return getPublicKeyFromString(publicKeyPEM);
     }

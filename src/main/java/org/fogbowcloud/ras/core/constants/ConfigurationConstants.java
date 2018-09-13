@@ -19,6 +19,8 @@ public class ConfigurationConstants {
 
     // RAS CONF
     public static final String RAS_SSH_PUBLIC_KEY_FILE_PATH = "ras_ssh_public_key_file_path";
+    public static final String RAS_PUBLIC_KEY_FILE_PATH = "ras_public_key_file_path";
+    public static final String RAS_PRIVATE_KEY_FILE_PATH = "ras_private_key_file_path";
     public static final String OPEN_ORDERS_SLEEP_TIME_KEY = "open_orders_sleep_time";
     public static final String SPAWNING_ORDERS_SLEEP_TIME_KEY = "spawning_orders_sleep_time";
     public static final String FULFILLED_ORDERS_SLEEP_TIME_KEY = "fulfilled_orders_sleep_time";
