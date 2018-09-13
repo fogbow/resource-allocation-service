@@ -43,8 +43,10 @@ public class CloudStackOneToOneMapperTest {
     private static final String FAKE_DOMAIN = "fake-domain";
     private static final String FAKE_SESSION_KEY = "fake-session-key";
     private static final String FAKE_TIMEOUT = "fake-timeout";
+    private static final String JSON = "json";
 
     private static final String COMMAND_KEY = "command";
+    private static final String RESPONSE_KEY = "response";
     private static final String USERNAME_KEY = "username";
     private static final String PASSWORD_KEY = "password";
     private static final String DOMAIN_KEY = "domain";
@@ -86,10 +88,12 @@ public class CloudStackOneToOneMapperTest {
         String accountJsonResponse2 = getAccountResponse(FAKE_ID2, FAKE_USERNAME, FAKE_FIRST_NAME, FAKE_LAST_NAME,
                 FAKE_API_KEY, FAKE_SECRET_KEY);
         String expectedListAccountsRequestUrl = generateExpectedUrl(endpoint, listAccountsCommand,
+                RESPONSE_KEY, JSON,
                 SESSION_KEY_KEY, FAKE_SESSION_KEY);
 
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put(COMMAND_KEY, loginCommand);
+        expectedParams.put(RESPONSE_KEY, JSON);
         expectedParams.put(USERNAME_KEY, FAKE_USERNAME);
         expectedParams.put(PASSWORD_KEY, FAKE_PASSWORD);
         expectedParams.put(DOMAIN_KEY, FAKE_DOMAIN);
@@ -137,7 +141,8 @@ public class CloudStackOneToOneMapperTest {
 
     private String getAccountResponse(String id, String username, String firstName, String lastName, String apiKey,
                                       String secretKey) {
-        String response = "{\"account\":[{"
+        String response = "{\"listaccountsresponse\":{"
+                + "\"account\":[{"
                 + "\"user\":[{"
                 + "\"id\": \"%s\","
                 + "\"username\": \"%s\","
@@ -145,7 +150,7 @@ public class CloudStackOneToOneMapperTest {
                 + "\"lastname\": \"%s\","
                 + "\"apikey\": \"%s\","
                 + "\"secretkey\": \"%s\""
-                + "}]}]}";
+                + "}]}]}}";
 
         return String.format(response, id, username, firstName, lastName, apiKey, secretKey);
     }

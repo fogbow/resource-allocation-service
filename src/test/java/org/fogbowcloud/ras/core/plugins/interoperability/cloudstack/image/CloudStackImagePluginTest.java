@@ -41,6 +41,8 @@ public class CloudStackImagePluginTest {
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USERNAME = "fake-username";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
+    private static final String JSON = "json";
+    private static final String RESPONSE_KEY = "response";
 
     public static final CloudStackToken FAKE_TOKEN = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE,
             FAKE_USER_ID, FAKE_USERNAME);
@@ -69,7 +71,9 @@ public class CloudStackImagePluginTest {
         // set up
         String endpoint = getBaseEndpointFromCloudStackConf();
         String command = GetAllImagesRequest.LIST_TEMPLATES_COMMAND;
-        String expectedRequestUrl = generateExpectedUrl(endpoint, command, TEMPLATE_FILTER_KEY, EXECUTABLE_TEMPLATES_VALUE);
+        String expectedRequestUrl = generateExpectedUrl(endpoint, command,
+                RESPONSE_KEY, JSON,
+                TEMPLATE_FILTER_KEY, EXECUTABLE_TEMPLATES_VALUE);
 
         List<TemplateResponse> responses = new ArrayList<TemplateResponse>();
         responses.add(new TemplateResponse().id(FAKE_ID).name(FAKE_NAME).size(FAKE_SIZE));
@@ -101,6 +105,7 @@ public class CloudStackImagePluginTest {
         String endpoint = getBaseEndpointFromCloudStackConf();
         String command = GetAllImagesRequest.LIST_TEMPLATES_COMMAND;
         String expectedRequestUrl = generateExpectedUrl(endpoint, command,
+                RESPONSE_KEY, JSON,
                 TEMPLATE_FILTER_KEY, EXECUTABLE_TEMPLATES_VALUE,
                 GetAllImagesRequest.ID_KEY, FAKE_ID);
 
