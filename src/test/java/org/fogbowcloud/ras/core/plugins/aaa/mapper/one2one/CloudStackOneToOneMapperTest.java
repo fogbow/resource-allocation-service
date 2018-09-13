@@ -1,6 +1,5 @@
 package org.fogbowcloud.ras.core.plugins.aaa.mapper.one2one;
 
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpResponseException;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
@@ -40,7 +39,6 @@ public class CloudStackOneToOneMapperTest {
     private static final String FAKE_FIRST_NAME = "fake-first-name";
     private static final String FAKE_LAST_NAME = "fake-last-name";
     private static final String FAKE_USERNAME = "fake-username";
-    private static final String FAKE_FULL_USERNAME = FAKE_FIRST_NAME + " " + FAKE_LAST_NAME;
     private static final String FAKE_PASSWORD = "fake-password";
     private static final String FAKE_DOMAIN = "fake-domain";
     private static final String FAKE_SESSION_KEY = "fake-session-key";
@@ -55,7 +53,6 @@ public class CloudStackOneToOneMapperTest {
 
     private static final String FAKE_API_KEY = "fake-api-key";
     private static final String FAKE_SECRET_KEY = "fake-secret-key";
-    private static final String FAKE_TOKEN_VALUE = FAKE_API_KEY + ":" + FAKE_SECRET_KEY;
 
     private CloudStackOneToOneMapper mapper;
     private HttpRequestClientUtil httpRequestClientUtil;
