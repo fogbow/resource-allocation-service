@@ -3,32 +3,26 @@ package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.compute.v4_
 import com.google.gson.annotations.SerializedName;
 import org.fogbowcloud.ras.util.GsonHolder;
 
-import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.Compute.JOB_RESULT_KEY_JSON;
-import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.Compute.VIRTUAL_MACHINE_KEY_JSON;
-import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.Compute.ID_KEY_JSON;
+import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.Compute.*;
 
 public class DeployVirtualMachineResponse {
 
-    @SerializedName(JOB_RESULT_KEY_JSON)
-    private JobResult jobResult;
+    @SerializedName(DEPLOY_VIRTUAL_MACHINE)
+    private DeployVirtualMachineResponseInner response;
 
     public String getId() {
-        return jobResult.virtualMachine.id;
-    }
-
-    public class JobResult {
-        @SerializedName(VIRTUAL_MACHINE_KEY_JSON)
-        private VirtualMachine virtualMachine;
-
-    }
-
-    public class VirtualMachine {
-        @SerializedName(ID_KEY_JSON)
-        private String id;
-
+        return response.id;
     }
 
     public static DeployVirtualMachineResponse fromJson(String json) {
         return GsonHolder.getInstance().fromJson(json, DeployVirtualMachineResponse.class);
     }
+
+    public class DeployVirtualMachineResponseInner {
+
+        @SerializedName(ID_KEY_JSON)
+        private String id;
+
+    }
+
 }

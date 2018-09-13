@@ -61,7 +61,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
         String jobId = requestIpAddressAssociation(defaultNetworkId, token);
 
         CurrentAsyncRequest currentAsyncRequest = new CurrentAsyncRequest(PublicIpSubState.ASSOCIATING_IP_ADDRESS,
-                jobId, null, computeInstanceId);
+                jobId, computeInstanceId);
         publicIpSubState.put(publicIpOrder.getId(), currentAsyncRequest);
 
         // we don't have the id of the ip address yet, but since the instance id is only used
@@ -81,13 +81,36 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
         PublicIpInstance result;
         if (currentAsyncRequest == null) {
             result = new PublicIpInstance(null, InstanceState.FAILED, null);
-        } else if (currentAsyncRequest.equals(PublicIpSubState.READY)) {
+        } else if (currentAsyncRequest.getState().equals(PublicIpSubState.READY)) {
             result = instanceFromCurrentAsyncRequest(currentAsyncRequest, InstanceState.READY);
         } else {
             result = getCurrentInstance(publicIpOrderId, token);
         }
 
         return result;
+    }
+
+    @Override
+    public void deleteInstance(String publicIpInstanceId, CloudStackToken cloudStackToken)
+            throws FogbowRasException, UnexpectedException {
+        // since we returned the id of the order on requestInstance, publicIpInstanceId
+        // should be the id of the order
+        String orderId = publicIpInstanceId;
+        String ipAddressId = publicIpSubState.get(orderId).getIpInstanceId();
+        LOGGER.info("Requesting deletion for ipAddressId {}");
+
+        DisassociateIpAddressRequest disassociateIpAddressRequest = new DisassociateIpAddressRequest.Builder()
+                .id(ipAddressId)
+                .build();
+
+        CloudStackUrlUtil.sign(disassociateIpAddressRequest.getUriBuilder(), cloudStackToken.getTokenValue());
+
+        try {
+            this.client.doGetRequest(disassociateIpAddressRequest.getUriBuilder().toString(),
+                    cloudStackToken);
+        } catch (HttpResponseException e) {
+            CloudStackHttpToFogbowRasExceptionMapper.map(e);
+        }
     }
 
     private PublicIpInstance getCurrentInstance(String orderId, CloudStackToken token) throws FogbowRasException, UnexpectedException {
@@ -101,10 +124,13 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
                 result = new PublicIpInstance(null, InstanceState.SPAWNING, null);
                 break;
             case SUCCESS:
-                AssociateIpAddressResponse response = AssociateIpAddressResponse.fromJson(jsonResponse);
-                String ipAddressId = response.getIpAddress().getId();
                 switch (currentAsyncRequest.getState()) {
                     case ASSOCIATING_IP_ADDRESS:
+                        SuccessfulAssociateIpAddressResponse response = SuccessfulAssociateIpAddressResponse.fromJson(jsonResponse);
+                        String ipAddressId = response.getIpAddress().getId();
+                        currentAsyncRequest.setIpInstanceId(ipAddressId);
+                        currentAsyncRequest.setIp(response.getIpAddress().getIpAddress());
+
                         enableStaticNat(currentAsyncRequest.getComputeInstanceId(), ipAddressId, token);
 
                         String createFirewallRuleJobId = createFirewallRule(ipAddressId, token);
@@ -140,29 +166,6 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
         return new PublicIpInstance(ipInstanceId, state, ip);
     }
 
-    @Override
-    public void deleteInstance(String publicIpInstanceId, CloudStackToken cloudStackToken)
-            throws FogbowRasException, UnexpectedException {
-        // since we returned the id of the order on requestInstance, publicIpInstanceId
-        // should be the id of the order
-        String orderId = publicIpInstanceId;
-        String ipAddressId = publicIpSubState.get(orderId).getIpInstanceId();
-        LOGGER.info("Requesting deletion for ipAddressId {}");
-
-        DisassociateIpAddressRequest disassociateIpAddressRequest = new DisassociateIpAddressRequest.Builder()
-                .id(ipAddressId)
-                .build();
-
-        CloudStackUrlUtil.sign(disassociateIpAddressRequest.getUriBuilder(), cloudStackToken.getTokenValue());
-
-        try {
-            this.client.doGetRequest(disassociateIpAddressRequest.getUriBuilder().toString(),
-                    cloudStackToken);
-        } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowRasExceptionMapper.map(e);
-        }
-    }
-
     protected String requestIpAddressAssociation(String networkId, CloudStackToken cloudStackToken)
             throws FogbowRasException {
         AssociateIpAddressRequest associateIpAddressRequest = new AssociateIpAddressRequest.Builder()
@@ -180,10 +183,10 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
 
-        AssociateIpAddressSyncJobIdResponse associateIpAddressSyncJobIdResponse = AssociateIpAddressSyncJobIdResponse
+        AssociateIpAddressAsyncJobIdResponse associateIpAddressAsyncJobIdResponse = AssociateIpAddressAsyncJobIdResponse
                 .fromJson(jsonResponse);
 
-        return associateIpAddressSyncJobIdResponse.getJobId();
+        return associateIpAddressAsyncJobIdResponse.getJobId();
     }
 
     protected void enableStaticNat(String computeInstanceId, String ipAdressId,
@@ -207,23 +210,23 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 
     protected String createFirewallRule(String ipAdressId, CloudStackToken cloudStackToken)
             throws FogbowRasException {
-        CreateFirewallRequest createFirewallRequest = new CreateFirewallRequest.Builder()
+        CreateFirewallRuleRequest createFirewallRuleRequest = new CreateFirewallRuleRequest.Builder()
                 .protocol(DEFAULT_PROTOCOL)
                 .startPort(DEFAULT_START_PORT)
                 .endPort(DEFAULT_END_PORT)
-                .ipAddress(ipAdressId)
+                .ipAddressId(ipAdressId)
                 .build();
 
-        CloudStackUrlUtil.sign(createFirewallRequest.getUriBuilder(), cloudStackToken.getTokenValue());
+        CloudStackUrlUtil.sign(createFirewallRuleRequest.getUriBuilder(), cloudStackToken.getTokenValue());
 
         String jsonResponse = null;
         try {
-            jsonResponse = this.client.doGetRequest(createFirewallRequest.getUriBuilder().toString(), cloudStackToken);
+            jsonResponse = this.client.doGetRequest(createFirewallRuleRequest.getUriBuilder().toString(), cloudStackToken);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
 
-        CreateFirewallResponse response = CreateFirewallResponse.fromJson(jsonResponse);
+        CreateFirewallRuleAsyncResponse response = CreateFirewallRuleAsyncResponse.fromJson(jsonResponse);
         return response.getJobId();
     }
 
@@ -263,10 +266,9 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 
         private String computeInstanceId;
 
-        public CurrentAsyncRequest(PublicIpSubState state, String currentJobId, String ipInstanceId, String computeInstanceId) {
+        public CurrentAsyncRequest(PublicIpSubState state, String currentJobId, String computeInstanceId) {
             this.state = state;
             this.currentJobId = currentJobId;
-            this.ipInstanceId = ipInstanceId;
             this.computeInstanceId = computeInstanceId;
         }
 
@@ -276,10 +278,6 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 
         public String getCurrentJobId() {
             return currentJobId;
-        }
-
-        public String getIpInstanceId() {
-            return ipInstanceId;
         }
 
         public String getComputeInstanceId() {
@@ -296,6 +294,18 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 
         public String getIp() {
             return ip;
+        }
+
+        public void setIp(String ip) {
+            this.ip = ip;
+        }
+
+        public String getIpInstanceId() {
+            return ipInstanceId;
+        }
+
+        public void setIpInstanceId(String ipInstanceId) {
+            this.ipInstanceId = ipInstanceId;
         }
     }
 

@@ -33,7 +33,7 @@ public class ComputeOrder extends Order {
     private String imageId;
     @Embedded
     private UserData userData;
-    @Column
+    @Column(length = 512)
     private String publicKey;
     @Embedded
     private ComputeAllocation actualAllocation;
