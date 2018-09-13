@@ -462,7 +462,10 @@ public class CloudStackComputePluginTest {
         String successfulComputeResponse = getVirtualMachineResponse(FAKE_ID, FAKE_INSTANCE_NAME, FAKE_STATE,
                                                                      FAKE_CPU_NUMBER, FAKE_MEMORY,
                                                                      FAKE_ADDRESS);
-        String volumeResponse = getVolumeResponse(FAKE_ID, FAKE_INSTANCE_NAME, FAKE_DISK, FAKE_STATE);
+
+        double value = Integer.valueOf(FAKE_DISK) * Math.pow(1024, 3);
+        String fakeDiskInBytes = new Double(value).toString();
+        String volumeResponse = getVolumeResponse(FAKE_ID, FAKE_INSTANCE_NAME, fakeDiskInBytes, FAKE_STATE);
         String successfulVolumeResponse = getListVolumesResponse(volumeResponse);
 
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
@@ -711,7 +714,7 @@ public class CloudStackComputePluginTest {
     }
 
     private String getDeployVirtualMachineResponse(String id) {
-        String response = "{\"jobresult\":{\"virtualmachine\":{\"id\":\"%s\"}}}";
+        String response = "{\"deployvirtualmachineresponse\":{\"id\":\"%s\"}}";
 
         return String.format(response, id);
     }
