@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.openstack;
 
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 
@@ -29,6 +30,9 @@ public class OpenStackStateMapper {
     public static final String UPLOADING_STATUS = "uploading";
     public static final String RETYPING_STATUS = "retyping";
     public static final String EXTENDING_STATUS = "extending";
+    public static final String COMPUTE_PLUGIN = "OpenstackComputePlugin";
+    public static final String NETWORK_PLUGIN = "OpenstackNetworkPlugin";
+    public static final String VOLUME_PLUGIN = "OpenstackVolumePlugin";
 
     public static InstanceState map(ResourceType type, String openStackState) {
 
@@ -44,7 +48,7 @@ public class OpenStackStateMapper {
                     case ERROR_STATUS:
                         return InstanceState.FAILED;
                     default:
-                        LOGGER.error(getDefaultLogMessage(openStackState, "OpenstackComputePlugin"));
+                    	LOGGER.error(String.format(Messages.Error.INSTANCE_STATE_NOT_MAPPED, openStackState, COMPUTE_PLUGIN));
                         return InstanceState.INCONSISTENT;
                 }
             case NETWORK:
@@ -57,7 +61,7 @@ public class OpenStackStateMapper {
                     case ERROR_STATUS:
                         return InstanceState.FAILED;
                     default:
-                        LOGGER.error(getDefaultLogMessage(openStackState, "OpenstackNetworkPlugin"));
+                    	LOGGER.error(String.format(Messages.Error.INSTANCE_STATE_NOT_MAPPED, openStackState, NETWORK_PLUGIN));
                         return InstanceState.INCONSISTENT;
                 }
             case VOLUME:
@@ -88,7 +92,7 @@ public class OpenStackStateMapper {
                     case ERROR_STATUS:
                         return InstanceState.FAILED;
                     default:
-                        LOGGER.error(getDefaultLogMessage(openStackState, "OpenstackVolumePlugin"));
+                    	LOGGER.error(String.format(Messages.Error.INSTANCE_STATE_NOT_MAPPED, openStackState, VOLUME_PLUGIN));
                         return InstanceState.INCONSISTENT;
                 }
             case ATTACHMENT:
@@ -104,13 +108,9 @@ public class OpenStackStateMapper {
                         return InstanceState.UNAVAILABLE;
                 }                
             default:
-                LOGGER.error("Instance type not defined.");
+            	LOGGER.error(Messages.Error.INSTANCE_TYPE_NOT_DEFINED);
                 return InstanceState.INCONSISTENT;
         }
     }
 
-    private static String getDefaultLogMessage(String openStackState, String pluginName) {
-        return openStackState + " was not mapped to a well-defined OpenStack " +
-                "instance state when " + pluginName + " were implemented.";
-    }
 }

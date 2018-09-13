@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.core.intercomponent.xmpp;
 
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
@@ -8,8 +9,7 @@ public class XmppErrorConditionToExceptionTranslator {
 
     public static void handleError(IQ response, String memberId) throws Exception {
         if (response == null) {
-            String message = "Unable to retrieve the response from providing member: " + memberId;
-            throw new UnavailableProviderException(message);
+            throw new UnavailableProviderException(String.format(Messages.Exception.UNABLE_RETRIEVE_RESPONSE_FROM_PROVIDING_MEMBER, memberId));
         } else if (response.getError() != null) {
             PacketError.Condition condition = response.getError().getCondition();
             String message = response.getError().getText();

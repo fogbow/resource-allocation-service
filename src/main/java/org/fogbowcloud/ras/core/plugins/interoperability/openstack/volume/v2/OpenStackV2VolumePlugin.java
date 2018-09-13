@@ -4,6 +4,7 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
@@ -22,7 +23,6 @@ import java.util.Properties;
 public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackV3Token> {
     private static final Logger LOGGER = Logger.getLogger(OpenStackV2VolumePlugin.class);
 
-    private final String PROJECT_ID_IS_NOT_SPECIFIED_ERROR = "Project id is not specified.";
     private final String V2_API_ENDPOINT = "/v2/";
     protected static final String SUFIX_ENDPOINT_VOLUMES = "/volumes";
     public static final String VOLUME_NOVAV2_URL_KEY = "openstack_cinder_url";
@@ -41,8 +41,9 @@ public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackV3Token> {
             throws FogbowRasException, UnexpectedException {
         String tenantId = openStackV3Token.getProjectId();
         if (tenantId == null) {
-            LOGGER.error(PROJECT_ID_IS_NOT_SPECIFIED_ERROR);
-            throw new UnauthenticatedUserException(PROJECT_ID_IS_NOT_SPECIFIED_ERROR);
+            String message = Messages.Error.PROJECT_ID_NOT_SPECIFIED;
+        	LOGGER.error(message);
+            throw new UnauthenticatedUserException(message);
         }
 
         String jsonRequest = null;
@@ -51,9 +52,9 @@ public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackV3Token> {
             String name = order.getName();
             jsonRequest = generateJsonEntityToCreateInstance(size, name);
         } catch (JSONException e) {
-            String errorMsg = "An error occurred when generating json.";
-            LOGGER.error(errorMsg, e);
-            throw new InvalidParameterException(errorMsg, e);
+        	String message = Messages.Error.COULD_NOT_GENERATING_JSON;
+            LOGGER.error(message, e);
+            throw new InvalidParameterException(message, e);
         }
 
         String endpoint = this.volumeV2APIEndpoint + tenantId + SUFIX_ENDPOINT_VOLUMES;
@@ -72,8 +73,9 @@ public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackV3Token> {
             throws FogbowRasException, UnexpectedException {
         String tenantId = openStackV3Token.getProjectId();
         if (tenantId == null) {
-            LOGGER.error(PROJECT_ID_IS_NOT_SPECIFIED_ERROR);
-            throw new UnauthenticatedUserException(PROJECT_ID_IS_NOT_SPECIFIED_ERROR);
+            String message = Messages.Error.PROJECT_ID_NOT_SPECIFIED;
+        	LOGGER.error(message);
+            throw new UnauthenticatedUserException(message);
         }
 
         String endpoint = this.volumeV2APIEndpoint + tenantId
@@ -92,8 +94,9 @@ public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackV3Token> {
             throws FogbowRasException, UnexpectedException {
         String tenantId = openStackV3Token.getProjectId();
         if (tenantId == null) {
-            LOGGER.error(PROJECT_ID_IS_NOT_SPECIFIED_ERROR);
-            throw new UnauthenticatedUserException(PROJECT_ID_IS_NOT_SPECIFIED_ERROR);
+            String message = Messages.Error.PROJECT_ID_NOT_SPECIFIED;
+        	LOGGER.error(message);
+            throw new UnauthenticatedUserException(message);
         }
 
         String endpoint = this.volumeV2APIEndpoint + tenantId
@@ -116,9 +119,9 @@ public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackV3Token> {
 
             return new VolumeInstance(id, fogbowState, name, size);
         } catch (Exception e) {
-            String errorMsg = "There was an exception while getting volume instance.";
-            LOGGER.error(errorMsg, e);
-            throw new UnexpectedException(errorMsg, e);
+        	String message = Messages.Error.WHILE_GETTING_VOLUME_INSTANCE;
+            LOGGER.error(message, e);
+            throw new UnexpectedException(message, e);
         }
     }
 

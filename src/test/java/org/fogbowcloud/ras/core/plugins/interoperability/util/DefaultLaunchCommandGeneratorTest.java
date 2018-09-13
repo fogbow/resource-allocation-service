@@ -1,22 +1,17 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.util;
 
+import java.util.Properties;
+
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 import org.fogbowcloud.ras.core.models.orders.UserData;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.springframework.context.annotation.Conditional;
-
-import java.util.Properties;
-
-import static org.junit.Assert.fail;
 
 public class DefaultLaunchCommandGeneratorTest {
 
@@ -24,7 +19,6 @@ public class DefaultLaunchCommandGeneratorTest {
 
     private DefaultLaunchCommandGenerator launchCommandGenerator;
 
-    private final static String RAS_PUBLIC_KEY_FILE_PATH = "src/test/resources/fake-ras-public-key";
     private final static String EXTRA_USER_DATA_FILE = "fake-extra-user-data-file";
 
     private CloudInitUserDataBuilder.FileType extraUserDataFileType =
@@ -36,8 +30,6 @@ public class DefaultLaunchCommandGeneratorTest {
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         this.properties = propertiesHolder.getProperties();
         this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
-        this.properties.setProperty(
-                ConfigurationConstants.RAS_SSH_PUBLIC_KEY_FILE_PATH, RAS_PUBLIC_KEY_FILE_PATH);
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
 
     }
@@ -152,10 +144,6 @@ public class DefaultLaunchCommandGeneratorTest {
         mimeString += DefaultLaunchCommandGenerator.TOKEN_ID + System.lineSeparator();
         expectedMimeString += order.getId() + System.lineSeparator();
 
-        mimeString +=
-                DefaultLaunchCommandGenerator.TOKEN_RAS_SSH_PUBLIC_KEY + System.lineSeparator();
-        expectedMimeString += "fake-ras-public-key" + System.lineSeparator();
-
         mimeString += DefaultLaunchCommandGenerator.TOKEN_SSH_USER + System.lineSeparator();
         expectedMimeString +=
                 DefaultConfigurationConstants.SSH_COMMON_USER + System.lineSeparator();
@@ -170,45 +158,6 @@ public class DefaultLaunchCommandGeneratorTest {
 
         // verify
         Assert.assertEquals(expectedMimeString, replacedMimeString);
-    }
-
-    // test case: An exception must be thrown when the ras ssh public key file path is empty.
-    @Test()
-    public void testPropertiesWithoutRasSshPublicKeyFilePath() throws Exception {
-        Assume.assumeFalse(Boolean.parseBoolean(System.getenv("SKIP_TEST_ON_TRAVIS")));
-        // set up
-        this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
-        this.properties.setProperty(
-                ConfigurationConstants.RAS_SSH_PUBLIC_KEY_FILE_PATH, "");
-
-        // exercise
-        try {
-            new DefaultLaunchCommandGenerator();
-            fail();
-        } catch (FatalErrorException exception){
-
-        }
-    }
-
-    // test case: The path to ras ssh public key doesn't exist, so a fatal error exception must be thrown
-    @Test()
-    public void testPropertiesWithWrongRasSshPublicKeyFilePath() throws FatalErrorException {
-        Assume.assumeFalse(Boolean.parseBoolean(System.getenv("SKIP_TEST_ON_TRAVIS")));
-        // set up
-        this.properties.setProperty(ConfigurationConstants.XMPP_JID_KEY, "localidentity-member");
-        String emptyRasPublicKeyFilePath = "src/test/resources/fake-empty-ras-public-key";
-
-        this.properties.setProperty(
-                ConfigurationConstants.RAS_SSH_PUBLIC_KEY_FILE_PATH, emptyRasPublicKeyFilePath);
-
-
-        // exercise
-        try {
-            new DefaultLaunchCommandGenerator();
-            fail();
-        } catch (FatalErrorException exception){
-            // Do not
-        }
     }
 
     private ComputeOrder createComputeOrder() {

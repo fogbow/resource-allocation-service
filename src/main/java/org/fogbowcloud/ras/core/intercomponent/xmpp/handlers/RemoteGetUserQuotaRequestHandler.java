@@ -3,6 +3,7 @@ package org.fogbowcloud.ras.core.intercomponent.xmpp.handlers;
 import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.RemoteMethod;
@@ -24,7 +25,7 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
-        LOGGER.info("Received request for order: " + iq.getID());
+        LOGGER.info(String.format(Messages.Info.RECEIVED_REQUEST_FOR_ORDER, iq.getID()));
         String memberId = unmarshalMemberId(iq);
         FederationUserToken federationUserToken = unmarshalFederatedUser(iq);
         ResourceType resourceType = unmarshalInstanceType(iq);

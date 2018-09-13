@@ -1,20 +1,21 @@
 package org.fogbowcloud.ras.core.plugins.aaa.authentication.openstack;
 
+import java.util.Properties;
+
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.KeystoneV3TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.KeystoneV3TokenGeneratorPlugin;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
-
-import java.util.Properties;
 
 public class KeystoneV3AuthenticationPlugin implements AuthenticationPlugin {
     private static final Logger LOGGER = Logger.getLogger(KeystoneV3TokenGeneratorPlugin.class);
@@ -49,13 +50,13 @@ public class KeystoneV3AuthenticationPlugin implements AuthenticationPlugin {
         }
     }
 
-    private boolean isUrlValid(String url) throws FatalErrorException {
-        if (url == null || url.trim().isEmpty()) {
-            throw new FatalErrorException("Invalid Keystone_V3_URL " +
-                    KeystoneV3TokenGeneratorPlugin.OPENSTACK_KEYSTONE_V3_URL);
-        }
-        return true;
-    }
+	private boolean isUrlValid(String url) throws FatalErrorException {
+		if (url == null || url.trim().isEmpty()) {
+			throw new FatalErrorException(String.format(Messages.Fatal.INVALID_KEYSTONE_URL,
+					KeystoneV3TokenGeneratorPlugin.OPENSTACK_KEYSTONE_V3_URL));
+		}
+		return true;
+	}
 
     // Used in testing
     protected void setClient(HttpRequestClientUtil client) {

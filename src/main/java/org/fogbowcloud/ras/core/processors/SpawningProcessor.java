@@ -5,6 +5,7 @@ import org.fogbowcloud.ras.core.OrderStateTransitioner;
 import org.fogbowcloud.ras.core.SharedOrderHolders;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.Instance;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
@@ -41,11 +42,11 @@ public class SpawningProcessor implements Runnable {
                 }
             } catch (InterruptedException e) {
                 isActive = false;
-                LOGGER.error("Thread interrupted", e);
+                LOGGER.error(Messages.Error.THREAD_INTERRUPTED, e);
             } catch (UnexpectedException e) {
                 handleError(order, e.getMessage(), e);
             } catch (Throwable e) {
-                handleError(order, "Unexpected error", e);
+                handleError(order, Messages.Error.UNEXPECTED, e);
             }
         }
     }

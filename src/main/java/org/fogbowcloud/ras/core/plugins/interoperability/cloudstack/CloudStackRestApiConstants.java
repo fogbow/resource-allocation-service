@@ -97,5 +97,20 @@ public class CloudStackRestApiConstants {
         public static final String RESOURCE_LIMIT_KEY_JSON = "resourcelimit";
         public static final String RESOURCE_TYPE_KEY_JSON = "resourcetype";
         public static final String MAX_KEY_JSON = "max";
+
+    }
+
+    public static class Identity {
+        public static final String LOGIN_KEY_JSON = "loginresponse";
+        public static final String ACCOUNT_KEY_JSON = "account";
+        public static final String USER_KEY_JSON = "user";
+        public static final String USER_ID_KEY_JSON = "id";
+        public static final String USERNAME_KEY_JSON = "username";
+        public static final String FIRST_NAME_KEY_JSON = "firstname";
+        public static final String LAST_NAME_KEY_JSON = "lastname";
+        public static final String SESSION_KEY_JSON = "sessionkey";
+        public static final String TIMEOUT_KEY_JSON = "timeout";
+        public static final String API_KEY_JSON = "apikey";
+        public static final String SECRET_KEY_JSON = "secretkey";
     }
 }

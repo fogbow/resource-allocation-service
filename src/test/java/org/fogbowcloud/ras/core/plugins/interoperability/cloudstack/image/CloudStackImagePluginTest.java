@@ -10,7 +10,7 @@ import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
-import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGenerator;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
@@ -37,9 +37,13 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.image
 @PrepareForTest({CloudStackUrlUtil.class, HttpRequestUtil.class})
 public class CloudStackImagePluginTest {
 
-    public static final String FAKE_TOKEN_VALUE = "fake-token-value";
+    private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
+    private static final String FAKE_USER_ID = "fake-user-id";
+    private static final String FAKE_USERNAME = "fake-username";
+    private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
 
-    public static final CloudStackToken FAKE_TOKEN = new CloudStackToken(FAKE_TOKEN_VALUE);
+    public static final CloudStackToken FAKE_TOKEN = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE,
+            FAKE_USER_ID, FAKE_USERNAME);
 
     public static final String FAKE_ID = "fake-id";
     public static final String FAKE_NAME = "fake-name";
@@ -185,7 +189,7 @@ public class CloudStackImagePluginTest {
                 + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
 
         Properties properties = PropertiesUtil.readProperties(filePath);
-        return properties.getProperty(CloudStackTokenGenerator.CLOUDSTACK_URL);
+        return properties.getProperty(CloudStackTokenGeneratorPlugin.CLOUDSTACK_URL);
     }
 
     private static class TemplateResponse {

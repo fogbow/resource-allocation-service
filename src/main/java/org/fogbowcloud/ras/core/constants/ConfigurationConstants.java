@@ -19,11 +19,12 @@ public class ConfigurationConstants {
             "local_user_credentials_mapper_plugin_class";
 
     // RAS CONF
-    public static final String RAS_SSH_PUBLIC_KEY_FILE_PATH = "ras_ssh_public_key_file_path";
+    public static final String RAS_PUBLIC_KEY_FILE_PATH = "ras_public_key_file_path";
+    public static final String RAS_PRIVATE_KEY_FILE_PATH = "ras_private_key_file_path";
     public static final String OPEN_ORDERS_SLEEP_TIME_KEY = "open_orders_sleep_time";
     public static final String SPAWNING_ORDERS_SLEEP_TIME_KEY = "spawning_orders_sleep_time";
     public static final String FULFILLED_ORDERS_SLEEP_TIME_KEY = "fulfilled_orders_sleep_time";
-    public static final String CLOSED_ORDERS_SLEEP_TIME_KEY = "closed_orders_scheduler_period";
+    public static final String CLOSED_ORDERS_SLEEP_TIME_KEY = "closed_orders_sleep_period";
     public static final String HTTP_REQUEST_TIMEOUT = "http_request_timeout";
 
     // HISTORY & RECOVERY DATABASE CONF
@@ -38,7 +39,7 @@ public class ConfigurationConstants {
     public static final String XMPP_JID_KEY = "xmpp_jid";
     public static final String XMPP_PASSWORD_KEY = "xmpp_password";
     public static final String XMPP_SERVER_IP_KEY = "xmpp_server_ip";
-    public static final String XMPP_SERVER_PORT_KEY = "xmpp_server_port";
+    public static final String XMPP_C2S_PORT_KEY = "xmpp_c2s_port";
     public static final String XMPP_TIMEOUT_KEY = "xmpp_timeout";
 
     // Alias

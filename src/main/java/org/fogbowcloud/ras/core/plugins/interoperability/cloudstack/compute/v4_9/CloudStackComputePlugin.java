@@ -5,6 +5,7 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.ComputeInstance;
@@ -59,7 +60,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
             throws FogbowRasException, UnexpectedException {
         String templateId = computeOrder.getImageId();
         if (templateId == null || this.zoneId == null || this.defaultNetworkId == null) {
-            LOGGER.error("Order cannot be completed. Template, zone and default network IDs are required parameters.");
+            LOGGER.error(Messages.Error.ORDER_CANNOT_BE_COMPLETED);
             throw new InvalidParameterException();
         }
 
@@ -251,7 +252,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         try {
             disk = getVirtualMachineDiskSize(instanceId, cloudStackToken);
         } catch (FogbowRasException e) {
-            LOGGER.warn("Root volume could not be retrieved for virtual machine " + vm.getId() + ". Assigning -1 to disk size.");
+            LOGGER.warn(String.format(Messages.Warn.COULD_NOT_RETRIEVE_ROOT_VOLUME, vm.getId()));
         }
 
         String cloudStackState = vm.getState();
