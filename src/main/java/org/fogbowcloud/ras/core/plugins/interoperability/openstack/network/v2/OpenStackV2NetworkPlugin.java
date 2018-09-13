@@ -39,7 +39,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
     protected static final String SUFFIX_ENDPOINT_SECURITY_GROUP = "/security-groups";
     protected static final String V2_API_ENDPOINT = "/v2.0";
     protected static final String KEY_PROVIDER_SEGMENTATION_ID = "provider:segmentation_id";
-    protected static final String KEY_EXTERNAL_GATEWAY_INFO = "external_gateway_info";
+    public static final String KEY_EXTERNAL_GATEWAY_INFO = "external_gateway_info";
     protected static final String QUERY_NAME = "name";
     protected static final String KEY_DNS_NAMESERVERS = "dns_nameservers";
     protected static final String KEY_ENABLE_DHCP = "enable_dhcp";

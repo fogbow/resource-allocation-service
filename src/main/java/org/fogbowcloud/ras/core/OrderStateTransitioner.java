@@ -18,7 +18,7 @@ public class OrderStateTransitioner {
 
     public static void activateOrder(Order order) throws UnexpectedException {
         LOGGER.info(Messages.Info.ACTIVATING_NEW_ORDER);
-        
+
         if (order == null) {
             throw new UnexpectedException(Messages.Exception.CANNOT_PROCESS_ORDER_REQUEST_NULL);
         }

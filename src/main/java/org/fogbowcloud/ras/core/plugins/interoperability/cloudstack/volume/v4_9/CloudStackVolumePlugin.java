@@ -195,15 +195,16 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
                 .build();
     }
 
-    private VolumeInstance loadInstance(Volume volume) {
+    private VolumeInstance loadInstance(GetVolumeResponse.Volume volume) {
         String id = volume.getId();
         String state = volume.getState();
         String name = volume.getName();
-        int size = volume.getSize();
+        long sizeInBytes = volume.getSize();
+        int sizeInGigabytes = (int) (sizeInBytes / Math.pow(1024, 3));
 
         InstanceState instanceState = CloudStackStateMapper.map(ResourceType.VOLUME, state);
 
-        VolumeInstance volumeInstance = new VolumeInstance(id, instanceState, name, size);
+        VolumeInstance volumeInstance = new VolumeInstance(id, instanceState, name, sizeInGigabytes);
         return volumeInstance;
     }
 

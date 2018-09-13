@@ -100,6 +100,13 @@ public class OpenStackStateMapper {
                     default:
                         return InstanceState.READY;
                 }
+            case PUBLIC_IP:
+                switch (openStackState) {
+	                case ACTIVE_STATUS:
+	                    return InstanceState.READY;
+                    default:
+                        return InstanceState.UNAVAILABLE;
+                }                
             default:
             	LOGGER.error(Messages.Error.INSTANCE_TYPE_NOT_DEFINED);
                 return InstanceState.INCONSISTENT;

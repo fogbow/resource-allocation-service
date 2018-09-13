@@ -3,6 +3,7 @@ package org.fogbowcloud.ras.core.constants;
 public class ConfigurationConstants {
     // PLUGINS CLASSES
     // Interoperability
+    public static final String PUBLIC_IP_PLUGIN_CLASS_KEY = "public_ip_plugin_class";
     public static final String ATTACHMENT_PLUGIN_CLASS_KEY = "attachment_plugin_class";
     public static final String COMPUTE_PLUGIN_CLASS_KEY = "compute_plugin_class";
     public static final String COMPUTE_QUOTA_PLUGIN_CLASS_KEY = "compute_quota_plugin_class";

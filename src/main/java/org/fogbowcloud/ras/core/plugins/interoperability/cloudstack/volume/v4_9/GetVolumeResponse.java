@@ -47,7 +47,7 @@ public class GetVolumeResponse {
         @SerializedName(NAME_KEY_JSON)
         private String name;
         @SerializedName(SIZE_KEY_JSON)
-        private int size;
+        private long size;
         @SerializedName(STATE_KEY_JSON)
         private String state;
 
@@ -59,7 +59,7 @@ public class GetVolumeResponse {
             return this.name;
         }
 
-        public int getSize() {
+        public long getSize() {
             return this.size;
         }
 

@@ -86,11 +86,13 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin {
                 case LIMIT_TYPE_MEMORY:
                     ram = Integer.valueOf(limit.getMax());
                     break;
-                default:
-                    break;
             }
         }
         return new ComputeAllocation(vCpu, ram, instances);
     }
+
+	protected void setClient(HttpRequestClientUtil client) {
+		this.client = client;
+	}
 
 }

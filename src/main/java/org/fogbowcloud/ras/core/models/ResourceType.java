@@ -5,7 +5,8 @@ public enum ResourceType {
     NETWORK("network"),
     VOLUME("volume"),
     ATTACHMENT("attachment"),
-    IMAGE("image");
+    IMAGE("image"),
+    PUBLIC_IP("publicIp");
 
     private String value;
 
