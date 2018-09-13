@@ -16,7 +16,7 @@ public class OrderStateTransitioner {
     private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
 
     public static void activateOrder(Order order) throws UnexpectedException {
-        LOGGER.info("Activating new compute order request received");
+        LOGGER.info("Activating new order request received");
 
         if (order == null) {
             String message = "Cannot process new order request. Order reference is null.";

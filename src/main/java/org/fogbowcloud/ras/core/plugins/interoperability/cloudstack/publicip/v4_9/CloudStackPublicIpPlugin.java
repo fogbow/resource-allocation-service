@@ -61,7 +61,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
         String jobId = requestIpAddressAssociation(defaultNetworkId, token);
 
         CurrentAsyncRequest currentAsyncRequest = new CurrentAsyncRequest(PublicIpSubState.ASSOCIATING_IP_ADDRESS,
-                jobId, null, computeInstanceId);
+                jobId, computeInstanceId);
         publicIpSubState.put(publicIpOrder.getId(), currentAsyncRequest);
 
         // we don't have the id of the ip address yet, but since the instance id is only used
@@ -81,12 +81,15 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
         PublicIpInstance result;
         if (currentAsyncRequest == null) {
             result = new PublicIpInstance(null, InstanceState.FAILED, null);
-        } else if (currentAsyncRequest.equals(PublicIpSubState.READY)) {
+        } else if (currentAsyncRequest.getState().equals(PublicIpSubState.READY)) {
             result = instanceFromCurrentAsyncRequest(currentAsyncRequest, InstanceState.READY);
         } else {
             result = getCurrentInstance(publicIpOrderId, token);
         }
 
+        if (result == null) {
+            int a = 2;
+        }
         return result;
     }
 
@@ -124,10 +127,13 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
                 result = new PublicIpInstance(null, InstanceState.SPAWNING, null);
                 break;
             case SUCCESS:
-                SuccessfulAssociateIpAddressResponse response = SuccessfulAssociateIpAddressResponse.fromJson(jsonResponse);
-                String ipAddressId = response.getIpAddress().getId();
                 switch (currentAsyncRequest.getState()) {
                     case ASSOCIATING_IP_ADDRESS:
+                        SuccessfulAssociateIpAddressResponse response = SuccessfulAssociateIpAddressResponse.fromJson(jsonResponse);
+                        String ipAddressId = response.getIpAddress().getId();
+                        currentAsyncRequest.setIpInstanceId(ipAddressId);
+                        currentAsyncRequest.setIp(response.getIpAddress().getIpAddress());
+
                         enableStaticNat(currentAsyncRequest.getComputeInstanceId(), ipAddressId, token);
 
                         String createFirewallRuleJobId = createFirewallRule(ipAddressId, token);
@@ -180,10 +186,10 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
 
-        AssociateIpAddressSyncJobIdResponse associateIpAddressSyncJobIdResponse = AssociateIpAddressSyncJobIdResponse
+        AssociateIpAddressAsyncJobIdResponse associateIpAddressAsyncJobIdResponse = AssociateIpAddressAsyncJobIdResponse
                 .fromJson(jsonResponse);
 
-        return associateIpAddressSyncJobIdResponse.getJobId();
+        return associateIpAddressAsyncJobIdResponse.getJobId();
     }
 
     protected void enableStaticNat(String computeInstanceId, String ipAdressId,
@@ -223,7 +229,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
 
-        CreateFirewallResponse response = CreateFirewallResponse.fromJson(jsonResponse);
+        CreateFirewallRuleAsyncResponse response = CreateFirewallRuleAsyncResponse.fromJson(jsonResponse);
         return response.getJobId();
     }
 
@@ -263,10 +269,9 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 
         private String computeInstanceId;
 
-        public CurrentAsyncRequest(PublicIpSubState state, String currentJobId, String ipInstanceId, String computeInstanceId) {
+        public CurrentAsyncRequest(PublicIpSubState state, String currentJobId, String computeInstanceId) {
             this.state = state;
             this.currentJobId = currentJobId;
-            this.ipInstanceId = ipInstanceId;
             this.computeInstanceId = computeInstanceId;
         }
 
@@ -276,10 +281,6 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 
         public String getCurrentJobId() {
             return currentJobId;
-        }
-
-        public String getIpInstanceId() {
-            return ipInstanceId;
         }
 
         public String getComputeInstanceId() {
@@ -296,6 +297,18 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 
         public String getIp() {
             return ip;
+        }
+
+        public void setIp(String ip) {
+            this.ip = ip;
+        }
+
+        public String getIpInstanceId() {
+            return ipInstanceId;
+        }
+
+        public void setIpInstanceId(String ipInstanceId) {
+            this.ipInstanceId = ipInstanceId;
         }
     }
 

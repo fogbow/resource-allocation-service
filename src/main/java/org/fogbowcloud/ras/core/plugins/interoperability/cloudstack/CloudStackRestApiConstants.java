@@ -53,10 +53,12 @@ public class CloudStackRestApiConstants {
         public static final String QUERY_ASYNC_JOB_RESULT = "queryAsyncJobResult";
         public static final String ENABLE_STATIC_NAT_COMMAND = "enableStaticNat";
 
-        // TODO confirm this values !
         public static final String ASSOCIATE_IP_ADDRESS_RESPONSE_KEY_JSON = "associateipaddressresponse";
         public static final String QUERY_ASYNC_JOB_RESULT_KEY_JSON = "queryasyncjobresultresponse";
 
+        public static final String CREATE_FIREWALL_RULE_RESPONSE = "createfirewallruleresponse";
+
+        // TODO confirm this values !
         public static final String VM_ID_KEY_JSON = "virtualmachineid";
         public static final String NETWORK_ID_KEY_JSON = "networkid";
         public static final String IP_ADDRESS_KEY_JSON = "ipaddress";

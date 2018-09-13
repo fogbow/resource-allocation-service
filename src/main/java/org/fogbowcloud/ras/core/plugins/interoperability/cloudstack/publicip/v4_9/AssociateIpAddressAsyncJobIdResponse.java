@@ -17,7 +17,7 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.Cloud
  * }
  * }
  */
-public class AssociateIpAddressSyncJobIdResponse {
+public class AssociateIpAddressAsyncJobIdResponse {
 
     @SerializedName(ASSOCIATE_IP_ADDRESS_RESPONSE_KEY_JSON)
     private AssociateIpAddressResponse associateIpAddressResponse;
@@ -26,8 +26,8 @@ public class AssociateIpAddressSyncJobIdResponse {
         return this.associateIpAddressResponse.getJobId();
     }
 
-    public static AssociateIpAddressSyncJobIdResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, AssociateIpAddressSyncJobIdResponse.class);
+    public static AssociateIpAddressAsyncJobIdResponse fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, AssociateIpAddressAsyncJobIdResponse.class);
     }
 
     public class AssociateIpAddressResponse {
