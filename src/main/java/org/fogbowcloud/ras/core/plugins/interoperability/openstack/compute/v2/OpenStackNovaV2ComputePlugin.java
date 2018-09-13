@@ -4,6 +4,7 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.HardwareRequirements;
 import org.fogbowcloud.ras.core.models.ResourceType;
@@ -133,7 +134,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
     @Override
     public ComputeInstance getInstance(String instanceId, OpenStackV3Token openStackV3Token)
             throws FogbowRasException, UnexpectedException {
-        LOGGER.info("Getting instance " + instanceId + " with tokens " + openStackV3Token);
+        LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, instanceId, openStackV3Token));
 
         String projectId = getProjectId(openStackV3Token);
         String requestEndpoint = getComputeEndpoint(projectId, SERVERS + "/" + instanceId);
@@ -151,7 +152,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
     @Override
     public void deleteInstance(String instanceId, OpenStackV3Token openStackV3Token)
             throws FogbowRasException, UnexpectedException {
-        LOGGER.info("Deleting instance " + instanceId + " with tokens " + openStackV3Token);
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, instanceId, openStackV3Token));
         String endpoint = getComputeEndpoint(getProjectId(openStackV3Token), SERVERS + "/" + instanceId);
         try {
             this.client.doDeleteRequest(endpoint, openStackV3Token);

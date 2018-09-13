@@ -1,10 +1,18 @@
 package org.fogbowcloud.ras;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.*;
+import org.fogbowcloud.ras.core.AaaController;
+import org.fogbowcloud.ras.core.AaaPluginsHolder;
+import org.fogbowcloud.ras.core.ApplicationFacade;
+import org.fogbowcloud.ras.core.InteroperabilityPluginsHolder;
+import org.fogbowcloud.ras.core.OrderController;
+import org.fogbowcloud.ras.core.PluginInstantiator;
+import org.fogbowcloud.ras.core.ProcessorsThreadController;
+import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.datastore.DatabaseManager;
 import org.fogbowcloud.ras.core.datastore.orderstorage.RecoveryService;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
@@ -73,7 +81,7 @@ public class Main implements ApplicationRunner {
             LOGGER.fatal(errorException.getMessage(), errorException);
             tryExit();
         } catch (ComponentException componentException) {
-            LOGGER.fatal("Unable to connect to XMPP, check XMPP configuration file.", componentException);
+            LOGGER.fatal(Messages.Fatal.UNABLE_CONNECTION_XMPP, componentException);
             tryExit();
         }
     }

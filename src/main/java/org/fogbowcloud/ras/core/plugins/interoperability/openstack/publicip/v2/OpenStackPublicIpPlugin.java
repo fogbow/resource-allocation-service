@@ -8,6 +8,7 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -54,8 +55,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
 	@Override
 	public String allocatePublicIp(String computeInstanceId, OpenStackV3Token openStackV3Token)
 			throws HttpResponseException, URISyntaxException, FogbowRasException, UnexpectedException {		
-        LOGGER.info("Creating floating ip in the " + computeInstanceId + " with tokens " + openStackV3Token);
-
+        LOGGER.info(String.format(Messages.Info.CREATING_FLOATING_IP, computeInstanceId, openStackV3Token));
         // Network port id is the connection between the virtual machine and the network
 		String networkPortId = getNetworkPortIp(computeInstanceId, openStackV3Token);
 		String floatingNetworkId = getExternalNetworkId();
@@ -84,8 +84,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
 
 	@Override
 	public void releasePublicIp(String floatingIpId, OpenStackV3Token openStackV3Token) throws HttpResponseException, FogbowRasException, UnexpectedException  {
-        LOGGER.info("Deleting floating ip " + floatingIpId + " with tokens " + openStackV3Token);     
-        
+        LOGGER.info(String.format(Messages.Info.DELETING_FLOATING_IP, floatingIpId, openStackV3Token));
         try {
         	String floatingIpEndpointPrefix = getFloatingIpEndpoint();
         	String endpoint = String.format("%s/%s", floatingIpEndpointPrefix, floatingIpId);
@@ -97,8 +96,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
 	
 	protected String getNetworkPortIp(String computeInstanceId, OpenStackV3Token openStackV3Token)
 			throws URISyntaxException, HttpResponseException, FogbowRasException, UnexpectedException {
-		LOGGER.debug("Searching the network port of the VM (" 
-						+ computeInstanceId + ")  with tokens " + openStackV3Token);
+		LOGGER.debug(String.format(Messages.Debug.SEARCHING_NETWORK_PORT, computeInstanceId, openStackV3Token));
 		String defaulNetworkId = getDefaultNetworkId();
 		String networkPortsEndpointBase = getNetworkPortsEndpoint();
 
@@ -129,11 +127,9 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
 	protected void throwPortsException(List<Port> ports, String computeInstanceId, String defaulNetworkId) throws FogbowRasException {
 		String errorMsg = null;
 		if (ports == null || ports.size() == 0) {
-			errorMsg = String.format("None port found of the virtual machine(%s) and default network(%s) "
-					, computeInstanceId, defaulNetworkId); 
+			errorMsg = String.format(Messages.Exception.PORT_NOT_FOUND, computeInstanceId, defaulNetworkId); 
 		} else {
-			errorMsg = String.format("Irregular ports size(%s) of the virtual machine(%s) and default network(%s) "
-					, String.valueOf(ports.size()), computeInstanceId, defaulNetworkId);
+			errorMsg = String.format(Messages.Exception.IRREGULAR_PORT_SIZE, String.valueOf(ports.size()), computeInstanceId, defaulNetworkId);
 		}
 		throw new FogbowRasException(errorMsg);
 	}
@@ -145,15 +141,15 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
 		
 		String defaultNetworkId = getDefaultNetworkId();
 		if (defaultNetworkId == null || defaultNetworkId.isEmpty()) {
-        	throw new FatalErrorException("Default network not found");
+        	throw new FatalErrorException(Messages.Fatal.DEFAULT_NETWORK_NOT_FOUND);
         }
         String externalNetworkId = getExternalNetworkId();
 		if (externalNetworkId == null || externalNetworkId.isEmpty()) {
-        	throw new FatalErrorException("External network not found");
+        	throw new FatalErrorException(Messages.Fatal.EXTERNAL_NETWORK_NOT_FOUND);
         }
         String neutroApiEndpoint = getNeutroApiEndpoint();
 		if (neutroApiEndpoint == null || neutroApiEndpoint.isEmpty()) {
-        	throw new FatalErrorException("Neutro endpoint not found");
+        	throw new FatalErrorException(Messages.Fatal.NEUTRO_ENDPOINT_NOT_FOUND);
         }
 	}	
 	

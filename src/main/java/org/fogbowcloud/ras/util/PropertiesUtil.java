@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.util;
 
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 
 import java.io.FileInputStream;
@@ -38,7 +39,7 @@ public class PropertiesUtil {
             fileInputStream = new FileInputStream(fileName);
             prop.load(fileInputStream);
         } catch (FileNotFoundException e) {
-            throw new FatalErrorException("No " + fileName + " file was found at resources", e);
+            throw new FatalErrorException(String.format(Messages.Fatal.RESOURCES_FILE_NOT_FOUND, fileName), e);
         } catch (IOException e) {
             throw new FatalErrorException(e.getMessage(), e);
         } finally {
@@ -46,7 +47,7 @@ public class PropertiesUtil {
                 try {
                     fileInputStream.close();
                 } catch (IOException e) {
-                    LOGGER.error("Could not close file " + fileName, e);
+                    LOGGER.error(String.format(Messages.Error.COULD_NOT_CLOSE_FILE, fileName), e);
                 }
             }
         }

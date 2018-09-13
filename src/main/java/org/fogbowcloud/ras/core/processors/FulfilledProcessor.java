@@ -5,6 +5,7 @@ import org.fogbowcloud.ras.core.OrderStateTransitioner;
 import org.fogbowcloud.ras.core.SharedOrderHolders;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.Instance;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
@@ -57,11 +58,11 @@ public class FulfilledProcessor implements Runnable {
                 }
             } catch (InterruptedException e) {
                 isActive = false;
-                LOGGER.error("Thread interrupted", e);
+                LOGGER.error(Messages.Error.THREAD_INTERRUPTED, e);
             } catch (UnexpectedException e) {
                 LOGGER.error(e.getMessage(), e);
             } catch (Throwable e) {
-                LOGGER.error("Unexpected error", e);
+                LOGGER.error(Messages.Error.UNEXPECTED, e);
             }
         }
     }
@@ -93,17 +94,17 @@ public class FulfilledProcessor implements Runnable {
             if (!orderState.equals(OrderState.FULFILLED)) {
                 return;
             }
-            LOGGER.info("Trying to get an instance for order [" + order.getId() + "]");
+            LOGGER.info(String.format(Messages.Info.GETTING_INTANCE_FOR_ORDER, order.getId()));
             try {
                 instance = this.localCloudConnector.getInstance(order);
             } catch (Exception e) {
-                LOGGER.error("Error while getting instance from the cloud.", e);
+            	LOGGER.error(Messages.Error.WHILE_GETTING_INSTANCE_FROM_CLOUD, e);
                 OrderStateTransitioner.transition(order, OrderState.FAILED);
                 return;
             }
             instanceState = instance.getState();
             if (instanceState.equals(InstanceState.FAILED)) {
-                LOGGER.info("Instance state is failed for order [" + order.getId() + "]");
+                LOGGER.info(String.format(Messages.Info.INSTANCE_STATE_FAILED, order.getId()));
                 OrderStateTransitioner.transition(order, OrderState.FAILED);
                 return;
             }

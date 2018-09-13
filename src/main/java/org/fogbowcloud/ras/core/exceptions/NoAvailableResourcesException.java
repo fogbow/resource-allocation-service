@@ -1,11 +1,12 @@
 package org.fogbowcloud.ras.core.exceptions;
 
+import org.fogbowcloud.ras.core.constants.Messages;
+
 public class NoAvailableResourcesException extends FogbowRasException {
     private static final long serialVersionUID = 1L;
-    private static final String DEFAULT_MESSAGE = "No available resources exception";
 
     public NoAvailableResourcesException() {
-        super(DEFAULT_MESSAGE);
+        super(Messages.Exception.RESOURCES_NOT_AVAILABLE);
     }
 
     public NoAvailableResourcesException(String message) {

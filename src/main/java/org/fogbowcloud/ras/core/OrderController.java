@@ -17,6 +17,7 @@ import org.fogbowcloud.ras.core.models.orders.OrderState;
 import org.fogbowcloud.ras.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.ras.core.constants.Messages;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,7 +52,6 @@ public class OrderController {
 
     public Order getOrder(String orderId) throws InstanceNotFoundException {
         Order requestedOrder = this.orderHolders.getActiveOrdersMap().get(orderId);
-        String msg = (requestedOrder == null ? "null" : requestedOrder.toString());
         if (requestedOrder == null) {
             throw new InstanceNotFoundException();
         }
@@ -60,14 +60,14 @@ public class OrderController {
 
     public void deleteOrder(String orderId) throws InstanceNotFoundException, UnexpectedException,
             InvalidParameterException {
-        if (orderId == null) throw new InvalidParameterException("No instance id informed");
+        if (orderId == null) throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
         Order order = getOrder(orderId);
         synchronized (order) {
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.CLOSED)) {
                 OrderStateTransitioner.transition(order, OrderState.CLOSED);
             } else {
-                String message = "Order [" + order.getId() + "] is already in the closed state";
+            	String message = String.format(Messages.Error.ORDER_ALREADY_CLOSED, order.getId());
                 LOGGER.error(message);
                 throw new InstanceNotFoundException(message);
             }
@@ -75,7 +75,7 @@ public class OrderController {
     }
 
     public Instance getResourceInstance(String orderId) throws Exception {
-        if (orderId == null) throw new InvalidParameterException("No instance id informed");
+        if (orderId == null) throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
         Order order = getOrder(orderId);
         synchronized (order) {
             CloudConnector cloudConnector =
@@ -105,7 +105,7 @@ public class OrderController {
                 }
                 return getUserComputeAllocation(computeOrders);
             default:
-                throw new UnexpectedException("Not yet implemented.");
+                throw new UnexpectedException(Messages.Exception.RESOURCE_TYPE_NOT_IMPLEMENTED);
         }
     }
 

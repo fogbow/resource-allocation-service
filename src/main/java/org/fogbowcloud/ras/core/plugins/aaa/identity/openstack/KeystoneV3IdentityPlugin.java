@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.aaa.identity.openstack;
 
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.KeystoneV3TokenGeneratorPlugin;
@@ -17,7 +18,7 @@ public class KeystoneV3IdentityPlugin implements FederationIdentityPlugin<OpenSt
 
         String split[] = tokenValue.split(KeystoneV3TokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
         if (split == null || split.length < 6) {
-            LOGGER.error("Invalid token value: " + tokenValue);
+            LOGGER.error(String.format(Messages.Error.INVALID_TOKEN_VALUE, tokenValue));
             throw new InvalidParameterException();
         }
 

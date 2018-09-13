@@ -2,6 +2,7 @@ package org.fogbowcloud.ras.api.http;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.ApplicationFacade;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.InstanceStatus;
@@ -26,6 +27,7 @@ public class ComputeOrdersController {
     public static final String QUOTA_ENDPOINT = "quota";
     public static final String ALLOCATION_ENDPOINT = "allocation";
     public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
+    public static final String ORDER_CONTROLLER_TYPE = "compute";
 
     private final Logger LOGGER = Logger.getLogger(ComputeOrdersController.class);
 
@@ -34,7 +36,7 @@ public class ComputeOrdersController {
     public ResponseEntity<String> createCompute(@RequestBody ComputeOrder computeOrder,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowRasException, UnexpectedException {
-        LOGGER.info("New compute order request received <" + computeOrder.getId() + ">.");
+        LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_NEW_ORDER, ORDER_CONTROLLER_TYPE, computeOrder.getId()));
         String computeId = ApplicationFacade.getInstance().createCompute(computeOrder, federationTokenValue);
         return new ResponseEntity<String>(computeId, HttpStatus.CREATED);
     }
@@ -43,7 +45,7 @@ public class ComputeOrdersController {
     public ResponseEntity<List<InstanceStatus>> getAllComputesStatus(
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info("Get the status of all compute order requests received.");
+        LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_GET_ALL_ORDER, ORDER_CONTROLLER_TYPE));
         List<InstanceStatus> computeInstanceStatus =
                 ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.COMPUTE);
         return new ResponseEntity<>(computeInstanceStatus, HttpStatus.OK);
@@ -53,7 +55,7 @@ public class ComputeOrdersController {
     public ResponseEntity<ComputeInstance> getCompute(@PathVariable String computeId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info("Get request for compute order <" + computeId + "> received.");
+        LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_GET_ORDER, ORDER_CONTROLLER_TYPE, computeId));
         ComputeInstance compute = ApplicationFacade.getInstance().getCompute(computeId, federationTokenValue);
         return new ResponseEntity<ComputeInstance>(compute, HttpStatus.OK);
     }
@@ -62,7 +64,7 @@ public class ComputeOrdersController {
     public ResponseEntity<Boolean> deleteCompute(@PathVariable String computeId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowRasException, UnexpectedException {
-        LOGGER.info("Delete compute order <" + computeId + "> received.");
+        LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_DELETE_ORDER, ORDER_CONTROLLER_TYPE, computeId));
         ApplicationFacade.getInstance().deleteCompute(computeId, federationTokenValue);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -71,7 +73,7 @@ public class ComputeOrdersController {
     public ResponseEntity<ComputeQuota> getUserQuota(@PathVariable String memberId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info("User " + QUOTA_ENDPOINT + " information request for member <" + memberId + "> received.");
+        LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_USER_INFORMATION, QUOTA_ENDPOINT, memberId));
         ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(memberId, federationTokenValue);
         return new ResponseEntity<>(quotaInstance, HttpStatus.OK);
     }
@@ -80,7 +82,7 @@ public class ComputeOrdersController {
     public ResponseEntity<ComputeAllocation> getUserAllocation(@PathVariable String memberId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowRasException, UnexpectedException {
-        LOGGER.info("User " + ALLOCATION_ENDPOINT + " information request for member <" + memberId + "> received.");
+        LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_USER_INFORMATION, ALLOCATION_ENDPOINT, memberId));
         ComputeAllocation computeAllocation =
                 ApplicationFacade.getInstance().getComputeAllocation(memberId, federationTokenValue);
         return new ResponseEntity<>(computeAllocation, HttpStatus.OK);

@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 import org.fogbowcloud.ras.core.models.orders.UserData;
@@ -77,9 +78,9 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
             cloudInitUserDataBuilder.addFile(extraUserDataFileType, new StringReader(normalizedExtraUserData));
         } else if (extraUserDataFileContent == null) {
-            LOGGER.warn("It was not possible to add the extra user data file, whose content is null");
+            LOGGER.warn(Messages.Warn.NOT_POSSIBLE_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL);
         } else {
-            LOGGER.warn("It was not possible to add the extra user data file, the extra user data file type is null");
+            LOGGER.warn(Messages.Warn.NOT_POSSIBLE_ADD_EXTRA_USER_DATA_FILE_TYPE_NULL);
         }
     }
 

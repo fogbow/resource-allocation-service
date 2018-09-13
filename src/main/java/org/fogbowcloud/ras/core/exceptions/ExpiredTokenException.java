@@ -1,11 +1,12 @@
 package org.fogbowcloud.ras.core.exceptions;
 
+import org.fogbowcloud.ras.core.constants.Messages;
+
 public class ExpiredTokenException extends UnauthenticatedUserException {
     private static final long serialVersionUID = 1L;
-    private static final String message = "Expired tokens exception";
 
     public ExpiredTokenException() {
-        super(message);
+        super(Messages.Exception.EXPIRED_TOKEN);
     }
 
     public ExpiredTokenException(String message) {

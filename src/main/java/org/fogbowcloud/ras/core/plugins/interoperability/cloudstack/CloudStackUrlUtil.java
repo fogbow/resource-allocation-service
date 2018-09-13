@@ -1,18 +1,20 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack;
 
+import java.security.Key;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.Charsets;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGeneratorPlugin;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.security.Key;
-import java.util.Map.Entry;
-import java.util.TreeMap;
 
 public class CloudStackUrlUtil {
     private static final Logger LOGGER = Logger.getLogger(CloudStackUrlUtil.class);
@@ -35,7 +37,7 @@ public class CloudStackUrlUtil {
             query = requestEndpoint.toString().substring(
                     requestEndpoint.toString().indexOf("?") + 1);
         } catch (IndexOutOfBoundsException e) {
-            LOGGER.warn("Couldn't generate signature.", e);
+            LOGGER.warn(Messages.Warn.SIGNATURE_NOT_GENERATE, e);
             throw new UnauthorizedRequestException();
         }
 
@@ -66,7 +68,7 @@ public class CloudStackUrlUtil {
 
             requestEndpoint.addParameter(SIGNATURE, signature);
         } catch (Exception e) {
-            LOGGER.warn("Couldn't generate signature.", e);
+            LOGGER.warn(Messages.Warn.SIGNATURE_NOT_GENERATE, e);
             throw new UnauthorizedRequestException();
         }
     }
@@ -78,8 +80,7 @@ public class CloudStackUrlUtil {
             uriBuilder.addParameter(COMMAND, command);
             return uriBuilder;
         } catch (Exception e) {
-            String message = "Irregular syntax.";
-            throw new InvalidParameterException(message);
+            throw new InvalidParameterException(Messages.Exception.IRREGULAR_SYNTAX);
         }
     }
 }

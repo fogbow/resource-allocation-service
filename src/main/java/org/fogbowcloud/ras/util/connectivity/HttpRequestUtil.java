@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 
 public class HttpRequestUtil {
@@ -28,7 +29,7 @@ public class HttpRequestUtil {
         } catch (NullPointerException | NumberFormatException e) {
             timeoutHttpRequest = Integer.valueOf(DefaultConfigurationConstants.HTTP_REQUEST_TIMEOUT);
         } catch (Exception e) {
-            throw new FatalErrorException("It is not possible to initialize HttpRequestUtil.", e);
+            throw new FatalErrorException(Messages.Fatal.INITIALIZATION_NOT_POSSIBLE, e);
         }
     }
 
