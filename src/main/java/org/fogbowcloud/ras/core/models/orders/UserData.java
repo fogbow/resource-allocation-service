@@ -26,6 +26,10 @@ public class UserData {
         return extraUserDataFileContent;
     }
 
+    public void setExtraUserDataFileContent(String extraUserDataFileContent) {
+        this.extraUserDataFileContent = extraUserDataFileContent;
+    }
+
     public CloudInitUserDataBuilder.FileType getExtraUserDataFileType() {
         return extraUserDataFileType;
     }

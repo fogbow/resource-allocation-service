@@ -315,6 +315,26 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         }
     }
 
+    // test case: calling createCompute with a too long public key throws an InvalidParameterException.
+    @Test(expected = InvalidParameterException.class)
+    public void testCreateComputeWithTooLongPrivateKey() throws Exception {
+        // set up
+        ComputeOrder order = createComputeOrder();
+        Assert.assertNull(order.getOrderState());
+        setVeryLongPublicKey(order);
+        this.application.createCompute(order, FAKE_FEDERATION_TOKEN_VALUE);
+    }
+
+    // test case: calling createCompute with a too long extra user data file content throws an InvalidParameterException.
+    @Test(expected = InvalidParameterException.class)
+    public void testCreateComputeWithTooLongExtraUserDataFileContent() throws Exception {
+        // set up
+        ComputeOrder order = createComputeOrder();
+        Assert.assertNull(order.getOrderState());
+        setVeryLongUserDataFileContent(order);
+        this.application.createCompute(order, FAKE_FEDERATION_TOKEN_VALUE);
+    }
+
     // test case: When calling the getCompute() method, it must return the ComputeInstance of the
     // OrderID passed per parameter.
     @Test
@@ -1771,5 +1791,17 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         order.setInstanceId(publicIpInstance.getId());
 
         return order;
+    }
+
+    private void setVeryLongPublicKey(ComputeOrder order) {
+        String publicKey = new String(new char[ComputeOrder.MAX_PUBLIC_KEY_SIZE+1]);
+        order.setPublicKey(publicKey);
+    }
+
+    private void setVeryLongUserDataFileContent(ComputeOrder order) {
+        String extraUserDataFileContent = new String(new char[UserData.MAX_EXTRA_USER_DATA_FILE_CONTENT+1]);
+        UserData userData = new UserData();
+        userData.setExtraUserDataFileContent(extraUserDataFileContent);
+        order.setUserData(userData);
     }
 }
