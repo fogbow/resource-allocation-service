@@ -114,11 +114,10 @@ public class LocalCloudConnector implements CloudConnector {
                 }
                 break;
             default:
-
-                throw new UnexpectedException(Messages.Exception.PLUGIN_FOR_REQUEST_INSTANCE_NOT_IMPLEMENTED + order.getType());
+            	throw new UnexpectedException(String.format(Messages.Exception.PLUGIN_FOR_REQUEST_INSTANCE_NOT_IMPLEMENTED, order.getType()));
         }
         if (requestInstance == null) {
-            throw new UnexpectedException(Messages.Exception.NULL_VALUE_RETURNED);
+            throw new UnexpectedException(Messages.Exception.RETURNED_NULL_VALUE);
         }
         return requestInstance;
     }
@@ -204,7 +203,7 @@ public class LocalCloudConnector implements CloudConnector {
             case COMPUTE:
                 return this.computeQuotaPlugin.getUserQuota(token);
             default:
-                throw new UnexpectedException(Messages.Exception.QUOTA_ENDPOINT_NOT_IMPLEMENTED + resourceType);
+                throw new UnexpectedException(String.format(Messages.Exception.QUOTA_ENDPOINT_NOT_IMPLEMENTED, resourceType));
         }
     }
 
@@ -255,7 +254,7 @@ public class LocalCloudConnector implements CloudConnector {
                 instance = this.attachmentPlugin.getInstance(instanceId, token);
                 break;
             default:
-                throw new UnexpectedException(Messages.Exception.ORDER_TYPE_NOT_SUPPORTED + order.getType());
+            	throw new UnexpectedException(String.format(Messages.Exception.ORDER_TYPE_NOT_SUPPORTED, order.getType()));
         }
         order.setCachedInstanceState(instance.getState());
         instance.setProvider(order.getProvidingMember());

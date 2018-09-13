@@ -82,7 +82,7 @@ public class Main implements ApplicationRunner {
             LOGGER.fatal(errorException.getMessage(), errorException);
             tryExit();
         } catch (ComponentException componentException) {
-            LOGGER.fatal(Messages.Fatal.XMPP_CONNECTION_UNABLE, componentException);
+            LOGGER.fatal(Messages.Fatal.UNABLE_CONNECTION_XMPP, componentException);
             tryExit();
         }
     }

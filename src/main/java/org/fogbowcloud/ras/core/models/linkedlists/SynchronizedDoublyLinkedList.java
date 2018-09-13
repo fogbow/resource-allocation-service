@@ -27,7 +27,7 @@ public class SynchronizedDoublyLinkedList implements ChainedList {
     @Override
     public synchronized void addItem(Order order) {
         if (order == null) {
-            throw new IllegalArgumentException(Messages.Exception.ADD_NULL_ORDER_ATTEMPTING);
+            throw new IllegalArgumentException(Messages.Exception.ATTEMPTING_ADD_NULL_ORDER);
         }
         if (this.head == null) {
             Node firstNode = new Node(null, order, null);
@@ -75,7 +75,7 @@ public class SynchronizedDoublyLinkedList implements ChainedList {
     @Override
     public synchronized boolean removeItem(Order order) {
         if (order == null) {
-            throw new IllegalArgumentException(Messages.Exception.REMOVE_NULL_ORDER_ATTEMPTING);
+            throw new IllegalArgumentException(Messages.Exception.ATTEMPTING_REMOVE_NULL_ORDER);
         }
         Node nodeToRemove = findNodeToRemove(order);
         if (nodeToRemove == null) {

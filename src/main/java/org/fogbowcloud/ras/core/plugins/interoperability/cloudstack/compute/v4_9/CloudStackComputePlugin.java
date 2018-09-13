@@ -68,7 +68,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
             throws FogbowRasException, UnexpectedException {
         String templateId = computeOrder.getImageId();
         if (templateId == null || this.zoneId == null || this.defaultNetworkId == null) {
-            LOGGER.error(Messages.Error.ORDER_CAN_NOT_BE_COMPLETED);
+            LOGGER.error(Messages.Error.ORDER_CANNOT_BE_COMPLETED);
             throw new InvalidParameterException();
         }
 

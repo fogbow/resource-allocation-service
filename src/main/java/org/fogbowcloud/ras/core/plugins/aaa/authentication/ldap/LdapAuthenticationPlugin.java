@@ -36,7 +36,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         try {
             this.publicKey = getPublicKey(publicKeyPath);
         } catch (IOException | GeneralSecurityException e) {
-            throw new FatalErrorException(Messages.Fatal.PUBLIC_KEY_ERROR + publicKeyPath);
+        	throw new FatalErrorException(String.format(Messages.Fatal.PUBLIC_KEY_ERROR, publicKeyPath));
         }
     }
 
@@ -58,7 +58,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
         String split[] = federationTokenValue.split(LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
         if (split == null || split.length < 5) {
-            throw new UnauthenticTokenException(Messages.Exception.INVALID_TOKENS + federationTokenValue);
+            throw new UnauthenticTokenException(String.format(Messages.Exception.INVALID_TOKENS, federationTokenValue));
         }
 
         Date currentDate = new Date(System.currentTimeMillis());
@@ -70,11 +70,11 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         String signature = split[4];
 
         if (expirationDate.before(currentDate)) {
-            throw new ExpiredTokenException(Messages.Exception.EXPIRATION_DATE + expirationDate);
+        	throw new UnauthenticTokenException(String.format(Messages.Exception.EXPIRATION_DATE, expirationDate));
         }
 
         if (!verifySign(tokenValue, signature)) {
-            throw new UnauthenticTokenException(Messages.Exception.INVALID_TOKENS + federationTokenValue);
+            throw new UnauthenticTokenException(String.format(Messages.Exception.INVALID_TOKENS, federationTokenValue));
         }
     }
 
@@ -82,7 +82,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         try {
             return RSAUtil.verify(this.publicKey, tokenMessage, signature);
         } catch (Exception e) {
-            throw new RuntimeException(Messages.Exception.TOKEN_SIGNATURE_VALIDATION_ERROR, e);
+            throw new RuntimeException(Messages.Exception.ERROR_VALIDATE_TOKEN_SINGNATURE, e);
         }
     }
 

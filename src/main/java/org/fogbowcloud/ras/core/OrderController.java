@@ -105,7 +105,7 @@ public class OrderController {
                 }
                 return getUserComputeAllocation(computeOrders);
             default:
-                throw new UnexpectedException(Messages.Exception.NOT_IMPLEMENTED);
+                throw new UnexpectedException(Messages.Exception.RESOURCE_TYPE_NOT_IMPLEMENTED);
         }
     }
 

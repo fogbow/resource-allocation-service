@@ -20,7 +20,7 @@ public class OrderStateTransitioner {
         LOGGER.info(Messages.Info.ACTIVATING_NEW_ORDER);
         
         if (order == null) {
-            throw new UnexpectedException(Messages.Exception.CAN_NOT_PROCESS_ORDER_REQUEST_NULL);
+            throw new UnexpectedException(Messages.Exception.CANNOT_PROCESS_ORDER_REQUEST_NULL);
         }
 
         synchronized (order) {
@@ -77,7 +77,7 @@ public class OrderStateTransitioner {
             if (activeOrdersMap.containsKey(order.getId())) {
                 activeOrdersMap.remove(order.getId());
             } else {
-                String message = String.format(Messages.Exception.TRY_TO_REMOVE_ORDER_NOT_ACTIVE, order.getId());
+                String message = String.format(Messages.Exception.REMOVE_ORDER_NOT_ACTIVE, order.getId());
                 throw new UnexpectedException(message);
             }
             closedOrders.removeItem(order);

@@ -50,13 +50,13 @@ public class KeystoneV3AuthenticationPlugin implements AuthenticationPlugin {
         }
     }
 
-    private boolean isUrlValid(String url) throws FatalErrorException {
-        if (url == null || url.trim().isEmpty()) {
-            throw new FatalErrorException(Messages.Fatal.INVALID_KEYSTONE_V3_URL +
-                    KeystoneV3TokenGeneratorPlugin.OPENSTACK_KEYSTONE_V3_URL);
-        }
-        return true;
-    }
+	private boolean isUrlValid(String url) throws FatalErrorException {
+		if (url == null || url.trim().isEmpty()) {
+			throw new FatalErrorException(String.format(Messages.Fatal.INVALID_KEYSTONE_URL,
+					KeystoneV3TokenGeneratorPlugin.OPENSTACK_KEYSTONE_V3_URL));
+		}
+		return true;
+	}
 
     // Used in testing
     protected void setClient(HttpRequestClientUtil client) {

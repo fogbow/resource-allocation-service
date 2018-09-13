@@ -9,7 +9,7 @@ public class XmppErrorConditionToExceptionTranslator {
 
     public static void handleError(IQ response, String memberId) throws Exception {
         if (response == null) {
-            throw new UnavailableProviderException(Messages.Exception.UNABLE_RESPONSE_FROM_PROVIDING_MEMBER + memberId);
+            throw new UnavailableProviderException(String.format(Messages.Exception.UNABLE_RETRIEVE_RESPONSE_FROM_PROVIDING_MEMBER, memberId));
         } else if (response.getError() != null) {
             PacketError.Condition condition = response.getError().getCondition();
             String message = response.getError().getText();
