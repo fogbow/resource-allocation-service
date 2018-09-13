@@ -103,7 +103,7 @@ public class OrderStateTransitioner {
             String message = String.format(Messages.Exception.COULD_NOT_FIND_LIST_FOR_STATE, currentState);
             throw new UnexpectedException(message);
         } else if (destination == null) {
-            String message = String.format(Messages.Exception.COULD_NOT_FIND_DESTINATION_LIST_FOR_STATE, newState);
+            String message = String.format(Messages.Exception.COULD_NOT_FIND_LIST_FOR_STATE, newState);
             throw new UnexpectedException(message);
         } else {
             // The order may have already been removed from the origin list by another thread

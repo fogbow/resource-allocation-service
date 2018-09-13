@@ -129,7 +129,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
 		if (ports == null || ports.size() == 0) {
 			errorMsg = String.format(Messages.Exception.PORT_NOT_FOUND, computeInstanceId, defaulNetworkId); 
 		} else {
-			errorMsg = String.format(Messages.Exception.IRREGULAR_PORT_SIZE, String.valueOf(ports.size()), computeInstanceId, defaulNetworkId);
+			errorMsg = String.format(Messages.Exception.ILLEGAL_PORT_SIZE, String.valueOf(ports.size()), computeInstanceId, defaulNetworkId);
 		}
 		throw new FogbowRasException(errorMsg);
 	}

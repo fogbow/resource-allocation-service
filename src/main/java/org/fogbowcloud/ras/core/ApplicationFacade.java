@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.constants.Operation;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.InstanceStatus;
@@ -50,6 +51,12 @@ public class ApplicationFacade {
 
     public String createCompute(ComputeOrder order, String federationTokenValue) throws FogbowRasException,
             UnexpectedException {
+        if (order.getPublicKey().length() > ComputeOrder.MAX_PUBLIC_KEY_SIZE) {
+            throw new InvalidParameterException(Messages.Exception.TOO_BIG_PUBLIC_KEY);
+        }
+        if (order.getUserData().getExtraUserDataFileContent().length() > UserData.MAX_EXTRA_USER_DATA_FILE_CONTENT) {
+            throw new InvalidParameterException(Messages.Exception.TOO_BIG_USER_DATA_FILE_CONTENT);
+        }
         return activateOrder(order, federationTokenValue);
     }
 

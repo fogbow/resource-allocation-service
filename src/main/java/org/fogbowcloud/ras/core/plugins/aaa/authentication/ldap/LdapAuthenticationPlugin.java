@@ -4,10 +4,8 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
-import java.util.Properties;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
@@ -17,7 +15,6 @@ import org.fogbowcloud.ras.core.exceptions.UnauthenticTokenException;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap.LdapTokenGeneratorPlugin;
-import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.RSAUtil;
 
 public class LdapAuthenticationPlugin implements AuthenticationPlugin {
@@ -54,7 +51,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
 
         String split[] = federationTokenValue.split(LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
         if (split == null || split.length < 5) {
-            throw new UnauthenticTokenException(String.format(Messages.Exception.INVALID_TOKENS, federationTokenValue));
+            throw new UnauthenticTokenException(String.format(Messages.Exception.INVALID_TOKEN, federationTokenValue));
         }
 
         Date currentDate = new Date(System.currentTimeMillis());
@@ -70,7 +67,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         }
 
         if (!verifySign(tokenValue, signature)) {
-            throw new UnauthenticTokenException(String.format(Messages.Exception.INVALID_TOKENS, federationTokenValue));
+            throw new UnauthenticTokenException(String.format(Messages.Exception.INVALID_TOKEN, federationTokenValue));
         }
     }
 

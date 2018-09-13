@@ -15,6 +15,7 @@ import java.util.UUID;
 @Table(name = "compute_order_table")
 public class ComputeOrder extends Order {
     private static final long serialVersionUID = 1L;
+    public static final int MAX_PUBLIC_KEY_SIZE = 1024;
     @Column
     private String name;
     @Column
@@ -33,7 +34,7 @@ public class ComputeOrder extends Order {
     private String imageId;
     @Embedded
     private UserData userData;
-    @Column(length=1024)
+    @Column(length=MAX_PUBLIC_KEY_SIZE)
     private String publicKey;
     @Embedded
     private ComputeAllocation actualAllocation;
