@@ -20,12 +20,9 @@ WORKDIR /root
 # Installing Manager
 RUN \
   git clone https://github.com/fogbow/resource-allocation-service.git && \
-  (cd resource-allocation-service && git checkout refactor-first-release && mvn install -Dmaven.test.skip=true)
+  (cd resource-allocation-service && git checkout refactor-first-release)
 
 # Define working directory.
 WORKDIR /root/resource-allocation-service
-  
-RUN \
-  mkdir -p src/main/resources/private
-  
-CMD bash bin/start-service > log.out 2> log.err && tail -f /dev/null
+
+CMD ./mvnw spring-boot:run -X > log.out 2> log.err && tail -f /dev/null
