@@ -89,6 +89,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         // offering is found.
         String diskOfferingId = disk > 0 ? getDiskOfferingId(disk, cloudStackToken) : null;
 
+        String keypairName = getKeypairName(computeOrder.getPublicKey(), cloudStackToken);
+
         String instanceName = computeOrder.getName();
         if (instanceName == null) instanceName = FOGBOW_INSTANCE_NAME + getRandomUUID();
 
@@ -101,6 +103,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
                 .name(instanceName)
                 .diskOfferingId(diskOfferingId)
                 .userData(userData)
+                .keypair(keypairName)
                 .networksId(networksId)
                 .build();
 
@@ -111,6 +114,10 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
             jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
+        } finally {
+            if (keypairName != null) {
+                deleteKeypairName(keypairName, cloudStackToken);
+            }
         }
 
         DeployVirtualMachineResponse response = DeployVirtualMachineResponse.fromJson(jsonResponse);
@@ -240,6 +247,59 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         GetAllDiskOfferingsResponse diskOfferingsResponse = GetAllDiskOfferingsResponse.fromJson(jsonResponse);
 
         return diskOfferingsResponse;
+    }
+
+    private String getKeypairName(String publicKey, CloudStackToken cloudStackToken) throws FogbowRasException, UnexpectedException {
+        String keyName = null;
+
+        if (publicKey != null && !publicKey.isEmpty()) {
+            keyName = getRandomUUID();
+
+            RegisterSSHKeypairRequest request = new RegisterSSHKeypairRequest.Builder()
+                    .name(keyName)
+                    .publicKey(publicKey)
+                    .build();
+
+            String jsonResponse = null;
+            try {
+                jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
+            } catch (HttpResponseException e) {
+                CloudStackHttpToFogbowRasExceptionMapper.map(e);
+            }
+
+            RegisterSSHKeypairResponse keypairResponse = RegisterSSHKeypairResponse.fromJson(jsonResponse);
+            keyName = keypairResponse.getKeypairName();
+        }
+
+        return keyName;
+    }
+
+    private void deleteKeypairName(String keypairName, CloudStackToken cloudStackToken)
+            throws FogbowRasException, UnexpectedException {
+        String failureMessage = "Could not delete keypair " + keypairName;
+
+        DeleteSSHKeypairRequest request = new DeleteSSHKeypairRequest.Builder()
+                .name(keypairName)
+                .build();
+
+        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
+
+        String jsonResponse = null;
+        try {
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
+        } catch (HttpResponseException e) {
+            LOGGER.error(failureMessage);
+            CloudStackHttpToFogbowRasExceptionMapper.map(e);
+        }
+
+        DeleteSSHKeypairResponse keypairResponse = DeleteSSHKeypairResponse.fromJson(jsonResponse);
+        String success = keypairResponse.getSuccess();
+
+        if (!success.equalsIgnoreCase("true")) {
+            LOGGER.error(failureMessage);
+        } else {
+            LOGGER.info("Deleted keypair " + keypairName);
+        }
     }
 
     private ComputeInstance getComputeInstance(GetVirtualMachineResponse.VirtualMachine vm, CloudStackToken cloudStackToken) {
