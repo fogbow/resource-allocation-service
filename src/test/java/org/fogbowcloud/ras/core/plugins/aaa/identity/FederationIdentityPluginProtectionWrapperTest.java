@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.aaa.identity;
 
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.DefaultTokenGeneratorPlugin;
@@ -36,13 +37,24 @@ public class FederationIdentityPluginProtectionWrapperTest {
                 new TokenGeneratorPluginProtectionWrapper(new DefaultTokenGeneratorPlugin());
         String protectedTokenValue =
                 tokenGeneratorPluginProtectionWrapper.createTokenValue(new HashMap<String, String>());
-        String unprotectedToken = RSAUtil.decrypt(protectedTokenValue, this.privateKey);
+        String unprotectedTokenValue;
+
+        try {
+            String split[] = protectedTokenValue.split(TokenGeneratorPluginProtectionWrapper.SEPARATOR);
+            if (split.length != 2) {
+                throw new InvalidParameterException();
+            }
+            String randomKey = RSAUtil.decrypt(split[0], this.privateKey);
+            unprotectedTokenValue = RSAUtil.decryptAES(randomKey.getBytes("UTF-8"), split[1]);
+        } catch (Exception e) {
+            throw new InvalidParameterException();
+        }
 
         //exercise
         FederationUserToken token =
                 this.federationIdentityPluginProtectionWrapper.createToken(protectedTokenValue);
         FederationUserToken otherToken =
-                this.federationIdentityPluginProtectionWrapper.getEmbeddedPlugin().createToken(unprotectedToken);
+                this.federationIdentityPluginProtectionWrapper.getEmbeddedPlugin().createToken(unprotectedTokenValue);
 
         //verify
         Assert.assertEquals(token, otherToken);
