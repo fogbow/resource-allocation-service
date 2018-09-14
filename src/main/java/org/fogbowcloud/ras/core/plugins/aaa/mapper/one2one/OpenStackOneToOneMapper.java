@@ -5,13 +5,13 @@ import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
-import org.fogbowcloud.ras.core.plugins.aaa.mapper.all2one.KeystoneV3AllToOneMapper;
+import org.fogbowcloud.ras.core.plugins.aaa.mapper.all2one.OpenStackAllToOneMapper;
 
-public class KeystoneV3OneToOneMapper implements FederationToLocalMapperPlugin {
+public class OpenStackOneToOneMapper implements FederationToLocalMapperPlugin {
     private GenericOneToOneFederationToLocalMapper genericMapper;
 
-    public KeystoneV3OneToOneMapper() {
-        this.genericMapper = new GenericOneToOneFederationToLocalMapper(new KeystoneV3AllToOneMapper());
+    public OpenStackOneToOneMapper() {
+        this.genericMapper = new GenericOneToOneFederationToLocalMapper(new OpenStackAllToOneMapper());
     }
 
     @Override

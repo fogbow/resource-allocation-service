@@ -12,7 +12,7 @@ import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
-import org.fogbowcloud.ras.core.plugins.interoperability.openstack.network.v2.OpenStackV2NetworkPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.openstack.network.v2.OpenStackNetworkPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONArray;
@@ -29,7 +29,7 @@ import java.util.*;
 
 public class OpenStackComputePluginTest {
 
-    private OpenStackNovaV2ComputePlugin computePlugin;
+    private OpenStackComputePlugin computePlugin;
     private OpenStackV3Token openStackV3Token;
     private LaunchCommandGenerator launchCommandGeneratorMock;
     private HttpRequestClientUtil httpRequestClientUtilMock;
@@ -88,24 +88,24 @@ public class OpenStackComputePluginTest {
         String tokenValue = "accessID";
         String tenantId = "tenant-id";
         Map<String, String> attributes = new HashMap<String, String>();
-        attributes.put(OpenStackNovaV2ComputePlugin.PROJECT_ID, tenantId);
+        attributes.put(OpenStackComputePlugin.PROJECT_ID, tenantId);
         this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
 
-        this.computePlugin = Mockito.spy(new OpenStackNovaV2ComputePlugin(this.propertiesMock,
+        this.computePlugin = Mockito.spy(new OpenStackComputePlugin(this.propertiesMock,
                 this.launchCommandGeneratorMock, this.httpRequestClientUtilMock));
-        this.osKeyPairEndpoint = computeNovaV2UrlKey + OpenStackNovaV2ComputePlugin.COMPUTE_V2_API_ENDPOINT
+        this.osKeyPairEndpoint = computeNovaV2UrlKey + OpenStackComputePlugin.COMPUTE_V2_API_ENDPOINT
                 + this.openStackV3Token.getProjectId()
-                + OpenStackNovaV2ComputePlugin.SUFFIX_ENDPOINT_KEYPAIRS;
-        this.computeEndpoint = computeNovaV2UrlKey + OpenStackNovaV2ComputePlugin.COMPUTE_V2_API_ENDPOINT
+                + OpenStackComputePlugin.SUFFIX_ENDPOINT_KEYPAIRS;
+        this.computeEndpoint = computeNovaV2UrlKey + OpenStackComputePlugin.COMPUTE_V2_API_ENDPOINT
                 + this.openStackV3Token.getProjectId()
-                + OpenStackNovaV2ComputePlugin.SERVERS;
-        this.flavorEndpoint = this.computeNovaV2UrlKey + OpenStackNovaV2ComputePlugin.COMPUTE_V2_API_ENDPOINT
+                + OpenStackComputePlugin.SERVERS;
+        this.flavorEndpoint = this.computeNovaV2UrlKey + OpenStackComputePlugin.COMPUTE_V2_API_ENDPOINT
                 + this.openStackV3Token.getProjectId()
-                + OpenStackNovaV2ComputePlugin.SUFFIX_ENDPOINT_FLAVORS;
+                + OpenStackComputePlugin.SUFFIX_ENDPOINT_FLAVORS;
 
-        Mockito.when(this.propertiesMock.getProperty(OpenStackNovaV2ComputePlugin.COMPUTE_NOVAV2_URL_KEY))
+        Mockito.when(this.propertiesMock.getProperty(OpenStackComputePlugin.COMPUTE_NOVAV2_URL_KEY))
                 .thenReturn(this.computeNovaV2UrlKey);
-        Mockito.when(this.propertiesMock.getProperty(OpenStackNovaV2ComputePlugin.DEFAULT_NETWORK_ID_KEY))
+        Mockito.when(this.propertiesMock.getProperty(OpenStackComputePlugin.DEFAULT_NETWORK_ID_KEY))
                 .thenReturn(defaultNetworkId);
         Mockito.when(propertiesHolderMock.getProperties()).thenReturn(propertiesMock);
     }
@@ -614,15 +614,15 @@ public class OpenStackComputePluginTest {
         List<Map<String, String>> jsonArrayFlavors = new ArrayList<Map<String, String>>();
         for (int i = 0; i < qtd - 1; i++) {
             Map<String, String> flavor = new HashMap<String, String>();
-            flavor.put(OpenStackNovaV2ComputePlugin.ID_JSON_FIELD, "flavor" + Integer.toString(i));
+            flavor.put(OpenStackComputePlugin.ID_JSON_FIELD, "flavor" + Integer.toString(i));
             jsonArrayFlavors.add(flavor);
         }
 
         Map<String, String> flavor = new HashMap<String, String>();
-        flavor.put(OpenStackNovaV2ComputePlugin.ID_JSON_FIELD, bestFlavorId);
+        flavor.put(OpenStackComputePlugin.ID_JSON_FIELD, bestFlavorId);
         jsonArrayFlavors.add(flavor);
 
-        jsonFlavorsMap.put(OpenStackNovaV2ComputePlugin.FLAVOR_JSON_KEY, jsonArrayFlavors);
+        jsonFlavorsMap.put(OpenStackComputePlugin.FLAVOR_JSON_KEY, jsonArrayFlavors);
         Gson gson = new Gson();
         return gson.toJson(jsonFlavorsMap);
     }
@@ -630,63 +630,63 @@ public class OpenStackComputePluginTest {
     private String generateJsonFlavor(String id, String name, String vcpu, String memory, String disk) {
         Map<String, Object> flavorMap = new HashMap<String, Object>();
         Map<String, String> flavorAttributes = new HashMap<String, String>();
-        flavorAttributes.put(OpenStackNovaV2ComputePlugin.ID_JSON_FIELD, id);
-        flavorAttributes.put(OpenStackNovaV2ComputePlugin.NAME_JSON_FIELD, name);
-        flavorAttributes.put(OpenStackNovaV2ComputePlugin.DISK_JSON_FIELD, disk);
-        flavorAttributes.put(OpenStackNovaV2ComputePlugin.MEMORY_JSON_FIELD, memory);
-        flavorAttributes.put(OpenStackNovaV2ComputePlugin.VCPU_JSON_FIELD, vcpu);
-        flavorMap.put(OpenStackNovaV2ComputePlugin.FLAVOR_JSON_OBJECT, flavorAttributes);
+        flavorAttributes.put(OpenStackComputePlugin.ID_JSON_FIELD, id);
+        flavorAttributes.put(OpenStackComputePlugin.NAME_JSON_FIELD, name);
+        flavorAttributes.put(OpenStackComputePlugin.DISK_JSON_FIELD, disk);
+        flavorAttributes.put(OpenStackComputePlugin.MEMORY_JSON_FIELD, memory);
+        flavorAttributes.put(OpenStackComputePlugin.VCPU_JSON_FIELD, vcpu);
+        flavorMap.put(OpenStackComputePlugin.FLAVOR_JSON_OBJECT, flavorAttributes);
         return new Gson().toJson(flavorMap);
     }
 
     private String generateInstaceId(String id) {
         Map<String, String> instanceMap = new HashMap<String, String>();
-        instanceMap.put(OpenStackNovaV2ComputePlugin.ID_JSON_FIELD, id);
+        instanceMap.put(OpenStackComputePlugin.ID_JSON_FIELD, id);
         Map<String, Object> root = new HashMap<String, Object>();
-        root.put(OpenStackNovaV2ComputePlugin.SERVER_JSON_FIELD, instanceMap);
+        root.put(OpenStackComputePlugin.SERVER_JSON_FIELD, instanceMap);
         return new Gson().toJson(root);
     }
 
     private JSONObject generateRootKeyPairJson(String keyName, String publicKey) {
         JSONObject keypair = new JSONObject();
-        keypair.put(OpenStackNovaV2ComputePlugin.NAME_JSON_FIELD, keyName);
-        keypair.put(OpenStackNovaV2ComputePlugin.PUBLIC_KEY_JSON_FIELD, publicKey);
+        keypair.put(OpenStackComputePlugin.NAME_JSON_FIELD, keyName);
+        keypair.put(OpenStackComputePlugin.PUBLIC_KEY_JSON_FIELD, publicKey);
         JSONObject root = new JSONObject();
-        root.put(OpenStackNovaV2ComputePlugin.KEYPAIR_JSON_FIELD, keypair);
+        root.put(OpenStackComputePlugin.KEYPAIR_JSON_FIELD, keypair);
         return root;
     }
 
     private JSONObject generateJsonRequest(String imageId, String flavorId, String userData, String keyName, List<String> networksId, String randomUUID) {
         JSONObject server = new JSONObject();
-        server.put(OpenStackNovaV2ComputePlugin.NAME_JSON_FIELD, OpenStackNovaV2ComputePlugin.FOGBOW_INSTANCE_NAME + randomUUID);
-        server.put(OpenStackNovaV2ComputePlugin.IMAGE_JSON_FIELD, imageId);
-        server.put(OpenStackNovaV2ComputePlugin.FLAVOR_REF_JSON_FIELD, flavorId);
-        server.put(OpenStackNovaV2ComputePlugin.USER_DATA_JSON_FIELD, userData);
+        server.put(OpenStackComputePlugin.NAME_JSON_FIELD, OpenStackComputePlugin.FOGBOW_INSTANCE_NAME + randomUUID);
+        server.put(OpenStackComputePlugin.IMAGE_JSON_FIELD, imageId);
+        server.put(OpenStackComputePlugin.FLAVOR_REF_JSON_FIELD, flavorId);
+        server.put(OpenStackComputePlugin.USER_DATA_JSON_FIELD, userData);
 
         JSONArray networks = new JSONArray();
 
         for (String id : networksId) {
             JSONObject netId = new JSONObject();
-            netId.put(OpenStackNovaV2ComputePlugin.UUID_JSON_FIELD, id);
+            netId.put(OpenStackComputePlugin.UUID_JSON_FIELD, id);
             networks.put(netId);
         }
-        server.put(OpenStackNovaV2ComputePlugin.NETWORK_JSON_FIELD, networks);
+        server.put(OpenStackComputePlugin.NETWORK_JSON_FIELD, networks);
 
         if (networksId.size() > 1) {
             JSONArray securityGroups = new JSONArray();
             JSONObject securityGroup = new JSONObject();
-            String securityGroupName = OpenStackV2NetworkPlugin.SECURITY_GROUP_PREFIX + "-" + this.privateNetworkId;
-            securityGroup.put(OpenStackNovaV2ComputePlugin.NAME_JSON_FIELD, securityGroupName);
+            String securityGroupName = OpenStackNetworkPlugin.SECURITY_GROUP_PREFIX + "-" + this.privateNetworkId;
+            securityGroup.put(OpenStackComputePlugin.NAME_JSON_FIELD, securityGroupName);
             securityGroups.put(securityGroup);
-            server.put(OpenStackNovaV2ComputePlugin.SECURITY_JSON_FIELD, securityGroups);
+            server.put(OpenStackComputePlugin.SECURITY_JSON_FIELD, securityGroups);
         }
 
         if (keyName != null) {
-            server.put(OpenStackNovaV2ComputePlugin.KEY_JSON_FIELD, keyName);
+            server.put(OpenStackComputePlugin.KEY_JSON_FIELD, keyName);
         }
 
         JSONObject root = new JSONObject();
-        root.put(OpenStackNovaV2ComputePlugin.SERVER_JSON_FIELD, server);
+        root.put(OpenStackComputePlugin.SERVER_JSON_FIELD, server);
         return root;
     }
 
@@ -694,64 +694,64 @@ public class OpenStackComputePluginTest {
     private String generateComputeInstanceJson(String instanceId, String hostName, String localIpAddress, String flavorId, String status) {
         Map<String, Object> root = new HashMap<String, Object>();
         Map<String, Object> computeInstance = new HashMap<String, Object>();
-        computeInstance.put(OpenStackNovaV2ComputePlugin.ID_JSON_FIELD, instanceId);
-        computeInstance.put(OpenStackNovaV2ComputePlugin.NAME_JSON_FIELD, hostName);
+        computeInstance.put(OpenStackComputePlugin.ID_JSON_FIELD, instanceId);
+        computeInstance.put(OpenStackComputePlugin.NAME_JSON_FIELD, hostName);
 
         Map<String, Object> addressField = new HashMap<String, Object>();
         List<Object> providerNetworkArray = new ArrayList<Object>();
         Map<String, String> providerNetwork = new HashMap<String, String>();
-        providerNetwork.put(OpenStackNovaV2ComputePlugin.ADDR_FIELD, localIpAddress);
+        providerNetwork.put(OpenStackComputePlugin.ADDR_FIELD, localIpAddress);
         providerNetworkArray.add(providerNetwork);
-        addressField.put(OpenStackNovaV2ComputePlugin.PROVIDER_NETWORK_FIELD, providerNetworkArray);
+        addressField.put(OpenStackComputePlugin.PROVIDER_NETWORK_FIELD, providerNetworkArray);
 
         Map<String, Object> flavor = new HashMap<String, Object>();
-        flavor.put(OpenStackNovaV2ComputePlugin.FLAVOR_ID_JSON_FIELD, flavorId);
+        flavor.put(OpenStackComputePlugin.FLAVOR_ID_JSON_FIELD, flavorId);
 
-        computeInstance.put(OpenStackNovaV2ComputePlugin.FLAVOR_JSON_FIELD, flavor);
-        computeInstance.put(OpenStackNovaV2ComputePlugin.ADDRESS_FIELD, addressField);
-        computeInstance.put(OpenStackNovaV2ComputePlugin.STATUS_JSON_FIELD, status);
+        computeInstance.put(OpenStackComputePlugin.FLAVOR_JSON_FIELD, flavor);
+        computeInstance.put(OpenStackComputePlugin.ADDRESS_FIELD, addressField);
+        computeInstance.put(OpenStackComputePlugin.STATUS_JSON_FIELD, status);
 
-        root.put(OpenStackNovaV2ComputePlugin.SERVER_JSON_FIELD, computeInstance);
+        root.put(OpenStackComputePlugin.SERVER_JSON_FIELD, computeInstance);
         return new Gson().toJson(root);
     }
 
     private String generateComputeInstanceJsonWithoutAddressField(String instanceId, String hostName, String localIpAddress, String flavorId, String status) {
         Map<String, Object> root = new HashMap<String, Object>();
         Map<String, Object> computeInstance = new HashMap<String, Object>();
-        computeInstance.put(OpenStackNovaV2ComputePlugin.ID_JSON_FIELD, instanceId);
-        computeInstance.put(OpenStackNovaV2ComputePlugin.NAME_JSON_FIELD, hostName);
+        computeInstance.put(OpenStackComputePlugin.ID_JSON_FIELD, instanceId);
+        computeInstance.put(OpenStackComputePlugin.NAME_JSON_FIELD, hostName);
 
         List<Object> providerNetworkArray = new ArrayList<Object>();
         Map<String, String> providerNetwork = new HashMap<String, String>();
-        providerNetwork.put(OpenStackNovaV2ComputePlugin.ADDR_FIELD, localIpAddress);
+        providerNetwork.put(OpenStackComputePlugin.ADDR_FIELD, localIpAddress);
         providerNetworkArray.add(providerNetwork);
 
         Map<String, Object> flavor = new HashMap<String, Object>();
-        flavor.put(OpenStackNovaV2ComputePlugin.FLAVOR_ID_JSON_FIELD, flavorId);
+        flavor.put(OpenStackComputePlugin.FLAVOR_ID_JSON_FIELD, flavorId);
 
-        computeInstance.put(OpenStackNovaV2ComputePlugin.FLAVOR_JSON_FIELD, flavor);
-        computeInstance.put(OpenStackNovaV2ComputePlugin.STATUS_JSON_FIELD, status);
+        computeInstance.put(OpenStackComputePlugin.FLAVOR_JSON_FIELD, flavor);
+        computeInstance.put(OpenStackComputePlugin.STATUS_JSON_FIELD, status);
 
-        root.put(OpenStackNovaV2ComputePlugin.SERVER_JSON_FIELD, computeInstance);
+        root.put(OpenStackComputePlugin.SERVER_JSON_FIELD, computeInstance);
         return new Gson().toJson(root);
     }
 
     private String generateComputeInstanceJsonWithoutProviderNetworkField(String instanceId, String hostName, String localIpAddress, String flavorId, String status) {
         Map<String, Object> root = new HashMap<String, Object>();
         Map<String, Object> computeInstance = new HashMap<String, Object>();
-        computeInstance.put(OpenStackNovaV2ComputePlugin.ID_JSON_FIELD, instanceId);
-        computeInstance.put(OpenStackNovaV2ComputePlugin.NAME_JSON_FIELD, hostName);
+        computeInstance.put(OpenStackComputePlugin.ID_JSON_FIELD, instanceId);
+        computeInstance.put(OpenStackComputePlugin.NAME_JSON_FIELD, hostName);
 
         Map<String, Object> addressField = new HashMap<String, Object>();
 
         Map<String, Object> flavor = new HashMap<String, Object>();
-        flavor.put(OpenStackNovaV2ComputePlugin.FLAVOR_ID_JSON_FIELD, flavorId);
+        flavor.put(OpenStackComputePlugin.FLAVOR_ID_JSON_FIELD, flavorId);
 
-        computeInstance.put(OpenStackNovaV2ComputePlugin.FLAVOR_JSON_FIELD, flavor);
-        computeInstance.put(OpenStackNovaV2ComputePlugin.ADDRESS_FIELD, addressField);
-        computeInstance.put(OpenStackNovaV2ComputePlugin.STATUS_JSON_FIELD, status);
+        computeInstance.put(OpenStackComputePlugin.FLAVOR_JSON_FIELD, flavor);
+        computeInstance.put(OpenStackComputePlugin.ADDRESS_FIELD, addressField);
+        computeInstance.put(OpenStackComputePlugin.STATUS_JSON_FIELD, status);
 
-        root.put(OpenStackNovaV2ComputePlugin.SERVER_JSON_FIELD, computeInstance);
+        root.put(OpenStackComputePlugin.SERVER_JSON_FIELD, computeInstance);
         return new Gson().toJson(root);
     }
 }

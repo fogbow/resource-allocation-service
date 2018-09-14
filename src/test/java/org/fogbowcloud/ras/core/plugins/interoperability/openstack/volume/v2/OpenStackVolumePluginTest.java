@@ -19,7 +19,7 @@ import org.mockito.Mockito;
 
 import java.util.Properties;
 
-public class OpenStackV2VolumePluginTest {
+public class OpenStackVolumePluginTest {
 
     private final String FAKE_STORAGE_URL = "http://localhost:0000";
     private final String FAKE_SIZE = "2";
@@ -36,7 +36,7 @@ public class OpenStackV2VolumePluginTest {
     private final String FAKE_VOLUME_JSON = "{\"volume\":{\"size\":2,\"name\":\"fake-name\", " +
             "\"id\": \"fake-id\", \"status\": \"fake-status\"}}";
 
-    private OpenStackV2VolumePlugin openStackV2VolumePlugin;
+    private OpenStackVolumePlugin openStackVolumePlugin;
     private OpenStackV3Token openStackV3Token;
     private HttpRequestClientUtil httpRequestClientUtil;
 
@@ -44,11 +44,11 @@ public class OpenStackV2VolumePluginTest {
     public void setUp() throws Exception {
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         Properties properties = propertiesHolder.getProperties();
-        properties.put(OpenStackV2VolumePlugin.VOLUME_NOVAV2_URL_KEY, FAKE_STORAGE_URL);
+        properties.put(OpenStackVolumePlugin.VOLUME_NOVAV2_URL_KEY, FAKE_STORAGE_URL);
 
-        this.openStackV2VolumePlugin = Mockito.spy(new OpenStackV2VolumePlugin());
+        this.openStackVolumePlugin = Mockito.spy(new OpenStackVolumePlugin());
         this.httpRequestClientUtil = Mockito.mock(HttpRequestClientUtil.class);
-        this.openStackV2VolumePlugin.setClient(this.httpRequestClientUtil);
+        this.openStackVolumePlugin.setClient(this.httpRequestClientUtil);
         this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID,
                 FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
     }
@@ -63,7 +63,7 @@ public class OpenStackV2VolumePluginTest {
                 Mockito.anyString(), Mockito.any(Token.class), Mockito.any());
 
         // exercise
-        String instanceString = this.openStackV2VolumePlugin.requestInstance(volumeOrder, this.openStackV3Token);
+        String instanceString = this.openStackVolumePlugin.requestInstance(volumeOrder, this.openStackV3Token);
 
         // verify
         Mockito.verify(this.httpRequestClientUtil).doPostRequest(Mockito.anyString(), Mockito.any(Token.class),
@@ -75,7 +75,7 @@ public class OpenStackV2VolumePluginTest {
     @Test
     public void testGenerateJsonEntityToCreateInstance() {
         // exercise
-        String entity = this.openStackV2VolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE, FAKE_NAME);
+        String entity = this.openStackVolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE, FAKE_NAME);
         JSONObject jsonEntity = new JSONObject(entity);
 
         // verify
@@ -87,7 +87,7 @@ public class OpenStackV2VolumePluginTest {
     @Test
     public void testGetInstanceFromJson() throws FogbowRasException, JSONException, UnexpectedException {
         // exercise
-        VolumeInstance instance = this.openStackV2VolumePlugin.getInstanceFromJson(FAKE_VOLUME_JSON);
+        VolumeInstance instance = this.openStackVolumePlugin.getInstanceFromJson(FAKE_VOLUME_JSON);
 
         // verify
         Assert.assertEquals(FAKE_VOLUME_ID, instance.getId());
@@ -101,7 +101,7 @@ public class OpenStackV2VolumePluginTest {
                 this.httpRequestClientUtil).doGetRequest(Mockito.anyString(), Mockito.any(Token.class));
 
         // exercise
-        VolumeInstance volumeInstance = this.openStackV2VolumePlugin.getInstance(FAKE_INSTANCE_ID,
+        VolumeInstance volumeInstance = this.openStackVolumePlugin.getInstance(FAKE_INSTANCE_ID,
                 this.openStackV3Token);
 
         // verify
@@ -118,7 +118,7 @@ public class OpenStackV2VolumePluginTest {
                 Mockito.any(Token.class));
 
         // exercise
-        this.openStackV2VolumePlugin.deleteInstance(FAKE_INSTANCE_ID, this.openStackV3Token);
+        this.openStackVolumePlugin.deleteInstance(FAKE_INSTANCE_ID, this.openStackV3Token);
 
         // verify
         Mockito.verify(this.httpRequestClientUtil).doDeleteRequest(Mockito.anyString(), Mockito.any(Token.class));
@@ -131,7 +131,7 @@ public class OpenStackV2VolumePluginTest {
         this.openStackV3Token.setProjectId(null);
 
         // exercise
-        this.openStackV2VolumePlugin.deleteInstance(FAKE_INSTANCE_ID, this.openStackV3Token);
+        this.openStackVolumePlugin.deleteInstance(FAKE_INSTANCE_ID, this.openStackV3Token);
     }
 
     @Test

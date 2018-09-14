@@ -4,19 +4,19 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
-import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.KeystoneV3TokenGeneratorPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.OpenStackTokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
 
-public class KeystoneV3IdentityPlugin implements FederationIdentityPlugin<OpenStackV3Token> {
-    private static final Logger LOGGER = Logger.getLogger(KeystoneV3IdentityPlugin.class);
+public class OpenStackIdentityPlugin implements FederationIdentityPlugin<OpenStackV3Token> {
+    private static final Logger LOGGER = Logger.getLogger(OpenStackIdentityPlugin.class);
 
-    public KeystoneV3IdentityPlugin() {
+    public OpenStackIdentityPlugin() {
     }
 
     @Override
     public OpenStackV3Token createToken(String tokenValue) throws InvalidParameterException {
 
-        String split[] = tokenValue.split(KeystoneV3TokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
+        String split[] = tokenValue.split(OpenStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
         if (split == null || split.length < 6) {
             LOGGER.error(String.format(Messages.Error.INVALID_TOKEN_VALUE, tokenValue));
             throw new InvalidParameterException();

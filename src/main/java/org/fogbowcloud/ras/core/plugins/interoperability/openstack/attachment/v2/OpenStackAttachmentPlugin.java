@@ -21,8 +21,8 @@ import org.json.JSONException;
 
 import java.util.Properties;
 
-public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenStackV3Token> {
-    private final Logger LOGGER = Logger.getLogger(OpenStackNovaV2AttachmentPlugin.class);
+public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3Token> {
+    private final Logger LOGGER = Logger.getLogger(OpenStackAttachmentPlugin.class);
 
     protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
     private static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
@@ -32,7 +32,7 @@ public class OpenStackNovaV2AttachmentPlugin implements AttachmentPlugin<OpenSta
     private Properties properties;
     private HttpRequestClientUtil client;
 
-    public OpenStackNovaV2AttachmentPlugin() throws FatalErrorException {
+    public OpenStackAttachmentPlugin() throws FatalErrorException {
         this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
                 DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
         initClient();

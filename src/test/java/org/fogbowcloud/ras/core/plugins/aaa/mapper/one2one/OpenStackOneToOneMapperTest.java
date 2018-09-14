@@ -11,8 +11,8 @@ import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
-import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.KeystoneV3TokenGeneratorPlugin;
-import org.fogbowcloud.ras.core.plugins.aaa.identity.openstack.KeystoneV3IdentityPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.OpenStackTokenGeneratorPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.identity.openstack.OpenStackIdentityPlugin;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -24,8 +24,8 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-public class KeystoneV3OneToOneMapperTest {
-    private static final org.apache.log4j.Logger LOGGER = Logger.getLogger(KeystoneV3OneToOneMapperTest.class);
+public class OpenStackOneToOneMapperTest {
+    private static final org.apache.log4j.Logger LOGGER = Logger.getLogger(OpenStackOneToOneMapperTest.class);
 
     private static final String FAKE_USER_ID1 = "fake-user-id1";
     private static final String FAKE_USER_ID2 = "fake-user-id2";
@@ -36,21 +36,21 @@ public class KeystoneV3OneToOneMapperTest {
     private static final String FAKE_TOKEN_VALUE2 = "fake-token-value2";
     private static final String UTF_8 = "UTF-8";
 
-    private KeystoneV3OneToOneMapper mapper;
+    private OpenStackOneToOneMapper mapper;
     private HttpClient client;
     private HttpRequestClientUtil httpRequestClientUtil;
-    private KeystoneV3TokenGeneratorPlugin keystoneV3TokenGenerator;
-    private KeystoneV3IdentityPlugin keystoneV3IdentityPlugin;
+    private OpenStackTokenGeneratorPlugin keystoneV3TokenGenerator;
+    private OpenStackIdentityPlugin openStackIdentityPlugin;
     private String memberId;
 
     @Before
     public void setUp() {
-        this.mapper = new KeystoneV3OneToOneMapper();
+        this.mapper = new OpenStackOneToOneMapper();
         this.client = Mockito.spy(HttpClient.class);
         this.httpRequestClientUtil = Mockito.spy(new HttpRequestClientUtil(this.client));
-        this.keystoneV3TokenGenerator = Mockito.spy(new KeystoneV3TokenGeneratorPlugin());
+        this.keystoneV3TokenGenerator = Mockito.spy(new OpenStackTokenGeneratorPlugin());
         this.keystoneV3TokenGenerator.setClient(this.httpRequestClientUtil);
-        this.keystoneV3IdentityPlugin = new KeystoneV3IdentityPlugin();
+        this.openStackIdentityPlugin = new OpenStackIdentityPlugin();
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
     }
 
@@ -70,16 +70,16 @@ public class KeystoneV3OneToOneMapperTest {
                 HttpStatus.SC_OK, "");
         Mockito.when(httpResponse1.getStatusLine()).thenReturn(basicStatus1);
         Header[] headers1 = new BasicHeader[1];
-        headers1[0] = new BasicHeader(KeystoneV3TokenGeneratorPlugin.X_SUBJECT_TOKEN, FAKE_TOKEN_VALUE1);
+        headers1[0] = new BasicHeader(OpenStackTokenGeneratorPlugin.X_SUBJECT_TOKEN, FAKE_TOKEN_VALUE1);
         Mockito.when(httpResponse1.getAllHeaders()).thenReturn(headers1);
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse1);
 
         Map<String, String> userCredentials1 = new HashMap<String, String>();
-        userCredentials1.put(KeystoneV3TokenGeneratorPlugin.USER_ID, FAKE_USER_ID1);
-        userCredentials1.put(KeystoneV3TokenGeneratorPlugin.PASSWORD, "any password");
-        userCredentials1.put(KeystoneV3TokenGeneratorPlugin.PROJECT_ID, FAKE_PROJECT_ID);
+        userCredentials1.put(OpenStackTokenGeneratorPlugin.USER_ID, FAKE_USER_ID1);
+        userCredentials1.put(OpenStackTokenGeneratorPlugin.PASSWORD, "any password");
+        userCredentials1.put(OpenStackTokenGeneratorPlugin.PROJECT_ID, FAKE_PROJECT_ID);
         String tokenValue1 = this.keystoneV3TokenGenerator.createTokenValue(userCredentials1);
-        OpenStackV3Token token1 = this.keystoneV3IdentityPlugin.createToken(tokenValue1);
+        OpenStackV3Token token1 = this.openStackIdentityPlugin.createToken(tokenValue1);
 
         String jsonResponse2 = "{\"token\":{\"user\":{\"id\":\"" + FAKE_USER_ID2 + "\",\"name\": \"" + FAKE_USER_NAME +
                 "\"}, \"project\":{\"id\": \"" + FAKE_PROJECT_ID + "\", \"name\": \"" + FAKE_PROJECT_NAME +
@@ -93,16 +93,16 @@ public class KeystoneV3OneToOneMapperTest {
                 HttpStatus.SC_OK, "");
         Mockito.when(httpResponse2.getStatusLine()).thenReturn(basicStatus2);
         Header[] headers2 = new BasicHeader[1];
-        headers2[0] = new BasicHeader(KeystoneV3TokenGeneratorPlugin.X_SUBJECT_TOKEN, FAKE_TOKEN_VALUE2);
+        headers2[0] = new BasicHeader(OpenStackTokenGeneratorPlugin.X_SUBJECT_TOKEN, FAKE_TOKEN_VALUE2);
         Mockito.when(httpResponse2.getAllHeaders()).thenReturn(headers2);
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse2);
 
         Map<String, String> userCredentials2 = new HashMap<String, String>();
-        userCredentials2.put(KeystoneV3TokenGeneratorPlugin.USER_ID, FAKE_USER_ID1);
-        userCredentials2.put(KeystoneV3TokenGeneratorPlugin.PASSWORD, "any password");
-        userCredentials2.put(KeystoneV3TokenGeneratorPlugin.PROJECT_ID, FAKE_PROJECT_ID);
+        userCredentials2.put(OpenStackTokenGeneratorPlugin.USER_ID, FAKE_USER_ID1);
+        userCredentials2.put(OpenStackTokenGeneratorPlugin.PASSWORD, "any password");
+        userCredentials2.put(OpenStackTokenGeneratorPlugin.PROJECT_ID, FAKE_PROJECT_ID);
         String tokenValue2 = this.keystoneV3TokenGenerator.createTokenValue(userCredentials2);
-        OpenStackV3Token token2 = this.keystoneV3IdentityPlugin.createToken(tokenValue2);
+        OpenStackV3Token token2 = this.openStackIdentityPlugin.createToken(tokenValue2);
 
         //exercise
         OpenStackV3Token mappedToken1 = (OpenStackV3Token) this.mapper.map(token1);

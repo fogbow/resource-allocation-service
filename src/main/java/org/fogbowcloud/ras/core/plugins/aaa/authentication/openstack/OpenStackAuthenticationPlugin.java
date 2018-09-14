@@ -13,24 +13,24 @@ import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
-import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.KeystoneV3TokenGeneratorPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.OpenStackTokenGeneratorPlugin;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
-public class KeystoneV3AuthenticationPlugin implements AuthenticationPlugin {
-    private static final Logger LOGGER = Logger.getLogger(KeystoneV3TokenGeneratorPlugin.class);
+public class OpenStackAuthenticationPlugin implements AuthenticationPlugin {
+    private static final Logger LOGGER = Logger.getLogger(OpenStackTokenGeneratorPlugin.class);
 
     private String v3TokensEndpoint;
     private HttpRequestClientUtil client;
     private String localProviderId;
 
-    public KeystoneV3AuthenticationPlugin() {
+    public OpenStackAuthenticationPlugin() {
         Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
                 DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
 
-        String identityUrl = properties.getProperty(KeystoneV3TokenGeneratorPlugin.OPENSTACK_KEYSTONE_V3_URL);
+        String identityUrl = properties.getProperty(OpenStackTokenGeneratorPlugin.OPENSTACK_KEYSTONE_V3_URL);
         if (isUrlValid(identityUrl)) {
-            this.v3TokensEndpoint = identityUrl + KeystoneV3TokenGeneratorPlugin.V3_TOKENS_ENDPOINT_PATH;
+            this.v3TokensEndpoint = identityUrl + OpenStackTokenGeneratorPlugin.V3_TOKENS_ENDPOINT_PATH;
         }
         this.client = new HttpRequestClientUtil();
         this.localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
@@ -53,7 +53,7 @@ public class KeystoneV3AuthenticationPlugin implements AuthenticationPlugin {
 	private boolean isUrlValid(String url) throws FatalErrorException {
 		if (url == null || url.trim().isEmpty()) {
 			throw new FatalErrorException(String.format(Messages.Fatal.INVALID_KEYSTONE_URL,
-					KeystoneV3TokenGeneratorPlugin.OPENSTACK_KEYSTONE_V3_URL));
+					OpenStackTokenGeneratorPlugin.OPENSTACK_KEYSTONE_V3_URL));
 		}
 		return true;
 	}

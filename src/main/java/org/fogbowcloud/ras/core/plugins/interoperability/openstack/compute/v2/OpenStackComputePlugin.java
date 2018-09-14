@@ -16,7 +16,7 @@ import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.ComputePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
-import org.fogbowcloud.ras.core.plugins.interoperability.openstack.network.v2.OpenStackV2NetworkPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.openstack.network.v2.OpenStackNetworkPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import org.fogbowcloud.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.fogbowcloud.ras.util.PropertiesUtil;
@@ -25,8 +25,8 @@ import org.fogbowcloud.ras.util.connectivity.HttpRequestUtil;
 
 import java.util.*;
 
-public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3Token> {
-    protected static final Logger LOGGER = Logger.getLogger(OpenStackNovaV2ComputePlugin.class);
+public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
+    protected static final Logger LOGGER = Logger.getLogger(OpenStackComputePlugin.class);
 
     protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
     public static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
@@ -64,7 +64,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
     private HttpRequestClientUtil client;
     private LaunchCommandGenerator launchCommandGenerator;
 
-    public OpenStackNovaV2ComputePlugin() throws FatalErrorException {
+    public OpenStackComputePlugin() throws FatalErrorException {
         this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
                 DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
@@ -74,8 +74,8 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
     /**
      * Constructor used for testing only
      */
-    protected OpenStackNovaV2ComputePlugin(Properties properties, LaunchCommandGenerator launchCommandGenerator,
-                                           HttpRequestClientUtil client) {
+    protected OpenStackComputePlugin(Properties properties, LaunchCommandGenerator launchCommandGenerator,
+                                     HttpRequestClientUtil client) {
         this.properties = properties;
         this.launchCommandGenerator = launchCommandGenerator;
         this.client = client;
@@ -240,7 +240,7 @@ public class OpenStackNovaV2ComputePlugin implements ComputePlugin<OpenStackV3To
 
             String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
             if (!networkId.equals(defaultNetworkId)) {
-                String prefix = OpenStackV2NetworkPlugin.SECURITY_GROUP_PREFIX;
+                String prefix = OpenStackNetworkPlugin.SECURITY_GROUP_PREFIX;
                 String securityGroupName = prefix + "-" + networkId;
                 securityGroups.add(new CreateComputeRequest.SecurityGroup(securityGroupName));
             }

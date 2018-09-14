@@ -18,8 +18,8 @@ import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import java.util.Map;
 import java.util.Properties;
 
-public class KeystoneV3TokenGeneratorPlugin implements TokenGeneratorPlugin {
-    private static final Logger LOGGER = Logger.getLogger(KeystoneV3TokenGeneratorPlugin.class);
+public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
+    private static final Logger LOGGER = Logger.getLogger(OpenStackTokenGeneratorPlugin.class);
 
     public static final String OPENSTACK_KEYSTONE_V3_URL = "openstack_keystone_v3_url";
     public static final String V3_TOKENS_ENDPOINT_PATH = "/auth/tokens";
@@ -33,7 +33,7 @@ public class KeystoneV3TokenGeneratorPlugin implements TokenGeneratorPlugin {
     private HttpRequestClientUtil client;
     private String tokenProviderId;
 
-    public KeystoneV3TokenGeneratorPlugin() throws FatalErrorException {
+    public OpenStackTokenGeneratorPlugin() throws FatalErrorException {
         this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
         Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +

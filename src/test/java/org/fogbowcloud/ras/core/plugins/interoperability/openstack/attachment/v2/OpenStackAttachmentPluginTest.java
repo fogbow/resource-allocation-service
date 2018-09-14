@@ -46,7 +46,7 @@ public class OpenStackAttachmentPluginTest {
     private static final String FAKE_PROJECT_ID = "fake-project-id";
     private static final String FAKE_PROJECT_NAME = "fake-project-name";
     private AttachmentOrder attachmentOrder;
-    private OpenStackNovaV2AttachmentPlugin openStackAttachmentPlugin;
+    private OpenStackAttachmentPlugin openStackAttachmentPlugin;
     private OpenStackV3Token localUserAttributes;
     private HttpRequestClientUtil client;
     private ArgumentCaptor<String> argString = ArgumentCaptor.forClass(String.class);
@@ -57,14 +57,14 @@ public class OpenStackAttachmentPluginTest {
     public void setUp() throws InvalidParameterException {
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         Properties properties = propertiesHolder.getProperties();
-        properties.put(OpenStackNovaV2AttachmentPlugin.COMPUTE_NOVAV2_URL_KEY, FAKE_ENDPOINT);
+        properties.put(OpenStackAttachmentPlugin.COMPUTE_NOVAV2_URL_KEY, FAKE_ENDPOINT);
         properties.put(COMPUTE_NOVAV2_NETWORK_KEY, FAKE_NET_ID);
 
         this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
         this.attachmentOrder =
                 new AttachmentOrder(null, null, null, FAKE_SERVER_ID, FAKE_VOLUME_ID, MOUNT_POINT);
 
-        this.openStackAttachmentPlugin = new OpenStackNovaV2AttachmentPlugin();
+        this.openStackAttachmentPlugin = new OpenStackAttachmentPlugin();
         this.openStackAttachmentPlugin.setProperties(properties);
         this.client = Mockito.mock(HttpRequestClientUtil.class);
         this.openStackAttachmentPlugin.setClient(this.client);

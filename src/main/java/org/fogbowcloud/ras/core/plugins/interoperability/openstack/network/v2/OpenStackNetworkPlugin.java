@@ -29,8 +29,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
-    private static final Logger LOGGER = Logger.getLogger(OpenStackV2NetworkPlugin.class);
+public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
+    private static final Logger LOGGER = Logger.getLogger(OpenStackNetworkPlugin.class);
 
     public static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
     protected static final String SUFFIX_ENDPOINT_NETWORK = "/networks";
@@ -70,7 +70,7 @@ public class OpenStackV2NetworkPlugin implements NetworkPlugin<OpenStackV3Token>
     private String networkV2APIEndpoint;
     private String[] dnsList;
 
-    public OpenStackV2NetworkPlugin() throws FatalErrorException {
+    public OpenStackNetworkPlugin() throws FatalErrorException {
         Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
                 DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
         this.networkV2APIEndpoint = properties.getProperty(NETWORK_NEUTRONV2_URL_KEY) + V2_API_ENDPOINT;

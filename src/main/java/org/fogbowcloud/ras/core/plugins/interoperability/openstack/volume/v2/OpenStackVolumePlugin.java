@@ -20,8 +20,8 @@ import org.json.JSONException;
 
 import java.util.Properties;
 
-public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackV3Token> {
-    private static final Logger LOGGER = Logger.getLogger(OpenStackV2VolumePlugin.class);
+public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3Token> {
+    private static final Logger LOGGER = Logger.getLogger(OpenStackVolumePlugin.class);
 
     private final String V2_API_ENDPOINT = "/v2/";
     protected static final String SUFIX_ENDPOINT_VOLUMES = "/volumes";
@@ -29,7 +29,7 @@ public class OpenStackV2VolumePlugin implements VolumePlugin<OpenStackV3Token> {
     private HttpRequestClientUtil client;
     private String volumeV2APIEndpoint;
 
-    public OpenStackV2VolumePlugin() throws FatalErrorException {
+    public OpenStackVolumePlugin() throws FatalErrorException {
         Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
                 DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
         this.volumeV2APIEndpoint = properties.getProperty(VOLUME_NOVAV2_URL_KEY) + V2_API_ENDPOINT;

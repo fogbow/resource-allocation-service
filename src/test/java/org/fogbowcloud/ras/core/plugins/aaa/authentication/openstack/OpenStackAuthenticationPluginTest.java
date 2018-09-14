@@ -20,8 +20,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class KeystoneV3AuthenticationPluginTest {
-    private KeystoneV3AuthenticationPlugin authenticationPlugin;
+public class OpenStackAuthenticationPluginTest {
+    private OpenStackAuthenticationPlugin authenticationPlugin;
     private HttpRequestClientUtil httpRequestClientUtil;
     private HttpClient client;
 
@@ -40,7 +40,7 @@ public class KeystoneV3AuthenticationPluginTest {
         this.projectId = "projectId";
         this.providerId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
-        this.authenticationPlugin = Mockito.spy(new KeystoneV3AuthenticationPlugin());
+        this.authenticationPlugin = Mockito.spy(new OpenStackAuthenticationPlugin());
         this.authenticationPlugin.setClient(this.httpRequestClientUtil);
     }
 
