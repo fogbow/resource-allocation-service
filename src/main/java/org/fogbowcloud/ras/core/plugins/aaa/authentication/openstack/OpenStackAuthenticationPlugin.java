@@ -1,7 +1,5 @@
 package org.fogbowcloud.ras.core.plugins.aaa.authentication.openstack;
 
-import java.util.Properties;
-
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
@@ -16,6 +14,8 @@ import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.OpenStackTokenGeneratorPlugin;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+
+import java.util.Properties;
 
 public class OpenStackAuthenticationPlugin implements AuthenticationPlugin {
     private static final Logger LOGGER = Logger.getLogger(OpenStackTokenGeneratorPlugin.class);
@@ -50,13 +50,13 @@ public class OpenStackAuthenticationPlugin implements AuthenticationPlugin {
         }
     }
 
-	private boolean isUrlValid(String url) throws FatalErrorException {
-		if (url == null || url.trim().isEmpty()) {
-			throw new FatalErrorException(String.format(Messages.Fatal.INVALID_KEYSTONE_URL,
-					OpenStackTokenGeneratorPlugin.OPENSTACK_KEYSTONE_V3_URL));
-		}
-		return true;
-	}
+    private boolean isUrlValid(String url) throws FatalErrorException {
+        if (url == null || url.trim().isEmpty()) {
+            throw new FatalErrorException(String.format(Messages.Fatal.INVALID_KEYSTONE_URL,
+                    OpenStackTokenGeneratorPlugin.OPENSTACK_KEYSTONE_V3_URL));
+        }
+        return true;
+    }
 
     // Used in testing
     protected void setClient(HttpRequestClientUtil client) {

@@ -1,12 +1,5 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.util;
 
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.StringReader;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.PropertiesHolder;
@@ -16,6 +9,13 @@ import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 import org.fogbowcloud.ras.core.models.orders.UserData;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
     private static final Logger LOGGER = Logger.getLogger(DefaultLaunchCommandGenerator.class);

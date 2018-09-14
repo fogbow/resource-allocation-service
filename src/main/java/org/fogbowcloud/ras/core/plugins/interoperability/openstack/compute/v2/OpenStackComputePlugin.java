@@ -249,7 +249,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
         // do not specify security groups if no additional network was given
         securityGroups = securityGroups.size() == 0 ? null : securityGroups;
 
-        String name = instanceName == null ?  FOGBOW_INSTANCE_NAME + getRandomUUID() : instanceName;
+        String name = instanceName == null ? FOGBOW_INSTANCE_NAME + getRandomUUID() : instanceName;
         CreateComputeRequest createComputeRequest = new CreateComputeRequest.Builder()
                 .name(name)
                 .imageReference(imageRef)

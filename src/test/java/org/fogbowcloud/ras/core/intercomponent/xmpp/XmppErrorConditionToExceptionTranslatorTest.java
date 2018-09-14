@@ -231,18 +231,18 @@ public class XmppErrorConditionToExceptionTranslatorTest {
 
     //test case: checks if "handleError" is properly forwading "UnavailableProviderException" when the response is null
     @Test
-	public void testHandleErrorThrowsUnavailableProviderExceptionWhenResponseIsNull() throws Exception {
-		try {
-			// exercise
-			XmppErrorConditionToExceptionTranslator.handleError(null, this.memberId);
-			// verify
-			Assert.fail();
-		} catch (UnavailableProviderException e) {
-			String messageExpected = String.format(Messages.Exception.UNABLE_RETRIEVE_RESPONSE_FROM_PROVIDING_MEMBER,
-					this.memberId);
-			Assert.assertEquals(messageExpected, e.getMessage());
-		}
-	}
+    public void testHandleErrorThrowsUnavailableProviderExceptionWhenResponseIsNull() throws Exception {
+        try {
+            // exercise
+            XmppErrorConditionToExceptionTranslator.handleError(null, this.memberId);
+            // verify
+            Assert.fail();
+        } catch (UnavailableProviderException e) {
+            String messageExpected = String.format(Messages.Exception.UNABLE_RETRIEVE_RESPONSE_FROM_PROVIDING_MEMBER,
+                    this.memberId);
+            Assert.assertEquals(messageExpected, e.getMessage());
+        }
+    }
 
     //test case: checks if nothing happens if there is no error in response
     @Test

@@ -50,8 +50,8 @@ public class VolumeOrder extends Order {
         return ResourceType.VOLUME;
     }
 
-	@Override
-	public String getSpec() {
-		return String.valueOf(this.volumeSize);
-	}
+    @Override
+    public String getSpec() {
+        return String.valueOf(this.volumeSize);
+    }
 }

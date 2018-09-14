@@ -1,34 +1,25 @@
 package org.fogbowcloud.ras.core;
 
-import java.util.List;
-import java.util.Map;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.constants.Operation;
-import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
-import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
-import org.fogbowcloud.ras.core.exceptions.UnauthorizedRequestException;
-import org.fogbowcloud.ras.core.exceptions.UnavailableProviderException;
-import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.InstanceStatus;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.images.Image;
-import org.fogbowcloud.ras.core.models.instances.AttachmentInstance;
-import org.fogbowcloud.ras.core.models.instances.ComputeInstance;
-import org.fogbowcloud.ras.core.models.instances.Instance;
-import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
-import org.fogbowcloud.ras.core.models.instances.PublicIpInstance;
-import org.fogbowcloud.ras.core.models.instances.VolumeInstance;
+import org.fogbowcloud.ras.core.models.instances.*;
 import org.fogbowcloud.ras.core.models.orders.*;
 import org.fogbowcloud.ras.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
 import org.fogbowcloud.ras.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+
+import java.util.List;
+import java.util.Map;
 
 public class ApplicationFacade {
     private final Logger LOGGER = Logger.getLogger(ApplicationFacade.class);
@@ -208,18 +199,18 @@ public class ApplicationFacade {
     }
 
     public String createPublicIp(PublicIpOrder publicIpOrder, String federationTokenValue)
-        throws UnexpectedException, FogbowRasException {
+            throws UnexpectedException, FogbowRasException {
         return activateOrder(publicIpOrder, federationTokenValue);
     }
 
     public PublicIpInstance getPublicIp(String publicIpOrderId, String federationTokenValue)
-        throws Exception {
+            throws Exception {
         return (PublicIpInstance) getResourceInstance(publicIpOrderId, federationTokenValue, ResourceType.PUBLIC_IP);
     }
 
 
     public void deletePublicIp(String publicIpOrderId, String federationTokenValue)
-        throws UnexpectedException, FogbowRasException {
+            throws UnexpectedException, FogbowRasException {
         deleteOrder(publicIpOrderId, federationTokenValue, ResourceType.PUBLIC_IP);
     }
 

@@ -28,7 +28,7 @@ public class NetworkOrdersController {
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<String> createNetwork(@RequestBody NetworkOrder networkOrder,
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+                                                @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowRasException, UnexpectedException {
         LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_NEW_ORDER, ORDER_CONTROLLER_TYPE, networkOrder.getId()));
         String networkId = ApplicationFacade.getInstance().createNetwork(networkOrder, federationTokenValue);
@@ -47,7 +47,7 @@ public class NetworkOrdersController {
 
     @RequestMapping(value = "/{networkId}", method = RequestMethod.GET)
     public ResponseEntity<NetworkInstance> getNetwork(@PathVariable String networkId,
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+                                                      @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
         LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_GET_ORDER, ORDER_CONTROLLER_TYPE, networkId));
         NetworkInstance networkInstance = ApplicationFacade.getInstance().getNetwork(networkId, federationTokenValue);
@@ -56,7 +56,7 @@ public class NetworkOrdersController {
 
     @RequestMapping(value = "/{networkId}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> deleteNetwork(@PathVariable String networkId,
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+                                                 @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowRasException, UnexpectedException {
         LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_DELETE_ORDER, ORDER_CONTROLLER_TYPE, networkId));
         ApplicationFacade.getInstance().deleteNetwork(networkId, federationTokenValue);

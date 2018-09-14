@@ -1,12 +1,5 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack;
 
-import java.security.Key;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.Charsets;
 import org.apache.http.client.utils.URIBuilder;
@@ -15,6 +8,12 @@ import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGeneratorPlugin;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.Key;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 public class CloudStackUrlUtil {
     private static final Logger LOGGER = Logger.getLogger(CloudStackUrlUtil.class);

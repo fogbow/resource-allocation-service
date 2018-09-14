@@ -28,7 +28,7 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     public static final String PROJECT_ID = "projectId";
     public static final String PASSWORD = "password";
     public static final String USER_ID = "userId";
-//    public static final String AUTH_URL = "authUrl";
+    //    public static final String AUTH_URL = "authUrl";
     private String v3TokensEndpoint;
     private HttpRequestClientUtil client;
     private String tokenProviderId;

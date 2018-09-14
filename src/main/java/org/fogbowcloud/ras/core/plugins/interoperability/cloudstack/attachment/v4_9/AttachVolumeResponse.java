@@ -1,8 +1,10 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.attachment.v4_9;
 
-import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.Attachment.*;
-import org.fogbowcloud.ras.util.GsonHolder;
 import com.google.gson.annotations.SerializedName;
+import org.fogbowcloud.ras.util.GsonHolder;
+
+import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.Attachment.ATTACH_VOLUME_KEY_JSON;
+import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.Attachment.JOB_ID_KEY_JSON;
 
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/attachVolume.html

@@ -10,33 +10,33 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.Cloud
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/listAccounts.html
  * {
- * 	"listaccountsresponse": {
- * 		"count": 1,
- * 		"account": [{
- * 			"user": [{
- * 				"id": "anid",
- * 				"username": "ausername@usernames.com",
- * 				"firstname": "Jon",
- * 				"lastname": "Doe",
- * 				"email": "anemail@emails.com",
- * 				"created": "2016-10-17T12:28:48-0200",
- * 				"state": "enabled",
- * 				"account": "account@accounts.com",
- * 				"accounttype": 2,
- * 				"roleid": "785e2b66-36b0-11e7-a516-0e043877b6cb",
- * 				"roletype": "DomainAdmin",
- * 				"rolename": "Domain Admin",
- * 				"domainid": "adomainid",
- * 				"domain": "adomain",
- * 				"apikey": "anapikey",
- * 				"secretkey": "asecretkey",
- * 				"accountid": "anaccountid",
- * 				"iscallerchilddomain": false,
- * 				"isdefault": false
- *                        }],
- * 			"isdefault": false,
- * 			"groups": []* 		}]
- * 	}
+ * "listaccountsresponse": {
+ * "count": 1,
+ * "account": [{
+ * "user": [{
+ * "id": "anid",
+ * "username": "ausername@usernames.com",
+ * "firstname": "Jon",
+ * "lastname": "Doe",
+ * "email": "anemail@emails.com",
+ * "created": "2016-10-17T12:28:48-0200",
+ * "state": "enabled",
+ * "account": "account@accounts.com",
+ * "accounttype": 2,
+ * "roleid": "785e2b66-36b0-11e7-a516-0e043877b6cb",
+ * "roletype": "DomainAdmin",
+ * "rolename": "Domain Admin",
+ * "domainid": "adomainid",
+ * "domain": "adomain",
+ * "apikey": "anapikey",
+ * "secretkey": "asecretkey",
+ * "accountid": "anaccountid",
+ * "iscallerchilddomain": false,
+ * "isdefault": false
+ * }],
+ * "isdefault": false,
+ * "groups": []* 		}]
+ * }
  * }
  */
 public class ListAccountsResponse {

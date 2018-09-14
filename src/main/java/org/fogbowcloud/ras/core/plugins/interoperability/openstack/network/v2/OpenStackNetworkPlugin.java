@@ -1,19 +1,11 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.openstack.network.v2;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Properties;
-
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
-import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
-import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
@@ -28,6 +20,10 @@ import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
 
 public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
     private static final Logger LOGGER = Logger.getLogger(OpenStackNetworkPlugin.class);
@@ -115,7 +111,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
             String response = this.client.doPostRequest(endpoint, openStackV3Token, createNetworkRequest.toJson());
             createNetworkResponse = CreateNetworkResponse.fromJson(response);
         } catch (JSONException e) {
-        	String message = Messages.Error.COULD_NOT_GENERATING_JSON;
+            String message = Messages.Error.COULD_NOT_GENERATING_JSON;
             LOGGER.error(message, e);
             throw new InvalidParameterException(message, e);
         } catch (HttpResponseException e) {
@@ -291,7 +287,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
 
             allocationMode = dhcpEnabled ? NetworkAllocationMode.DYNAMIC : NetworkAllocationMode.STATIC;
         } catch (JSONException e) {
-        	String message = String.format(Messages.Error.NOT_POSSIBLE_GET_NETWORK, json);
+            String message = String.format(Messages.Error.NOT_POSSIBLE_GET_NETWORK, json);
             LOGGER.error(message, e);
             throw new InvalidParameterException(message, e);
         }
@@ -325,7 +321,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
             JSONObject networkJSONObject = rootServer.optJSONObject(KEY_JSON_NETWORK);
             networkId = networkJSONObject.optString(KEY_ID);
         } catch (JSONException e) {
-        	String message = String.format(Messages.Error.NOT_POSSIBLE_RETRIEVE_NETWORK_ID, json);
+            String message = String.format(Messages.Error.NOT_POSSIBLE_RETRIEVE_NETWORK_ID, json);
             LOGGER.error(message);
             throw new UnexpectedException(message, e);
         }

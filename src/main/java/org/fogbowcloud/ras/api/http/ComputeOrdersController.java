@@ -34,7 +34,7 @@ public class ComputeOrdersController {
     // HttpExceptionToErrorConditionTranslator handles the possible problems in request
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<String> createCompute(@RequestBody ComputeOrder computeOrder,
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+                                                @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowRasException, UnexpectedException {
         LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_NEW_ORDER, ORDER_CONTROLLER_TYPE, computeOrder.getId()));
         String computeId = ApplicationFacade.getInstance().createCompute(computeOrder, federationTokenValue);
@@ -53,7 +53,7 @@ public class ComputeOrdersController {
 
     @RequestMapping(value = "/{computeId}", method = RequestMethod.GET)
     public ResponseEntity<ComputeInstance> getCompute(@PathVariable String computeId,
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+                                                      @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
         LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_GET_ORDER, ORDER_CONTROLLER_TYPE, computeId));
         ComputeInstance compute = ApplicationFacade.getInstance().getCompute(computeId, federationTokenValue);
@@ -62,7 +62,7 @@ public class ComputeOrdersController {
 
     @RequestMapping(value = "/{computeId}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> deleteCompute(@PathVariable String computeId,
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+                                                 @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowRasException, UnexpectedException {
         LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_DELETE_ORDER, ORDER_CONTROLLER_TYPE, computeId));
         ApplicationFacade.getInstance().deleteCompute(computeId, federationTokenValue);
@@ -71,7 +71,7 @@ public class ComputeOrdersController {
 
     @RequestMapping(value = "/" + QUOTA_ENDPOINT + "/{memberId:.+}", method = RequestMethod.GET)
     public ResponseEntity<ComputeQuota> getUserQuota(@PathVariable String memberId,
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+                                                     @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
         LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_USER_INFORMATION, QUOTA_ENDPOINT, memberId));
         ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(memberId, federationTokenValue);
@@ -80,7 +80,7 @@ public class ComputeOrdersController {
 
     @RequestMapping(value = "/" + ALLOCATION_ENDPOINT + "/{memberId:.+}", method = RequestMethod.GET)
     public ResponseEntity<ComputeAllocation> getUserAllocation(@PathVariable String memberId,
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+                                                               @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowRasException, UnexpectedException {
         LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_USER_INFORMATION, ALLOCATION_ENDPOINT, memberId));
         ComputeAllocation computeAllocation =

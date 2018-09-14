@@ -19,6 +19,7 @@ public class NetworkOrder extends Order {
     @Column
     @Enumerated(EnumType.STRING)
     private NetworkAllocationMode allocation;
+
     public NetworkOrder() {
         super(UUID.randomUUID().toString());
     }
@@ -63,8 +64,8 @@ public class NetworkOrder extends Order {
         return ResourceType.NETWORK;
     }
 
-	@Override
-	public String getSpec() {
-		return "";
-	}
+    @Override
+    public String getSpec() {
+        return "";
+    }
 }

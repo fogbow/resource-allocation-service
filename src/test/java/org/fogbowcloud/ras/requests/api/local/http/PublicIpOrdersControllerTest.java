@@ -47,7 +47,7 @@ public class PublicIpOrdersControllerTest {
     private final String CORRECT_BODY =
             "{"
                     + "\"computeOrderId\": \"b8852ff6-ce00-45aa-898d-ddaffb5c6173\""
-          + "}";
+                    + "}";
 
     private final String BODY_WITH_EMPTY_PROPERTIES =
             "{"

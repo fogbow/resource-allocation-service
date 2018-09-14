@@ -1,7 +1,6 @@
 package org.fogbowcloud.ras.core.datastore.orderstorage;
 
 import org.fogbowcloud.ras.core.constants.Messages;
-
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.orders.OrderState;

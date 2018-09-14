@@ -31,7 +31,7 @@ public class CloudStackUrlMatcher extends ArgumentMatcher<String> {
             String decodedUrl = url;
             try {
                 decodedUrl = java.net.URLDecoder.decode(url, "UTF-8");
-            }catch (UnsupportedEncodingException e) {
+            } catch (UnsupportedEncodingException e) {
                 LOGGER.warn("Could not decode url " + url);
             }
             return compareWith(getUrlParams(decodedUrl));

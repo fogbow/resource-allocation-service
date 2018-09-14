@@ -1,14 +1,7 @@
 package org.fogbowcloud.ras;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.AaaController;
-import org.fogbowcloud.ras.core.AaaPluginsHolder;
-import org.fogbowcloud.ras.core.ApplicationFacade;
-import org.fogbowcloud.ras.core.InteroperabilityPluginsHolder;
-import org.fogbowcloud.ras.core.OrderController;
-import org.fogbowcloud.ras.core.PluginInstantiator;
-import org.fogbowcloud.ras.core.ProcessorsThreadController;
-import org.fogbowcloud.ras.core.PropertiesHolder;
+import org.fogbowcloud.ras.core.*;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
@@ -86,8 +79,8 @@ public class Main implements ApplicationRunner {
         }
     }
 
-    private void tryExit(){
-        if(!Boolean.parseBoolean(System.getenv("SKIP_TEST_ON_TRAVIS")))
+    private void tryExit() {
+        if (!Boolean.parseBoolean(System.getenv("SKIP_TEST_ON_TRAVIS")))
             System.exit(1);
     }
 }

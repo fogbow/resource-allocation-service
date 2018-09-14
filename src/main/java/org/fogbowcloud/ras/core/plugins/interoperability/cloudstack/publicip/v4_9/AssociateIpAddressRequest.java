@@ -1,10 +1,10 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 
-import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.PublicIp.ASSOCIATE_IP_ADDRESS_COMMAND;
-import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.PublicIp.NETWORK_ID_KEY_JSON;
-
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRequest;
+
+import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.PublicIp.ASSOCIATE_IP_ADDRESS_COMMAND;
+import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.PublicIp.NETWORK_ID_KEY_JSON;
 
 /**
  * Documentation : https://cloudstack.apache.org/api/apidocs-4.9/apis/associateIpAddress.html

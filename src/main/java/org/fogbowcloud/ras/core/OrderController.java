@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -17,7 +18,6 @@ import org.fogbowcloud.ras.core.models.orders.OrderState;
 import org.fogbowcloud.ras.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.ras.core.constants.Messages;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -67,7 +67,7 @@ public class OrderController {
             if (!orderState.equals(OrderState.CLOSED)) {
                 OrderStateTransitioner.transition(order, OrderState.CLOSED);
             } else {
-            	String message = String.format(Messages.Error.ORDER_ALREADY_CLOSED, order.getId());
+                String message = String.format(Messages.Error.ORDER_ALREADY_CLOSED, order.getId());
                 LOGGER.error(message);
                 throw new InstanceNotFoundException(message);
             }

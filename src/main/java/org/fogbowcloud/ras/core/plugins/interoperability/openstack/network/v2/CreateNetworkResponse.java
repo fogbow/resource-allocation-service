@@ -39,6 +39,7 @@ public class CreateNetworkResponse {
     public static class Network {
         @SerializedName(ID_KEY_JSON)
         private String id;
+
         public Network(String id) {
             this.id = id;
         }

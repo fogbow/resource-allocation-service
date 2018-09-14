@@ -40,7 +40,7 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackToken> {
         List<GetAllImagesResponse.Image> images = response.getImages();
 
         Map<String, String> idToImageNames = new HashMap<>();
-        for (GetAllImagesResponse.Image image : images){
+        for (GetAllImagesResponse.Image image : images) {
             idToImageNames.put(image.getId(), image.getName());
         }
 

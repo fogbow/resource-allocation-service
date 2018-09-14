@@ -1,8 +1,5 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
-import java.io.File;
-import java.util.List;
-import java.util.Properties;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
@@ -21,9 +18,12 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHt
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackStateMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsResponse.DiskOffering;
-import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse.Volume;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+
+import java.io.File;
+import java.util.List;
+import java.util.Properties;
 
 public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackVolumePlugin.class);
@@ -97,11 +97,11 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
     @Override
     public void deleteInstance(String volumeInstanceId, CloudStackToken localUserAttributes)
             throws FogbowRasException, UnexpectedException {
-        
+
         DeleteVolumeRequest request = new DeleteVolumeRequest.Builder()
                 .id(volumeInstanceId)
                 .build();
-        
+
         CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
 
         String jsonResponse = null;

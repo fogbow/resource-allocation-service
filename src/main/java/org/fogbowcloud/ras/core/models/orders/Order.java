@@ -131,7 +131,7 @@ public abstract class Order implements Serializable {
     }
 
     public abstract ResourceType getType();
-    
+
     public abstract String getSpec();
 
     @Override

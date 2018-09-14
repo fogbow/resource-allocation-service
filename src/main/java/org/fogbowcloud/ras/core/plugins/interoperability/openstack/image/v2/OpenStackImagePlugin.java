@@ -98,7 +98,7 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3Token> {
 
     private void getNextImageListResponseByPagination(Token token, GetAllImagesResponse getAllImagesResponse,
                                                       List<GetImageResponse> imagesJson) throws FogbowRasException,
-                                                        UnexpectedException {
+            UnexpectedException {
 
         String next = getAllImagesResponse.getNext();
         if (next != null && !next.isEmpty()) {

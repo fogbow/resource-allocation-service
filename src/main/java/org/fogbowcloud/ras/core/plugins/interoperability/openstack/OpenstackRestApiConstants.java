@@ -103,15 +103,15 @@ public class OpenstackRestApiConstants {
         public static final String TOTAL_RAM_USED_KEY_JSON = "totalRAMUsed";
         public static final String TOTAL_INSTANCES_USED_KEY_JSON = "totalInstancesUsed";
     }
-    
+
     public static class PublicIp {
-    	public static final String ID_KEY_JSON = "id";
-    	public static final String STATUS_KEY_JSON = "status";
-    	public static final String FLOATING_IP_KEY_JSON = "floatingip";
-    	public static final String FLOATING_IP_ADDRESS_KEY_JSON = "floating_ip_address";
-    	public static final String FLOATING_NETWORK_ID_KEY_JSON = "floating_network_id";
-    	public static final String PORT_ID_KEY_JSON = "port_id";
-    	public static final String PROJECT_ID_KEY_JSON = "project_id";
-    	public static final String PORTS_KEY_JSON = "ports";
+        public static final String ID_KEY_JSON = "id";
+        public static final String STATUS_KEY_JSON = "status";
+        public static final String FLOATING_IP_KEY_JSON = "floatingip";
+        public static final String FLOATING_IP_ADDRESS_KEY_JSON = "floating_ip_address";
+        public static final String FLOATING_NETWORK_ID_KEY_JSON = "floating_network_id";
+        public static final String PORT_ID_KEY_JSON = "port_id";
+        public static final String PROJECT_ID_KEY_JSON = "project_id";
+        public static final String PORTS_KEY_JSON = "ports";
     }
 }

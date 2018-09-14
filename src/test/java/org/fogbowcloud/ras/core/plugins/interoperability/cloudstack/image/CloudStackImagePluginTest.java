@@ -28,7 +28,10 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.image.GetAllImagesRequest.EXECUTABLE_TEMPLATES_VALUE;
 import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.image.GetAllImagesRequest.TEMPLATE_FILTER_KEY;

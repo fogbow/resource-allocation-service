@@ -3,7 +3,8 @@ package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.compute.v4_
 import com.google.gson.annotations.SerializedName;
 import org.fogbowcloud.ras.util.GsonHolder;
 
-import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.Compute.*;
+import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.Compute.DEPLOY_VIRTUAL_MACHINE;
+import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.Compute.ID_KEY_JSON;
 
 public class DeployVirtualMachineResponse {
 

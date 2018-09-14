@@ -34,7 +34,7 @@ public class ComputeOrder extends Order {
     private String imageId;
     @Embedded
     private UserData userData;
-    @Column(length=MAX_PUBLIC_KEY_SIZE)
+    @Column(length = MAX_PUBLIC_KEY_SIZE)
     private String publicKey;
     @Embedded
     private ComputeAllocation actualAllocation;
@@ -68,7 +68,7 @@ public class ComputeOrder extends Order {
                         String name, int vCPU, int memory, int disk, String imageId, UserData userData, String publicKey,
                         List<String> networksId) {
         this(UUID.randomUUID().toString(), federationUserToken, requestingMember, providingMember,
-             name, vCPU, memory, disk, imageId, userData, publicKey, networksId);
+                name, vCPU, memory, disk, imageId, userData, publicKey, networksId);
     }
 
     public ComputeAllocation getActualAllocation() {
@@ -131,7 +131,7 @@ public class ComputeOrder extends Order {
         this.networksId = networksId;
     }
 
-	@Override
+    @Override
     public String getSpec() {
         if (this.actualAllocation == null) {
             return "";

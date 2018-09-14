@@ -46,7 +46,7 @@ public class HttpRequestUtil {
     }
 
     public static CloseableHttpClient createHttpClient(Integer timeout, SSLConnectionSocketFactory sslsf,
-                                               HttpClientConnectionManager connManager) throws FatalErrorException {
+                                                       HttpClientConnectionManager connManager) throws FatalErrorException {
         if (timeoutHttpRequest == null) {
             init(); // Set to default timeout.
         }

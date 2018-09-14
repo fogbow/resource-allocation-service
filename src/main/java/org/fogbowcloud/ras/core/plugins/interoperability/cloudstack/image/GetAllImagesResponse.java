@@ -7,17 +7,17 @@ import java.util.List;
 
 /**
  * Documentation:
- *
+ * <p>
  * Response example:
  * {
- *     "listtemplatesresponse": {
- *         "count": 24,
- *         "template": [{
- *             "id": "7597600a-0f98-4e5e-8c96-5f62820b3b0f",
- *             "name": "CentOS 7 Minimal",
- *             "size": 26843545600,
- *         }]
- *     }
+ * "listtemplatesresponse": {
+ * "count": 24,
+ * "template": [{
+ * "id": "7597600a-0f98-4e5e-8c96-5f62820b3b0f",
+ * "name": "CentOS 7 Minimal",
+ * "size": 26843545600,
+ * }]
+ * }
  * }
  */
 public class GetAllImagesResponse {

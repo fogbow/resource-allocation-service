@@ -73,8 +73,8 @@ public class AttachmentOrder extends Order {
         return ResourceType.ATTACHMENT;
     }
 
-	@Override
-	public String getSpec() {
-		return "";
-	}
+    @Override
+    public String getSpec() {
+        return "";
+    }
 }

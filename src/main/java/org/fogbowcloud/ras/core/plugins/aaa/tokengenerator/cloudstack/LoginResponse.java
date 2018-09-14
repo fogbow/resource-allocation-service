@@ -8,18 +8,18 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.Cloud
 /**
  * Documentation: https://cloudstack.apache.org/api/apidocs-4.9/apis/login.html
  * {
- * 	"loginresponse": {
- * 		"username": "user@myaddr.com",
- * 		"userid": "userid",
- * 		"domainid": "domainid",
- * 		"timeout": 1800,
- * 		"account": "user@myaddr.com",
- * 		"firstname": "Jon",
- * 		"lastname": "Doe",
- * 		"type": "2",
- * 		"registered": "false",
- * 		"sessionkey": "DC_08S8ALd85JixeRU4as5jHxLE"
- *  }
+ * "loginresponse": {
+ * "username": "user@myaddr.com",
+ * "userid": "userid",
+ * "domainid": "domainid",
+ * "timeout": 1800,
+ * "account": "user@myaddr.com",
+ * "firstname": "Jon",
+ * "lastname": "Doe",
+ * "type": "2",
+ * "registered": "false",
+ * "sessionkey": "DC_08S8ALd85JixeRU4as5jHxLE"
+ * }
  * }
  */
 public class LoginResponse {

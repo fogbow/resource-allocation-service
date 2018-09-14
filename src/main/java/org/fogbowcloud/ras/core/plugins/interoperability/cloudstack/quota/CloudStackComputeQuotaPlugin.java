@@ -91,8 +91,8 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin {
         return new ComputeAllocation(vCpu, ram, instances);
     }
 
-	protected void setClient(HttpRequestClientUtil client) {
-		this.client = client;
-	}
+    protected void setClient(HttpRequestClientUtil client) {
+        this.client = client;
+    }
 
 }

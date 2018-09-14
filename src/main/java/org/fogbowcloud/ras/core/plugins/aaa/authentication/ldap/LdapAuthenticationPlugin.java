@@ -1,10 +1,5 @@
 package org.fogbowcloud.ras.core.plugins.aaa.authentication.ldap;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.interfaces.RSAPublicKey;
-import java.util.Date;
-
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
@@ -16,6 +11,11 @@ import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap.LdapTokenGeneratorPlugin;
 import org.fogbowcloud.ras.util.RSAUtil;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.interfaces.RSAPublicKey;
+import java.util.Date;
 
 public class LdapAuthenticationPlugin implements AuthenticationPlugin {
     private static final Logger LOGGER = Logger.getLogger(LdapAuthenticationPlugin.class);
@@ -29,7 +29,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         try {
             this.publicKey = getPublicKey();
         } catch (IOException | GeneralSecurityException e) {
-        	throw new FatalErrorException(Messages.Fatal.PUBLIC_KEY_ERROR);
+            throw new FatalErrorException(Messages.Fatal.PUBLIC_KEY_ERROR);
         }
     }
 
@@ -63,7 +63,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         String signature = split[4];
 
         if (expirationDate.before(currentDate)) {
-        	throw new UnauthenticTokenException(String.format(Messages.Exception.EXPIRATION_DATE, expirationDate));
+            throw new UnauthenticTokenException(String.format(Messages.Exception.EXPIRATION_DATE, expirationDate));
         }
 
         if (!verifySign(tokenValue, signature)) {

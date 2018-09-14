@@ -1,16 +1,16 @@
 package org.fogbowcloud.ras.core;
 
-import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.constants.Operation;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.authorization.AuthorizationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 
 import java.util.Map;
 
@@ -46,7 +46,8 @@ public class AaaController {
     public void authenticateAndAuthorize(FederationUserToken requester, Operation operation, ResourceType type,
                                          Order order) throws FogbowRasException {
         // Check if requested type matches order type
-        if (!order.getType().equals(type)) throw new InstanceNotFoundException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
+        if (!order.getType().equals(type))
+            throw new InstanceNotFoundException(Messages.Exception.MISMATCHING_RESOURCE_TYPE);
         // Check whether requester owns order
         FederationUserToken orderOwner = order.getFederationUserToken();
         if (!orderOwner.getUserId().equals(requester.getUserId())) {

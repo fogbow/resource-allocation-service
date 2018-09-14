@@ -7,26 +7,25 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.Cloud
 
 /**
  * Documentation : https://cloudstack.apache.org/api/apidocs-4.9/apis/enableStaticNat.html
- * 
- * Request Example: 
- *
- */	
+ * <p>
+ * Request Example:
+ */
 public class EnableStaticNatRequest extends CloudStackRequest {
 
     protected EnableStaticNatRequest(Builder builder) throws InvalidParameterException {
-    	addParameter(VM_ID_KEY_JSON, builder.virtualMachineId);
-    	addParameter(IP_ADDRESS_ID_KEY_JSON, builder.ipAddressId);
-	}
+        addParameter(VM_ID_KEY_JSON, builder.virtualMachineId);
+        addParameter(IP_ADDRESS_ID_KEY_JSON, builder.ipAddressId);
+    }
 
-	@Override
+    @Override
     public String toString() {
         return super.toString();
     }
-	
-	@Override
-	public String getCommand() {
-		return ENABLE_STATIC_NAT_COMMAND;
-	}
+
+    @Override
+    public String getCommand() {
+        return ENABLE_STATIC_NAT_COMMAND;
+    }
 
     public static class Builder {
         private String virtualMachineId;
@@ -36,15 +35,15 @@ public class EnableStaticNatRequest extends CloudStackRequest {
             this.virtualMachineId = virtualMachineId;
             return this;
         }
-        
+
         public Builder ipAddressId(String ipAddressId) {
             this.ipAddressId = ipAddressId;
             return this;
-        }        
+        }
 
         public EnableStaticNatRequest build() throws InvalidParameterException {
             return new EnableStaticNatRequest(this);
         }
     }
-	
+
 }

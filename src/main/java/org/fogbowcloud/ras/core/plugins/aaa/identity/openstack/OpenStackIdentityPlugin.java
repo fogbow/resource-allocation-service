@@ -4,8 +4,8 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
-import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.OpenStackTokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.OpenStackTokenGeneratorPlugin;
 
 public class OpenStackIdentityPlugin implements FederationIdentityPlugin<OpenStackV3Token> {
     private static final Logger LOGGER = Logger.getLogger(OpenStackIdentityPlugin.class);

@@ -1,7 +1,5 @@
 package org.fogbowcloud.ras.core.datastore;
 
-import java.sql.SQLException;
-
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.datastore.orderstorage.OrderTimestampStorage;
@@ -11,6 +9,8 @@ import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.orders.OrderState;
+
+import java.sql.SQLException;
 
 public class DatabaseManager implements StableStorage {
     private static final Logger LOGGER = Logger.getLogger(DatabaseManager.class);
@@ -29,7 +29,7 @@ public class DatabaseManager implements StableStorage {
                 instance = new DatabaseManager();
             } catch (SQLException e) {
                 String message = Messages.Fatal.DATABASE_MANAGER_ERROR;
-            	LOGGER.error(message, e);
+                LOGGER.error(message, e);
                 throw new FatalErrorException(message, e);
             }
         }

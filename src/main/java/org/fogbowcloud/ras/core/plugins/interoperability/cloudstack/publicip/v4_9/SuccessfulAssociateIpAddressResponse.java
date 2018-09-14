@@ -1,8 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9;
 
-import org.fogbowcloud.ras.util.GsonHolder;
-
 import com.google.gson.annotations.SerializedName;
+import org.fogbowcloud.ras.util.GsonHolder;
 
 import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.PublicIp.*;
 

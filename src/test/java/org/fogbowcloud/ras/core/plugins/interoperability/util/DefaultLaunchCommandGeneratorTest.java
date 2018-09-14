@@ -1,7 +1,5 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.util;
 
-import java.util.Properties;
-
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
@@ -12,6 +10,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import java.util.Properties;
 
 public class DefaultLaunchCommandGeneratorTest {
 

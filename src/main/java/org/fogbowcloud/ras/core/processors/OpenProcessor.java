@@ -94,7 +94,7 @@ public class OpenProcessor implements Runnable {
             if (orderInstanceId != null) {
                 OrderStateTransitioner.transition(order, OrderState.SPAWNING);
             } else {
-            	throw new UnexpectedException(String.format(Messages.Exception.ORDER_INSTANCE_NULL, order.getId()));
+                throw new UnexpectedException(String.format(Messages.Exception.ORDER_INSTANCE_NULL, order.getId()));
             }
         } else {
             OrderStateTransitioner.transition(order, OrderState.PENDING);

@@ -36,7 +36,7 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     @Override
     public String createTokenValue(Map<String, String> credentials) throws FogbowRasException, UnexpectedException {
         if ((credentials == null) || (credentials.get(USERNAME) == null) || (credentials.get(PASSWORD) == null) ||
-             credentials.get(DOMAIN) == null) {
+                credentials.get(DOMAIN) == null) {
             String errorMsg = "User credentials can't be null";
             throw new InvalidParameterException(errorMsg);
         }
@@ -98,13 +98,15 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
             String userName = (firstName != null && lastName != null) ? firstName + " " + lastName : user.getUsername();
 
             tokenString = this.tokenProviderId + TOKEN_STRING_SEPARATOR + tokenValue + TOKEN_STRING_SEPARATOR +
-                          userId + TOKEN_STRING_SEPARATOR + userName;
-        } catch(Exception e) {
+                    userId + TOKEN_STRING_SEPARATOR + userName;
+        } catch (Exception e) {
             LOGGER.error("Exception while getting token from json", e);
             throw new UnexpectedException("Exception while getting token from json", e);
         }
 
-        return tokenString; }
+        return tokenString;
+    }
+
     // Used for testing
     public void setClient(HttpRequestClientUtil client) {
         this.client = client;

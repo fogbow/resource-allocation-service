@@ -3,16 +3,9 @@ package org.fogbowcloud.ras.core.datastore.orderstorage;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.datastore.commands.OrderTimestampTableAttributes;
 import org.fogbowcloud.ras.core.datastore.commands.TimestampSQLCommands;
-import org.fogbowcloud.ras.core.models.orders.AttachmentOrder;
-import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
-import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
-import org.fogbowcloud.ras.core.models.orders.Order;
-import org.fogbowcloud.ras.core.models.orders.OrderState;
-import org.fogbowcloud.ras.core.models.orders.UserData;
-import org.fogbowcloud.ras.core.models.orders.VolumeOrder;
+import org.fogbowcloud.ras.core.models.orders.*;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.ras.core.plugins.interoperability.openstack.attachment.v2.CreateAttachmentRequest.Attachment;
 import org.fogbowcloud.ras.core.plugins.interoperability.util.CloudInitUserDataBuilder;
 import org.junit.After;
 import org.junit.Assert;
@@ -90,58 +83,58 @@ public class OrderTimestampStorageTest {
     // Adding orders of different types and checking BD and usage
     @Test
     public void testAddOrderOfDifferentTypes() throws SQLException {
-    	
-    	// set up
-    	ComputeOrder computeOrder = new ComputeOrder();
-    	computeOrder.setActualAllocation(new ComputeAllocation(2, 4, 1));
-    	computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
-    	computeOrder.setId("fake-id-1");
-    	
-    	NetworkOrder networkOrder = new NetworkOrder();
-    	networkOrder.setOrderStateInTestMode(OrderState.OPEN);
-    	networkOrder.setId("fake-id-2");
-    	
-    	AttachmentOrder attachmentOrder = new AttachmentOrder();
-    	attachmentOrder.setOrderStateInTestMode(OrderState.SPAWNING);
-    	attachmentOrder.setId("fake-id-3");
-    	
-    	VolumeOrder volumeOrder = new VolumeOrder(new FederationUserToken(), 
-    			"reqMem", "provMember", 50, "volume-test");
-    	volumeOrder.setOrderStateInTestMode(OrderState.CLOSED);
-    	volumeOrder.setId("fake-id-4");
-    	
-    	// exercise
-    	orderStorage.addOrder(computeOrder);
-    	orderStorage.addOrder(networkOrder);
-    	orderStorage.addOrder(attachmentOrder);
-    	orderStorage.addOrder(volumeOrder);
-    	
-    	// verify 1
-    	ResultSet resultSet = makeRequestByOrderId("fake-id-1");
-    	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.ORDER_STATE), "FULFILLED");
-    	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.RESOURCE_TYPE), "COMPUTE");
-    	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.SPEC), "2/4");
-    	
-    	// verify 2
-    	resultSet = makeRequestByOrderId("fake-id-2");
-    	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.ORDER_STATE), "OPEN");
-    	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.RESOURCE_TYPE), "NETWORK");
-    	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.SPEC), "");
-    	
-    	// verify 3
-    	resultSet = makeRequestByOrderId("fake-id-3");
-    	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.ORDER_STATE), "SPAWNING");
-    	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.RESOURCE_TYPE), "ATTACHMENT");
-    	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.SPEC), "");
-    	
-    	// verify 4
-    	resultSet = makeRequestByOrderId("fake-id-4");
-    	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.ORDER_STATE), "CLOSED");
-    	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.RESOURCE_TYPE), "VOLUME");
-    	Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.SPEC), "50");
-    	
+
+        // set up
+        ComputeOrder computeOrder = new ComputeOrder();
+        computeOrder.setActualAllocation(new ComputeAllocation(2, 4, 1));
+        computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
+        computeOrder.setId("fake-id-1");
+
+        NetworkOrder networkOrder = new NetworkOrder();
+        networkOrder.setOrderStateInTestMode(OrderState.OPEN);
+        networkOrder.setId("fake-id-2");
+
+        AttachmentOrder attachmentOrder = new AttachmentOrder();
+        attachmentOrder.setOrderStateInTestMode(OrderState.SPAWNING);
+        attachmentOrder.setId("fake-id-3");
+
+        VolumeOrder volumeOrder = new VolumeOrder(new FederationUserToken(),
+                "reqMem", "provMember", 50, "volume-test");
+        volumeOrder.setOrderStateInTestMode(OrderState.CLOSED);
+        volumeOrder.setId("fake-id-4");
+
+        // exercise
+        orderStorage.addOrder(computeOrder);
+        orderStorage.addOrder(networkOrder);
+        orderStorage.addOrder(attachmentOrder);
+        orderStorage.addOrder(volumeOrder);
+
+        // verify 1
+        ResultSet resultSet = makeRequestByOrderId("fake-id-1");
+        Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.ORDER_STATE), "FULFILLED");
+        Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.RESOURCE_TYPE), "COMPUTE");
+        Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.SPEC), "2/4");
+
+        // verify 2
+        resultSet = makeRequestByOrderId("fake-id-2");
+        Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.ORDER_STATE), "OPEN");
+        Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.RESOURCE_TYPE), "NETWORK");
+        Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.SPEC), "");
+
+        // verify 3
+        resultSet = makeRequestByOrderId("fake-id-3");
+        Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.ORDER_STATE), "SPAWNING");
+        Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.RESOURCE_TYPE), "ATTACHMENT");
+        Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.SPEC), "");
+
+        // verify 4
+        resultSet = makeRequestByOrderId("fake-id-4");
+        Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.ORDER_STATE), "CLOSED");
+        Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.RESOURCE_TYPE), "VOLUME");
+        Assert.assertEquals(resultSet.getString(OrderTimestampTableAttributes.SPEC), "50");
+
     }
-    
+
     // test case: Adding the same order to database with two different states.
     @Test
     public void testAddOrderStateChange() throws SQLException {
@@ -168,14 +161,14 @@ public class OrderTimestampStorageTest {
         orderStorage.addOrder(orderTest);
         orderStorage.addOrder(orderTest);
     }
-    
+
     private ResultSet makeRequestByOrderId(String orderId) throws SQLException {
-    	PreparedStatement selectMemberStatement = null;
+        PreparedStatement selectMemberStatement = null;
 
         Connection connection = null;
 
         ResultSet rs = null;
-        
+
         try {
             connection = orderStorage.getConnection();
             connection.setAutoCommit(false);
@@ -198,7 +191,7 @@ public class OrderTimestampStorageTest {
             }
 
         }
-        
+
         return rs;
     }
 

@@ -1,9 +1,5 @@
 package org.fogbowcloud.ras.core.cloudconnector;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.InteroperabilityPluginsHolder;
 import org.fogbowcloud.ras.core.SharedOrderHolders;
@@ -20,6 +16,10 @@ import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class LocalCloudConnector implements CloudConnector {
     private static final Logger LOGGER = Logger.getLogger(LocalCloudConnector.class);
@@ -106,7 +106,7 @@ public class LocalCloudConnector implements CloudConnector {
                 String computeOrderId = publicIpOrder.getComputeOrderId();
 
                 Order retrievedComputeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap()
-                    .get(computeOrderId);
+                        .get(computeOrderId);
 
                 String computeInstanceId = retrievedComputeOrder.getInstanceId();
                 if (computeInstanceId != null) {
@@ -114,7 +114,7 @@ public class LocalCloudConnector implements CloudConnector {
                 }
                 break;
             default:
-            	throw new UnexpectedException(String.format(Messages.Exception.PLUGIN_FOR_REQUEST_INSTANCE_NOT_IMPLEMENTED, order.getType()));
+                throw new UnexpectedException(String.format(Messages.Exception.PLUGIN_FOR_REQUEST_INSTANCE_NOT_IMPLEMENTED, order.getType()));
         }
         if (requestInstance == null) {
             throw new UnexpectedException(Messages.Exception.RETURNED_NULL_VALUE);
@@ -262,7 +262,7 @@ public class LocalCloudConnector implements CloudConnector {
                 instance = this.publicIpPlugin.getInstance(instanceId, token);
                 break;
             default:
-            	throw new UnexpectedException(String.format(Messages.Exception.ORDER_TYPE_NOT_SUPPORTED, order.getType()));
+                throw new UnexpectedException(String.format(Messages.Exception.ORDER_TYPE_NOT_SUPPORTED, order.getType()));
         }
         order.setCachedInstanceState(instance.getState());
         instance.setProvider(order.getProvidingMember());

@@ -23,7 +23,7 @@ public class PublicIpOrdersController {
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<String> createPublicIp(@RequestBody PublicIpOrder publicIpOrder,
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+                                                 @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
         LOGGER.info("New publicIp order request received.");
         String publicIpId = ApplicationFacade.getInstance().createPublicIp(publicIpOrder, federationTokenValue);
@@ -32,7 +32,7 @@ public class PublicIpOrdersController {
 
     @RequestMapping(value = "/{publicIpId}", method = RequestMethod.GET)
     public ResponseEntity<PublicIpInstance> getPublicIp(@PathVariable String publicIpId,
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+                                                        @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
         LOGGER.info("Get request for publicIp order <" + publicIpId + "> received.");
         PublicIpInstance publicIpInstance =
@@ -42,7 +42,7 @@ public class PublicIpOrdersController {
 
     @RequestMapping(value = "/{publicIpId}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> deletePublicIp(@PathVariable String publicIpId,
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+                                                  @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
         LOGGER.info("Delete publicIp order <" + publicIpId + "> received.");
         ApplicationFacade.getInstance().deletePublicIp(publicIpId, federationTokenValue);
@@ -51,11 +51,11 @@ public class PublicIpOrdersController {
 
     @RequestMapping(value = "/status", method = RequestMethod.GET)
     public ResponseEntity<List<InstanceStatus>> getAllPublicIpStatus(
-        @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-        throws Exception {
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            throws Exception {
         LOGGER.info("Get the status of all attachment order requests received.");
         List<InstanceStatus> publicIpStatus =
-            ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.PUBLIC_IP);
+                ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.PUBLIC_IP);
         return new ResponseEntity<>(publicIpStatus, HttpStatus.OK);
     }
 }

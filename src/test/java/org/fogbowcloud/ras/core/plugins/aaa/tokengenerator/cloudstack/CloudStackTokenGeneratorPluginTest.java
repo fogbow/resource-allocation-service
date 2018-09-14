@@ -22,7 +22,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -81,8 +82,8 @@ public class CloudStackTokenGeneratorPluginTest {
         String accountJsonResponse = getAccountResponse(FAKE_ID, FAKE_USERNAME, FAKE_FIRST_NAME, FAKE_LAST_NAME,
                 FAKE_API_KEY, FAKE_SECRET_KEY);
         String expectedListAccountsRequestUrl = generateExpectedUrl(endpoint, listAccountsCommand,
-                                                                    RESPONSE_KEY, JSON,
-                                                                    SESSION_KEY_KEY, FAKE_SESSION_KEY);
+                RESPONSE_KEY, JSON,
+                SESSION_KEY_KEY, FAKE_SESSION_KEY);
 
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put(COMMAND_KEY, loginCommand);
@@ -185,13 +186,13 @@ public class CloudStackTokenGeneratorPluginTest {
                                       String secretKey) {
         String response = "{\"listaccountsresponse\":{"
                 + "\"account\":[{"
-                    + "\"user\":[{"
-                        + "\"id\": \"%s\","
-                        + "\"username\": \"%s\","
-                        + "\"firstname\": \"%s\","
-                        + "\"lastname\": \"%s\","
-                        + "\"apikey\": \"%s\","
-                        + "\"secretkey\": \"%s\""
+                + "\"user\":[{"
+                + "\"id\": \"%s\","
+                + "\"username\": \"%s\","
+                + "\"firstname\": \"%s\","
+                + "\"lastname\": \"%s\","
+                + "\"apikey\": \"%s\","
+                + "\"secretkey\": \"%s\""
                 + "}]}]}}";
 
         return String.format(response, id, username, firstName, lastName, apiKey, secretKey);

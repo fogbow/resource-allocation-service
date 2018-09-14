@@ -9,7 +9,8 @@ import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStack
 public class CloudStackIdentityPlugin implements FederationIdentityPlugin<CloudStackToken> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackIdentityPlugin.class);
 
-    public CloudStackIdentityPlugin() {}
+    public CloudStackIdentityPlugin() {
+    }
 
     @Override
     public CloudStackToken createToken(String tokenValue) throws InvalidParameterException {
