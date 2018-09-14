@@ -5,6 +5,7 @@ import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -58,13 +59,14 @@ public class OrderController {
         return requestedOrder;
     }
 
-    public void deleteOrder(String orderId) throws InstanceNotFoundException, UnexpectedException,
-            InvalidParameterException {
+    public void deleteOrder(String orderId) throws Exception {
         if (orderId == null) throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
         Order order = getOrder(orderId);
         synchronized (order) {
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.CLOSED)) {
+                CloudConnector provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
+                provider.deleteInstance(order);
                 OrderStateTransitioner.transition(order, OrderState.CLOSED);
             } else {
                 String message = String.format(Messages.Error.ORDER_ALREADY_CLOSED, order.getId());

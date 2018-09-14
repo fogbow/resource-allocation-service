@@ -1,11 +1,9 @@
 package org.fogbowcloud.ras.core.intercomponent;
 
-import org.fogbowcloud.ras.core.AaaController;
-import org.fogbowcloud.ras.core.BaseUnitTests;
-import org.fogbowcloud.ras.core.OrderController;
-import org.fogbowcloud.ras.core.OrderStateTransitioner;
+import org.fogbowcloud.ras.core.*;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
+import org.fogbowcloud.ras.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.RemoteCloudConnector;
 import org.fogbowcloud.ras.core.constants.Operation;
 import org.fogbowcloud.ras.core.datastore.DatabaseManager;
@@ -32,6 +30,7 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.xmpp.packet.IQ;
 
 import java.util.ArrayList;
 
@@ -58,6 +57,14 @@ public class RemoteFacadeTest extends BaseUnitTests {
         this.remoteFacade = RemoteFacade.getInstance();
         this.remoteFacade.setOrderController(this.orderController);
         this.remoteFacade.setAaaController(this.aaaController);
+
+        PluginInstantiator instantiationInitService = PluginInstantiator.getInstance();
+        InteroperabilityPluginsHolder interoperabilityPluginsHolder = new InteroperabilityPluginsHolder(instantiationInitService);
+        AaaPluginsHolder aaaPluginsHolder = new AaaPluginsHolder(instantiationInitService);
+        CloudConnectorFactory cloudConnectorFactory = CloudConnectorFactory.getInstance();
+        cloudConnectorFactory.setLocalMemberId(getLocalMemberId());
+        cloudConnectorFactory.setMapperPlugin(aaaPluginsHolder.getFederationToLocalMapperPlugin());
+        cloudConnectorFactory.setInteroperabilityPluginsHolder(interoperabilityPluginsHolder);
 
         this.cloudConnector = Mockito.spy(new RemoteCloudConnector(REMOTE_MEMBER_ID));
     }
@@ -109,15 +116,20 @@ public class RemoteFacadeTest extends BaseUnitTests {
         Assert.assertSame(excepted, instance);
     }
 
-    // test case: When calling the deleteOrder method with an Order passed per parameter, it must
+    // test case: When calling the deleteOrder method with an Order passed as parameter, it must
     // return its OrderState to Closed.
-    @Test
     @Ignore
-    public void testRemoteDeleteOrder() throws UnexpectedException, FogbowRasException {
+    @Test
+    public void testRemoteDeleteOrder() throws Exception {
         // set up
         FederationUserToken federationUser = createFederationUser();
         Order order = createOrder(federationUser);
         OrderStateTransitioner.activateOrder(order);
+
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString()))
+                .thenReturn(this.cloudConnector);
+        IQ response = new IQ();
 
         Mockito.doNothing().when(this.aaaController).authorize(Mockito.eq(federationUser),
                 Mockito.eq(Operation.CREATE), Mockito.eq(ResourceType.COMPUTE));

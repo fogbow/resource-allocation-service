@@ -1,5 +1,8 @@
 package org.fogbowcloud.ras.core;
 
+import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
+import org.fogbowcloud.ras.core.cloudconnector.LocalCloudConnector;
+import org.fogbowcloud.ras.core.cloudconnector.RemoteCloudConnector;
 import org.fogbowcloud.ras.core.constants.Operation;
 import org.fogbowcloud.ras.core.datastore.DatabaseManager;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
@@ -14,7 +17,9 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -46,6 +51,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     private OrderController orderController;
     private Map<String, Order> activeOrdersMap;
 
+    private LocalCloudConnector localCloudConnector;
+
     @Before
     public void setUp() throws UnexpectedException {
         this.aaaController = Mockito.mock(AaaController.class);
@@ -56,6 +63,16 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         this.application = ApplicationFacade.getInstance();
         this.application.setAaaController(this.aaaController);
         this.application.setOrderController(this.orderController);
+
+        PluginInstantiator instantiationInitService = PluginInstantiator.getInstance();
+        InteroperabilityPluginsHolder interoperabilityPluginsHolder = new InteroperabilityPluginsHolder(instantiationInitService);
+        AaaPluginsHolder aaaPluginsHolder = new AaaPluginsHolder(instantiationInitService);
+        CloudConnectorFactory cloudConnectorFactory = CloudConnectorFactory.getInstance();
+        cloudConnectorFactory.setLocalMemberId(getLocalMemberId());
+        cloudConnectorFactory.setMapperPlugin(aaaPluginsHolder.getFederationToLocalMapperPlugin());
+        cloudConnectorFactory.setInteroperabilityPluginsHolder(interoperabilityPluginsHolder);
+
+        this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
@@ -68,6 +85,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // set up
         Order order = createComputeOrder();
+        order.setRequestingMember(getLocalMemberId());
+        order.setProvidingMember(getLocalMemberId());
         OrderStateTransitioner.activateOrder(order);
 
         Mockito.doNothing().when(this.aaaController)
@@ -78,6 +97,10 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doReturn(order.getFederationUserToken()).when(this.aaaController)
                 .getFederationUser(Mockito.anyString());
 
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString())).thenReturn(localCloudConnector);
+        this.localCloudConnector.deleteInstance(order);
+
         // exercise
         this.application.deleteCompute(order.getId(), FAKE_FEDERATION_TOKEN_VALUE);
 
@@ -86,8 +109,9 @@ public class ApplicationFacadeTest extends BaseUnitTests {
                 Mockito.any(FederationUserToken.class), Mockito.any(Operation.class),
                 Mockito.any(ResourceType.class), Mockito.any(Order.class));
 
+        Mockito.verify(this.localCloudConnector, Mockito.times(1)).deleteInstance(Mockito.any(Order.class));
+
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
-        //FIXME: we are missing verifies
     }
 
     // test case: When try calling the deleteCompute() method without authentication, it must
@@ -640,6 +664,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         VolumeOrder order = createVolumeOrder();
         OrderStateTransitioner.activateOrder(order);
+        order.setRequestingMember(getLocalMemberId());
+        order.setProvidingMember(getLocalMemberId());
+
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString())).thenReturn(localCloudConnector);
 
         Mockito.doReturn(order.getFederationUserToken()).when(this.aaaController)
                 .getFederationUser(Mockito.anyString());
@@ -978,6 +1007,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         NetworkOrder order = createNetworkOrder();
         OrderStateTransitioner.activateOrder(order);
+        order.setRequestingMember(getLocalMemberId());
+        order.setProvidingMember(getLocalMemberId());
+
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString())).thenReturn(localCloudConnector);
 
         Mockito.doReturn(order.getFederationUserToken()).when(this.aaaController)
                 .getFederationUser(Mockito.anyString());
@@ -1282,6 +1316,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         AttachmentOrder order = createAttachmentOrder();
         OrderStateTransitioner.activateOrder(order);
+        order.setRequestingMember(getLocalMemberId());
+        order.setProvidingMember(getLocalMemberId());
+
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString())).thenReturn(localCloudConnector);
 
         Mockito.doReturn(order.getFederationUserToken()).when(this.aaaController)
                 .getFederationUser(Mockito.anyString());
@@ -1489,14 +1528,19 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         PublicIpOrder order = createPublicIpOrder();
         OrderStateTransitioner.activateOrder(order);
-
-        Mockito.doReturn(order.getFederationUserToken()).when(this.aaaController)
-                .getFederationUser(Mockito.anyString());
+        order.setRequestingMember(getLocalMemberId());
+        order.setProvidingMember(getLocalMemberId());
 
         Mockito.doNothing().when(this.aaaController)
                 .authenticateAndAuthorize(Mockito.any(FederationUserToken.class),
                         Mockito.any(Operation.class), Mockito.any(ResourceType.class),
                         Mockito.any(Order.class));
+
+        Mockito.doReturn(order.getFederationUserToken()).when(this.aaaController)
+                .getFederationUser(Mockito.anyString());
+
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString())).thenReturn(localCloudConnector);
 
         // exercise
         this.application.deletePublicIp(order.getId(), FAKE_FEDERATION_TOKEN_VALUE);

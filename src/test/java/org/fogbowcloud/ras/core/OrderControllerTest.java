@@ -2,6 +2,7 @@ package org.fogbowcloud.ras.core;
 
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.ras.core.cloudconnector.LocalCloudConnector;
+import org.fogbowcloud.ras.core.cloudconnector.RemoteCloudConnector;
 import org.fogbowcloud.ras.core.datastore.DatabaseManager;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.InstanceStatus;
@@ -52,6 +53,7 @@ public class OrderControllerTest extends BaseUnitTests {
     private ChainedList failedOrdersList;
     private ChainedList closedOrdersList;
     private String localMember = BaseUnitTests.LOCAL_MEMBER_ID;
+    private LocalCloudConnector localCloudConnector;
 
     @Before
     public void setUp() throws UnexpectedException {
@@ -61,6 +63,16 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController = new OrderController();
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
+
+        PluginInstantiator instantiationInitService = PluginInstantiator.getInstance();
+        InteroperabilityPluginsHolder interoperabilityPluginsHolder = new InteroperabilityPluginsHolder(instantiationInitService);
+        AaaPluginsHolder aaaPluginsHolder = new AaaPluginsHolder(instantiationInitService);
+        CloudConnectorFactory cloudConnectorFactory = CloudConnectorFactory.getInstance();
+        cloudConnectorFactory.setLocalMemberId(getLocalMemberId());
+        cloudConnectorFactory.setMapperPlugin(aaaPluginsHolder.getFederationToLocalMapperPlugin());
+        cloudConnectorFactory.setInteroperabilityPluginsHolder(interoperabilityPluginsHolder);
+
+        this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
 
         // setting up the attributes.
         this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
@@ -75,7 +87,7 @@ public class OrderControllerTest extends BaseUnitTests {
     // test case: When pass an Order with id null, it must raise an InvalidParameterException.
     @Test(expected = InvalidParameterException.class) // verify
     public void testDeleteOrderThrowsInvalidParameterException()
-            throws InstanceNotFoundException, InvalidParameterException, UnexpectedException {
+            throws Exception {
 
         // set up
         Order order = Mockito.mock(Order.class);
@@ -91,7 +103,7 @@ public class OrderControllerTest extends BaseUnitTests {
     // test case: when try to delete an Order closed, it must raise an InstanceNotFoundException.
     @Test(expected = InstanceNotFoundException.class) // verify
     public void testDeleteClosedOrderThrowsInstanceNotFoundException()
-            throws InvalidParameterException, InstanceNotFoundException, UnexpectedException {
+            throws Exception {
 
         // set up
         String orderId = getComputeOrderCreationId(OrderState.CLOSED);
@@ -272,7 +284,7 @@ public class OrderControllerTest extends BaseUnitTests {
     // list.
     @Test
     public void testDeleteOrderStateFailed()
-            throws UnexpectedException, InvalidParameterException, InstanceNotFoundException {
+            throws Exception {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.FAILED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -298,7 +310,7 @@ public class OrderControllerTest extends BaseUnitTests {
     // list.
     @Test
     public void testDeleteOrderStateFulfilled()
-            throws UnexpectedException, InvalidParameterException, InstanceNotFoundException {
+            throws Exception {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.FULFILLED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -323,7 +335,7 @@ public class OrderControllerTest extends BaseUnitTests {
     // list.
     @Test
     public void testDeleteOrderStateSpawning()
-            throws UnexpectedException, InvalidParameterException, InstanceNotFoundException {
+            throws Exception {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.SPAWNING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -348,7 +360,7 @@ public class OrderControllerTest extends BaseUnitTests {
     // list.
     @Test
     public void testDeleteOrderStatePending()
-            throws UnexpectedException, InvalidParameterException, InstanceNotFoundException {
+            throws Exception {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.PENDING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -372,7 +384,7 @@ public class OrderControllerTest extends BaseUnitTests {
     // test case: Checks if deleting a open order, this one will be moved to the closed orders list.
     @Test
     public void testDeleteOrderStateOpen()
-            throws UnexpectedException, InvalidParameterException, InstanceNotFoundException {
+            throws Exception {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.OPEN);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
@@ -396,7 +408,7 @@ public class OrderControllerTest extends BaseUnitTests {
     // test case: Deleting a null order must return a FogbowRasException.
     @Test(expected = FogbowRasException.class) // verify
     public void testDeleteNullOrder()
-            throws UnexpectedException, InstanceNotFoundException, InvalidParameterException {
+            throws Exception {
         // exercise
         this.ordersController.deleteOrder(null);
     }

@@ -47,8 +47,8 @@ public class ClosedProcessor implements Runnable {
 
     protected void processClosedOrder(Order order) throws Exception {
         synchronized (order) {
-            CloudConnector provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
-            provider.deleteInstance(order);
+//            CloudConnector provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
+//            provider.deleteInstance(order);
             OrderStateTransitioner.deactivateOrder(order);
         }
     }

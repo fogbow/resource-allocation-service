@@ -33,8 +33,8 @@ public class ImageRequestController {
 
     @RequestMapping(value = "/{imageId}", method = RequestMethod.GET)
     public ResponseEntity<Image> getImage(@PathVariable String imageId,
-                                          @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
-                                          @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
+            @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId)
             throws Exception {
         LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_GET_IMAGE, imageId));
         Image image = ApplicationFacade.getInstance().getImage(memberId, imageId, federationTokenValue);

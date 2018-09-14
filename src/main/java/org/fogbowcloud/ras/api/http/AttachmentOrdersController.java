@@ -26,9 +26,10 @@ public class AttachmentOrdersController {
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<String> createAttachment(@RequestBody AttachmentOrder attachmentOrder,
-                                                   @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_NEW_ORDER, ORDER_CONTROLLER_TYPE, attachmentOrder.getId()));
+        LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_NEW_ORDER, ORDER_CONTROLLER_TYPE,
+                attachmentOrder.getId()));
         String attachmentId = ApplicationFacade.getInstance().createAttachment(attachmentOrder, federationTokenValue);
         return new ResponseEntity<String>(attachmentId, HttpStatus.CREATED);
     }
@@ -45,7 +46,7 @@ public class AttachmentOrdersController {
 
     @RequestMapping(value = "/{attachmentId}", method = RequestMethod.GET)
     public ResponseEntity<AttachmentInstance> getAttachment(@PathVariable String attachmentId,
-                                                            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
         LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_GET_ORDER, ORDER_CONTROLLER_TYPE, attachmentId));
         AttachmentInstance attachmentInstance =
@@ -55,7 +56,7 @@ public class AttachmentOrdersController {
 
     @RequestMapping(value = "/{attachmentId}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> deleteAttachment(@PathVariable String attachmentId,
-                                                    @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
         LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_DELETE_ORDER, ORDER_CONTROLLER_TYPE, attachmentId));
         ApplicationFacade.getInstance().deleteAttachment(attachmentId, federationTokenValue);

@@ -65,8 +65,7 @@ public class ApplicationFacade {
         return (ComputeInstance) getResourceInstance(orderId, federationTokenValue, ResourceType.COMPUTE);
     }
 
-    public void deleteCompute(String computeId, String federationTokenValue) throws FogbowRasException,
-            UnexpectedException {
+    public void deleteCompute(String computeId, String federationTokenValue) throws Exception {
         deleteOrder(computeId, federationTokenValue, ResourceType.COMPUTE);
     }
 
@@ -88,8 +87,7 @@ public class ApplicationFacade {
         return (VolumeInstance) getResourceInstance(orderId, federationTokenValue, ResourceType.VOLUME);
     }
 
-    public void deleteVolume(String orderId, String federationTokenValue) throws FogbowRasException,
-            UnexpectedException {
+    public void deleteVolume(String orderId, String federationTokenValue) throws Exception {
         deleteOrder(orderId, federationTokenValue, ResourceType.VOLUME);
     }
 
@@ -102,13 +100,12 @@ public class ApplicationFacade {
         return (NetworkInstance) getResourceInstance(orderId, federationTokenValue, ResourceType.NETWORK);
     }
 
-    public void deleteNetwork(String orderId, String federationTokenValue) throws FogbowRasException,
-            UnexpectedException {
+    public void deleteNetwork(String orderId, String federationTokenValue) throws Exception {
         deleteOrder(orderId, federationTokenValue, ResourceType.NETWORK);
     }
 
-    public String createAttachment(AttachmentOrder attachmentOrder, String federationTokenValue) throws
-            FogbowRasException, UnexpectedException {
+    public String createAttachment(AttachmentOrder attachmentOrder, String federationTokenValue)
+            throws FogbowRasException, UnexpectedException {
         return activateOrder(attachmentOrder, federationTokenValue);
     }
 
@@ -116,8 +113,7 @@ public class ApplicationFacade {
         return (AttachmentInstance) getResourceInstance(orderId, federationTokenValue, ResourceType.ATTACHMENT);
     }
 
-    public void deleteAttachment(String orderId, String federationTokenValue) throws FogbowRasException,
-            UnexpectedException {
+    public void deleteAttachment(String orderId, String federationTokenValue) throws Exception {
         deleteOrder(orderId, federationTokenValue, ResourceType.ATTACHMENT);
     }
 
@@ -149,8 +145,7 @@ public class ApplicationFacade {
         return cloudConnector.getImage(imageId, requester);
     }
 
-    public String createTokenValue(Map<String, String> userCredentials) throws UnexpectedException,
-            FogbowRasException {
+    public String createTokenValue(Map<String, String> userCredentials) throws UnexpectedException, FogbowRasException {
         // There is no need to authenticate the user or authorize this operation
         return this.aaaController.createTokenValue(userCredentials);
     }
@@ -175,8 +170,7 @@ public class ApplicationFacade {
         return this.orderController.getResourceInstance(orderId);
     }
 
-    private void deleteOrder(String orderId, String federationTokenValue, ResourceType resourceType) throws
-            FogbowRasException, UnexpectedException {
+    private void deleteOrder(String orderId, String federationTokenValue, ResourceType resourceType) throws Exception {
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
         Order order = this.orderController.getOrder(orderId);
         this.aaaController.authenticateAndAuthorize(requester, Operation.DELETE, resourceType, order);
@@ -198,8 +192,8 @@ public class ApplicationFacade {
         return cloudConnector.getUserQuota(requester, resourceType);
     }
 
-    public String createPublicIp(PublicIpOrder publicIpOrder, String federationTokenValue)
-            throws UnexpectedException, FogbowRasException {
+    public String createPublicIp(PublicIpOrder publicIpOrder, String federationTokenValue) throws UnexpectedException,
+            FogbowRasException {
         return activateOrder(publicIpOrder, federationTokenValue);
     }
 
@@ -209,8 +203,7 @@ public class ApplicationFacade {
     }
 
 
-    public void deletePublicIp(String publicIpOrderId, String federationTokenValue)
-            throws UnexpectedException, FogbowRasException {
+    public void deletePublicIp(String publicIpOrderId, String federationTokenValue) throws Exception {
         deleteOrder(publicIpOrderId, federationTokenValue, ResourceType.PUBLIC_IP);
     }
 

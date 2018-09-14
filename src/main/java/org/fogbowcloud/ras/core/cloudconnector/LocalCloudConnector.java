@@ -35,13 +35,13 @@ public class LocalCloudConnector implements CloudConnector {
 
     public LocalCloudConnector(FederationToLocalMapperPlugin mapperPlugin, InteroperabilityPluginsHolder interoperabilityPluginsHolder) {
         this.mapperPlugin = mapperPlugin;
-        this.publicIpPlugin = interoperabilityPluginsHolder.getPublicIpPlugin();
         this.attachmentPlugin = interoperabilityPluginsHolder.getAttachmentPlugin();
         this.computePlugin = interoperabilityPluginsHolder.getComputePlugin();
         this.computeQuotaPlugin = interoperabilityPluginsHolder.getComputeQuotaPlugin();
         this.networkPlugin = interoperabilityPluginsHolder.getNetworkPlugin();
         this.volumePlugin = interoperabilityPluginsHolder.getVolumePlugin();
         this.imagePlugin = interoperabilityPluginsHolder.getImagePlugin();
+        this.publicIpPlugin = interoperabilityPluginsHolder.getPublicIpPlugin();
     }
 
     @Override
