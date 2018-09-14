@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
+import org.opensaml.xml.signature.J;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -60,6 +61,8 @@ public class CloudStackComputePluginTest {
     public static final CloudStackToken FAKE_TOKEN = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE,
         FAKE_USER_ID, FAKE_USERNAME);
 
+    public static final String JSON = "json";
+    public static final String RESPONSE_KEY = "response";
     public static final String ID_KEY = "id";
     public static final String VIRTUAL_MACHINE_ID_KEY = "virtualmachineid";
     public static final String TYPE_KEY = "type";
@@ -122,14 +125,17 @@ public class CloudStackComputePluginTest {
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
         String fakeNetworkIdsString = "fake-default-network-id," + FAKE_NETWORK_ID;
 
-        String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand);
-        String expectedDiskOfferingsRequestUrl = generateExpectedUrl(endpoint, diskOfferingsCommand);
+        String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand,
+                RESPONSE_KEY, JSON);
+        String expectedDiskOfferingsRequestUrl = generateExpectedUrl(endpoint, diskOfferingsCommand,
+                RESPONSE_KEY, JSON);
 
         String fakeServiceOfferingId = "fake-service-offering-id";
         String fakeDiskOfferingId = "fake-disk-offering-id";
 
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put(COMMAND_KEY, computeCommand);
+        expectedParams.put(RESPONSE_KEY, JSON);
         expectedParams.put(ZONE_ID_KEY, fakeZoneId);
         expectedParams.put(TEMPLATE_ID_KEY, fakeImageId);
         expectedParams.put(SERVICE_OFFERING_ID_KEY, fakeServiceOfferingId);
@@ -202,8 +208,8 @@ public class CloudStackComputePluginTest {
         List<String> fakeNetworkdIds = new ArrayList<>();
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
 
-
-        String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand);
+        String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand,
+                RESPONSE_KEY, JSON);
 
         Mockito.when(this.client.doGetRequest(Mockito.eq(expectedServiceOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
                 .thenThrow(FogbowRasException.class);
@@ -240,7 +246,8 @@ public class CloudStackComputePluginTest {
         String serviceOfferingResponse = getListServiceOfferrings(fakeServiceOfferingId, "fake-service-offering",
                 lowerCpuNumber, Integer.parseInt(FAKE_MEMORY));
 
-        String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand);
+        String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand,
+                RESPONSE_KEY, JSON);
 
         Mockito.when(this.client.doGetRequest(Mockito.eq(expectedServiceOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
                 .thenReturn(serviceOfferingResponse);
@@ -273,8 +280,10 @@ public class CloudStackComputePluginTest {
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
 
 
-        String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand);
-        String expectedDiskOfferingsRequestUrl = generateExpectedUrl(endpoint, diskOfferingsCommand);
+        String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand,
+                RESPONSE_KEY, JSON);
+        String expectedDiskOfferingsRequestUrl = generateExpectedUrl(endpoint, diskOfferingsCommand,
+                RESPONSE_KEY, JSON);
 
         String fakeServiceOfferingId = "fake-service-offering-id";
         String serviceOfferingResponse = getListServiceOfferrings(fakeServiceOfferingId, "fake-service-offering",
@@ -319,14 +328,17 @@ public class CloudStackComputePluginTest {
 
         String fakeNetworkIdsString = "fake-default-network-id," + FAKE_NETWORK_ID;
 
-        String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand);
-        String expectedDiskOfferingsRequestUrl = generateExpectedUrl(endpoint, diskOfferingsCommand);
+        String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand,
+                RESPONSE_KEY, JSON);
+        String expectedDiskOfferingsRequestUrl = generateExpectedUrl(endpoint, diskOfferingsCommand,
+                RESPONSE_KEY, JSON);
 
         String fakeServiceOfferingId = "fake-service-offering-id";
         String fakeDiskOfferingId = "fake-disk-offering-id";
 
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put(COMMAND_KEY, computeCommand);
+        expectedParams.put(RESPONSE_KEY, JSON);
         expectedParams.put(ZONE_ID_KEY, fakeZoneId);
         expectedParams.put(TEMPLATE_ID_KEY, fakeImageId);
         expectedParams.put(SERVICE_OFFERING_ID_KEY, fakeServiceOfferingId);
@@ -383,14 +395,17 @@ public class CloudStackComputePluginTest {
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
         String fakeNetworkIdsString = "fake-default-network-id," + FAKE_NETWORK_ID;
 
-        String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand);
-        String expectedDiskOfferingsRequestUrl = generateExpectedUrl(endpoint, diskOfferingsCommand);
+        String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand,
+                RESPONSE_KEY, JSON);
+        String expectedDiskOfferingsRequestUrl = generateExpectedUrl(endpoint, diskOfferingsCommand,
+                RESPONSE_KEY, JSON);
 
         String fakeServiceOfferingId = "fake-service-offering-id";
         String fakeDiskOfferingId = "fake-disk-offering-id";
 
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put(COMMAND_KEY, computeCommand);
+        expectedParams.put(RESPONSE_KEY, JSON);
         expectedParams.put(ZONE_ID_KEY, fakeZoneId);
         expectedParams.put(TEMPLATE_ID_KEY, fakeImageId);
         expectedParams.put(SERVICE_OFFERING_ID_KEY, fakeServiceOfferingId);
@@ -436,8 +451,11 @@ public class CloudStackComputePluginTest {
         String computeCommand = GetVirtualMachineRequest.LIST_VMS_COMMAND;
         String volumeCommand = GetVolumeRequest.LIST_VOLUMES_COMMAND;
 
-        String expectedComputeRequestUrl = generateExpectedUrl(endpoint, computeCommand, ID_KEY, FAKE_ID);
+        String expectedComputeRequestUrl = generateExpectedUrl(endpoint, computeCommand,
+                RESPONSE_KEY, JSON,
+                ID_KEY, FAKE_ID);
         String expectedVolumeRequestUrl = generateExpectedUrl(endpoint, volumeCommand,
+                                                              RESPONSE_KEY, JSON,
                                                               VIRTUAL_MACHINE_ID_KEY, FAKE_ID,
                                                               TYPE_KEY, FAKE_TYPE);
 
@@ -484,8 +502,11 @@ public class CloudStackComputePluginTest {
         String volumeCommand = GetVolumeRequest.LIST_VOLUMES_COMMAND;
         String errorDiskSize = "-1";
 
-        String expectedComputeRequestUrl = generateExpectedUrl(endpoint, computeCommand, ID_KEY, FAKE_ID);
+        String expectedComputeRequestUrl = generateExpectedUrl(endpoint, computeCommand,
+                RESPONSE_KEY, JSON,
+                ID_KEY, FAKE_ID);
         String expectedVolumeRequestUrl = generateExpectedUrl(endpoint, volumeCommand,
+                RESPONSE_KEY, JSON,
                 VIRTUAL_MACHINE_ID_KEY, FAKE_ID,
                 TYPE_KEY, FAKE_TYPE);
 
@@ -537,7 +558,9 @@ public class CloudStackComputePluginTest {
         String endpoint = getBaseEndpointFromCloudStackConf();
         String computeCommand = GetVirtualMachineRequest.LIST_VMS_COMMAND;
 
-        String expectedComputeRequestUrl = generateExpectedUrl(endpoint, computeCommand, ID_KEY, FAKE_ID);
+        String expectedComputeRequestUrl = generateExpectedUrl(endpoint, computeCommand,
+                RESPONSE_KEY, JSON,
+                ID_KEY, FAKE_ID);
         String emptyComputeResponse = getVirtualMachineResponse();
 
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
@@ -559,6 +582,7 @@ public class CloudStackComputePluginTest {
         String computeCommand = DestroyVirtualMachineRequest.DESTROY_VIRTUAL_MACHINE_COMMAND;
 
         String expectedComputeRequestUrl = generateExpectedUrl(endpoint, computeCommand,
+                RESPONSE_KEY, JSON,
                 ID_KEY, FAKE_ID,
                 EXPUNGE_KEY, FAKE_EXPUNGE);
 
@@ -582,6 +606,7 @@ public class CloudStackComputePluginTest {
         String computeCommand = DestroyVirtualMachineRequest.DESTROY_VIRTUAL_MACHINE_COMMAND;
 
         String expectedComputeRequestUrl = generateExpectedUrl(endpoint, computeCommand,
+                RESPONSE_KEY, JSON,
                 ID_KEY, FAKE_ID,
                 EXPUNGE_KEY, FAKE_EXPUNGE);
 

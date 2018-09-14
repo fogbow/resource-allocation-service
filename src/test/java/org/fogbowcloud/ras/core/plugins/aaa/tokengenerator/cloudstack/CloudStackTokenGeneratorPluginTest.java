@@ -1,16 +1,13 @@
 package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack;
 
-import org.apache.http.*;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpResponseException;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.message.BasicStatusLine;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.util.PropertiesUtil;
@@ -18,7 +15,6 @@ import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestUtil;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -43,8 +39,10 @@ public class CloudStackTokenGeneratorPluginTest {
     private static final String FAKE_DOMAIN = "fake-domain";
     private static final String FAKE_SESSION_KEY = "fake-session-key";
     private static final String FAKE_TIMEOUT = "fake-timeout";
+    private static final String JSON = "json";
 
     private static final String COMMAND_KEY = "command";
+    private static final String RESPONSE_KEY = "response";
     private static final String USERNAME_KEY = "username";
     private static final String PASSWORD_KEY = "password";
     private static final String DOMAIN_KEY = "domain";
@@ -83,10 +81,12 @@ public class CloudStackTokenGeneratorPluginTest {
         String accountJsonResponse = getAccountResponse(FAKE_ID, FAKE_USERNAME, FAKE_FIRST_NAME, FAKE_LAST_NAME,
                 FAKE_API_KEY, FAKE_SECRET_KEY);
         String expectedListAccountsRequestUrl = generateExpectedUrl(endpoint, listAccountsCommand,
+                                                                    RESPONSE_KEY, JSON,
                                                                     SESSION_KEY_KEY, FAKE_SESSION_KEY);
 
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put(COMMAND_KEY, loginCommand);
+        expectedParams.put(RESPONSE_KEY, JSON);
         expectedParams.put(USERNAME_KEY, FAKE_USERNAME);
         expectedParams.put(PASSWORD_KEY, FAKE_PASSWORD);
         expectedParams.put(DOMAIN_KEY, FAKE_DOMAIN);
@@ -99,7 +99,7 @@ public class CloudStackTokenGeneratorPluginTest {
         Mockito.when(httpResponse.getContent()).thenReturn(loginJsonResponse);
         Mockito.when(this.httpRequestClientUtil.doPostRequest(Mockito.argThat(urlMatcher), Mockito.anyString()))
                 .thenReturn(httpResponse);
-        Mockito.when(this.httpRequestClientUtil.doGetRequest(Mockito.eq(expectedListAccountsRequestUrl), Mockito.any()))
+        Mockito.when(this.httpRequestClientUtil.doGetRequest(Mockito.eq(expectedListAccountsRequestUrl), Mockito.any(Token.class)))
                 .thenReturn(accountJsonResponse);
 
         Map<String, String> userCredentials = new HashMap<String, String>();
@@ -142,10 +142,12 @@ public class CloudStackTokenGeneratorPluginTest {
         String accountJsonResponse = getAccountResponse(FAKE_ID, FAKE_USERNAME, FAKE_FIRST_NAME, FAKE_LAST_NAME,
                 FAKE_API_KEY, FAKE_SECRET_KEY);
         String expectedListAccountsRequestUrl = generateExpectedUrl(endpoint, listAccountsCommand,
+                RESPONSE_KEY, JSON,
                 SESSION_KEY_KEY, FAKE_SESSION_KEY);
 
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put(COMMAND_KEY, loginCommand);
+        expectedParams.put(RESPONSE_KEY, JSON);
         expectedParams.put(USERNAME_KEY, FAKE_USERNAME);
         expectedParams.put(PASSWORD_KEY, FAKE_PASSWORD);
         expectedParams.put(DOMAIN_KEY, FAKE_DOMAIN);
@@ -181,15 +183,16 @@ public class CloudStackTokenGeneratorPluginTest {
 
     private String getAccountResponse(String id, String username, String firstName, String lastName, String apiKey,
                                       String secretKey) {
-        String response = "{\"account\":[{"
-                + "\"user\":[{"
-                    + "\"id\": \"%s\","
-                    + "\"username\": \"%s\","
-                    + "\"firstname\": \"%s\","
-                    + "\"lastname\": \"%s\","
-                    + "\"apikey\": \"%s\","
-                    + "\"secretkey\": \"%s\""
-                + "}]}]}";
+        String response = "{\"listaccountsresponse\":{"
+                + "\"account\":[{"
+                    + "\"user\":[{"
+                        + "\"id\": \"%s\","
+                        + "\"username\": \"%s\","
+                        + "\"firstname\": \"%s\","
+                        + "\"lastname\": \"%s\","
+                        + "\"apikey\": \"%s\","
+                        + "\"secretkey\": \"%s\""
+                + "}]}]}}";
 
         return String.format(response, id, username, firstName, lastName, apiKey, secretKey);
     }

@@ -56,6 +56,8 @@ public class CloudStackNetworkPluginTest {
     public static final CloudStackToken FAKE_TOKEN = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE,
             FAKE_USER_ID, FAKE_USERNAME);
 
+    public static final String JSON = "json";
+    public static final String RESPONSE_KEY = "response";
     public static final String ID_KEY = "id";
     public static final String NAME_KEY = "name";
     public static final String DISPLAY_TEXT_KEY = "displaytext";
@@ -105,6 +107,7 @@ public class CloudStackNetworkPluginTest {
         SubnetUtils.SubnetInfo subnetInfo = new SubnetUtils(FAKE_ADDRESS).getInfo();
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put(COMMAND_KEY, CreateNetworkRequest.CREATE_NETWORK_COMMAND);
+        expectedParams.put(RESPONSE_KEY, JSON);
         expectedParams.put(ZONE_ID_KEY, fakeZoneId);
         expectedParams.put(NETWORK_OFFERING_ID_KEY, fakeOfferingId);
         expectedParams.put(NAME_KEY, FAKE_NAME);
@@ -138,7 +141,7 @@ public class CloudStackNetworkPluginTest {
         // set up
         String endpoint = getBaseEndpointFromCloudStackConf();
         String command = GetNetworkRequest.LIST_NETWORKS_COMMAND;
-        String expectedRequestUrl = generateExpectedUrl(endpoint, command, ID_KEY, FAKE_ID);
+        String expectedRequestUrl = generateExpectedUrl(endpoint, command, RESPONSE_KEY, JSON, ID_KEY, FAKE_ID);
 
         String successfulResponse = generateSuccessfulGetNetworkResponse(FAKE_ID, FAKE_NAME, FAKE_GATEWAY, FAKE_ADDRESS, FAKE_STATE);
 
@@ -188,7 +191,7 @@ public class CloudStackNetworkPluginTest {
         // set up
         String endpoint = getBaseEndpointFromCloudStackConf();
         String command = DeleteNetworkRequest.DELETE_NETWORK_COMMAND;
-        String expectedRequestUrl = generateExpectedUrl(endpoint, command, ID_KEY, FAKE_ID);
+        String expectedRequestUrl = generateExpectedUrl(endpoint, command, RESPONSE_KEY, JSON, ID_KEY, FAKE_ID);
 
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();

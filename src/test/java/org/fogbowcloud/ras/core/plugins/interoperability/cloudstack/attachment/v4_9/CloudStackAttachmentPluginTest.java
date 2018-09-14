@@ -36,11 +36,13 @@ import org.powermock.modules.junit4.PowerMockRunner;
 public class CloudStackAttachmentPluginTest {
 
     private static final String BASE_ENDPOINT_KEY = "cloudstack_api_url";
+    private static final String JSON_FORMAT = "json";
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USERNAME = "fake-username";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
     private static final String REQUEST_FORMAT = "%s?command=%s";
+    private static final String RESPONSE_FORMAT = "&response=%s";
     private static final String ID_FIELD = "&id=%s";
     private static final String JOB_ID_FIELD = "&jobid=%s";
     private static final String VM_ID_FIELD = "&virtualmachineid=%s";
@@ -88,13 +90,14 @@ public class CloudStackAttachmentPluginTest {
                 .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
-        String urlFormat = REQUEST_FORMAT + ID_FIELD + VM_ID_FIELD;
+        String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + ID_FIELD + VM_ID_FIELD;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = AttachVolumeRequest.ATTACH_VOLUME_COMMAND;
         String id = FAKE_VOLUME_ID;
         String virtualMachineId = FAKE_VIRTUAL_MACHINE_ID;
-        String request = String.format(urlFormat, baseEndpoint, command, id, virtualMachineId);
-        
+        String jsonFormat = JSON_FORMAT;
+        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, id, virtualMachineId);
+
         int status = JOB_STATUS_COMPLETE;
         String jobId = FAKE_JOB_ID;
         String attributeKey = ATTACH_VOLUME_RESPONSE_KEY;
@@ -260,12 +263,13 @@ public class CloudStackAttachmentPluginTest {
                 .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
-        String urlFormat = REQUEST_FORMAT + ID_FIELD + VM_ID_FIELD;
+        String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + ID_FIELD + VM_ID_FIELD;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = AttachVolumeRequest.ATTACH_VOLUME_COMMAND;
         String id = FAKE_VOLUME_ID;
         String virtualMachineId = FAKE_VIRTUAL_MACHINE_ID;
-        String request = String.format(urlFormat, baseEndpoint, command, id, virtualMachineId);
+        String jsonFormat = JSON_FORMAT;
+        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, id, virtualMachineId);
 
         String response =
                 getAttachmentResponse(JOB_STATUS_FAILURE, ATTACH_VOLUME_RESPONSE_KEY, null);
@@ -304,11 +308,12 @@ public class CloudStackAttachmentPluginTest {
                 .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
-        String urlFormat = REQUEST_FORMAT + JOB_ID_FIELD;
+        String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + JOB_ID_FIELD;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = AttachmentJobStatusRequest.QUERY_ASYNC_JOB_RESULT_COMMAND;
         String jobId = FAKE_JOB_ID;
-        String request = String.format(urlFormat, baseEndpoint, command, jobId);
+        String jsonFormat = JSON_FORMAT;
+        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, jobId);
 
         int deviceId = DEVICE_ID;
         String id = FAKE_VOLUME_ID;
@@ -353,11 +358,12 @@ public class CloudStackAttachmentPluginTest {
                 .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
-        String urlFormat = REQUEST_FORMAT + JOB_ID_FIELD;
+        String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + JOB_ID_FIELD;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = AttachmentJobStatusRequest.QUERY_ASYNC_JOB_RESULT_COMMAND;
         String jobId = FAKE_JOB_ID;
-        String request = String.format(urlFormat, baseEndpoint, command, jobId);
+        String jsonFormat = JSON_FORMAT;
+        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, jobId);
 
         int status = JOB_STATUS_PENDING;
         String volume = EMPTY_INSTANCE;
@@ -398,11 +404,12 @@ public class CloudStackAttachmentPluginTest {
                 .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
-        String urlFormat = REQUEST_FORMAT + JOB_ID_FIELD;
+        String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + JOB_ID_FIELD;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = AttachmentJobStatusRequest.QUERY_ASYNC_JOB_RESULT_COMMAND;
         String jobId = FAKE_JOB_ID;
-        String request = String.format(urlFormat, baseEndpoint, command, jobId);
+        String jsonFormat = JSON_FORMAT;
+        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, jobId);
 
         int status = JOB_STATUS_FAILURE;
         String volume = EMPTY_INSTANCE;
@@ -567,11 +574,12 @@ public class CloudStackAttachmentPluginTest {
                 .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
-        String urlFormat = REQUEST_FORMAT + JOB_ID_FIELD;
+        String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + JOB_ID_FIELD;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = AttachmentJobStatusRequest.QUERY_ASYNC_JOB_RESULT_COMMAND;
         String jobId = FAKE_JOB_ID;
-        String request = String.format(urlFormat, baseEndpoint, command, jobId);
+        String jsonFormat = JSON_FORMAT;
+        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, jobId);
 
         String response = getAttachmentJobStatusResponse(JOB_STATUS_INCONSISTENT, EMPTY_INSTANCE);
 
@@ -605,11 +613,12 @@ public class CloudStackAttachmentPluginTest {
                 .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
-        String urlFormat = REQUEST_FORMAT + ID_FIELD;
+        String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + ID_FIELD;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = DetachVolumeRequest.DETACH_VOLUME_COMMAND;
         String id = FAKE_VOLUME_ID;
-        String request = String.format(urlFormat, baseEndpoint, command, id);
+        String jsonFormat = JSON_FORMAT;
+        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, id);
 
         int status = JOB_STATUS_COMPLETE;
         String jobId = FAKE_JOB_ID;
@@ -762,11 +771,12 @@ public class CloudStackAttachmentPluginTest {
                 .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
                 .thenCallRealMethod();
 
-        String urlFormat = REQUEST_FORMAT + ID_FIELD;
+        String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT + ID_FIELD;
         String baseEndpoint = getBaseEndpointFromCloudStackConf();
         String command = DetachVolumeRequest.DETACH_VOLUME_COMMAND;
         String id = FAKE_VOLUME_ID;
-        String request = String.format(urlFormat, baseEndpoint, command, id);
+        String jsonFormat = JSON_FORMAT;
+        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat, id);
 
         String response =
                 getAttachmentResponse(JOB_STATUS_FAILURE, DETACH_VOLUME_RESPONSE_KEY, null);

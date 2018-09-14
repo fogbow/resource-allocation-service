@@ -40,6 +40,8 @@ public class CloudStackComputeQuotaPluginTest {
 	private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
 	private static final String BASE_ENDPOINT_KEY = "cloudstack_api_url";
 	private static final String REQUEST_FORMAT = "%s?command=%s";
+	private static final String RESPONSE_FORMAT = "&response=%s";
+	private static final String JSON_FORMAT = "json";
 	private static final String FAKE_VIRTUAL_MACHINE_ID = "fake-virtual-machine-id";
 	private static final String FAKE_VIRTUAL_MACHINE_NAME = "fake-virtual-machine-name";
 	private static final String FAKE_IP_ADDRESS = "fake-ip-address";
@@ -82,10 +84,11 @@ public class CloudStackComputeQuotaPluginTest {
 		PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
 				.thenCallRealMethod();
 
-		String urlFormat = REQUEST_FORMAT;
+		String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
 		String baseEndpoint = getBaseEndpointFromCloudStackConf();
 		String command = ListResourceLimitsRequest.LIST_RESOURCE_LIMITS_COMMAND;
-		String resourceLimitRequest = String.format(urlFormat, baseEndpoint, command);
+		String jsonFormat = JSON_FORMAT;
+		String resourceLimitRequest = String.format(urlFormat, baseEndpoint, command, jsonFormat);
 
 		String instanceLimitResponse = getResourceLimitResponse(INSTANCE_RESOURCE_TYPE, MAX_NUMBER_INSTANCES);
 		String vCpuLimitResponse = getResourceLimitResponse(CPU_RESOURCE_TYPE, MAX_NUMBER_VCPU);
@@ -95,9 +98,9 @@ public class CloudStackComputeQuotaPluginTest {
 
 		Mockito.when(this.client.doGetRequest(resourceLimitRequest, this.token)).thenReturn(resourceLimitResponse);
 
-		urlFormat = REQUEST_FORMAT;
+		urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
 		command = GetVirtualMachineRequest.LIST_VMS_COMMAND;
-		String vmRequest = String.format(urlFormat, baseEndpoint, command);
+		String vmRequest = String.format(urlFormat, baseEndpoint, command, jsonFormat);
 
 		String id = FAKE_VIRTUAL_MACHINE_ID;
 		String name = FAKE_VIRTUAL_MACHINE_NAME;
@@ -197,10 +200,11 @@ public class CloudStackComputeQuotaPluginTest {
 		PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
 				.thenCallRealMethod();
 
-		String urlFormat = REQUEST_FORMAT;
+		String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
 		String baseEndpoint = getBaseEndpointFromCloudStackConf();
 		String command = ListResourceLimitsRequest.LIST_RESOURCE_LIMITS_COMMAND;
-		String resourceLimitRequest = String.format(urlFormat, baseEndpoint, command);
+		String jsonFormat = JSON_FORMAT;
+		String resourceLimitRequest = String.format(urlFormat, baseEndpoint, command, jsonFormat);
 
 		String instanceLimitResponse = getResourceLimitResponse(INSTANCE_RESOURCE_TYPE, MAX_NUMBER_INSTANCES);
 		String vCpuLimitResponse = getResourceLimitResponse(CPU_RESOURCE_TYPE, MAX_NUMBER_VCPU);
@@ -210,9 +214,9 @@ public class CloudStackComputeQuotaPluginTest {
 
 		Mockito.when(this.client.doGetRequest(resourceLimitRequest, this.token)).thenReturn(resourceLimitResponse);
 
-		urlFormat = REQUEST_FORMAT;
+		urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
 		command = GetVirtualMachineRequest.LIST_VMS_COMMAND;
-		String vmRequest = String.format(urlFormat, baseEndpoint, command);
+		String vmRequest = String.format(urlFormat, baseEndpoint, command, jsonFormat);
 
 		Mockito.when(this.client.doGetRequest(vmRequest, this.token))
 				.thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, null));

@@ -102,6 +102,7 @@ public class CloudStackRestApiConstants {
 
     public static class Identity {
         public static final String LOGIN_KEY_JSON = "loginresponse";
+        public static final String LIST_ACCOUNTS_KEY_JSON = "listaccountsresponse";
         public static final String ACCOUNT_KEY_JSON = "account";
         public static final String USER_KEY_JSON = "user";
         public static final String USER_ID_KEY_JSON = "id";
