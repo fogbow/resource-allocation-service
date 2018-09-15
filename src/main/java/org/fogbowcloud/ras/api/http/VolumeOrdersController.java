@@ -30,7 +30,7 @@ public class VolumeOrdersController {
     public ResponseEntity<String> createVolume(@RequestBody VolumeOrder volumeOrder,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowRasException, UnexpectedException {
-        LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_NEW_ORDER, ORDER_CONTROLLER_TYPE, volumeOrder.getId()));
+        LOGGER.info(String.format(Messages.Info.RECEIVING_REQUEST_FOR_CREATE, ORDER_CONTROLLER_TYPE));
         String volumeId = ApplicationFacade.getInstance().createVolume(volumeOrder, federationTokenValue);
         return new ResponseEntity<String>(volumeId, HttpStatus.CREATED);
     }
@@ -39,7 +39,7 @@ public class VolumeOrdersController {
     public ResponseEntity<List<InstanceStatus>> getAllVolumesStatus(
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_GET_ALL_ORDER, ORDER_CONTROLLER_TYPE));
+        LOGGER.info(String.format(Messages.Info.RECEIVING_REQUEST_FOR_GET_ALL_ORDER, ORDER_CONTROLLER_TYPE));
         List<InstanceStatus> volumeInstanceStatus =
                 ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.VOLUME);
         return new ResponseEntity<>(volumeInstanceStatus, HttpStatus.OK);
@@ -49,7 +49,7 @@ public class VolumeOrdersController {
     public ResponseEntity<VolumeInstance> getVolume(@PathVariable String volumeId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_GET_ORDER, ORDER_CONTROLLER_TYPE, volumeId));
+        LOGGER.info(String.format(Messages.Info.RECEIVING_REQUEST_FOR_GET_ORDER, ORDER_CONTROLLER_TYPE, volumeId));
         VolumeInstance volume = ApplicationFacade.getInstance().getVolume(volumeId, federationTokenValue);
         return new ResponseEntity<>(volume, HttpStatus.OK);
     }
@@ -58,7 +58,7 @@ public class VolumeOrdersController {
     public ResponseEntity<Boolean> deleteVolume(@PathVariable String volumeId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_DELETE_ORDER, ORDER_CONTROLLER_TYPE, volumeId));
+        LOGGER.info(String.format(Messages.Info.RECEIVING_REQUEST_FOR_DELETE_ORDER, ORDER_CONTROLLER_TYPE, volumeId));
         ApplicationFacade.getInstance().deleteVolume(volumeId, federationTokenValue);
         return new ResponseEntity<>(HttpStatus.OK);
     }

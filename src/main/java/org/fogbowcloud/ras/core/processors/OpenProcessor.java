@@ -47,11 +47,11 @@ public class OpenProcessor implements Runnable {
                 }
             } catch (InterruptedException e) {
                 isActive = false;
-                LOGGER.error(Messages.Error.THREAD_INTERRUPTED, e);
+                LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
             } catch (UnexpectedException e) {
                 LOGGER.error(e.getMessage(), e);
             } catch (Throwable e) {
-                LOGGER.error(Messages.Error.UNEXPECTED, e);
+                LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
             }
         }
     }
@@ -76,7 +76,7 @@ public class OpenProcessor implements Runnable {
                     order.setInstanceId(orderInstanceId);
                     updateOrderStateAfterProcessing(order);
                 } catch (Exception e) {
-                    LOGGER.error(String.format(Messages.Error.WHILE_GETTING_INSTANCE_FOR_ORDER, order), e);
+                    LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_INSTANCE_FOR_ORDER, order), e);
                     order.setCachedInstanceState(InstanceState.FAILED);
                     OrderStateTransitioner.transition(order, OrderState.FAILED);
                 }

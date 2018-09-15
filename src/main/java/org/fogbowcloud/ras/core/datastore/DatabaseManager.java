@@ -28,7 +28,7 @@ public class DatabaseManager implements StableStorage {
             try {
                 instance = new DatabaseManager();
             } catch (SQLException e) {
-                String message = Messages.Fatal.DATABASE_MANAGER_ERROR;
+                String message = Messages.Fatal.ERROR_INSTANTIATING_DATABASE_MANAGER;
                 LOGGER.error(message, e);
                 throw new FatalErrorException(message, e);
             }

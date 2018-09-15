@@ -49,7 +49,7 @@ public class RecoveryService {
 
     public Order update(Order order) throws UnexpectedException {
         if (!orderRepository.exists(order.getId())) {
-            throw new UnexpectedException(Messages.Exception.ORDER_NOT_EXIST);
+            throw new UnexpectedException(Messages.Exception.INEXISTENT_ORDER);
         }
 
         return orderRepository.save(order);

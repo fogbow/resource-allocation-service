@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core.intercomponent.xmpp;
 
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.xmpp.packet.IQ;
 import org.xmpp.packet.PacketError;
@@ -17,7 +18,7 @@ public class XmppExceptionToErrorConditionTranslator {
         if (e.getMessage() != null) {
             error.setText(e.getMessage());
         } else {
-            error.setText("Unexpected exception: " + e.toString());
+            error.setText(String.format(Messages.Error.UNEXPECTED_ERROR_WITH_MESSAGE, e.toString()));
         }
         response.setError(error);
     }

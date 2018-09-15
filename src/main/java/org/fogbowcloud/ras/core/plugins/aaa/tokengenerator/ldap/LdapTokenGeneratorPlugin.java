@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.InvalidUserCredentialsException;
@@ -67,7 +68,7 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
         try {
             this.privateKey = RSAUtil.getPrivateKey();
         } catch (IOException | GeneralSecurityException e) {
-            throw new FatalErrorException("Error reading private key: " + e.getMessage());
+            throw new FatalErrorException(String.format(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE, e.getMessage()));
         }
     }
 
@@ -94,7 +95,7 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
             String signature = createSignature(tokenValue);
             return tokenValue + TOKEN_VALUE_SEPARATOR + signature;
         } catch (IOException | GeneralSecurityException e) {
-            throw new UnexpectedException("Error while trying to sign the tokens.", e);
+            throw new UnexpectedException(Messages.Exception.UNABLE_TO_SIGN_LDAP_TOKEN, e);
         }
     }
 
@@ -134,7 +135,7 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
             if (dn == null || enm.hasMore()) {
                 // uid not found or not unique
-                throw new InvalidUserCredentialsException("Couldn't load account summary from LDAP Network.");
+                throw new InvalidUserCredentialsException(Messages.Exception.UNABLE_TO_LOAD_LDAP_ACCOUNT);
             }
 
             // Bind with found DN and given password
@@ -148,7 +149,7 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
             return name;
 
         } catch (NamingException e1) {
-            throw new InvalidParameterException("Ldap url is not provided in conf files.", e1);
+            throw new InvalidParameterException(Messages.Exception.LDAP_URL_MISSING, e1);
         } catch (NoSuchAlgorithmException | UnsupportedEncodingException e2) {
             throw new UnexpectedException(e2.getMessage(), e2);
         }

@@ -26,10 +26,10 @@ import org.fogbowcloud.ras.util.connectivity.HttpRequestUtil;
 import java.util.*;
 
 public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
-    protected static final Logger LOGGER = Logger.getLogger(OpenStackComputePlugin.class);
+    private static final Logger LOGGER = Logger.getLogger(OpenStackComputePlugin.class);
 
-    protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
     public static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
+    protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
     protected static final String ID_JSON_FIELD = "id";
     protected static final String NAME_JSON_FIELD = "name";
     protected static final String SERVER_JSON_FIELD = "server";
@@ -174,7 +174,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     private String getProjectId(OpenStackV3Token openStackV3Token) throws InvalidParameterException {
         String projectId = openStackV3Token.getProjectId();
         if (projectId == null) {
-            throw new InvalidParameterException("No projectId in local token.");
+            throw new InvalidParameterException(Messages.Exception.NO_PROJECT_ID);
         }
         return projectId;
     }
@@ -357,7 +357,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
         HardwareRequirements hardwareRequirements = getFlavorById(flavorId, openStackV3Token);
 
         if (hardwareRequirements == null) {
-            throw new NoAvailableResourcesException("No matching flavor");
+            throw new NoAvailableResourcesException(Messages.Exception.NO_MATCHING_FLAVOR);
         }
 
         int vcpusCount = hardwareRequirements.getCpu();

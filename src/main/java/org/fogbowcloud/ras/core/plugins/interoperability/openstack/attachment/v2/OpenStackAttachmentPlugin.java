@@ -49,7 +49,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3To
         try {
             jsonRequest = generateJsonToAttach(volumeId);
         } catch (JSONException e) {
-            String message = Messages.Error.COULD_NOT_GENERATING_JSON;
+            String message = Messages.Error.UNABLE_TO_GENERATE_JSON;
             LOGGER.error(message, e);
             throw new InvalidParameterException(message, e);
         }
@@ -68,7 +68,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3To
             throws FogbowRasException, UnexpectedException {
         String projectId = openStackV3Token.getProjectId();
         if (projectId == null) {
-            String message = Messages.Error.PROJECT_ID_NOT_SPECIFIED;
+            String message = Messages.Error.UNSPECIFIED_PROJECT_ID;
             LOGGER.error(message);
             throw new UnauthenticatedUserException(message);
         }
@@ -129,7 +129,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3To
             return attachmentInstance;
 
         } catch (JSONException e) {
-            String message = Messages.Error.WHILE_GETTING_ATTACHMENT_INSTANCE;
+            String message = Messages.Error.UNABLE_TO_GET_ATTACHMENT_INSTANCE;
             LOGGER.error(message, e);
             throw new UnexpectedException(message, e);
         }

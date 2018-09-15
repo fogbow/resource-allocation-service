@@ -117,7 +117,7 @@ public class LocalCloudConnector implements CloudConnector {
                 throw new UnexpectedException(String.format(Messages.Exception.PLUGIN_FOR_REQUEST_INSTANCE_NOT_IMPLEMENTED, order.getType()));
         }
         if (requestInstance == null) {
-            throw new UnexpectedException(Messages.Exception.RETURNED_NULL_VALUE);
+            throw new UnexpectedException(Messages.Exception.NULL_VALUE_RETURNED);
         }
         return requestInstance;
     }
@@ -191,7 +191,7 @@ public class LocalCloudConnector implements CloudConnector {
                         instance = new PublicIpInstance(order.getId());
                         break;
                     default:
-                        throw new UnexpectedException(Messages.Exception.ORDER_TYPE_NOT_SUPPORTED);
+                        throw new UnexpectedException(Messages.Exception.UNSUPPORTED_ORDER_TYPE);
                 }
                 InstanceState instanceState = getInstanceStateBasedOnOrderState(order);
                 instance.setState(instanceState);
@@ -262,7 +262,7 @@ public class LocalCloudConnector implements CloudConnector {
                 instance = this.publicIpPlugin.getInstance(instanceId, token);
                 break;
             default:
-                throw new UnexpectedException(String.format(Messages.Exception.ORDER_TYPE_NOT_SUPPORTED, order.getType()));
+                throw new UnexpectedException(String.format(Messages.Exception.UNSUPPORTED_ORDER_TYPE, order.getType()));
         }
         order.setCachedInstanceState(instance.getState());
         instance.setProvider(order.getProvidingMember());

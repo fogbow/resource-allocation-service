@@ -7,6 +7,7 @@ import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -48,7 +49,7 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
     private boolean isUrlValid(String url) throws FatalErrorException {
         if (url == null || url.trim().isEmpty()) {
-            throw new FatalErrorException("Invalid Keystone_V3_URL " + OPENSTACK_KEYSTONE_V3_URL);
+            throw new FatalErrorException(String.format(Messages.Fatal.INVALID_SERVICE_URL, OPENSTACK_KEYSTONE_V3_URL));
         }
         return true;
     }
@@ -58,15 +59,9 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
             UnexpectedException {
 
         String jsonBody = mountJsonBody(credentials);
-//        String authUrl = credentials.get(AUTH_URL);
-//        String currentTokenEndpoint = this.v3TokensEndpoint;
-//        if (authUrl != null && !authUrl.isEmpty()) {
-//            currentTokenEndpoint = authUrl + V3_TOKENS_ENDPOINT_PATH;
-//        }
 
         HttpRequestClientUtil.Response response = null;
         try {
-//            response = this.client.doPostRequest(currentTokenEndpoint, jsonBody);
             response = this.client.doPostRequest(this.v3TokensEndpoint, jsonBody);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
@@ -101,8 +96,8 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
             return tokenString;
         } catch (Exception e) {
-            LOGGER.error("Exception while getting tokens from json", e);
-            throw new UnexpectedException("Exception while getting tokens from json", e);
+            LOGGER.error(Messages.Error.UNABLE_TO_GET_TOKEN_FROM_JSON, e);
+            throw new UnexpectedException(Messages.Error.UNABLE_TO_GET_TOKEN_FROM_JSON, e);
         }
     }
 

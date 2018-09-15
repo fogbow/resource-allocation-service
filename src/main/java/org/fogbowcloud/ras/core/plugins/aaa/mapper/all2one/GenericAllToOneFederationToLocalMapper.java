@@ -2,6 +2,7 @@ package org.fogbowcloud.ras.core.plugins.aaa.mapper.all2one;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -49,7 +50,7 @@ public class GenericAllToOneFederationToLocalMapper implements FederationToLocal
     private Map<String, String> getDefaultLocalTokenCredentials(Properties properties) throws FatalErrorException {
         Map<String, String> localDefaultTokenCredentials = new HashMap<String, String>();
         if (properties == null) {
-            throw new FatalErrorException("Empty property map.");
+            throw new FatalErrorException(Messages.Fatal.EMPTY_PROPERTY_MAP);
         }
 
         for (Object keyProperties : properties.keySet()) {
@@ -63,7 +64,7 @@ public class GenericAllToOneFederationToLocalMapper implements FederationToLocal
         }
 
         if (localDefaultTokenCredentials.isEmpty()) {
-            throw new FatalErrorException("Default localidentity tokens credentials not found.");
+            throw new FatalErrorException(Messages.Fatal.DEFAULT_CREDENTIALS_NOT_FOUND);
         } else {
             return localDefaultTokenCredentials;
         }

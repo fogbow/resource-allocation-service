@@ -33,7 +33,7 @@ public class RemoteNotifyEventHandlerTest {
     private static final String IQ_ERROR_RESULT = "\n<iq type=\"error\" id=\"%s\" from=\"%s\">\n"
             + "  <error code=\"500\" type=\"wait\">\n"
             + "    <internal-server-error xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n"
-            + "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">" + Messages.Exception.UNEXPECTED + "</text>\n" + "  </error>\n"
+            + "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">" + Messages.Exception.UNEXPECTED_ERROR + "</text>\n" + "  </error>\n"
             + "</iq>";
 
     private RemoteNotifyEventHandler remoteNotifyEventHandler;

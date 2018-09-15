@@ -23,7 +23,7 @@ public class TokenRequestController {
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<String> createTokenValue(@RequestBody HashMap<String, String> userCredentials)
             throws FogbowRasException, UnexpectedException {
-        LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_NEW_TOKEN_CREATE, userCredentials.size()));
+        LOGGER.info(String.format(Messages.Info.RECEIVING_REQUEST_FOR_CREATE_TOKEN, userCredentials.size()));
         String tokenValue = ApplicationFacade.getInstance().createTokenValue(userCredentials);
         return new ResponseEntity<String>(tokenValue, HttpStatus.CREATED);
     }

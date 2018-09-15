@@ -4,7 +4,6 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.exceptions.ExpiredTokenException;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.UnauthenticTokenException;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
@@ -29,7 +28,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         try {
             this.publicKey = getPublicKey();
         } catch (IOException | GeneralSecurityException e) {
-            throw new FatalErrorException(Messages.Fatal.PUBLIC_KEY_ERROR);
+            throw new FatalErrorException(Messages.Fatal.ERROR_READING_PUBLIC_KEY_FILE);
         }
     }
 
@@ -47,7 +46,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         }
     }
 
-    private void checkTokenValue(String federationTokenValue) throws ExpiredTokenException, UnauthenticTokenException {
+    private void checkTokenValue(String federationTokenValue) throws UnauthenticTokenException {
 
         String split[] = federationTokenValue.split(LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
         if (split == null || split.length < 5) {
@@ -63,7 +62,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         String signature = split[4];
 
         if (expirationDate.before(currentDate)) {
-            throw new UnauthenticTokenException(String.format(Messages.Exception.EXPIRATION_DATE, expirationDate));
+            throw new UnauthenticTokenException(String.format(Messages.Exception.EXPIRED_TOKEN, expirationDate));
         }
 
         if (!verifySign(tokenValue, signature)) {
@@ -75,7 +74,7 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin {
         try {
             return RSAUtil.verify(this.publicKey, tokenMessage, signature);
         } catch (Exception e) {
-            throw new RuntimeException(Messages.Exception.ERROR_VALIDATE_TOKEN_SINGNATURE, e);
+            throw new RuntimeException(Messages.Exception.INVALID_TOKEN_SIGNATURE, e);
         }
     }
 

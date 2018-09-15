@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack;
 
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.mockito.ArgumentMatcher;
 
 import java.io.UnsupportedEncodingException;
@@ -32,7 +33,7 @@ public class CloudStackUrlMatcher extends ArgumentMatcher<String> {
             try {
                 decodedUrl = java.net.URLDecoder.decode(url, "UTF-8");
             } catch (UnsupportedEncodingException e) {
-                LOGGER.warn("Could not decode url " + url);
+                LOGGER.warn(String.format(Messages.Warn.UNABLE_TO_DECODE_URL, url));
             }
             return compareWith(getUrlParams(decodedUrl));
         }

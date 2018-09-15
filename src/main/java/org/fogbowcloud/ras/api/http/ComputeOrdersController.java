@@ -36,7 +36,7 @@ public class ComputeOrdersController {
     public ResponseEntity<String> createCompute(@RequestBody ComputeOrder computeOrder,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowRasException, UnexpectedException {
-        LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_NEW_ORDER, ORDER_CONTROLLER_TYPE, computeOrder.getId()));
+        LOGGER.info(String.format(Messages.Info.RECEIVING_REQUEST_FOR_CREATE, ORDER_CONTROLLER_TYPE));
         String computeId = ApplicationFacade.getInstance().createCompute(computeOrder, federationTokenValue);
         return new ResponseEntity<String>(computeId, HttpStatus.CREATED);
     }
@@ -45,7 +45,7 @@ public class ComputeOrdersController {
     public ResponseEntity<List<InstanceStatus>> getAllComputesStatus(
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_GET_ALL_ORDER, ORDER_CONTROLLER_TYPE));
+        LOGGER.info(String.format(Messages.Info.RECEIVING_REQUEST_FOR_GET_ALL_ORDER, ORDER_CONTROLLER_TYPE));
         List<InstanceStatus> computeInstanceStatus =
                 ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.COMPUTE);
         return new ResponseEntity<>(computeInstanceStatus, HttpStatus.OK);
@@ -55,7 +55,7 @@ public class ComputeOrdersController {
     public ResponseEntity<ComputeInstance> getCompute(@PathVariable String computeId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_GET_ORDER, ORDER_CONTROLLER_TYPE, computeId));
+        LOGGER.info(String.format(Messages.Info.RECEIVING_REQUEST_FOR_GET_ORDER, ORDER_CONTROLLER_TYPE, computeId));
         ComputeInstance compute = ApplicationFacade.getInstance().getCompute(computeId, federationTokenValue);
         return new ResponseEntity<ComputeInstance>(compute, HttpStatus.OK);
     }
@@ -64,7 +64,7 @@ public class ComputeOrdersController {
     public ResponseEntity<Boolean> deleteCompute(@PathVariable String computeId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_DELETE_ORDER, ORDER_CONTROLLER_TYPE, computeId));
+        LOGGER.info(String.format(Messages.Info.RECEIVING_REQUEST_FOR_DELETE_ORDER, ORDER_CONTROLLER_TYPE, computeId));
         ApplicationFacade.getInstance().deleteCompute(computeId, federationTokenValue);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -73,7 +73,7 @@ public class ComputeOrdersController {
     public ResponseEntity<ComputeQuota> getUserQuota(@PathVariable String memberId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_USER_INFORMATION, QUOTA_ENDPOINT, memberId));
+        LOGGER.info(String.format(Messages.Info.RECEIVING_REQUEST_FOR_COMPUTE_QUOTA, QUOTA_ENDPOINT, memberId));
         ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(memberId, federationTokenValue);
         return new ResponseEntity<>(quotaInstance, HttpStatus.OK);
     }
@@ -82,7 +82,7 @@ public class ComputeOrdersController {
     public ResponseEntity<ComputeAllocation> getUserAllocation(@PathVariable String memberId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowRasException, UnexpectedException {
-        LOGGER.info(String.format(Messages.Info.REQUEST_RECEIVED_FOR_USER_INFORMATION, ALLOCATION_ENDPOINT, memberId));
+        LOGGER.info(String.format(Messages.Info.RECEIVING_REQUEST_FOR_COMPUTE_QUOTA, ALLOCATION_ENDPOINT, memberId));
         ComputeAllocation computeAllocation =
                 ApplicationFacade.getInstance().getComputeAllocation(memberId, federationTokenValue);
         return new ResponseEntity<>(computeAllocation, HttpStatus.OK);

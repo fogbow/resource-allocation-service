@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack;
 
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 
@@ -31,7 +32,8 @@ public class CloudStackStateMapper {
                 } else if (cloudStackState.equalsIgnoreCase(STARTING_STATUS)) {
                     return InstanceState.SPAWNING;
                 } else {
-                    LOGGER.error(getDefaultLogMessage(cloudStackState, "CloudStackComputePlugin"));
+                    LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, cloudStackState,
+                            "CloudStackComputePlugin"));
                     return InstanceState.INCONSISTENT;
                 }
             case VOLUME:
@@ -40,7 +42,8 @@ public class CloudStackStateMapper {
                 } else if (cloudStackState.equalsIgnoreCase(READY_STATUS)) {
                     return InstanceState.READY;
                 } else {
-                    LOGGER.error(getDefaultLogMessage(cloudStackState, "CloudStackVolumePlugin"));
+                    LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, cloudStackState,
+                            "CloudStackVolumePlugin"));
                     return InstanceState.INCONSISTENT;
                 }
             case ATTACHMENT:
@@ -51,17 +54,13 @@ public class CloudStackStateMapper {
                 } else if (cloudStackState.equalsIgnoreCase(FAILURE_STATUS)) {
                     return InstanceState.FAILED;
                 } else {
-                    LOGGER.error(getDefaultLogMessage(cloudStackState, "CloudStackVolumePlugin"));
+                    LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, cloudStackState,
+                            "CloudStackAttachmentPlugin"));
                     return InstanceState.INCONSISTENT;
                 }
             default:
-                LOGGER.error("Instance type not defined.");
+                LOGGER.error(Messages.Error.INSTANCE_TYPE_NOT_DEFINED);
                 return InstanceState.INCONSISTENT;
         }
-    }
-
-    private static String getDefaultLogMessage(String openStackState, String pluginName) {
-        return openStackState + " was not mapped to a well-defined CloudStack "
-                + "instance state when " + pluginName + " were implemented.";
     }
 }

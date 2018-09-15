@@ -39,7 +39,7 @@ public class PropertiesUtil {
             fileInputStream = new FileInputStream(fileName);
             prop.load(fileInputStream);
         } catch (FileNotFoundException e) {
-            throw new FatalErrorException(String.format(Messages.Fatal.RESOURCES_FILE_NOT_FOUND, fileName), e);
+            throw new FatalErrorException(String.format(Messages.Fatal.PROPERTY_FILE_NOT_FOUND, fileName), e);
         } catch (IOException e) {
             throw new FatalErrorException(e.getMessage(), e);
         } finally {
@@ -47,7 +47,7 @@ public class PropertiesUtil {
                 try {
                     fileInputStream.close();
                 } catch (IOException e) {
-                    LOGGER.error(String.format(Messages.Error.COULD_NOT_CLOSE_FILE, fileName), e);
+                    LOGGER.error(String.format(Messages.Error.UNABLE_TO_CLOSE_FILE, fileName), e);
                 }
             }
         }

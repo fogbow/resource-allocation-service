@@ -4,6 +4,7 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -37,8 +38,7 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     public String createTokenValue(Map<String, String> credentials) throws FogbowRasException, UnexpectedException {
         if ((credentials == null) || (credentials.get(USERNAME) == null) || (credentials.get(PASSWORD) == null) ||
                 credentials.get(DOMAIN) == null) {
-            String errorMsg = "User credentials can't be null";
-            throw new InvalidParameterException(errorMsg);
+            throw new InvalidParameterException(Messages.Exception.NO_USER_CREDENTIALS);
         }
 
         LoginRequest request = createLoginRequest(credentials);
@@ -100,8 +100,8 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
             tokenString = this.tokenProviderId + TOKEN_STRING_SEPARATOR + tokenValue + TOKEN_STRING_SEPARATOR +
                     userId + TOKEN_STRING_SEPARATOR + userName;
         } catch (Exception e) {
-            LOGGER.error("Exception while getting token from json", e);
-            throw new UnexpectedException("Exception while getting token from json", e);
+            LOGGER.error(Messages.Error.UNABLE_TO_GET_TOKEN_FROM_JSON, e);
+            throw new UnexpectedException(Messages.Error.UNABLE_TO_GET_TOKEN_FROM_JSON, e);
         }
 
         return tokenString;

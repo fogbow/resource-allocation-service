@@ -24,7 +24,7 @@ public class RemoteNotifyEventHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
-        LOGGER.info(String.format(Messages.Info.RECEIVED_REQUEST_FOR_ORDER, iq.getID()));
+        LOGGER.info(String.format(Messages.Info.RECEIVING_REMOTE_REQUEST_FOR_ORDER, iq.getID()));
         IQ response = IQ.createResultIQ(iq);
 
         Gson gson = new Gson();

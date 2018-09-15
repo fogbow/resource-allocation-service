@@ -59,7 +59,6 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
     @Override
     public String requestInstance(PublicIpOrder publicIpOrder, String computeInstanceId, OpenStackV3Token openStackV3Token)
             throws FogbowRasException, UnexpectedException {
-        LOGGER.info(String.format(Messages.Info.CREATING_FLOATING_IP, computeInstanceId, openStackV3Token));
         // Network port id is the connection between the virtual machine and the network
         String networkPortId = getNetworkPortIp(computeInstanceId, openStackV3Token);
         String floatingNetworkId = getExternalNetworkId();
@@ -87,9 +86,6 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
 
     @Override
     public void deleteInstance(String floatingIpId, OpenStackV3Token openStackV3Token) throws FogbowRasException, UnexpectedException {
-        LOGGER.info("Deleting floating ip " + floatingIpId + " with tokens " + openStackV3Token);
-
-        LOGGER.info(String.format(Messages.Info.DELETING_FLOATING_IP, floatingIpId, openStackV3Token));
         try {
             String floatingIpEndpointPrefix = getFloatingIpEndpoint();
             String endpoint = String.format("%s/%s", floatingIpEndpointPrefix, floatingIpId);
@@ -102,8 +98,6 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
     @Override
     public PublicIpInstance getInstance(String publicIpInstanceId, OpenStackV3Token openStackV3Token)
             throws FogbowRasException, UnexpectedException {
-        LOGGER.info("Getting floating ip " + publicIpInstanceId + " with tokens " + openStackV3Token);
-
         String responseGetFloatingIp = null;
         try {
             String floatingIpEndpointPrefix = getFloatingIpEndpoint();
@@ -126,7 +120,6 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
 
     protected String getNetworkPortIp(String computeInstanceId, OpenStackV3Token openStackV3Token)
             throws FogbowRasException, UnexpectedException {
-        LOGGER.debug(String.format(Messages.Debug.SEARCHING_NETWORK_PORT, computeInstanceId, openStackV3Token));
         String defaulNetworkId = getDefaultNetworkId();
         String networkPortsEndpointBase = getNetworkPortsEndpoint();
 
@@ -135,7 +128,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
             getNetworkPortsResquest = new GetNetworkPortsResquest.Builder()
                     .url(networkPortsEndpointBase).deviceId(computeInstanceId).networkId(defaulNetworkId).build();
         } catch (URISyntaxException e) {
-            String errorMsg = String.format("The endpoint(%s) syntax is wrong", networkPortsEndpointBase);
+            String errorMsg = String.format(Messages.Exception.WRONG_URI_SYNTAX, networkPortsEndpointBase);
             throw new FogbowRasException(errorMsg, e);
         }
 
@@ -165,7 +158,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
         if (ports == null || ports.size() == 0) {
             errorMsg = String.format(Messages.Exception.PORT_NOT_FOUND, computeInstanceId, defaulNetworkId);
         } else {
-            errorMsg = String.format(Messages.Exception.ILLEGAL_PORT_SIZE, String.valueOf(ports.size()), computeInstanceId, defaulNetworkId);
+            errorMsg = String.format(Messages.Exception.INVALID_PORT_SIZE, String.valueOf(ports.size()), computeInstanceId, defaulNetworkId);
         }
         throw new FogbowRasException(errorMsg);
     }
@@ -185,7 +178,7 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
         }
         String neutroApiEndpoint = getNeutroApiEndpoint();
         if (neutroApiEndpoint == null || neutroApiEndpoint.isEmpty()) {
-            throw new FatalErrorException(Messages.Fatal.NEUTRO_ENDPOINT_NOT_FOUND);
+            throw new FatalErrorException(Messages.Fatal.NEUTRON_ENDPOINT_NOT_FOUND);
         }
     }
 
@@ -226,5 +219,4 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
     public void setProperties(Properties properties) {
         this.properties = properties;
     }
-
 }

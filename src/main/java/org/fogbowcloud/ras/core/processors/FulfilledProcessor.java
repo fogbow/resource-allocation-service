@@ -58,11 +58,11 @@ public class FulfilledProcessor implements Runnable {
                 }
             } catch (InterruptedException e) {
                 isActive = false;
-                LOGGER.error(Messages.Error.THREAD_INTERRUPTED, e);
+                LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
             } catch (UnexpectedException e) {
                 LOGGER.error(e.getMessage(), e);
             } catch (Throwable e) {
-                LOGGER.error(Messages.Error.UNEXPECTED, e);
+                LOGGER.error(Messages.Error.UNEXPECTED_ERROR, e);
             }
         }
     }
@@ -94,17 +94,17 @@ public class FulfilledProcessor implements Runnable {
             if (!orderState.equals(OrderState.FULFILLED)) {
                 return;
             }
-            LOGGER.info(String.format(Messages.Info.GETTING_INTANCE_FOR_ORDER, order.getId()));
+            LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_FOR_ORDER, order.getId()));
             try {
                 instance = this.localCloudConnector.getInstance(order);
             } catch (Exception e) {
-                LOGGER.error(Messages.Error.WHILE_GETTING_INSTANCE_FROM_CLOUD, e);
+                LOGGER.error(Messages.Error.ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD, e);
                 OrderStateTransitioner.transition(order, OrderState.FAILED);
                 return;
             }
             instanceState = instance.getState();
             if (instanceState.equals(InstanceState.FAILED)) {
-                LOGGER.info(String.format(Messages.Info.INSTANCE_STATE_FAILED, order.getId()));
+                LOGGER.info(String.format(Messages.Info.INSTANCE_HAS_FAILED, order.getId()));
                 OrderStateTransitioner.transition(order, OrderState.FAILED);
                 return;
             }

@@ -48,7 +48,7 @@ public class OpenStackStateMapper {
                     case ERROR_STATUS:
                         return InstanceState.FAILED;
                     default:
-                        LOGGER.error(String.format(Messages.Error.INSTANCE_STATE_NOT_MAPPED, openStackState, COMPUTE_PLUGIN));
+                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, openStackState, COMPUTE_PLUGIN));
                         return InstanceState.INCONSISTENT;
                 }
             case NETWORK:
@@ -61,7 +61,7 @@ public class OpenStackStateMapper {
                     case ERROR_STATUS:
                         return InstanceState.FAILED;
                     default:
-                        LOGGER.error(String.format(Messages.Error.INSTANCE_STATE_NOT_MAPPED, openStackState, NETWORK_PLUGIN));
+                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, openStackState, NETWORK_PLUGIN));
                         return InstanceState.INCONSISTENT;
                 }
             case VOLUME:
@@ -92,7 +92,7 @@ public class OpenStackStateMapper {
                     case ERROR_STATUS:
                         return InstanceState.FAILED;
                     default:
-                        LOGGER.error(String.format(Messages.Error.INSTANCE_STATE_NOT_MAPPED, openStackState, VOLUME_PLUGIN));
+                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, openStackState, VOLUME_PLUGIN));
                         return InstanceState.INCONSISTENT;
                 }
             case ATTACHMENT:

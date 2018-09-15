@@ -27,7 +27,7 @@ public class OrderStorage {
         try {
             Class.forName(MANAGER_DATASTORE_SQLITE_DRIVER);
         } catch (ClassNotFoundException e) {
-            LOGGER.error(Messages.Error.INVALID_DATASTORE_DRIVE, e);
+            LOGGER.error(Messages.Error.INVALID_DATASTORE_DRIVER, e);
         }
     }
 
@@ -35,7 +35,7 @@ public class OrderStorage {
         try {
             return DriverManager.getConnection(this.databaseUrl, this.databaseUsername, this.databasePassword);
         } catch (SQLException e) {
-            LOGGER.error(Messages.Error.WHILE_GETTING_NEW_CONNECTION, e);
+            LOGGER.error(Messages.Error.ERROR_WHILE_GETTING_NEW_CONNECTION, e);
             throw e;
         }
     }
@@ -47,7 +47,7 @@ public class OrderStorage {
                     statement.close();
                 }
             } catch (SQLException e) {
-                LOGGER.error(Messages.Error.COULD_NOT_CLOSE_STATEMENT, e);
+                LOGGER.error(Messages.Error.UNABLE_TO_CLOSE_STATEMENT, e);
                 throw e;
             }
         }
@@ -58,7 +58,7 @@ public class OrderStorage {
                     connection.close();
                 }
             } catch (SQLException e) {
-                LOGGER.error(Messages.Error.COULD_NOT_CLOSE_CONNECTION, e);
+                LOGGER.error(Messages.Error.UNABLE_TO_CLOSE_CONNECTION, e);
                 throw e;
             }
         }

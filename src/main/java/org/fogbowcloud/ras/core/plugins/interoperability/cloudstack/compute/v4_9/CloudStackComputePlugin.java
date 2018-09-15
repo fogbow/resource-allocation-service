@@ -60,7 +60,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
             throws FogbowRasException, UnexpectedException {
         String templateId = computeOrder.getImageId();
         if (templateId == null || this.zoneId == null || this.defaultNetworkId == null) {
-            LOGGER.error(Messages.Error.ORDER_CANNOT_BE_COMPLETED);
+            LOGGER.error(Messages.Error.UNABLE_TO_COMPLETE_REQUEST);
             throw new InvalidParameterException();
         }
 
@@ -71,7 +71,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
             try {
                 userData = Base64.getEncoder().encodeToString(userData.getBytes("UTF-8"));
             } catch (UnsupportedEncodingException e) {
-                LOGGER.warn("Could not encode user data. Sending request without it.");
+                LOGGER.warn(Messages.Warn.UNABLE_TO_ENCODE_EXTRA_USER_DATA);
             }
         }
 
@@ -156,11 +156,11 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         try {
             this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
         } catch (HttpResponseException e) {
-            LOGGER.error("Could not delete instance " + computeInstanceId);
+            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, computeInstanceId));
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
 
-        LOGGER.info("Deleted instance " + computeInstanceId);
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, computeInstanceId, cloudStackToken.getTokenValue()));
     }
 
     private String resolveNetworksId(ComputeOrder computeOrder) {
@@ -252,7 +252,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         try {
             disk = getVirtualMachineDiskSize(instanceId, cloudStackToken);
         } catch (FogbowRasException e) {
-            LOGGER.warn(String.format(Messages.Warn.COULD_NOT_RETRIEVE_ROOT_VOLUME, vm.getId()));
+            LOGGER.warn(String.format(Messages.Warn.UNABLE_TO_RETRIEVE_ROOT_VOLUME, vm.getId()));
         }
 
         String cloudStackState = vm.getState();
