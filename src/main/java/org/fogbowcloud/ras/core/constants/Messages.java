@@ -65,6 +65,7 @@ public class Messages {
         public static final String UNABLE_TO_CONNECT_TO_XMPP_SERVER = "Unable to connect to XMPP server.";
         public static final String UNABLE_TO_FIND_CLASS = "Unable to find class %s.";
         public static final String UNABLE_TO_INITIALIZE_HTTP_REQUEST_UTIL = "Unable to initialize HttpRequestUtil.";
+        public static final String UNABLE_TO_READ_COMPOSED_AUTHORIZATION_PLUGIN_CONF_FILE = "Unable to read ComposedAuthorizationPlugin configuration file %s.";
     }
 
     public static class Warn {

@@ -5,6 +5,7 @@ import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.authorization.AuthorizationPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.authorization.ComposedAuthorizationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPluginProtectionWrapper;
 import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
@@ -43,11 +44,6 @@ public class PluginInstantiator {
         return instance;
     }
 
-    public PublicIpPlugin getPublicIpPlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.PUBLIC_IP_PLUGIN_CLASS_KEY);
-        return (PublicIpPlugin) this.pluginFactory.createPluginInstance(className);
-    }
-
     public AttachmentPlugin getAttachmentPlugin() {
         String className = this.properties.getProperty(ConfigurationConstants.ATTACHMENT_PLUGIN_CLASS_KEY);
         return (AttachmentPlugin) this.pluginFactory.createPluginInstance(className);
@@ -78,6 +74,11 @@ public class PluginInstantiator {
         return (ImagePlugin) this.pluginFactory.createPluginInstance(className);
     }
 
+    public PublicIpPlugin getPublicIpPlugin() {
+        String className = this.properties.getProperty(ConfigurationConstants.PUBLIC_IP_PLUGIN_CLASS_KEY);
+        return (PublicIpPlugin) this.pluginFactory.createPluginInstance(className);
+    }
+
     public TokenGeneratorPlugin getTokenGeneratorPlugin() {
         String className = this.properties.getProperty(ConfigurationConstants.TOKEN_GENERATOR_PLUGIN_CLASS);
         return new TokenGeneratorPluginProtectionWrapper((TokenGeneratorPlugin)
@@ -97,11 +98,21 @@ public class PluginInstantiator {
 
     public AuthorizationPlugin getAuthorizationPlugin() {
         String className = this.properties.getProperty(ConfigurationConstants.AUTHORIZATION_PLUGIN_CLASS_KEY);
-        return (AuthorizationPlugin) this.pluginFactory.createPluginInstance(className);
+        if (className.equals(org.fogbowcloud.ras.core.plugins.aaa.authorization.
+                ComposedAuthorizationPlugin.class.getName())) {
+            String confPath = this.properties.
+                    getProperty(ConfigurationConstants.COMPOSED_AUTHORIZATION_PLUGIN_CONF_FILE);
+            ComposedAuthorizationPlugin composedAuthorizationPlugin =
+                    new ComposedAuthorizationPlugin(HomeDir.getPath() + confPath);
+            return composedAuthorizationPlugin;
+        } else {
+            return (AuthorizationPlugin) this.pluginFactory.createPluginInstance(className);
+        }
     }
 
     public FederationToLocalMapperPlugin getLocalUserCredentialsMapperPlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.LOCAL_USER_CREDENTIALS_MAPPER_PLUGIN_CLASS_KEY);
+        String className = this.properties.
+                getProperty(ConfigurationConstants.LOCAL_USER_CREDENTIALS_MAPPER_PLUGIN_CLASS_KEY);
         return (FederationToLocalMapperPlugin) this.pluginFactory.createPluginInstance(className);
     }
 
