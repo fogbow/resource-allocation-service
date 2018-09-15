@@ -76,7 +76,7 @@ public class OpenProcessor implements Runnable {
                     order.setInstanceId(orderInstanceId);
                     updateOrderStateAfterProcessing(order);
                 } catch (Exception e) {
-                    LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_INSTANCE_FOR_ORDER, order), e);
+                    LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_INSTANCE_FROM_REQUEST, order), e);
                     order.setCachedInstanceState(InstanceState.FAILED);
                     OrderStateTransitioner.transition(order, OrderState.FAILED);
                 }
@@ -94,7 +94,7 @@ public class OpenProcessor implements Runnable {
             if (orderInstanceId != null) {
                 OrderStateTransitioner.transition(order, OrderState.SPAWNING);
             } else {
-                throw new UnexpectedException(String.format(Messages.Exception.ORDER_INSTANCE_NULL, order.getId()));
+                throw new UnexpectedException(String.format(Messages.Exception.REQUEST_INSTANCE_NULL, order.getId()));
             }
         } else {
             OrderStateTransitioner.transition(order, OrderState.PENDING);

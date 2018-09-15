@@ -17,7 +17,7 @@ public class OrderStateTransitioner {
     private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
 
     public static void activateOrder(Order order) throws UnexpectedException {
-        LOGGER.info(Messages.Info.ACTIVATING_NEW_ORDER);
+        LOGGER.info(Messages.Info.ACTIVATING_NEW_REQUEST);
 
         if (order == null) {
             throw new UnexpectedException(Messages.Exception.UNABLE_TO_PROCESS_EMPTY_REQUEST);
@@ -31,7 +31,7 @@ public class OrderStateTransitioner {
             String orderId = order.getId();
 
             if (activeOrdersMap.containsKey(orderId)) {
-                String message = String.format(Messages.Exception.ORDER_ID_ALREADY_ACTIVATED, orderId);
+                String message = String.format(Messages.Exception.REQUEST_ID_ALREADY_ACTIVATED, orderId);
                 throw new UnexpectedException(message);
             }
             order.setOrderState(OrderState.OPEN);

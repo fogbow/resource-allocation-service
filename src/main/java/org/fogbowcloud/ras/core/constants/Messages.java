@@ -3,15 +3,15 @@ package org.fogbowcloud.ras.core.constants;
 public class Messages {
 
     public static class Exception {
-        public static final String ATTEMPTING_TO_ADD_A_NULL_ORDER = "Attempting to add a null order.";
-        public static final String ATTEMPTING_TO_REMOVE_A_NULL_ORDER = "Attempting to remove a null order.";
+        public static final String ATTEMPTING_TO_ADD_A_NULL_REQUEST = "Attempting to add a null request.";
+        public static final String ATTEMPTING_TO_REMOVE_A_NULL_REQUEST = "Attempting to remove a null request.";
         public static final String AUTHENTICATION_ERROR = "Authentication error.";
         public static final String AUTHORIZATION_ERROR = "Authorization error.";
         public static final String EXPIRED_TOKEN = "Token has expired at %s.";
         public static final String FATAL_ERROR = "Fatal error.";
         public static final String FOGBOW_RAS = "Fogbow RAS exception.";
         public static final String INCORRECT_PROVIDING_MEMBER = "Incorrect providing member.";
-        public static final String INEXISTENT_ORDER = "Order does not exist.";
+        public static final String INEXISTENT_REQUEST = "Request does not exist.";
         public static final String INSTANCE_ID_NOT_INFORMED = "No instance identification informed.";
         public static final String INSTANCE_NOT_FOUND = "Instance not found.";
         public static final String INVALID_CIDR = "CIDR %s is not valid.";
@@ -28,10 +28,10 @@ public class Messages {
         public static final String NO_PROJECT_ID = "No projectId in local token.";
         public static final String NO_USER_CREDENTIALS = "No user credentials given.";
         public static final String NULL_VALUE_RETURNED = "Plugin returned a null value for the instanceId.";
-        public static final String ORDER_ALREADY_EXIST = "Order already exists.";
-        public static final String ORDER_ID_ALREADY_ACTIVATED = "Order %s has already been activated.";
-        public static final String ORDER_INSTANCE_NULL = "Order instance id for order %s is null.";
-        public static final String PLUGIN_FOR_REQUEST_INSTANCE_NOT_IMPLEMENTED = "No requestInstance method implemented for order %s.";
+        public static final String REQUEST_ALREADY_EXIST = "Request already exists.";
+        public static final String REQUEST_ID_ALREADY_ACTIVATED = "Request %s has already been activated.";
+        public static final String REQUEST_INSTANCE_NULL = "Request instance id for request %s is null.";
+        public static final String PLUGIN_FOR_REQUEST_INSTANCE_NOT_IMPLEMENTED = "No requestInstance method implemented for request %s.";
         public static final String PORT_NOT_FOUND = "No port found connecting virtual machine %s to default network %s.";
         public static final String QUOTA_ENDPOINT_NOT_IMPLEMENTED = "Quota endpoint for %s not yet implemented.";
         public static final String QUOTA_EXCEEDED = "Quota exceeded.";
@@ -47,7 +47,7 @@ public class Messages {
         public static final String UNABLE_TO_SIGN_LDAP_TOKEN = "Unable to sign LDAP token.";
         public static final String UNAVAILABLE_PROVIDER = "Provider is not available.";
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
-        public static final String UNSUPPORTED_ORDER_TYPE = "Order type %s not supported.";
+        public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
         public static final String WRONG_URI_SYNTAX = "Wrong syntax for endpoint %s.";
     }
 
@@ -75,33 +75,33 @@ public class Messages {
         public static final String UNABLE_TO_ENCODE_EXTRA_USER_DATA = "Unable to encode user data; sending request without it.";
         public static final String UNABLE_TO_DECODE_URL = "Unable to decode url %s.";
         public static final String UNABLE_TO_GENERATE_SIGNATURE = "Unable to generate signature.";
-        public static final String UNABLE_TO_NOTIFY_REQUESTING_MEMBER = "Unable to notify requesting member %s for order %s.";
+        public static final String UNABLE_TO_NOTIFY_REQUESTING_MEMBER = "Unable to notify requesting member %s for request %s.";
         public static final String UNABLE_TO_RETRIEVE_ROOT_VOLUME = "Unable to retrieve root volume for virtual machine %s; assigning -1 to disk size.";
     }
 
     public static class Info {
-        public static final String ACTIVATING_NEW_ORDER = "Activating new order request received.";
+        public static final String ACTIVATING_NEW_REQUEST = "Activating new request.";
         public static final String DELETING_INSTANCE = "Deleting instance %s with token %s.";
         public static final String GETTING_INSTANCE = "Getting instance %s with token %s.";
-        public static final String GETTING_INSTANCE_FOR_ORDER = "Trying to get an instance for order %s.";
-        public static final String INSTANCE_HAS_FAILED = "Instance associated to order %s has failed.";
-        public static final String RECEIVING_REMOTE_REQUEST_FOR_ORDER = "Received remote request for order %s.";
-        public static final String RECEIVING_REQUEST_FOR_COMPUTE_QUOTA = "Get compute %s request for member %s received.";
-        public static final String RECEIVING_REQUEST_FOR_CREATE = "Create request for %s received.";
-        public static final String RECEIVING_REQUEST_FOR_CREATE_TOKEN = "Create token request received with a credentials map of size %s.";
-        public static final String RECEIVING_REQUEST_FOR_DELETE_ORDER = "Delete request for %s %s received.";
-        public static final String RECEIVING_REQUEST_FOR_GET_ALL_IMAGES = "Get all images request received.";
-        public static final String RECEIVING_REQUEST_FOR_GET_ALL_ORDER = "Get status request for all %s received.";
-        public static final String RECEIVING_REQUEST_FOR_GET_IMAGE = "Get request for image %s received.";
-        public static final String RECEIVING_REQUEST_FOR_GET_ORDER = "Get request for %s %s received.";
-        public static final String RECEIVING_REQUEST_FOR_GET_VERSION = "Get request for version received.";
+        public static final String GETTING_INSTANCE_FOR_REQUEST = "Trying to get an instance for request %s.";
+        public static final String INSTANCE_HAS_FAILED = "Instance associated to request %s has failed.";
+        public static final String RECEIVING_COMPUTE_QUOTA_REQUEST = "Get compute %s request for member %s received.";
+        public static final String RECEIVING_CREATE_REQUEST = "Create request for %s received.";
+        public static final String RECEIVING_CREATE_TOKEN_REQUEST = "Create token request received with a credentials map of size %s.";
+        public static final String RECEIVING_DELETE_REQUEST = "Delete request for %s %s received.";
+        public static final String RECEIVING_GET_ALL_IMAGES_REQUEST = "Get all images request received.";
+        public static final String RECEIVING_GET_ALL_REQUEST = "Get status request for all %s received.";
+        public static final String RECEIVING_GET_IMAGE_REQUEST = "Get request for image %s received.";
+        public static final String RECEIVING_GET_REQUEST = "Get request for %s %s received.";
+        public static final String RECEIVING_GET_VERSION_REQUEST = "Get request for version received.";
+        public static final String RECEIVING_REMOTE_REQUEST = "Received remote request for request %s.";
         public static final String STARTING_THREADS = "Starting processor threads.";
     }
 
     public static class Error {
         public static final String DELETE_INSTANCE_PLUGIN_NOT_IMPLEMENTED = "No deleteInstance plugin implemented for resource type %s.";
         public static final String ERROR_WHILE_CONSUMING_RESPONSE = "Error while consuming response %s.";
-        public static final String ERROR_WHILE_GETTING_INSTANCE_FOR_ORDER = "Error while trying to get an instance for order %s.";
+        public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_REQUEST = "Error while trying to get an instance for request %s.";
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD = "Error while getting instance from the cloud.";
         public static final String ERROR_WHILE_GETTING_NEW_CONNECTION = "Error while getting a new connection from the connection pool.";
         public static final String ERROR_WHILE_GETTING_VOLUME_INSTANCE = "Error while getting volume instance.";

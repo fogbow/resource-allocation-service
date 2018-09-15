@@ -26,7 +26,7 @@ public class ImageRequestController {
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
             @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId)
             throws Exception {
-        LOGGER.info(Messages.Info.RECEIVING_REQUEST_FOR_GET_ALL_IMAGES);
+        LOGGER.info(Messages.Info.RECEIVING_GET_ALL_IMAGES_REQUEST);
         Map<String, String> imagesMap = ApplicationFacade.getInstance().getAllImages(memberId, federationTokenValue);
         return new ResponseEntity<>(imagesMap, HttpStatus.OK);
     }
@@ -36,7 +36,7 @@ public class ImageRequestController {
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
             @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.RECEIVING_REQUEST_FOR_GET_IMAGE, imageId));
+        LOGGER.info(String.format(Messages.Info.RECEIVING_GET_IMAGE_REQUEST, imageId));
         Image image = ApplicationFacade.getInstance().getImage(memberId, imageId, federationTokenValue);
         return new ResponseEntity<>(image, HttpStatus.OK);
     }

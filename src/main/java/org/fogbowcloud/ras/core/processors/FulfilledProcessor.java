@@ -94,7 +94,7 @@ public class FulfilledProcessor implements Runnable {
             if (!orderState.equals(OrderState.FULFILLED)) {
                 return;
             }
-            LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_FOR_ORDER, order.getId()));
+            LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_FOR_REQUEST, order.getId()));
             try {
                 instance = this.localCloudConnector.getInstance(order);
             } catch (Exception e) {
