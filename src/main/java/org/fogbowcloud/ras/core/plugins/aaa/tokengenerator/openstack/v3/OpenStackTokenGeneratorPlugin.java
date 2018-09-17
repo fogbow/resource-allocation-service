@@ -26,10 +26,11 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     public static final String V3_TOKENS_ENDPOINT_PATH = "/auth/tokens";
     public static final String X_SUBJECT_TOKEN = "X-Subject-Token";
     public static final String TOKEN_VALUE_SEPARATOR = "!#!";
-    public static final String PROJECT_ID = "projectId";
+    public static final String PROJECT_ID = "projectName";
     public static final String PASSWORD = "password";
     public static final String USER_ID = "userId";
     //    public static final String AUTH_URL = "authUrl";
+
     private String v3TokensEndpoint;
     private HttpRequestClientUtil client;
     private String tokenProviderId;
@@ -54,6 +55,34 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
         return true;
     }
 
+    /**
+     * {
+     *     "auth": {
+     *         "identity": {
+     *             "methods": [
+     *                 "password"
+     *             ],
+     *             "password": {
+     *                 "user": {
+     *                 	"domain": {
+     *                     	"name": "LSD"
+     *             		},
+     *                     "name": "fogbow",
+     *                     "password": "c24313A4a31a"
+     *                 }
+     *             }
+     *         },
+     *         "scope": {
+     *             "project": {
+     *                 "domain": {
+     *                     "name": "LSD"
+     *                 },
+     *                 "name": "atmosphere-workers"
+     *             }
+     *         }
+     *     }
+     * }
+     */
     @Override
     public String createTokenValue(Map<String, String> credentials) throws FogbowRasException,
             UnexpectedException {
@@ -107,7 +136,7 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
         String password = credentials.get(PASSWORD);
 
         CreateTokenRequest createTokenRequest = new CreateTokenRequest.Builder()
-                .projectId(projectId)
+                .projectName(projectId)
                 .userId(userId)
                 .password(password)
                 .build();

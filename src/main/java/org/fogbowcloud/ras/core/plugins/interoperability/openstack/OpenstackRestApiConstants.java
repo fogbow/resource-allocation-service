@@ -85,6 +85,7 @@ public class OpenstackRestApiConstants {
         public static final String USER_KEY_JSON = "user";
         public static final String NAME_KEY_JSON = "name";
         public static final String SCOPE_KEY_JSON = "scope";
+        public static final String DOMAIN_KEY_JSON = "domain";
         public static final String TOKEN_KEY_JSON = "token";
         public static final String METHODS_KEY_JSON = "methods";
         public static final String METHODS_PASSWORD_VALUE_JSON = "password";

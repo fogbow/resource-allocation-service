@@ -34,11 +34,17 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.Openst
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class CreateTokenRequest implements JsonSerializable {
+
+    public static final String PASSWORD_AUTHENTICATION_METHOD = "password";
     @SerializedName(AUTH_KEY_JSON)
     private Auth auth;
 
-    public CreateTokenRequest(Auth auth) {
-        this.auth = auth;
+    public CreateTokenRequest(Builder builder) {
+        Domain domain = new Domain(builder.domain);
+        User user = new User(builder.userName, builder.password, domain);
+        Password password = new Password(user);
+
+        String[] methods = new String[] { PASSWORD_AUTHENTICATION_METHOD };
     }
 
     @Override
@@ -51,20 +57,11 @@ public class CreateTokenRequest implements JsonSerializable {
         private Scope scope;
         @SerializedName(IDENTITY_KEY_JSON)
         private Identity identity;
-
-        public Auth(Builder builder) {
-            this.scope = new Scope(builder);
-            this.identity = new Identity(builder);
-        }
     }
 
     private static class Scope {
         @SerializedName(PROJECT_KEY_JSON)
         private Project project;
-
-        public Scope(Builder builder) {
-            this.project = new Project(builder);
-        }
     }
 
     private static class Identity {
@@ -72,55 +69,61 @@ public class CreateTokenRequest implements JsonSerializable {
         private Password password;
         @SerializedName(METHODS_KEY_JSON)
         private String[] methods;
-
-        public Identity(Builder builder) {
-            this.password = new Password(builder);
-            this.methods = new String[]{METHODS_PASSWORD_VALUE_JSON};
-        }
     }
 
     private static class Project {
-        @SerializedName(ID_KEY_JSON)
-        private String id;
-
-        public Project(Builder builder) {
-            this.id = builder.projectId;
-        }
+        @SerializedName(DOMAIN_KEY_JSON)
+        private Domain domain;
+        @SerializedName(NAME_KEY_JSON)
+        private String name;
     }
 
     private static class Password {
         @SerializedName(USER_KEY_JSON)
         private User user;
 
-        public Password(Builder builder) {
-            this.user = new User(builder);
+        public Password(User user) {
+            this.user = user;
         }
     }
 
     private static class User {
-        @SerializedName(ID_KEY_JSON)
-        private String id;
+        @SerializedName(NAME_KEY_JSON)
+        private String name;
         @SerializedName(PASSWORD_KEY_JSON)
         private String password;
+        @SerializedName(DOMAIN_KEY_JSON)
+        private Domain domain;
 
-        public User(Builder builder) {
-            this.id = builder.userId;
-            this.password = builder.password;
+        public User(String name, String password, Domain domain) {
+            this.name = name;
+            this.password = password;
+            this.domain = domain;
+        }
+    }
+
+    public static class Domain {
+        @SerializedName(NAME_KEY_JSON)
+        private String name;
+
+        public Domain(String name) {
+            this.name = name;
         }
     }
 
     public static class Builder {
-        private String projectId;
-        private String userId;
+        private String projectName;
+        private String userName;
         private String password;
+        private String domain;
 
-        public Builder projectId(String projectId) {
-            this.projectId = projectId;
+        public Builder projectName(String projectName) {
+            this.projectName = projectName;
             return this;
         }
 
-        public Builder userId(String userId) {
-            this.userId = userId;
+        public Builder userName(String userName) {
+            this.userName = userName;
             return this;
         }
 
@@ -129,8 +132,13 @@ public class CreateTokenRequest implements JsonSerializable {
             return this;
         }
 
+        public Builder domain(String domain) {
+            this.domain = domain;
+            return this;
+        }
+
         public CreateTokenRequest build() {
-            return new CreateTokenRequest(new Auth(this));
+            return new CreateTokenRequest(this);
         }
     }
 }
