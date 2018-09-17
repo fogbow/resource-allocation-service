@@ -16,7 +16,7 @@ import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
 
-public class LdapAuthenticationPlugin implements AuthenticationPlugin {
+public class LdapAuthenticationPlugin implements AuthenticationPlugin<FederationUserToken> {
     private static final Logger LOGGER = Logger.getLogger(LdapAuthenticationPlugin.class);
 
     private String localProviderId;

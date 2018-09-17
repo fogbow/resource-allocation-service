@@ -1,65 +1,74 @@
 package org.fogbowcloud.ras.core.plugins.aaa.authentication.openstack;
 
-import org.apache.http.client.HttpResponseException;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.interfaces.RSAPublicKey;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.UnavailableProviderException;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.OpenStackTokenGeneratorPlugin;
-import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+import org.fogbowcloud.ras.util.RSAUtil;
 
-import java.util.Properties;
+public class OpenStackAuthenticationPlugin implements AuthenticationPlugin<OpenStackV3Token> {
 
-public class OpenStackAuthenticationPlugin implements AuthenticationPlugin {
-    private static final Logger LOGGER = Logger.getLogger(OpenStackTokenGeneratorPlugin.class);
-
-    private String v3TokensEndpoint;
-    private HttpRequestClientUtil client;
     private String localProviderId;
+    private RSAPublicKey publicKey;
 
     public OpenStackAuthenticationPlugin() {
-        Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
-
-        String identityUrl = properties.getProperty(OpenStackTokenGeneratorPlugin.OPENSTACK_KEYSTONE_V3_URL);
-        if (isUrlValid(identityUrl)) {
-            this.v3TokensEndpoint = identityUrl + OpenStackTokenGeneratorPlugin.V3_TOKENS_ENDPOINT_PATH;
-        }
-        this.client = new HttpRequestClientUtil();
         this.localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+
+        try {
+            this.publicKey = getPublicKey();
+        } catch (IOException | GeneralSecurityException e) {
+            throw new FatalErrorException(Messages.Fatal.ERROR_READING_PUBLIC_KEY_FILE);
+        }
     }
 
     @Override
-    public boolean isAuthentic(FederationUserToken federationToken) throws UnavailableProviderException {
-        if (federationToken.getTokenProvider().equals(this.localProviderId)) {
-            try {
-                this.client.doGetRequest(this.v3TokensEndpoint, federationToken);
-                return true;
-            } catch (HttpResponseException e) {
-                return false;
-            }
+    public boolean isAuthentic(OpenStackV3Token openStackV3Token) throws UnavailableProviderException {
+        if (openStackV3Token.getTokenProvider().equals(this.localProviderId)) {
+            String tokenMessage = getTokenMessage(openStackV3Token);
+			String signature = getSignature(openStackV3Token);
+			return verifySign(tokenMessage, signature);
         } else {
+        	// TODO check: why is true ?
             return true;
         }
     }
+    
+    // TODO refactor
+    protected String getTokenMessage(OpenStackV3Token openStackV3Token) {
+    	String[] parameters = new String[] {
+    			openStackV3Token.getTokenProvider(), 
+    			openStackV3Token.getTokenValue(),
+    			openStackV3Token.getUserId(),
+    			openStackV3Token.getUserName(),
+    			openStackV3Token.getProjectId()} ;
+		return StringUtils.join(parameters, OpenStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
+	}
 
-    private boolean isUrlValid(String url) throws FatalErrorException {
-        if (url == null || url.trim().isEmpty()) {
-            throw new FatalErrorException(String.format(Messages.Fatal.INVALID_SERVICE_URL,
-                    OpenStackTokenGeneratorPlugin.OPENSTACK_KEYSTONE_V3_URL));
+    // TODO refactor    
+	protected String getSignature(OpenStackV3Token openStackV3Token) {
+		return openStackV3Token.getSignature();
+	}
+
+	protected boolean verifySign(String tokenMessage, String signature) {
+        try {
+            return RSAUtil.verify(this.publicKey, tokenMessage, signature);
+        } catch (Exception e) {
+            throw new RuntimeException(Messages.Exception.INVALID_TOKEN_SIGNATURE, e);
         }
-        return true;
-    }
+    }    
 
-    // Used in testing
-    protected void setClient(HttpRequestClientUtil client) {
-        this.client = client;
+    protected RSAPublicKey getPublicKey() throws IOException, GeneralSecurityException {
+        return RSAUtil.getPublicKey();
     }
+    
 }

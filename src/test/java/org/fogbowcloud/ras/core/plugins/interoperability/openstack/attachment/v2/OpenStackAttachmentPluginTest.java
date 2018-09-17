@@ -44,7 +44,6 @@ public class OpenStackAttachmentPluginTest {
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_NAME = "fake-name";
     private static final String FAKE_PROJECT_ID = "fake-project-id";
-    private static final String FAKE_PROJECT_NAME = "fake-project-name";
     private AttachmentOrder attachmentOrder;
     private OpenStackAttachmentPlugin openStackAttachmentPlugin;
     private OpenStackV3Token localUserAttributes;
@@ -60,7 +59,7 @@ public class OpenStackAttachmentPluginTest {
         properties.put(OpenStackAttachmentPlugin.COMPUTE_NOVAV2_URL_KEY, FAKE_ENDPOINT);
         properties.put(COMPUTE_NOVAV2_NETWORK_KEY, FAKE_NET_ID);
 
-        this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
+        this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, null);
         this.attachmentOrder =
                 new AttachmentOrder(null, null, null, FAKE_SERVER_ID, FAKE_VOLUME_ID, MOUNT_POINT);
 

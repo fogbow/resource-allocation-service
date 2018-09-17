@@ -49,7 +49,6 @@ public class OpenStackNetworkPluginTest {
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_NAME = "fake-name";
     private static final String FAKE_PROJECT_ID = "fake-project-id";
-    private static final String FAKE_PROJECT_NAME = "fake-project-name";
 
     private static final String SUFFIX_ENDPOINT_DELETE_NETWORK = OpenStackNetworkPlugin.SUFFIX_ENDPOINT_NETWORK +
             File.separator + NETWORK_ID;
@@ -78,7 +77,7 @@ public class OpenStackNetworkPluginTest {
         this.httpRequestClientUtil = Mockito.spy(new HttpRequestClientUtil(this.client));
         this.openStackNetworkPlugin.setClient(this.httpRequestClientUtil);
 
-        this.defaultLocalUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
+        this.defaultLocalUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, null);
     }
 
     @After

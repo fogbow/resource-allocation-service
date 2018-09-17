@@ -27,8 +27,8 @@ public class OpenStackIdentityPlugin implements FederationIdentityPlugin<OpenSta
         String userId = split[2];
         String userName = split[3];
         String projectId = split[4];
-        String projectName = split[5];
+        String signature = split[5];        
 
-        return new OpenStackV3Token(tokenProvider, keystoneTokenValue, userId, userName, projectId, projectName);
+        return new OpenStackV3Token(tokenProvider, keystoneTokenValue, userId, userName, projectId, signature);
     }
 }

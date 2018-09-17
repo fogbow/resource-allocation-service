@@ -51,7 +51,6 @@ public class OpenStackComputePluginTest {
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_NAME = "fake-name";
     private static final String FAKE_PROJECT_ID = "fake-project-id";
-    private static final String FAKE_PROJECT_NAME = "fake-project-name";
 
     private final int bestDisk = 8;
     private final String privateNetworkId = "fake-private-network-id";
@@ -85,11 +84,10 @@ public class OpenStackComputePluginTest {
         this.responseNetworkIds.add(defaultNetworkId);
         this.responseNetworkIds.add(privateNetworkId);
 
-        String tokenValue = "accessID";
         String tenantId = "tenant-id";
         Map<String, String> attributes = new HashMap<String, String>();
         attributes.put(OpenStackComputePlugin.PROJECT_ID, tenantId);
-        this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
+        this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, null);
 
         this.computePlugin = Mockito.spy(new OpenStackComputePlugin(this.propertiesMock,
                 this.launchCommandGeneratorMock, this.httpRequestClientUtilMock));

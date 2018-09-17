@@ -32,11 +32,10 @@ public class OpenStackPublicIpPluginTest {
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_NAME = "fake-name";
     private static final String FAKE_PROJECT_ID = "fake-project-id";
-    private static final String FAKE_PROJECT_NAME = "fake-project-name";
 
 	@Before
 	public void setUp() {
-        this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
+        this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, null);
         this.httpClient = Mockito.mock(HttpRequestClientUtil.class);
         
         boolean notCheckProperties = false;

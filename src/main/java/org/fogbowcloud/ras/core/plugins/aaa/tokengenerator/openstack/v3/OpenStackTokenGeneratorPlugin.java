@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -14,8 +15,12 @@ import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.util.PropertiesUtil;
+import org.fogbowcloud.ras.util.RSAUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.interfaces.RSAPrivateKey;
 import java.util.Map;
 import java.util.Properties;
 
@@ -29,11 +34,11 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     public static final String PROJECT_ID = "projectName";
     public static final String PASSWORD = "password";
     public static final String USER_ID = "userId";
-    //    public static final String AUTH_URL = "authUrl";
 
     private String v3TokensEndpoint;
     private HttpRequestClientUtil client;
     private String tokenProviderId;
+	private RSAPrivateKey privateKey;
 
     public OpenStackTokenGeneratorPlugin() throws FatalErrorException {
         this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
@@ -45,6 +50,13 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
         if (isUrlValid(identityUrl)) {
             this.v3TokensEndpoint = identityUrl + V3_TOKENS_ENDPOINT_PATH;
         }
+        
+        try {
+            this.privateKey = RSAUtil.getPrivateKey();
+        } catch (IOException | GeneralSecurityException e) {
+            throw new FatalErrorException(String.format(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE, e.getMessage()));
+        }        
+        
         this.client = new HttpRequestClientUtil();
     }
 
@@ -89,19 +101,22 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
             CreateTokenResponse.Project projectTokenResponse = createTokenResponse.getProject();
             String projectId = projectTokenResponse.getId();
-            String projectName = projectTokenResponse.getName();
 
             String tokenString = this.tokenProviderId + TOKEN_VALUE_SEPARATOR + tokenValue + TOKEN_VALUE_SEPARATOR +
-                    userId + TOKEN_VALUE_SEPARATOR + userName + TOKEN_VALUE_SEPARATOR + projectId +
-                    TOKEN_VALUE_SEPARATOR + projectName;
-
-            return tokenString;
+                    userId + TOKEN_VALUE_SEPARATOR + userName + TOKEN_VALUE_SEPARATOR + projectId;
+            
+            String signature = createSignature(tokenString);
+            return tokenString + TOKEN_VALUE_SEPARATOR + signature;
         } catch (Exception e) {
             LOGGER.error(Messages.Error.UNABLE_TO_GET_TOKEN_FROM_JSON, e);
             throw new UnexpectedException(Messages.Error.UNABLE_TO_GET_TOKEN_FROM_JSON, e);
         }
     }
 
+    private String createSignature(String message) throws IOException, GeneralSecurityException {
+        return RSAUtil.sign(this.privateKey, message);
+    }
+    
     private String mountJsonBody(Map<String, String> credentials) {
         String projectId = credentials.get(PROJECT_ID);
         String userId = credentials.get(USER_ID);

@@ -18,7 +18,6 @@ public class OpenStackComputeQuotaPluginTest {
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_NAME = "fake-name";
     private static final String FAKE_PROJECT_ID = "fake-project-id";
-    private static final String FAKE_PROJECT_NAME = "fake-project-name";
 
     private static final String FAKE_QUOTA_JSON_RESPONSE =
             "{\"limits\": {\"rate\": [], \"absolute\": {\"maxServerMeta\": 128, \"maxPersonality\": 5, "
@@ -36,7 +35,7 @@ public class OpenStackComputeQuotaPluginTest {
     public void setUp() throws InvalidParameterException {
         this.plugin = Mockito.spy(new OpenStackComputeQuotaPlugin());
 
-        this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, FAKE_PROJECT_NAME);
+        this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, null);
     }
 
     // test case: Tests if getTotalQuota(), getUsedQuota() and getAvailableQuota() returns the right

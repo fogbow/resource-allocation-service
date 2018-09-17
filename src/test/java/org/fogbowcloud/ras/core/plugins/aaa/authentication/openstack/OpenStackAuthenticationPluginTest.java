@@ -1,6 +1,14 @@
 package org.fogbowcloud.ras.core.plugins.aaa.authentication.openstack;
 
-import org.apache.http.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.ProtocolVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.HttpPost;
@@ -8,21 +16,14 @@ import org.apache.http.message.BasicStatusLine;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.UnavailableProviderException;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
 public class OpenStackAuthenticationPluginTest {
     private OpenStackAuthenticationPlugin authenticationPlugin;
-    private HttpRequestClientUtil httpRequestClientUtil;
     private HttpClient client;
 
     private static final String UTF_8 = "UTF-8";
@@ -34,22 +35,20 @@ public class OpenStackAuthenticationPluginTest {
     @Before
     public void setUp() {
         this.client = Mockito.spy(HttpClient.class);
-        this.httpRequestClientUtil = Mockito.spy(new HttpRequestClientUtil(this.client));
 
         this.userId = "userId";
         this.projectId = "projectId";
         this.providerId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
         this.authenticationPlugin = Mockito.spy(new OpenStackAuthenticationPlugin());
-        this.authenticationPlugin.setClient(this.httpRequestClientUtil);
     }
 
     //test case: check if isAuthentic returns true when the tokenValue is valid.
     @Test
     public void testGetTokenValidTokenValue() throws IOException, UnavailableProviderException {
         //set up
-        FederationUserToken token = new OpenStackV3Token(this.providerId, "fake-token",
-                this.userId, "fake-name", this.projectId, "fake-project-name");
+        OpenStackV3Token token = new OpenStackV3Token(this.providerId, "fake-token",
+                this.userId, "fake-name", this.projectId, null);
         HttpResponse httpResponse = Mockito.mock(HttpResponse.class);
         HttpEntity httpEntity = Mockito.mock(HttpEntity.class);
         String content = "any content";
@@ -72,8 +71,8 @@ public class OpenStackAuthenticationPluginTest {
     @Test
     public void testGetTokenError() throws Exception {
         //set up
-        FederationUserToken token = new OpenStackV3Token(this.providerId, "fake-token",
-                this.userId, "fake-name", this.projectId, "fake-project-name");
+    	OpenStackV3Token token = new OpenStackV3Token(this.providerId, "fake-token",
+                this.userId, "fake-name", this.projectId, null);
         HttpResponse httpResponse = Mockito.mock(HttpResponse.class);
         HttpEntity httpEntity = Mockito.mock(HttpEntity.class);
         String content = "any content";
