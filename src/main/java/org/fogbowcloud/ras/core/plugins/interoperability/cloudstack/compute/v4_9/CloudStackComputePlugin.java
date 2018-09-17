@@ -260,6 +260,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
                     .publicKey(publicKey)
                     .build();
 
+            CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
+
             String jsonResponse = null;
             try {
                 jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
@@ -296,7 +298,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         String success = keypairResponse.getSuccess();
 
         if (!success.equalsIgnoreCase("true")) {
-            LOGGER.error(failureMessage);
+            LOGGER.warn(failureMessage);
         } else {
             LOGGER.info("Deleted keypair " + keypairName);
         }

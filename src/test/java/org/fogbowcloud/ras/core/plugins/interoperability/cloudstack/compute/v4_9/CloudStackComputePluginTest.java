@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
+import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.fogbowcloud.ras.core.HomeDir;
@@ -53,7 +54,8 @@ public class CloudStackComputePluginTest {
     public static final String FAKE_TYPE = "ROOT";
     public static final String FAKE_EXPUNGE = "true";
     public static final String FAKE_MEMBER = "fake-member";
-    public static final String FAKE_PUBLIC_KEY = "fake-member";
+    public static final String FAKE_PUBLIC_KEY = "fake-public-key";
+    public static final String FAKE_KEYPAIR = "fake-keypair";
 
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_USER_ID = "fake-user-id";
@@ -65,6 +67,8 @@ public class CloudStackComputePluginTest {
 
     public static final String JSON = "json";
     public static final String RESPONSE_KEY = "response";
+    public static final String NAME_KEY = "name";
+    public static final String PUBLIC_KEY_KEY = "publickey";
     public static final String ID_KEY = "id";
     public static final String VIRTUAL_MACHINE_ID_KEY = "virtualmachineid";
     public static final String TYPE_KEY = "type";
@@ -75,6 +79,7 @@ public class CloudStackComputePluginTest {
     public static final String TEMPLATE_ID_KEY = "templateid";
     public static final String DISK_OFFERING_ID_KEY = "diskofferingid";
     public static final String NETWORK_IDS_KEY = "networkids";
+    public static final String KEYPAIR_KEY = "keypair";
     public static final String USER_DATA_KEY = "userdata";
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
 
@@ -103,9 +108,10 @@ public class CloudStackComputePluginTest {
         this.plugin.setClient(this.client);
     }
 
-    // Test case: when deploying a virtual machine, the token should be signed and three HTTP GET requests should be made:
-    // one to retrieve the service offerings from the cloudstack compute service, one to retrieve disk offerings
-    // from the cloudstack volume service and one last request to the compute service to actually create the vm and return its id.
+    // Test case: when deploying a virtual machine, the token should be signed and five HTTP GET requests should be made:
+    // 1) retrieve the service offerings from the cloudstack compute service; 2) retrieve disk offerings
+    // from the cloudstack volume service; 3) register ssh keypair using public key passed in the order; // 4) request
+    // to the compute service to actually create the vm; 5) delete keypair used to created the vm.
     @Test
     public void testRequestInstance() throws FogbowRasException, HttpResponseException, UnexpectedException, UnsupportedEncodingException {
         // set up
@@ -113,6 +119,8 @@ public class CloudStackComputePluginTest {
         String computeCommand = DeployVirtualMachineRequest.DEPLOY_VM_COMMAND;
         String serviceOfferingsCommand = GetAllServiceOfferingsRequest.LIST_SERVICE_OFFERINGS_COMMAND;
         String diskOfferingsCommand = GetAllDiskOfferingsRequest.LIST_DISK_OFFERINGS_COMMAND;
+        String registerSSHKeypairCommand = RegisterSSHKeypairRequest.REGISTER_KEYPAIR_COMMAND;
+        String deleteSSHKeypairCommand = DeleteSSHKeypairRequest.DELETE_KEYPAIR_COMMAND;
 
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
@@ -131,9 +139,16 @@ public class CloudStackComputePluginTest {
                 RESPONSE_KEY, JSON);
         String expectedDiskOfferingsRequestUrl = generateExpectedUrl(endpoint, diskOfferingsCommand,
                 RESPONSE_KEY, JSON);
+        // NOTE(pauloewerton): keypair name is randomly generated, so not passing it to create the request url
+        String expectedRegisterSSHKeyPairRequestUrl = generateExpectedUrl(endpoint, registerSSHKeypairCommand,
+                RESPONSE_KEY, JSON);
+        String expectedDeleteSSHKeyPairRequestUrl = generateExpectedUrl(endpoint, deleteSSHKeypairCommand,
+                RESPONSE_KEY, JSON);
 
         String fakeServiceOfferingId = "fake-service-offering-id";
         String fakeDiskOfferingId = "fake-disk-offering-id";
+        String fakeKeyPair = "fake-keypair-name";
+        String fakeSuccess = "true";
 
         Map<String, String> expectedParams = new HashMap<>();
         expectedParams.put(COMMAND_KEY, computeCommand);
@@ -144,17 +159,24 @@ public class CloudStackComputePluginTest {
         expectedParams.put(DISK_OFFERING_ID_KEY, fakeDiskOfferingId);
         expectedParams.put(USER_DATA_KEY, fakeUserDataString);
         expectedParams.put(NETWORK_IDS_KEY, fakeNetworkIdsString);
+        expectedParams.put(KEYPAIR_KEY, fakeKeyPair);
         CloudStackUrlMatcher urlMatcher = new CloudStackUrlMatcher(expectedParams);
 
         String serviceOfferingResponse = getListServiceOfferrings(fakeServiceOfferingId, "fake-service-offering",
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY));
         String diskOfferingResponse = getListDiskOfferrings(fakeDiskOfferingId, Integer.parseInt(FAKE_DISK),true);
+        String keypairResponse = getRegisterKeypair(fakeKeyPair);
+        String deleteKeypairResponse = getDeleteKeypair(fakeSuccess);
         String computeResponse = getDeployVirtualMachineResponse(FAKE_ID);
 
         Mockito.when(this.client.doGetRequest(Mockito.eq(expectedServiceOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
                 .thenReturn(serviceOfferingResponse);
         Mockito.when(this.client.doGetRequest(Mockito.eq(expectedDiskOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
                 .thenReturn(diskOfferingResponse);
+        Mockito.when(this.client.doGetRequest(Mockito.startsWith(expectedRegisterSSHKeyPairRequestUrl), Mockito.eq(FAKE_TOKEN)))
+                .thenReturn(keypairResponse);
+        Mockito.when(this.client.doGetRequest(Mockito.startsWith(expectedDeleteSSHKeyPairRequestUrl), Mockito.eq(FAKE_TOKEN)))
+                .thenReturn(deleteKeypairResponse);
         Mockito.when(this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN))).thenReturn(computeResponse);
 
         // exercise
@@ -166,7 +188,7 @@ public class CloudStackComputePluginTest {
         // verify
         Assert.assertEquals(FAKE_ID, createdVirtualMachineId);
 
-        PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(3));
+        PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(5));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.argThat(urlMatcher),
@@ -227,7 +249,7 @@ public class CloudStackComputePluginTest {
                 .doGetRequest(expectedServiceOfferingsRequestUrl, FAKE_TOKEN);
     }
 
-    // Test case: when no mininum service offering is found to fulfill the order, raise exeception
+    // Test case: when no mininum service offering is found to fulfill the order, raise exception
     @Test(expected = FogbowRasException.class)
     public void testRequestInstanceServiceOfferingNotFound() throws FogbowRasException, HttpResponseException, UnexpectedException {
         // set up
@@ -265,7 +287,7 @@ public class CloudStackComputePluginTest {
                 .doGetRequest(expectedServiceOfferingsRequestUrl, FAKE_TOKEN);
     }
 
-    // Test case: fail to retrieve disk offerings from cloudstack compute service on request instance
+    // Test case: raise exception on fail to retrieve disk offerings from cloudstack compute service on request instance
     @Test(expected = FogbowRasException.class)
     public void testRequestInstanceDiskOfferingRequestException() throws FogbowRasException, HttpResponseException, UnexpectedException {
         // set up
@@ -307,7 +329,7 @@ public class CloudStackComputePluginTest {
                 .doGetRequest(expectedDiskOfferingsRequestUrl, FAKE_TOKEN);
     }
 
-    // Test case: send deploy virtual machine request with no disk paramater in case no minimum disk offering is found
+    // Test case: send deploy virtual machine request with no disk parameter in case no minimum disk offering is found
     // for the order
     @Test
     public void testRequestInstanceDiskOfferingNotFound() throws FogbowRasException, HttpResponseException, UnexpectedException, UnsupportedEncodingException {
@@ -373,6 +395,191 @@ public class CloudStackComputePluginTest {
                 .doGetRequest(expectedDiskOfferingsRequestUrl, FAKE_TOKEN);
         Mockito.verify(this.client, Mockito.times(1))
                 .doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN));
+    }
+
+    // Test case: request instance should work even when no public key is sent.
+    @Test
+    public void testRequestInstanceNoPublicKey() throws FogbowRasException, HttpResponseException, UnexpectedException,
+            UnsupportedEncodingException {
+        // set up
+        String endpoint = getBaseEndpointFromCloudStackConf();
+        String computeCommand = DeployVirtualMachineRequest.DEPLOY_VM_COMMAND;
+        String serviceOfferingsCommand = GetAllServiceOfferingsRequest.LIST_SERVICE_OFFERINGS_COMMAND;
+        String diskOfferingsCommand = GetAllDiskOfferingsRequest.LIST_DISK_OFFERINGS_COMMAND;
+
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+
+        String fakeImageId = "fake-image-id";
+
+        UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
+        String fakeUserDataString = Base64.getEncoder().encodeToString(
+                fakeUserData.getExtraUserDataFileContent().getBytes("UTF-8"));
+
+        List<String> fakeNetworkdIds = new ArrayList<>();
+        fakeNetworkdIds.add(FAKE_NETWORK_ID);
+        String fakeNetworkIdsString = "fake-default-network-id," + FAKE_NETWORK_ID;
+
+        String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand,
+                RESPONSE_KEY, JSON);
+        String expectedDiskOfferingsRequestUrl = generateExpectedUrl(endpoint, diskOfferingsCommand,
+                RESPONSE_KEY, JSON);
+
+        String fakeServiceOfferingId = "fake-service-offering-id";
+        String fakeDiskOfferingId = "fake-disk-offering-id";
+        String fakeKeyPair = "fake-keypair-name";
+        String fakeSuccess = "true";
+
+        Map<String, String> expectedParams = new HashMap<>();
+        expectedParams.put(COMMAND_KEY, computeCommand);
+        expectedParams.put(RESPONSE_KEY, JSON);
+        expectedParams.put(ZONE_ID_KEY, fakeZoneId);
+        expectedParams.put(TEMPLATE_ID_KEY, fakeImageId);
+        expectedParams.put(SERVICE_OFFERING_ID_KEY, fakeServiceOfferingId);
+        expectedParams.put(DISK_OFFERING_ID_KEY, fakeDiskOfferingId);
+        expectedParams.put(USER_DATA_KEY, fakeUserDataString);
+        expectedParams.put(NETWORK_IDS_KEY, fakeNetworkIdsString);
+        CloudStackUrlMatcher urlMatcher = new CloudStackUrlMatcher(expectedParams);
+
+        String serviceOfferingResponse = getListServiceOfferrings(fakeServiceOfferingId, "fake-service-offering",
+                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY));
+        String diskOfferingResponse = getListDiskOfferrings(fakeDiskOfferingId, Integer.parseInt(FAKE_DISK),true);
+        String computeResponse = getDeployVirtualMachineResponse(FAKE_ID);
+
+        Mockito.when(this.client.doGetRequest(Mockito.eq(expectedServiceOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
+                .thenReturn(serviceOfferingResponse);
+        Mockito.when(this.client.doGetRequest(Mockito.eq(expectedDiskOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
+                .thenReturn(diskOfferingResponse);
+        Mockito.when(this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN))).thenReturn(computeResponse);
+
+        // exercise
+        String publicKey = null;
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
+                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
+                Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, publicKey, fakeNetworkdIds);
+        String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
+
+        // verify
+        Assert.assertEquals(FAKE_ID, createdVirtualMachineId);
+
+        // Verifying no keypair requests are sent
+        PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(3));
+        CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
+
+        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.argThat(urlMatcher),
+                Mockito.eq(FAKE_TOKEN));
+    }
+
+    // Test case: throw exception on fail to register keypair
+    @Test(expected = FogbowRasException.class)
+    public void testRequestInstanceRegisterSSHKeyFail() throws FogbowRasException, HttpResponseException, UnexpectedException {
+        // set up
+        String endpoint = getBaseEndpointFromCloudStackConf();
+        String serviceOfferingsCommand = GetAllServiceOfferingsRequest.LIST_SERVICE_OFFERINGS_COMMAND;
+        String diskOfferingsCommand = GetAllDiskOfferingsRequest.LIST_DISK_OFFERINGS_COMMAND;
+        String registerSSHKeypairCommand = RegisterSSHKeypairRequest.REGISTER_KEYPAIR_COMMAND;
+
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+
+        String fakeImageId = "fake-image-id";
+
+        UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
+
+        List<String> fakeNetworkdIds = new ArrayList<>();
+        fakeNetworkdIds.add(FAKE_NETWORK_ID);
+
+        String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand,
+                RESPONSE_KEY, JSON);
+        String expectedDiskOfferingsRequestUrl = generateExpectedUrl(endpoint, diskOfferingsCommand,
+                RESPONSE_KEY, JSON);
+        // NOTE(pauloewerton): keypair name is randomly generated, so not passing it to create the request url
+        String expectedRegisterSSHKeyPairRequestUrl = generateExpectedUrl(endpoint, registerSSHKeypairCommand,
+                RESPONSE_KEY, JSON);
+
+        String fakeServiceOfferingId = "fake-service-offering-id";
+        String fakeDiskOfferingId = "fake-disk-offering-id";
+
+        String serviceOfferingResponse = getListServiceOfferrings(fakeServiceOfferingId, "fake-service-offering",
+                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY));
+        String diskOfferingResponse = getListDiskOfferrings(fakeDiskOfferingId, Integer.parseInt(FAKE_DISK),true);
+
+        Mockito.when(this.client.doGetRequest(Mockito.eq(expectedServiceOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
+                .thenReturn(serviceOfferingResponse);
+        Mockito.when(this.client.doGetRequest(Mockito.eq(expectedDiskOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
+                .thenReturn(diskOfferingResponse);
+        Mockito.when(this.client.doGetRequest(Mockito.startsWith(expectedRegisterSSHKeyPairRequestUrl), Mockito.eq(FAKE_TOKEN)))
+                .thenThrow(new HttpResponseException(HttpStatus.SC_BAD_REQUEST, ""));
+
+        // exercise
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
+                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
+                Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+        String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
+
+        // verify
+        CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
+        PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(3));
+    }
+
+    // Test case: throw exception on fail to delete keypair
+    @Test(expected = FogbowRasException.class)
+    public void testRequestInstanceDeleteSSHKeyFail() throws FogbowRasException, HttpResponseException, UnexpectedException,
+            UnsupportedEncodingException {
+        // set up
+        String endpoint = getBaseEndpointFromCloudStackConf();
+        String serviceOfferingsCommand = GetAllServiceOfferingsRequest.LIST_SERVICE_OFFERINGS_COMMAND;
+        String diskOfferingsCommand = GetAllDiskOfferingsRequest.LIST_DISK_OFFERINGS_COMMAND;
+        String registerSSHKeypairCommand = RegisterSSHKeypairRequest.REGISTER_KEYPAIR_COMMAND;
+        String deleteSSHKeypairCommand = DeleteSSHKeypairRequest.DELETE_KEYPAIR_COMMAND;
+
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+
+        String fakeImageId = "fake-image-id";
+
+        UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
+
+        List<String> fakeNetworkdIds = new ArrayList<>();
+        fakeNetworkdIds.add(FAKE_NETWORK_ID);
+
+        String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand,
+                RESPONSE_KEY, JSON);
+        String expectedDiskOfferingsRequestUrl = generateExpectedUrl(endpoint, diskOfferingsCommand,
+                RESPONSE_KEY, JSON);
+        // NOTE(pauloewerton): keypair name is randomly generated, so not passing it to create the request url
+        String expectedRegisterSSHKeyPairRequestUrl = generateExpectedUrl(endpoint, registerSSHKeypairCommand,
+                RESPONSE_KEY, JSON);
+        String expectedDeleteSSHKeyPairRequestUrl = generateExpectedUrl(endpoint, deleteSSHKeypairCommand,
+                RESPONSE_KEY, JSON);
+
+        String fakeServiceOfferingId = "fake-service-offering-id";
+        String fakeDiskOfferingId = "fake-disk-offering-id";
+        String fakeKeyPair = "fake-keypair-name";
+
+        String serviceOfferingResponse = getListServiceOfferrings(fakeServiceOfferingId, "fake-service-offering",
+                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY));
+        String diskOfferingResponse = getListDiskOfferrings(fakeDiskOfferingId, Integer.parseInt(FAKE_DISK),true);
+        String keypairResponse = getRegisterKeypair(fakeKeyPair);
+
+        Mockito.when(this.client.doGetRequest(Mockito.eq(expectedServiceOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
+                .thenReturn(serviceOfferingResponse);
+        Mockito.when(this.client.doGetRequest(Mockito.eq(expectedDiskOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
+                .thenReturn(diskOfferingResponse);
+        Mockito.when(this.client.doGetRequest(Mockito.startsWith(expectedRegisterSSHKeyPairRequestUrl), Mockito.eq(FAKE_TOKEN)))
+                .thenReturn(keypairResponse);
+        Mockito.when(this.client.doGetRequest(Mockito.startsWith(expectedDeleteSSHKeyPairRequestUrl), Mockito.eq(FAKE_TOKEN)))
+                .thenThrow(new HttpResponseException(HttpStatus.SC_BAD_REQUEST, ""));
+
+        // exercise
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
+                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
+                Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+        String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
+
+        // verify
+        PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(4));
+        CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
     }
 
     // Test case: http request fails on attempting to deploy a new virtual machine
@@ -713,6 +920,22 @@ public class CloudStackComputePluginTest {
                 + "}]}}";
 
         return String.format(response, id, name, cpuNumber, memory);
+    }
+
+    private String getRegisterKeypair(String name) {
+        String response = "{\"registersshkeypairresponse\":{" + "\"keypair\":{"
+                + "\"name\": \"%s\""
+                + "}}}";
+
+        return String.format(response, name);
+    }
+
+    private String getDeleteKeypair(String success) {
+        String response = "{\"deletesshkeypairresponse\":{"
+                + "\"success\": \"%s\""
+                + "}}";
+
+        return String.format(response, success);
     }
 
     private String getDeployVirtualMachineResponse(String id) {
