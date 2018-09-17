@@ -137,7 +137,6 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
         CreateTokenRequest createTokenRequest = new CreateTokenRequest.Builder()
                 .projectName(projectId)
-                .userId(userId)
                 .password(password)
                 .build();
 

@@ -13,10 +13,10 @@ public class CreateTokenRequestTest {
     @Test
     public void testCompleteTokenRequestToJson() {
         CreateTokenRequest request = new CreateTokenRequest.Builder()
-            .projectName(PROJECT_NAME)
-            .password(PASSWORD)
-            .userId(USER)
-            .domain(DOMAIN)
+//            .projectName(PROJECT_NAME)
+//            .password(PASSWORD)
+//            .userId(USER)
+//            .domain(DOMAIN)
             .build();
 
         Assert.assertEquals(
