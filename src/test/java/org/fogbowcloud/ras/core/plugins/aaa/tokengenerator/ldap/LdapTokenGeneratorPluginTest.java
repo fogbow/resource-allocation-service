@@ -4,10 +4,11 @@ import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.InvalidUserCredentialsException;
+import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.LdapToken;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.ldap.LdapAuthenticationPlugin;
-import org.fogbowcloud.ras.core.plugins.aaa.identity.ldap.LdapFederationIdentityPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.identity.ldap.LdapIdentityPlugin;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,19 +24,19 @@ public class LdapTokenGeneratorPluginTest {
 
     private LdapTokenGeneratorPlugin ldapTokenGenerator;
     private LdapAuthenticationPlugin ldapAuthenticationPlugin;
-    private LdapFederationIdentityPlugin ldapFederationIdentityPlugin;
+    private LdapIdentityPlugin ldapIdentityPlugin;
 
     @Before
     public void setUp() {
         this.ldapTokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
         this.ldapAuthenticationPlugin = new LdapAuthenticationPlugin();
-        this.ldapFederationIdentityPlugin = new LdapFederationIdentityPlugin();
+        this.ldapIdentityPlugin = new LdapIdentityPlugin();
     }
 
     //test case: createTokenValue with valid credentials should generate a string with the appropriate values
     @Test
     public void testCreateTokenValueValidCredentials() throws InvalidParameterException, UnexpectedException,
-            InvalidUserCredentialsException {
+            InvalidUserCredentialsException, UnauthenticatedUserException {
         //set up
         Map<String, String> userCredentials = new HashMap<String, String>();
         userCredentials.put(LdapTokenGeneratorPlugin.CRED_USERNAME, FAKE_LOGIN);
@@ -46,7 +47,7 @@ public class LdapTokenGeneratorPluginTest {
 
         //exercise
         String tokenValue = this.ldapTokenGenerator.createTokenValue(userCredentials);
-        LdapToken token = this.ldapFederationIdentityPlugin.createToken(tokenValue);
+        LdapToken token = this.ldapIdentityPlugin.createToken(tokenValue);
 
         //verify
         String split[] = tokenValue.split(LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
@@ -60,7 +61,7 @@ public class LdapTokenGeneratorPluginTest {
     //test case: createTokenValue with invalid credentials should throw InvalidUserCredentialsException
     @Test(expected = InvalidUserCredentialsException.class)
     public void testCreateTokenValueInvalidCredentials() throws InvalidParameterException, UnexpectedException,
-            InvalidUserCredentialsException {
+            InvalidUserCredentialsException, UnauthenticatedUserException {
         //set up
         Map<String, String> userCredentials = new HashMap<String, String>();
         userCredentials.put(LdapTokenGeneratorPlugin.CRED_USERNAME, FAKE_LOGIN);
@@ -76,7 +77,7 @@ public class LdapTokenGeneratorPluginTest {
     //test case: createTokenValue with incorrect credentials should throw InvalidParameterException
     @Test(expected = InvalidParameterException.class)
     public void testCreateTokenValueIncorrectCredentials() throws InvalidParameterException, UnexpectedException,
-            InvalidUserCredentialsException {
+            InvalidUserCredentialsException, UnauthenticatedUserException {
         //set up
         Map<String, String> userCredentials = new HashMap<String, String>();
         userCredentials.put(LdapTokenGeneratorPlugin.CRED_USERNAME, FAKE_LOGIN);

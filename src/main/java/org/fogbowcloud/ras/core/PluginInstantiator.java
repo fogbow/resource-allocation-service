@@ -100,10 +100,10 @@ public class PluginInstantiator {
         String className = this.properties.getProperty(ConfigurationConstants.AUTHORIZATION_PLUGIN_CLASS_KEY);
         if (className.equals(org.fogbowcloud.ras.core.plugins.aaa.authorization.
                 ComposedAuthorizationPlugin.class.getName())) {
-            String confPath = this.properties.
+            String filename = this.properties.
                     getProperty(ConfigurationConstants.COMPOSED_AUTHORIZATION_PLUGIN_CONF_FILE);
             ComposedAuthorizationPlugin composedAuthorizationPlugin =
-                    new ComposedAuthorizationPlugin(HomeDir.getPath() + confPath);
+                    new ComposedAuthorizationPlugin(HomeDir.getPath() + filename);
             return composedAuthorizationPlugin;
         } else {
             return (AuthorizationPlugin) this.pluginFactory.createPluginInstance(className);

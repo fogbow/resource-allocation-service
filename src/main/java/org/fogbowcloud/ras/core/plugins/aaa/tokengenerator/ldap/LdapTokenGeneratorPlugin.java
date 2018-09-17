@@ -5,14 +5,12 @@ import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
-import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.ras.core.exceptions.InvalidUserCredentialsException;
-import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.RSAUtil;
 
+import javax.naming.AuthenticationException;
 import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -73,15 +71,11 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
     }
 
     @Override
-    public String createTokenValue(Map<String, String> userCredentials)
-            throws InvalidUserCredentialsException, UnexpectedException, InvalidParameterException {
+    public String createTokenValue(Map<String, String> userCredentials) throws InvalidUserCredentialsException,
+            UnexpectedException, InvalidParameterException, UnauthenticatedUserException {
 
         String userId = userCredentials.get(CRED_USERNAME);
         String password = userCredentials.get(CRED_PASSWORD);
-
-        //extractLdapPropertiesFromCredentials(userCredentials);
-
-        //parseCredentials(userCredentials);
 
         String name = null;
         name = ldapAuthenticate(userId, password);
@@ -101,13 +95,14 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public String ldapAuthenticate(String uid, String password) throws UnexpectedException, InvalidParameterException,
-            InvalidUserCredentialsException {
+            InvalidUserCredentialsException, UnauthenticatedUserException {
 
         String contextFactory = "com.sun.jndi.ldap.LdapCtxFactory";
         String securityAuthentication = "simple";
 
         Hashtable env = new Hashtable();
         env.put(Context.INITIAL_CONTEXT_FACTORY, contextFactory);
+        env.put(Context.PROVIDER_URL, this.ldapUrl);
         env.put(Context.SECURITY_AUTHENTICATION, securityAuthentication);
 
         DirContext ctx = null;
@@ -148,6 +143,8 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
             return name;
 
+        } catch (AuthenticationException e0) {
+            throw new UnauthenticatedUserException(Messages.Exception.AUTHENTICATION_ERROR);
         } catch (NamingException e1) {
             throw new InvalidParameterException(Messages.Exception.LDAP_URL_MISSING, e1);
         } catch (NoSuchAlgorithmException | UnsupportedEncodingException e2) {
@@ -185,33 +182,7 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
                 .replaceAll(ENCRYPT_PASS, hexString.toString());
     }
 
-
-    private void extractLdapPropertiesFromCredentials(Map<String, String> userCredentials) {
-        if (this.ldapBase == null || this.ldapBase.isEmpty()) {
-            this.ldapBase = userCredentials.get(CRED_LDAP_BASE);
-        }
-
-        if (this.ldapUrl == null || ldapUrl.isEmpty()) {
-            this.ldapUrl = userCredentials.get(CRED_AUTH_URL);
-        }
-    }
-
     private String createSignature(String message) throws IOException, GeneralSecurityException {
         return RSAUtil.sign(this.privateKey, message);
-    }
-
-    private void parseCredentials(Map<String, String> userCredentials) {
-        String credLdapUrl = userCredentials.get(CRED_AUTH_URL);
-        if (credLdapUrl != null && !credLdapUrl.isEmpty()) {
-            this.ldapUrl = credLdapUrl;
-        }
-        String credLdapBase = userCredentials.get(CRED_LDAP_BASE);
-        if (credLdapBase != null && !credLdapBase.isEmpty()) {
-            this.ldapBase = credLdapBase;
-        }
-        String credEncryptType = userCredentials.get(CRED_LDAP_ENCRYPT);
-        if (credEncryptType != null && !credEncryptType.isEmpty()) {
-            this.encryptType = credEncryptType;
-        }
     }
 }

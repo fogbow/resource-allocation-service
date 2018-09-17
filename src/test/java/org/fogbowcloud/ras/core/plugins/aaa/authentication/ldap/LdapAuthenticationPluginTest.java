@@ -1,7 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.aaa.authentication.ldap;
 
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.ras.core.plugins.aaa.identity.ldap.LdapFederationIdentityPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.identity.ldap.LdapIdentityPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap.LdapTokenGeneratorPlugin;
 import org.junit.Assert;
 import org.junit.Before;
@@ -40,7 +40,7 @@ public class LdapAuthenticationPluginTest {
     @Test
     public void testGetTokenValidTokenValue() throws Exception {
         //set up
-        LdapFederationIdentityPlugin identityPlugin = Mockito.spy(new LdapFederationIdentityPlugin());
+        LdapIdentityPlugin identityPlugin = Mockito.spy(new LdapIdentityPlugin());
         LdapTokenGeneratorPlugin tokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
         Mockito.doReturn(this.name).when(tokenGenerator).ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
         Mockito.doReturn(true).when(this.authenticationPlugin).verifySign(Mockito.anyString(),
@@ -58,7 +58,7 @@ public class LdapAuthenticationPluginTest {
     @Test
     public void testGetTokenExpiredTokenValue() throws Exception {
         //set up
-        LdapFederationIdentityPlugin identityPlugin = Mockito.spy(new LdapFederationIdentityPlugin());
+        LdapIdentityPlugin identityPlugin = Mockito.spy(new LdapIdentityPlugin());
         LdapTokenGeneratorPlugin tokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
         Mockito.doReturn(this.name).when(tokenGenerator).ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
 
@@ -79,7 +79,7 @@ public class LdapAuthenticationPluginTest {
     @Test
     public void testGetTokenInvalidTokenValue() throws Exception {
         //set up
-        LdapFederationIdentityPlugin identityPlugin = Mockito.spy(new LdapFederationIdentityPlugin());
+        LdapIdentityPlugin identityPlugin = Mockito.spy(new LdapIdentityPlugin());
         LdapTokenGeneratorPlugin tokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
         Mockito.doReturn(this.name).when(tokenGenerator).ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
 

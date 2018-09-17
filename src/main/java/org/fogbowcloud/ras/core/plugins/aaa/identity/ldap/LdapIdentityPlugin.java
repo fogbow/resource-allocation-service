@@ -8,10 +8,10 @@ import org.fogbowcloud.ras.core.models.tokens.LdapToken;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap.LdapTokenGeneratorPlugin;
 
-public class LdapFederationIdentityPlugin implements FederationIdentityPlugin<LdapToken> {
-    private static final Logger LOGGER = Logger.getLogger(LdapFederationIdentityPlugin.class);
+public class LdapIdentityPlugin implements FederationIdentityPlugin<LdapToken> {
+    private static final Logger LOGGER = Logger.getLogger(LdapIdentityPlugin.class);
 
-    public LdapFederationIdentityPlugin() throws FatalErrorException {
+    public LdapIdentityPlugin() throws FatalErrorException {
     }
 
     @Override

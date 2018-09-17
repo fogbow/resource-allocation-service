@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.plugins.aaa.authorization.service;
+package org.fogbowcloud.ras.core.plugins.aaa.authorization;
 
 import org.fogbowcloud.ras.core.constants.Operation;
 import org.fogbowcloud.ras.core.models.ResourceType;
@@ -18,10 +18,10 @@ public abstract class DistributedAuthorizationPluginClient implements Authorizat
     public DistributedAuthorizationPluginClient() {
     }
 
-    //FIXME federationUserToken object should be sent in the body or header, and not as part of the endpoint
     @Override
     public boolean isAuthorized(FederationUserToken federationUserToken, Operation operation, ResourceType type) {
-        String endpoint = this.serverUrl + AUTH_ENDPOINT + "/" + federationUserToken.getUserId() + "/" + type + "/" + operation;
+        String endpoint = this.serverUrl + AUTH_ENDPOINT + "/" + federationUserToken.getTokenProvider() + "/" +
+                federationUserToken.getUserId() + "/" + type + "/" + operation;
         StringBuffer content = null;
 
         try {

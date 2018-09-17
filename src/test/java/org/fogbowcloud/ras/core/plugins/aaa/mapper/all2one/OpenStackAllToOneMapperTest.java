@@ -7,7 +7,7 @@ import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.LdapToken;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
-import org.fogbowcloud.ras.core.plugins.aaa.identity.ldap.LdapFederationIdentityPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.identity.ldap.LdapIdentityPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.openstack.OpenStackIdentityPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap.LdapTokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.OpenStackTokenGeneratorPlugin;
@@ -36,14 +36,14 @@ public class OpenStackAllToOneMapperTest {
     private String memberId;
     private OpenStackAllToOneMapper mapper;
     private LdapTokenGeneratorPlugin ldapTokenGenerator;
-    private LdapFederationIdentityPlugin ldapIdentityPlugin;
+    private LdapIdentityPlugin ldapIdentityPlugin;
     private OpenStackTokenGeneratorPlugin keystoneV3TokenGenerator;
 
     @Before
     public void setUp() {
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         this.ldapTokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
-        this.ldapIdentityPlugin = new LdapFederationIdentityPlugin();
+        this.ldapIdentityPlugin = new LdapIdentityPlugin();
         this.keystoneV3TokenGenerator = Mockito.spy(new OpenStackTokenGeneratorPlugin());
         GenericAllToOneFederationToLocalMapper genericMapper = new
                 GenericAllToOneFederationToLocalMapper(keystoneV3TokenGenerator, new OpenStackIdentityPlugin(),

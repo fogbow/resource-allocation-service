@@ -12,13 +12,13 @@ import org.mockito.Mockito;
 import java.util.HashMap;
 import java.util.Map;
 
-public class LdapFederationIdentityPluginTest {
+public class LdapIdentityPluginTest {
 
     private static final String FAKE_NAME = "fake-name";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String password = "ldapUserPass";
     private static final String TOKEN_VALUE_SEPARATOR = "!#!";
-    private LdapFederationIdentityPlugin ldapFederationIdentityPlugin;
+    private LdapIdentityPlugin ldapIdentityPlugin;
     private LdapAuthenticationPlugin ldapAuthenticationPlugin;
 
     Map<String, String> userCredentials = new HashMap<String, String>();
@@ -32,7 +32,7 @@ public class LdapFederationIdentityPluginTest {
         this.userCredentials.put(LdapTokenGeneratorPlugin.CRED_LDAP_ENCRYPT, "");
         this.userCredentials.put(LdapTokenGeneratorPlugin.CRED_PRIVATE_KEY, "private_key_path");
         this.userCredentials.put(LdapTokenGeneratorPlugin.CRED_PUBLIC_KEY, "public_key_path");
-        this.ldapFederationIdentityPlugin = Mockito.spy(new LdapFederationIdentityPlugin());
+        this.ldapIdentityPlugin = Mockito.spy(new LdapIdentityPlugin());
         this.ldapAuthenticationPlugin = new LdapAuthenticationPlugin();
     }
 
@@ -46,7 +46,7 @@ public class LdapFederationIdentityPluginTest {
 
         //exercise
         String federationTokenValue = tokenGenerator.createTokenValue(userCredentials);
-        LdapToken ldapToken = this.ldapFederationIdentityPlugin.createToken(federationTokenValue);
+        LdapToken ldapToken = this.ldapIdentityPlugin.createToken(federationTokenValue);
 
         String split[] = federationTokenValue.split(TOKEN_VALUE_SEPARATOR);
 
@@ -62,6 +62,6 @@ public class LdapFederationIdentityPluginTest {
     @Test(expected = InvalidParameterException.class)
     public void testCreateTokenIncorrectTokenValue() throws Exception {
         //exercise
-        LdapToken ldapToken = this.ldapFederationIdentityPlugin.createToken("anything");
+        LdapToken ldapToken = this.ldapIdentityPlugin.createToken("anything");
     }
 }
