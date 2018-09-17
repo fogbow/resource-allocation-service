@@ -55,34 +55,6 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
         return true;
     }
 
-    /**
-     * {
-     *     "auth": {
-     *         "identity": {
-     *             "methods": [
-     *                 "password"
-     *             ],
-     *             "password": {
-     *                 "user": {
-     *                 	"domain": {
-     *                     	"name": "LSD"
-     *             		},
-     *                     "name": "fogbow",
-     *                     "password": "c24313A4a31a"
-     *                 }
-     *             }
-     *         },
-     *         "scope": {
-     *             "project": {
-     *                 "domain": {
-     *                     "name": "LSD"
-     *                 },
-     *                 "name": "atmosphere-workers"
-     *             }
-     *         }
-     *     }
-     * }
-     */
     @Override
     public String createTokenValue(Map<String, String> credentials) throws FogbowRasException,
             UnexpectedException {
