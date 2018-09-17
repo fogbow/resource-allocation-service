@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.util;
 
+import org.apache.log4j.Logger;
 import org.bouncycastle.util.encoders.Base64;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
@@ -20,6 +21,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 public class RSAUtil {
+    private static final Logger LOGGER = Logger.getLogger(RSAUtil.class);
 
     private static String getKey(String filename) throws IOException {
         // Read key from file
@@ -56,7 +58,9 @@ public class RSAUtil {
 
     public static RSAPublicKey getPublicKey() throws IOException, GeneralSecurityException {
         String filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PUBLIC_KEY_FILE_PATH);
+        LOGGER.debug("public key path: " + filename);
         String publicKeyPEM = getKey(filename);
+        LOGGER.debug("public key: " + publicKeyPEM);
         return getPublicKeyFromString(publicKeyPEM);
     }
 

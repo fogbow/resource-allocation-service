@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator;
 
+import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
@@ -12,6 +13,8 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Map;
 
 public class TokenGeneratorPluginProtectionWrapper implements TokenGeneratorPlugin {
+    private static final Logger LOGGER = Logger.getLogger(TokenGeneratorPlugin.class);
+
     public static final String SEPARATOR = "!#!";
     private TokenGeneratorPlugin embeddedPlugin;
     private RSAPublicKey publicKey;
