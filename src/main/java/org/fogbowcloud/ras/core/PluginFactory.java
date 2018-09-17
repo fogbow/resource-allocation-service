@@ -21,7 +21,7 @@ public class PluginFactory {
             constructor = classpath.getConstructor();
             pluginInstance = constructor.newInstance();
         } catch (ClassNotFoundException e) {
-            String msg = Messages.Fatal.NO_CLASS_UNDER_REPOSITORY;
+            String msg = Messages.Fatal.UNABLE_TO_FIND_CLASS;
             throw new FatalErrorException(String.format(msg, pluginClassName));
         } catch (Exception e) {
             throw new FatalErrorException(e.getMessage(), e);

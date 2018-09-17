@@ -11,6 +11,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Map;
 
 public class TokenGeneratorPluginProtectionWrapper implements TokenGeneratorPlugin {
+    public static final String SEPARATOR = "!#!";
     private TokenGeneratorPlugin embeddedPlugin;
     private RSAPublicKey publicKey;
 
@@ -26,14 +27,24 @@ public class TokenGeneratorPluginProtectionWrapper implements TokenGeneratorPlug
     @Override
     public String createTokenValue(Map<String, String> userCredentials) throws UnexpectedException, FogbowRasException {
         String unprotectedTokenValue = this.embeddedPlugin.createTokenValue(userCredentials);
-        try {
-            return RSAUtil.encrypt(unprotectedTokenValue, this.publicKey);
-        } catch (IOException | GeneralSecurityException e) {
-            throw new UnexpectedException();
-        }
+        return encrypt(unprotectedTokenValue);
     }
 
     public TokenGeneratorPlugin getEmbeddedPlugin() {
         return this.embeddedPlugin;
+    }
+
+    private String encrypt(String unprotectedTokenValue) throws UnexpectedException {
+        String randomKey;
+        String protectedTokenValue;
+        String protectedKey;
+        try {
+            randomKey = RSAUtil.generateAESKey();
+            protectedTokenValue = RSAUtil.encryptAES(randomKey.getBytes("UTF-8"), unprotectedTokenValue);
+            protectedKey = RSAUtil.encrypt(randomKey, this.publicKey);
+            return protectedKey + SEPARATOR + protectedTokenValue;
+        } catch (Exception e) {
+            throw new UnexpectedException();
+        }
     }
 }

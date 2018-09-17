@@ -64,8 +64,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
         super.tearDown();
     }
 
-    //test case: the closed processor should delete the instances of closed orders and remove them
-    //from the closed orders list
+    //test case: the closed processor remove closed orders from the closed orders list
     @Test
     public void testProcessClosedLocalOrder() throws Exception {
 
@@ -77,12 +76,6 @@ public class ClosedProcessorTest extends BaseUnitTests {
 
         OrderStateTransitioner.activateOrder(localOrder);
         OrderStateTransitioner.transition(localOrder, OrderState.CLOSED);
-
-        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString())).thenReturn(localCloudConnector);
-
-        PowerMockito.mockStatic(CloudConnectorFactory.class);
-        BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
 
         //exercise
         this.thread = new Thread(this.closedProcessor);
@@ -98,50 +91,7 @@ public class ClosedProcessorTest extends BaseUnitTests {
         closedOrders.resetPointer();
         assertNull(closedOrders.getNext());
 
-        Mockito.verify(this.localCloudConnector, Mockito.times(1)).deleteInstance(Mockito.any(Order.class));
-
         //TODO: it would be good to verity that the OrderStateTransitioner.deactivateOrder was called. However,
         //it is static thus, hard to mock
-    }
-
-    //test case: the order remains closed when the deleteInstance throws an exception
-    @Test
-    public void testProcessClosedLocalOrderFails() throws Exception {
-
-        //set up
-        String instanceId = "fake-id";
-        Order localOrder = createLocalOrder(getLocalMemberId());
-        localOrder.setInstanceId(instanceId);
-
-        OrderStateTransitioner.activateOrder(localOrder);
-
-        OrderStateTransitioner.transition(localOrder, OrderState.CLOSED);
-
-        Mockito.doThrow(Exception.class)
-                .when(this.localCloudConnector)
-                .deleteInstance(Mockito.any(Order.class));
-
-        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString())).thenReturn(localCloudConnector);
-
-        PowerMockito.mockStatic(CloudConnectorFactory.class);
-        BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
-
-        //exercise
-        this.thread = new Thread(this.closedProcessor);
-        this.thread.start();
-
-        Thread.sleep(500);
-
-        //verify
-        SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        ChainedList closedOrders = sharedOrderHolders.getClosedOrdersList();
-        Map<String, Order> activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
-        assertEquals(localOrder, activeOrdersMap.get(localOrder.getId()));
-
-        closedOrders.resetPointer();
-        assertEquals(localOrder, closedOrders.getNext());
-
-        Mockito.verify(this.localCloudConnector, Mockito.times(1)).deleteInstance(Mockito.any(Order.class));
     }
 }

@@ -6,7 +6,7 @@ public class UnauthenticTokenException extends UnauthenticatedUserException {
     private static final long serialVersionUID = 1L;
 
     public UnauthenticTokenException() {
-        super(Messages.Exception.UNAUTHENTIC_TOKENS);
+        super(Messages.Exception.AUTHENTICATION_ERROR);
     }
 
     public UnauthenticTokenException(String message) {

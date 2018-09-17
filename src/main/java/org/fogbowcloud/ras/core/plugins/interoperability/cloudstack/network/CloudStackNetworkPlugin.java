@@ -5,6 +5,7 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
@@ -54,7 +55,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
             throws FogbowRasException {
         SubnetUtils.SubnetInfo subnetInfo = getSubnetInfo(networkOrder.getAddress());
         if (subnetInfo == null) {
-            throw new InvalidParameterException("cidr <" + networkOrder.getAddress() + "> is not valid");
+            throw new InvalidParameterException(String.format(Messages.Exception.INVALID_CIDR, networkOrder.getAddress()));
         }
 
         String name = networkOrder.getName();

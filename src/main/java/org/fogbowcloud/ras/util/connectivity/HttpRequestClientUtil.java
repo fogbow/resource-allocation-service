@@ -60,7 +60,7 @@ public class HttpRequestClientUtil {
             try {
                 EntityUtils.consume(httpResponse.getEntity());
             } catch (Throwable t) {
-                LOGGER.error(String.format(Messages.Error.WHILE_CONSUMING_RESPONSE, t));
+                LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONSUMING_RESPONSE, t));
             }
         }
         return response;
@@ -92,7 +92,7 @@ public class HttpRequestClientUtil {
             try {
                 EntityUtils.consume(response.getEntity());
             } catch (Throwable t) {
-                LOGGER.error(String.format(Messages.Error.WHILE_CONSUMING_RESPONSE, t));
+                LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONSUMING_RESPONSE, t));
             }
         }
         return responseStr;
@@ -119,7 +119,7 @@ public class HttpRequestClientUtil {
             try {
                 EntityUtils.consume(response.getEntity());
             } catch (Throwable t) {
-                LOGGER.error(String.format(Messages.Error.WHILE_CONSUMING_RESPONSE, t));
+                LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONSUMING_RESPONSE, t));
             }
         }
     }
@@ -149,7 +149,7 @@ public class HttpRequestClientUtil {
             try {
                 EntityUtils.consume(response.getEntity());
             } catch (Throwable t) {
-                LOGGER.error(String.format(Messages.Error.WHILE_CONSUMING_RESPONSE, t));
+                LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONSUMING_RESPONSE, t));
             }
         }
         return new Response(responseStr, response.getAllHeaders());
@@ -181,7 +181,7 @@ public class HttpRequestClientUtil {
             try {
                 EntityUtils.consume(response.getEntity());
             } catch (Throwable t) {
-                LOGGER.error(String.format(Messages.Error.WHILE_CONSUMING_RESPONSE, t));
+                LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONSUMING_RESPONSE, t));
             }
         }
         return responseStr;

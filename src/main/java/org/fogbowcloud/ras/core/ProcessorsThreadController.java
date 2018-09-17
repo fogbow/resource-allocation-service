@@ -3,6 +3,7 @@ package org.fogbowcloud.ras.core;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.processors.ClosedProcessor;
 import org.fogbowcloud.ras.core.processors.FulfilledProcessor;
 import org.fogbowcloud.ras.core.processors.OpenProcessor;
@@ -52,7 +53,7 @@ public class ProcessorsThreadController {
      * operation require a new thread to run, you should start this thread at this method.
      */
     public void startRasThreads() {
-        LOGGER.info("Starting processor threads");
+        LOGGER.info(Messages.Info.STARTING_THREADS);
         this.openProcessorThread.start();
         this.spawningProcessorThread.start();
         this.fulfilledProcessorThread.start();

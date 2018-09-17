@@ -6,7 +6,7 @@ public class UnauthenticatedUserException extends FogbowRasException {
     private static final long serialVersionUID = 1L;
 
     public UnauthenticatedUserException() {
-        super(Messages.Exception.UNAUTHENTICATED_ERROR);
+        super(Messages.Exception.AUTHENTICATION_ERROR);
     }
 
     public UnauthenticatedUserException(String message) {

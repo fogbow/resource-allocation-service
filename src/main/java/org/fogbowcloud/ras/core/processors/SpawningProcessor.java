@@ -42,11 +42,11 @@ public class SpawningProcessor implements Runnable {
                 }
             } catch (InterruptedException e) {
                 isActive = false;
-                LOGGER.error(Messages.Error.THREAD_INTERRUPTED, e);
+                LOGGER.error(Messages.Error.THREAD_HAS_BEEN_INTERRUPTED, e);
             } catch (UnexpectedException e) {
                 handleError(order, e.getMessage(), e);
             } catch (Throwable e) {
-                handleError(order, Messages.Error.UNEXPECTED, e);
+                handleError(order, Messages.Error.UNEXPECTED_ERROR, e);
             }
         }
     }

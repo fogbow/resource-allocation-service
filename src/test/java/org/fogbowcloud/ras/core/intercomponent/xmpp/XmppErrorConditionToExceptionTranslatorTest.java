@@ -238,7 +238,7 @@ public class XmppErrorConditionToExceptionTranslatorTest {
             // verify
             Assert.fail();
         } catch (UnavailableProviderException e) {
-            String messageExpected = String.format(Messages.Exception.UNABLE_RETRIEVE_RESPONSE_FROM_PROVIDING_MEMBER,
+            String messageExpected = String.format(Messages.Exception.UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDING_MEMBER,
                     this.memberId);
             Assert.assertEquals(messageExpected, e.getMessage());
         }

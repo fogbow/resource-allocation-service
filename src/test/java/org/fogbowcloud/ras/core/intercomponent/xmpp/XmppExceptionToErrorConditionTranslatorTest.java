@@ -145,7 +145,7 @@ public class XmppExceptionToErrorConditionTranslatorTest {
         // set up
         IQ response = new IQ();
         Throwable e = new Throwable();
-        String message = "Unexpected exception: " + e.toString();
+        String message = "Unexpected exception error: " + e.toString() + ".";
         // exercise
         XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         // verify

@@ -111,7 +111,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
             String response = this.client.doPostRequest(endpoint, openStackV3Token, createNetworkRequest.toJson());
             createNetworkResponse = CreateNetworkResponse.fromJson(response);
         } catch (JSONException e) {
-            String message = Messages.Error.COULD_NOT_GENERATING_JSON;
+            String message = Messages.Error.UNABLE_TO_GENERATE_JSON;
             LOGGER.error(message, e);
             throw new InvalidParameterException(message, e);
         } catch (HttpResponseException e) {
@@ -198,7 +198,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
             JSONObject securityGroup = securityGroupJSONArray.optJSONObject(0);
             securityGroupId = securityGroup.getString(KEY_ID);
         } catch (JSONException e) {
-            String message = String.format(Messages.Error.NOT_POSSIBLE_RETRIEVE_NETWORK_ID, json);
+            String message = String.format(Messages.Error.UNABLE_TO_RETRIEVE_NETWORK_ID, json);
             LOGGER.error(message);
             throw new UnexpectedException(message, e);
         }
@@ -226,7 +226,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
             // continue and try to delete the security group
             LOGGER.warn(String.format(Messages.Warn.NETWORK_NOT_FOUND, networkId));
         } catch (UnexpectedException | FogbowRasException e) {
-            LOGGER.error(String.format(Messages.Error.NOT_POSSIBLE_DELETE_NETWORK, networkId));
+            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_NETWORK, networkId));
             throw e;
         }
 
@@ -235,7 +235,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
         try {
             removeSecurityGroup(openStackV3Token, securityGroupId);
         } catch (UnexpectedException | FogbowRasException e) {
-            LOGGER.error(String.format(Messages.Error.NOT_POSSIBLE_DELETE_SECURITY_GROUP, securityGroupId));
+            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_SECURITY_GROUP, securityGroupId));
             throw e;
         }
     }
@@ -287,7 +287,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
 
             allocationMode = dhcpEnabled ? NetworkAllocationMode.DYNAMIC : NetworkAllocationMode.STATIC;
         } catch (JSONException e) {
-            String message = String.format(Messages.Error.NOT_POSSIBLE_GET_NETWORK, json);
+            String message = String.format(Messages.Error.UNABLE_TO_GET_NETWORK, json);
             LOGGER.error(message, e);
             throw new InvalidParameterException(message, e);
         }
@@ -321,7 +321,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
             JSONObject networkJSONObject = rootServer.optJSONObject(KEY_JSON_NETWORK);
             networkId = networkJSONObject.optString(KEY_ID);
         } catch (JSONException e) {
-            String message = String.format(Messages.Error.NOT_POSSIBLE_RETRIEVE_NETWORK_ID, json);
+            String message = String.format(Messages.Error.UNABLE_TO_RETRIEVE_NETWORK_ID, json);
             LOGGER.error(message);
             throw new UnexpectedException(message, e);
         }

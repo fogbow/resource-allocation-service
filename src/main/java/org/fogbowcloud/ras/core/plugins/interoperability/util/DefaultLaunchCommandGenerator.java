@@ -78,9 +78,9 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
 
             cloudInitUserDataBuilder.addFile(extraUserDataFileType, new StringReader(normalizedExtraUserData));
         } else if (extraUserDataFileContent == null) {
-            LOGGER.warn(Messages.Warn.NOT_POSSIBLE_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL);
+            LOGGER.warn(Messages.Warn.UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL);
         } else {
-            LOGGER.warn(Messages.Warn.NOT_POSSIBLE_ADD_EXTRA_USER_DATA_FILE_TYPE_NULL);
+            LOGGER.warn(Messages.Warn.UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_TYPE_NULL);
         }
     }
 

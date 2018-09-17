@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.aaa.identity.ldap;
 
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.models.tokens.LdapToken;
@@ -18,7 +19,7 @@ public class LdapFederationIdentityPlugin implements FederationIdentityPlugin<Ld
 
         String split[] = federationTokenValue.split(LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
         if (split == null || split.length < 5) {
-            LOGGER.error("Invalid token value: " + federationTokenValue);
+            LOGGER.error(String.format(Messages.Error.INVALID_TOKEN_VALUE, federationTokenValue));
             throw new InvalidParameterException();
         }
 

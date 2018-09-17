@@ -54,7 +54,7 @@ public class RemoteFacade {
     }
 
     public void deleteOrder(String orderId, FederationUserToken federationUserToken, ResourceType resourceType)
-            throws FogbowRasException, UnexpectedException {
+            throws Exception {
         Order order = this.orderController.getOrder(orderId);
         this.aaaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.DELETE, resourceType, order);
         this.orderController.deleteOrder(orderId);

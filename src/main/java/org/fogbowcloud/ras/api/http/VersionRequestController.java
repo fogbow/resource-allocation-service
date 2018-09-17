@@ -21,7 +21,7 @@ public class VersionRequestController {
 
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<String> getVersion() {
-        LOGGER.info(Messages.Info.REQUEST_RECEIVED_FOR_NEW_VERSION);
+        LOGGER.info(Messages.Info.RECEIVING_GET_VERSION_REQUEST);
         String versionNumber = ApplicationFacade.getInstance().getVersionNumber();
         return new ResponseEntity<>(versionNumber, HttpStatus.OK);
     }

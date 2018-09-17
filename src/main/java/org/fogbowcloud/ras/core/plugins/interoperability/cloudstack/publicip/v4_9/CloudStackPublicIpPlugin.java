@@ -4,6 +4,7 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
@@ -97,7 +98,6 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
         // should be the id of the order
         String orderId = publicIpInstanceId;
         String ipAddressId = publicIpSubState.get(orderId).getIpInstanceId();
-        LOGGER.info("Requesting deletion for ipAddressId {}");
 
         DisassociateIpAddressRequest disassociateIpAddressRequest = new DisassociateIpAddressRequest.Builder()
                 .id(ipAddressId)
@@ -153,7 +153,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
                 result = new PublicIpInstance(null, InstanceState.FAILED, null);
                 break;
             default:
-                LOGGER.error("Job status must be one of {0, 1, 2}");
+                LOGGER.error(Messages.Error.UNEXPECTED_JOB_STATUS);
                 result = null;
                 break;
         }

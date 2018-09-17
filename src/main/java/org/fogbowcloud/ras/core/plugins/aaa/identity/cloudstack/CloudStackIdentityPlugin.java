@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.aaa.identity.cloudstack;
 
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
@@ -16,7 +17,7 @@ public class CloudStackIdentityPlugin implements FederationIdentityPlugin<CloudS
     public CloudStackToken createToken(String tokenValue) throws InvalidParameterException {
         String split[] = tokenValue.split(CloudStackTokenGeneratorPlugin.TOKEN_STRING_SEPARATOR);
         if (split == null || split.length < 4) {
-            LOGGER.error("Invalid token value: " + tokenValue);
+            LOGGER.error(String.format(Messages.Error.INVALID_TOKEN_VALUE, tokenValue));
             throw new InvalidParameterException();
         }
 

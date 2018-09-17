@@ -29,7 +29,7 @@ public class OrderTimestampStorage extends OrderStorage {
 
             statement.close();
         } catch (SQLException e) {
-            LOGGER.error(Messages.Error.CREATING_TIMESTAMP_TABLE, e);
+            LOGGER.error(Messages.Error.UNABLE_TO_CREATE_TIMESTAMP_TABLE, e);
             throw new SQLException(e);
         } finally {
             closeConnection(statement, connection);
@@ -60,13 +60,13 @@ public class OrderTimestampStorage extends OrderStorage {
 
             connection.commit();
         } catch (SQLException e) {
-            LOGGER.error(Messages.Error.COULD_NOT_ADD_TIMESTAMP, e);
+            LOGGER.error(Messages.Error.UNABLE_TO_ADD_TIMESTAMP, e);
             try {
                 if (connection != null) {
                     connection.rollback();
                 }
             } catch (SQLException e1) {
-                LOGGER.error(Messages.Error.COULD_NOT_ROLLBACK_TRANSACTION, e1);
+                LOGGER.error(Messages.Error.UNABLE_TO_ROLLBACK_TRANSACTION, e1);
                 throw e1;
             }
 
@@ -108,7 +108,7 @@ public class OrderTimestampStorage extends OrderStorage {
                 }
             } catch (SQLException e1) {
                 e1.printStackTrace();
-                System.out.println(Messages.Out.COULD_NOT_ROLLBACK_TRANSACTION);
+                LOGGER.error(Messages.Error.UNABLE_TO_ROLLBACK_TRANSACTION);
             }
 
         } finally {

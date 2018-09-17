@@ -52,7 +52,7 @@ public class OpenStackAuthenticationPlugin implements AuthenticationPlugin {
 
     private boolean isUrlValid(String url) throws FatalErrorException {
         if (url == null || url.trim().isEmpty()) {
-            throw new FatalErrorException(String.format(Messages.Fatal.INVALID_KEYSTONE_URL,
+            throw new FatalErrorException(String.format(Messages.Fatal.INVALID_SERVICE_URL,
                     OpenStackTokenGeneratorPlugin.OPENSTACK_KEYSTONE_V3_URL));
         }
         return true;

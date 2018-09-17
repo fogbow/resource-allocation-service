@@ -51,7 +51,7 @@ public class AaaController {
         // Check whether requester owns order
         FederationUserToken orderOwner = order.getFederationUserToken();
         if (!orderOwner.getUserId().equals(requester.getUserId())) {
-            throw new UnauthorizedRequestException(Messages.Exception.REQUESTER_NOT_OWN_ORDER);
+            throw new UnauthorizedRequestException(Messages.Exception.REQUESTER_DOES_NOT_OWN_REQUEST);
         }
         // Authenticate user and get authorization to perform generic operation on the type of resource
         authenticateAndAuthorize(requester, operation, type);
@@ -60,7 +60,7 @@ public class AaaController {
     public void remoteAuthenticateAndAuthorize(FederationUserToken federationUserToken, Operation operation,
                                                ResourceType type, String memberId) throws FogbowRasException {
         if (!memberId.equals(this.localMemberIdentity)) {
-            throw new InstanceNotFoundException(Messages.Exception.PROVIDING_MEMBER_NOT_CORRECT);
+            throw new InstanceNotFoundException(Messages.Exception.INCORRECT_PROVIDING_MEMBER);
         } else {
             authenticateAndAuthorize(federationUserToken, operation, type);
         }
@@ -69,7 +69,7 @@ public class AaaController {
     public void remoteAuthenticateAndAuthorize(FederationUserToken federationUserToken, Operation operation,
                                                ResourceType type, Order order) throws FogbowRasException {
         if (!order.getProvidingMember().equals(this.localMemberIdentity)) {
-            throw new InstanceNotFoundException(Messages.Exception.PROVIDING_MEMBER_NOT_CORRECT);
+            throw new InstanceNotFoundException(Messages.Exception.INCORRECT_PROVIDING_MEMBER);
         } else {
             authenticateAndAuthorize(federationUserToken, operation, type, order);
         }

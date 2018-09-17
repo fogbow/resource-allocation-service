@@ -17,10 +17,10 @@ public class OrderStateTransitioner {
     private static final Logger LOGGER = Logger.getLogger(OrderStateTransitioner.class);
 
     public static void activateOrder(Order order) throws UnexpectedException {
-        LOGGER.info(Messages.Info.ACTIVATING_NEW_ORDER);
+        LOGGER.info(Messages.Info.ACTIVATING_NEW_REQUEST);
 
         if (order == null) {
-            throw new UnexpectedException(Messages.Exception.CANNOT_PROCESS_ORDER_REQUEST_NULL);
+            throw new UnexpectedException(Messages.Exception.UNABLE_TO_PROCESS_EMPTY_REQUEST);
         }
 
         synchronized (order) {
@@ -31,7 +31,7 @@ public class OrderStateTransitioner {
             String orderId = order.getId();
 
             if (activeOrdersMap.containsKey(orderId)) {
-                String message = String.format(Messages.Exception.ORDER_ID_ALREADY_ACTIVATED, orderId);
+                String message = String.format(Messages.Exception.REQUEST_ID_ALREADY_ACTIVATED, orderId);
                 throw new UnexpectedException(message);
             }
             order.setOrderState(OrderState.OPEN);
@@ -55,7 +55,7 @@ public class OrderStateTransitioner {
                             break;
                     }
                 } catch (Exception e) {
-                    String message = String.format(Messages.Warn.COULD_NOT_NOTIFY_REQUESTING_MEMBER, order.getRequestingMember(), order.getId());
+                    String message = String.format(Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_MEMBER, order.getRequestingMember(), order.getId());
                     LOGGER.warn(message);
                     // Keep trying to notify until the site is up again
                     // The site admin might want to monitor the warn log in case a site never
@@ -77,7 +77,7 @@ public class OrderStateTransitioner {
             if (activeOrdersMap.containsKey(order.getId())) {
                 activeOrdersMap.remove(order.getId());
             } else {
-                String message = String.format(Messages.Exception.REMOVE_ORDER_NOT_ACTIVE, order.getId());
+                String message = String.format(Messages.Exception.UNABLE_TO_REMOVE_INACTIVE_REQUEST, order.getId());
                 throw new UnexpectedException(message);
             }
             closedOrders.removeItem(order);
@@ -100,10 +100,10 @@ public class OrderStateTransitioner {
         SynchronizedDoublyLinkedList destination = ordersHolder.getOrdersList(newState);
 
         if (origin == null) {
-            String message = String.format(Messages.Exception.COULD_NOT_FIND_LIST_FOR_STATE, currentState);
+            String message = String.format(Messages.Exception.UNABLE_TO_FIND_LIST_FOR_REQUESTS, currentState);
             throw new UnexpectedException(message);
         } else if (destination == null) {
-            String message = String.format(Messages.Exception.COULD_NOT_FIND_LIST_FOR_STATE, newState);
+            String message = String.format(Messages.Exception.UNABLE_TO_FIND_LIST_FOR_REQUESTS, newState);
             throw new UnexpectedException(message);
         } else {
             // The order may have already been removed from the origin list by another thread

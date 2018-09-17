@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core.models.linkedlists;
 
 import org.fogbowcloud.ras.core.BaseUnitTests;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.junit.Assert;
@@ -86,7 +87,7 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
             Assert.fail("Null order should not be added.");
         } catch (IllegalArgumentException e) {
             // verify
-            Assert.assertEquals("Attempting to add a null order.", e.getMessage());
+            Assert.assertEquals(Messages.Exception.ATTEMPTING_TO_ADD_A_NULL_REQUEST, e.getMessage());
         }
     }
 
@@ -133,7 +134,7 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
             Assert.fail("Null order should not be removed.");
         } catch (IllegalArgumentException e) {
             // verify
-            Assert.assertEquals("Attempting to remove a null order.", e.getMessage());
+            Assert.assertEquals(Messages.Exception.ATTEMPTING_TO_REMOVE_A_NULL_REQUEST, e.getMessage());
         }
     }
 

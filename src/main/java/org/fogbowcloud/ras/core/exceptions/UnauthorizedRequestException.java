@@ -6,7 +6,7 @@ public class UnauthorizedRequestException extends FogbowRasException {
     private static final long serialVersionUID = 1L;
 
     public UnauthorizedRequestException() {
-        super(Messages.Exception.UNAUTHORIZED_ERROR);
+        super(Messages.Exception.AUTHORIZATION_ERROR);
     }
 
     public UnauthorizedRequestException(String message) {

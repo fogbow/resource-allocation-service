@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator;
 
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.util.RSAUtil;
 import org.junit.Assert;
@@ -28,13 +29,22 @@ public class TokenGeneratorPluginProtectionWrapperTest {
 
     //test case: createTokenValue with valid credentials should generate a protected string with the appropriate values
     @Test
-    public void testCreateTokenValueValidCredentials() throws IOException, GeneralSecurityException,
-            UnexpectedException, FogbowRasException {
+    public void testCreateTokenValueValidCredentials() throws UnexpectedException, FogbowRasException {
         //set up
 
         //exercise
         String protectedTokenValue = this.tokenGeneratorPluginProtectionWrapper.createTokenValue(new HashMap<>());
-        String unprotectedTokenValue = RSAUtil.decrypt(protectedTokenValue, this.privateKey);
+        String unprotectedTokenValue;
+        try {
+            String split[] = protectedTokenValue.split(TokenGeneratorPluginProtectionWrapper.SEPARATOR);
+            if (split.length != 2) {
+                throw new InvalidParameterException();
+            }
+            String randomKey = RSAUtil.decrypt(split[0], this.privateKey);
+            unprotectedTokenValue = RSAUtil.decryptAES(randomKey.getBytes("UTF-8"), split[1]);
+        } catch (Exception e) {
+            throw new InvalidParameterException();
+        }
 
         //verify
         Assert.assertEquals(UNPROTECTED_STRING, unprotectedTokenValue);

@@ -89,7 +89,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
 
     // test case: When an exception occurs while deleting, the method handle should return a response error
     @Test
-    public void testHandleWhenExceptionIsThrown() throws FogbowRasException, UnexpectedException {
+    public void testHandleWhenExceptionIsThrown() throws Exception {
         //set up
         this.order = new ComputeOrder(null, "requestingMember", "providingmember",
                 "hostName", 1, 2, 3, "imageId", null, "publicKey", new ArrayList<>());

@@ -29,7 +29,7 @@ public class HttpRequestUtil {
         } catch (NullPointerException | NumberFormatException e) {
             timeoutHttpRequest = Integer.valueOf(DefaultConfigurationConstants.HTTP_REQUEST_TIMEOUT);
         } catch (Exception e) {
-            throw new FatalErrorException(Messages.Fatal.INITIALIZATION_NOT_POSSIBLE, e);
+            throw new FatalErrorException(Messages.Fatal.UNABLE_TO_INITIALIZE_HTTP_REQUEST_UTIL, e);
         }
     }
 
