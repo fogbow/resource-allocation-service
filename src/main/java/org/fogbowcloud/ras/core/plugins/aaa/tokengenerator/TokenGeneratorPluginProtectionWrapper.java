@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator;
 
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -20,7 +21,7 @@ public class TokenGeneratorPluginProtectionWrapper implements TokenGeneratorPlug
         try {
             this.publicKey = RSAUtil.getPublicKey();
         } catch (IOException | GeneralSecurityException e) {
-            throw new FatalErrorException();
+            throw new FatalErrorException(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE, e);
         }
     }
 
