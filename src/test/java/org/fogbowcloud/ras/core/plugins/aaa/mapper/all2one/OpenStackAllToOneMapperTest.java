@@ -8,7 +8,7 @@ import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.LdapToken;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.ldap.LdapIdentityPlugin;
-import org.fogbowcloud.ras.core.plugins.aaa.identity.openstack.OpenStackIdentityPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.identity.openstack.v3.OpenStackIdentityPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap.LdapTokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.OpenStackTokenGeneratorPlugin;
 import org.junit.Assert;
@@ -72,11 +72,11 @@ public class OpenStackAllToOneMapperTest {
         String tokenValue2 = this.ldapTokenGenerator.createTokenValue(userCredentials2);
         LdapToken token2 = this.ldapIdentityPlugin.createToken(tokenValue2);
 
-        String tokenValue = this.memberId + OpenStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR +
-                FAKE_TOKEN_VALUE + OpenStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR +
-                FAKE_USER_ID + OpenStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR +
-                FAKE_USER_NAME + OpenStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR +
-                FAKE_PROJECT_ID + OpenStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR + FAKE_PROJECT_NAME;
+        String tokenValue = this.memberId + OpenStackTokenGeneratorPlugin.OPENSTACK_TOKEN_STRING_SEPARATOR +
+                FAKE_TOKEN_VALUE + OpenStackTokenGeneratorPlugin.OPENSTACK_TOKEN_STRING_SEPARATOR +
+                FAKE_USER_ID + OpenStackTokenGeneratorPlugin.OPENSTACK_TOKEN_STRING_SEPARATOR +
+                FAKE_USER_NAME + OpenStackTokenGeneratorPlugin.OPENSTACK_TOKEN_STRING_SEPARATOR +
+                FAKE_PROJECT_ID + OpenStackTokenGeneratorPlugin.OPENSTACK_TOKEN_STRING_SEPARATOR + FAKE_PROJECT_NAME;
 
         Mockito.doReturn(tokenValue).when(this.keystoneV3TokenGenerator).createTokenValue(Mockito.anyMap());
 

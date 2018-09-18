@@ -10,7 +10,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public abstract class DistributedAuthorizationPluginClient implements AuthorizationPlugin {
+public abstract class DistributedAuthorizationPluginClient implements AuthorizationPlugin<FederationUserToken> {
     public static final String AUTH_ENDPOINT = "/auth";
 
     public String serverUrl;

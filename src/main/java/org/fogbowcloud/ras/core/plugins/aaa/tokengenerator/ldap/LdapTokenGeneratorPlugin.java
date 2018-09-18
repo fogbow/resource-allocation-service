@@ -46,6 +46,7 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
     public static final String CRED_PRIVATE_KEY = "privateKey";
     public static final String CRED_PUBLIC_KEY = "publicKey";
     public static final String TOKEN_VALUE_SEPARATOR = "!#!";
+    public static final int LDAP_TOKEN_NUMBER_OF_FIELDS = 5;
     private static final String ENCRYPT_TYPE = ":TYPE:";
     private static final String ENCRYPT_PASS = ":PASS:";
     private static final String PASSWORD_ENCRYPTED = "{" + ENCRYPT_TYPE + "}" + ENCRYPT_PASS;

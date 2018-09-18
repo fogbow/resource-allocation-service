@@ -7,7 +7,10 @@ import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.cloudstack.CloudStackAuthenticationPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.identity.cloudstack.CloudStackIdentityPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.util.PropertiesUtil;
@@ -56,6 +59,8 @@ public class CloudStackTokenGeneratorPluginTest {
 
     private HttpRequestClientUtil httpRequestClientUtil;
     private CloudStackTokenGeneratorPlugin cloudStackTokenGenerator;
+    private CloudStackIdentityPlugin cloudStackIdentityPlugin;
+    private CloudStackAuthenticationPlugin cloudStackAuthenticationPlugin;
     private String memberId;
 
     @Before
@@ -65,6 +70,8 @@ public class CloudStackTokenGeneratorPluginTest {
         this.httpRequestClientUtil = Mockito.mock(HttpRequestClientUtil.class);
         this.cloudStackTokenGenerator = Mockito.spy(new CloudStackTokenGeneratorPlugin());
         this.cloudStackTokenGenerator.setClient(this.httpRequestClientUtil);
+        this.cloudStackIdentityPlugin = new CloudStackIdentityPlugin();
+        this.cloudStackAuthenticationPlugin = new CloudStackAuthenticationPlugin();
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
     }
 
@@ -110,14 +117,16 @@ public class CloudStackTokenGeneratorPluginTest {
 
         //exercise
         String tokenValue = this.cloudStackTokenGenerator.createTokenValue(userCredentials);
+        CloudStackToken token = this.cloudStackIdentityPlugin.createToken(tokenValue);
 
         //verify
-        String split[] = tokenValue.split(CloudStackTokenGeneratorPlugin.TOKEN_STRING_SEPARATOR);
-        Assert.assertEquals(split.length, 4);
+        String split[] = tokenValue.split(CloudStackTokenGeneratorPlugin.CLOUDSTACK_TOKEN_STRING_SEPARATOR);
+        Assert.assertEquals(split.length, CloudStackTokenGeneratorPlugin.CLOUDSTACK_TOKEN_NUMBER_OF_FIELDS);
         Assert.assertEquals(split[0], memberId);
         Assert.assertEquals(split[1], FAKE_TOKEN_VALUE);
         Assert.assertEquals(split[2], FAKE_ID);
         Assert.assertEquals(split[3], FAKE_FULL_USERNAME);
+        Assert.assertTrue(this.cloudStackAuthenticationPlugin.isAuthentic(token));
     }
 
     // Test case: throw expection in case any of the credentials are invalid

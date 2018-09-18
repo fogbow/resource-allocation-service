@@ -37,7 +37,7 @@ public class TokenGeneratorPluginProtectionWrapperTest {
         String unprotectedTokenValue;
         try {
             String split[] = protectedTokenValue.split(TokenGeneratorPluginProtectionWrapper.SEPARATOR);
-            if (split.length != 2) {
+            if (split.length != TokenGeneratorPluginProtectionWrapper.PROTECTION_WRAPPER_TOKEN_NUMBER_OF_FILEDS) {
                 throw new InvalidParameterException();
             }
             String randomKey = RSAUtil.decrypt(split[0], this.privateKey);

@@ -34,6 +34,7 @@ public class CloudStackComputeQuotaPluginTest {
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USERNAME = "fake-username";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
+    private static final String FAKE_SIGNATURE = "fake-signature";
     private static final String BASE_ENDPOINT_KEY = "cloudstack_api_url";
     private static final String REQUEST_FORMAT = "%s?command=%s";
     private static final String RESPONSE_FORMAT = "&response=%s";
@@ -66,7 +67,7 @@ public class CloudStackComputeQuotaPluginTest {
         this.client = Mockito.mock(HttpRequestClientUtil.class);
         this.plugin = new CloudStackComputeQuotaPlugin();
         this.plugin.setClient(this.client);
-        this.token = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_USERNAME);
+        this.token = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_USERNAME, FAKE_SIGNATURE);
     }
 
     // test case: When calling the getUserQuota method, HTTP GET requests must be

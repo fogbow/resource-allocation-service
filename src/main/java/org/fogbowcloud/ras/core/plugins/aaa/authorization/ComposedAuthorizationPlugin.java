@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class ComposedAuthorizationPlugin implements AuthorizationPlugin {
+public class ComposedAuthorizationPlugin implements AuthorizationPlugin<FederationUserToken> {
     List<AuthorizationPlugin> authorizationPlugins;
 
     public ComposedAuthorizationPlugin(String confPath) {

@@ -1,8 +1,9 @@
 package org.fogbowcloud.ras.core.plugins.aaa.authentication;
 
 import org.fogbowcloud.ras.core.exceptions.UnavailableProviderException;
+import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 
-public interface AuthenticationPlugin<T> {
+public interface AuthenticationPlugin<T extends FederationUserToken> {
     /**
      * Verifies if the federationTokenValue is valid against the identity service.
      *

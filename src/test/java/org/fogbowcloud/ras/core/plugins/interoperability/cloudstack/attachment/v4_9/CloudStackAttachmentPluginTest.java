@@ -37,6 +37,7 @@ public class CloudStackAttachmentPluginTest {
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USERNAME = "fake-username";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
+    private static final String FAKE_SIGNATURE = "fake-signature";
     private static final String REQUEST_FORMAT = "%s?command=%s";
     private static final String RESPONSE_FORMAT = "&response=%s";
     private static final String ID_FIELD = "&id=%s";
@@ -71,7 +72,7 @@ public class CloudStackAttachmentPluginTest {
         this.client = Mockito.mock(HttpRequestClientUtil.class);
         this.plugin = new CloudStackAttachmentPlugin();
         this.plugin.setClient(this.client);
-        this.token = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_USERNAME);
+        this.token = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_USERNAME, FAKE_SIGNATURE);
     }
 
     // test case: When calling the requestInstance method a HTTP GET request must be made with a

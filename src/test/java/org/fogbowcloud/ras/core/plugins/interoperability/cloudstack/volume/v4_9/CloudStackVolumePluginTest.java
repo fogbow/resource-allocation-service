@@ -58,6 +58,7 @@ public class CloudStackVolumePluginTest {
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USERNAME = "fake-username";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
+    private static final String FAKE_SIGNATURE = "fake-signature";
     private static final String FAKE_MEMBER = "fake-member";
 
     private static final String JSON_FORMAT = "json";
@@ -83,7 +84,7 @@ public class CloudStackVolumePluginTest {
         this.client = Mockito.mock(HttpRequestClientUtil.class);
         this.plugin = new CloudStackVolumePlugin();
         this.plugin.setClient(this.client);
-        this.token = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_USERNAME);
+        this.token = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_USERNAME, FAKE_SIGNATURE);
     }
 
     // test case: When calling the requestInstance method with a size compatible with the

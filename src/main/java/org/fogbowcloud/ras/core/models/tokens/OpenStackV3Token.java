@@ -1,12 +1,16 @@
 package org.fogbowcloud.ras.core.models.tokens;
 
+import org.hibernate.jpa.criteria.expression.function.AggregationFunction;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 
 @Entity
 public class OpenStackV3Token extends FederationUserToken {
-    private String projectId;
+    public static final int MAX_SIGNATURE_SIZE = 1024;
     @Column
+    private String projectId;
+    @Column(length = MAX_SIGNATURE_SIZE)
     private String signature;
 
     public OpenStackV3Token() {
@@ -23,12 +27,12 @@ public class OpenStackV3Token extends FederationUserToken {
         return this.projectId;
     }
 
+    public String getSignature() {
+		return signature;
+	}
+
     // Used in testing
     public void setProjectId(String projectId) {
         this.projectId = projectId;
     }
-    
-    public String getSignature() {
-		return signature;
-	}
 }

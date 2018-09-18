@@ -27,6 +27,7 @@ public class CloudStackAllToOneMapperTest {
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USER_NAME = "fake-user-name";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
+    private static final String FAKE_SIGNATURE = "fake-signature";
 
     private String memberId;
     private CloudStackAllToOneMapper mapper;
@@ -67,10 +68,11 @@ public class CloudStackAllToOneMapperTest {
         String tokenValue2 = this.ldapTokenGenerator.createTokenValue(userCredentials2);
         LdapToken token2 = this.ldapIdentityPlugin.createToken(tokenValue2);
 
-        String tokenValue = this.memberId + CloudStackTokenGeneratorPlugin.TOKEN_STRING_SEPARATOR +
-                FAKE_TOKEN_VALUE + CloudStackTokenGeneratorPlugin.TOKEN_STRING_SEPARATOR +
-                FAKE_USER_ID + CloudStackTokenGeneratorPlugin.TOKEN_STRING_SEPARATOR +
-                FAKE_USER_NAME + CloudStackTokenGeneratorPlugin.TOKEN_STRING_SEPARATOR;
+        String tokenValue = this.memberId + CloudStackTokenGeneratorPlugin.CLOUDSTACK_TOKEN_STRING_SEPARATOR +
+                FAKE_TOKEN_VALUE + CloudStackTokenGeneratorPlugin.CLOUDSTACK_TOKEN_STRING_SEPARATOR +
+                FAKE_USER_ID + CloudStackTokenGeneratorPlugin.CLOUDSTACK_TOKEN_STRING_SEPARATOR +
+                FAKE_USER_NAME + CloudStackTokenGeneratorPlugin.CLOUDSTACK_TOKEN_STRING_SEPARATOR +
+                FAKE_SIGNATURE;
 
         Mockito.doReturn(tokenValue).when(this.cloudStackTokenGenerator).createTokenValue(Mockito.anyMap());
 

@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.plugins.aaa.identity.openstack;
+package org.fogbowcloud.ras.core.plugins.aaa.identity.openstack.v3;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,11 +32,11 @@ public class OpenStackIdentityPluginTest {
     @Test
     public void testCreateToken() throws Exception {
         //set up
-        String fakeTokenValue = FAKE_PROVIDER + OpenStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR + FAKE_TOKEN_VALUE +
-                OpenStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR + FAKE_USER_ID +
-                OpenStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR + FAKE_NAME +
-                OpenStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR + FAKE_PROJECT_ID +
-                OpenStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR + FAKE_PROJECT_NAME;
+        String fakeTokenValue = FAKE_PROVIDER + OpenStackTokenGeneratorPlugin.OPENSTACK_TOKEN_STRING_SEPARATOR + FAKE_TOKEN_VALUE +
+                OpenStackTokenGeneratorPlugin.OPENSTACK_TOKEN_STRING_SEPARATOR + FAKE_USER_ID +
+                OpenStackTokenGeneratorPlugin.OPENSTACK_TOKEN_STRING_SEPARATOR + FAKE_NAME +
+                OpenStackTokenGeneratorPlugin.OPENSTACK_TOKEN_STRING_SEPARATOR + FAKE_PROJECT_ID +
+                OpenStackTokenGeneratorPlugin.OPENSTACK_TOKEN_STRING_SEPARATOR + FAKE_PROJECT_NAME;
         Mockito.doReturn(fakeTokenValue).when(this.tokenGenerator).createTokenValue(Mockito.anyMap());
         Map<String, String> userCredentials = new HashMap<String, String>();
         userCredentials = new HashMap<String, String>();
@@ -48,7 +48,7 @@ public class OpenStackIdentityPluginTest {
         String federationTokenValue = this.tokenGenerator.createTokenValue(userCredentials);
 
         //verify
-        String split[] = federationTokenValue.split(OpenStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
+        String split[] = federationTokenValue.split(OpenStackTokenGeneratorPlugin.OPENSTACK_TOKEN_STRING_SEPARATOR);
         Assert.assertEquals(split[0], FAKE_PROVIDER);
         Assert.assertEquals(split[1], FAKE_TOKEN_VALUE);
         Assert.assertEquals(split[2], FAKE_USER_ID);

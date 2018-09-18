@@ -44,11 +44,12 @@ public class CloudStackImagePluginTest {
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USERNAME = "fake-username";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
+    private static final String FAKE_SIGNATURE = "fake-signature";
     private static final String JSON = "json";
     private static final String RESPONSE_KEY = "response";
 
     public static final CloudStackToken FAKE_TOKEN = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE,
-            FAKE_USER_ID, FAKE_USERNAME);
+            FAKE_USER_ID, FAKE_USERNAME, FAKE_SIGNATURE);
 
     public static final String FAKE_ID = "fake-id";
     public static final String FAKE_NAME = "fake-name";

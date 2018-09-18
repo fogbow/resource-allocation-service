@@ -11,7 +11,7 @@ import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
-import org.fogbowcloud.ras.core.plugins.aaa.identity.openstack.OpenStackIdentityPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.identity.openstack.v3.OpenStackIdentityPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.OpenStackTokenGeneratorPlugin;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.junit.Assert;

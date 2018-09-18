@@ -15,8 +15,8 @@ public class CloudStackIdentityPlugin implements FederationIdentityPlugin<CloudS
 
     @Override
     public CloudStackToken createToken(String tokenValue) throws InvalidParameterException {
-        String split[] = tokenValue.split(CloudStackTokenGeneratorPlugin.TOKEN_STRING_SEPARATOR);
-        if (split == null || split.length < 4) {
+        String split[] = tokenValue.split(CloudStackTokenGeneratorPlugin.CLOUDSTACK_TOKEN_STRING_SEPARATOR);
+        if (split == null || split.length != CloudStackTokenGeneratorPlugin.CLOUDSTACK_TOKEN_NUMBER_OF_FIELDS) {
             LOGGER.error(String.format(Messages.Error.INVALID_TOKEN_VALUE, tokenValue));
             throw new InvalidParameterException();
         }
@@ -25,7 +25,8 @@ public class CloudStackIdentityPlugin implements FederationIdentityPlugin<CloudS
         String cloudStackTokenValue = split[1];
         String userId = split[2];
         String userName = split[3];
+        String signature = split[4];
 
-        return new CloudStackToken(tokenProvider, cloudStackTokenValue, userId, userName);
+        return new CloudStackToken(tokenProvider, cloudStackTokenValue, userId, userName, signature);
     }
 }

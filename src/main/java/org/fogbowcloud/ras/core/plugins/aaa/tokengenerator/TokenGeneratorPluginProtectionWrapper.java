@@ -16,6 +16,7 @@ public class TokenGeneratorPluginProtectionWrapper implements TokenGeneratorPlug
     private static final Logger LOGGER = Logger.getLogger(TokenGeneratorPlugin.class);
 
     public static final String SEPARATOR = "!#!";
+    public static final int PROTECTION_WRAPPER_TOKEN_NUMBER_OF_FILEDS = 2;
     private TokenGeneratorPlugin embeddedPlugin;
     private RSAPublicKey publicKey;
 

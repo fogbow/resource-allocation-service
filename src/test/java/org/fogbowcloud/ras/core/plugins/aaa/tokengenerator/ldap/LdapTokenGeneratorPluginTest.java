@@ -51,7 +51,7 @@ public class LdapTokenGeneratorPluginTest {
 
         //verify
         String split[] = tokenValue.split(LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
-        Assert.assertEquals(split.length, 5);
+        Assert.assertEquals(split.length, LdapTokenGeneratorPlugin.LDAP_TOKEN_NUMBER_OF_FIELDS);
         Assert.assertEquals(split[0], PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID));
         Assert.assertEquals(split[1], FAKE_LOGIN);
         Assert.assertEquals(split[2], FAKE_NAME);

@@ -18,7 +18,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin<LdapToken> {
     public LdapToken createToken(String federationTokenValue) throws InvalidParameterException {
 
         String split[] = federationTokenValue.split(LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
-        if (split == null || split.length < 5) {
+        if (split == null || split.length != LdapTokenGeneratorPlugin.LDAP_TOKEN_NUMBER_OF_FIELDS) {
             LOGGER.error(String.format(Messages.Error.INVALID_TOKEN_VALUE, federationTokenValue));
             throw new InvalidParameterException();
         }

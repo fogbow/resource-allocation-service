@@ -78,7 +78,7 @@ public class OpenStackTokenGeneratorPluginTest {
         String[] parameters = new String[] {this.memberId, FAKE_TOKEN_VALUE, 
         		FAKE_USER_ID, FAKE_USER_NAME, FAKE_PROJECT_ID}; 
         String tokenString = StringUtils.join(
-        		parameters, OpenStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
+        		parameters, OpenStackTokenGeneratorPlugin.OPENSTACK_TOKEN_STRING_SEPARATOR);
         String tokenStringSignature = this.keystoneV3TokenGenerator.createSignature(tokenString);
         
         
@@ -86,8 +86,8 @@ public class OpenStackTokenGeneratorPluginTest {
         String tokenValue = this.keystoneV3TokenGenerator.createTokenValue(userCredentials);
 
         //verify
-        String split[] = tokenValue.split(OpenStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
-        Assert.assertEquals(split.length, 6);
+        String split[] = tokenValue.split(OpenStackTokenGeneratorPlugin.OPENSTACK_TOKEN_STRING_SEPARATOR);
+        Assert.assertEquals(split.length, OpenStackTokenGeneratorPlugin.OPENSTACK_TOKEN_NUMBER_OF_FIELDS);
         Assert.assertEquals(split[0], memberId);
         Assert.assertEquals(split[1], FAKE_TOKEN_VALUE);
         Assert.assertEquals(split[2], FAKE_USER_ID);

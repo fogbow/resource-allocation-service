@@ -29,12 +29,13 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     public static final String OPENSTACK_KEYSTONE_V3_URL = "openstack_keystone_v3_url";
     public static final String V3_TOKENS_ENDPOINT_PATH = "/auth/tokens";
     public static final String X_SUBJECT_TOKEN = "X-Subject-Token";
-    public static final String TOKEN_VALUE_SEPARATOR = "!#!";
+    public static final String OPENSTACK_TOKEN_STRING_SEPARATOR = "!#!";
     public static final String PROJECT_NAME = "projectName";
     public static final String PASSWORD = "password";
     public static final String USER_ID = "userId";
     public static final String USER_NAME = "userName";
     public static final Object DOMAIN = "domain";
+    public static final int OPENSTACK_TOKEN_NUMBER_OF_FIELDS = 6;
 
 
     private String v3TokensEndpoint;
@@ -104,11 +105,11 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
             CreateTokenResponse.Project projectTokenResponse = createTokenResponse.getProject();
             String projectId = projectTokenResponse.getId();
 
-            String tokenString = this.tokenProviderId + TOKEN_VALUE_SEPARATOR + tokenValue + TOKEN_VALUE_SEPARATOR +
-                    userId + TOKEN_VALUE_SEPARATOR + userName + TOKEN_VALUE_SEPARATOR + projectId;
+            String tokenString = this.tokenProviderId + OPENSTACK_TOKEN_STRING_SEPARATOR + tokenValue + OPENSTACK_TOKEN_STRING_SEPARATOR +
+                    userId + OPENSTACK_TOKEN_STRING_SEPARATOR + userName + OPENSTACK_TOKEN_STRING_SEPARATOR + projectId;
             
             String signature = createSignature(tokenString);
-            return tokenString + TOKEN_VALUE_SEPARATOR + signature;
+            return tokenString + OPENSTACK_TOKEN_STRING_SEPARATOR + signature;
         } catch (Exception e) {
             LOGGER.error(Messages.Error.UNABLE_TO_GET_TOKEN_FROM_JSON, e);
             throw new UnexpectedException(Messages.Error.UNABLE_TO_GET_TOKEN_FROM_JSON, e);

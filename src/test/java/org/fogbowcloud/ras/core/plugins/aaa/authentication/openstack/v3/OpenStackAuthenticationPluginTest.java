@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.plugins.aaa.authentication.openstack;
+package org.fogbowcloud.ras.core.plugins.aaa.authentication.openstack.v3;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -70,7 +70,7 @@ public class OpenStackAuthenticationPluginTest {
 		String[] parameters = new String[] {providerId, tokenValue, 
         		userId, userName, projectId}; 
         String tokenString = StringUtils.join(
-        		parameters, OpenStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
+        		parameters, OpenStackTokenGeneratorPlugin.OPENSTACK_TOKEN_STRING_SEPARATOR);
         String signature = createSignature(tokenString);
         
 		OpenStackV3Token token = new OpenStackV3Token(providerId, tokenValue,
@@ -94,7 +94,8 @@ public class OpenStackAuthenticationPluginTest {
         Assert.assertTrue(isAuthenticated);
     }
     
-    // TODO check if isAuthentic when providerId is different
+    // isAuthentic should return true when the token was issued by another provider (we assume that authentication was
+    // done at the member that issued the request.
     @Test
     public void testGetTokenValidTokenValueProviderIdDifferent() throws IOException, UnavailableProviderException, GeneralSecurityException {
     	//set up
@@ -106,7 +107,7 @@ public class OpenStackAuthenticationPluginTest {
         boolean isAuthenticated = this.authenticationPlugin.isAuthentic(token);
 
         //verify
-        Assert.assertFalse(isAuthenticated);
+        Assert.assertTrue(isAuthenticated);
     }
 
     //test case: check if isAuthentic returns false when the tokenValue is not valid 

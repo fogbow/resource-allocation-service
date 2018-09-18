@@ -24,7 +24,7 @@ public class CloudStackUrlUtil {
     private static final String SIGNATURE = "signature";
 
     public static void sign(URIBuilder requestEndpoint, String tokenValue) throws UnauthorizedRequestException {
-        String[] tokenValueSplit = tokenValue.split(CloudStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
+        String[] tokenValueSplit = tokenValue.split(CloudStackTokenGeneratorPlugin.CLOUDSTACK_TOKEN_VALUE_SEPARATOR);
         String apiKey = tokenValueSplit[0];
         String secretKey = tokenValueSplit[1];
 
