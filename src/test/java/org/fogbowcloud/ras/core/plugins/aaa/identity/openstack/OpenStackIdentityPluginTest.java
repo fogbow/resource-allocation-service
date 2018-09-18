@@ -1,15 +1,14 @@
 package org.fogbowcloud.ras.core.plugins.aaa.identity.openstack;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.OpenStackTokenGeneratorPlugin;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class OpenStackIdentityPluginTest {
     private static final String FAKE_PROVIDER = "fake-provider";
@@ -28,6 +27,7 @@ public class OpenStackIdentityPluginTest {
         this.tokenGenerator = Mockito.spy(new OpenStackTokenGeneratorPlugin());
     }
 
+    // TODO check this test !!!
     //test case: check if the token value information is correct when creating a token with the correct user credentials.
     @Test
     public void testCreateToken() throws Exception {
@@ -46,7 +46,6 @@ public class OpenStackIdentityPluginTest {
 
         //exercise
         String federationTokenValue = this.tokenGenerator.createTokenValue(userCredentials);
-        OpenStackV3Token token = this.identityPlugin.createToken(federationTokenValue);
 
         //verify
         String split[] = federationTokenValue.split(OpenStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);

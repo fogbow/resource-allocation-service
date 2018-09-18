@@ -18,6 +18,8 @@ import org.fogbowcloud.ras.util.RSAUtil;
 
 public class OpenStackAuthenticationPlugin implements AuthenticationPlugin<OpenStackV3Token> {
 
+	private static final Logger LOGGER = Logger.getLogger(OpenStackAuthenticationPlugin.class);
+	
     private String localProviderId;
     private RSAPublicKey publicKey;
 
@@ -43,7 +45,6 @@ public class OpenStackAuthenticationPlugin implements AuthenticationPlugin<OpenS
         }
     }
     
-    // TODO refactor
     protected String getTokenMessage(OpenStackV3Token openStackV3Token) {
     	String[] parameters = new String[] {
     			openStackV3Token.getTokenProvider(), 
@@ -54,7 +55,6 @@ public class OpenStackAuthenticationPlugin implements AuthenticationPlugin<OpenS
 		return StringUtils.join(parameters, OpenStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
 	}
 
-    // TODO refactor    
 	protected String getSignature(OpenStackV3Token openStackV3Token) {
 		return openStackV3Token.getSignature();
 	}
@@ -63,7 +63,8 @@ public class OpenStackAuthenticationPlugin implements AuthenticationPlugin<OpenS
         try {
             return RSAUtil.verify(this.publicKey, tokenMessage, signature);
         } catch (Exception e) {
-            throw new RuntimeException(Messages.Exception.INVALID_TOKEN_SIGNATURE, e);
+        	LOGGER.error(Messages.Exception.INVALID_TOKEN_SIGNATURE, e);
+            return false;
         }
     }    
 

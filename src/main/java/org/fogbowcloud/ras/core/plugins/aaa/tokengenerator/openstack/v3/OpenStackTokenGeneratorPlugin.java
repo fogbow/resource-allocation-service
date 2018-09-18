@@ -1,6 +1,11 @@
 package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3;
 
-import org.apache.commons.lang.StringUtils;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.interfaces.RSAPrivateKey;
+import java.util.Map;
+import java.util.Properties;
+
 import org.apache.http.Header;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -17,12 +22,6 @@ import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackHttp
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.RSAUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
-
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.interfaces.RSAPrivateKey;
-import java.util.Map;
-import java.util.Properties;
 
 public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     private static final Logger LOGGER = Logger.getLogger(OpenStackTokenGeneratorPlugin.class);
@@ -113,13 +112,12 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
         }
     }
 
-    private String createSignature(String message) throws IOException, GeneralSecurityException {
+    protected String createSignature(String message) throws IOException, GeneralSecurityException {
         return RSAUtil.sign(this.privateKey, message);
     }
     
     private String mountJsonBody(Map<String, String> credentials) {
         String projectId = credentials.get(PROJECT_ID);
-        String userId = credentials.get(USER_ID);
         String password = credentials.get(PASSWORD);
 
         CreateTokenRequest createTokenRequest = new CreateTokenRequest.Builder()

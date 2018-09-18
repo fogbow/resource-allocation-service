@@ -1,6 +1,18 @@
 package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3;
 
-import org.apache.http.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.GeneralSecurityException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.ProtocolVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicHeader;
@@ -14,12 +26,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 public class OpenStackTokenGeneratorPluginTest {
     private static final String FAKE_USER_ID = "fake-user-id";
@@ -46,7 +52,7 @@ public class OpenStackTokenGeneratorPluginTest {
     //test case: createTokenValue with valid credentials should generate a string with the appropriate values
     @Test
     public void testCreateTokenValueValidCredentials() throws IOException, FogbowRasException,
-            UnexpectedException {
+            UnexpectedException, GeneralSecurityException {
         //set up
         String jsonResponse = "{\"token\":{\"user\":{\"id\":\"" + FAKE_USER_ID + "\",\"name\": \"" + FAKE_USER_NAME +
                 "\"}, \"project\":{\"id\": \"" + FAKE_PROJECT_ID + "\", \"name\": \"" + FAKE_PROJECT_NAME +
@@ -69,6 +75,13 @@ public class OpenStackTokenGeneratorPluginTest {
         userCredentials.put(OpenStackTokenGeneratorPlugin.PASSWORD, "any password");
         userCredentials.put(OpenStackTokenGeneratorPlugin.PROJECT_ID, FAKE_PROJECT_ID);
 
+        String[] parameters = new String[] {this.memberId, FAKE_TOKEN_VALUE, 
+        		FAKE_USER_ID, FAKE_USER_NAME, FAKE_PROJECT_ID}; 
+        String tokenString = StringUtils.join(
+        		parameters, OpenStackTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
+        String tokenStringSignature = this.keystoneV3TokenGenerator.createSignature(tokenString);
+        
+        
         //exercise
         String tokenValue = this.keystoneV3TokenGenerator.createTokenValue(userCredentials);
 
@@ -80,7 +93,7 @@ public class OpenStackTokenGeneratorPluginTest {
         Assert.assertEquals(split[2], FAKE_USER_ID);
         Assert.assertEquals(split[3], FAKE_USER_NAME);
         Assert.assertEquals(split[4], FAKE_PROJECT_ID);
-        Assert.assertEquals(split[5], FAKE_PROJECT_NAME);
+        Assert.assertEquals(split[5], tokenStringSignature);
     }
 
     //test case: createTokenValue with invalid credentials should throw FogbowRasException
@@ -109,6 +122,6 @@ public class OpenStackTokenGeneratorPluginTest {
         userCredentials.put(OpenStackTokenGeneratorPlugin.PROJECT_ID, FAKE_PROJECT_ID);
 
         //exercise
-        String tokenValue = this.keystoneV3TokenGenerator.createTokenValue(userCredentials);
+        this.keystoneV3TokenGenerator.createTokenValue(userCredentials);
     }
 }
