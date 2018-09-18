@@ -8,6 +8,10 @@ import org.fogbowcloud.ras.util.JsonSerializable;
 import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Identity.*;
 
 /**
+ * 
+ * Documentation : https://developer.openstack.org/api-ref/identity/v3/#password-authentication-with-scoped-authorization
+ * 
+ * Request Example:   
  * {
  *     "auth":{
  *         "identity":{
@@ -17,19 +21,19 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.Openst
  *             "password":{
  *                 "user":{
  *                     "domain":{
- *                         "name":"LSD"
+ *                         "name":"name"
  *                     },
- *                     "name":"fogbow",
- *                     "password":"c24313A4a31a"
+ *                     "name":"username",
+ *                     "password":"password"
  *                 }
  *             }
  *         },
  *         "scope":{
  *             "project":{
  *                 "domain":{
- *                     "name":"LSD"
+ *                     "name":"domain"
  *                 },
- *                 "name":"atmosphere-workers"
+ *                 "name":"project-name"
  *             }
  *         }
  *     }

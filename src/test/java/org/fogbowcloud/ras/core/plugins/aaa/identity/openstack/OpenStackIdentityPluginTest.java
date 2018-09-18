@@ -42,7 +42,7 @@ public class OpenStackIdentityPluginTest {
         userCredentials = new HashMap<String, String>();
         userCredentials.put(OpenStackTokenGeneratorPlugin.USER_ID, "userId");
         userCredentials.put(OpenStackTokenGeneratorPlugin.PASSWORD, "userPass");
-        userCredentials.put(OpenStackTokenGeneratorPlugin.PROJECT_ID, "projectId");
+        userCredentials.put(OpenStackTokenGeneratorPlugin.PROJECT_NAME, "projectId");
 
         //exercise
         String federationTokenValue = this.tokenGenerator.createTokenValue(userCredentials);

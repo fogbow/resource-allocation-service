@@ -77,7 +77,7 @@ public class OpenStackOneToOneMapperTest {
         Map<String, String> userCredentials1 = new HashMap<String, String>();
         userCredentials1.put(OpenStackTokenGeneratorPlugin.USER_ID, FAKE_USER_ID1);
         userCredentials1.put(OpenStackTokenGeneratorPlugin.PASSWORD, "any password");
-        userCredentials1.put(OpenStackTokenGeneratorPlugin.PROJECT_ID, FAKE_PROJECT_ID);
+        userCredentials1.put(OpenStackTokenGeneratorPlugin.PROJECT_NAME, FAKE_PROJECT_ID);
         String tokenValue1 = this.keystoneV3TokenGenerator.createTokenValue(userCredentials1);
         OpenStackV3Token token1 = this.openStackIdentityPlugin.createToken(tokenValue1);
 
@@ -100,7 +100,7 @@ public class OpenStackOneToOneMapperTest {
         Map<String, String> userCredentials2 = new HashMap<String, String>();
         userCredentials2.put(OpenStackTokenGeneratorPlugin.USER_ID, FAKE_USER_ID1);
         userCredentials2.put(OpenStackTokenGeneratorPlugin.PASSWORD, "any password");
-        userCredentials2.put(OpenStackTokenGeneratorPlugin.PROJECT_ID, FAKE_PROJECT_ID);
+        userCredentials2.put(OpenStackTokenGeneratorPlugin.PROJECT_NAME, FAKE_PROJECT_ID);
         String tokenValue2 = this.keystoneV3TokenGenerator.createTokenValue(userCredentials2);
         OpenStackV3Token token2 = this.openStackIdentityPlugin.createToken(tokenValue2);
 

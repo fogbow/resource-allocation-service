@@ -30,9 +30,12 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     public static final String V3_TOKENS_ENDPOINT_PATH = "/auth/tokens";
     public static final String X_SUBJECT_TOKEN = "X-Subject-Token";
     public static final String TOKEN_VALUE_SEPARATOR = "!#!";
-    public static final String PROJECT_ID = "projectName";
+    public static final String PROJECT_NAME = "projectName";
     public static final String PASSWORD = "password";
     public static final String USER_ID = "userId";
+    public static final String USER_NAME = "userName";
+    public static final Object DOMAIN = "domain";
+
 
     private String v3TokensEndpoint;
     private HttpRequestClientUtil client;
@@ -117,11 +120,15 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     }
     
     private String mountJsonBody(Map<String, String> credentials) {
-        String projectId = credentials.get(PROJECT_ID);
+        String projectName = credentials.get(PROJECT_NAME);
         String password = credentials.get(PASSWORD);
+        String domain = credentials.get(DOMAIN);
+        String userName = credentials.get(USER_NAME);
 
         CreateTokenRequest createTokenRequest = new CreateTokenRequest.Builder()
-                .projectName(projectId)
+                .projectName(projectName)
+                .domain(domain)
+                .userName(userName)
                 .password(password)
                 .build();
 

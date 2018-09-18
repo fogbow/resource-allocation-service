@@ -73,7 +73,7 @@ public class OpenStackTokenGeneratorPluginTest {
         Map<String, String> userCredentials = new HashMap<String, String>();
         userCredentials.put(OpenStackTokenGeneratorPlugin.USER_ID, FAKE_USER_ID);
         userCredentials.put(OpenStackTokenGeneratorPlugin.PASSWORD, "any password");
-        userCredentials.put(OpenStackTokenGeneratorPlugin.PROJECT_ID, FAKE_PROJECT_ID);
+        userCredentials.put(OpenStackTokenGeneratorPlugin.PROJECT_NAME, FAKE_PROJECT_ID);
 
         String[] parameters = new String[] {this.memberId, FAKE_TOKEN_VALUE, 
         		FAKE_USER_ID, FAKE_USER_NAME, FAKE_PROJECT_ID}; 
@@ -119,7 +119,7 @@ public class OpenStackTokenGeneratorPluginTest {
         Map<String, String> userCredentials = new HashMap<String, String>();
         userCredentials.put(OpenStackTokenGeneratorPlugin.USER_ID, FAKE_USER_ID);
         userCredentials.put(OpenStackTokenGeneratorPlugin.PASSWORD, "any password");
-        userCredentials.put(OpenStackTokenGeneratorPlugin.PROJECT_ID, FAKE_PROJECT_ID);
+        userCredentials.put(OpenStackTokenGeneratorPlugin.PROJECT_NAME, FAKE_PROJECT_ID);
 
         //exercise
         this.keystoneV3TokenGenerator.createTokenValue(userCredentials);
