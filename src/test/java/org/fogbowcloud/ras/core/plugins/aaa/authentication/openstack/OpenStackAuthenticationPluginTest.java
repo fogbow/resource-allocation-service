@@ -94,9 +94,9 @@ public class OpenStackAuthenticationPluginTest {
         Assert.assertTrue(isAuthenticated);
     }
     
-    // TODO check
+    // TODO check if isAuthentic when providerId is different
     @Test
-    public void testGetTokenValidTokenValueProviderIdDiferent() throws IOException, UnavailableProviderException, GeneralSecurityException {
+    public void testGetTokenValidTokenValueProviderIdDifferent() throws IOException, UnavailableProviderException, GeneralSecurityException {
     	//set up
     	String providerId = "Other";
         
@@ -106,7 +106,7 @@ public class OpenStackAuthenticationPluginTest {
         boolean isAuthenticated = this.authenticationPlugin.isAuthentic(token);
 
         //verify
-        Assert.assertTrue(isAuthenticated);
+        Assert.assertFalse(isAuthenticated);
     }
 
     //test case: check if isAuthentic returns false when the tokenValue is not valid 

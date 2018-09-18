@@ -40,8 +40,7 @@ public class OpenStackAuthenticationPlugin implements AuthenticationPlugin<OpenS
 			String signature = getSignature(openStackV3Token);
 			return verifySign(tokenMessage, signature);
         } else {
-        	// TODO check: why is true ?
-            return true;
+            return false;
         }
     }
     
