@@ -25,4 +25,7 @@ RUN \
 # Define working directory.
 WORKDIR /root/resource-allocation-service
 
+RUN \
+  mvn dependency:sources
+
 CMD ./mvnw spring-boot:run -X > log.out 2> log.err && tail -f /dev/null
