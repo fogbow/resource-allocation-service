@@ -20,11 +20,12 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsResponse;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeRequest;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse;
+import org.fogbowcloud.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
+import org.fogbowcloud.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY;
@@ -37,10 +38,12 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     public static final String DEFAULT_VOLUME_TYPE = "ROOT";
     public static final String FOGBOW_INSTANCE_NAME = "fogbow-compute-instance-";
 
-    private HttpRequestClientUtil client;
     private String zoneId;
     private String expungeOnDestroy;
     private String defaultNetworkId;
+
+    private HttpRequestClientUtil client;
+    private LaunchCommandGenerator launchCommandGenerator;
 
     public CloudStackComputePlugin() throws FatalErrorException {
         String cloudStackConfFilePath = HomeDir.getPath() + File.separator
@@ -53,6 +56,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         this.defaultNetworkId = properties.getProperty(DEFAULT_NETWORK_ID_KEY);
 
         this.client = new HttpRequestClientUtil();
+        this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
     }
 
     @Override
@@ -64,16 +68,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
             throw new InvalidParameterException();
         }
 
-        // FIXME(pauloewerton): should this be creating a cloud-init script for cloudstack?
-        String userData = null;
-        if (computeOrder.getUserData() != null) {
-            userData = computeOrder.getUserData().getExtraUserDataFileContent();
-            try {
-                userData = Base64.getEncoder().encodeToString(userData.getBytes("UTF-8"));
-            } catch (UnsupportedEncodingException e) {
-                LOGGER.warn(Messages.Warn.UNABLE_TO_ENCODE_EXTRA_USER_DATA);
-            }
-        }
+        String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
 
         String networksId = resolveNetworksId(computeOrder);
 
@@ -89,7 +84,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         // offering is found.
         String diskOfferingId = disk > 0 ? getDiskOfferingId(disk, cloudStackToken) : null;
 
-        String keypairName = getKeypairName(computeOrder.getPublicKey(), cloudStackToken);
+        //String keypairName = getKeypairName(computeOrder.getPublicKey(), cloudStackToken);
 
         String instanceName = computeOrder.getName();
         if (instanceName == null) instanceName = FOGBOW_INSTANCE_NAME + getRandomUUID();
@@ -103,7 +98,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
                 .name(instanceName)
                 .diskOfferingId(diskOfferingId)
                 .userData(userData)
-                .keypair(keypairName)
                 .networksId(networksId)
                 .build();
 
@@ -114,10 +108,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
             jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
-        } finally {
-            if (keypairName != null) {
-                deleteKeypairName(keypairName, cloudStackToken);
-            }
         }
 
         DeployVirtualMachineResponse response = DeployVirtualMachineResponse.fromJson(jsonResponse);
@@ -249,61 +239,6 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         return diskOfferingsResponse;
     }
 
-    private String getKeypairName(String publicKey, CloudStackToken cloudStackToken) throws FogbowRasException, UnexpectedException {
-        String keyName = null;
-
-        if (publicKey != null && !publicKey.isEmpty()) {
-            keyName = getRandomUUID();
-
-            RegisterSSHKeypairRequest request = new RegisterSSHKeypairRequest.Builder()
-                    .name(keyName)
-                    .publicKey(publicKey)
-                    .build();
-
-            CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
-
-            String jsonResponse = null;
-            try {
-                jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
-            } catch (HttpResponseException e) {
-                CloudStackHttpToFogbowRasExceptionMapper.map(e);
-            }
-
-            RegisterSSHKeypairResponse keypairResponse = RegisterSSHKeypairResponse.fromJson(jsonResponse);
-            keyName = keypairResponse.getKeypairName();
-        }
-
-        return keyName;
-    }
-
-    private void deleteKeypairName(String keypairName, CloudStackToken cloudStackToken)
-            throws FogbowRasException, UnexpectedException {
-        String failureMessage = "Could not delete keypair " + keypairName;
-
-        DeleteSSHKeypairRequest request = new DeleteSSHKeypairRequest.Builder()
-                .name(keypairName)
-                .build();
-
-        CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
-
-        String jsonResponse = null;
-        try {
-            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
-        } catch (HttpResponseException e) {
-            LOGGER.error(failureMessage);
-            CloudStackHttpToFogbowRasExceptionMapper.map(e);
-        }
-
-        DeleteSSHKeypairResponse keypairResponse = DeleteSSHKeypairResponse.fromJson(jsonResponse);
-        String success = keypairResponse.getSuccess();
-
-        if (!success.equalsIgnoreCase("true")) {
-            LOGGER.warn(failureMessage);
-        } else {
-            LOGGER.info("Deleted keypair " + keypairName);
-        }
-    }
-
     private ComputeInstance getComputeInstance(GetVirtualMachineResponse.VirtualMachine vm, CloudStackToken cloudStackToken) {
         String instanceId = vm.getId();
         String hostName = vm.getName();
@@ -364,7 +299,12 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         return UUID.randomUUID().toString();
     }
 
+    // Methods below are used for testing only
     protected void setClient(HttpRequestClientUtil client) {
         this.client = client;
+    }
+
+    protected void setLaunchCommandGenerator(LaunchCommandGenerator commandGenerator) {
+        this.launchCommandGenerator = commandGenerator;
     }
 }
