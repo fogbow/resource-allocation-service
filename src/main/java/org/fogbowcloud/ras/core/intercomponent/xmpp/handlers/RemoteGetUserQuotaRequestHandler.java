@@ -33,7 +33,8 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            Quota userQuota = RemoteFacade.getInstance().getUserQuota(memberId, federationUserToken, resourceType);
+            Quota userQuota = RemoteFacade.getInstance().getUserQuota(iq.getFrom().toBareJID(), memberId,
+                    federationUserToken, resourceType);
             updateResponse(response, userQuota);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);

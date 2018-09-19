@@ -88,23 +88,23 @@ public class OpenStackAuthenticationPluginTest {
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
 
         //exercise
-        boolean isAuthenticated = this.authenticationPlugin.isAuthentic(token);
+        boolean isAuthenticated = this.authenticationPlugin.isAuthentic(this.providerId, token);
 
         //verify
         Assert.assertTrue(isAuthenticated);
     }
     
-    // isAuthentic should return true when the token was issued by another provider (we assume that authentication was
-    // done at the member that issued the request.
+    // isAuthentic should return true when the token was issued by another member and the request comes from this
+    // member (we assume that authentication was done at the member that issued the request).
     @Test
     public void testGetTokenValidTokenValueProviderIdDifferent() throws IOException, UnavailableProviderException, GeneralSecurityException {
     	//set up
-    	String providerId = "Other";
+    	String providerId = "other";
         
 		OpenStackV3Token token = new OpenStackV3Token(providerId, "", "", "", "", "");
 
         //exercise
-        boolean isAuthenticated = this.authenticationPlugin.isAuthentic(token);
+        boolean isAuthenticated = this.authenticationPlugin.isAuthentic(providerId, token);
 
         //verify
         Assert.assertTrue(isAuthenticated);
@@ -132,7 +132,7 @@ public class OpenStackAuthenticationPluginTest {
                 thenThrow(new HttpResponseException(HttpStatus.SC_BAD_GATEWAY, ""));
         
         //exercise
-        boolean isAuthenticated = this.authenticationPlugin.isAuthentic(token);
+        boolean isAuthenticated = this.authenticationPlugin.isAuthentic(this.providerId, token);
 
         //verify
         Assert.assertFalse(isAuthenticated);

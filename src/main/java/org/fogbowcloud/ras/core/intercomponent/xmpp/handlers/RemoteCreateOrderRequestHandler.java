@@ -28,12 +28,11 @@ public class RemoteCreateOrderRequestHandler extends AbstractQueryHandler {
         String className = unmarshalClassName(iq);
 
         IQ response = IQ.createResultIQ(iq);
-
         Gson gson = new Gson();
         Order order = null;
         try {
             order = (Order) gson.fromJson(orderJsonStr, Class.forName(className));
-            RemoteFacade.getInstance().activateOrder(order);
+            RemoteFacade.getInstance().activateOrder(iq.getFrom().toBareJID(), order);
         } catch (Throwable e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }

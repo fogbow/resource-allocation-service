@@ -9,6 +9,7 @@ import org.fogbowcloud.ras.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 
@@ -28,8 +29,10 @@ public class RemoteGetImageRequestHandler extends AbstractQueryHandler {
         FederationUserToken federationUserToken = unmarshalFederationUser(iq);
 
         IQ response = IQ.createResultIQ(iq);
+
         try {
-            Image image = RemoteFacade.getInstance().getImage(memberId, imageId, federationUserToken);
+            Image image = RemoteFacade.getInstance().getImage(iq.getFrom().toBareJID(), memberId, imageId,
+                    federationUserToken);
             updateResponse(response, image);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);

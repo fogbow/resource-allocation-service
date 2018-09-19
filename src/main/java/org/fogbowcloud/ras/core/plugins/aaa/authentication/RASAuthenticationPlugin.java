@@ -5,7 +5,6 @@ import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
-import org.fogbowcloud.ras.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.util.RSAUtil;
 
@@ -29,13 +28,16 @@ public abstract class RASAuthenticationPlugin implements AuthenticationPlugin<Fe
         }
     }
 
-    public boolean isAuthentic(FederationUserToken federationUserToken) throws UnavailableProviderException {
+    public boolean isAuthentic(String requestingMember, FederationUserToken federationUserToken)  {
         if (federationUserToken.getTokenProvider().equals(this.localProviderId)) {
             String tokenMessage = getTokenMessage(federationUserToken);
             String signature = getSignature(federationUserToken);
             return verifySign(tokenMessage, signature);
-        } else {
+        } else if (requestingMember.equals(federationUserToken.getTokenProvider().toLowerCase())) {
+            // XMPP does not differentiate lower and upper cases, thus requestingMember is always all lower case
             return true;
+        } else {
+            return false;
         }
     }
 

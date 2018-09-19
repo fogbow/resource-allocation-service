@@ -7,8 +7,9 @@ public interface AuthenticationPlugin<T extends FederationUserToken> {
     /**
      * Verifies if the federationTokenValue is valid against the identity service.
      *
-     * @param federationToken
+     * @param requestingMember the member from where the request was issued
+     * @param federationUserToken the token describing the user to be authenticated
      * @return a boolean stating whether the tokens value is valid or not.
      */
-    public boolean isAuthentic(T federationToken) throws UnavailableProviderException;
+    public boolean isAuthentic(String requestingMember, T federationUserToken) throws UnavailableProviderException;
 }

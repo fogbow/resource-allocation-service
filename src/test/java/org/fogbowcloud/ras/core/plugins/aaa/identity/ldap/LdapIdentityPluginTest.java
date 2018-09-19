@@ -1,5 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.aaa.identity.ldap;
 
+import org.fogbowcloud.ras.core.PropertiesHolder;
+import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.models.tokens.LdapToken;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.ldap.LdapAuthenticationPlugin;
@@ -20,6 +22,7 @@ public class LdapIdentityPluginTest {
     private static final String TOKEN_VALUE_SEPARATOR = "!#!";
     private LdapIdentityPlugin ldapIdentityPlugin;
     private LdapAuthenticationPlugin ldapAuthenticationPlugin;
+    private String localMemberId;
 
     Map<String, String> userCredentials = new HashMap<String, String>();
 
@@ -34,6 +37,7 @@ public class LdapIdentityPluginTest {
         this.userCredentials.put(LdapTokenGeneratorPlugin.CRED_PUBLIC_KEY, "public_key_path");
         this.ldapIdentityPlugin = Mockito.spy(new LdapIdentityPlugin());
         this.ldapAuthenticationPlugin = new LdapAuthenticationPlugin();
+        this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
     }
 
     //test case: check if the token information is correct when creating a token with the correct token value.
@@ -55,7 +59,7 @@ public class LdapIdentityPluginTest {
         Assert.assertEquals(split[1], ldapToken.getUserId());
         Assert.assertEquals(split[2], ldapToken.getUserName());
         Assert.assertEquals(split[3], ldapToken.getExpirationTime());
-        Assert.assertTrue(this.ldapAuthenticationPlugin.isAuthentic(ldapToken));
+        Assert.assertTrue(this.ldapAuthenticationPlugin.isAuthentic(this.localMemberId, ldapToken));
     }
 
     //test case: check if the token information is correct when creating a token with the correct token value.

@@ -19,6 +19,7 @@ public class Messages {
         public static final String INVALID_PARAMETER = "Invalid parameter.";
         public static final String INVALID_PORT_SIZE = "Invalid port size %s for virtual machine %s and default network %s.";
         public static final String INVALID_TOKEN = "Invalid token %s.";
+        public static final String INVALID_TOKEN_PROVIDER = "Invalid token provider %s: expected %s.";
         public static final String INVALID_TOKEN_SIGNATURE = "Invalid token signature.";
         public static final String LDAP_URL_MISSING = "No LDAP url in configuration file.";
         public static final String MISMATCHING_RESOURCE_TYPE = "Mismatching resource type.";
@@ -37,6 +38,7 @@ public class Messages {
         public static final String QUOTA_EXCEEDED = "Quota exceeded.";
         public static final String REQUESTER_DOES_NOT_OWN_REQUEST = "Requester does not own request.";
         public static final String RESOURCE_TYPE_NOT_IMPLEMENTED = "Resouce type not yet implemented.";
+        public static final String SIGNALING_MEMBER_DIFFERENT_OF_PROVIDER = "Signalling member %s is not the provider %s.";
         public static final String TOO_BIG_PUBLIC_KEY = "Too big public key.";
         public static final String TOO_BIG_USER_DATA_FILE_CONTENT = "Too big user data file.";
         public static final String UNABLE_TO_FIND_LIST_FOR_REQUESTS = "Unable to find list for requests in state %s.";

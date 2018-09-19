@@ -8,7 +8,7 @@ public class DefaultAuthenticationPlugin implements AuthenticationPlugin<Federat
     }
 
     @Override
-    public boolean isAuthentic(FederationUserToken federationToken) {
+    public boolean isAuthentic(String requestingMember, FederationUserToken federationToken) {
         return true;
     }
 }

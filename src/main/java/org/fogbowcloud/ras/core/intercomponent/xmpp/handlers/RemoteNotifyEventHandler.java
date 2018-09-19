@@ -34,7 +34,7 @@ public class RemoteNotifyEventHandler extends AbstractQueryHandler {
             order = unmarshalOrder(iq, gson);
             event = unmarshalEvent(iq, gson);
 
-            RemoteFacade.getInstance().handleRemoteEvent(event, order);
+            RemoteFacade.getInstance().handleRemoteEvent(iq.getFrom().toBareJID(), event, order);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }

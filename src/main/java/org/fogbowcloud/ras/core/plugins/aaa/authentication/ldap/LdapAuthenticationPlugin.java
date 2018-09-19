@@ -33,23 +33,26 @@ public class LdapAuthenticationPlugin implements AuthenticationPlugin<Federation
     }
 
     @Override
-    public boolean isAuthentic(FederationUserToken federationToken) {
-        if (federationToken.getTokenProvider().equals(this.localProviderId)) {
+    public boolean isAuthentic(String requestingMember, FederationUserToken federationUserToken) {
+        if (federationUserToken.getTokenProvider().equals(this.localProviderId)) {
             try {
-                checkTokenValue(federationToken.getTokenValue());
+                checkTokenValue(federationUserToken.getTokenValue());
                 return true;
             } catch (Exception e) {
                 return false;
             }
-        } else {
+        } else if (requestingMember.equals(federationUserToken.getTokenProvider().toLowerCase())) {
+            // XMPP does not differentiate lower and upper cases, thus requestingMember is always all lower case
             return true;
+        } else {
+            return false;
         }
     }
 
     private void checkTokenValue(String federationTokenValue) throws UnauthenticTokenException {
 
         String split[] = federationTokenValue.split(LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
-        if (split == null || split.length < 5) {
+        if (split == null || split.length != LdapTokenGeneratorPlugin.LDAP_TOKEN_NUMBER_OF_FIELDS) {
             throw new UnauthenticTokenException(String.format(Messages.Exception.INVALID_TOKEN, federationTokenValue));
         }
 
