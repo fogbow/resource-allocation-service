@@ -1,5 +1,7 @@
 package org.fogbowcloud.ras.core.models.tokens;
 
+import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRequest;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 
@@ -9,6 +11,8 @@ public class CloudStackToken extends FederationUserToken {
 
     @Column(length = MAX_SIGNATURE_SIZE)
     private String signature;
+
+    public CloudStackToken() {}
 
     public CloudStackToken(String tokenProvider, String tokenValue, String userID, String userName, String signature) {
         super(tokenProvider, tokenValue, userID, userName);
