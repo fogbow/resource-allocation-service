@@ -12,6 +12,7 @@ public class DeployVirtualMachineRequest extends CloudStackRequest {
     public static final String DISK_OFFERING_ID = "diskofferingid";
     public static final String USER_DATA = "userdata";
     public static final String NETWORKS_ID = "networkids";
+    public static final String KEYPAIR = "keypair";
 
     private DeployVirtualMachineRequest(Builder builder) throws InvalidParameterException {
         addParameter(SERVICE_OFFERING_ID_KEY, builder.serviceOfferingId);
@@ -21,6 +22,7 @@ public class DeployVirtualMachineRequest extends CloudStackRequest {
         addParameter(DISK_OFFERING_ID, builder.diskOfferingId);
         addParameter(USER_DATA, builder.userData);
         addParameter(NETWORKS_ID, builder.networksId);
+        addParameter(KEYPAIR, builder.keypair);
     }
 
     @Override
@@ -41,6 +43,7 @@ public class DeployVirtualMachineRequest extends CloudStackRequest {
         private String diskOfferingId;
         private String userData;
         private String networksId;
+        private String keypair;
 
         public Builder serviceOfferingId(String serviceOfferingId) {
             this.serviceOfferingId = serviceOfferingId;
@@ -74,6 +77,11 @@ public class DeployVirtualMachineRequest extends CloudStackRequest {
 
         public Builder networksId(String networksId) {
             this.networksId = networksId;
+            return this;
+        }
+
+        public Builder keypair(String keypair) {
+            this.keypair = keypair;
             return this;
         }
 
