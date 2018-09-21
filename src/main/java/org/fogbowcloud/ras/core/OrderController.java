@@ -64,8 +64,8 @@ public class OrderController {
         synchronized (order) {
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.CLOSED)) {
-                CloudConnector provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
-                provider.deleteInstance(order);
+                CloudConnector cloudConnector = getCloudConnector(order);
+                cloudConnector.deleteInstance(order);
                 OrderStateTransitioner.transition(order, OrderState.CLOSED);
             } else {
                 String message = String.format(Messages.Error.REQUEST_ALREADY_CLOSED, order.getId());
@@ -79,8 +79,7 @@ public class OrderController {
         if (orderId == null) throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
         Order order = getOrder(orderId);
         synchronized (order) {
-            CloudConnector cloudConnector =
-                    CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
+            CloudConnector cloudConnector = getCloudConnector(order);
             Instance instance = cloudConnector.getInstance(order);
             order.setCachedInstanceState(instance.getState());
             return instance;
@@ -120,6 +119,21 @@ public class OrderController {
             instanceStatusList.add(instanceStatus);
         }
         return instanceStatusList;
+    }
+
+    private CloudConnector getCloudConnector(Order order) {
+        CloudConnector provider = null;
+        if (!order.getProvidingMember().equals(order.getRequestingMember()) &&
+                (order.getOrderState().equals(OrderState.OPEN) ||
+                        order.getOrderState().equals(OrderState.FAILED))) {
+            // This is a remote order that either has never existed remotely, or no longer exists remotely.
+            // Thus, there is no need to send a delete message via a RemoteCloudConnector, and it is only
+            // necessary to call deleteInstance in the local member.
+            provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getRequestingMember());
+        } else {
+            provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
+        }
+        return provider;
     }
 
     private ComputeAllocation getUserComputeAllocation(Collection<ComputeOrder> computeOrders) {
