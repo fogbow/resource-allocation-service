@@ -102,7 +102,7 @@ public class RemoteFacade {
                 OrderStateTransitioner.transition(localOrder, OrderState.FULFILLED);
                 break;
             case INSTANCE_FAILED:
-                OrderStateTransitioner.transition(localOrder, OrderState.FAILED);
+                OrderStateTransitioner.transition(localOrder, OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
                 break;
         }
     }

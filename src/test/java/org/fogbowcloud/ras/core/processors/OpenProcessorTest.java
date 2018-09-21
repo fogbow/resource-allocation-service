@@ -114,13 +114,13 @@ public class OpenProcessorTest extends BaseUnitTests {
         Thread.sleep(500);
 
         //verify
-        assertEquals(OrderState.FAILED, localOrder.getOrderState());
+        assertEquals(OrderState.FAILED_ON_REQUEST, localOrder.getOrderState());
 
         // test if the open order list is empty and the failedList is with the
         // localOrder
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        ChainedList failedOrdersList = sharedOrderHolders.getFailedOrdersList();
+        ChainedList failedOrdersList = sharedOrderHolders.getFailedOnRequestOrdersList();
         assertTrue(this.listIsEmpty(openOrdersList));
         assertEquals(localOrder, failedOrdersList.getNext());
     }
@@ -145,13 +145,13 @@ public class OpenProcessorTest extends BaseUnitTests {
 
 
         //verify
-        assertEquals(OrderState.FAILED, localOrder.getOrderState());
+        assertEquals(OrderState.FAILED_ON_REQUEST, localOrder.getOrderState());
 
         // test if the open order list is empty and 
         // the failedList is with the localOrder
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        ChainedList failedOrdersList = sharedOrderHolders.getFailedOrdersList();
+        ChainedList failedOrdersList = sharedOrderHolders.getFailedOnRequestOrdersList();
         assertTrue(this.listIsEmpty(openOrdersList));
         assertSame(localOrder, failedOrdersList.getNext());
     }
@@ -206,13 +206,13 @@ public class OpenProcessorTest extends BaseUnitTests {
         Thread.sleep(500);
 
         //verify
-        assertEquals(OrderState.FAILED, remoteOrder.getOrderState());
+        assertEquals(OrderState.FAILED_ON_REQUEST, remoteOrder.getOrderState());
 
         // test if the open order list is empty and
         // the failedList is with the localOrder
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         ChainedList openOrdersList = sharedOrderHolders.getOpenOrdersList();
-        ChainedList failedOrdersList = sharedOrderHolders.getFailedOrdersList();
+        ChainedList failedOrdersList = sharedOrderHolders.getFailedOnRequestOrdersList();
         assertTrue(this.listIsEmpty(openOrdersList));
         assertEquals(remoteOrder, failedOrdersList.getNext());
     }

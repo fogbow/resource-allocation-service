@@ -99,13 +99,13 @@ public class FulfilledProcessor implements Runnable {
                 instance = this.localCloudConnector.getInstance(order);
             } catch (Exception e) {
                 LOGGER.error(Messages.Error.ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD, e);
-                OrderStateTransitioner.transition(order, OrderState.FAILED);
+                OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
                 return;
             }
             instanceState = instance.getState();
             if (instanceState.equals(InstanceState.FAILED)) {
                 LOGGER.info(String.format(Messages.Info.INSTANCE_HAS_FAILED, order.getId()));
-                OrderStateTransitioner.transition(order, OrderState.FAILED);
+                OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
                 return;
             }
         }

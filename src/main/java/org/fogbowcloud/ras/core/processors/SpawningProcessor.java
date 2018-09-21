@@ -71,7 +71,7 @@ public class SpawningProcessor implements Runnable {
         InstanceState instanceState = instance.getState();
 
         if (instanceState.equals(InstanceState.FAILED)) {
-            OrderStateTransitioner.transition(order, OrderState.FAILED);
+            OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
         } else if (instanceState.equals(InstanceState.READY)) {
             OrderStateTransitioner.transition(order, OrderState.FULFILLED);
         }
@@ -80,9 +80,9 @@ public class SpawningProcessor implements Runnable {
     private void handleError(Order order, String message, Throwable e) {
         LOGGER.error(message, e);
         if (order != null) {
-            if (!order.getOrderState().equals(OrderState.FAILED)) {
+            if (!order.getOrderState().equals(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST)) {
                 try {
-                    OrderStateTransitioner.transition(order, OrderState.FAILED);
+                    OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
                 } catch (UnexpectedException e2) {
                     LOGGER.error(message, e2);
                 }

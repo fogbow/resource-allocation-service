@@ -5,7 +5,8 @@ public enum OrderState {
     PENDING,
     SPAWNING,
     FULFILLED,
-    FAILED,
+    FAILED_AFTER_SUCCESSUL_REQUEST,
+    FAILED_ON_REQUEST,
     CLOSED,
     DEACTIVATED
     // an order that has been closed is stored twice in stable storage:

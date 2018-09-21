@@ -273,9 +273,10 @@ public class LocalCloudConnector implements CloudConnector {
         InstanceState instanceState = null;
         // If order state is DEACTIVATED or CLOSED, an exception is throw before method call.
         // If order state is FULFILLED or SPAWNING, the order has an instance id, so this method is never called.
-        if (order.getOrderState() == OrderState.OPEN || order.getOrderState() == OrderState.PENDING) {
+        if (order.getOrderState().equals(OrderState.OPEN) || order.getOrderState().equals(OrderState.PENDING)) {
             instanceState = InstanceState.DISPATCHED;
-        } else if (order.getOrderState() == OrderState.FAILED) {
+        } else if (order.getOrderState().equals(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST) ||
+                    order.getOrderState().equals(OrderState.FAILED_ON_REQUEST)) {
             instanceState = InstanceState.FAILED;
         }
         return instanceState;

@@ -68,7 +68,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();
         this.fulfilledOrderList = sharedOrderHolders.getFulfilledOrdersList();
-        this.failedOrderList = sharedOrderHolders.getFailedOrdersList();
+        this.failedOrderList = sharedOrderHolders.getFailedAfterSuccessfulRequestOrdersList();
         this.openOrderList = sharedOrderHolders.getOpenOrdersList();
 
         this.thread = null;
@@ -293,7 +293,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         Order test = this.failedOrderList.getNext();
         Assert.assertNotNull(test);
         Assert.assertEquals(order.getInstanceId(), test.getInstanceId());
-        Assert.assertEquals(OrderState.FAILED, test.getOrderState());
+        Assert.assertEquals(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST, test.getOrderState());
         Assert.assertNull(this.spawningOrderList.getNext());
     }
 

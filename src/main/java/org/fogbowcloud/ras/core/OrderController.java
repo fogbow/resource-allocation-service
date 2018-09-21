@@ -125,8 +125,8 @@ public class OrderController {
         CloudConnector provider = null;
         if (!order.getProvidingMember().equals(order.getRequestingMember()) &&
                 (order.getOrderState().equals(OrderState.OPEN) ||
-                        order.getOrderState().equals(OrderState.FAILED))) {
-            // This is a remote order that either has never existed remotely, or no longer exists remotely.
+                        order.getOrderState().equals(OrderState.FAILED_ON_REQUEST))) {
+            // This is an order for a remote provider that has never been received by that provider.
             // Thus, there is no need to send a delete message via a RemoteCloudConnector, and it is only
             // necessary to call deleteInstance in the local member.
             provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getRequestingMember());

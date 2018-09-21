@@ -14,7 +14,8 @@ public class SharedOrderHolders {
     private Map<String, Order> activeOrdersMap;
     private SynchronizedDoublyLinkedList openOrders;
     private SynchronizedDoublyLinkedList spawningOrders;
-    private SynchronizedDoublyLinkedList failedOrders;
+    private SynchronizedDoublyLinkedList failedAfterSuccessfulRequestOrders;
+    private SynchronizedDoublyLinkedList failedOnRequestOrders;
     private SynchronizedDoublyLinkedList fulfilledOrders;
     private SynchronizedDoublyLinkedList pendingOrders;
     private SynchronizedDoublyLinkedList closedOrders;
@@ -28,8 +29,10 @@ public class SharedOrderHolders {
             addOrdersToMap(this.openOrders, this.activeOrdersMap);
             this.spawningOrders = databaseManager.readActiveOrders(OrderState.SPAWNING);
             addOrdersToMap(this.spawningOrders, this.activeOrdersMap);
-            this.failedOrders = databaseManager.readActiveOrders(OrderState.FAILED);
-            addOrdersToMap(this.failedOrders, this.activeOrdersMap);
+            this.failedAfterSuccessfulRequestOrders = databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
+            addOrdersToMap(this.failedAfterSuccessfulRequestOrders, this.activeOrdersMap);
+            this.failedOnRequestOrders = databaseManager.readActiveOrders(OrderState.FAILED_ON_REQUEST);
+            addOrdersToMap(this.failedOnRequestOrders, this.activeOrdersMap);
             this.fulfilledOrders = databaseManager.readActiveOrders(OrderState.FULFILLED);
             addOrdersToMap(this.fulfilledOrders, this.activeOrdersMap);
             this.pendingOrders = databaseManager.readActiveOrders(OrderState.PENDING);
@@ -71,8 +74,12 @@ public class SharedOrderHolders {
         return spawningOrders;
     }
 
-    public SynchronizedDoublyLinkedList getFailedOrdersList() {
-        return failedOrders;
+    public SynchronizedDoublyLinkedList getFailedAfterSuccessfulRequestOrdersList() {
+        return failedAfterSuccessfulRequestOrders;
+    }
+
+    public SynchronizedDoublyLinkedList getFailedOnRequestOrdersList() {
+        return failedOnRequestOrders;
     }
 
     public SynchronizedDoublyLinkedList getFulfilledOrdersList() {
@@ -105,8 +112,11 @@ public class SharedOrderHolders {
             case CLOSED:
                 list = SharedOrderHolders.getInstance().getClosedOrdersList();
                 break;
-            case FAILED:
-                list = SharedOrderHolders.getInstance().getFailedOrdersList();
+            case FAILED_AFTER_SUCCESSUL_REQUEST:
+                list = SharedOrderHolders.getInstance().getFailedAfterSuccessfulRequestOrdersList();
+                break;
+            case FAILED_ON_REQUEST:
+                list = SharedOrderHolders.getInstance().getFailedOnRequestOrdersList();
                 break;
             default:
                 break;
