@@ -88,13 +88,15 @@ public class FulfilledProcessor implements Runnable {
             // Only orders that have been served by the local cloud are checked; remote ones are checked by
             // the Fogbow RAS running in the other member, which reports back any changes in the status.
             if (!order.isProviderLocal(this.localMemberId)) {
+                LOGGER.debug(String.format(Messages.Info.SKIPPING_BECAUSE_PROVIDER_IS_REMOTE, this.localMemberId,
+                        order.getId(), order.getProvidingMember()));
                 return;
             }
             // Check if the order is still in the Fulfilled state (it could have been changed by another thread)
             if (!orderState.equals(OrderState.FULFILLED)) {
                 return;
             }
-            LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE_FOR_REQUEST, order.getId()));
+            LOGGER.debug(String.format(Messages.Info.GETTING_INSTANCE_FOR_REQUEST, order.getId()));
             try {
                 instance = this.localCloudConnector.getInstance(order);
             } catch (Exception e) {

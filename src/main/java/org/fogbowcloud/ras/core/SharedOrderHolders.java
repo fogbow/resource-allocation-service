@@ -1,5 +1,7 @@
 package org.fogbowcloud.ras.core;
 
+import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.datastore.DatabaseManager;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
@@ -10,6 +12,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SharedOrderHolders {
+    private static final Logger LOGGER = Logger.getLogger(SharedOrderHolders.class);
+
     private static SharedOrderHolders instance;
     private Map<String, Order> activeOrdersMap;
     private SynchronizedDoublyLinkedList openOrders;
@@ -27,18 +31,25 @@ public class SharedOrderHolders {
         try {
             this.openOrders = databaseManager.readActiveOrders(OrderState.OPEN);
             addOrdersToMap(this.openOrders, this.activeOrdersMap);
+            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.OPEN, this.activeOrdersMap.size()));
             this.spawningOrders = databaseManager.readActiveOrders(OrderState.SPAWNING);
             addOrdersToMap(this.spawningOrders, this.activeOrdersMap);
+            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.SPAWNING, this.activeOrdersMap.size()));
             this.failedAfterSuccessfulRequestOrders = databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
             addOrdersToMap(this.failedAfterSuccessfulRequestOrders, this.activeOrdersMap);
+            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.FAILED_AFTER_SUCCESSUL_REQUEST, this.activeOrdersMap.size()));
             this.failedOnRequestOrders = databaseManager.readActiveOrders(OrderState.FAILED_ON_REQUEST);
             addOrdersToMap(this.failedOnRequestOrders, this.activeOrdersMap);
+            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.FAILED_ON_REQUEST, this.activeOrdersMap.size()));
             this.fulfilledOrders = databaseManager.readActiveOrders(OrderState.FULFILLED);
             addOrdersToMap(this.fulfilledOrders, this.activeOrdersMap);
+            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.FULFILLED, this.activeOrdersMap.size()));
             this.pendingOrders = databaseManager.readActiveOrders(OrderState.PENDING);
             addOrdersToMap(this.pendingOrders, this.activeOrdersMap);
+            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.PENDING, this.activeOrdersMap.size()));
             this.closedOrders = databaseManager.readActiveOrders(OrderState.CLOSED);
             addOrdersToMap(this.closedOrders, this.activeOrdersMap);
+            LOGGER.info(String.format(Messages.Info.RECOVERING_LIST_OF_ORDERS, OrderState.CLOSED, this.activeOrdersMap.size()));
         } catch (Exception e) {
             throw new FatalErrorException(e.getMessage());
         }

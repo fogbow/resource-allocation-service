@@ -19,7 +19,6 @@ public class Messages {
         public static final String INVALID_PARAMETER = "Invalid parameter.";
         public static final String INVALID_PORT_SIZE = "Invalid port size %s for virtual machine %s and default network %s.";
         public static final String INVALID_TOKEN = "Invalid token %s.";
-        public static final String INVALID_TOKEN_PROVIDER = "Invalid token provider %s: expected %s.";
         public static final String INVALID_TOKEN_SIGNATURE = "Invalid token signature.";
         public static final String LDAP_URL_MISSING = "No LDAP url in configuration file.";
         public static final String MISMATCHING_RESOURCE_TYPE = "Mismatching resource type.";
@@ -75,7 +74,6 @@ public class Messages {
         public static final String NETWORK_NOT_FOUND = "Network id %s was not found when trying to delete it.";
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL = "Unable to add the extra user data file; content is null.";
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_TYPE_NULL = "Unable to add the extra user data file; file type is null.";
-        public static final String UNABLE_TO_ENCODE_EXTRA_USER_DATA = "Unable to encode user data; sending request without it.";
         public static final String UNABLE_TO_DECODE_URL = "Unable to decode url %s.";
         public static final String UNABLE_TO_GENERATE_SIGNATURE = "Unable to generate signature.";
         public static final String UNABLE_TO_NOTIFY_REQUESTING_MEMBER = "Unable to notify requesting member %s for request %s.";
@@ -84,6 +82,7 @@ public class Messages {
 
     public static class Info {
         public static final String ACTIVATING_NEW_REQUEST = "Activating new request.";
+        public static final String DATABASE_URL = "Database URL: %s.";
         public static final String DELETING_INSTANCE = "Deleting instance %s with token %s.";
         public static final String GETTING_INSTANCE = "Getting instance %s with token %s.";
         public static final String GETTING_INSTANCE_FOR_REQUEST = "Trying to get an instance for request %s.";
@@ -98,7 +97,9 @@ public class Messages {
         public static final String RECEIVING_GET_REQUEST = "Get request for %s %s received.";
         public static final String RECEIVING_GET_VERSION_REQUEST = "Get request for version received.";
         public static final String RECEIVING_REMOTE_REQUEST = "Received remote request for request %s.";
+        public static final String RECOVERING_LIST_OF_ORDERS = "Recovering requests in %s state: %d requests recovered so far.";
         public static final String STARTING_THREADS = "Starting processor threads.";
+        public static final String SKIPPING_BECAUSE_PROVIDER_IS_REMOTE = "Member %s skipping monitoring of request %s provided by %s.";
     }
 
     public static class Error {

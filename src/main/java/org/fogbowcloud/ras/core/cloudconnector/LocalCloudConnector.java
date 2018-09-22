@@ -142,6 +142,7 @@ public class LocalCloudConnector implements CloudConnector {
                         break;
                     case PUBLIC_IP:
                         this.publicIpPlugin.deleteInstance(order.getInstanceId(), token);
+                        break;
                     default:
                         LOGGER.error(String.format(Messages.Error.DELETE_INSTANCE_PLUGIN_NOT_IMPLEMENTED, order.getType()));
                         break;
