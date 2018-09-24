@@ -1,6 +1,6 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
-public class ComputeRequestBuilder {
+public class ComputeRequest {
 
 	private VirtualMachineTemplate virtualMachine;
 
@@ -8,19 +8,19 @@ public class ComputeRequestBuilder {
 		return this.virtualMachine;
 	}
 
-	public ComputeRequestBuilder(Builder builder) {
+	public ComputeRequest(Builder builder) {
 		super();
 		String cpu = builder.cpu;
 		String memory = builder.memory;
-		VirtualMachineContext context = contextBuilder(builder);
-		VirtualMachineGraphics graphics = graphicsBuilder(builder);
-		VirtualMachineImageDisk imageDisk = imageBuilder(builder);
-		VirtualMachineVolumeDisk volumeDisk = volumeBuilder(builder);
-		VirtualMachineNic nic = networkInterfaceConnectedBuilder(builder);
-		virtualMachineTemplateBuilder(context, cpu, graphics, imageDisk, volumeDisk, memory, nic);
+		VirtualMachineContext context = buildContext(builder);
+		VirtualMachineGraphics graphics = buildGraphics(builder);
+		VirtualMachineImageDisk imageDisk = buildImage(builder);
+		VirtualMachineVolumeDisk volumeDisk = buildVolume(builder);
+		VirtualMachineNic nic = buildNetworkInterfaceConnected(builder);
+		setVirtualMachineTemplate(context, cpu, graphics, imageDisk, volumeDisk, memory, nic);
 	}
 
-	private void virtualMachineTemplateBuilder(VirtualMachineContext context, String cpu,
+	private void setVirtualMachineTemplate(VirtualMachineContext context, String cpu,
 			VirtualMachineGraphics graphics, VirtualMachineImageDisk imageDisk, VirtualMachineVolumeDisk volumeDisk,
 			String memory, VirtualMachineNic nic) {
 		this.virtualMachine = new VirtualMachineTemplate();
@@ -33,33 +33,33 @@ public class ComputeRequestBuilder {
 		this.virtualMachine.setNetworkInterfaceConnected(nic);
 	}
 
-	private VirtualMachineNic networkInterfaceConnectedBuilder(Builder builder) {
+	private VirtualMachineNic buildNetworkInterfaceConnected(Builder builder) {
 		VirtualMachineNic nic = new VirtualMachineNic();
 		nic.setNetworkId(builder.networkId);
 		return nic;
 	}
 
-	private VirtualMachineVolumeDisk volumeBuilder(Builder builder) {
+	private VirtualMachineVolumeDisk buildVolume(Builder builder) {
 		VirtualMachineVolumeDisk volumeDisk = new VirtualMachineVolumeDisk();
 		volumeDisk.setSize(builder.volumeSize);
 		volumeDisk.setType(builder.volumeType);
 		return volumeDisk;
 	}
 
-	private VirtualMachineImageDisk imageBuilder(Builder builder) {
+	private VirtualMachineImageDisk buildImage(Builder builder) {
 		VirtualMachineImageDisk imageDisk = new VirtualMachineImageDisk();
 		imageDisk.setImageId(builder.imageId);
 		return imageDisk;
 	}
 
-	private VirtualMachineGraphics graphicsBuilder(Builder builder) {
+	private VirtualMachineGraphics buildGraphics(Builder builder) {
 		VirtualMachineGraphics graphics = new VirtualMachineGraphics();
 		graphics.setListen(builder.graphicsListen);
 		graphics.setType(builder.graphicsType);
 		return graphics;
 	}
 
-	private VirtualMachineContext contextBuilder(Builder builder) {
+	private VirtualMachineContext buildContext(Builder builder) {
 		VirtualMachineContext context = new VirtualMachineContext();
 		context.setEncoding(builder.contextEncoding);
 		context.setUserdata(builder.contextUserdata);
@@ -135,8 +135,8 @@ public class ComputeRequestBuilder {
 			return this;
 		}
 
-		public ComputeRequestBuilder build() {
-			return new ComputeRequestBuilder(this);
+		public ComputeRequest build() {
+			return new ComputeRequest(this);
 		}
 
 	}
