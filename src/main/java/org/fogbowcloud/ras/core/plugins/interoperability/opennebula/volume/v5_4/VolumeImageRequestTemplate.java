@@ -6,7 +6,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "IMAGE")
-public class VolumeTemplateImage extends OpenNebulaRequestTemplate {
+public class VolumeImageRequestTemplate extends OpenNebulaRequestTemplate {
     private String name;
     private String persistent;
     private String type;
@@ -15,8 +15,13 @@ public class VolumeTemplateImage extends OpenNebulaRequestTemplate {
     private String devPrefix;
     private int size;
 
-    public VolumeTemplateImage(String name, int size) {
+    public VolumeImageRequestTemplate(String name, String persistent, String type, String fstype, String diskType, String devPrefix, int size) {
         this.name = name;
+        this.persistent = persistent;
+        this.type = type;
+        this.fstype = fstype;
+        this.diskType = diskType;
+        this.devPrefix = devPrefix;
         this.size = size;
     }
 
