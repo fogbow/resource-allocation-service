@@ -24,6 +24,7 @@ import org.json.JSONObject;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 
 public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
     private static final Logger LOGGER = Logger.getLogger(OpenStackNetworkPlugin.class);
@@ -100,7 +101,8 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
             throws FogbowRasException, UnexpectedException {
         CreateNetworkResponse createNetworkResponse = null;
         try {
-            String networkName = DEFAULT_NETWORK_NAME + "-" + name;
+            String prefixName = name == null ? getRandomUUID() : name;
+            String networkName = DEFAULT_NETWORK_NAME + "-" + prefixName;
 
             CreateNetworkRequest createNetworkRequest = new CreateNetworkRequest.Builder()
                     .name(networkName)
@@ -188,6 +190,10 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
             removeSecurityGroup(openStackV3Token, securityGroupId);
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }
+    }
+
+    protected String getRandomUUID() {
+        return UUID.randomUUID().toString();
     }
 
     protected String getSecurityGroupIdFromGetResponse(String json) throws UnexpectedException {

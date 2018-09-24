@@ -50,7 +50,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     protected static final String PUBLIC_KEY_JSON_FIELD = "public_key";
     protected static final String KEYPAIR_JSON_FIELD = "keypair";
     protected static final String UUID_JSON_FIELD = "uuid";
-    protected static final String FOGBOW_INSTANCE_NAME = "fogbow-compute-instance-";
+    protected static final String FOGBOW_INSTANCE_NAME = "ras-compute-";
     protected static final String PROJECT_ID = "projectId";
     protected static final String SERVERS = "/servers";
     protected static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";

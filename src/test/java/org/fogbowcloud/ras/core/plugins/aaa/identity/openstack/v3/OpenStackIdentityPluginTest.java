@@ -40,7 +40,6 @@ public class OpenStackIdentityPluginTest {
         Mockito.doReturn(fakeTokenValue).when(this.tokenGenerator).createTokenValue(Mockito.anyMap());
         Map<String, String> userCredentials = new HashMap<String, String>();
         userCredentials = new HashMap<String, String>();
-        userCredentials.put(OpenStackTokenGeneratorPlugin.USER_ID, "userId");
         userCredentials.put(OpenStackTokenGeneratorPlugin.PASSWORD, "userPass");
         userCredentials.put(OpenStackTokenGeneratorPlugin.PROJECT_NAME, "projectId");
 
