@@ -86,6 +86,7 @@ public class Messages {
         public static final String GETTING_INSTANCE = "Getting instance %s with token %s.";
         public static final String GETTING_INSTANCE_FOR_REQUEST = "Trying to get an instance for request %s.";
         public static final String INSTANCE_HAS_FAILED = "Instance associated to request %s has failed.";
+        public static final String MOUNTING_INSTANCE = "Mounting instance structure of id: %s.";
         public static final String RECEIVING_COMPUTE_QUOTA_REQUEST = "Get compute %s request for member %s received.";
         public static final String RECEIVING_CREATE_REQUEST = "Create request for %s received.";
         public static final String RECEIVING_CREATE_TOKEN_REQUEST = "Create token request received with a credentials map of size %s.";
@@ -96,6 +97,7 @@ public class Messages {
         public static final String RECEIVING_GET_REQUEST = "Get request for %s %s received.";
         public static final String RECEIVING_GET_VERSION_REQUEST = "Get request for version received.";
         public static final String RECEIVING_REMOTE_REQUEST = "Received remote request for request %s.";
+        public static final String REQUESTING_INSTANCE = "Requesting instance with token %s.";
         public static final String STARTING_THREADS = "Starting processor threads.";
     }
 
@@ -110,6 +112,7 @@ public class Messages {
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD = "Error while getting instance from the cloud.";
         public static final String ERROR_WHILE_GETTING_NEW_CONNECTION = "Error while getting a new connection from the connection pool.";
         public static final String ERROR_WHILE_GETTING_VOLUME_INSTANCE = "Error while getting volume instance.";
+        public static final String ERROR_WHILE_REMOVING_VM = "Error while removing virtual machine: %s.";
         public static final String INSTANCE_TYPE_NOT_DEFINED = "Instance type not defined.";
         public static final String INVALID_DATASTORE_DRIVER = "Invalid datastore driver.";
         public static final String INVALID_TOKEN_VALUE = "Invalid token value: %s.";

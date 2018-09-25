@@ -1,6 +1,6 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
-public class ComputeRequest {
+public class CreateComputeRequest {
 
 	private VirtualMachineTemplate virtualMachine;
 
@@ -8,7 +8,7 @@ public class ComputeRequest {
 		return this.virtualMachine;
 	}
 
-	public ComputeRequest(Builder builder) {
+	public CreateComputeRequest(Builder builder) {
 		super();
 		String cpu = builder.cpu;
 		String memory = builder.memory;
@@ -135,8 +135,8 @@ public class ComputeRequest {
 			return this;
 		}
 
-		public ComputeRequest build() {
-			return new ComputeRequest(this);
+		public CreateComputeRequest build() {
+			return new CreateComputeRequest(this);
 		}
 
 	}
