@@ -12,6 +12,7 @@ public class DefaultConfigurationConstants {
     // CLOUD PLUGINS CONF FILES PATHS
     public static final String OPENSTACK_CONF_FILE_NAME = "openstack.conf";
     public static final String CLOUDSTACK_CONF_FILE_NAME = "cloudstack.conf";
+    public static final String OPENNEBULA_CONF_FILE_NAME = "opennebula.conf";
 
     // RAS CONF DEFAULTS
     // reference value is 1 second
