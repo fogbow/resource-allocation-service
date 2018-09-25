@@ -35,12 +35,14 @@ public class OpenNebulaClientFactory {
     private static final String RESPONSE_NOT_ENOUGH_FREE_MEMORY = "Not enough free memory";
     private static final String RESPONSE_NO_SPACE_LEFT_ON_DEVICE = "No space left on device";
     private static final String OPENNEBULA_RPC_ENDPOINT_URL = "opennebula_rpc_endpoint";
+    private static final String OPENNEBULA_AAA_TOKEN = "opennebula_aaa_token";
     private Properties properties;
 
-    public Client createClient(String tokenValue) throws UnexpectedException {
+    public Client createClient() throws UnexpectedException {
         this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
                 DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME);
         try {
+            String tokenValue = properties.getProperty(OPENNEBULA_AAA_TOKEN);
             String endpoint = properties.getProperty(OPENNEBULA_RPC_ENDPOINT_URL);
             return new Client(tokenValue, endpoint);
         } catch (ClientConfigurationException e) {
