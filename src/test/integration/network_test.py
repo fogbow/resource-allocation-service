@@ -81,7 +81,7 @@ class NetworkTests:
     response_get = CommonMethods.get_all_order(GeneralConfigurations.type_network)
     time.sleep(10)
     if response_get.status_code != GeneralConfigurations.ok_status or response_get.text != '[]':
-      print('  Failed. Got http status %d and message: %s' % (response_get.status_code, response_get.text))
+      print('  Failed. There was a network created already. Received http status %d and message: %s' % (response_get.status_code, response_get.text))
       return
     orders_id = CommonMethods.post_multiple_orders(extra_data, GeneralConfigurations.max_networks, GeneralConfigurations.type_network)
     if not orders_id:
