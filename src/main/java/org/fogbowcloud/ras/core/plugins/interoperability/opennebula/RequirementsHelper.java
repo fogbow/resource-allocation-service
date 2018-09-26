@@ -14,7 +14,8 @@ import condor.classad.Expr;
 import condor.classad.Op;
 import condor.classad.RecordExpr;
 
-public class OpenNebulaRequirementsHelper {
+public class RequirementsHelper {
+	
 	private static final String GLUE_LOCATION_TERM = "Glue2CloudComputeManagerID";
 	public static final String GLUE_DISK_TERM = "Glue2Disk";
 	public static final String GLUE_MEM_RAM_TERM = "Glue2RAM";
