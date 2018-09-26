@@ -37,6 +37,7 @@ public class OpenNebulaClientFactory {
     private static final String RESPONSE_NO_SPACE_LEFT_ON_DEVICE = "No space left on device";
     private static final String OPENNEBULA_RPC_ENDPOINT_URL = "opennebula_rpc_endpoint";
     private static final String OPENNEBULA_AAA_TOKEN = "opennebula_aaa_token";
+    
     private Properties properties;
 
     public Client createClient() throws UnexpectedException {
@@ -101,8 +102,15 @@ public class OpenNebulaClientFactory {
         return null;
     }
 
-    public TemplatePool createTemplatePool(Client client) {
-        return null;
+    public TemplatePool createTemplatePool(Client client) throws UnexpectedException {
+        TemplatePool templatePool = new TemplatePool(client);
+        OneResponse response = templatePool.infoAll();
+        if (response.isError()) {
+        	LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_TEMPLATES, response.getErrorMessage()));
+        	throw new UnexpectedException(response.getErrorMessage());
+        }
+        LOGGER.info(String.format(Messages.Info.TEMPLATE_POOL_LENGTH, templatePool.getLength()));
+		return templatePool;
     }
 
     public User createUser(Client client, String username) {
@@ -122,8 +130,8 @@ public class OpenNebulaClientFactory {
         return null;
     }
 
-    public String allocateVirtualMachine(Client oneClient, String template) throws QuotaExceededException, NoAvailableResourcesException {
-        OneResponse response = VirtualMachine.allocate(oneClient, template);
+    public String allocateVirtualMachine(Client client, String template) throws QuotaExceededException, NoAvailableResourcesException {
+        OneResponse response = VirtualMachine.allocate(client, template);
         if (response.isError()) {
             String message = response.getErrorMessage();
             LOGGER.error(String.format(Messages.Error.ERROR_WHILE_INSTANTIATING_FROM_TEMPLATE, template));
