@@ -76,7 +76,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 			throws FogbowRasException, UnexpectedException {
 		
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, localUserAttributes.getTokenValue()));
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+//		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+		Client client = this.factory.createClient();
 		
 		String userData = computeOrder.getUserData().toString(); // TODO verify this is correct
 		String networkId = resolveNetworksId(computeOrder);
@@ -110,7 +111,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		if (this.flavors == null || this.flavors.isEmpty() ) {
 			updateHardwareRequirements(localUserAttributes);
 		}
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+//		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+		Client client = this.factory.createClient();
 		VirtualMachine virtualMachine = this.factory.createVirtualMachine(client, computeInstanceId);
 		return createVirtualMachineInstance(virtualMachine);
 	}
@@ -120,7 +122,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 			throws FogbowRasException, UnexpectedException {
 		
 		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, computeInstanceId, localUserAttributes.getTokenValue()));
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+//		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+		Client client = this.factory.createClient();
 		VirtualMachine virtualMachine = this.factory.createVirtualMachine(client, computeInstanceId);
 		OneResponse response = virtualMachine.terminate();
 		if (response.isError()) {			
@@ -161,7 +164,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 	}
 
 	private void updateHardwareRequirements(Token localUserAttributes) throws UnexpectedException {
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+//		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+		Client client = this.factory.createClient();
 		Map<String, String> imageSizeMap = getImageSizes(client);
 		List<HardwareRequirements> flavors = new ArrayList<>();
 		List<HardwareRequirements> flavorsTemplate = new ArrayList<>();
