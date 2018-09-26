@@ -97,6 +97,7 @@ public class Messages {
         public static final String RECEIVING_GET_VERSION_REQUEST = "Get request for version received.";
         public static final String RECEIVING_REMOTE_REQUEST = "Received remote request for request %s.";
         public static final String STARTING_THREADS = "Starting processor threads.";
+        public static final String TEMPLATE_POOL_LENGTH = "Template pool length: %s.";
     }
 
     public static class Error {
@@ -109,6 +110,7 @@ public class Messages {
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_REQUEST = "Error while trying to get an instance for request %s.";
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD = "Error while getting instance from the cloud.";
         public static final String ERROR_WHILE_GETTING_NEW_CONNECTION = "Error while getting a new connection from the connection pool.";
+        public static final String ERROR_WHILE_GETTING_TEMPLATES = "Error while getting info about templates: %s.";
         public static final String ERROR_WHILE_GETTING_VOLUME_INSTANCE = "Error while getting volume instance.";
         public static final String INSTANCE_TYPE_NOT_DEFINED = "Instance type not defined.";
         public static final String INVALID_DATASTORE_DRIVER = "Invalid datastore driver.";
