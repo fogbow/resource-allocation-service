@@ -1,5 +1,10 @@
 package org.fogbowcloud.ras.core.cloudconnector;
 
+import org.apache.http.HttpRequest;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicHttpRequest;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.InteroperabilityPluginsHolder;
 import org.fogbowcloud.ras.core.SharedOrderHolders;
@@ -16,6 +21,7 @@ import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
+import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -225,6 +231,16 @@ public class LocalCloudConnector implements CloudConnector {
             throws FogbowRasException, UnexpectedException {
         Token token = this.mapperPlugin.map(federationUserToken);
         return this.imagePlugin.getImage(imageId, token);
+    }
+
+    @Override
+    public String genericRequest(String method, String url, Map<String, String> headers, String body) {
+        HttpClient a = new DefaultHttpClient();
+        a.
+        BasicHttpRequest request = new BasicHttpRequest(method, url);
+        request.
+        HttpRequest.
+        throw new UnsupportedOperationException();
     }
 
     /**

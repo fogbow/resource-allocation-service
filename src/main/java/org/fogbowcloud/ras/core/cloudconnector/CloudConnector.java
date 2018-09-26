@@ -64,4 +64,15 @@ public interface CloudConnector {
      * @throws Exception
      */
     Image getImage(String imageId, FederationUserToken federationUserToken) throws Exception;
+
+    /**
+     * Redirects a generic request to the cloud then answer the response.
+     *
+     * @param method
+     * @param url
+     * @param headers
+     * @param body
+     * @return
+     */
+    String genericRequest(String method, String url, Map<String, String> headers, String body);
 }

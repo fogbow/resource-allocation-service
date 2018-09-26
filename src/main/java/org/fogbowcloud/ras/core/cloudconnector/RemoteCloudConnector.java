@@ -10,6 +10,7 @@ import org.fogbowcloud.ras.core.models.quotas.Quota;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class RemoteCloudConnector implements CloudConnector {
     private static final Logger LOGGER = Logger.getLogger(RemoteCloudConnector.class);
@@ -67,5 +68,10 @@ public class RemoteCloudConnector implements CloudConnector {
                 federationUserToken);
         Image image = remoteGetImageRequest.send();
         return image;
+    }
+
+    @Override
+    public String genericRequest(String method, String url, Map<String, String> headers, String body) {
+        throw new UnsupportedOperationException();
     }
 }

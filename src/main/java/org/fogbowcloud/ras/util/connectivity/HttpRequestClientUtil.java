@@ -18,8 +18,12 @@ import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HttpRequestClientUtil {
     private static final Logger LOGGER = Logger.getLogger(HttpRequestClientUtil.class);
@@ -185,6 +189,18 @@ public class HttpRequestClientUtil {
             }
         }
         return responseStr;
+    }
+
+    public static Map<String, String> getHeaders(HttpServletRequest request) {
+        Enumeration<String> headerNames = request.getHeaderNames();
+
+        Map<String, String> headers = new HashMap<>();
+        while (headerNames.hasMoreElements()) {
+            String headerName = headerNames.nextElement();
+            headers.put(headerName, request.getHeader(headerName));
+        }
+
+        return headers;
     }
 
     public class Response {

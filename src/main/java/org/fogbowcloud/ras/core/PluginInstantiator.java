@@ -110,6 +110,11 @@ public class PluginInstantiator {
         }
     }
 
+    public GenericPlugin getGenericPlugin() {
+        String className = this.properties.getProperty(ConfigurationConstants.GENERIC_PLUGIN_CLASS_KEY);
+        return (GenericPlugin) this.pluginFactory.createPluginInstance(className);
+    }
+
     public FederationToLocalMapperPlugin getLocalUserCredentialsMapperPlugin() {
         String className = this.properties.
                 getProperty(ConfigurationConstants.LOCAL_USER_CREDENTIALS_MAPPER_PLUGIN_CLASS_KEY);

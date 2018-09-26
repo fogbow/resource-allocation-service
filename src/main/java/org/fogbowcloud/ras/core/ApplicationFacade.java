@@ -17,6 +17,7 @@ import org.fogbowcloud.ras.core.models.quotas.Quota;
 import org.fogbowcloud.ras.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.ras.core.plugins.interoperability.GenericPlugin;
 
 import java.util.List;
 import java.util.Map;
@@ -208,6 +209,11 @@ public class ApplicationFacade {
 
     public void deletePublicIp(String publicIpOrderId, String federationTokenValue) throws Exception {
         deleteOrder(publicIpOrderId, federationTokenValue, ResourceType.PUBLIC_IP);
+    }
+
+    public String genericRequest(String memberId, String method, String url, Map<String, String> headers, String body) {
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
+        return cloudConnector.genericRequest(method, url, headers, body);
     }
 
 }
