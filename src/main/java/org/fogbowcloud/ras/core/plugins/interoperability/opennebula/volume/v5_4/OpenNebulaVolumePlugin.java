@@ -13,6 +13,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.VolumePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OneConfigurationConstants;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.volume.v5_4.CreateVolumeRequest;
+import org.fogbowcloud.ras.core.plugins.interoperability.openstack.volume.v2.GetVolumeResponse;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.opennebula.client.Client;
 
@@ -66,6 +67,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
 
         String volumeTemplate = request.getVolumeImageRequestTemplate().generateTemplate();
 
+        LOGGER.debug("Creating datablock image with template: " + volumeTemplate);
 
         return factory.allocateImage(client, volumeTemplate, dataStoreId);
     }
