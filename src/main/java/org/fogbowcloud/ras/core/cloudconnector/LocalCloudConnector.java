@@ -17,6 +17,7 @@ import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -249,6 +250,10 @@ public class LocalCloudConnector implements CloudConnector {
         switch (resourceType) {
             case COMPUTE:
                 instance = this.computePlugin.getInstance(instanceId, token);
+                Map<String, String> computeNetworks = getNetworkOrderIdsFromComputeOrder(((ComputeOrder) order));
+                String computeImage = getImageFromComputeOrder(((ComputeOrder) order));
+                ((ComputeInstance) instance).setNetworks(computeNetworks);
+                ((ComputeInstance) instance).setImage(computeImage);
                 break;
             case NETWORK:
                 instance = this.networkPlugin.getInstance(instanceId, token);
@@ -268,6 +273,29 @@ public class LocalCloudConnector implements CloudConnector {
         order.setCachedInstanceState(instance.getState());
         instance.setProvider(order.getProvidingMember());
         return instance;
+    }
+
+    protected Map<String, String> getNetworkOrderIdsFromComputeOrder(ComputeOrder order) {
+        List<String> networkOrdersId = order.getNetworksId();
+        Map<String, String> computeNetworks = new HashMap<>();
+
+        for (String orderId : networkOrdersId) {
+            NetworkOrder networkOrder = (NetworkOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
+            String networkId = networkOrder.getId();
+            String networkName = networkOrder.getName();
+
+            computeNetworks.put(networkId, networkName);
+        }
+
+        return computeNetworks;
+    }
+
+    protected String getImageFromComputeOrder(ComputeOrder order)
+            throws UnexpectedException, FogbowRasException {
+        String imageId = order.getImageId();
+        String imageName = getAllImages(order.getFederationUserToken()).get(imageId);
+
+        return imageId + ":" + imageName;
     }
 
     private InstanceState getInstanceStateBasedOnOrderState(Order order) {

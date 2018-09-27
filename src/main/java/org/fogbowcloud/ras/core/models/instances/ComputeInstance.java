@@ -1,5 +1,7 @@
 package org.fogbowcloud.ras.core.models.instances;
 
+import java.util.Map;
+
 public class ComputeInstance extends Instance {
     private String hostName;
     private int vCPU;
@@ -12,6 +14,9 @@ public class ComputeInstance extends Instance {
      */
     private int disk;
     private String localIpAddress;
+
+    private Map<String, String> networks;
+    private String image;
 
     public ComputeInstance(String id, InstanceState state, String hostName, int vCPU, int ram, int disk,
                            String localIpAddress) {
@@ -45,6 +50,22 @@ public class ComputeInstance extends Instance {
 
     public int getvCPU() {
         return this.vCPU;
+    }
+
+    public Map<String, String> getNetworks() {
+        return networks;
+    }
+
+    public void setNetworks(Map<String, String> networks) {
+        this.networks = networks;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 
     @Override
