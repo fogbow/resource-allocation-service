@@ -13,6 +13,7 @@ import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.NoAvailableResourcesException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.HardwareRequirements;
 import org.fogbowcloud.ras.core.models.instances.ComputeInstance;
@@ -39,12 +40,10 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 	private static final String DEFAULT_GRAPHIC_TYPE = "vnc";
 	private static final String DEFAULT_VOLUME_TYPE = "fs";
 	private static final String IMAGE_SIZE_PATH = "SIZE";
-	private static final String GLUE_DISK_TERM = "Glue2Disk";
-	private static final String GLUE_RAM_TERM = "Glue2RAM";
-	private static final String GLUE_VCPU_TERM = "Glue2vCPU";
 	private static final String ONE_VM_FAILURE_STATE = "Failure";
 	private static final String ONE_VM_RUNNING_STATE = "Running";
 	private static final String ONE_VM_SUSPENDED_STATE = "Suspended";
+	private static final String NAME_FIELD = "NAME";
 	private static final String NETWORK_CONFIRMATION_CONTEXT = "YES";
 	private static final String TEMPLATE_CPU_PATH = "TEMPLATE/CPU";
 	private static final String TEMPLATE_DISK_IMAGE_INDEX = "TEMPLATE/DISK[%s]/IMAGE";
@@ -52,7 +51,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 	private static final String TEMPLATE_DISK_SIZE_INDEX = "TEMPLATE/DISK[%s]/SIZE";
 	private static final String TEMPLATE_DISK_SIZE_PATH = "TEMPLATE/DISK/SIZE";
 	private static final String TEMPLATE_MEMORY_PATH = "TEMPLATE/MEMORY";
-	private static final String TEMPLATE_NAME_PATH = "NAME";
+	private static final String TEMPLATE_NAME_PATH = "TEMPLATE/NAME";
 	private static final String TEMPLATE_NIC_IP_PATH = "TEMPLATE/NIC/IP";
 	private static final String USERDATA_ENCODING_CONTEXT = "base64";
 
@@ -61,14 +60,12 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 	private OpenNebulaClientFactory factory;
 	private TreeSet<HardwareRequirements> flavors;
 	private Properties properties;
-	private String templateType;
 	
 	public OpenNebulaComputePlugin() {
 		this.properties = PropertiesUtil
 				.readProperties(HomeDir.getPath() + DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME);
 		this.factory = new OpenNebulaClientFactory();
 		this.flavors = new TreeSet<HardwareRequirements>();
-		this.templateType = "";
 	}
 
 	@Override
@@ -79,23 +76,31 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 //		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 		Client client = this.factory.createClient();
 		
+		String encoding = USERDATA_ENCODING_CONTEXT;
 		String userData = computeOrder.getUserData().toString(); // TODO verify this is correct
+		String hasNetwork = NETWORK_CONFIRMATION_CONTEXT;
+		String address = DEFAULT_GRAPHIC_ADDRESS;
+		String graphicsType = DEFAULT_GRAPHIC_TYPE;
+		String imageId = computeOrder.getImageId();
+		String volumeType = DEFAULT_VOLUME_TYPE;
 		String networkId = resolveNetworksId(computeOrder);
-		
-		// TODO implements flavors
-		HardwareRequirements foundFlavor = getHardwareRequirements(computeOrder, localUserAttributes);
+
+		HardwareRequirements foundFlavor = findSmallestFlavor(computeOrder, localUserAttributes);
+		String cpu = String.valueOf(foundFlavor.getCpu());
+		String ram = String.valueOf(foundFlavor.getRam());
+		String disk = String.valueOf(foundFlavor.getDisk());
 		
 		CreateComputeRequest request = new CreateComputeRequest.Builder()
-				.contextEncoding(USERDATA_ENCODING_CONTEXT)
+				.contextEncoding(encoding)
 				.contextUserdata(userData)
-				.contextNetwork(NETWORK_CONFIRMATION_CONTEXT)
-				.cpu(String.valueOf(foundFlavor.getCpu()))
-				.graphicsListen(DEFAULT_GRAPHIC_ADDRESS)
-				.graphicsType(DEFAULT_GRAPHIC_TYPE)
-				.imageId(computeOrder.getImageId())
-				.volumeSize(String.valueOf(foundFlavor.getDisk()))
-				.volumeType(DEFAULT_VOLUME_TYPE)
-				.memory(String.valueOf(foundFlavor.getRam()))
+				.contextNetwork(hasNetwork)
+				.cpu(cpu)
+				.graphicsListen(address)
+				.graphicsType(graphicsType)
+				.imageId(imageId)
+				.volumeSize(disk)
+				.volumeType(volumeType)
+				.memory(ram)
 				.networkId(networkId)
 				.build();
 		
@@ -142,25 +147,24 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		return requestedNetworksId.get(FIRST_AVAILABLE_ID);
 	}
 	
-	private HardwareRequirements getHardwareRequirements(ComputeOrder computeOrder, Token token) throws UnexpectedException {
-		if (templateType == null || templateType.isEmpty()) {
-			int cpu = getMinimumRequiredValue(computeOrder, GLUE_VCPU_TERM, 1);
-			int memory = getMinimumRequiredValue(computeOrder, GLUE_RAM_TERM, 1024);
-			int disk = getMinimumRequiredValue(computeOrder, GLUE_DISK_TERM, 0);
-			return new HardwareRequirements(null, null, cpu, memory, disk);
-		}
+	private HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, Token token) throws NoAvailableResourcesException, UnexpectedException {
+		HardwareRequirements bestFlavor = getBestFlavor(computeOrder, token);
+		if (bestFlavor == null) {
+            throw new NoAvailableResourcesException();
+        }
+        return bestFlavor;
+	}
+	
+	private HardwareRequirements getBestFlavor(ComputeOrder computeOrder, Token token) throws UnexpectedException {
 		updateHardwareRequirements(token);
-		return findSmallestFlavor(this.flavors, computeOrder);
-	}
-	
-	private int getMinimumRequiredValue(ComputeOrder order, String term, int value) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-	
-	private HardwareRequirements findSmallestFlavor(Collection<HardwareRequirements> flavors, ComputeOrder computeOrder) {
-		// TODO Auto-generated method stub
-		return null;
+        for (HardwareRequirements hardwareRequirements : this.flavors) {
+            if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
+                    && hardwareRequirements.getRam() >= computeOrder.getMemory()
+                    && hardwareRequirements.getDisk() >= computeOrder.getDisk()) {
+                return hardwareRequirements;
+            }
+        }
+        return null;
 	}
 
 	private void updateHardwareRequirements(Token localUserAttributes) throws UnexpectedException {
@@ -173,7 +177,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		TemplatePool templatePool = this.factory.createTemplatePool(client);
 		HardwareRequirements flavor;
 		for (Template template : templatePool) {
-			String name = template.xpath(TEMPLATE_NAME_PATH);
+			String name = template.xpath(NAME_FIELD);
 			int memory = Integer.parseInt(template.xpath(TEMPLATE_MEMORY_PATH));
 			int cpu = Integer.parseInt(template.xpath(TEMPLATE_CPU_PATH));
 			int disk = 0; 
@@ -256,7 +260,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 
 	private ComputeInstance createVirtualMachineInstance(VirtualMachine virtualMachine) {
 		String id = virtualMachine.getId();
-		String hostName = null; // FIXME
+		String hostName = virtualMachine.xpath(TEMPLATE_NAME_PATH);
 		int cpu = Integer.parseInt(virtualMachine.xpath(TEMPLATE_CPU_PATH));
 		int disk = Integer.parseInt(virtualMachine.xpath(TEMPLATE_DISK_SIZE_PATH));
 		int memory = Integer.parseInt(virtualMachine.xpath(TEMPLATE_MEMORY_PATH));
