@@ -53,7 +53,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
         String volumeName = volumeOrder.getName();
         int volumeSize = volumeOrder.getVolumeSize();
 
-        Client client = factory.createClient();
+        Client client = factory.createClient(localUserAttributes.getTokenValue());
 
         CreateVolumeRequest request = new CreateVolumeRequest.Builder()
                 .name(volumeName)
