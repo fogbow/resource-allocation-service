@@ -36,17 +36,19 @@ public class OpenNebulaClientFactory {
     private static final String RESPONSE_NOT_ENOUGH_FREE_MEMORY = "Not enough free memory";
     private static final String RESPONSE_NO_SPACE_LEFT_ON_DEVICE = "No space left on device";
     private static final String OPENNEBULA_RPC_ENDPOINT_URL = "opennebula_rpc_endpoint";
-    private static final String OPENNEBULA_AAA_TOKEN = "opennebula_aaa_token";
     
-    private Properties properties;
+    private String endpoint;
 
-    public Client createClient() throws UnexpectedException {
-        this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME);
+	public OpenNebulaClientFactory() {
+		Properties properties = PropertiesUtil
+				.readProperties(HomeDir.getPath() + DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME);
+		
+		this.endpoint = properties.getProperty(OPENNEBULA_RPC_ENDPOINT_URL);
+	}
+
+	public Client createClient(String federationTokenValue) throws UnexpectedException {
         try {
-            String tokenValue = properties.getProperty(OPENNEBULA_AAA_TOKEN);
-            String endpoint = properties.getProperty(OPENNEBULA_RPC_ENDPOINT_URL);
-            return new Client(tokenValue, endpoint);
+            return new Client(federationTokenValue, this.endpoint);
         } catch (ClientConfigurationException e) {
             LOGGER.error(Messages.Error.ERROR_WHILE_CREATING_CLIENT, e);
             throw new UnexpectedException();
@@ -61,32 +63,34 @@ public class OpenNebulaClientFactory {
         return null;
     }
 
-    public VirtualMachine createVirtualMachine(Client client, String instanceId) throws UnauthorizedRequestException, InstanceNotFoundException {
-        int id = 0;
-        try {
-            id = Integer.parseInt(instanceId);
-        } catch (Exception e) {
-            LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_INSTANCE_ID, instanceId));
-            throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
-        }
-        VirtualMachine virtualMachine = new VirtualMachine(id, client);
-        OneResponse response = virtualMachine.info();
+	public VirtualMachine createVirtualMachine(Client client, String instanceId)
+			throws UnauthorizedRequestException, InstanceNotFoundException {
+		
+		int id = 0;
+		try {
+			id = Integer.parseInt(instanceId);
+		} catch (Exception e) {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_INSTANCE_ID, instanceId));
+			throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
+		}
+		VirtualMachine virtualMachine = new VirtualMachine(id, client);
+		OneResponse response = virtualMachine.info();
 
-        if (response.isError()) {
-            String message = response.getErrorMessage();
-            LOGGER.error(message);
-            //Not authorized to perform
-            if (message.contains(RESPONSE_NOT_AUTORIZED)) {
-                throw new UnauthorizedRequestException();
-            }
-            //Error getting virtual machine
-            throw new InstanceNotFoundException(message);
-        } else if (RESPONSE_DONE.equals(virtualMachine.stateStr())) {
-            //The instance is not active anymore
-            throw new InstanceNotFoundException();
-        }
-        return virtualMachine;
-    }
+		if (response.isError()) {
+			String message = response.getErrorMessage();
+			LOGGER.error(message);
+			// Not authorized to perform
+			if (message.contains(RESPONSE_NOT_AUTORIZED)) {
+				throw new UnauthorizedRequestException();
+			}
+			// Error getting virtual machine
+			throw new InstanceNotFoundException(message);
+		} else if (RESPONSE_DONE.equals(virtualMachine.stateStr())) {
+			// The instance is not active anymore
+			throw new InstanceNotFoundException();
+		}
+		return virtualMachine;
+	}
 
     public VirtualMachinePool createVirtualMachinePool(Client client) throws UnexpectedException {
         VirtualMachinePool virtualMachinePool = new VirtualMachinePool(client);
@@ -98,9 +102,31 @@ public class OpenNebulaClientFactory {
         return virtualMachinePool;
     }
 
-    public VirtualNetwork createVirtualNetwork(Client client, String instanceIdStr) {
-        return null;
-    }
+	public VirtualNetwork createVirtualNetwork(Client client, String instanceId)
+			throws UnauthorizedRequestException, InstanceNotFoundException {
+		
+		int id = 0;
+		try {
+			id = Integer.parseInt(instanceId);
+		} catch (Exception e) {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_INSTANCE_ID, instanceId));
+			throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
+		}
+		VirtualNetwork virtualNetwork = new VirtualNetwork(id, client);
+		OneResponse response = virtualNetwork.info();
+
+		if (response.isError()) {
+			String message = response.getErrorMessage();
+			LOGGER.error(message);
+			// Not authorized to perform
+			if (message.contains(RESPONSE_NOT_AUTORIZED)) {
+				throw new UnauthorizedRequestException();
+			}
+			// Error getting virtual network
+			throw new InstanceNotFoundException(message);
+		}
+		return virtualNetwork;
+	}
 
     public TemplatePool createTemplatePool(Client client) throws UnexpectedException {
         TemplatePool templatePool = new TemplatePool(client);
@@ -127,7 +153,15 @@ public class OpenNebulaClientFactory {
     }
 
     public String allocateVirtualNetwork(Client client, String template) {
-        return null;
+        OneResponse response = VirtualNetwork.allocate(client, template);
+		if (response.isError()) {
+			String message = response.getErrorMessage();
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_NETWORK, template));
+            LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
+			throw new InvalidParameterException(message);
+		}
+		VirtualNetwork.chmod(client, response.getIntMessage(), 744);
+		return response.getMessage();
     }
 
     public String allocateVirtualMachine(Client client, String template) throws QuotaExceededException, NoAvailableResourcesException {
