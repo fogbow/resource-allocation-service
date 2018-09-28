@@ -23,7 +23,7 @@ import java.util.Random;
 public class RSAUtil {
     private static final Logger LOGGER = Logger.getLogger(RSAUtil.class);
 
-    private static String getKey(String filename) throws IOException {
+    public static String getKey(String filename) throws IOException {
         // Read key from file
         String strKeyPEM = "";
         BufferedReader br = new BufferedReader(new FileReader(filename));
@@ -37,6 +37,10 @@ public class RSAUtil {
 
     public static RSAPrivateKey getPrivateKey() throws IOException, GeneralSecurityException {
         String filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PRIVATE_KEY_FILE_PATH);
+        return getPrivateKey(filename);
+    }
+    
+    public static RSAPrivateKey getPrivateKey(String filename) throws IOException, GeneralSecurityException {
         String privateKeyPEM = getKey(filename);
         return getPrivateKeyFromString(privateKeyPEM);
     }
@@ -56,12 +60,16 @@ public class RSAUtil {
         return privKey;
     }
 
-    public static RSAPublicKey getPublicKey() throws IOException, GeneralSecurityException {
-        String filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PUBLIC_KEY_FILE_PATH);
+    public static RSAPublicKey getPublicKey(String filename) throws IOException, GeneralSecurityException {
         LOGGER.debug("public key path: " + filename);
         String publicKeyPEM = getKey(filename);
         LOGGER.debug("public key: " + publicKeyPEM);
         return getPublicKeyFromString(publicKeyPEM);
+    }
+    
+    public static RSAPublicKey getPublicKey() throws IOException, GeneralSecurityException {
+        String filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PUBLIC_KEY_FILE_PATH);
+        return getPublicKey(filename);
     }
 
     public static RSAPublicKey getPublicKeyFromString(String key) throws GeneralSecurityException {

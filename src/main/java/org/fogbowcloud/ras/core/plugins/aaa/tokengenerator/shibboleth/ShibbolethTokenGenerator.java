@@ -1,0 +1,231 @@
+package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.shibboleth;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
+import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
+import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
+import org.fogbowcloud.ras.util.PropertiesUtil;
+import org.fogbowcloud.ras.util.RSAUtil;
+
+public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
+
+	private static final int SHIB_TOKEN_PARAMETERS_SIZE = 6;
+
+	private static final Logger LOGGER = Logger.getLogger(ShibbolethTokenGenerator.class);
+
+	// shib token parameter
+	private static final int SAML_ATTRIBUTES_ATTR_SHIB_INDEX = 5;
+	private static final int COMMON_NAME_ATTR_SHIB_INDEX = 4;
+	private static final int EDU_PRINCIPAL_NAME_ATTR_SHIB_INDEX = 3;
+	private static final int IDENTITY_PROVIDE_ATTR_SHIB_INDEX = 2;
+	private static final int ASSERTION_URL_ATTR_SHIB_INDEX = 1;
+	private static final int SECREC_ATTR_SHIB_INDEX = 0;
+	// properties
+	private static final String SHIB_PUBLIC_FILE_PATH_PROPERTIE = "shib_public_key_file_path";
+	//credentails
+	protected static final String TOKEN_SIGNATURE_CREDENTIAL = "signature";
+	protected static final String TOKEN_CREDENTIAL = "token";
+	
+    private static final long EXPIRATION_INTERVAL = TimeUnit.DAYS.toMillis(1); // One day
+	public static final String SHIBBOLETH_SEPARETOR = "!#!";
+	
+	private RSAPrivateKey rasPrivateKey;
+	private RSAPublicKey shibPublicKey;
+	private Properties properties;
+	private SecretManager secretManager;
+	
+	// TODO implements 
+	public ShibbolethTokenGenerator() {
+        this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
+                DefaultConfigurationConstants.SHIBBOLETH_CONF_FILE_NAME);
+        
+        try {
+            this.rasPrivateKey = RSAUtil.getPrivateKey();
+        } catch (IOException | GeneralSecurityException e) {
+            throw new FatalErrorException(
+            		String.format(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE, e.getMessage()));
+        }   
+        
+        try {
+            this.shibPublicKey = getPublicKey();
+        } catch (IOException | GeneralSecurityException e) {
+            throw new FatalErrorException(
+            		String.format(Messages.Fatal.ERROR_READING_PUBLIC_KEY_FILE, e.getMessage()));
+        }           
+        
+        this.secretManager = new SecretManager();
+        
+	}
+	
+	protected ShibbolethTokenGenerator(RSAPrivateKey rasPrivateKey, RSAPublicKey shibPublicKey) {
+		this.rasPrivateKey = rasPrivateKey;
+		this.shibPublicKey = shibPublicKey;
+		
+		this.secretManager = new SecretManager();
+	}
+	
+	@Override
+	public String createTokenValue(Map<String, String> userCredentials) throws UnexpectedException, FogbowRasException {
+		String tokenShibAppEncrypted = userCredentials.get(TOKEN_CREDENTIAL);
+		String tokenShibAppSignature = userCredentials.get(TOKEN_SIGNATURE_CREDENTIAL);
+		
+		String tokenShibApp = decryptTokenShib(tokenShibAppEncrypted);
+		
+		verifyShibTokenAuthenticity(tokenShibAppSignature, tokenShibApp);
+		
+		String[] tokenShibParameters = tokenShibApp.split(SHIBBOLETH_SEPARETOR);		
+		checkTokenFormat(tokenShibParameters);
+		
+		verifySecretShibToken(tokenShibParameters);
+		
+		String rawToken = createRawToken(tokenShibParameters);
+		String rawTokenSignature = createSignature(rawToken);
+		String tokenValue = generateTokenValue(rawToken, rawTokenSignature);
+		
+		return tokenValue;
+	}
+
+	private String generateTokenValue(String rawToken, String rawTokenSignature) {
+		String[] parameters = new String[] {
+				rawToken,
+				rawTokenSignature
+		};
+		return StringUtils.join(parameters, SHIBBOLETH_SEPARETOR);
+	}
+
+	private void verifySecretShibToken(String[] tokenShibParameters) throws UnauthenticatedUserException {
+		String secret = tokenShibParameters[SECREC_ATTR_SHIB_INDEX];
+		boolean isValid = this.secretManager.verify(secret);
+		if (!isValid) {
+        	String errorMsg = String.format(Messages.Exception.AUTHENTICATION_ERROR);
+            throw new UnauthenticatedUserException(errorMsg);			
+		}
+	}
+
+	private void checkTokenFormat(String[] tokenShibParameters) throws UnauthenticatedUserException {
+		if (tokenShibParameters.length != SHIB_TOKEN_PARAMETERS_SIZE) {
+        	String errorMsg = String.format(Messages.Exception.AUTHENTICATION_ERROR);
+            throw new UnauthenticatedUserException(errorMsg);
+		}
+	}
+
+	private String createRawToken(String[] tokenShibParameters) {
+		String assertionUrl = tokenShibParameters[ASSERTION_URL_ATTR_SHIB_INDEX];
+		String identityProvider = tokenShibParameters[IDENTITY_PROVIDE_ATTR_SHIB_INDEX];
+		String eduPrincipalName = tokenShibParameters[EDU_PRINCIPAL_NAME_ATTR_SHIB_INDEX];
+		String commonName = tokenShibParameters[COMMON_NAME_ATTR_SHIB_INDEX];
+		// attributes in json format
+		String samlAttributes = tokenShibParameters[SAML_ATTRIBUTES_ATTR_SHIB_INDEX];
+		
+        String expirationTime = generateExpirationTime();
+		
+		String[] parameters = new String[] {
+			assertionUrl,
+			identityProvider,
+			eduPrincipalName,
+			commonName,
+			samlAttributes,
+			expirationTime
+		};
+		return StringUtils.join(parameters, SHIBBOLETH_SEPARETOR);
+	}
+
+	private String generateExpirationTime() {
+		Date expirationDate = new Date(new Date().getTime() + EXPIRATION_INTERVAL);
+        String expirationTime = Long.toString(expirationDate.getTime());
+		return expirationTime;
+	}
+
+	private void verifyShibTokenAuthenticity(String tokenSignature, String tokenShibApp) throws UnauthenticatedUserException {
+		try {
+			RSAUtil.verify(this.shibPublicKey, tokenShibApp, tokenSignature);
+		} catch (Exception e) {
+        	String errorMsg = String.format(Messages.Exception.AUTHENTICATION_ERROR);
+            throw new UnauthenticatedUserException(errorMsg, e);
+		}
+	}
+
+	private String decryptTokenShib(String tokenShibAppEncrypted) throws UnauthenticatedUserException {
+		String tokenShibApp = null;
+		try {
+			tokenShibApp = RSAUtil.decrypt(tokenShibAppEncrypted, this.rasPrivateKey);
+		} catch (Exception e) {
+        	String errorMsg = String.format(Messages.Exception.AUTHENTICATION_ERROR);
+            throw new UnauthenticatedUserException(errorMsg, e);
+		}
+		return tokenShibApp;
+	}
+	
+    protected RSAPublicKey getPublicKey() throws IOException, GeneralSecurityException {
+        String filename = this.properties.getProperty(SHIB_PUBLIC_FILE_PATH_PROPERTIE);
+        LOGGER.debug("Public key path: " + filename);
+        String publicKeyPEM = RSAUtil.getKey(filename);
+        LOGGER.debug("Public key: " + publicKeyPEM);
+        return RSAUtil.getPublicKeyFromString(publicKeyPEM);
+    }
+    
+    private String createSignature(String message) throws UnauthenticatedUserException {
+    	try {
+    		return RSAUtil.sign(this.rasPrivateKey, message);
+		} catch (Exception e) {
+	    	String errorMsg = String.format(Messages.Exception.AUTHENTICATION_ERROR);
+	        throw new UnauthenticatedUserException(errorMsg, e);
+		}
+    }    
+    
+    protected class SecretManager {
+    	
+    	private static final int MAXIMUM_MAP_SIZE = 100;
+		private Map<String, Long> secrets;
+    	
+    	public SecretManager() {
+    		this.secrets = new HashMap<String, Long>();
+		}
+    	
+    	public synchronized boolean verify(String secret) {
+    		cleanSecrets();
+    		
+    		boolean alreadyExists = this.secrets.containsKey(secret);
+    		if (alreadyExists) {
+    			return false;
+    		}
+    		
+    		Long validity = System.currentTimeMillis() + EXPIRATION_INTERVAL;
+			this.secrets.put(secret, validity);
+    		return true;
+    	}
+
+		private void cleanSecrets() {
+			if (this.secrets.size() < MAXIMUM_MAP_SIZE) {
+				return;
+			}
+			
+			for (String key : this.secrets.keySet()) {
+				Date secretVality = new Date(this.secrets.get(key));
+				Date now = new Date(System.currentTimeMillis());
+				
+				if (secretVality.after(now)) {
+					this.secrets.remove(key);
+				}
+			}
+		}
+    	
+    }
+
+}

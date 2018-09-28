@@ -8,6 +8,7 @@ public class DefaultConfigurationConstants {
     public static final String INTERCOMPONENT_CONF_FILE_NAME = "intercomponent.conf";
     public static final String INTEROPERABILITY_CONF_FILE_NAME = "interoperability.conf";
     public static final String AAA_CONF_FILE_NAME = "aaa.conf";
+    public static final String SHIBBOLETH_CONF_FILE_NAME = "shibboleth.conf";
 
     // CLOUD PLUGINS CONF FILES PATHS
     public static final String OPENSTACK_CONF_FILE_NAME = "openstack.conf";
