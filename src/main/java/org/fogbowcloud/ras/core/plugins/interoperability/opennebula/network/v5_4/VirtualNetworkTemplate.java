@@ -4,8 +4,9 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaRequestTemplate;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualNetwork.*;
 
-@XmlRootElement(name = "TEMPLATE")
+@XmlRootElement(name = TEMPLATE)
 public class VirtualNetworkTemplate extends OpenNebulaRequestTemplate {
 
 	private String name;
@@ -18,6 +19,7 @@ public class VirtualNetworkTemplate extends OpenNebulaRequestTemplate {
 
 	public VirtualNetworkTemplate(String name, String description, String type, String bridge,
 			String networkAddress, String networkGateway, VirtualNetworkAddressRange addressRange) {
+		
 		super();
 		this.name = name;
 		this.description = description;
@@ -28,7 +30,7 @@ public class VirtualNetworkTemplate extends OpenNebulaRequestTemplate {
 		this.addressRange = addressRange;
 	}
 
-	@XmlElement(name = "NAME")
+	@XmlElement(name = NAME)
 	public String getName() {
 		return name;
 	}
@@ -37,7 +39,7 @@ public class VirtualNetworkTemplate extends OpenNebulaRequestTemplate {
 		this.name = name;
 	}
 	
-	@XmlElement(name = "DESCRIPTION")
+	@XmlElement(name = DESCRIPTION)
 	public String getDescription() {
 		return description;
 	}
@@ -46,7 +48,7 @@ public class VirtualNetworkTemplate extends OpenNebulaRequestTemplate {
 		this.description = description;
 	}
 	
-	@XmlElement(name = "TYPE")
+	@XmlElement(name = TYPE)
 	public String getType() {
 		return type;
 	}
@@ -55,7 +57,7 @@ public class VirtualNetworkTemplate extends OpenNebulaRequestTemplate {
 		this.type = type;
 	}
 	
-	@XmlElement(name = "BRIDGE")
+	@XmlElement(name = BRIDGE)
 	public String getBridge() {
 		return bridge;
 	}
@@ -64,7 +66,7 @@ public class VirtualNetworkTemplate extends OpenNebulaRequestTemplate {
 		this.bridge = bridge;
 	}
 	
-	@XmlElement(name = "NETWORK_ADDRESS")
+	@XmlElement(name = NETWORK_ADDRESS)
 	public String getNetworkAddress() {
 		return networkAddress;
 	}
@@ -73,7 +75,7 @@ public class VirtualNetworkTemplate extends OpenNebulaRequestTemplate {
 		this.networkAddress = networkAddress;
 	}
 	
-	@XmlElement(name = "NETWORK_GATEWAY")
+	@XmlElement(name = NETWORK_GATEWAY)
 	public String getNetworkGateway() {
 		return networkGateway;
 	}
@@ -82,7 +84,7 @@ public class VirtualNetworkTemplate extends OpenNebulaRequestTemplate {
 		this.networkGateway = networkGateway;
 	}
 	
-	@XmlElement(name = "AR")
+	@XmlElement(name = AR)
 	public VirtualNetworkAddressRange getAddressRange() {
 		return addressRange;
 	}

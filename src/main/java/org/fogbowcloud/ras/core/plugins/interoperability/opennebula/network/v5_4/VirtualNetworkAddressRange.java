@@ -3,14 +3,16 @@ package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.network.v5_
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name = "AR")
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualNetwork.*;
+
+@XmlRootElement(name = AR)
 public class VirtualNetworkAddressRange {
 
 	private String type;
 	private String ipAddress;
 	private String rangeSize;
 	
-	@XmlElement(name = "TYPE")
+	@XmlElement(name = TYPE)
 	public String getType() {
 		return type;
 	}
@@ -19,7 +21,7 @@ public class VirtualNetworkAddressRange {
 		this.type = type;
 	}
 	
-	@XmlElement(name = "IP")
+	@XmlElement(name = IP)
 	public String getIpAddress() {
 		return ipAddress;
 	}
@@ -28,7 +30,7 @@ public class VirtualNetworkAddressRange {
 		this.ipAddress = ipAddress;
 	}
 	
-	@XmlElement(name = "SIZE")
+	@XmlElement(name = SIZE)
 	public String getRangeSize() {
 		return rangeSize;
 	}
