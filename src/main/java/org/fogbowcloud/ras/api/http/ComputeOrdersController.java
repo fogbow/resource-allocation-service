@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.api.http;
 
+import io.swagger.annotations.Api;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.ApplicationFacade;
 import org.fogbowcloud.ras.core.constants.Messages;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import springfox.documentation.annotations.ApiIgnore;
 
 @CrossOrigin
 @RestController
