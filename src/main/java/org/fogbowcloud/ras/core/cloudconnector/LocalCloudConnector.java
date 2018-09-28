@@ -250,10 +250,7 @@ public class LocalCloudConnector implements CloudConnector {
         switch (resourceType) {
             case COMPUTE:
                 instance = this.computePlugin.getInstance(instanceId, token);
-                Map<String, String> computeNetworks = getNetworkOrderIdsFromComputeOrder(((ComputeOrder) order));
-                String computeImage = getImageFromComputeOrder(((ComputeOrder) order));
-                ((ComputeInstance) instance).setNetworks(computeNetworks);
-                ((ComputeInstance) instance).setImage(computeImage);
+                instance = getFullComputeInstance(((ComputeOrder) order), ((ComputeInstance) instance));
                 break;
             case NETWORK:
                 instance = this.networkPlugin.getInstance(instanceId, token);
@@ -275,6 +272,23 @@ public class LocalCloudConnector implements CloudConnector {
         return instance;
     }
 
+    protected ComputeInstance getFullComputeInstance(ComputeOrder order, ComputeInstance instance)
+            throws UnexpectedException, FogbowRasException {
+        ComputeInstance fullInstance = instance;
+        String imageId = order.getImageId();
+        String imageName = getAllImages(order.getFederationUserToken()).get(imageId);
+        String publicKey = order.getPublicKey();
+        String userData = order.getUserData().getExtraUserDataFileContent();
+        Map<String, String> computeNetworks = getNetworkOrderIdsFromComputeOrder(order);
+
+        fullInstance.setNetworks(computeNetworks);
+        fullInstance.setImage(imageId + ":" + imageName);
+        fullInstance.setPublicKey(publicKey);
+        fullInstance.setUserData(userData);
+
+        return fullInstance;
+    }
+
     protected Map<String, String> getNetworkOrderIdsFromComputeOrder(ComputeOrder order) {
         List<String> networkOrdersId = order.getNetworksId();
         Map<String, String> computeNetworks = new HashMap<>();
@@ -288,14 +302,6 @@ public class LocalCloudConnector implements CloudConnector {
         }
 
         return computeNetworks;
-    }
-
-    protected String getImageFromComputeOrder(ComputeOrder order)
-            throws UnexpectedException, FogbowRasException {
-        String imageId = order.getImageId();
-        String imageName = getAllImages(order.getFederationUserToken()).get(imageId);
-
-        return imageId + ":" + imageName;
     }
 
     private InstanceState getInstanceStateBasedOnOrderState(Order order) {

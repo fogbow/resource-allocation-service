@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.core.models.instances;
 
+import java.util.List;
 import java.util.Map;
 
 public class ComputeInstance extends Instance {
@@ -13,19 +14,23 @@ public class ComputeInstance extends Instance {
      * Disk attribute, must be set in GB.
      */
     private int disk;
-    private String localIpAddress;
-
+    private List<String> ipAddresses;
+    /**
+     * Order-related properties
+     */
     private Map<String, String> networks;
     private String image;
+    private String publicKey;
+    private String userData;
 
     public ComputeInstance(String id, InstanceState state, String hostName, int vCPU, int ram, int disk,
-                           String localIpAddress) {
+                           List<String> ipAddresses) {
         super(id, state);
         this.hostName = hostName;
         this.vCPU = vCPU;
         this.ram = ram;
         this.disk = disk;
-        this.localIpAddress = localIpAddress;
+        this.ipAddresses = ipAddresses;
     }
 
     public ComputeInstance(String id) {
@@ -40,8 +45,8 @@ public class ComputeInstance extends Instance {
         return this.hostName;
     }
 
-    public String getLocalIpAddress() {
-        return this.localIpAddress;
+    public List<String> getIpAddresses() {
+        return this.ipAddresses;
     }
 
     public int getRam() {
@@ -68,6 +73,22 @@ public class ComputeInstance extends Instance {
         this.image = image;
     }
 
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
+    }
+
+    public String getUserData() {
+        return userData;
+    }
+
+    public void setUserData(String userData) {
+        this.userData = userData;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -80,6 +101,6 @@ public class ComputeInstance extends Instance {
         if (ram != that.ram) return false;
         if (disk != that.disk) return false;
         if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
-        return localIpAddress != null ? localIpAddress.equals(that.localIpAddress) : that.localIpAddress == null;
+        return ipAddresses != null ? ipAddresses.equals(that.ipAddresses) : that.ipAddresses == null;
     }
 }

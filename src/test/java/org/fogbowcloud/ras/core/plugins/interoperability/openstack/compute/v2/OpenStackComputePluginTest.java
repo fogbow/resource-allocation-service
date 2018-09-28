@@ -158,7 +158,7 @@ public class OpenStackComputePluginTest {
         // verify
         Assert.assertEquals(expectedComputeInstance.getHostName(), pluginComputeInstance.getHostName());
         Assert.assertEquals(expectedComputeInstance.getId(), pluginComputeInstance.getId());
-        Assert.assertEquals(expectedComputeInstance.getLocalIpAddress(), pluginComputeInstance.getLocalIpAddress());
+        Assert.assertEquals(expectedComputeInstance.getIpAddresses(), pluginComputeInstance.getIpAddresses());
         Assert.assertEquals(expectedComputeInstance.getDisk(), pluginComputeInstance.getDisk());
         Assert.assertEquals(expectedComputeInstance.getRam(), pluginComputeInstance.getRam());
         Assert.assertEquals(expectedComputeInstance.getState(), pluginComputeInstance.getState());
@@ -368,7 +368,7 @@ public class OpenStackComputePluginTest {
         // verify
         Assert.assertEquals(expectedComputeInstance.getHostName(), pluginComputeInstance.getHostName());
         Assert.assertEquals(expectedComputeInstance.getId(), pluginComputeInstance.getId());
-        Assert.assertEquals(expectedComputeInstance.getLocalIpAddress(), pluginComputeInstance.getLocalIpAddress());
+        Assert.assertEquals(expectedComputeInstance.getIpAddresses(), pluginComputeInstance.getIpAddresses());
         Assert.assertEquals(expectedComputeInstance.getDisk(), pluginComputeInstance.getDisk());
         Assert.assertEquals(expectedComputeInstance.getRam(), pluginComputeInstance.getRam());
         Assert.assertEquals(expectedComputeInstance.getState(), pluginComputeInstance.getState());
@@ -393,7 +393,7 @@ public class OpenStackComputePluginTest {
         // verify
         Assert.assertEquals(expectedComputeInstance.getHostName(), pluginComputeInstance.getHostName());
         Assert.assertEquals(expectedComputeInstance.getId(), pluginComputeInstance.getId());
-        Assert.assertEquals(expectedComputeInstance.getLocalIpAddress(), pluginComputeInstance.getLocalIpAddress());
+        Assert.assertEquals(expectedComputeInstance.getIpAddresses(), pluginComputeInstance.getIpAddresses());
         Assert.assertEquals(expectedComputeInstance.getDisk(), pluginComputeInstance.getDisk());
         Assert.assertEquals(expectedComputeInstance.getRam(), pluginComputeInstance.getRam());
         Assert.assertEquals(expectedComputeInstance.getState(), pluginComputeInstance.getState());

@@ -60,8 +60,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     }
 
     @Override
-    public String requestInstance(ComputeOrder computeOrder, CloudStackToken cloudStackToken)
-            throws FogbowRasException, UnexpectedException {
+    public String requestInstance(ComputeOrder computeOrder, CloudStackToken cloudStackToken) throws FogbowRasException {
         String templateId = computeOrder.getImageId();
         if (templateId == null || this.zoneId == null || this.defaultNetworkId == null) {
             LOGGER.error(Messages.Error.UNABLE_TO_COMPLETE_REQUEST);
@@ -72,8 +71,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
 
         String networksId = resolveNetworksId(computeOrder);
 
-        String serviceOfferingId = getServiceOfferingId(computeOrder.getvCPU(), computeOrder.getMemory(),
-                cloudStackToken);
+        String serviceOfferingId = getServiceOfferingId(computeOrder.getvCPU(), computeOrder.getMemory(), cloudStackToken);
         if (serviceOfferingId == null) {
             throw new NoAvailableResourcesException();
         }
@@ -84,13 +82,11 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         // offering is found.
         String diskOfferingId = disk > 0 ? getDiskOfferingId(disk, cloudStackToken) : null;
 
-        //String keypairName = getKeypairName(computeOrder.getPublicKey(), cloudStackToken);
-
         String instanceName = computeOrder.getName();
         if (instanceName == null) instanceName = FOGBOW_INSTANCE_NAME + getRandomUUID();
 
-        // NOTE(pauloewerton): diskofferingid and hypervisor are required in case of ISO image. i haven't
-        // found any clue pointing that ISO images were being used in mono though.
+        // NOTE(pauloewerton): hypervisor param is required in case of ISO image. i haven't found any clue pointing that
+        // ISO images were being used in mono though.
         DeployVirtualMachineRequest request = new DeployVirtualMachineRequest.Builder()
                 .serviceOfferingId(serviceOfferingId)
                 .templateId(templateId)
@@ -255,15 +251,15 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         String cloudStackState = vm.getState();
         InstanceState fogbowState = CloudStackStateMapper.map(ResourceType.COMPUTE, cloudStackState);
 
-        GetVirtualMachineResponse.Nic[] addresses = vm.getNic();
-        String address = "";
-        if (addresses != null) {
-            boolean firstAddressEmpty = addresses == null || addresses.length == 0 || addresses[0].getIpAddress() == null;
-            address = firstAddressEmpty ? "" : addresses[0].getIpAddress();
+        GetVirtualMachineResponse.Nic[] nics = vm.getNic();
+        List<String> addresses = new ArrayList<>();
+
+        for (GetVirtualMachineResponse.Nic nic : nics) {
+            addresses.add(nic.getIpAddress());
         }
 
         ComputeInstance computeInstance = new ComputeInstance(
-                instanceId, fogbowState, hostName, vcpusCount, memory, disk, address);
+                instanceId, fogbowState, hostName, vcpusCount, memory, disk, addresses);
 
         return computeInstance;
     }

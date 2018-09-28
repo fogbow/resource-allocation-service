@@ -370,17 +370,18 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
         String instanceId = getComputeResponse.getId();
         String hostName = getComputeResponse.getName();
 
-        GetComputeResponse.Addresses addressesContainer = getComputeResponse.getAddresses();
+        Map<String, GetComputeResponse.Address[]> addressesContainer = getComputeResponse.getAddresses();
+        List<String> ipAddresses = new ArrayList<>();
 
-        String address = "";
-        if (addressesContainer != null) {
-            GetComputeResponse.Address[] addresses = addressesContainer.getProviderAddresses();
-            boolean firstAddressEmpty = addresses == null || addresses.length == 0 || addresses[0].getAddress() == null;
-            address = firstAddressEmpty ? "" : addresses[0].getAddress();
+        for (GetComputeResponse.Address[] addresses : addressesContainer.values()) {
+            for (GetComputeResponse.Address address : addresses) {
+                ipAddresses.add(address.getAddress());
+            }
         }
 
         ComputeInstance computeInstance = new ComputeInstance(instanceId,
-                fogbowState, hostName, vcpusCount, memory, disk, address);
+                fogbowState, hostName, vcpusCount, memory, disk, ipAddresses);
+
         return computeInstance;
     }
 
