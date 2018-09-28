@@ -3,7 +3,9 @@ package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.network.v5_
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
+import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.NetworkPlugin;
@@ -15,6 +17,10 @@ import org.opennebula.client.vnet.VirtualNetwork;
 public class OpenNebulaNetworkPlugin implements NetworkPlugin<Token> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaNetworkPlugin.class);
+
+	private static final String TEMPLATE_NETWORK_ADDRESS_PATH = "TEMPLATE/NETWORK_ADDRESS";
+	private static final String TEMPLATE_NETWORK_GATEWAY_PATH = "TEMPLATE/NETWORK_GATEWAY";
+	private static final String TEMPLATE_VLAN_ID_PATH = "TEMPLATE/VLAN_ID";
 	
 	private OpenNebulaClientFactory factory;
 	
@@ -58,8 +64,31 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<Token> {
 	}
 
 	private NetworkInstance createInstance(VirtualNetwork virtualNetwork) {
-		// TODO Auto-generated method stub
-		return null;
+		String id = virtualNetwork.getId();
+		String name = virtualNetwork.getName();
+		String address = virtualNetwork.xpath(TEMPLATE_NETWORK_ADDRESS_PATH);
+		String gateway = virtualNetwork.xpath(TEMPLATE_NETWORK_GATEWAY_PATH);
+		String vLan = virtualNetwork.xpath(TEMPLATE_VLAN_ID_PATH);
+		String networkInterface = null;
+		String macInterface = null;
+		String interfaceState = null;
+		
+		InstanceState instanceState = InstanceState.READY;
+		NetworkAllocationMode allocationMode = NetworkAllocationMode.DYNAMIC;
+		
+		NetworkInstance networkInstance = new NetworkInstance(
+				id, 
+				instanceState, 
+				name, 
+				address, 
+				gateway, 
+				vLan, 
+				allocationMode, 
+				networkInterface, 
+				macInterface, 
+				interfaceState);
+		
+		return networkInstance;
 	}
 	
 }
