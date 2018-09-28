@@ -1,16 +1,18 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualMachine.*;
+
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name = "CONTEXT")
+@XmlRootElement(name = CONTEXT)
 public class VirtualMachineContext {
 
 	private String encoding;
 	private String userdata;
 	private String network;
 	
-	@XmlElement(name = "USERDATA_ENCODING")
+	@XmlElement(name = USERDATA_ENCODING)
 	public String getEncoding() {
 		return encoding;
 	}
@@ -19,7 +21,7 @@ public class VirtualMachineContext {
 		this.encoding = encoding;
 	}
 	
-	@XmlElement(name = "USERDATA")
+	@XmlElement(name = USERDATA)
 	public String getUserdata() {
 		return userdata;
 	}
@@ -28,7 +30,7 @@ public class VirtualMachineContext {
 		this.userdata = userdata;
 	}
 	
-	@XmlElement(name = "NETWORK")
+	@XmlElement(name = NETWORK)
 	public String getNetwork() {
 		return network;
 	}

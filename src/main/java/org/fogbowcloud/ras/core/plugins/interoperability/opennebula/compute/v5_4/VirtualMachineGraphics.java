@@ -1,15 +1,17 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualMachine.*;
+
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name = "GRAPHICS")
+@XmlRootElement(name = GRAPHICS)
 public class VirtualMachineGraphics {
 
 	private String listen;
 	private String type;
 	
-	@XmlElement(name = "LISTEN")
+	@XmlElement(name = LISTEN)
 	public String getListen() {
 		return listen;
 	}
@@ -18,7 +20,7 @@ public class VirtualMachineGraphics {
 		this.listen = listen;
 	}
 	
-	@XmlElement(name = "TYPE")
+	@XmlElement(name = TYPE)
 	public String getType() {
 		return type;
 	}
