@@ -1,11 +1,13 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualMachine.*;
+
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaRequestTemplate;
 
-@XmlRootElement(name = "TEMPLATE")
+@XmlRootElement(name = TEMPLATE)
 public class VirtualMachineTemplate extends OpenNebulaRequestTemplate {
 
 	private VirtualMachineContext context;
@@ -16,7 +18,21 @@ public class VirtualMachineTemplate extends OpenNebulaRequestTemplate {
 	private String memory;
 	private VirtualMachineNic networkInterfaceConnected;
 	
-	@XmlElement(name = "CONTEXT")
+	public VirtualMachineTemplate(VirtualMachineContext context, String cpu, VirtualMachineGraphics graphics,
+			VirtualMachineImageDisk imageDisk, VirtualMachineVolumeDisk volumeDisk, String memory,
+			VirtualMachineNic networkInterfaceConnected) {
+		
+		super();
+		this.context = context;
+		this.cpu = cpu;
+		this.graphics = graphics;
+		this.imageDisk = imageDisk;
+		this.volumeDisk = volumeDisk;
+		this.memory = memory;
+		this.networkInterfaceConnected = networkInterfaceConnected;
+	}
+
+	@XmlElement(name = CONTEXT)
 	public VirtualMachineContext getContext() {
 		return context;
 	}
@@ -25,7 +41,7 @@ public class VirtualMachineTemplate extends OpenNebulaRequestTemplate {
 		this.context = context;
 	}
 	
-	@XmlElement(name = "CPU")
+	@XmlElement(name = CPU)
 	public String getCpu() {
 		return cpu;
 	}
@@ -34,7 +50,7 @@ public class VirtualMachineTemplate extends OpenNebulaRequestTemplate {
 		this.cpu = cpu;
 	}
 
-	@XmlElement(name = "GRAPHICS")
+	@XmlElement(name = GRAPHICS)
 	public VirtualMachineGraphics getGraphics() {
 		return graphics;
 	}
@@ -43,7 +59,7 @@ public class VirtualMachineTemplate extends OpenNebulaRequestTemplate {
 		this.graphics = graphics;
 	}
 
-	@XmlElement(name = "DISK")
+	@XmlElement(name = DISK)
 	public VirtualMachineImageDisk getImageDisk() {
 		return imageDisk;
 	}
@@ -52,7 +68,7 @@ public class VirtualMachineTemplate extends OpenNebulaRequestTemplate {
 		this.imageDisk = imageDisk;
 	}
 
-	@XmlElement(name = "DISK")
+	@XmlElement(name = DISK)
 	public VirtualMachineVolumeDisk getVolumeDisk() {
 		return volumeDisk;
 	}
@@ -61,7 +77,7 @@ public class VirtualMachineTemplate extends OpenNebulaRequestTemplate {
 		this.volumeDisk = volumeDisk;
 	}
 
-	@XmlElement(name = "MEMORY")
+	@XmlElement(name = MEMORY)
 	public String getMemory() {
 		return memory;
 	}
@@ -70,7 +86,7 @@ public class VirtualMachineTemplate extends OpenNebulaRequestTemplate {
 		this.memory = memory;
 	}
 
-	@XmlElement(name = "NIC")
+	@XmlElement(name = NETWORK_INTERFACE_CONNECTED)
 	public VirtualMachineNic getNetworkInterfaceConnected() {
 		return networkInterfaceConnected;
 	}

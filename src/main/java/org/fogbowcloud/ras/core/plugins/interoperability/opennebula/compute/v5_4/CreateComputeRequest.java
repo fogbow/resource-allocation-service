@@ -17,20 +17,15 @@ public class CreateComputeRequest {
 		VirtualMachineImageDisk imageDisk = buildImage(builder);
 		VirtualMachineVolumeDisk volumeDisk = buildVolume(builder);
 		VirtualMachineNic nic = buildNetworkInterfaceConnected(builder);
-		setVirtualMachineTemplate(context, cpu, graphics, imageDisk, volumeDisk, memory, nic);
-	}
-
-	private void setVirtualMachineTemplate(VirtualMachineContext context, String cpu,
-			VirtualMachineGraphics graphics, VirtualMachineImageDisk imageDisk, VirtualMachineVolumeDisk volumeDisk,
-			String memory, VirtualMachineNic nic) {
-		this.virtualMachine = new VirtualMachineTemplate();
-		this.virtualMachine.setContext(context);
-		this.virtualMachine.setCpu(cpu);
-		this.virtualMachine.setGraphics(graphics);
-		this.virtualMachine.setImageDisk(imageDisk);
-		this.virtualMachine.setVolumeDisk(volumeDisk);
-		this.virtualMachine.setMemory(memory);
-		this.virtualMachine.setNetworkInterfaceConnected(nic);
+		
+		this.virtualMachine = new VirtualMachineTemplate(
+				context, 
+				cpu, 
+				graphics, 
+				imageDisk, 
+				volumeDisk, 
+				memory, 
+				nic);
 	}
 
 	private VirtualMachineNic buildNetworkInterfaceConnected(Builder builder) {
