@@ -42,30 +42,37 @@ public class OpenNebulaClientFactory {
 	public OpenNebulaClientFactory() {
 		Properties properties = PropertiesUtil
 				.readProperties(HomeDir.getPath() + DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME);
-		
+
 		this.endpoint = properties.getProperty(OPENNEBULA_RPC_ENDPOINT_URL);
 	}
 
 	public Client createClient(String federationTokenValue) throws UnexpectedException {
-        try {
-            return new Client(federationTokenValue, this.endpoint);
-        } catch (ClientConfigurationException e) {
-            LOGGER.error(Messages.Error.ERROR_WHILE_CREATING_CLIENT, e);
-            throw new UnexpectedException();
-        }
-    }
+		try {
+			return new Client(federationTokenValue, this.endpoint);
+		} catch (ClientConfigurationException e) {
+			LOGGER.error(Messages.Error.ERROR_WHILE_CREATING_CLIENT, e);
+			throw new UnexpectedException();
+		}
+	}
 
     public Group createGroup(Client client, int groupId) {
         return null;
     }
 
-    public ImagePool createImagePool(Client client) {
-        return null;
-    }
+	public ImagePool createImagePool(Client client) throws UnexpectedException {
+		ImagePool imagePool = new ImagePool(client);
+		OneResponse response = imagePool.infoAll();
+		if (response.isError()) {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_TEMPLATES, response.getErrorMessage()));
+			throw new UnexpectedException(response.getErrorMessage());
+		}
+		LOGGER.info(String.format(Messages.Info.TEMPLATE_POOL_LENGTH, imagePool.getLength()));
+		return imagePool;
+	}
 
 	public VirtualMachine createVirtualMachine(Client client, String instanceId)
 			throws UnauthorizedRequestException, InstanceNotFoundException {
-		
+
 		int id = 0;
 		try {
 			id = Integer.parseInt(instanceId);
@@ -92,19 +99,19 @@ public class OpenNebulaClientFactory {
 		return virtualMachine;
 	}
 
-    public VirtualMachinePool createVirtualMachinePool(Client client) throws UnexpectedException {
-        VirtualMachinePool virtualMachinePool = new VirtualMachinePool(client);
-        OneResponse response = virtualMachinePool.info();
-        if (response.isError()) {
-            LOGGER.error(response.getErrorMessage());
-            throw new UnexpectedException();
-        }
-        return virtualMachinePool;
-    }
+	public VirtualMachinePool createVirtualMachinePool(Client client) throws UnexpectedException {
+		VirtualMachinePool virtualMachinePool = new VirtualMachinePool(client);
+		OneResponse response = virtualMachinePool.info();
+		if (response.isError()) {
+			LOGGER.error(response.getErrorMessage());
+			throw new UnexpectedException();
+		}
+		return virtualMachinePool;
+	}
 
 	public VirtualNetwork createVirtualNetwork(Client client, String instanceId)
 			throws UnauthorizedRequestException, InstanceNotFoundException {
-		
+
 		int id = 0;
 		try {
 			id = Integer.parseInt(instanceId);
@@ -128,57 +135,62 @@ public class OpenNebulaClientFactory {
 		return virtualNetwork;
 	}
 
-    public TemplatePool createTemplatePool(Client client) throws UnexpectedException {
-        TemplatePool templatePool = new TemplatePool(client);
-        OneResponse response = templatePool.infoAll();
-        if (response.isError()) {
-        	LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_TEMPLATES, response.getErrorMessage()));
-        	throw new UnexpectedException(response.getErrorMessage());
-        }
-        LOGGER.info(String.format(Messages.Info.TEMPLATE_POOL_LENGTH, templatePool.getLength()));
+	public TemplatePool createTemplatePool(Client client) throws UnexpectedException {
+		TemplatePool templatePool = new TemplatePool(client);
+		OneResponse response = templatePool.infoAll();
+		if (response.isError()) {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_TEMPLATES, response.getErrorMessage()));
+			throw new UnexpectedException(response.getErrorMessage());
+		}
+		LOGGER.info(String.format(Messages.Info.TEMPLATE_POOL_LENGTH, templatePool.getLength()));
 		return templatePool;
-    }
+	}
 
     public User createUser(Client client, String username) {
         return null;
     }
 
-    public String allocateImage(Client client, String template, Integer datastoreId) {
-        OneResponse response = Image.allocate(client, "Some decription for this image", (int) datastoreId);
-        if(response.isError()){
-            // TODO
+	public String allocateImage(Client client, String template, Integer datastoreId) {
+		OneResponse response = Image.allocate(client, template, datastoreId);
+		if (response.isError()) {
+			String message = response.getErrorMessage();
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_IMAGE, template));
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
+			throw new InvalidParameterException(message);
+		}
+		Image.chmod(client, response.getIntMessage(), 744);
+		return response.getMessage();
+	}
 
-        }
-        return null;
-    }
-
-    public String allocateVirtualNetwork(Client client, String template) {
-        OneResponse response = VirtualNetwork.allocate(client, template);
+	public String allocateVirtualNetwork(Client client, String template) {
+		OneResponse response = VirtualNetwork.allocate(client, template);
 		if (response.isError()) {
 			String message = response.getErrorMessage();
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_NETWORK, template));
-            LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
 			throw new InvalidParameterException(message);
 		}
 		VirtualNetwork.chmod(client, response.getIntMessage(), 744);
 		return response.getMessage();
-    }
+	}
 
-    public String allocateVirtualMachine(Client client, String template) throws QuotaExceededException, NoAvailableResourcesException {
-        OneResponse response = VirtualMachine.allocate(client, template);
-        if (response.isError()) {
-            String message = response.getErrorMessage();
-            LOGGER.error(String.format(Messages.Error.ERROR_WHILE_INSTANTIATING_FROM_TEMPLATE, template));
-            LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
-            if (message.contains(FIELD_RESPONSE_LIMIT) && message.contains(FIELD_RESPONSE_QUOTA)) {
-                throw new QuotaExceededException();
-            }
-            if ((message.contains(RESPONSE_NOT_ENOUGH_FREE_MEMORY)) || (message.contains(RESPONSE_NO_SPACE_LEFT_ON_DEVICE))) {
-                throw new NoAvailableResourcesException();
-            }
-            throw new InvalidParameterException(message);
-        }
-        return response.getMessage();
-    }
+	public String allocateVirtualMachine(Client client, String template)
+			throws QuotaExceededException, NoAvailableResourcesException {
+		OneResponse response = VirtualMachine.allocate(client, template);
+		if (response.isError()) {
+			String message = response.getErrorMessage();
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_INSTANTIATING_FROM_TEMPLATE, template));
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
+			if (message.contains(FIELD_RESPONSE_LIMIT) && message.contains(FIELD_RESPONSE_QUOTA)) {
+				throw new QuotaExceededException();
+			}
+			if ((message.contains(RESPONSE_NOT_ENOUGH_FREE_MEMORY))
+					|| (message.contains(RESPONSE_NO_SPACE_LEFT_ON_DEVICE))) {
+				throw new NoAvailableResourcesException();
+			}
+			throw new InvalidParameterException(message);
+		}
+		return response.getMessage();
+	}
 
 }
