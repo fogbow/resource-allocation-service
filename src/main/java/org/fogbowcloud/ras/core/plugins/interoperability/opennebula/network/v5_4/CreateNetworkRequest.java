@@ -11,10 +11,10 @@ public class CreateNetworkRequest {
 	public CreateNetworkRequest(Builder builder) {
 		String name = builder.name;
 		String description = builder.description;
-		String type = builder.networkType;
+		String type = builder.type;
 		String bridge = builder.bridge;
-		String networkAddress = builder.networkAddress;
-		String networkGateway = builder.networkGateway;
+		String address = builder.address;
+		String gateway = builder.gateway;
 		VirtualNetworkAddressRange addressRange = buildAddressRange(builder);
 		
 		this.virtualNetwork = new VirtualNetworkTemplate(
@@ -22,72 +22,72 @@ public class CreateNetworkRequest {
 				description, 
 				type, 
 				bridge, 
-				networkAddress, 
-				networkGateway, 
+				address, 
+				gateway, 
 				addressRange);
 	}
 	
 	private VirtualNetworkAddressRange buildAddressRange(Builder builder) {
 		VirtualNetworkAddressRange addressRange = new VirtualNetworkAddressRange();
-		addressRange.setType(builder.addressRangeType);
-		addressRange.setIpAddress(builder.addressRangeIp);
-		addressRange.setRangeSize(builder.addressRangeSize);
+		addressRange.setType(builder.rangeType);
+		addressRange.setIpAddress(builder.rangeIp);
+		addressRange.setRangeSize(builder.rangeSize);
 		return addressRange;
 	}
 	
 	public static class Builder {
 		private String name;
 		private String description;
-		private String networkType;
+		private String type;
 		private String bridge;
-		private String networkAddress;
-		private String networkGateway;
-		private String addressRangeType;
-		private String addressRangeIp;
-		private String addressRangeSize;
+		private String address;
+		private String gateway;
+		private String rangeType;
+		private String rangeIp;
+		private String rangeSize;
 		
 		public Builder name(String name) {
 			this.name = name;
 			return this;
 		}
 		
-		public Builder setDescription(String description) {
+		public Builder description(String description) {
 			this.description = description;
 			return this;
 		}
 		
-		public Builder setNetworkType(String networkType) {
-			this.networkType = networkType;
+		public Builder type(String type) {
+			this.type = type;
 			return this;
 		}
 		
-		public Builder setBridge(String bridge) {
+		public Builder bridge(String bridge) {
 			this.bridge = bridge;
 			return this;
 		}
 		
-		public Builder setNetworkAddress(String networkAddress) {
-			this.networkAddress = networkAddress;
+		public Builder address(String address) {
+			this.address = address;
 			return this;
 		}
 		
-		public Builder setNetworkGateway(String networkGateway) {
-			this.networkGateway = networkGateway;
+		public Builder gateway(String gateway) {
+			this.gateway = gateway;
 			return this;
 		}
 		
-		public Builder setAddressRangeType(String addressRangeType) {
-			this.addressRangeType = addressRangeType;
+		public Builder rangeType(String rangeType) {
+			this.rangeType = rangeType;
 			return this;
 		}
 		
-		public Builder setAddressRangeIp(String addressRangeIp) {
-			this.addressRangeIp = addressRangeIp;
+		public Builder rangeIp(String rangeIp) {
+			this.rangeIp = rangeIp;
 			return this;
 		}
 		
-		public Builder setAddressRangeSize(String addressRangeSize) {
-			this.addressRangeSize = addressRangeSize;
+		public Builder rangeSize(String rangeSize) {
+			this.rangeSize = rangeSize;
 			return this;
 		}
 		
