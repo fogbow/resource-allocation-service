@@ -71,10 +71,10 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 	@Override
 	public String requestInstance(ComputeOrder computeOrder, Token localUserAttributes)
 			throws FogbowRasException, UnexpectedException {
-		
+
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, localUserAttributes.getTokenValue()));
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
-		
+
 		String encoding = USERDATA_ENCODING_CONTEXT;
 		String userData = computeOrder.getUserData().toString(); // TODO verify this is correct
 		String hasNetwork = NETWORK_CONFIRMATION_CONTEXT;
@@ -88,21 +88,12 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		String cpu = String.valueOf(foundFlavor.getCpu());
 		String ram = String.valueOf(foundFlavor.getRam());
 		String disk = String.valueOf(foundFlavor.getDisk());
-		
-		CreateComputeRequest request = new CreateComputeRequest.Builder()
-				.contextEncoding(encoding)
-				.contextUserdata(userData)
-				.contextNetwork(hasNetwork)
-				.cpu(cpu)
-				.graphicsListen(address)
-				.graphicsType(graphicsType)
-				.imageId(imageId)
-				.volumeSize(disk)
-				.volumeType(volumeType)
-				.memory(ram)
-				.networkId(networkId)
-				.build();
-		
+
+		CreateComputeRequest request = new CreateComputeRequest.Builder().contextEncoding(encoding)
+				.contextUserdata(userData).contextNetwork(hasNetwork).cpu(cpu).graphicsListen(address)
+				.graphicsType(graphicsType).imageId(imageId).volumeSize(disk).volumeType(volumeType).memory(ram)
+				.networkId(networkId).build();
+
 		String template = request.getVirtualMachine().generateTemplate();
 		return this.factory.allocateVirtualMachine(client, template);
 	}
@@ -110,9 +101,11 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 	@Override
 	public ComputeInstance getInstance(String computeInstanceId, Token localUserAttributes)
 			throws FogbowRasException, UnexpectedException {
+
+		LOGGER.info(
+				String.format(Messages.Info.GETTING_INSTANCE, computeInstanceId, localUserAttributes.getTokenValue()));
 		
-		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, computeInstanceId, localUserAttributes.getTokenValue()));
-		if (this.flavors == null || this.flavors.isEmpty() ) {
+		if (this.flavors == null || this.flavors.isEmpty()) {
 			updateHardwareRequirements(localUserAttributes);
 		}
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
@@ -123,13 +116,16 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 	@Override
 	public void deleteInstance(String computeInstanceId, Token localUserAttributes)
 			throws FogbowRasException, UnexpectedException {
+
+		LOGGER.info(
+				String.format(Messages.Info.DELETING_INSTANCE, computeInstanceId, localUserAttributes.getTokenValue()));
 		
-		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, computeInstanceId, localUserAttributes.getTokenValue()));
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 		VirtualMachine virtualMachine = this.factory.createVirtualMachine(client, computeInstanceId);
 		OneResponse response = virtualMachine.terminate();
-		if (response.isError()) {			
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_VM, response.getMessage()));
+		if (response.isError()) {
+			LOGGER.error(
+					String.format(Messages.Error.ERROR_WHILE_REMOVING_VM, computeInstanceId, response.getMessage()));
 		}
 	}
 
@@ -144,24 +140,26 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		return requestedNetworksId.get(FIRST_AVAILABLE_ID);
 	}
 	
-	private HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, Token token) throws NoAvailableResourcesException, UnexpectedException {
+	private HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, Token token)
+			throws NoAvailableResourcesException, UnexpectedException {
+		
 		HardwareRequirements bestFlavor = getBestFlavor(computeOrder, token);
 		if (bestFlavor == null) {
-            throw new NoAvailableResourcesException();
-        }
-        return bestFlavor;
+			throw new NoAvailableResourcesException();
+		}
+		return bestFlavor;
 	}
 	
 	private HardwareRequirements getBestFlavor(ComputeOrder computeOrder, Token token) throws UnexpectedException {
 		updateHardwareRequirements(token);
-        for (HardwareRequirements hardwareRequirements : this.flavors) {
-            if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
-                    && hardwareRequirements.getRam() >= computeOrder.getMemory()
-                    && hardwareRequirements.getDisk() >= computeOrder.getDisk()) {
-                return hardwareRequirements;
-            }
-        }
-        return null;
+		for (HardwareRequirements hardwareRequirements : this.flavors) {
+			if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
+					&& hardwareRequirements.getRam() >= computeOrder.getMemory()
+					&& hardwareRequirements.getDisk() >= computeOrder.getDisk()) {
+				return hardwareRequirements;
+			}
+		}
+		return null;
 	}
 
 	private void updateHardwareRequirements(Token localUserAttributes) throws UnexpectedException {
@@ -169,27 +167,27 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		Map<String, String> imageSizeMap = getImageSizes(client);
 		List<HardwareRequirements> flavors = new ArrayList<>();
 		List<HardwareRequirements> flavorsTemplate = new ArrayList<>();
-		
+
 		TemplatePool templatePool = this.factory.createTemplatePool(client);
 		HardwareRequirements flavor;
 		for (Template template : templatePool) {
 			String name = template.xpath(NAME_FIELD);
 			int memory = Integer.parseInt(template.xpath(TEMPLATE_MEMORY_PATH));
 			int cpu = Integer.parseInt(template.xpath(TEMPLATE_CPU_PATH));
-			int disk = 0; 
-			
+			int disk = 0;
+
 			flavor = new HardwareRequirements(name, null, cpu, memory, disk); // TODO verify field null
 			flavorsTemplate.add(flavor);
-			
+
 			if (containsFlavor(flavor, this.flavors)) {
 				int size = loadImageSizeDisk(imageSizeMap, template);
 				flavor = new HardwareRequirements(name, null, cpu, memory, size); // TODO verify field null
 				flavors.add(flavor);
 			}
 		}
-		
+
 		if (flavors != null) {
-			this.flavors.addAll(flavors);			
+			this.flavors.addAll(flavors);
 		}
 		removeInvalidFlavors(flavorsTemplate);
 	}
