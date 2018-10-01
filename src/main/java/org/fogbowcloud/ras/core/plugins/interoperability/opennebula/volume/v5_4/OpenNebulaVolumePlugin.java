@@ -23,6 +23,7 @@ import org.opennebula.client.OneResponse;
 import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 
+import javax.lang.model.type.ErrorType;
 import java.io.File;
 import java.util.Properties;
 
@@ -105,11 +106,10 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
 
         OneResponse response = oneImage.delete();
 
-        oneImage.info();
-
         if(response.isError()){
+
             LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, volumeInstanceId));
-            throw new
+            throw new UnexpectedException(response.getMessage());
         }
     }
 }
