@@ -4,6 +4,7 @@ import org.fogbowcloud.ras.core.models.instances.InstanceState;
 
 public class InstanceStatus {
     private String instanceId;
+    private String instanceName;
     private String provider;
     private InstanceState state;
 
@@ -13,8 +14,19 @@ public class InstanceStatus {
         this.state = state;
     }
 
+    public InstanceStatus(String instanceId, String instanceName, String provider, InstanceState state) {
+        this.instanceId = instanceId;
+        this.instanceName = instanceName;
+        this.provider = provider;
+        this.state = state;
+    }
+
     public String getInstanceId() {
         return instanceId;
+    }
+
+    public String getInstanceName() {
+        return instanceName;
     }
 
     public void setInstanceId(String instanceId) {
