@@ -60,14 +60,17 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
                 .size(volumeSize)
                 .persistent(OPENNEBULA_PERSISTENT_DISK_YES)
                 .type(OPENNEBULA_DATABLOCK_IMAGE_TYPE)
-                .fstype(OPENNEBULA_RAW_FSTYPE)
+                .fileSystemType(OPENNEBULA_RAW_FSTYPE)
                 .diskType(OPENNEBULA_BLOCK_DISK_TYPE)
-                .devPrefix(OPENNEBULA_DATASTORE_DEFAULT_DEVICE_PREFIX)
+                .devicePrefix(OPENNEBULA_DATASTORE_DEFAULT_DEVICE_PREFIX)
                 .build();
 
         String volumeTemplate = request.getVolumeImageRequestTemplate().generateTemplate();
 
-        LOGGER.debug("Creating datablock image with template: " + volumeTemplate);
+//        There is no need for logging this in the new fogbow
+//        LOGGER.info("Creating datablock image with template: " + volumeTemplate);
+
+        
 
         return factory.allocateImage(client, volumeTemplate, dataStoreId);
     }
