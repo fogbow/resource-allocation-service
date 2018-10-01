@@ -13,9 +13,10 @@ import org.fogbowcloud.ras.core.plugins.interoperability.VolumePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OneConfigurationConstants;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.volume.v5_4.CreateVolumeRequest;
-import org.fogbowcloud.ras.core.plugins.interoperability.openstack.volume.v2.GetVolumeResponse;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.opennebula.client.Client;
+import org.opennebula.client.image.Image;
+import org.opennebula.client.image.ImagePool;
 
 import java.io.File;
 import java.util.Properties;
@@ -34,7 +35,6 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
     private Integer dataStoreId;
     private String devicePrefix;
     private OpenNebulaClientFactory factory;
-    private Client client;
 
     Properties properties;
 
@@ -42,19 +42,19 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
         super();
         this.factory = new OpenNebulaClientFactory();
 
-        String filePath = HomeDir.getPath() + File.separator + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
+        String filePath = HomeDir.getPath() + File.separator + DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME;
         properties = PropertiesUtil.readProperties(filePath);
 
         String dataStoreIdStr = properties.getProperty(OneConfigurationConstants.COMPUTE_ONE_DATASTORE_ID);
         dataStoreId = dataStoreIdStr == null ? null: Integer.valueOf(dataStoreIdStr);
-
-        this.client = factory.createClient(localUserAttributes.getTokenValue());
     }
 
     @Override
     public String requestInstance(VolumeOrder volumeOrder, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
         String volumeName = volumeOrder.getName();
         int volumeSize = volumeOrder.getVolumeSize();
+
+        Client client = factory.createClient(localUserAttributes.getTokenValue());
 
         CreateVolumeRequest request = new CreateVolumeRequest.Builder()
                 .name(volumeName)
@@ -70,12 +70,27 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
 
 //        There is no need for logging this in the new fogbow
 //        LOGGER.info("Creating datablock image with template: " + volumeTemplate);
-        
-        return this.factory.allocateImage(this.client, volumeTemplate, dataStoreId);
+
+        return this.factory.allocateImage(client, volumeTemplate, dataStoreId);
     }
 
     @Override
     public VolumeInstance getInstance(String volumeInstanceId, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
+        Client client  = this.factory.createClient(localUserAttributes.getTokenValue());
+
+
+
+        try {
+            ImagePool imagePool = this.factory.createImagePool(client);
+            int volumeInstanceIdInt = Integer.parseInt(volumeInstanceId);
+            Image oneImage = imagePool.getById(volumeInstanceIdInt);
+
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+
         return null;
     }
 
