@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
@@ -18,6 +19,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXm
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.volume.v5_4.CreateVolumeRequest;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.opennebula.client.Client;
+import org.opennebula.client.OneResponse;
 import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 
@@ -97,6 +99,14 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
 
     @Override
     public void deleteInstance(String volumeInstanceId, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
+        Client oneClient = this.factory.createClient(localUserAttributes.getTokenValue());
+        ImagePool imagePool = this.factory.createImagePool(oneClient);
+        Image oneImage = imagePool.getById(Integer.parseInt(volumeInstanceId));
 
+        OneResponse response = oneImage.delete();
+
+        if(response.isError()){
+            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, volumeInstanceId));
+        }
     }
 }
