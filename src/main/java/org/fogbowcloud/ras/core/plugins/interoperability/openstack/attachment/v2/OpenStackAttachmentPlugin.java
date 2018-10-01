@@ -42,8 +42,8 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3To
     public String requestInstance(AttachmentOrder attachmentOrder, OpenStackV3Token openStackV3Token)
             throws FogbowRasException, UnexpectedException {
         String projectId = openStackV3Token.getProjectId();
-        String serverId = attachmentOrder.getSource();
-        String volumeId = attachmentOrder.getTarget();
+        String serverId = attachmentOrder.getComputeId();
+        String volumeId = attachmentOrder.getVolumeId();
 
         String jsonRequest = null;
         try {
@@ -60,7 +60,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3To
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }
-        return attachmentOrder.getSource() + SEPARATOR_ID + attachmentOrder.getTarget();
+        return attachmentOrder.getComputeId() + SEPARATOR_ID + attachmentOrder.getVolumeId();
     }
 
     @Override

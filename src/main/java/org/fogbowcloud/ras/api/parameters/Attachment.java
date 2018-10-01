@@ -4,16 +4,16 @@ import org.fogbowcloud.ras.core.models.orders.AttachmentOrder;
 
 public class Attachment implements OrderApiParameter<AttachmentOrder> {
 
-    private String source;
-    private String target;
+    private String computeId;
+    private String volumeId;
     private String device;
 
-    public String getSource() {
-        return source;
+    public String getComputeId() {
+        return computeId;
     }
 
-    public String getTarget() {
-        return target;
+    public String getVolumeId() {
+        return volumeId;
     }
 
     public String getDevice() {
@@ -23,7 +23,7 @@ public class Attachment implements OrderApiParameter<AttachmentOrder> {
     @Override
     public AttachmentOrder getOrder() {
         AttachmentOrder order = new AttachmentOrder(null, null,
-            null, source, target, device);
+            null, computeId, volumeId, device);
         return order;
     }
 

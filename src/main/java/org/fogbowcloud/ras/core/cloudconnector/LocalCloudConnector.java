@@ -85,19 +85,19 @@ public class LocalCloudConnector implements CloudConnector {
                 // We save the Order Ids in the original order, to restore these values, after the Attachment is
                 // requested in the cloud.
                 AttachmentOrder attachmentOrder = (AttachmentOrder) order;
-                String savedSource = attachmentOrder.getSource();
-                String savedTarget = attachmentOrder.getTarget();
+                String savedSource = attachmentOrder.getComputeId();
+                String savedTarget = attachmentOrder.getVolumeId();
                 Order sourceOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedSource);
                 Order targetOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedTarget);
-                attachmentOrder.setSource(sourceOrder.getInstanceId());
-                attachmentOrder.setTarget(targetOrder.getInstanceId());
+                attachmentOrder.setComputeId(sourceOrder.getInstanceId());
+                attachmentOrder.setVolumeId(targetOrder.getInstanceId());
                 try {
                     requestInstance = this.attachmentPlugin.requestInstance(attachmentOrder, token);
                 } catch (Throwable e) {
                     throw e;
                 } finally {
-                    attachmentOrder.setSource(savedSource);
-                    attachmentOrder.setTarget(savedTarget);
+                    attachmentOrder.setComputeId(savedSource);
+                    attachmentOrder.setVolumeId(savedTarget);
                 }
                 break;
             case PUBLIC_IP:
