@@ -2,7 +2,7 @@ package org.fogbowcloud.ras.requests.api.local.http;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import org.fogbowcloud.ras.api.http.AttachmentOrdersController;
+import org.fogbowcloud.ras.api.http.Attachment;
 import org.fogbowcloud.ras.core.ApplicationFacade;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
@@ -38,11 +38,11 @@ import java.util.List;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
-@WebMvcTest(value = AttachmentOrdersController.class, secure = false)
+@WebMvcTest(value = Attachment.class, secure = false)
 @PrepareForTest(ApplicationFacade.class)
-public class PublicIpOrdersControllerTest {
+public class PublicIpTest {
     private final String ATTACHMENT_ENDPOINT =
-            "/".concat(AttachmentOrdersController.ATTACHMENT_ENDPOINT);
+            "/".concat(Attachment.ATTACHMENT_ENDPOINT);
 
     private final String CORRECT_BODY =
             "{"
@@ -274,7 +274,7 @@ public class PublicIpOrdersControllerTest {
     }
 
 
-    // test case: Delete a not found attachment by his id and test fail return. 
+    // test case: Delete allocationAllowableValues not found attachment by his id and test fail return.
     // Check the response of request and the call of facade for delete the attachment.
     @Test
     public void testDeleteNotFoundAttachment() throws Exception {
@@ -322,7 +322,7 @@ public class PublicIpOrdersControllerTest {
         HttpHeaders headers = new HttpHeaders();
         String fakeFederationTokenValue = "fake-access-id";
         headers.set(
-                AttachmentOrdersController.FEDERATION_TOKEN_VALUE_HEADER_KEY,
+                Attachment.FEDERATION_TOKEN_VALUE_HEADER_KEY,
                 fakeFederationTokenValue);
         return headers;
     }

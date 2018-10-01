@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.api.http;
 
+import io.swagger.annotations.Api;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.ApplicationFacade;
 import org.fogbowcloud.ras.core.constants.Messages;
@@ -17,14 +18,15 @@ import java.util.List;
 
 @CrossOrigin
 @RestController
-@RequestMapping(value = NetworkOrdersController.NETWORK_ENDPOINT)
-public class NetworkOrdersController {
+@RequestMapping(value = Network.NETWORK_ENDPOINT)
+@Api(description = "Manage network resources")
+public class Network {
 
     public static final String NETWORK_ENDPOINT = "networks";
     public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
     public static final String ORDER_CONTROLLER_TYPE = "network";
 
-    private final Logger LOGGER = Logger.getLogger(NetworkOrdersController.class);
+    private final Logger LOGGER = Logger.getLogger(Network.class);
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<String> createNetwork(@RequestBody NetworkOrder networkOrder,

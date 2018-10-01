@@ -17,7 +17,7 @@ public class SwaggerConfiguration {
 
     public static final String BASE_PACKAGE = "org.fogbowcloud.ras";
 
-    public static final String API_TITLE = "Fogbow API";
+    public static final String API_TITLE = "Fogbow Resource Allocation Service API";
     public static final String API_DESCRIPTION = "This API introduces readers to Fogbow REST API, "
         + "provides guidelines on how to use it, and describe the available features accessible from it.";
 

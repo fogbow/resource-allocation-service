@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.api.http;
 
+import io.swagger.annotations.Api;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.ApplicationFacade;
 import org.fogbowcloud.ras.core.constants.Messages;
@@ -13,12 +14,13 @@ import java.util.HashMap;
 
 @CrossOrigin
 @RestController
-@RequestMapping(value = TokenRequestController.TOKEN_ENDPOINT)
-public class TokenRequestController {
+@RequestMapping(value = Token.TOKEN_ENDPOINT)
+@Api(description = "Manage RAS tokens")
+public class Token {
 
     public static final String TOKEN_ENDPOINT = "tokens";
 
-    private final Logger LOGGER = Logger.getLogger(TokenRequestController.class);
+    private final Logger LOGGER = Logger.getLogger(Token.class);
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<String> createTokenValue(@RequestBody HashMap<String, String> userCredentials)

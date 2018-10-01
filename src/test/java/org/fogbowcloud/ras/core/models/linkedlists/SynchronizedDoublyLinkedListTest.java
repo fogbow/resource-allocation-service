@@ -42,8 +42,8 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
         Assert.assertEquals(order, this.list.getTail().getOrder());
     }
 
-    // test case: When a new element is added to the list and the current pointer
-    // already points to the end of it, a newly added element should be the next element.
+    // test case: When allocationAllowableValues new element is added to the list and the current pointer
+    // already points to the end of it, allocationAllowableValues newly added element should be the next element.
     @Test
     public void testAddOrder() {
         // verify
@@ -73,7 +73,7 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
         Assert.assertEquals(orderThree, this.list.getNext());
     }
 
-    // test case: Adding a null element to the list should throw an IllegalArgumentException.
+    // test case: Adding allocationAllowableValues null element to the list should throw an IllegalArgumentException.
     @Test
     public void testAddNullOrder() {
         // verify
@@ -120,7 +120,7 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
         Assert.assertNull(this.list.getNext());
     }
 
-    // test case: Removing a null order should throw an IllegalArgumentException.
+    // test case: Removing allocationAllowableValues null order should throw an IllegalArgumentException.
     @Test
     public void testRemoveNullOrder() {
         // verify
@@ -307,7 +307,7 @@ public class SynchronizedDoublyLinkedListTest extends BaseUnitTests {
     }
 
     // test case: A list that had all of its elements removed should behave like
-    // a newly created list.
+    // allocationAllowableValues newly created list.
     @Test
     public void testReinitializingList() {
         // verify

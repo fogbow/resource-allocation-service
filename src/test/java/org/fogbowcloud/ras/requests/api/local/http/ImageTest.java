@@ -2,11 +2,10 @@ package org.fogbowcloud.ras.requests.api.local.http;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import org.fogbowcloud.ras.api.http.ImageRequestController;
+import org.fogbowcloud.ras.api.http.Image;
 import org.fogbowcloud.ras.core.ApplicationFacade;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.ras.core.models.images.Image;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,11 +32,11 @@ import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
-@WebMvcTest(value = ImageRequestController.class, secure = false)
+@WebMvcTest(value = Image.class, secure = false)
 @PrepareForTest(ApplicationFacade.class)
-public class ImageRequestControllerTest {
+public class ImageTest {
 
-    private final String IMAGE_ENDPOINT = "/" + ImageRequestController.IMAGE_ENDPOINT;
+    private final String IMAGE_ENDPOINT = "/" + Image.IMAGE_ENDPOINT;
 
     @Autowired
     private MockMvc mockMvc;
@@ -102,7 +101,7 @@ public class ImageRequestControllerTest {
         String fakeId = "fake-Id-1";
         String imageEndpoint = IMAGE_ENDPOINT + "/" + fakeId;
 
-        Image image = new Image(fakeId, "fake-name", 1, 1, 1, "READY");
+        org.fogbowcloud.ras.core.models.images.Image image = new org.fogbowcloud.ras.core.models.images.Image(fakeId, "fake-name", 1, 1, 1, "READY");
 
         Mockito.doReturn(image).when(this.facade).getImage(Mockito.anyString(),
                 Mockito.anyString(), Mockito.anyString());
@@ -116,7 +115,7 @@ public class ImageRequestControllerTest {
         int expectedStatus = HttpStatus.OK.value();
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 
-        Image resultImage = new Gson().fromJson(result.getResponse().getContentAsString(), Image.class);
+        org.fogbowcloud.ras.core.models.images.Image resultImage = new Gson().fromJson(result.getResponse().getContentAsString(), org.fogbowcloud.ras.core.models.images.Image.class);
         Assert.assertEquals(image.getId(), resultImage.getId());
         Assert.assertEquals(image.getName(), resultImage.getName());
         Assert.assertEquals(image.getStatus(), resultImage.getStatus());
@@ -157,8 +156,8 @@ public class ImageRequestControllerTest {
         HttpHeaders headers = new HttpHeaders();
         String fakeFederationTokenValue = "fake-access-id";
         String fakeMemberId = "fake-member-id";
-        headers.set(ImageRequestController.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
-        headers.set(ImageRequestController.MEMBER_ID_HEADER_KEY, fakeMemberId);
+        headers.set(Image.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
+        headers.set(Image.MEMBER_ID_HEADER_KEY, fakeMemberId);
         return headers;
     }
 }

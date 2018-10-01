@@ -62,8 +62,8 @@ public class OpenProcessor implements Runnable {
      * respectively.
      */
     protected void processOpenOrder(Order order) throws UnexpectedException {
-        // The order object synchronization is needed to prevent a race
-        // condition on order access. For example: a user can delete an open
+        // The order object synchronization is needed to prevent allocationAllowableValues race
+        // condition on order access. For example: allocationAllowableValues user can delete an open
         // order while this method is trying to get an Instance for this order.
         synchronized (order) {
             OrderState orderState = order.getOrderState();

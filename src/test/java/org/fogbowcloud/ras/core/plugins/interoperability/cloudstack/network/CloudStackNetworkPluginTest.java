@@ -97,7 +97,7 @@ public class CloudStackNetworkPluginTest {
         this.plugin.setClient(this.client);
     }
 
-    // test case: when creating a network with the required fields must return the network resource id
+    // test case: when creating allocationAllowableValues network with the required fields must return the network resource id
     // that was created by the cloudstack cloud orchestrator
     @Test
     public void testSuccessfulNetworkCreation() throws UnexpectedException, FogbowRasException, HttpResponseException {
@@ -137,7 +137,7 @@ public class CloudStackNetworkPluginTest {
     }
 
     @Test
-    // test case: when getting a network, the token should be signed and an HTTP GET request should be made
+    // test case: when getting allocationAllowableValues network, the token should be signed and an HTTP GET request should be made
     public void testGettingAValidNetwork() throws FogbowRasException, UnexpectedException, HttpResponseException {
         // set up
         String endpoint = getBaseEndpointFromCloudStackConf();
@@ -166,7 +166,7 @@ public class CloudStackNetworkPluginTest {
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(expectedRequestUrl, FAKE_TOKEN);
     }
 
-    // test case: getting a non-existing network should throw an InstanceNotFoundException
+    // test case: getting allocationAllowableValues non-existing network should throw an InstanceNotFoundException
     @Test(expected = InstanceNotFoundException.class)
     public void testGetNonExistingNetwork() throws FogbowRasException, HttpResponseException, UnexpectedException {
         // set up
@@ -186,7 +186,7 @@ public class CloudStackNetworkPluginTest {
         }
     }
 
-    // test case: when deleting a network, the token should be signed and an HTTP GET request should be made
+    // test case: when deleting allocationAllowableValues network, the token should be signed and an HTTP GET request should be made
     @Test
     public void testDeleteNetworkSignsTokenBeforeMakingRequest() throws FogbowRasException, UnexpectedException, HttpResponseException {
         // set up
@@ -208,7 +208,7 @@ public class CloudStackNetworkPluginTest {
     }
 
     // test case: an UnauthorizedRequestException should be thrown when the user tries to delete
-    // a network and was not allowed to do that
+    // allocationAllowableValues network and was not allowed to do that
     @Test(expected = UnauthorizedRequestException.class)
     public void testUnauthorizedExceptionIsThrownWhenOrchestratorForbids() throws UnexpectedException, FogbowRasException, HttpResponseException {
         // set up
@@ -228,7 +228,7 @@ public class CloudStackNetworkPluginTest {
         }
     }
 
-    // test case: deleting a non-existing network should throw an InstanceNotFoundException
+    // test case: deleting allocationAllowableValues non-existing network should throw an InstanceNotFoundException
     @Test(expected = InstanceNotFoundException.class)
     public void testDeleteNonExistingNetwork() throws UnexpectedException, FogbowRasException, HttpResponseException {
         // set up

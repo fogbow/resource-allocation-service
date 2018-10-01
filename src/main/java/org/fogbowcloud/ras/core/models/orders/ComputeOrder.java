@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-
 @Entity
 @Table(name = "compute_order_table")
 public class ComputeOrder extends Order {

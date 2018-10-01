@@ -64,7 +64,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
         BDDMockito.given(RemoteFacade.getInstance()).willReturn(this.remoteFacade);
     }
 
-    // test case: When calling the method handle passing a valid IQ object, it must create an OK
+    // test case: When calling the method handle passing allocationAllowableValues valid IQ object, it must create an OK
     // result IQ and return it.
     @Test
     public void testHandleWithValidIQ() throws FogbowRasException, UnexpectedException {
@@ -92,7 +92,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
         Assert.assertEquals(expected, result.toString());
     }
 
-    // test case: When an exception occurs while deleting, the method handle should return a response error
+    // test case: When an exception occurs while deleting, the method handle should return allocationAllowableValues response error
     @Test
     public void testHandleWhenExceptionIsThrown() throws Exception {
         //set up

@@ -1,6 +1,6 @@
 package org.fogbowcloud.ras.requests.api.local.http;
 
-import org.fogbowcloud.ras.api.http.TokenRequestController;
+import org.fogbowcloud.ras.api.http.Version;
 import org.fogbowcloud.ras.core.ApplicationFacade;
 import org.junit.Assert;
 import org.junit.Before;
@@ -26,12 +26,11 @@ import static org.mockito.Mockito.times;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
-@WebMvcTest(value = TokenRequestController.class, secure = false)
+@WebMvcTest(value = Version.class, secure = false)
 @PrepareForTest(ApplicationFacade.class)
-public class TokenRequestControllerTest {
-    private static final String CORRECT_BODY =
-            "{\"username\" : \"user-name-value\",\"password\" : \"password-value\"}";
-    private static final String TOKEN_END_POINT = "/" + TokenRequestController.TOKEN_ENDPOINT;
+public class VersionTest {
+
+    private static final String VERSION_END_POINT = "/" + Version.VERSION_ENDPOINT;
 
     private ApplicationFacade facade;
 
@@ -43,32 +42,30 @@ public class TokenRequestControllerTest {
         this.facade = Mockito.spy(ApplicationFacade.class);
     }
 
-    // test case: When calling the createTokenValue() method with the correct credentials, it must return a token value
-    // string and an HttpStatus equal to Created.
+    // test case: When calling the version endpoint it should receive the version number and an Ok HttpStatus.
     @Test
-    public void createdTokenValueTest() throws Exception {
+    public void getVersionNumberTest() throws Exception {
+
         // set up
         PowerMockito.mockStatic(ApplicationFacade.class);
         BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
 
         // exercise
-        Mockito.doReturn("tokenValue").when(this.facade)
-                .createTokenValue(Mockito.anyMap());
+        Mockito.doReturn(ApplicationFacade.VERSION_NUMBER).when(this.facade).getVersionNumber();
 
         HttpHeaders headers = new HttpHeaders();
 
-        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.post(TOKEN_END_POINT)
-                .headers(headers).accept(MediaType.APPLICATION_JSON).content(CORRECT_BODY)
-                .contentType(MediaType.APPLICATION_JSON)).andReturn();
+        MvcResult result = this.mockMvc.perform(MockMvcRequestBuilders.get(VERSION_END_POINT)
+                .headers(headers).contentType(MediaType.APPLICATION_JSON)).andReturn();
 
-        int expectedStatus = HttpStatus.CREATED.value();
+        int expectedStatus = HttpStatus.OK.value();
 
-        String resultTokenValue = result.getResponse().getContentAsString();
+        String versionNumber = result.getResponse().getContentAsString();
 
         // verify
-        Mockito.verify(this.facade, times(1)).createTokenValue(Mockito.anyMap());
+        Mockito.verify(this.facade, times(1)).getVersionNumber();
 
-        Assert.assertEquals("tokenValue", resultTokenValue);
+        Assert.assertEquals(versionNumber, ApplicationFacade.VERSION_NUMBER);
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 }

@@ -148,7 +148,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
                 }
                 break;
             case FAILURE:
-                // any failure should lead to a disassociation of the ip address
+                // any failure should lead to allocationAllowableValues disassociation of the ip address
                 deleteInstance(orderId, token);
                 result = new PublicIpInstance(null, InstanceState.FAILED, null);
                 break;

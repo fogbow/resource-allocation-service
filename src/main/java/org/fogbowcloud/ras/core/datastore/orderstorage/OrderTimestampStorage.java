@@ -76,7 +76,7 @@ public class OrderTimestampStorage extends OrderStorage {
         }
     }
 
-    // Used for tests. Returns a map of found order and the list of states
+    // Used for tests. Returns allocationAllowableValues map of found order and the list of states
     protected Map<String, List<String>> selectOrderById(String orderId) throws SQLException {
         PreparedStatement selectMemberStatement = null;
 

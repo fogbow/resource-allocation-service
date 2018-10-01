@@ -68,7 +68,7 @@ public class FulfilledProcessor implements Runnable {
     }
 
     /**
-     * Gets an instance for a fulfilled order. If that instance is not reachable the order state is
+     * Gets an instance for allocationAllowableValues fulfilled order. If that instance is not reachable the order state is
      * set to failed.
      *
      * @param order {@link Order}
@@ -78,8 +78,8 @@ public class FulfilledProcessor implements Runnable {
         Instance instance = null;
         InstanceState instanceState = null;
 
-        // The order object synchronization is needed to prevent a race
-        // condition on order access. For example: a user can delete a fulfilled
+        // The order object synchronization is needed to prevent allocationAllowableValues race
+        // condition on order access. For example: allocationAllowableValues user can delete allocationAllowableValues fulfilled
         // order while this method is trying to check the status of an instance
         // that was allocated to an order.
 

@@ -328,7 +328,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         }
     }
 
-    // test case: calling createCompute with a too long public key throws an InvalidParameterException.
+    // test case: calling createCompute with allocationAllowableValues too long public key throws an InvalidParameterException.
     @Test(expected = InvalidParameterException.class)
     public void testCreateComputeWithTooLongPrivateKey() throws Exception {
         // set up
@@ -338,7 +338,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         this.application.createCompute(order, FAKE_FEDERATION_TOKEN_VALUE);
     }
 
-    // test case: calling createCompute with a too long extra user data file content throws an InvalidParameterException.
+    // test case: calling createCompute with allocationAllowableValues too long extra user data file content throws an InvalidParameterException.
     @Test(expected = InvalidParameterException.class)
     public void testCreateComputeWithTooLongExtraUserDataFileContent() throws Exception {
         // set up
@@ -384,7 +384,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the getCompute() method without authentication, it must
-    // throw a UnauthenticatedUserException.
+    // throw allocationAllowableValues UnauthenticatedUserException.
     @Test(expected = UnauthenticatedUserException.class) // verify
     public void testGetComputeOrderWithoutAuthentication() throws Exception {
 
@@ -426,7 +426,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the getCompute() method with an operation not authorized, it must
-    // expected a UnauthorizedRequestException.
+    // expected allocationAllowableValues UnauthorizedRequestException.
     @Test(expected = UnauthorizedRequestException.class) // verify
     public void testGetComputeOrderWithOperationNotAuthorized() throws Exception {
 
@@ -595,7 +595,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the getVolume() method without authentication, it must
-    // throw a UnauthenticatedUserException.
+    // throw allocationAllowableValues UnauthenticatedUserException.
     @Test(expected = UnauthenticatedUserException.class) // verify
     public void testGetVolumeOrderWithoutAuthentication() throws Exception {
 
@@ -638,7 +638,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the getVolume() method with operation not authorized, it must
-    // expected a UnauthorizedRequestException.
+    // expected allocationAllowableValues UnauthorizedRequestException.
     @Test(expected = UnauthorizedRequestException.class) // verify
     public void testGetVolumeOrderWithOperationNotAuthorized() throws Exception {
 
@@ -941,7 +941,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the getNetwork() method without authentication, it must
-    // expected a UnauthenticatedUserException.
+    // expected allocationAllowableValues UnauthenticatedUserException.
     @Test(expected = UnauthenticatedUserException.class) // verify
     public void testGetNetworkOrderWithoutAuthentication() throws Exception {
 
@@ -981,7 +981,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the getNetwork() method with an operation not authorized, it must
-    // expected a UnauthorizedRequestException.
+    // expected allocationAllowableValues UnauthorizedRequestException.
     @Test(expected = UnauthorizedRequestException.class) // verify
     public void testGetNetworkOrderWithOperationNotAuthorized() throws Exception {
 
@@ -1246,7 +1246,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the getAttachment() method without authentication, it must
-    // expected a UnauthenticatedUserException.
+    // expected allocationAllowableValues UnauthenticatedUserException.
     @Test
             // verify
             (expected = UnauthenticatedUserException.class)
@@ -1290,7 +1290,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the getAttachment() method performing an operation without
-    // authorization, it must expected a UnauthorizedRequestException.
+    // authorization, it must expected allocationAllowableValues UnauthorizedRequestException.
     @Test(expected = UnauthorizedRequestException.class) // verify
     public void testGetAttachmentOrderWithOperationNotAuthorized() throws Exception {
 
@@ -1557,7 +1557,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the getPublicIp() method performing an operation without
-    // authorization, it must throw a UnauthorizedRequestException.
+    // authorization, it must throw allocationAllowableValues UnauthorizedRequestException.
     @Test(expected = UnauthorizedRequestException.class) // verify
     public void testGetPublicIpOrderWithOperationNotAuthorized() throws Exception {
         // set up
@@ -1597,7 +1597,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the getPublicIp() method without authentication, it must
-    // throw a UnauthenticatedUserException.
+    // throw allocationAllowableValues UnauthenticatedUserException.
     @Test(expected = UnauthenticatedUserException.class)
     public void testGetPublicIpOrderWithoutAuthentication() throws Exception {
         // set up
@@ -1643,7 +1643,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the createPublicIp() method without
-    // authentication, it must throw a UnauthenticatedUserException.
+    // authentication, it must throw allocationAllowableValues UnauthenticatedUserException.
     @Test
     public void testCreatePublicIpOrderWithoutAuthentication() throws Exception {
         // set up
@@ -1697,7 +1697,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the createPublicIp() method with an operation that is not authorized,
-    // it must throw a UnauthorizedRequestException.
+    // it must throw allocationAllowableValues UnauthorizedRequestException.
     @Test
     public void testCreatePublicIpOrderWithOperationNotAuthorized() throws Exception {
         // set up

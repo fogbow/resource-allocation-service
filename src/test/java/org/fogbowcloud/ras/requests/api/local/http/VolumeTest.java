@@ -1,7 +1,7 @@
 package org.fogbowcloud.ras.requests.api.local.http;
 
 import com.google.gson.Gson;
-import org.fogbowcloud.ras.api.http.VolumeOrdersController;
+import org.fogbowcloud.ras.api.http.Volume;
 import org.fogbowcloud.ras.core.ApplicationFacade;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.models.instances.VolumeInstance;
@@ -31,13 +31,13 @@ import static org.mockito.Mockito.times;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
-@WebMvcTest(value = VolumeOrdersController.class, secure = false)
+@WebMvcTest(value = Volume.class, secure = false)
 @PrepareForTest(ApplicationFacade.class)
-public class VolumeOrdersControllerTest {
+public class VolumeTest {
 
     private static final String CORRECT_BODY =
             "{\"federationToken\": null, \"requestingMember\":\"req-member\", \"providingMember\":\"prov-member\", \"volumeSize\": 1}";
-    private static final String VOLUME_END_POINT = "/" + VolumeOrdersController.VOLUME_ENDPOINT;
+    private static final String VOLUME_END_POINT = "/" + Volume.VOLUME_ENDPOINT;
     private static final String FAKE_FEDERATION_TOKEN_VALUE = "fake-access-id";
     private static final String FAKE_ID = "fake-id";
     private static final String FAKE_NAME = "fake-name";
@@ -153,7 +153,7 @@ public class VolumeOrdersControllerTest {
 
     private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.set(VolumeOrdersController.FEDERATION_TOKEN_VALUE_HEADER_KEY,
+        headers.set(Volume.FEDERATION_TOKEN_VALUE_HEADER_KEY,
                 FAKE_FEDERATION_TOKEN_VALUE);
 
         return headers;

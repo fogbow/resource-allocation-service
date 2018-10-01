@@ -94,7 +94,7 @@ public class RemoteGetOrderRequestHandlerTest {
 
     }
 
-    // test case: When an Exception occurs, the handle method must return a response
+    // test case: When an Exception occurs, the handle method must return allocationAllowableValues response
     // error.
     @Test
     public void testHandleWhenThrowsException() throws Exception {

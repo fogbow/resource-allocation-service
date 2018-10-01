@@ -9,7 +9,6 @@ import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.InstanceStatus;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.ComputeInstance;
-import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 import org.fogbowcloud.ras.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
 import org.springframework.http.HttpStatus;
@@ -17,12 +16,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import springfox.documentation.annotations.ApiIgnore;
 
 @CrossOrigin
 @RestController
-@RequestMapping(value = ComputeOrdersController.COMPUTE_ENDPOINT)
-public class ComputeOrdersController {
+@RequestMapping(value = Compute.COMPUTE_ENDPOINT)
+@Api(description = "Manage compute resources")
+public class Compute {
 
     public static final String COMPUTE_ENDPOINT = "computes";
     public static final String STATUS_ENDPOINT = "status";
@@ -31,15 +30,15 @@ public class ComputeOrdersController {
     public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
     public static final String ORDER_CONTROLLER_TYPE = "compute";
 
-    private final Logger LOGGER = Logger.getLogger(ComputeOrdersController.class);
+    private final Logger LOGGER = Logger.getLogger(Compute.class);
 
     // HttpExceptionToErrorConditionTranslator handles the possible problems in request
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<String> createCompute(@RequestBody ComputeOrder computeOrder,
+    public ResponseEntity<String> createCompute(@RequestBody org.fogbowcloud.ras.api.parameters.Compute compute,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowRasException, UnexpectedException {
         LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
-        String computeId = ApplicationFacade.getInstance().createCompute(computeOrder, federationTokenValue);
+        String computeId = ApplicationFacade.getInstance().createCompute(compute.getOrder(), federationTokenValue);
         return new ResponseEntity<String>(computeId, HttpStatus.CREATED);
     }
 

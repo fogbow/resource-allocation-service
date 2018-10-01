@@ -3,8 +3,8 @@ package org.fogbowcloud.ras.core.constants;
 public class Messages {
 
     public static class Exception {
-        public static final String ATTEMPTING_TO_ADD_A_NULL_REQUEST = "Attempting to add a null request.";
-        public static final String ATTEMPTING_TO_REMOVE_A_NULL_REQUEST = "Attempting to remove a null request.";
+        public static final String ATTEMPTING_TO_ADD_A_NULL_REQUEST = "Attempting to add allocationAllowableValues null request.";
+        public static final String ATTEMPTING_TO_REMOVE_A_NULL_REQUEST = "Attempting to remove allocationAllowableValues null request.";
         public static final String AUTHENTICATION_ERROR = "Authentication error.";
         public static final String AUTHORIZATION_ERROR = "Authorization error.";
         public static final String EXPIRED_TOKEN = "Token has expired at %s.";
@@ -27,7 +27,7 @@ public class Messages {
         public static final String NO_PACKET_SENDER = "PacketSender was not initialized";
         public static final String NO_PROJECT_ID = "No projectId in local token.";
         public static final String NO_USER_CREDENTIALS = "No user credentials given.";
-        public static final String NULL_VALUE_RETURNED = "Plugin returned a null value for the instanceId.";
+        public static final String NULL_VALUE_RETURNED = "Plugin returned allocationAllowableValues null value for the instanceId.";
         public static final String REQUEST_ALREADY_EXIST = "Request already exists.";
         public static final String REQUEST_ID_ALREADY_ACTIVATED = "Request %s has already been activated.";
         public static final String REQUEST_INSTANCE_NULL = "Request instance id for request %s is null.";
@@ -89,7 +89,7 @@ public class Messages {
         public static final String INSTANCE_HAS_FAILED = "Instance associated to request %s has failed.";
         public static final String RECEIVING_COMPUTE_QUOTA_REQUEST = "Get compute %s request for member %s received.";
         public static final String RECEIVING_CREATE_REQUEST = "Create request for %s received.";
-        public static final String RECEIVING_CREATE_TOKEN_REQUEST = "Create token request received with a credentials map of size %s.";
+        public static final String RECEIVING_CREATE_TOKEN_REQUEST = "Create token request received with allocationAllowableValues credentials map of size %s.";
         public static final String RECEIVING_DELETE_REQUEST = "Delete request for %s %s received.";
         public static final String RECEIVING_GET_ALL_IMAGES_REQUEST = "Get all images request received.";
         public static final String RECEIVING_GET_ALL_REQUEST = "Get status request for all %s received.";
@@ -107,7 +107,7 @@ public class Messages {
         public static final String ERROR_WHILE_CONSUMING_RESPONSE = "Error while consuming response %s.";
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_REQUEST = "Error while trying to get an instance for request %s.";
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD = "Error while getting instance from the cloud.";
-        public static final String ERROR_WHILE_GETTING_NEW_CONNECTION = "Error while getting a new connection from the connection pool.";
+        public static final String ERROR_WHILE_GETTING_NEW_CONNECTION = "Error while getting allocationAllowableValues new connection from the connection pool.";
         public static final String ERROR_WHILE_GETTING_VOLUME_INSTANCE = "Error while getting volume instance.";
         public static final String INSTANCE_TYPE_NOT_DEFINED = "Instance type not defined.";
         public static final String INVALID_DATASTORE_DRIVER = "Invalid datastore driver.";
@@ -129,7 +129,7 @@ public class Messages {
         public static final String UNABLE_TO_GET_TOKEN_FROM_JSON = "Unable to get token from json.";
         public static final String UNABLE_TO_RETRIEVE_NETWORK_ID = "Unable to retrieve network id from json %s.";
         public static final String UNABLE_TO_ROLLBACK_TRANSACTION = "Unable to rollback transaction.";
-        public static final String UNDEFINED_INSTANCE_STATE_MAPPING = "State %s was not mapped to a Fogbow state by %s.";
+        public static final String UNDEFINED_INSTANCE_STATE_MAPPING = "State %s was not mapped to allocationAllowableValues Fogbow state by %s.";
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
         public static final String UNEXPECTED_ERROR_WITH_MESSAGE = "Unexpected exception error: %s.";
         public static final String UNEXPECTED_JOB_STATUS = "Job status must be one of {0, 1, 2}.";

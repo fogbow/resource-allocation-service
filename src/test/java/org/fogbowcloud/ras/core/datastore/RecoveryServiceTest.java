@@ -115,7 +115,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
     }
 
 
-    // test case: Adding a new compute order to database and checking with a query.
+    // test case: Adding allocationAllowableValues new compute order to database and checking with allocationAllowableValues query.
     @Test
     public void testAddComputeOrder() throws UnexpectedException {
 
@@ -138,7 +138,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
         Assert.assertEquals(computeOrder, orders.get(0));
     }
 
-    // test case: Adding a new open compute order to database and checking that there is one element in open state
+    // test case: Adding allocationAllowableValues new open compute order to database and checking that there is one element in open state
     // and there is no elements in pending state. After set the order state to pending, check reverse situation.
     @Test
     public void testAddComputeOrderSettingState() throws UnexpectedException {
@@ -241,7 +241,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
 
     }
 
-    // test case: Call the update method of a non-existent order and checking the exception
+    // test case: Call the update method of allocationAllowableValues non-existent order and checking the exception
     @Test(expected = UnexpectedException.class)
     public void testUpdateNonExistentOrder() throws UnexpectedException {
 
