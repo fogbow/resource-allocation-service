@@ -89,7 +89,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
 
         int imageSize = Integer.parseInt(oneImage.xpath(OpenNebulaXmlTagsConstants.VirtualMachine.SIZE));
 
-        String instanceName = oneImage.xpath(OpenNebulaXmlTagsConstants.VirtualMachine.NAME);
+        String instanceName = oneImage.getName();
 
         InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.VOLUME, oneImage.stateString());
 
@@ -105,8 +105,11 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
 
         OneResponse response = oneImage.delete();
 
+        oneImage.info();
+
         if(response.isError()){
             LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, volumeInstanceId));
+            throw new
         }
     }
 }
