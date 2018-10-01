@@ -35,12 +35,12 @@ public class Network {
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<String> createNetwork(
             @ApiParam(value = ApiDocumentation.Network.CREATE_REQUEST_BODY)
-            @RequestBody NetworkOrder networkOrder,
+            @RequestBody org.fogbowcloud.ras.api.parameters.Network network,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowRasException, UnexpectedException {
         LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
-        String networkId = ApplicationFacade.getInstance().createNetwork(networkOrder, federationTokenValue);
+        String networkId = ApplicationFacade.getInstance().createNetwork(network.getOrder(), federationTokenValue);
         return new ResponseEntity<String>(networkId, HttpStatus.CREATED);
     }
 

@@ -1,10 +1,9 @@
 package org.fogbowcloud.ras.api.parameters;
 
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.Example;
 import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
+import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 
-public class Network {
+public class Network implements OrderApiParameter<NetworkOrder> {
 
     public static final String allocationAllowableValues = getAllocationAllowableValues();
 
@@ -12,6 +11,12 @@ public class Network {
     private String gateway;
     private String address;
     private NetworkAllocationMode allocation;
+
+    @Override
+    public NetworkOrder getOrder() {
+        return new NetworkOrder(null, null, null,
+            name, gateway, address, allocation);
+    }
 
     public String getName() {
         return name;
@@ -33,5 +38,4 @@ public class Network {
         // TODO get these from NetworkAllocationMode.values()
         return "dynamic,static";
     }
-
 }

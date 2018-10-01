@@ -184,8 +184,8 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_SOURCE_ID, source);
         SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_TARGET_ID, target);
         this.order = Mockito.mock(AttachmentOrder.class);
-        Mockito.when(((AttachmentOrder) this.order).getSource()).thenReturn(FAKE_SOURCE_ID);
-        Mockito.when(((AttachmentOrder) this.order).getTarget()).thenReturn(FAKE_TARGET_ID);
+        Mockito.when(((AttachmentOrder) this.order).getComputeId()).thenReturn(FAKE_SOURCE_ID);
+        Mockito.when(((AttachmentOrder) this.order).getVolumeId()).thenReturn(FAKE_TARGET_ID);
         Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);
         Mockito.when(attachmentPlugin.requestInstance(Mockito.any(AttachmentOrder.class), Mockito.any(Token.class))).thenReturn(FAKE_INSTANCE_ID);
 
@@ -282,8 +282,8 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_SOURCE_ID, source);
         SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_TARGET_ID, target);
         this.order = Mockito.mock(AttachmentOrder.class);
-        Mockito.when(((AttachmentOrder) this.order).getSource()).thenReturn(FAKE_SOURCE_ID);
-        Mockito.when(((AttachmentOrder) this.order).getTarget()).thenReturn(FAKE_TARGET_ID);
+        Mockito.when(((AttachmentOrder) this.order).getComputeId()).thenReturn(FAKE_SOURCE_ID);
+        Mockito.when(((AttachmentOrder) this.order).getVolumeId()).thenReturn(FAKE_TARGET_ID);
         Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);
         Mockito.when(attachmentPlugin.requestInstance(Mockito.any(AttachmentOrder.class), Mockito.any(Token.class))).thenReturn(null);
 

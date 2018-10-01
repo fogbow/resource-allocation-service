@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.api.parameters;
 
+import java.util.List;
 import org.fogbowcloud.ras.api.parameters.OrderApiParameter;
 import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 
@@ -11,6 +12,7 @@ public class Compute implements OrderApiParameter<ComputeOrder> {
     private int disk;
     private String imageId;
     private String publicKey;
+    private List<String> networkIds;
 
     public String getName() {
         return name;
@@ -36,10 +38,14 @@ public class Compute implements OrderApiParameter<ComputeOrder> {
         return publicKey;
     }
 
+    public List<String> getNetworkIds() {
+        return networkIds;
+    }
+
     @Override
     public ComputeOrder getOrder() {
         ComputeOrder computeOrder = new ComputeOrder(null, null,
-            null, name, vCPU, memory, disk, imageId, null, publicKey, null);
+            null, name, vCPU, memory, disk, imageId, null, publicKey, networkIds);
         return computeOrder;
     }
 
