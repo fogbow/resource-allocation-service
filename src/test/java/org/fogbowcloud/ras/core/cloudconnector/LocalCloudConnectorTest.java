@@ -19,6 +19,7 @@ import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
@@ -358,6 +359,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 
     // test case: The order has an InstanceID, so the method getResourceInstance() is called.
     @Test
+    @Ignore
     public void testGetAttachmentInstance() throws FogbowRasException, UnexpectedException {
 
         // set up
