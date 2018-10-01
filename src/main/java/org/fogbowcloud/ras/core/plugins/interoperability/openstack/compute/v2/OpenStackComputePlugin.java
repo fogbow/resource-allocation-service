@@ -145,7 +145,14 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }
+
         ComputeInstance computeInstance = getInstanceFromJson(jsonResponse, openStackV3Token);
+
+        String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+        Map<String, String> computeNetworks = new HashMap<>();
+        computeNetworks.put(defaultNetworkId, PROVIDER_NETWORK_FIELD);
+        computeInstance.setNetworks(computeNetworks);
+
         return computeInstance;
     }
 
@@ -373,9 +380,11 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
         Map<String, GetComputeResponse.Address[]> addressesContainer = getComputeResponse.getAddresses();
         List<String> ipAddresses = new ArrayList<>();
 
-        for (GetComputeResponse.Address[] addresses : addressesContainer.values()) {
-            for (GetComputeResponse.Address address : addresses) {
-                ipAddresses.add(address.getAddress());
+        if (addressesContainer != null) {
+            for (GetComputeResponse.Address[] addresses : addressesContainer.values()) {
+                for (GetComputeResponse.Address address : addresses) {
+                    ipAddresses.add(address.getAddress());
+                }
             }
         }
 

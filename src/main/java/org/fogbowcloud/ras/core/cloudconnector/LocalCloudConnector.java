@@ -250,7 +250,7 @@ public class LocalCloudConnector implements CloudConnector {
         switch (resourceType) {
             case COMPUTE:
                 instance = this.computePlugin.getInstance(instanceId, token);
-                instance = getFullComputeInstance(((ComputeOrder) order), ((ComputeInstance) instance));
+                instance = this.getFullComputeInstance(((ComputeOrder) order), ((ComputeInstance) instance));
                 break;
             case NETWORK:
                 instance = this.networkPlugin.getInstance(instanceId, token);
@@ -260,6 +260,7 @@ public class LocalCloudConnector implements CloudConnector {
                 break;
             case ATTACHMENT:
                 instance = this.attachmentPlugin.getInstance(instanceId, token);
+                instance = this.getGetFullAttachmentInstance(((AttachmentInstance) instance));
                 break;
             case PUBLIC_IP:
                 instance = this.publicIpPlugin.getInstance(instanceId, token);
@@ -278,13 +279,30 @@ public class LocalCloudConnector implements CloudConnector {
         String imageId = order.getImageId();
         String imageName = getAllImages(order.getFederationUserToken()).get(imageId);
         String publicKey = order.getPublicKey();
-        String userData = order.getUserData().getExtraUserDataFileContent();
+
+        UserData userData = order.getUserData();
+        String userDataContents = userData != null ? userData.getExtraUserDataFileContent() : null;
+
         Map<String, String> computeNetworks = getNetworkOrderIdsFromComputeOrder(order);
+        computeNetworks.putAll(fullInstance.getNetworks());
 
         fullInstance.setNetworks(computeNetworks);
-        fullInstance.setImage(imageId + ":" + imageName);
+        fullInstance.setImage(imageId + " : " + imageName);
         fullInstance.setPublicKey(publicKey);
-        fullInstance.setUserData(userData);
+        fullInstance.setUserData(userDataContents);
+
+        return fullInstance;
+    }
+
+    protected AttachmentInstance getGetFullAttachmentInstance(AttachmentInstance instance) {
+        AttachmentInstance fullInstance = instance;
+        String savedSource = fullInstance.getServerId();
+        String savedTarget = fullInstance.getVolumeId();
+        ComputeOrder computeOrder = (ComputeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedSource);
+        VolumeOrder volumeOrder = (VolumeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedTarget);
+
+        fullInstance.setComputeName(computeOrder.getName());
+        fullInstance.setVolumeName(volumeOrder.getName());
 
         return fullInstance;
     }

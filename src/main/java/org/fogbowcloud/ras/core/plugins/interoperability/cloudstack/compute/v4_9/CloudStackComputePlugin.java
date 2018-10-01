@@ -37,6 +37,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     public static final String EXPUNGE_ON_DESTROY_KEY = "expunge_on_destroy";
     public static final String DEFAULT_VOLUME_TYPE = "ROOT";
     public static final String FOGBOW_INSTANCE_NAME = "fogbow-compute-instance-";
+    public static final String DEFAULT_NETWORK_NAME = "default";
 
     private String zoneId;
     private String expungeOnDestroy;
@@ -260,6 +261,10 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
 
         ComputeInstance computeInstance = new ComputeInstance(
                 instanceId, fogbowState, hostName, vcpusCount, memory, disk, addresses);
+
+        Map<String, String> computeNetworks = new HashMap<>();
+        computeNetworks.put(this.defaultNetworkId, DEFAULT_NETWORK_NAME);
+        computeInstance.setNetworks(computeNetworks);
 
         return computeInstance;
     }
