@@ -33,6 +33,19 @@ public class ComputeInstance extends Instance {
         this.ipAddresses = ipAddresses;
     }
 
+    public ComputeInstance(String id, InstanceState state, String hostName, int vCPU, int ram, int disk,
+                           List<String> ipAddresses, String image, String publicKey, String userData) {
+        super(id, state);
+        this.hostName = hostName;
+        this.vCPU = vCPU;
+        this.ram = ram;
+        this.disk = disk;
+        this.ipAddresses = ipAddresses;
+        this.image = image;
+        this.publicKey = publicKey;
+        this.userData = userData;
+    }
+
     public ComputeInstance(String id) {
         super(id);
     }
