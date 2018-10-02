@@ -1,7 +1,5 @@
 package org.fogbowcloud.ras.core.models.tokens;
 
-import org.hibernate.jpa.criteria.expression.function.AggregationFunction;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 

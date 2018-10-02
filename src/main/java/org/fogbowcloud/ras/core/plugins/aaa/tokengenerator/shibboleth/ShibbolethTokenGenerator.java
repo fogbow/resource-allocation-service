@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
@@ -18,6 +17,7 @@ import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.models.tokens.ShibbolethTokenHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.shibboleth.util.SecretManager;
 import org.fogbowcloud.ras.util.PropertiesUtil;
@@ -89,24 +89,16 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 		
 		verifyShibTokenAuthenticity(tokenShibAppSignature, tokenShibApp);
 		
-		String[] tokenShibParameters = tokenShibApp.split(SHIBBOLETH_SEPARETOR);		
-		checkTokenFormat(tokenShibParameters);
+		String[] tokenShibAppParameters = tokenShibApp.split(SHIBBOLETH_SEPARETOR);		
+		checkTokenFormat(tokenShibAppParameters);
 		
-		verifySecretShibToken(tokenShibParameters);
+		verifySecretShibToken(tokenShibAppParameters);
 		
-		String rawToken = createRawToken(tokenShibParameters);
+		String rawToken = createRawToken(tokenShibAppParameters);
 		String rawTokenSignature = createSignature(rawToken);
-		String tokenValue = generateTokenValue(rawToken, rawTokenSignature);
+		String tokenValue = ShibbolethTokenHolder.generateTokenValue(rawToken, rawTokenSignature);
 		
 		return tokenValue;
-	}
-
-	protected String generateTokenValue(String rawToken, String rawTokenSignature) {
-		String[] parameters = new String[] {
-				rawToken,
-				rawTokenSignature
-		};
-		return StringUtils.join(parameters, SHIBBOLETH_SEPARETOR);
 	}
 
 	protected void verifySecretShibToken(String[] tokenShibParameters) throws UnauthenticatedUserException {
@@ -135,15 +127,8 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 		
         String expirationTime = generateExpirationTime();
 		
-		String[] parameters = new String[] {
-			assertionUrl,
-			identityProvider,
-			eduPrincipalName,
-			commonName,
-			samlAttributes,
-			expirationTime
-		};
-		return StringUtils.join(parameters, SHIBBOLETH_SEPARETOR);
+        return ShibbolethTokenHolder.createRawToken(assertionUrl, identityProvider, eduPrincipalName,
+			commonName, samlAttributes, expirationTime);
 	}
 
 	protected String generateExpirationTime() {
