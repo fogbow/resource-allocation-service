@@ -16,12 +16,14 @@ import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.NoAvailableResourcesException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.HardwareRequirements;
+import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.ComputeInstance;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.ComputePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
+import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -220,7 +222,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		return size;
 	}
 
-	private Map<String, String> getImageSizes(Client client) {
+	private Map<String, String> getImageSizes(Client client) throws UnexpectedException {
 		Map<String, String> imageSizeMap = new HashMap<String, String>();
 		ImagePool imagePool = this.factory.createImagePool(client);
 		for (Image image : imagePool) {
@@ -261,7 +263,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		String privateIp = virtualMachine.xpath(TEMPLATE_NIC_IP_PATH);
 
 		String state = virtualMachine.lcmStateStr();
-		InstanceState instanceState = getInstanceState(state);
+		OpenNebulaStateMapper stateMapper = new OpenNebulaStateMapper();
+		InstanceState instanceState = stateMapper.map(ResourceType.COMPUTE, state);
 
 		LOGGER.info(String.format(Messages.Info.MOUNTING_INSTANCE, id));
 		ComputeInstance computeInstance = new ComputeInstance(
@@ -275,17 +278,4 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		
 		return computeInstance;
 	}
-	
-	private InstanceState getInstanceState(String state) {
-		switch (state) {
-		case ONE_VM_RUNNING_STATE:
-			return InstanceState.READY;
-		case ONE_VM_SUSPENDED_STATE:
-			return InstanceState.INACTIVE;
-		case ONE_VM_FAILURE_STATE:
-			return InstanceState.FAILED;
-		}
-		return InstanceState.UNAVAILABLE;
-	}
-	
 }
