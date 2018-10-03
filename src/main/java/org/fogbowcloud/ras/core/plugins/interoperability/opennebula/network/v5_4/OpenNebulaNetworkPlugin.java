@@ -8,6 +8,7 @@ import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
 import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
@@ -15,6 +16,7 @@ import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.NetworkPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
+import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -113,8 +115,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<Token> {
 		String networkInterface = null;
 		String macInterface = null;
 		String interfaceState = null;
-		
-		InstanceState instanceState = InstanceState.READY;
+		int state = virtualNetwork.state();
+		InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.NETWORK, state);
 		NetworkAllocationMode allocationMode = NetworkAllocationMode.DYNAMIC;
 		
 		NetworkInstance networkInstance = new NetworkInstance(
