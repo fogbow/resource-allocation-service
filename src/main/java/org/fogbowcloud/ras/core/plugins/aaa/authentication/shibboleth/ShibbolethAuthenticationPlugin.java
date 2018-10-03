@@ -17,7 +17,6 @@ public class ShibbolethAuthenticationPlugin implements AuthenticationPlugin<Shib
 		this.genericSignatureAuthenticationPlugin = new GenericSignatureAuthenticationPlugin(); 
 	}
 	
-	// TODO understand better this method
 	@Override
 	public boolean isAuthentic(String requestingMember, ShibbolethToken shibbolethToken)
 			throws UnavailableProviderException {
@@ -34,6 +33,11 @@ public class ShibbolethAuthenticationPlugin implements AuthenticationPlugin<Shib
         } else {
             return false;
         }
+	}
+	
+	protected void setGenericSignatureAuthenticationPlugin(
+			GenericSignatureAuthenticationPlugin genericSignatureAuthenticationPlugin) {
+		this.genericSignatureAuthenticationPlugin = genericSignatureAuthenticationPlugin;
 	}
 
 }

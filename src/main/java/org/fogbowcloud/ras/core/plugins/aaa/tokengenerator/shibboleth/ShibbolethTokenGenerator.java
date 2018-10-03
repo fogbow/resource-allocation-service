@@ -23,7 +23,6 @@ import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.shibboleth.util.Secre
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.RSAUtil;
 
-// TODO add logs
 public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 
 	private static final int SHIB_TOKEN_PARAMETERS_SIZE = 6;
@@ -82,6 +81,10 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 	
 	@Override
 	public String createTokenValue(Map<String, String> userCredentials) throws UnexpectedException, FogbowRasException {
+		LOGGER.debug(String.format(
+					"Trying to create Shibboleth token with credentials: %s",
+					userCredentials.toString()));
+		
 		String tokenShibAppEncrypted = userCredentials.get(TOKEN_CREDENTIAL);
 		String tokenShibAppSignature = userCredentials.get(TOKEN_SIGNATURE_CREDENTIAL);
 		
@@ -106,6 +109,7 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 		boolean isValid = this.secretManager.verify(secret);
 		if (!isValid) {
         	String errorMsg = String.format(Messages.Exception.AUTHENTICATION_ERROR);
+        	LOGGER.error(errorMsg);
             throw new UnauthenticatedUserException(errorMsg);			
 		}
 	}
@@ -113,6 +117,7 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 	protected void checkTokenFormat(String[] tokenShibParameters) throws UnauthenticatedUserException {
 		if (tokenShibParameters.length != SHIB_TOKEN_PARAMETERS_SIZE) {
         	String errorMsg = String.format(Messages.Exception.AUTHENTICATION_ERROR);
+        	LOGGER.error(errorMsg);
             throw new UnauthenticatedUserException(errorMsg);
 		}
 	}
@@ -142,6 +147,7 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 			RSAUtil.verify(this.shibPublicKey, tokenShibApp, tokenSignature);
 		} catch (Exception e) {
         	String errorMsg = String.format(Messages.Exception.AUTHENTICATION_ERROR);
+        	LOGGER.error(errorMsg, e);
             throw new UnauthenticatedUserException(errorMsg, e);
 		}
 	}
@@ -152,6 +158,7 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 			tokenShibApp = RSAUtil.decrypt(tokenShibAppEncrypted, this.rasPrivateKey);
 		} catch (Exception e) {
         	String errorMsg = String.format(Messages.Exception.AUTHENTICATION_ERROR);
+        	LOGGER.error(errorMsg, e);
             throw new UnauthenticatedUserException(errorMsg, e);
 		}
 		return tokenShibApp;
@@ -170,6 +177,7 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
     		return RSAUtil.sign(this.rasPrivateKey, message);
 		} catch (Exception e) {
 	    	String errorMsg = String.format(Messages.Exception.AUTHENTICATION_ERROR);
+	    	LOGGER.error(errorMsg, e);
 	        throw new UnauthenticatedUserException(errorMsg, e);
 		}
     }      

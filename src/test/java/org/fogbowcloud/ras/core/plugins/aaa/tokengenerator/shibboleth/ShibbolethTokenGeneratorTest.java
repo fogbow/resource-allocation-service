@@ -14,6 +14,7 @@ import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.util.RSAUtil;
+import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,8 +48,7 @@ public class ShibbolethTokenGeneratorTest {
 		String identityProviderExpected = "idp_one";
 		String eduPrincipalNameExpected = "fulano@ufcg.br";
 		String commonNameExpected = "fulano";
-		// TODO improve it!
-		String samlAttributesStrExpected = "[\"key\": \"valeu\"]";
+		String samlAttributesStrExpected = createSamlAttributes();
 		String shibToken = createShibToken(secret, assertionUrlExpected, identityProviderExpected, eduPrincipalNameExpected, commonNameExpected, samlAttributesStrExpected);
 		String shibTokenSignature = sign(shibToken);
 		
@@ -81,6 +81,13 @@ public class ShibbolethTokenGeneratorTest {
 		Assert.assertEquals(samlAttributesStrExpected, samlAttributesStr);
 		Assert.assertEquals(assertionUrlExpected, assertionUrl);
 		Assert.assertEquals(expirationTokenExpected, expirationTime);
+	}
+
+	private String createSamlAttributes() {
+		Map<String, String> attributes = new HashMap<>();
+		attributes.put("keyOne", "valueOne");
+		attributes.put("keyTwo", "valueTwo");
+		return new JSONObject(attributes).toString();
 	}
 
 	// test case: success case - secret is valid

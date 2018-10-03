@@ -5,6 +5,7 @@ import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.UnauthenticTokenException;
@@ -13,10 +14,11 @@ import org.fogbowcloud.ras.util.RSAUtil;
 
 public class GenericSignatureAuthenticationPlugin {
 
+	private static final Logger LOGGER = Logger.getLogger(GenericSignatureAuthenticationPlugin.class);
+	
 	private RSAPublicKey publicKey;
 
 	public GenericSignatureAuthenticationPlugin() {
-
         try {
             this.publicKey = getPublicKey();
         } catch (IOException | GeneralSecurityException e) {
@@ -33,10 +35,12 @@ public class GenericSignatureAuthenticationPlugin {
         String signature = genericSignatureToken.getRawTokenSignature();
 
         if (expirationDate.before(currentDate)) {
+        	LOGGER.error(String.format(Messages.Exception.EXPIRED_TOKEN, expirationDate.toString()));
             throw new UnauthenticTokenException(String.format(Messages.Exception.EXPIRED_TOKEN, expirationDate));
         }
 
         if (!verifySign(tokenValue, signature)) {
+        	LOGGER.error(Messages.Exception.EXPIRED_TOKEN);
             throw new UnauthenticTokenException(String.format(Messages.Exception.INVALID_TOKEN));
         }
     }
@@ -45,6 +49,7 @@ public class GenericSignatureAuthenticationPlugin {
         try {
             return RSAUtil.verify(this.publicKey, tokenMessage, signature);
         } catch (Exception e) {
+        	LOGGER.error(Messages.Exception.EXPIRED_TOKEN, e);
             throw new RuntimeException(Messages.Exception.INVALID_TOKEN_SIGNATURE, e);
         }
     }
