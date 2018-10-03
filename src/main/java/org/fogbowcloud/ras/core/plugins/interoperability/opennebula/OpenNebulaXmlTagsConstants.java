@@ -16,6 +16,7 @@ public class OpenNebulaXmlTagsConstants {
 		public static final String NETWORK_ID = "NETWORK_ID";
 		public static final String NETWORK_INTERFACE_CONNECTED = "NIC";
 		public static final String SIZE = "SIZE";
+		public static final String NAME = "NAME";
 		public static final String TYPE = "TYPE";
 		public static final String USERDATA = "USERDATA";
 		public static final String USERDATA_ENCODING = "USERDATA_ENCODING";
