@@ -15,6 +15,7 @@ import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.VolumePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OneConfigurationConstants;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
+import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.volume.v5_4.CreateVolumeRequest;
 import org.fogbowcloud.ras.util.PropertiesUtil;
@@ -37,9 +38,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
     public static final String OPENNEBULA_DATASTORE_DEFAULT_DEVICE_PREFIX = "vd";
     public static final String OPENNEBULA_PERSISTENT_DISK_YES = "YES";
 
-    private String openNebulaEndpoint;
     private Integer dataStoreId;
-    private String devicePrefix;
     private OpenNebulaClientFactory factory;
 
     Properties properties;
@@ -74,9 +73,6 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
 
         String volumeTemplate = request.getVolumeImageRequestTemplate().generateTemplate();
 
-//        There is no need for logging this in the new fogbow
-//        LOGGER.info("Creating datablock image with template: " + volumeTemplate);
-
         return this.factory.allocateImage(oneClient, volumeTemplate, dataStoreId);
     }
 
@@ -93,7 +89,6 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
         String instanceName = oneImage.getName();
 
         InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.VOLUME, oneImage.stateString());
-
 
         return new VolumeInstance(volumeInstanceId, instanceState, instanceName, imageSize);
     }
