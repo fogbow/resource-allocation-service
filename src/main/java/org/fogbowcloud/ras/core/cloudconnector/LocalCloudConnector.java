@@ -260,7 +260,7 @@ public class LocalCloudConnector implements CloudConnector {
                 break;
             case ATTACHMENT:
                 instance = this.attachmentPlugin.getInstance(instanceId, token);
-                instance = this.getGetFullAttachmentInstance(((AttachmentInstance) instance));
+                instance = this.getGetFullAttachmentInstance(((AttachmentOrder) order), ((AttachmentInstance) instance));
                 break;
             case PUBLIC_IP:
                 instance = this.publicIpPlugin.getInstance(instanceId, token);
@@ -294,14 +294,14 @@ public class LocalCloudConnector implements CloudConnector {
         return fullInstance;
     }
 
-    protected AttachmentInstance getGetFullAttachmentInstance(AttachmentInstance instance) {
+    protected AttachmentInstance getGetFullAttachmentInstance(AttachmentOrder order, AttachmentInstance instance) {
         AttachmentInstance fullInstance = instance;
-        String savedSource = fullInstance.getServerId();
-        String savedTarget = fullInstance.getVolumeId();
+        String savedSource = order.getSource();
+        String savedTarget = order.getTarget();
         ComputeOrder computeOrder = (ComputeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedSource);
         VolumeOrder volumeOrder = (VolumeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedTarget);
 
-        fullInstance.setComputeName(computeOrder.getName());
+        fullInstance.setServerName(computeOrder.getName());
         fullInstance.setVolumeName(volumeOrder.getName());
 
         return fullInstance;

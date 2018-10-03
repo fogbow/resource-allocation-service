@@ -4,7 +4,7 @@ public class AttachmentInstance extends Instance {
     private String serverId;
     private String volumeId;
     private String device;
-    private String computeName;
+    private String serverName;
     private String volumeName;
 
     public AttachmentInstance(String id, InstanceState state, String serverId, String volumeId, String device) {
@@ -30,12 +30,12 @@ public class AttachmentInstance extends Instance {
         return this.volumeId;
     }
 
-    public String getComputeName() {
-        return computeName;
+    public String getServerName() {
+        return serverName;
     }
 
-    public void setComputeName(String computeName) {
-        this.computeName = computeName;
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
     }
 
     public String getVolumeName() {
