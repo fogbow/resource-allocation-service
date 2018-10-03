@@ -16,6 +16,10 @@ public class OpenNebulaStateMapper {
     private static final int ONE_IMAGE_INIT_STATE = 0;
     private static final int ONE_IMAGE_READY_STATE = 1;
     private static final int ONE_IMAGE_ERROR_STATE = 5;
+    
+    private static final int ONE_NETWORK_INIT_STATE = 0;
+	private static final int ONE_NETWORK_ACTIVE_STATE = 3;
+	private static final int ONE_NETWORK_FAILURE_STATE = 11;
 
     public static final String COMPUTE_PLUGIN = "OpenNebulaComputePlugin";
     public static final String IMAGE_PLUGIN = "OpenNebulaImagePlugin";
@@ -51,6 +55,18 @@ public class OpenNebulaStateMapper {
                     case ONE_IMAGE_READY_STATE:
                         return InstanceState.READY;
                     case ONE_IMAGE_ERROR_STATE:
+                        return InstanceState.FAILED;
+                    default:
+                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, oneState, IMAGE_PLUGIN));
+                        return InstanceState.UNAVAILABLE;
+                }
+            case NETWORK:
+                switch (oneState) {
+                    case ONE_NETWORK_INIT_STATE:
+                        return InstanceState.SPAWNING;
+                    case ONE_NETWORK_ACTIVE_STATE:
+                        return InstanceState.READY;
+                    case ONE_NETWORK_FAILURE_STATE:
                         return InstanceState.FAILED;
                     default:
                         LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, oneState, IMAGE_PLUGIN));
