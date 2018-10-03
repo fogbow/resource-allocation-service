@@ -22,6 +22,7 @@ public class OpenNebulaImagePlugin implements ImagePlugin<Token> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaImagePlugin.class);
 	private static final String IMAGE_SIZE_PATH = "IMAGE/SIZE";
+
 	private OpenNebulaClientFactory factory;
 
 	@Override
@@ -69,5 +70,5 @@ public class OpenNebulaImagePlugin implements ImagePlugin<Token> {
 		}
 		return imagePool;
 	}
-	
+
 }
