@@ -7,24 +7,21 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.ImagePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
+import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.image.ImagePool;
 
 public class OpenNebulaImagePlugin implements ImagePlugin<Token> {
 
-	private final static Logger LOGGER = Logger.getLogger(OpenNebulaImagePlugin.class);
-
+	private static final Logger LOGGER = Logger.getLogger(OpenNebulaImagePlugin.class);
 	private static final String IMAGE_SIZE_PATH = "IMAGE/SIZE";
-	private static final int ONE_IMAGE_INIT_STATE = 0;
-	private static final int ONE_IMAGE_READY_STATE = 1;
-	private static final int ONE_IMAGE_ERROR_STATE = 5;
-	
 	private OpenNebulaClientFactory factory;
 
 	@Override
@@ -51,15 +48,14 @@ public class OpenNebulaImagePlugin implements ImagePlugin<Token> {
 	private Image mountImage(org.opennebula.client.image.Image image) {
 		String id = image.getId();
 		String name = image.getName();
-		
 		long size = Long.parseLong(image.xpath(IMAGE_SIZE_PATH));
 		long minDisk = -1;
 		long minRam = -1;
 		int state = image.state();
 		
-		InstanceState instanceState = getInstanceState(state);
+		InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.IMAGE, state);
 		String status = instanceState.getValue();
-		
+
 		return new Image(id, name, size, minDisk, minRam, status);
 	}
 
@@ -72,18 +68,6 @@ public class OpenNebulaImagePlugin implements ImagePlugin<Token> {
 			throw new UnexpectedException(response.getErrorMessage());
 		}
 		return imagePool;
-	}
-	
-	private InstanceState getInstanceState(int state) {
-		switch (state) {
-		case ONE_IMAGE_INIT_STATE:
-			return InstanceState.SPAWNING;
-		case ONE_IMAGE_READY_STATE:
-			return InstanceState.READY;
-		case ONE_IMAGE_ERROR_STATE:
-			return InstanceState.FAILED;
-		}
-		return InstanceState.UNAVAILABLE;
 	}
 	
 }
