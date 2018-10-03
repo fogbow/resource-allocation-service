@@ -42,9 +42,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 	private static final String DEFAULT_GRAPHIC_TYPE = "vnc";
 	private static final String DEFAULT_VOLUME_TYPE = "fs";
 	private static final String IMAGE_SIZE_PATH = "SIZE";
-	private static final String ONE_VM_FAILURE_STATE = "Failure";
-	private static final String ONE_VM_RUNNING_STATE = "Running";
-	private static final String ONE_VM_SUSPENDED_STATE = "Suspended";
 	private static final String NAME_FIELD = "NAME";
 	private static final String NETWORK_CONFIRMATION_CONTEXT = "YES";
 	private static final String TEMPLATE_CPU_PATH = "TEMPLATE/CPU";
@@ -263,8 +260,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		String privateIp = virtualMachine.xpath(TEMPLATE_NIC_IP_PATH);
 
 		String state = virtualMachine.lcmStateStr();
-		OpenNebulaStateMapper stateMapper = new OpenNebulaStateMapper();
-		InstanceState instanceState = stateMapper.map(ResourceType.COMPUTE, state);
+		InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.COMPUTE, state);
 
 		LOGGER.info(String.format(Messages.Info.MOUNTING_INSTANCE, id));
 		ComputeInstance computeInstance = new ComputeInstance(
