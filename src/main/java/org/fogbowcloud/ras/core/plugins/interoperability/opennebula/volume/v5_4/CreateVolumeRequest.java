@@ -44,7 +44,7 @@ public class CreateVolumeRequest {
             return this;
         }
 
-        public Builder fstype(String fstype) {
+        public Builder fileSystemType(String fstype) {
             this.fstype = fstype;
             return this;
         }
@@ -54,7 +54,7 @@ public class CreateVolumeRequest {
             return this;
         }
 
-        public Builder devPrefix(String devPrefix) {
+        public Builder devicePrefix(String devPrefix) {
             this.devPrefix = devPrefix;
             return this;
         }
