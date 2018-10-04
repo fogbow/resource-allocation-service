@@ -359,28 +359,36 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 
     // test case: The order has an InstanceID, so the method getResourceInstance() is called.
     @Test
-    @Ignore
     public void testGetAttachmentInstance() throws FogbowRasException, UnexpectedException {
-
         // set up
+        ComputeOrder source = Mockito.mock(ComputeOrder.class);
+        VolumeOrder target = Mockito.mock(VolumeOrder.class);
+        SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_SOURCE_ID, source);
+        SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_TARGET_ID, target);
         this.order = Mockito.mock(AttachmentOrder.class);
-        ComputeOrder computeOrder = Mockito.mock(ComputeOrder.class);
-        VolumeOrder volumeOrder = Mockito.mock(VolumeOrder.class);
-        Mockito.when(computeOrder.getName()).thenReturn("fake-server-name");
-        Mockito.when(volumeOrder.getName()).thenReturn("fake-volume-name");
+        Mockito.when(((AttachmentOrder) this.order).getSource()).thenReturn(FAKE_SOURCE_ID);
+        Mockito.when(((AttachmentOrder) this.order).getTarget()).thenReturn(FAKE_TARGET_ID);
         Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);
         Mockito.when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
-        Mockito.when(attachmentPlugin.getInstance(Mockito.any(String.class), Mockito.any(Token.class))).thenReturn(this.attachmentInstance);
+        Mockito.when(attachmentPlugin.getInstance(Mockito.any(String.class), Mockito.any(Token.class)))
+                .thenReturn(this.attachmentInstance);
 
-        // exercise
+        //exercise
         String returnedInstanceId = this.localCloudConnector.getInstance(order).getId();
 
         // verify
         Assert.assertEquals(FAKE_INSTANCE_ID, returnedInstanceId);
-        Mockito.verify(computePlugin, times(0)).getInstance(Mockito.any(String.class), Mockito.any(Token.class));
-        Mockito.verify(volumePlugin, times(0)).getInstance(Mockito.any(String.class), Mockito.any(Token.class));
-        Mockito.verify(attachmentPlugin, times(1)).getInstance(Mockito.any(String.class), Mockito.any(Token.class));
-        Mockito.verify(networkPlugin, times(0)).getInstance(Mockito.any(String.class), Mockito.any(Token.class));
+        Mockito.verify(computePlugin, times(0)).getInstance(Mockito.any(String.class),
+                Mockito.any(Token.class));
+        Mockito.verify(volumePlugin, times(0)).getInstance(Mockito.any(String.class),
+                Mockito.any(Token.class));
+        Mockito.verify(attachmentPlugin, times(1)).getInstance(Mockito.any(String.class),
+                Mockito.any(Token.class));
+        Mockito.verify(networkPlugin, times(0)).getInstance(Mockito.any(String.class),
+                Mockito.any(Token.class));
+
+        // tear down
+        SharedOrderHolders.getInstance().getActiveOrdersMap().clear();
     }
 
     // test case: The order has an InstanceID, so the method getResourceInstance() is called.
