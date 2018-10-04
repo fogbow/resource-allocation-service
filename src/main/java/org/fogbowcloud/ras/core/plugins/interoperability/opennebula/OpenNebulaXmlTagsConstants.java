@@ -20,6 +20,7 @@ public class OpenNebulaXmlTagsConstants {
 		public static final String TYPE = "TYPE";
 		public static final String USERDATA = "USERDATA";
 		public static final String USERDATA_ENCODING = "USERDATA_ENCODING";
+		public static final String DEFAULT_DEVICE_PREFIX = "vd";
 	}
 	
 	public static class VirtualNetwork {
