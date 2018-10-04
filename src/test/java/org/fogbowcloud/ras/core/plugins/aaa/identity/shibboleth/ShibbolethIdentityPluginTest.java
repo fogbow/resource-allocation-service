@@ -69,6 +69,5 @@ public class ShibbolethIdentityPluginTest {
 		
 		// exercise
 		this.shibbolethIdentityPlugin.createToken(tokenValue);
-	}	
-	
+	}
 }

@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
+import org.fogbowcloud.ras.core.PropertiesHolder;
+import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -27,16 +29,19 @@ public class ShibbolethTokenGeneratorTest {
 	private ShibbolethTokenGenerator shibbolethTokenGenerator;
 	private RSAPrivateKey privateKey;
 	private RSAPublicKey publicKey;
+	private String tokenProviderId;
 	
 	@Before
 	public void setUp() throws IOException, GeneralSecurityException {
+		this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+		
 		String privateKeyPath = getResourceFilePath(PRIVATE_KEY_SUFIX_PATH);
 		String publicKeyPath = getResourceFilePath(PUBLIC_KEY_SUFIX_PATH);
 		
 		this.privateKey = RSAUtil.getPrivateKey(privateKeyPath);
 		this.publicKey = RSAUtil.getPublicKey(publicKeyPath);
 		
-		this.shibbolethTokenGenerator = Mockito.spy(new ShibbolethTokenGenerator(this.privateKey, this.publicKey));		
+		this.shibbolethTokenGenerator = Mockito.spy(new ShibbolethTokenGenerator());		
 	}
 
 	// test case: success case
@@ -45,11 +50,10 @@ public class ShibbolethTokenGeneratorTest {
 		// setup		
 		String secret = "secret";
 		String assertionUrlExpected = "http://localhost";
-		String identityProviderExpected = "idp_one";
 		String eduPrincipalNameExpected = "fulano@ufcg.br";
 		String commonNameExpected = "fulano";
 		String samlAttributesStrExpected = createSamlAttributes();
-		String shibToken = createShibToken(secret, assertionUrlExpected, identityProviderExpected, eduPrincipalNameExpected, commonNameExpected, samlAttributesStrExpected);
+		String shibToken = createShibToken(secret, assertionUrlExpected, eduPrincipalNameExpected, commonNameExpected, samlAttributesStrExpected);
 		String shibTokenSignature = sign(shibToken);
 		
 		String expirationTokenExpected = "2136557867856";
@@ -77,6 +81,7 @@ public class ShibbolethTokenGeneratorTest {
 		Assert.assertTrue(verify(createRawRasToken, signature));
 		
 		Assert.assertEquals(assertionUrlExpected, assertionUrl);
+		Assert.assertEquals(this.tokenProviderId, identityProvider);
 		Assert.assertEquals(eduPrincipalNameExpected, eduPrincipalName);
 		Assert.assertEquals(samlAttributesStrExpected, samlAttributesStr);
 		Assert.assertEquals(assertionUrlExpected, assertionUrl);
@@ -162,13 +167,12 @@ public class ShibbolethTokenGeneratorTest {
 		return rawRasToken;
 	}
 	
-	private String createShibToken(String secret, String assertionUrl, String identityProvider, 
-			String eduPrincipalName, String commonName, String samlAttributesStr) throws IOException, GeneralSecurityException {
+	private String createShibToken(String secret, String assertionUrl, String eduPrincipalName,
+			String commonName, String samlAttributesStr) throws IOException, GeneralSecurityException {
 		
 		String[] parameters = new String[] {
 				secret,
 				assertionUrl,
-				identityProvider,
 				eduPrincipalName,
 				commonName,
 				samlAttributesStr

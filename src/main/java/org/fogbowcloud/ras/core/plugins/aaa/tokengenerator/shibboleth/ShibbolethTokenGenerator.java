@@ -11,6 +11,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.PropertiesHolder;
+import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
@@ -25,15 +27,15 @@ import org.fogbowcloud.ras.util.RSAUtil;
 
 public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 
-	private static final int SHIB_TOKEN_PARAMETERS_SIZE = 6;
 
 	private static final Logger LOGGER = Logger.getLogger(ShibbolethTokenGenerator.class);
 
-	// shib token parameter
-	private static final int SAML_ATTRIBUTES_ATTR_SHIB_INDEX = 5;
-	private static final int COMMON_NAME_ATTR_SHIB_INDEX = 4;
-	private static final int EDU_PRINCIPAL_NAME_ATTR_SHIB_INDEX = 3;
-	private static final int IDENTITY_PROVIDE_ATTR_SHIB_INDEX = 2;
+	// shib token parameters
+	private static final int SHIB_TOKEN_PARAMETERS_SIZE = 5;
+	
+	private static final int SAML_ATTRIBUTES_ATTR_SHIB_INDEX = 4;
+	private static final int COMMON_NAME_ATTR_SHIB_INDEX = 3;
+	private static final int EDU_PRINCIPAL_NAME_ATTR_SHIB_INDEX = 2;
 	private static final int ASSERTION_URL_ATTR_SHIB_INDEX = 1;
 	protected static final int SECREC_ATTR_SHIB_INDEX = 0;
 	// properties
@@ -49,8 +51,11 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 	private RSAPublicKey shibPublicKey;
 	private Properties properties;
 	private SecretManager secretManager;
+	private String tokenProviderId;
 	
 	public ShibbolethTokenGenerator() {
+		this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+		
         this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
                 DefaultConfigurationConstants.SHIBBOLETH_CONF_FILE_NAME);
         
@@ -70,13 +75,6 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
         
         this.secretManager = new SecretManager();
         
-	}
-	
-	protected ShibbolethTokenGenerator(RSAPrivateKey rasPrivateKey, RSAPublicKey shibPublicKey) {
-		this.rasPrivateKey = rasPrivateKey;
-		this.shibPublicKey = shibPublicKey;
-		
-		this.secretManager = new SecretManager();
 	}
 	
 	@Override
@@ -124,7 +122,7 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 
 	protected String createRawToken(String[] tokenShibParameters) {
 		String assertionUrl = tokenShibParameters[ASSERTION_URL_ATTR_SHIB_INDEX];
-		String identityProvider = tokenShibParameters[IDENTITY_PROVIDE_ATTR_SHIB_INDEX];
+		String identityProvider = this.tokenProviderId;
 		String eduPrincipalName = tokenShibParameters[EDU_PRINCIPAL_NAME_ATTR_SHIB_INDEX];
 		String commonName = tokenShibParameters[COMMON_NAME_ATTR_SHIB_INDEX];
 		// attributes in json format

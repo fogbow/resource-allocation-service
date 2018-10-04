@@ -40,7 +40,7 @@ public class GenericSignatureAuthenticationPlugin {
         }
 
         if (!verifySign(tokenValue, signature)) {
-        	LOGGER.error(Messages.Exception.EXPIRED_TOKEN);
+        	LOGGER.error(Messages.Exception.INVALID_TOKEN);
             throw new UnauthenticTokenException(String.format(Messages.Exception.INVALID_TOKEN));
         }
     }
