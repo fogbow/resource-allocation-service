@@ -88,10 +88,18 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		String ram = String.valueOf(foundFlavor.getRam());
 		String disk = String.valueOf(foundFlavor.getDisk());
 
-		CreateComputeRequest request = new CreateComputeRequest.Builder().contextEncoding(encoding)
-				.contextUserdata(userData).contextNetwork(hasNetwork).cpu(cpu).graphicsListen(address)
-				.graphicsType(graphicsType).imageId(imageId).volumeSize(disk).volumeType(volumeType).memory(ram)
-				.networkId(networkId).build();
+		CreateComputeRequest request = new CreateComputeRequest.Builder()
+				.contextEncoding(encoding)
+				.contextUserdata(userData)
+				.contextNetwork(hasNetwork)
+				.cpu(cpu).graphicsListen(address)
+				.graphicsType(graphicsType)
+				.imageId(imageId)
+				.volumeSize(disk)
+				.volumeType(volumeType)
+				.memory(ram)
+				.networkId(networkId)
+				.build();
 
 		String template = request.getVirtualMachine().generateTemplate();
 		return this.factory.allocateVirtualMachine(client, template);
