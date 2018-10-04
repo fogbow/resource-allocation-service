@@ -26,8 +26,16 @@ public class AttachmentInstance extends Instance {
         return this.serverId;
     }
 
+    public void setServerId(String serverId) {
+        this.serverId = serverId;
+    }
+
     public String getVolumeId() {
         return this.volumeId;
+    }
+
+    public void setVolumeId(String volumeId) {
+        this.volumeId = volumeId;
     }
 
     public String getServerName() {

@@ -302,7 +302,9 @@ public class LocalCloudConnector implements CloudConnector {
         VolumeOrder volumeOrder = (VolumeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedTarget);
 
         fullInstance.setServerName(computeOrder.getName());
+        fullInstance.setServerId(computeOrder.getId());
         fullInstance.setVolumeName(volumeOrder.getName());
+        fullInstance.setVolumeId(volumeOrder.getId());
 
         return fullInstance;
     }
