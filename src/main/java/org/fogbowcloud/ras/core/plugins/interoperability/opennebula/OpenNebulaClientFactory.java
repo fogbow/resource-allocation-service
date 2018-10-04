@@ -22,6 +22,7 @@ import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 import org.opennebula.client.template.TemplatePool;
 import org.opennebula.client.user.User;
+import org.opennebula.client.user.UserPool;
 import org.opennebula.client.vm.VirtualMachine;
 import org.opennebula.client.vm.VirtualMachinePool;
 import org.opennebula.client.vnet.VirtualNetwork;
@@ -154,8 +155,14 @@ public class OpenNebulaClientFactory {
 		return templatePool;
 	}
 
-    public User createUser(Client client, String username) {
-        return null;
+    public User createUser(Client client, String username) throws UnauthorizedRequestException {
+    	UserPool userpool = new UserPool(client);
+ 		userpool.info();
+ 		String userId = findUserByName(userpool, username);
+ 		int id = Integer.parseInt(userId);
+ 		User user = userpool.getById(id);
+ 		user.info();
+ 		return user;
     }
 
 	public String allocateImage(Client client, String template, Integer datastoreId) {
@@ -199,6 +206,15 @@ public class OpenNebulaClientFactory {
 			throw new InvalidParameterException(message);
 		}
 		return response.getMessage();
+	}
+	
+	private String findUserByName(UserPool userpool, String username) throws UnauthorizedRequestException {
+		for (User user : userpool) {
+			if (username.equals(user.getName())){
+				return user.getId();
+			}
+		}
+		throw new UnauthorizedRequestException();
 	}
 
 }
