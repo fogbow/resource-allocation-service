@@ -1,0 +1,15 @@
+language: java
+jdk:
+  - oraclejdk8
+  - openjdk8
+
+env:
+  SKIP_TEST_ON_TRAVIS=true
+
+cache:
+  directories:
+    - .autoconf
+    - $HOME/.m2
+
+notifications:
+  slack: fogbow:STADNJdZ8M5dszVw545vNXbW

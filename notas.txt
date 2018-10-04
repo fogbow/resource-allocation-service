@@ -1,0 +1,67 @@
+1. HomeDir
+	- não é thread-safe. Não há garantias que uma chamada para setPath feita por uma thread t0 seja visto por uma thread t1, mesmo que t1 faça seu trabalho após a execução de setPath por t0.
+	- Uma opção é syncronizar os métodos associados. Ou então ter a variável path declarada como volalite. Uma terceira opção é não ter um método setPath, e ao invés disso, ter dois métodos getInstance, um com args e outro sem (que pode parecer estranho)
+
+2. PluginInstantiationService
+	- na linha String path = homeDir.getPath() + File.pathSeparator, acredito que deveria ser usado o File.separator
+	- codigo e vars não usadas
+
+3. CloudPluginsHolder
+	- a linha "this.imagePlugin = imagePlugin;" é inefetiva. acredito que é um TODO
+	- tanto a classe CloudPluginsHolder quanto BehaviorPluginsHolder não são thread-safe. Eu acredito que elas não serão usadas diretamente por múltiplas threads. Mas, caso seja, temos problemas. Acredito que as variáveis de instância deveria ser declaradas final (essa é uma boa prática, quando possível seguir)
+
+4. PropertiesHolder
+	- me parece que deveriamos usar "File.separator" ao invés pathSeparator em "String path = homeDir.getPath() + File.pathSeparator;"
+	- código não usado
+
+5. PropertiesUtil
+	- na linha 42 temos um log fatal mas não temos um System.exit
+	- o bloco de código executado no catch (FileNotFoundException e) é mais complicado do que o necessário. sugiro colocar um TODO para refatoramos de maneira que tenhamos um outro método que faz o parse de um filename por vez. Com isso, não será necessário fazer parse da mensagem da exception. Isso é ruim primeiro pq o código está díficil de entender, segundo, porque a mensagem de exceção não é um contrato, pode mudar a qualquer momento.
+
+6. AaController
+	- UnauthorizedException não é mais lançada no método getFederationUser
+
+7. OrderController
+	- ainda precisa receber localMemberId no construtor?
+	- disk ainda não está sendo usado no método getUserComputeAllocation
+
+8. ApplicationFacade
+	- Tal como em HomeDir, temos um problema de concorrência. Os métodos setAaController e setOrderController deveriam ser sincronizados (ou a variavel marcada como volatile)
+	- muitas exçecões desnecessárias em getUserAllocation
+
+9. OrderStateTransitioner
+	- o bloco de código [25-28] de activateOrder(Order order) nunca vai ser executado. uma vez que, se for null, lançará uma exceção na linha acima. Se quiser manter a semântica desejada, mover o teste para fora do bloco synch. Ou então, não fazer o teste, como parecer ser o modelo adotado na classe (ou seja, o cliente deve ter testado).
+	- estilo: o três blocos catch notifyRequester podem ser colapsados pra uma coisa unica (RemoteRequestException | UnauthorizedException | OrderManagementException e). Isso deve ajudar a ler o codigo e a refatorar as exceptions
+
+10. PacketSenderHolder
+	- no método init, temos os mesmos problemas de visibilidade que os demais singletons
+	- na verdade, não se se é um singleton. Parece a primeira vista mas pode nao ser
+
+11. CloudConnectorFactory
+	- problema de visibilidade nos métodos set, caso a classe seja usada por múltiplas threads.
+
+12. ProcessorsThreadController
+	- seria bom dar nomes para as threads durante sua criação [56, 59], ajuda muito o debug (por inspeção do log)
+	- desconfio que não teremos esse problema agora, mas, geralmente evita-se iniciar a execução de threads no construtor (o problema acontece se alguma dessas threads usar o próprio objeto que está sendo construído)
+	- achei essa classe sem muito comportamento. Inclusive, eu esparava que fosse mais parecida com os demais holders, o que não é o caso.
+
+13. SynchronizedDoublyLinkedList
+	- acredito que o design da lista não deve permitir expor o objeto Node. nesse caso, o método public synchronized Node getCurrent() não deveria ser public
+
+14. CloudConnector
+	- getAllImages deveria retornar a interface Map ao invés da classe HashMap
+	- estilo: remover o modificador public da declaração da interface, nao é necessario
+
+15. LocalCloudConnector
+	- em void deleteInstance(Order order), caso a order não tem instanceID, o método não faz nada nem indica que não fez. deveria ser assim mesmo?
+	- mantivemos o parametro memberId para nos proteger de possiveis necessidades futuras ou podemos tirar de la?
+
+16. RemoteCloudConnector
+	- muitas exceções estão declaradas mas não podem ser lançadas
+
+16. ImageException
+	- estilo: não declarar public nas interfaces
+
+17. FatalErrorException
+    - Sempre que forem feitos casos de testque esperem essa exceção, o teste deve ser skipado caso a variável de ambiente SKIP_TEST_ON_TRAVIS esteja definada como true.
+
