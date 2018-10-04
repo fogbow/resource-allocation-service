@@ -17,6 +17,7 @@ import org.opennebula.client.Client;
 import org.opennebula.client.ClientConfigurationException;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.group.Group;
+import org.opennebula.client.group.GroupPool;
 import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 import org.opennebula.client.template.TemplatePool;
@@ -55,8 +56,15 @@ public class OpenNebulaClientFactory {
 		}
 	}
 
-    public Group createGroup(Client client, int groupId) {
-        return null;
+    public Group createGroup(Client client, int groupId) throws UnauthorizedRequestException {
+    	GroupPool groupPool = new GroupPool(client);
+    	groupPool.info();
+    	Group group = groupPool.getById(groupId);
+    	if (group == null){
+			throw new UnauthorizedRequestException();
+		}
+    	group.info();		
+		return group;
     }
 
 	public ImagePool createImagePool(Client client) throws UnexpectedException {
