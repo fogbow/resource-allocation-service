@@ -16,6 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -28,9 +29,10 @@ import java.util.ArrayList;
 @PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
 public class RemoteNotifyEventHandlerTest {
 
-    private static final String IQ_RESULT = "\n<iq type=\"result\" id=\"%s\" from=\"%s\"/>";
+    private static final String REQUESTING_MEMBER = "requestingmember";
+    private static final String IQ_RESULT = "\n<iq type=\"result\" id=\"%s\" from=\"%s\" to=\"%s\"/>";
 
-    private static final String IQ_ERROR_RESULT = "\n<iq type=\"error\" id=\"%s\" from=\"%s\">\n"
+    private static final String IQ_ERROR_RESULT = "\n<iq type=\"error\" id=\"%s\" from=\"%s\" to=\"%s\">\n"
             + "  <error code=\"500\" type=\"wait\">\n"
             + "    <internal-server-error xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n"
             + "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">" + Messages.Exception.UNEXPECTED_ERROR + "</text>\n" + "  </error>\n"
@@ -64,19 +66,20 @@ public class RemoteNotifyEventHandlerTest {
 
         String orderId = createOrder();
 
-        Mockito.doNothing().when(this.remoteFacade).handleRemoteEvent(this.event, this.order);
+        Mockito.doNothing().when(this.remoteFacade).handleRemoteEvent(REQUESTING_MEMBER, this.event, this.order);
 
         IQ iq = RemoteNotifyEventRequest.marshall(this.order, this.event);
+        iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
         IQ result = this.remoteNotifyEventHandler.handle(iq);
 
         // verify
-        Mockito.verify(this.remoteFacade, Mockito.times(1)).handleRemoteEvent(Mockito.eq(this.event),
-                Mockito.eq(this.order));
+        Mockito.verify(this.remoteFacade, Mockito.times(1)).
+                handleRemoteEvent(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.event), Mockito.eq(this.order));
 
         String requestingMember = this.order.getRequestingMember();
-        String expected = String.format(IQ_RESULT, orderId, requestingMember);
+        String expected = String.format(IQ_RESULT, orderId, requestingMember, REQUESTING_MEMBER);
 
         Assert.assertEquals(expected, result.toString());
     }
@@ -87,26 +90,28 @@ public class RemoteNotifyEventHandlerTest {
     public void testWhenThrowsException() throws FogbowRasException, UnexpectedException {
         // set up
         String orderId = createOrder();
-        Mockito.doThrow(new UnexpectedException()).when(this.remoteFacade).handleRemoteEvent(Mockito.eq(this.event),
-                Mockito.eq(this.order));
+        Mockito.doThrow(new UnexpectedException()).when(this.remoteFacade).
+                handleRemoteEvent(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.event), Mockito.eq(this.order));
 
         IQ iq = RemoteNotifyEventRequest.marshall(this.order, this.event);
+        iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
         IQ result = this.remoteNotifyEventHandler.handle(iq);
 
         // verify
-        Mockito.verify(this.remoteFacade, Mockito.times(1)).handleRemoteEvent(Mockito.eq(this.event),
-                Mockito.eq(this.order));
+        Mockito.verify(this.remoteFacade, Mockito.times(1)).
+                handleRemoteEvent(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.event), Mockito.eq(this.order));
 
         String requestingMember = this.order.getRequestingMember();
-        String expected = String.format(IQ_ERROR_RESULT, orderId, requestingMember);
+        String expected = String.format(IQ_ERROR_RESULT, orderId, requestingMember, REQUESTING_MEMBER);
 
         Assert.assertEquals(expected, result.toString());
     }
 
     private String createOrder() throws InvalidParameterException {
-        this.order = new ComputeOrder(null, "requestingmember", "providingmember", "hostName", 1, 2, 3, "imageId", null,
+        this.order = new ComputeOrder(null, REQUESTING_MEMBER, "providingmember",
+                "hostName", 1, 2, 3, "imageId", null,
                 "publicKey", new ArrayList<>());
         return this.order.getId();
     }

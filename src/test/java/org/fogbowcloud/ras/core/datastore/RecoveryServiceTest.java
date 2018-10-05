@@ -66,7 +66,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
         DatabaseManager databaseManager = Mockito.mock(DatabaseManager.class);
         Mockito.when(databaseManager.readActiveOrders(OrderState.OPEN)).thenReturn(new SynchronizedDoublyLinkedList());
         Mockito.when(databaseManager.readActiveOrders(OrderState.SPAWNING)).thenReturn(new SynchronizedDoublyLinkedList());
-        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED)).thenReturn(new SynchronizedDoublyLinkedList());
+        Mockito.when(databaseManager.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST)).thenReturn(new SynchronizedDoublyLinkedList());
         Mockito.when(databaseManager.readActiveOrders(OrderState.FULFILLED)).thenReturn(new SynchronizedDoublyLinkedList());
         Mockito.when(databaseManager.readActiveOrders(OrderState.PENDING)).thenReturn(new SynchronizedDoublyLinkedList());
         Mockito.when(databaseManager.readActiveOrders(OrderState.CLOSED)).thenReturn(new SynchronizedDoublyLinkedList());
@@ -99,7 +99,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
         List<Order> pendingOrders = recoveryService.readActiveOrders(OrderState.PENDING);
         List<Order> spawningOrders = recoveryService.readActiveOrders(OrderState.SPAWNING);
         List<Order> fulfilledOrders = recoveryService.readActiveOrders(OrderState.FULFILLED);
-        List<Order> failedOrders = recoveryService.readActiveOrders(OrderState.FAILED);
+        List<Order> failedOrders = recoveryService.readActiveOrders(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
         List<Order> closedorders = recoveryService.readActiveOrders(OrderState.CLOSED);
         List<Order> deactivatedOrders = recoveryService.readActiveOrders(OrderState.DEACTIVATED);
 
@@ -176,72 +176,6 @@ public class RecoveryServiceTest extends BaseUnitTests {
         Assert.assertEquals(1, closedOrders.size());
         Assert.assertEquals(computeOrder, closedOrders.get(0));
     }
-
-    // test case: If the order is closed and it doesn't have an instance id, it must not be recovered.
-    @Test
-    public void testNotRecoverClosedOrdersWithoutInstanceId() throws UnexpectedException {
-
-        // set up
-        FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
-                FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
-
-        computeOrder = new ComputeOrder(FAKE_ID_1, federationUserToken,
-                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
-                FAKE_DISK_AMOUNT, FAKE_IMAGE_NAME, new UserData(FAKE_USER_DATA_FILE,
-                CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), FAKE_PUBLIC_KEY, null);
-
-        computeOrder.setOrderStateInTestMode(OrderState.CLOSED);
-
-        // exercise
-        recoveryService.save(computeOrder);
-        List<Order> openOrders = recoveryService.readActiveOrders(OrderState.OPEN);
-        List<Order> closedOrders = recoveryService.readActiveOrders(OrderState.CLOSED);
-
-        // verify. ClosedOrders list must be empty too, because the order doesn't have an instance id.
-        Assert.assertTrue(openOrders.isEmpty());
-        Assert.assertTrue(closedOrders.isEmpty());
-
-    }
-
-    // test case: If the order is closed and it has an instance id, it must be recovered.
-    @Test
-    public void testRecoverClosedOrdersWithInstanceId() throws UnexpectedException {
-
-        // set up
-        FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
-                FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
-
-        computeOrder = new ComputeOrder(FAKE_ID_1, federationUserToken,
-                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
-                FAKE_DISK_AMOUNT, FAKE_IMAGE_NAME, new UserData(FAKE_USER_DATA_FILE,
-                CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), FAKE_PUBLIC_KEY, null);
-
-        computeOrder.setOrderStateInTestMode(OrderState.CLOSED);
-        computeOrder.setInstanceId("fake-instance-id");
-
-        // exercise
-        recoveryService.save(computeOrder);
-        List<Order> openOrders = recoveryService.readActiveOrders(OrderState.OPEN);
-        List<Order> closedOrders = recoveryService.readActiveOrders(OrderState.CLOSED);
-
-        // verify. ClosedOrders list must be empty too, because the order doesn't have an instance id.
-        Assert.assertTrue(openOrders.isEmpty());
-        Assert.assertFalse(closedOrders.isEmpty());
-        Assert.assertEquals(1, closedOrders.size());
-        Assert.assertEquals(computeOrder, closedOrders.get(0));
-
-
-        // set up. Setting the instance id to null again
-        computeOrder.setInstanceId(null);
-
-        // exercise
-        recoveryService.update(computeOrder);
-        closedOrders = recoveryService.readActiveOrders(OrderState.CLOSED);
-
-        // verify
-        Assert.assertTrue(closedOrders.isEmpty());
-    }
-
 
     // test case: Adding orders of all types and checking the method readOrders
     @Test

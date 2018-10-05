@@ -27,12 +27,12 @@ public class RemoteGetUserQuotaRequestHandlerTest {
     private PacketSender packetSender;
     private RemoteFacade remoteFacade;
 
-    private static final String FED_USER_ID = "fake-id";
     private static final String PROVIDING_MEMBER = "providingmember";
+    private static final String REQUESTING_MEMBER = "requestingmember";
 
     private RemoteGetUserQuotaRequestHandler remoteGetUserQuotaRequestHandler;
 
-    private static final String EXPECTED_QUOTA = "\n<iq type=\"result\" id=\"%s\" from=\"%s\">\n"
+    private static final String EXPECTED_QUOTA = "\n<iq type=\"result\" id=\"%s\" from=\"%s\" to=\"%s\">\n"
             + "  <query xmlns=\"remoteGetUserQuota\">\n"
             + "    <userQuota>{\"totalQuota\":{\"vCPU\":1,\"ram\":1,\"instances\":1},"
             + "\"usedQuota\":{\"vCPU\":1,\"ram\":1,\"instances\":1},"
@@ -41,7 +41,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
             + "    <userQuotaClassName>org.fogbowcloud.ras.core.models.quotas.ComputeQuota</userQuotaClassName>\n"
             + "  </query>\n</iq>";
 
-    private static final String IQ_ERROR_RESPONSE = "\n<iq type=\"error\" id=\"%s\" from=\"%s\">\n"
+    private static final String IQ_ERROR_RESPONSE = "\n<iq type=\"error\" id=\"%s\" from=\"%s\" to=\"%s\">\n"
             + "  <error code=\"500\" type=\"wait\">\n"
             + "    <undefined-condition xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n"
             + "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">Unexpected exception error: java.lang.Exception.</text>\n"
@@ -68,18 +68,19 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 
         Mockito.doReturn(expectedQuota)
                 .when(this.remoteFacade)
-                .getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any());
+                .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any());
 
         IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, this.createFederationUserToken(), ResourceType.COMPUTE);
+        iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
         IQ result = this.remoteGetUserQuotaRequestHandler.handle(iq);
 
         // verify
-        String expected = String.format(EXPECTED_QUOTA, iq.getID(), PROVIDING_MEMBER);
+        String expected = String.format(EXPECTED_QUOTA, iq.getID(), PROVIDING_MEMBER, REQUESTING_MEMBER);
 
         Mockito.verify(this.remoteFacade, Mockito.times(1))
-                .getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any(ResourceType.class));
+                .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any(ResourceType.class));
 
         Assert.assertEquals(expected, result.toString());
     }
@@ -88,19 +89,20 @@ public class RemoteGetUserQuotaRequestHandlerTest {
     @Test
     public void testUpdateResponseWhenExceptionIsThrown() throws Exception {
         Mockito.when(this.remoteFacade
-                .getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any()))
+                .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any()))
                 .thenThrow(new Exception());
 
         IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, this.createFederationUserToken(), ResourceType.COMPUTE);
+        iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
         IQ result = this.remoteGetUserQuotaRequestHandler.handle(iq);
 
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1))
-                .getUserQuota(Mockito.anyString(), Mockito.any(), Mockito.any(ResourceType.class));
+                .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any(ResourceType.class));
 
-        String expected = String.format(IQ_ERROR_RESPONSE, iq.getID(), PROVIDING_MEMBER);
+        String expected = String.format(IQ_ERROR_RESPONSE, iq.getID(), PROVIDING_MEMBER, REQUESTING_MEMBER);
         Assert.assertEquals(expected, result.toString());
     }
 
@@ -116,7 +118,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
     }
 
     private FederationUserToken createFederationUserToken() {
-        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+        FederationUserToken federationUserToken = new FederationUserToken(REQUESTING_MEMBER,
                 "fake-federation-token-value", "fake-user-id", "fake-user-name");
         return federationUserToken;
     }

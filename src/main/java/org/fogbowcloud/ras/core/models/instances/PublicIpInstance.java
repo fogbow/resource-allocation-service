@@ -3,6 +3,8 @@ package org.fogbowcloud.ras.core.models.instances;
 public class PublicIpInstance extends Instance {
 
     private String ip;
+    private String computeName;
+    private String computeId;
 
     public PublicIpInstance(String id) {
         super(id);
@@ -17,4 +19,19 @@ public class PublicIpInstance extends Instance {
         return ip;
     }
 
+    public String getComputeName() {
+        return computeName;
+    }
+
+    public void setComputeName(String computeName) {
+        this.computeName = computeName;
+    }
+
+    public String getComputeId() {
+        return computeId;
+    }
+
+    public void setComputeId(String computeId) {
+        this.computeId = computeId;
+    }
 }

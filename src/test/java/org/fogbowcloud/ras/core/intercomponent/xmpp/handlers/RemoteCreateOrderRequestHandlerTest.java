@@ -28,9 +28,11 @@ import java.util.ArrayList;
 @PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
 public class RemoteCreateOrderRequestHandlerTest {
 
-    public static final String IQ_RESULT = "\n<iq type=\"result\" id=\"%s\" from=\"%s\"/>";
+    private static final String REQUESTING_MEMBER="requestingmember";
 
-    public static final String IQ_ERROR_RESULT = "\n<iq type=\"error\" id=\"%s\" from=\"%s\">\n"
+    public static final String IQ_RESULT = "\n<iq type=\"result\" id=\"%s\" from=\"%s\" to=\"%s\"/>";
+
+    public static final String IQ_ERROR_RESULT = "\n<iq type=\"error\" id=\"%s\" from=\"%s\" to=\"%s\">\n"
             + "  <error code=\"500\" type=\"wait\">\n"
             + "    <undefined-condition xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n"
             + "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">" + Messages.Exception.FOGBOW_RAS + "</text>\n"
@@ -61,19 +63,21 @@ public class RemoteCreateOrderRequestHandlerTest {
         FederationUserToken federationUserToken = createFederationUserToken();
         Order order = createOrder(federationUserToken);
 
-        Mockito.doNothing().when(this.remoteFacade).activateOrder(Mockito.eq(order));
+        Mockito.doNothing().when(this.remoteFacade).activateOrder(Mockito.anyString(), Mockito.eq(order));
 
         IQ iq = RemoteCreateOrderRequest.marshal(order);
+        iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
         IQ result = this.remoteCreateOrderRequestHandler.handle(iq);
 
         // verify
-        Mockito.verify(this.remoteFacade, Mockito.times(1)).activateOrder(Mockito.eq(order));
+        Mockito.verify(this.remoteFacade, Mockito.times(1)).
+                activateOrder(Mockito.anyString(), Mockito.eq(order));
 
         String orderId = order.getId();
         String providingMember = order.getProvidingMember();
-        String expected = String.format(IQ_RESULT, orderId, providingMember);
+        String expected = String.format(IQ_RESULT, orderId, providingMember, REQUESTING_MEMBER);
 
         Assert.assertEquals(expected, result.toString());
     }
@@ -86,30 +90,32 @@ public class RemoteCreateOrderRequestHandlerTest {
         Order order = createOrder(federationUserToken);
 
         Mockito.doThrow(new FogbowRasException()).when(this.remoteFacade)
-                .activateOrder(Mockito.any(Order.class));
+                .activateOrder(Mockito.anyString(), Mockito.any(Order.class));
 
         IQ iq = RemoteCreateOrderRequest.marshal(order);
+        iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
         IQ result = this.remoteCreateOrderRequestHandler.handle(iq);
 
         // verify
-        Mockito.verify(this.remoteFacade, Mockito.times(1)).activateOrder(Mockito.eq(order));
+        Mockito.verify(this.remoteFacade, Mockito.times(1)).
+                activateOrder(Mockito.anyString(), Mockito.eq(order));
 
         String orderId = order.getId();
         String providingMember = order.getProvidingMember();
-        String expected = String.format(IQ_ERROR_RESULT, orderId, providingMember);
+        String expected = String.format(IQ_ERROR_RESULT, orderId, providingMember, REQUESTING_MEMBER);
 
         Assert.assertEquals(expected, result.toString());
     }
 
     private Order createOrder(FederationUserToken federationUserToken) {
-        return new ComputeOrder(federationUserToken, "requestingMember", "providingmember", "hostName", 1, 2,
+        return new ComputeOrder(federationUserToken, REQUESTING_MEMBER, "providingmember", "hostName", 1, 2,
                 3, "imageId", null, "publicKey", new ArrayList<>());
     }
 
     private FederationUserToken createFederationUserToken() throws InvalidParameterException {
-        FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
+        FederationUserToken federationUserToken = new FederationUserToken(REQUESTING_MEMBER,
                 "fake-federation-token-value", "fake-user-id", "fake-user-name");
         return federationUserToken;
     }

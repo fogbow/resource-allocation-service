@@ -6,6 +6,7 @@ import org.fogbowcloud.ras.core.OrderController;
 import org.fogbowcloud.ras.core.OrderStateTransitioner;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.constants.Operation;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -40,61 +41,68 @@ public class RemoteFacade {
         }
     }
 
-    public void activateOrder(Order order) throws FogbowRasException, UnexpectedException {
-        this.aaaController.remoteAuthenticateAndAuthorize(order.getFederationUserToken(), Operation.CREATE,
-                order.getType(), order);
+    public void activateOrder(String requestingMember, Order order) throws UnexpectedException, FogbowRasException {
+        this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, order.getFederationUserToken(),
+                Operation.CREATE, order.getType(), order);
         OrderStateTransitioner.activateOrder(order);
     }
 
-    public Instance getResourceInstance(String orderId, FederationUserToken federationUserToken,
-                                        ResourceType resourceType) throws Exception {
+    public Instance getResourceInstance(String requestingMember, String orderId,
+                            FederationUserToken federationUserToken, ResourceType resourceType) throws Exception {
         Order order = this.orderController.getOrder(orderId);
-        this.aaaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.GET, resourceType, order);
+        this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, Operation.GET,
+                resourceType, order);
         return this.orderController.getResourceInstance(orderId);
     }
 
-    public void deleteOrder(String orderId, FederationUserToken federationUserToken, ResourceType resourceType)
-            throws Exception {
+    public void deleteOrder(String requestingMember, String orderId, FederationUserToken federationUserToken,
+                            ResourceType resourceType) throws Exception {
         Order order = this.orderController.getOrder(orderId);
-        this.aaaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.DELETE, resourceType, order);
+        this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, Operation.DELETE,
+                resourceType, order);
         this.orderController.deleteOrder(orderId);
     }
 
-    public Quota getUserQuota(String memberId, FederationUserToken federationUserToken, ResourceType resourceType)
-            throws Exception {
-        this.aaaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.GET_USER_QUOTA, resourceType,
-                memberId);
+    public Quota getUserQuota(String requestingMember, String memberId, FederationUserToken federationUserToken,
+                              ResourceType resourceType) throws Exception {
+        this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken,
+                Operation.GET_USER_QUOTA, resourceType, memberId);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return cloudConnector.getUserQuota(federationUserToken, resourceType);
     }
 
-    public Image getImage(String memberId, String imageId, FederationUserToken federationUserToken)
-            throws Exception {
-        this.aaaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.GET_IMAGE, ResourceType.IMAGE,
-                memberId);
+    public Image getImage(String requestingMember, String memberId, String imageId,
+                          FederationUserToken federationUserToken) throws Exception {
+        this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, Operation.GET_IMAGE,
+                ResourceType.IMAGE, memberId);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return cloudConnector.getImage(imageId, federationUserToken);
     }
 
-    public Map<String, String> getAllImages(String memberId, FederationUserToken federationUserToken)
-            throws Exception {
-        this.aaaController.remoteAuthenticateAndAuthorize(federationUserToken, Operation.GET_ALL_IMAGES,
-                ResourceType.IMAGE, memberId);
+    public Map<String, String> getAllImages(String requestingMember, String memberId,
+                                            FederationUserToken federationUserToken) throws Exception {
+        this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken,
+                Operation.GET_ALL_IMAGES, ResourceType.IMAGE, memberId);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         return cloudConnector.getAllImages(federationUserToken);
     }
 
-    public void handleRemoteEvent(Event event, Order remoteOrder) throws FogbowRasException, UnexpectedException {
+    public void handleRemoteEvent(String signallingMember, Event event, Order remoteOrder) throws FogbowRasException,
+            UnexpectedException {
         // order is a java object that represents the order passed in the message
         // actualOrder is the java object that represents this order inside the current server
         Order localOrder = this.orderController.getOrder(remoteOrder.getId());
+        if (!localOrder.getProvidingMember().equals(signallingMember)) {
+            throw new UnexpectedException(String.format(Messages.Exception.SIGNALING_MEMBER_DIFFERENT_OF_PROVIDER,
+                    signallingMember, localOrder.getProvidingMember()));
+        }
         updateLocalOrder(localOrder, remoteOrder, event);
         switch (event) {
             case INSTANCE_FULFILLED:
                 OrderStateTransitioner.transition(localOrder, OrderState.FULFILLED);
                 break;
             case INSTANCE_FAILED:
-                OrderStateTransitioner.transition(localOrder, OrderState.FAILED);
+                OrderStateTransitioner.transition(localOrder, OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
                 break;
         }
     }

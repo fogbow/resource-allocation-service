@@ -18,6 +18,7 @@ public class LdapAuthenticationPluginTest {
     private Map<String, String> userCredentials;
     private String name;
     private String password;
+    private static final String FAKE_MEMBER_ID = "fake-member-id";
 
     @Before
     public void setUp() {
@@ -51,7 +52,7 @@ public class LdapAuthenticationPluginTest {
         FederationUserToken token = identityPlugin.createToken(tokenValue);
 
         //verify
-        Assert.assertTrue(this.authenticationPlugin.isAuthentic(token));
+        Assert.assertTrue(this.authenticationPlugin.isAuthentic(FAKE_MEMBER_ID, token));
     }
 
     //test case: check if isAuthentic returns false when the tokenValue is invalid (signature doesn't match).
@@ -72,7 +73,7 @@ public class LdapAuthenticationPluginTest {
         FederationUserToken newToken = identityPlugin.createToken(newTokenValue);
 
         //verify
-        Assert.assertFalse(this.authenticationPlugin.isAuthentic(newToken));
+        Assert.assertFalse(this.authenticationPlugin.isAuthentic(FAKE_MEMBER_ID, newToken));
     }
 
     //test case: check if isAuthentic returns false when the tokenValue is expired.
@@ -94,6 +95,6 @@ public class LdapAuthenticationPluginTest {
         FederationUserToken newToken = identityPlugin.createToken(newTokenValue);
 
         //verify
-        Assert.assertFalse(this.authenticationPlugin.isAuthentic(newToken));
+        Assert.assertFalse(this.authenticationPlugin.isAuthentic(FAKE_MEMBER_ID, newToken));
     }
 }

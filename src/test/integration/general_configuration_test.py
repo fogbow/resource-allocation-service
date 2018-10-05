@@ -8,6 +8,12 @@ class GeneralConfigurations:
   local_member = 'fake-localidentity-member'
   remote_member = 'fake-localidentity-member2'
 
+  #login properties
+  username = ''
+  password = ''
+  projectname = ''
+  domain = ''
+
   #time to wait
   max_tries = 6
   sleep_time_secs = 15
@@ -54,6 +60,7 @@ class GeneralConfigurations:
   computes_endpoint = 'computes/'
   quota_endpoint = 'quota/'
   allocation_endpoint = 'allocation/'
+  tokens_endpoint = 'tokens/'
   available_quota = 'availableQuota'
   instances_quota = 'instances'
   networksId_key = 'networksId'

@@ -13,6 +13,9 @@ public class CloudStackStateMapper {
     private static final String READY_STATUS = "ready";
     public static final String RUNNING_STATUS = "running";
     public static final String DOWN_STATUS = "shutdowned";
+    public static final String STOPPED_STATUS = "stopped";
+    public static final String STOPPING_STATUS = "stopping";
+    public static final String EXPUNGING_STATUS = "expunging";
     public static final String ERROR_STATUS = "error";
     public static final String PENDING_STATUS = "pending";
     public static final String FAILURE_STATUS = "failure";
@@ -25,7 +28,9 @@ public class CloudStackStateMapper {
             case COMPUTE:
                 if (cloudStackState.equalsIgnoreCase(RUNNING_STATUS)) {
                     return InstanceState.READY;
-                } else if (cloudStackState.equalsIgnoreCase(DOWN_STATUS)) {
+                } else if (cloudStackState.equalsIgnoreCase(DOWN_STATUS) || cloudStackState.equalsIgnoreCase(STOPPED_STATUS) ||
+                           cloudStackState.equalsIgnoreCase(STOPPING_STATUS) || cloudStackState.equalsIgnoreCase(STARTING_STATUS) ||
+                           cloudStackState.equalsIgnoreCase(EXPUNGING_STATUS)) {
                     return InstanceState.INACTIVE;
                 } else if (cloudStackState.equalsIgnoreCase(ERROR_STATUS)) {
                     return InstanceState.FAILED;

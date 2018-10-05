@@ -5,6 +5,7 @@ import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.ras.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.RemoteCloudConnector;
+import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Operation;
 import org.fogbowcloud.ras.core.datastore.DatabaseManager;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
@@ -38,9 +39,9 @@ import java.util.ArrayList;
 @PrepareForTest({DatabaseManager.class, CloudConnectorFactory.class, PacketSenderHolder.class})
 public class RemoteFacadeTest extends BaseUnitTests {
 
-    private static final String TEST_PATH = "src/test/resources/private";
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
     private static final String REMOTE_MEMBER_ID = "fake-intercomponent-member";
+    private static final String REQUESTING_MEMBER_ID = "fake-requesting-member";
 
     private AaaController aaaController;
     private OrderController orderController;
@@ -82,7 +83,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
                 Mockito.eq(Operation.CREATE), Mockito.eq(ResourceType.COMPUTE));
 
         // exercise
-        this.remoteFacade.activateOrder(order);
+        this.remoteFacade.activateOrder(REQUESTING_MEMBER_ID, order);
 
         // verify
         Assert.assertEquals(OrderState.OPEN, order.getOrderState());
@@ -106,7 +107,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
                 .getResourceInstance(Mockito.eq(order.getId()));
 
         // exercise
-        Instance instance = this.remoteFacade.getResourceInstance(order.getId(), federationUser,
+        Instance instance = this.remoteFacade.getResourceInstance(REQUESTING_MEMBER_ID, order.getId(), federationUser,
                 ResourceType.COMPUTE);
 
         // verify
@@ -135,7 +136,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
                 Mockito.eq(Operation.CREATE), Mockito.eq(ResourceType.COMPUTE));
 
         // exercise
-        this.remoteFacade.deleteOrder(order.getId(), federationUser, ResourceType.COMPUTE);
+        this.remoteFacade.deleteOrder(REQUESTING_MEMBER_ID, order.getId(), federationUser, ResourceType.COMPUTE);
 
         // verify
         Mockito.verify(this.aaaController, Mockito.times(1)).authorize(
@@ -173,7 +174,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
                 Mockito.eq(ResourceType.COMPUTE));
 
         // exercise
-        Quota expected = this.remoteFacade.getUserQuota(REMOTE_MEMBER_ID, federationUser,
+        Quota expected = this.remoteFacade.getUserQuota(REQUESTING_MEMBER_ID, REMOTE_MEMBER_ID, federationUser,
                 ResourceType.COMPUTE);
 
         // verify
@@ -205,7 +206,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
     }
 
     private Order createOrder(FederationUserToken token) {
-        return new ComputeOrder(token, "fake-requesting-member", "fake-providing-member", "fake-instance-name",
+        return new ComputeOrder(token, REQUESTING_MEMBER_ID, "fake-providing-member", "fake-instance-name",
                 -1, -1, -1, "fake-image-id", null, "fake-public-key", new ArrayList<String>());
     }
 

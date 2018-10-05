@@ -4,6 +4,8 @@ public class AttachmentInstance extends Instance {
     private String serverId;
     private String volumeId;
     private String device;
+    private String serverName;
+    private String volumeName;
 
     public AttachmentInstance(String id, InstanceState state, String serverId, String volumeId, String device) {
         super(id, state);
@@ -24,7 +26,31 @@ public class AttachmentInstance extends Instance {
         return this.serverId;
     }
 
+    public void setServerId(String serverId) {
+        this.serverId = serverId;
+    }
+
     public String getVolumeId() {
         return this.volumeId;
+    }
+
+    public void setVolumeId(String volumeId) {
+        this.volumeId = volumeId;
+    }
+
+    public String getServerName() {
+        return serverName;
+    }
+
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
+    }
+
+    public String getVolumeName() {
+        return volumeName;
+    }
+
+    public void setVolumeName(String volumeName) {
+        this.volumeName = volumeName;
     }
 }

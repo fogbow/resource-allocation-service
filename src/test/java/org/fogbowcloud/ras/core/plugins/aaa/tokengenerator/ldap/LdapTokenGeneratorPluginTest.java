@@ -25,12 +25,14 @@ public class LdapTokenGeneratorPluginTest {
     private LdapTokenGeneratorPlugin ldapTokenGenerator;
     private LdapAuthenticationPlugin ldapAuthenticationPlugin;
     private LdapIdentityPlugin ldapIdentityPlugin;
+    private String localMemberId;
 
     @Before
     public void setUp() {
         this.ldapTokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
         this.ldapAuthenticationPlugin = new LdapAuthenticationPlugin();
         this.ldapIdentityPlugin = new LdapIdentityPlugin();
+        this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
     }
 
     //test case: createTokenValue with valid credentials should generate a string with the appropriate values
@@ -55,7 +57,7 @@ public class LdapTokenGeneratorPluginTest {
         Assert.assertEquals(split[0], PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID));
         Assert.assertEquals(split[1], FAKE_LOGIN);
         Assert.assertEquals(split[2], FAKE_NAME);
-        Assert.assertTrue(this.ldapAuthenticationPlugin.isAuthentic(token));
+        Assert.assertTrue(this.ldapAuthenticationPlugin.isAuthentic(this.localMemberId, token));
     }
 
     //test case: createTokenValue with invalid credentials should throw InvalidUserCredentialsException

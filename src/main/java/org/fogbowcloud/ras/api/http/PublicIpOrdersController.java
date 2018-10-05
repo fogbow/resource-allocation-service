@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin
 @RestController
 @RequestMapping(value = PublicIpOrdersController.PUBLIC_IP_ENDPOINT)
 public class PublicIpOrdersController {

@@ -20,11 +20,12 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetAllDiskOfferingsResponse;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeRequest;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.GetVolumeResponse;
+import org.fogbowcloud.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
+import org.fogbowcloud.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin.DEFAULT_NETWORK_ID_KEY;
@@ -36,11 +37,14 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     public static final String EXPUNGE_ON_DESTROY_KEY = "expunge_on_destroy";
     public static final String DEFAULT_VOLUME_TYPE = "ROOT";
     public static final String FOGBOW_INSTANCE_NAME = "fogbow-compute-instance-";
+    public static final String DEFAULT_NETWORK_NAME = "default";
 
-    private HttpRequestClientUtil client;
     private String zoneId;
     private String expungeOnDestroy;
     private String defaultNetworkId;
+
+    private HttpRequestClientUtil client;
+    private LaunchCommandGenerator launchCommandGenerator;
 
     public CloudStackComputePlugin() throws FatalErrorException {
         String cloudStackConfFilePath = HomeDir.getPath() + File.separator
@@ -53,32 +57,22 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         this.defaultNetworkId = properties.getProperty(DEFAULT_NETWORK_ID_KEY);
 
         this.client = new HttpRequestClientUtil();
+        this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
     }
 
     @Override
-    public String requestInstance(ComputeOrder computeOrder, CloudStackToken cloudStackToken)
-            throws FogbowRasException, UnexpectedException {
+    public String requestInstance(ComputeOrder computeOrder, CloudStackToken cloudStackToken) throws FogbowRasException {
         String templateId = computeOrder.getImageId();
         if (templateId == null || this.zoneId == null || this.defaultNetworkId == null) {
             LOGGER.error(Messages.Error.UNABLE_TO_COMPLETE_REQUEST);
             throw new InvalidParameterException();
         }
 
-        // FIXME(pauloewerton): should this be creating a cloud-init script for cloudstack?
-        String userData = null;
-        if (computeOrder.getUserData() != null) {
-            userData = computeOrder.getUserData().getExtraUserDataFileContent();
-            try {
-                userData = Base64.getEncoder().encodeToString(userData.getBytes("UTF-8"));
-            } catch (UnsupportedEncodingException e) {
-                LOGGER.warn(Messages.Warn.UNABLE_TO_ENCODE_EXTRA_USER_DATA);
-            }
-        }
+        String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
 
         String networksId = resolveNetworksId(computeOrder);
 
-        String serviceOfferingId = getServiceOfferingId(computeOrder.getvCPU(), computeOrder.getMemory(),
-                cloudStackToken);
+        String serviceOfferingId = getServiceOfferingId(computeOrder.getvCPU(), computeOrder.getMemory(), cloudStackToken);
         if (serviceOfferingId == null) {
             throw new NoAvailableResourcesException();
         }
@@ -92,8 +86,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         String instanceName = computeOrder.getName();
         if (instanceName == null) instanceName = FOGBOW_INSTANCE_NAME + getRandomUUID();
 
-        // NOTE(pauloewerton): diskofferingid and hypervisor are required in case of ISO image. i haven't
-        // found any clue pointing that ISO images were being used in mono though.
+        // NOTE(pauloewerton): hypervisor param is required in case of ISO image. i haven't found any clue pointing that
+        // ISO images were being used in mono though.
         DeployVirtualMachineRequest request = new DeployVirtualMachineRequest.Builder()
                 .serviceOfferingId(serviceOfferingId)
                 .templateId(templateId)
@@ -258,15 +252,19 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         String cloudStackState = vm.getState();
         InstanceState fogbowState = CloudStackStateMapper.map(ResourceType.COMPUTE, cloudStackState);
 
-        GetVirtualMachineResponse.Nic[] addresses = vm.getNic();
-        String address = "";
-        if (addresses != null) {
-            boolean firstAddressEmpty = addresses == null || addresses.length == 0 || addresses[0].getIpAddress() == null;
-            address = firstAddressEmpty ? "" : addresses[0].getIpAddress();
+        GetVirtualMachineResponse.Nic[] nics = vm.getNic();
+        List<String> addresses = new ArrayList<>();
+
+        for (GetVirtualMachineResponse.Nic nic : nics) {
+            addresses.add(nic.getIpAddress());
         }
 
         ComputeInstance computeInstance = new ComputeInstance(
-                instanceId, fogbowState, hostName, vcpusCount, memory, disk, address);
+                instanceId, fogbowState, hostName, vcpusCount, memory, disk, addresses);
+
+        Map<String, String> computeNetworks = new HashMap<>();
+        computeNetworks.put(this.defaultNetworkId, DEFAULT_NETWORK_NAME);
+        computeInstance.setNetworks(computeNetworks);
 
         return computeInstance;
     }
@@ -302,7 +300,12 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         return UUID.randomUUID().toString();
     }
 
+    // Methods below are used for testing only
     protected void setClient(HttpRequestClientUtil client) {
         this.client = client;
+    }
+
+    protected void setLaunchCommandGenerator(LaunchCommandGenerator commandGenerator) {
+        this.launchCommandGenerator = commandGenerator;
     }
 }

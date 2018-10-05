@@ -110,11 +110,11 @@ class AttachmentTests:
     else:
       time.sleep(10)
     response_get_all = CommonMethods.get_all_order(GeneralConfigurations.type_attachment)
-    test_ok = not (response_get_all.status_code != GeneralConfigurations.ok_status or response_get_all.text == '[]' or len(response_get_all.json()) != 1)
+    test_ok = not (response_get_all.status_code != GeneralConfigurations.ok_status or response_get_all.text == '[]' or len(response_get_all.json()) != GeneralConfigurations.max_attachment)
     if test_ok:
       print('  Ok. Removing attachment')
     else:
-      print('  Failed. Expecting %d status, but got: %d. Removing attachment' % (GeneralConfigurations.ok_status, response_get_all.status_code))
+      print('  Failed. Received status: %d. Message: %s. Removing attachment' % (response_get_all.status_code, response_get_all.text))
     cls.__delete_all_orders(extra_data)
 
   #Delete methods

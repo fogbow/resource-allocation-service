@@ -21,6 +21,7 @@ public class OrderStorage {
     public OrderStorage() {
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         this.databaseUrl = propertiesHolder.getProperty(ConfigurationConstants.DATABASE_URL);
+        LOGGER.debug(String.format(Messages.Info.DATABASE_URL, this.databaseUrl));
         this.databaseUsername = propertiesHolder.getProperty(ConfigurationConstants.DATABASE_USERNAME);
         this.databasePassword = propertiesHolder.getProperty(ConfigurationConstants.DATABASE_PASSWORD);
 

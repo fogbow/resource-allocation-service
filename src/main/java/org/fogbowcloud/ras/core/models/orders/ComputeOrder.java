@@ -83,6 +83,10 @@ public class ComputeOrder extends Order {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public int getvCPU() {
         return vCPU;
     }

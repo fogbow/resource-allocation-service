@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.core;
 
+import org.fogbowcloud.ras.core.constants.Operation;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
@@ -50,21 +51,21 @@ public class AaaControllerTest {
         //set up
         FederationUserToken federationToken = new FederationUserToken("fake-provider",
                 "fake=federation-user", "fake-user-id", "fake-name");
-        Mockito.when(this.authenticationPluginMock.isAuthentic(Mockito.any(FederationUserToken.class))).thenReturn(true);
+        Mockito.when(this.authenticationPluginMock.isAuthentic(Mockito.anyString(), Mockito.any(FederationUserToken.class))).thenReturn(true);
 
         //exercise/verify
-        this.aaaController.authenticate(federationToken);
-        Mockito.verify(this.authenticationPluginMock, Mockito.times(1)).isAuthentic(federationToken);
+        this.aaaController.authenticate("fake-member-id", federationToken);
+        Mockito.verify(this.authenticationPluginMock, Mockito.times(1)).isAuthentic("fake-member-id", federationToken);
     }
 
     //test case: Check if authenticate method throws Unauthenticated exception when the federation token is invalid. 
     @Test(expected = UnauthenticatedUserException.class)
     public void testAuthenticateWhenUnauthenticatedUserException() throws UnauthenticatedUserException, UnavailableProviderException {
         //set up
-        Mockito.when(this.authenticationPluginMock.isAuthentic(Mockito.any(FederationUserToken.class))).thenReturn(false);
+        Mockito.when(this.authenticationPluginMock.isAuthentic(Mockito.anyString(), Mockito.any(FederationUserToken.class))).thenReturn(false);
 
         //exercise/verify
-        this.aaaController.authenticate(Mockito.any(FederationUserToken.class));
+        this.aaaController.authenticate(Mockito.anyString(), Mockito.any(FederationUserToken.class));
     }
 
     //test case: Check if authorize method throws no exception when the operation is valid.
@@ -72,12 +73,13 @@ public class AaaControllerTest {
     public void testAuthorizeOnInstanceType() throws UnauthorizedRequestException {
         //set up
         Mockito.when(this.authorizationPluginMock.isAuthorized(
-                Mockito.any(),
-                Mockito.any(),
+                Mockito.any(FederationUserToken.class),
+                Mockito.any(Operation.class),
                 Mockito.any(ResourceType.class))).thenReturn(true);
 
         //exercise/verify
-        this.aaaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(ResourceType.class));
+        this.aaaController.authorize(Mockito.any(FederationUserToken.class),
+                Mockito.any(Operation.class), Mockito.any(ResourceType.class));
     }
 
     //test case: Check if authorize method throws no exception when the operation is valid.
@@ -85,38 +87,13 @@ public class AaaControllerTest {
     public void testAuthorize() throws FogbowRasException {
         //set up
         Mockito.when(this.authorizationPluginMock.isAuthorized(
-                Mockito.any(),
-                Mockito.any(),
+                Mockito.any(FederationUserToken.class),
+                Mockito.any(Operation.class),
                 Mockito.any(ResourceType.class))).thenReturn(true);
 
         //exercise/verify
-        this.aaaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(ResourceType.class));
-    }
-
-    //test case: Check if authorize method throws Unauthenticated exception when the federation token is invalid. 
-    @Test(expected = UnauthorizedRequestException.class)
-    public void testAuthorizeWhenUnauthorizedRequestExceptionOnInstanceType() throws UnauthorizedRequestException {
-        //set up
-        Mockito.when(this.authorizationPluginMock.isAuthorized(
-                Mockito.any(),
-                Mockito.any(),
-                Mockito.any(ResourceType.class))).thenReturn(false);
-
-        //exercise/verify
-        this.aaaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(ResourceType.class));
-    }
-
-    //test case: Check if authorize method throws Unauthenticated exception when the federation token is invalid. 
-    @Test(expected = UnauthorizedRequestException.class)
-    public void testAuthorizeWhenUnauthorizedRequestException() throws FogbowRasException {
-        //set up
-        Mockito.when(this.authorizationPluginMock.isAuthorized(
-                Mockito.any(),
-                Mockito.any(),
-                Mockito.any(ResourceType.class))).thenReturn(false);
-
-        //exercise/verify
-        this.aaaController.authorize(Mockito.any(), Mockito.any(), Mockito.any(ResourceType.class));
+        this.aaaController.authorize(Mockito.any(FederationUserToken.class),
+                Mockito.any(Operation.class), Mockito.any(ResourceType.class));
     }
 
     //test case: Check if getLocalToken() is returning a valid token.
