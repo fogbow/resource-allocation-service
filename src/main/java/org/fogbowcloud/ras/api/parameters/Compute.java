@@ -4,7 +4,7 @@ import java.util.List;
 import org.fogbowcloud.ras.api.parameters.OrderApiParameter;
 import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 
-public class Compute implements OrderApiParameter<ComputeOrder> {
+public class Compute extends OrderApiParameter<ComputeOrder> {
 
     private String name;
     private int vCPU;

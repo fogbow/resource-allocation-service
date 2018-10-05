@@ -2,7 +2,7 @@ package org.fogbowcloud.ras.api.parameters;
 
 import org.fogbowcloud.ras.core.models.orders.VolumeOrder;
 
-public class Volume implements OrderApiParameter<VolumeOrder> {
+public class Volume extends OrderApiParameter<VolumeOrder> {
 
     private int volumeSize;
     private String name;

@@ -2,8 +2,14 @@ package org.fogbowcloud.ras.api.parameters;
 
 import org.fogbowcloud.ras.core.models.orders.Order;
 
-public interface OrderApiParameter<T extends Order> {
+public abstract class OrderApiParameter<T extends Order> {
 
-    T getOrder();
+    private String providingMember;
+
+    public String getProvidingMember() {
+        return providingMember;
+    }
+
+    public abstract T getOrder();
 
 }

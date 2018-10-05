@@ -3,7 +3,7 @@ package org.fogbowcloud.ras.api.parameters;
 import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 
-public class Network implements OrderApiParameter<NetworkOrder> {
+public class Network extends OrderApiParameter<NetworkOrder> {
 
     public static final String allocationAllowableValues = getAllocationAllowableValues();
 

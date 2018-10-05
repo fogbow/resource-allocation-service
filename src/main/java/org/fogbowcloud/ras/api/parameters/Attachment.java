@@ -2,7 +2,7 @@ package org.fogbowcloud.ras.api.parameters;
 
 import org.fogbowcloud.ras.core.models.orders.AttachmentOrder;
 
-public class Attachment implements OrderApiParameter<AttachmentOrder> {
+public class Attachment extends OrderApiParameter<AttachmentOrder> {
 
     private String computeId;
     private String volumeId;
