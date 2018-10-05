@@ -26,6 +26,10 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<OpenNebu
 	
 	private OpenNebulaClientFactory factory;
 	
+	public OpenNebulaComputeQuotaPlugin() {
+		this.factory = new OpenNebulaClientFactory();
+	}
+
 	@Override
 	public ComputeQuota getUserQuota(OpenNebulaToken localUserAttributes) throws FogbowRasException, UnexpectedException {
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());				
@@ -97,16 +101,22 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<OpenNebu
 	}
 
 	private int getBiggerValue(String userResource, String groupResource) {
-		return Math.max(Integer.parseInt(userResource), Integer.parseInt(groupResource));
+		int resourceValue = Math.max(Integer.parseInt(userResource), Integer.parseInt(groupResource));
+		return resourceValue;
 	}
 
-	private boolean isUserSmallerQuota(String maxUserResource, String maxGroupResource) {
-		return Integer.parseInt(maxUserResource) < Integer.parseInt(maxGroupResource) ? true : false;
+	private boolean isUserSmallerQuota(String userResource, String groupResource) {
+		int userResourceValue = Integer.parseInt(userResource);
+		int groupResourceValue = Integer.parseInt(groupResource);
+		if (userResourceValue < groupResourceValue) {
+			return true;
+		}
+		return false;
 	}
 
-	private boolean isUnlimitedOrDefaultQuota(String maxResource) {
-		int value = Integer.parseInt(maxResource);
-		return value == VALUE_DEFAULT_QUOTA_OPENNEBULA || value == VALUE_UNLIMITED_QUOTA_OPENNEBULA;
+	private boolean isUnlimitedOrDefaultQuota(String resource) {
+		int resourceValue = Integer.parseInt(resource);
+		return resourceValue == VALUE_DEFAULT_QUOTA_OPENNEBULA || resourceValue == VALUE_UNLIMITED_QUOTA_OPENNEBULA;
 	}
 
 	private boolean isValidNumber(String number) {
