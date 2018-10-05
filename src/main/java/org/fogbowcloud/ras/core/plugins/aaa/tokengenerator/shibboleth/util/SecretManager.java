@@ -2,9 +2,11 @@ package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.shibboleth.util;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
-import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.shibboleth.ShibbolethTokenGenerator;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.generic.GenericSignatureAuthenticationHolder;
 
 public class SecretManager {
 	
@@ -23,7 +25,7 @@ public class SecretManager {
 			return false;
 		}
 		
-		Long validity = getNow() + ShibbolethTokenGenerator.EXPIRATION_INTERVAL;
+		Long validity = getNow() + GenericSignatureAuthenticationHolder.EXPIRATION_INTERVAL;
 		this.secrets.put(secret, validity);
 		return true;
 	}
@@ -33,12 +35,13 @@ public class SecretManager {
 	}
 	
 	// check when exceed the map size
-	protected void cleanSecrets() {
+	protected synchronized void cleanSecrets() {
 		if (this.secrets.size() < MAXIMUM_MAP_SIZE) {
 			return;
 		}
 		
-		for (String key : this.secrets.keySet()) {
+		Set<String> keySet = new HashSet<String>(this.secrets.keySet());
+		for (String key : keySet) {
 			Date secretValidity = new Date(this.secrets.get(key));
 			Date now = new Date(getNow());
 			

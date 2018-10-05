@@ -4,10 +4,8 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
@@ -20,13 +18,13 @@ import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.ShibbolethTokenHolder;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.generic.GenericSignatureAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.shibboleth.util.SecretManager;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.RSAUtil;
 
 public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
-
 
 	private static final Logger LOGGER = Logger.getLogger(ShibbolethTokenGenerator.class);
 
@@ -44,20 +42,23 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 	protected static final String TOKEN_SIGNATURE_CREDENTIAL = "signature";
 	protected static final String TOKEN_CREDENTIAL = "token";
 	
-    public static final long EXPIRATION_INTERVAL = TimeUnit.DAYS.toMillis(1); // One day
 	public static final String SHIBBOLETH_SEPARETOR = "!#!";
 	
-	private RSAPrivateKey rasPrivateKey;
-	private RSAPublicKey shibPublicKey;
-	private Properties properties;
+	private GenericSignatureAuthenticationHolder genericSignatureAuthenticationHolder;
 	private SecretManager secretManager;
+	
+	private Properties properties;
 	private String tokenProviderId;
+	private RSAPrivateKey rasPrivateKey;
+	private RSAPublicKey shibAppPublicKey;
 	
 	public ShibbolethTokenGenerator() {
 		this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 		
         this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
                 DefaultConfigurationConstants.SHIBBOLETH_CONF_FILE_NAME);
+        
+        this.genericSignatureAuthenticationHolder = GenericSignatureAuthenticationHolder.getInstance();
         
         try {
             this.rasPrivateKey = RSAUtil.getPrivateKey();
@@ -67,7 +68,7 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
         }   
         
         try {
-            this.shibPublicKey = getPublicKey();
+            this.shibAppPublicKey = getShibbolethApplicationPublicKey();
         } catch (IOException | GeneralSecurityException e) {
             throw new FatalErrorException(
             		String.format(Messages.Fatal.ERROR_READING_PUBLIC_KEY_FILE, e.getMessage()));
@@ -88,21 +89,21 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 		
 		String tokenShibApp = decryptTokenShib(tokenShibAppEncrypted);
 		
-		verifyShibTokenAuthenticity(tokenShibAppSignature, tokenShibApp);
+		verifyShibAppTokenAuthenticity(tokenShibAppSignature, tokenShibApp);
 		
 		String[] tokenShibAppParameters = tokenShibApp.split(SHIBBOLETH_SEPARETOR);		
 		checkTokenFormat(tokenShibAppParameters);
 		
-		verifySecretShibToken(tokenShibAppParameters);
+		verifySecretShibAppToken(tokenShibAppParameters);
 		
 		String rawToken = createRawToken(tokenShibAppParameters);
-		String rawTokenSignature = createSignature(rawToken);
+		String rawTokenSignature = this.genericSignatureAuthenticationHolder.createSignature(rawToken);
 		String tokenValue = ShibbolethTokenHolder.generateTokenValue(rawToken, rawTokenSignature);
 		
 		return tokenValue;
 	}
 
-	protected void verifySecretShibToken(String[] tokenShibParameters) throws UnauthenticatedUserException {
+	protected void verifySecretShibAppToken(String[] tokenShibParameters) throws UnauthenticatedUserException {
 		String secret = tokenShibParameters[SECREC_ATTR_SHIB_INDEX];
 		boolean isValid = this.secretManager.verify(secret);
 		if (!isValid) {
@@ -121,11 +122,12 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 	}
 
 	protected String createRawToken(String[] tokenShibParameters) {
+		LOGGER.debug("Creating raw token");
 		String assertionUrl = tokenShibParameters[ASSERTION_URL_ATTR_SHIB_INDEX];
 		String identityProvider = this.tokenProviderId;
 		String eduPrincipalName = tokenShibParameters[EDU_PRINCIPAL_NAME_ATTR_SHIB_INDEX];
 		String commonName = tokenShibParameters[COMMON_NAME_ATTR_SHIB_INDEX];
-		// attributes in json format
+		// attributes in json format, like this "{\"key\": \"value\"}"
 		String samlAttributes = tokenShibParameters[SAML_ATTRIBUTES_ATTR_SHIB_INDEX];
 		
         String expirationTime = generateExpirationTime();
@@ -133,16 +135,14 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
         return ShibbolethTokenHolder.createRawToken(assertionUrl, identityProvider, eduPrincipalName,
 			commonName, samlAttributes, expirationTime);
 	}
-
+	
 	protected String generateExpirationTime() {
-		Date expirationDate = new Date(new Date().getTime() + EXPIRATION_INTERVAL);
-        String expirationTime = Long.toString(expirationDate.getTime());
-		return expirationTime;
+		return this.genericSignatureAuthenticationHolder.generateExpirationTime();
 	}
 
-	private void verifyShibTokenAuthenticity(String tokenSignature, String tokenShibApp) throws UnauthenticatedUserException {
+	protected void verifyShibAppTokenAuthenticity(String tokenSignature, String tokenShibApp) throws UnauthenticatedUserException {
 		try {
-			RSAUtil.verify(this.shibPublicKey, tokenShibApp, tokenSignature);
+			RSAUtil.verify(this.shibAppPublicKey, tokenShibApp, tokenSignature);
 		} catch (Exception e) {
         	String errorMsg = String.format(Messages.Exception.AUTHENTICATION_ERROR);
         	LOGGER.error(errorMsg, e);
@@ -162,22 +162,12 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 		return tokenShibApp;
 	}
 	
-    protected RSAPublicKey getPublicKey() throws IOException, GeneralSecurityException {
+    protected RSAPublicKey getShibbolethApplicationPublicKey() throws IOException, GeneralSecurityException {
         String filename = this.properties.getProperty(SHIB_PUBLIC_FILE_PATH_PROPERTIE);
-        LOGGER.debug("Public key path: " + filename);
+        LOGGER.debug("Shibboleth application public key path: " + filename);
         String publicKeyPEM = RSAUtil.getKey(filename);
-        LOGGER.debug("Public key: " + publicKeyPEM);
+        LOGGER.debug("Shibboleth application Public key: " + publicKeyPEM);
         return RSAUtil.getPublicKeyFromString(publicKeyPEM);
     }
-    
-    protected String createSignature(String message) throws UnauthenticatedUserException {
-    	try {
-    		return RSAUtil.sign(this.rasPrivateKey, message);
-		} catch (Exception e) {
-	    	String errorMsg = String.format(Messages.Exception.AUTHENTICATION_ERROR);
-	    	LOGGER.error(errorMsg, e);
-	        throw new UnauthenticatedUserException(errorMsg, e);
-		}
-    }      
 
 }

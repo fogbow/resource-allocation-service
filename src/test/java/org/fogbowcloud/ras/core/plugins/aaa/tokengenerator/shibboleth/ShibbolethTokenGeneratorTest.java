@@ -53,15 +53,15 @@ public class ShibbolethTokenGeneratorTest {
 		String eduPrincipalNameExpected = "fulano@ufcg.br";
 		String commonNameExpected = "fulano";
 		String samlAttributesStrExpected = createSamlAttributes();
-		String shibToken = createShibToken(secret, assertionUrlExpected, eduPrincipalNameExpected, commonNameExpected, samlAttributesStrExpected);
-		String shibTokenSignature = sign(shibToken);
+		String shibAppToken = createShibToken(secret, assertionUrlExpected, eduPrincipalNameExpected, commonNameExpected, samlAttributesStrExpected);
+		String shibAppTokenSignature = sign(shibAppToken);
 		
 		String expirationTokenExpected = "2136557867856";
 		Mockito.doReturn(expirationTokenExpected).when(this.shibbolethTokenGenerator).generateExpirationTime();
 		
 		Map<String, String> userCredentials = new HashMap<String, String>();
-		userCredentials.put(ShibbolethTokenGenerator.TOKEN_CREDENTIAL, shibToken);
-		userCredentials.put(ShibbolethTokenGenerator.TOKEN_SIGNATURE_CREDENTIAL, shibTokenSignature);
+		userCredentials.put(ShibbolethTokenGenerator.TOKEN_CREDENTIAL, shibAppToken);
+		userCredentials.put(ShibbolethTokenGenerator.TOKEN_SIGNATURE_CREDENTIAL, shibAppTokenSignature);
 		
 		// exercise
 		String tokenValue = this.shibbolethTokenGenerator.createTokenValue(userCredentials);
@@ -103,7 +103,7 @@ public class ShibbolethTokenGeneratorTest {
 		tokenShibParameters[ShibbolethTokenGenerator.SECREC_ATTR_SHIB_INDEX] = "secretOne";
 				
 		// exercise
-		this.shibbolethTokenGenerator.verifySecretShibToken(tokenShibParameters);
+		this.shibbolethTokenGenerator.verifySecretShibAppToken(tokenShibParameters);
 	}
 	
 	// test case: secret invalid 
@@ -114,12 +114,10 @@ public class ShibbolethTokenGeneratorTest {
 		tokenShibParameters[ShibbolethTokenGenerator.SECREC_ATTR_SHIB_INDEX] = "secretOne";
 			
 		// exercise
-		this.shibbolethTokenGenerator.verifySecretShibToken(tokenShibParameters);
+		this.shibbolethTokenGenerator.verifySecretShibAppToken(tokenShibParameters);
 		
 		try {
-			
-			this.shibbolethTokenGenerator.verifySecretShibToken(tokenShibParameters);
-			
+			this.shibbolethTokenGenerator.verifySecretShibAppToken(tokenShibParameters);
 			// verify
 			Assert.fail();
 		} catch (UnauthenticatedUserException e) {}
@@ -150,6 +148,27 @@ public class ShibbolethTokenGeneratorTest {
 		
 		// verify
 		Assert.assertEquals(wrongShibTokenRepresentation, shibTokenDecrypted);
+	}
+	
+	// test case: Shibboleth App token is not in a correct format
+	@Test(expected=UnauthenticatedUserException.class)
+	public void testCheckTokenFormat() throws UnauthenticatedUserException {
+		// set up
+		String[] tokenShibParameters = new String[1];
+		
+		// exercise e verify
+		this.shibbolethTokenGenerator.checkTokenFormat(tokenShibParameters);
+	}
+
+	// test case: Signature of Shibboleth App is worng
+	@Test(expected=UnauthenticatedUserException.class)
+	public void testVerifyShibAppTokenAuthenticity() throws UnauthenticatedUserException {
+		// set up
+		String tokenShibApp = "anything";
+		String tokenSignature = "anything";
+		
+		// exercise e verify
+		this.shibbolethTokenGenerator.verifyShibAppTokenAuthenticity(tokenSignature, tokenShibApp);
 	}
 	
 	private String createRawRasToken(String assertionUrl, String identityProvider, 

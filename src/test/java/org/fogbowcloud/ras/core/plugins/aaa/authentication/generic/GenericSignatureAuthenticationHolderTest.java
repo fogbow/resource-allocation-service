@@ -15,18 +15,18 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class GenericSignatureAuthenticationPluginTest {
+public class GenericSignatureAuthenticationHolderTest {
 
 	private final String PRIVATE_KEY_SUFIX_PATH = "private/private.key";
 	private RSAPrivateKey privateKey;
 	
-	private GenericSignatureAuthenticationPlugin genericSignatureAuthenticationPlugin;
+	private GenericSignatureAuthenticationHolder genericSignatureAuthenticationPlugin;
 
 	@Before
 	public void setUp() throws IOException, GeneralSecurityException {
 		String privateKeyPath = getResourceFilePath(PRIVATE_KEY_SUFIX_PATH);
 		this.privateKey = RSAUtil.getPrivateKey(privateKeyPath);
-		this.genericSignatureAuthenticationPlugin = Mockito.spy(new GenericSignatureAuthenticationPlugin());
+		this.genericSignatureAuthenticationPlugin = Mockito.spy(new GenericSignatureAuthenticationHolder());
 	}
 	
 	// case: success case
@@ -46,7 +46,7 @@ public class GenericSignatureAuthenticationPluginTest {
 		
 		//verify 
 		Mockito.verify(this.genericSignatureAuthenticationPlugin, Mockito.times(1))
-				.verifySign(Mockito.eq(rawToken), Mockito.eq(rawTokenSignature));
+				.verifySignature(Mockito.eq(rawToken), Mockito.eq(rawTokenSignature));
 	}
 	
 	// case: The token value is expired
@@ -69,7 +69,7 @@ public class GenericSignatureAuthenticationPluginTest {
 		
 		//verify 
 		Mockito.verify(this.genericSignatureAuthenticationPlugin, Mockito.never())
-				.verifySign(Mockito.eq(rawToken), Mockito.eq(rawTokenSignature));
+				.verifySignature(Mockito.eq(rawToken), Mockito.eq(rawTokenSignature));
 	}	
 	
 	// case: The token value is expired
@@ -92,8 +92,23 @@ public class GenericSignatureAuthenticationPluginTest {
 		
 		//verify 
 		Mockito.verify(this.genericSignatureAuthenticationPlugin, Mockito.timeout(1))
-				.verifySign(Mockito.eq(rawToken), Mockito.eq(rawTokenSignature));
+				.verifySignature(Mockito.eq(rawToken), Mockito.eq(rawTokenSignature));
 	}	
+	
+	@Test
+	public void testGenerateExpirationTime() {
+		// set up		
+		long now = System.currentTimeMillis();
+		String expirationTimeExpected = String.valueOf(now + GenericSignatureAuthenticationHolder.EXPIRATION_INTERVAL);
+		
+		Mockito.when(this.genericSignatureAuthenticationPlugin.getNow()).thenReturn(now);
+		
+		// exercise		
+		String expirationTime = this.genericSignatureAuthenticationPlugin.generateExpirationTime();
+		
+		// verify
+		Assert.assertEquals(expirationTimeExpected, expirationTime);
+	}
 	
 	private String sign(String message) throws IOException, GeneralSecurityException {
 		return RSAUtil.sign(this.privateKey, message);

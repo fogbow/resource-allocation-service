@@ -8,7 +8,7 @@ import org.fogbowcloud.ras.core.exceptions.UnauthenticTokenException;
 import org.fogbowcloud.ras.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.ras.core.models.tokens.GenericSignatureToken;
 import org.fogbowcloud.ras.core.models.tokens.ShibbolethToken;
-import org.fogbowcloud.ras.core.plugins.aaa.authentication.generic.GenericSignatureAuthenticationPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.generic.GenericSignatureAuthenticationHolder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,13 +18,13 @@ public class ShibbolethAuthenticationPluginTest {
 
 	private ShibbolethAuthenticationPlugin shibbolethAuthenticationPlugin;
 	private String tokenProviderId;
-	private GenericSignatureAuthenticationPlugin genericSignatureAuthenticationPlugin;
+	private GenericSignatureAuthenticationHolder genericSignatureAuthenticationPlugin;
 
 	@Before
 	public void setUp() {
 		this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 		this.shibbolethAuthenticationPlugin = new ShibbolethAuthenticationPlugin();
-		this.genericSignatureAuthenticationPlugin = Mockito.mock(GenericSignatureAuthenticationPlugin.class);
+		this.genericSignatureAuthenticationPlugin = Mockito.mock(GenericSignatureAuthenticationHolder.class);
 		this.shibbolethAuthenticationPlugin.setGenericSignatureAuthenticationPlugin(genericSignatureAuthenticationPlugin);
 	}
 	

@@ -5,16 +5,16 @@ import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.ras.core.models.tokens.ShibbolethToken;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
-import org.fogbowcloud.ras.core.plugins.aaa.authentication.generic.GenericSignatureAuthenticationPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.generic.GenericSignatureAuthenticationHolder;
 
 public class ShibbolethAuthenticationPlugin implements AuthenticationPlugin<ShibbolethToken> {
 
 	private String localProviderId;
-	private GenericSignatureAuthenticationPlugin genericSignatureAuthenticationPlugin;
+	private GenericSignatureAuthenticationHolder genericSignatureAuthenticationPlugin;
 
 	public ShibbolethAuthenticationPlugin() {
 		this.localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);		
-		this.genericSignatureAuthenticationPlugin = new GenericSignatureAuthenticationPlugin(); 
+		this.genericSignatureAuthenticationPlugin = new GenericSignatureAuthenticationHolder(); 
 	}
 	
 	@Override
@@ -36,7 +36,7 @@ public class ShibbolethAuthenticationPlugin implements AuthenticationPlugin<Shib
 	}
 	
 	protected void setGenericSignatureAuthenticationPlugin(
-			GenericSignatureAuthenticationPlugin genericSignatureAuthenticationPlugin) {
+			GenericSignatureAuthenticationHolder genericSignatureAuthenticationPlugin) {
 		this.genericSignatureAuthenticationPlugin = genericSignatureAuthenticationPlugin;
 	}
 
