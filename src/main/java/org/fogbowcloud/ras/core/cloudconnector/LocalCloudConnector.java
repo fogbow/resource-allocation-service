@@ -260,10 +260,11 @@ public class LocalCloudConnector implements CloudConnector {
                 break;
             case ATTACHMENT:
                 instance = this.attachmentPlugin.getInstance(instanceId, token);
-                instance = this.getGetFullAttachmentInstance(((AttachmentInstance) instance));
+                instance = this.getFullAttachmentInstance(((AttachmentOrder) order), ((AttachmentInstance) instance));
                 break;
             case PUBLIC_IP:
                 instance = this.publicIpPlugin.getInstance(instanceId, token);
+                instance = this.getFullPublicIpInstance(((PublicIpOrder) order), ((PublicIpInstance) instance));
                 break;
             default:
                 throw new UnexpectedException(String.format(Messages.Exception.UNSUPPORTED_REQUEST_TYPE, order.getType()));
@@ -294,17 +295,34 @@ public class LocalCloudConnector implements CloudConnector {
         return fullInstance;
     }
 
-    protected AttachmentInstance getGetFullAttachmentInstance(AttachmentInstance instance) {
+    protected AttachmentInstance getFullAttachmentInstance(AttachmentOrder order, AttachmentInstance instance) {
         AttachmentInstance fullInstance = instance;
-        String savedSource = fullInstance.getServerId();
-        String savedTarget = fullInstance.getVolumeId();
+        String savedSource = order.getSource();
+        String savedTarget = order.getTarget();
         ComputeOrder computeOrder = (ComputeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedSource);
         VolumeOrder volumeOrder = (VolumeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedTarget);
 
-        fullInstance.setComputeName(computeOrder.getName());
+        fullInstance.setServerName(computeOrder.getName());
+        fullInstance.setServerId(computeOrder.getId());
         fullInstance.setVolumeName(volumeOrder.getName());
+        fullInstance.setVolumeId(volumeOrder.getId());
 
         return fullInstance;
+    }
+
+    protected PublicIpInstance getFullPublicIpInstance(PublicIpOrder order, PublicIpInstance instance) {
+        PublicIpInstance publicIpInstance = instance;
+        String computeOrderId = order.getComputeOrderId();
+
+        ComputeOrder retrievedComputeOrder = (ComputeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap()
+                .get(computeOrderId);
+
+        String computeInstanceName = retrievedComputeOrder.getName();
+        String computeInstanceId = retrievedComputeOrder.getId();
+        publicIpInstance.setComputeName(computeInstanceName);
+        publicIpInstance.setComputeId(computeInstanceId);
+
+        return publicIpInstance;
     }
 
     protected Map<String, String> getNetworkOrderIdsFromComputeOrder(ComputeOrder order) {
