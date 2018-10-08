@@ -42,10 +42,11 @@ public class HttpRequestClientUtil {
         request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
         request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, token.getTokenValue());
 
-        String response;
+        String response = null;
         HttpResponse httpResponse = null;
 
         try {
+            LOGGER.debug(String.format("making GET request on <%s> with token <%s>", endpoint, token));
             httpResponse = this.client.execute(request);
             if (httpResponse.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
                 String message = httpResponse.getStatusLine().getReasonPhrase();
@@ -53,12 +54,14 @@ public class HttpRequestClientUtil {
             }
             response = EntityUtils.toString(httpResponse.getEntity(), StandardCharsets.UTF_8);
         } catch (HttpResponseException e) {
+            LOGGER.debug(String.format("error was <%s>", e.toString()));
             throw e;
         } catch (IOException e) {
             throw new UnavailableProviderException(e.getMessage(), e);
         } finally {
             try {
                 EntityUtils.consume(httpResponse.getEntity());
+                LOGGER.debug(String.format("response was: <%s>", response));
             } catch (Throwable t) {
                 LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONSUMING_RESPONSE, t));
             }
@@ -78,6 +81,8 @@ public class HttpRequestClientUtil {
         HttpResponse response = null;
 
         try {
+            LOGGER.debug(String.format("making GET request on <%s> with token <%s>", endpoint, token));
+            LOGGER.debug(String.format("the body of the request is <%s>", body));
             response = this.client.execute(request);
             if (response.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
                 String message = response.getStatusLine().getReasonPhrase();
@@ -85,12 +90,14 @@ public class HttpRequestClientUtil {
             }
             responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
         } catch (HttpResponseException e) {
+            LOGGER.debug(String.format("error was: <%s>", e.toString()));
             throw e;
         } catch (IOException e) {
             throw new UnavailableProviderException(e.getMessage(), e);
         } finally {
             try {
                 EntityUtils.consume(response.getEntity());
+                LOGGER.debug(String.format("response was: <%s>", response));
             } catch (Throwable t) {
                 LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONSUMING_RESPONSE, t));
             }
@@ -106,18 +113,21 @@ public class HttpRequestClientUtil {
         HttpResponse response = null;
 
         try {
+            LOGGER.debug(String.format("making DELETE request on <%s> with token <%s>", endpoint, token));
             response = this.client.execute(request);
             if (response.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
                 String message = response.getStatusLine().getReasonPhrase();
                 throw new HttpResponseException(response.getStatusLine().getStatusCode(), message);
             }
         } catch (HttpResponseException e) {
+            LOGGER.debug(String.format("error was: <%s>", e.toString()));
             throw e;
         } catch (IOException e) {
             throw new UnavailableProviderException(e.getMessage(), e);
         } finally {
             try {
                 EntityUtils.consume(response.getEntity());
+                LOGGER.debug(String.format("response was: <%s>", response));
             } catch (Throwable t) {
                 LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONSUMING_RESPONSE, t));
             }
