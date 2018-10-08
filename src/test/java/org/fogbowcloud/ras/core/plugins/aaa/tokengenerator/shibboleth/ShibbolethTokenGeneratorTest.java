@@ -12,9 +12,7 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
-import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
-import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.util.RSAUtil;
 import org.json.JSONObject;
 import org.junit.Assert;
@@ -46,7 +44,7 @@ public class ShibbolethTokenGeneratorTest {
 
 	// test case: success case
 	@Test
-	public void testCreateTokenValue() throws IOException, GeneralSecurityException, UnexpectedException, FogbowRasException {
+	public void testCreateTokenValue() throws Exception {
 		// setup		
 		String secret = "secret";
 		String assertionUrlExpected = "http://localhost";
@@ -54,14 +52,19 @@ public class ShibbolethTokenGeneratorTest {
 		String commonNameExpected = "fulano";
 		String samlAttributesStrExpected = createSamlAttributes();
 		String shibAppToken = createShibToken(secret, assertionUrlExpected, eduPrincipalNameExpected, commonNameExpected, samlAttributesStrExpected);
-		String shibAppTokenSignature = sign(shibAppToken);
 		
 		String expirationTokenExpected = "2136557867856";
 		Mockito.doReturn(expirationTokenExpected).when(this.shibbolethTokenGenerator).generateExpirationTime();
+		String keyShibToken = createKeyAES();
+		String keyShibTokenSigned = sign(keyShibToken);
+		String keyShibEncrypted = encryptRSA(keyShibToken);
+		
+		String shibAppTokenEncryptedAES = encryptAES(keyShibToken, shibAppToken);
 		
 		Map<String, String> userCredentials = new HashMap<String, String>();
-		userCredentials.put(ShibbolethTokenGenerator.TOKEN_CREDENTIAL, shibAppToken);
-		userCredentials.put(ShibbolethTokenGenerator.TOKEN_SIGNATURE_CREDENTIAL, shibAppTokenSignature);
+		userCredentials.put(ShibbolethTokenGenerator.TOKEN_CREDENTIAL, shibAppTokenEncryptedAES);
+		userCredentials.put(ShibbolethTokenGenerator.KEY_CREDENTIAL, keyShibEncrypted);
+		userCredentials.put(ShibbolethTokenGenerator.KEY_SIGNATURE_CREDENTIAL, keyShibTokenSigned);
 		
 		// exercise
 		String tokenValue = this.shibbolethTokenGenerator.createTokenValue(userCredentials);
@@ -128,10 +131,10 @@ public class ShibbolethTokenGeneratorTest {
 	public void testDecryptTokenShib() throws UnauthenticatedUserException, IOException, GeneralSecurityException {
 		// set up
 		String shibTokenRepresentation = "any_message";
-		String shibTokenEncrypted = encrypt(shibTokenRepresentation);
+		String shibTokenEncrypted = encryptRSA(shibTokenRepresentation);
 		
 		// exercise
-		String shibTokenDecrypted = this.shibbolethTokenGenerator.decryptTokenShib(shibTokenEncrypted);
+		String shibTokenDecrypted = this.shibbolethTokenGenerator.decryptKeyShib(shibTokenEncrypted);
 		
 		// verify
 		Assert.assertEquals(shibTokenRepresentation, shibTokenDecrypted);
@@ -144,7 +147,7 @@ public class ShibbolethTokenGeneratorTest {
 		String wrongShibTokenRepresentation = "any_wrong_message";
 		
 		// exercise
-		String shibTokenDecrypted = this.shibbolethTokenGenerator.decryptTokenShib(wrongShibTokenRepresentation);
+		String shibTokenDecrypted = this.shibbolethTokenGenerator.decryptKeyShib(wrongShibTokenRepresentation);
 		
 		// verify
 		Assert.assertEquals(wrongShibTokenRepresentation, shibTokenDecrypted);
@@ -196,18 +199,25 @@ public class ShibbolethTokenGeneratorTest {
 				commonName,
 				samlAttributesStr
 			};
-		String rawShibToken = StringUtils.join(parameters, ShibbolethTokenGenerator.SHIBBOLETH_SEPARETOR);
 		
-		return RSAUtil.encrypt(rawShibToken, this.publicKey);
+		return StringUtils.join(parameters, ShibbolethTokenGenerator.SHIBBOLETH_SEPARETOR);
 	}
 	
 	private String sign(String message) throws IOException, GeneralSecurityException {
 		return RSAUtil.sign(this.privateKey, message);
 	}
 	
-	private String encrypt(String message) throws IOException, GeneralSecurityException {
+	private String encryptRSA(String message) throws IOException, GeneralSecurityException {
 		return RSAUtil.encrypt(message, this.publicKey);
 	}	
+	
+	private String encryptAES(String key, String message) throws Exception {
+		return RSAUtil.encryptAES(key.getBytes(RSAUtil.UTF_8), message);
+	}	
+	
+	private String createKeyAES() throws Exception {
+		return RSAUtil.generateAESKey();
+	}		
 	
 	private boolean verify(String message, String signature) throws IOException, GeneralSecurityException {
 		return RSAUtil.verify(this.publicKey, message, signature);

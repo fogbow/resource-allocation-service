@@ -22,6 +22,8 @@ import java.util.Random;
 
 public class RSAUtil {
     private static final Logger LOGGER = Logger.getLogger(RSAUtil.class);
+    
+    public static final String UTF_8 = "UTF-8";
 
     public static String getKey(String filename) throws IOException {
         // Read key from file

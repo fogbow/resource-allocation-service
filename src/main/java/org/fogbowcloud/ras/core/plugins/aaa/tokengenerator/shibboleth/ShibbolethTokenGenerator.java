@@ -39,8 +39,9 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 	// properties
 	private static final String SHIB_PUBLIC_FILE_PATH_PROPERTIE = "shib_public_key_file_path";
 	// credentails
-	protected static final String TOKEN_SIGNATURE_CREDENTIAL = "signature";
 	protected static final String TOKEN_CREDENTIAL = "token";
+	protected static final String KEY_SIGNATURE_CREDENTIAL = "key";
+	protected static final String KEY_CREDENTIAL = "keySignature";
 	
 	public static final String SHIBBOLETH_SEPARETOR = "!#!";
 	
@@ -85,13 +86,14 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 					userCredentials.toString()));
 		
 		String tokenShibAppEncrypted = userCredentials.get(TOKEN_CREDENTIAL);
-		String tokenShibAppSignature = userCredentials.get(TOKEN_SIGNATURE_CREDENTIAL);
+		String keyShibAppEncrypted = userCredentials.get(KEY_CREDENTIAL);
+		String keySignatureShibApp = userCredentials.get(KEY_SIGNATURE_CREDENTIAL);
 		
-		String tokenShibApp = decryptTokenShib(tokenShibAppEncrypted);
+		String keyShibApp = decryptKeyShib(keyShibAppEncrypted);
+		String tokenShib = decryptTokenShib(keyShibApp, tokenShibAppEncrypted);
+		verifyShibAppTokenAuthenticity(keySignatureShibApp, keyShibApp);
 		
-		verifyShibAppTokenAuthenticity(tokenShibAppSignature, tokenShibApp);
-		
-		String[] tokenShibAppParameters = tokenShibApp.split(SHIBBOLETH_SEPARETOR);		
+		String[] tokenShibAppParameters = tokenShib.split(SHIBBOLETH_SEPARETOR);		
 		checkTokenFormat(tokenShibAppParameters);
 		
 		verifySecretShibAppToken(tokenShibAppParameters);
@@ -150,16 +152,28 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 		}
 	}
 
-	protected String decryptTokenShib(String tokenShibAppEncrypted) throws UnauthenticatedUserException {
+	protected String decryptTokenShib(String keyShib, String rasToken) throws UnauthenticatedUserException {
 		String tokenShibApp = null;
 		try {
-			tokenShibApp = RSAUtil.decrypt(tokenShibAppEncrypted, this.rasPrivateKey);
+			tokenShibApp = RSAUtil.decryptAES(keyShib.getBytes(RSAUtil.UTF_8), rasToken);
 		} catch (Exception e) {
         	String errorMsg = String.format(Messages.Exception.AUTHENTICATION_ERROR);
         	LOGGER.error(errorMsg, e);
             throw new UnauthenticatedUserException(errorMsg, e);
 		}
 		return tokenShibApp;
+	}
+	
+	protected String decryptKeyShib(String keyShibAppEncrypted) throws UnauthenticatedUserException {
+		String keyShibApp = null;
+		try {
+			keyShibApp = RSAUtil.decrypt(keyShibAppEncrypted, this.rasPrivateKey);
+		} catch (Exception e) {
+        	String errorMsg = String.format(Messages.Exception.AUTHENTICATION_ERROR);
+        	LOGGER.error(errorMsg, e);
+            throw new UnauthenticatedUserException(errorMsg, e);
+		}
+		return keyShibApp;
 	}
 	
     protected RSAPublicKey getShibbolethApplicationPublicKey() throws IOException, GeneralSecurityException {
