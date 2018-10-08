@@ -31,8 +31,15 @@ public class RemoteCloudConnector implements CloudConnector {
 
     @Override
     public void deleteInstance(Order order) throws Exception {
-        RemoteDeleteOrderRequest remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(order);
-        remoteDeleteOrderRequest.send();
+        try {
+            LOGGER.debug("Going to delete order <" + order.getId() + ">");
+            RemoteDeleteOrderRequest remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(order);
+            LOGGER.debug("Sending request");
+            remoteDeleteOrderRequest.send();
+        } catch (Exception e) {
+            LOGGER.error(e.toString());
+            throw e;
+        }
     }
 
     @Override
