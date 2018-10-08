@@ -111,6 +111,7 @@ public class Messages {
         public static final String ERROR_WHILE_CREATING_CLIENT = "Error while creating client.";
         public static final String ERROR_WHILE_CREATING_NETWORK = "Error while creating a network from template: %s.";
         public static final String ERROR_WHILE_CREATING_IMAGE = "Error while creating a image from template: %s.";
+        public static final String ERROR_WHILE_CREATING_ROUTER = "Error while creating a router from template: %s.";
         public static final String ERROR_WHILE_CONSUMING_RESPONSE = "Error while consuming response %s.";
         public static final String ERROR_WHILE_CONVERTING_INSTANCE_ID = "Error while converting instanceid %s to integer.";
         public static final String ERROR_WHILE_INSTANTIATING_FROM_TEMPLATE = "Error while instatiating an instance from template: %s.";
