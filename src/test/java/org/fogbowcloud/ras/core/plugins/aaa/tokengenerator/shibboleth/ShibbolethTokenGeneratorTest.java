@@ -46,7 +46,7 @@ public class ShibbolethTokenGeneratorTest {
 	@Test
 	public void testCreateTokenValue() throws Exception {
 		// setup		
-		String secret = "secret";
+		String secret = String.valueOf(System.currentTimeMillis());
 		String assertionUrlExpected = "http://localhost";
 		String eduPrincipalNameExpected = "fulano@ufcg.br";
 		String commonNameExpected = "fulano";
@@ -103,7 +103,8 @@ public class ShibbolethTokenGeneratorTest {
 	public void testVerifySecretShibToken() throws UnauthenticatedUserException {
 		// set up		
 		String[] tokenShibParameters = new String[1];
-		tokenShibParameters[ShibbolethTokenGenerator.SECREC_ATTR_SHIB_INDEX] = "secretOne";
+		String secret = String.valueOf(System.currentTimeMillis());
+		tokenShibParameters[ShibbolethTokenGenerator.SECREC_ATTR_SHIB_INDEX] = secret;
 				
 		// exercise
 		this.shibbolethTokenGenerator.verifySecretShibAppToken(tokenShibParameters);
@@ -114,7 +115,8 @@ public class ShibbolethTokenGeneratorTest {
 	public void testVerifySecretShibTokenSecretInvalid() throws UnauthenticatedUserException {
 		// set up 
 		String[] tokenShibParameters = new String[1];
-		tokenShibParameters[ShibbolethTokenGenerator.SECREC_ATTR_SHIB_INDEX] = "secretOne";
+		String secret = String.valueOf(System.currentTimeMillis());
+		tokenShibParameters[ShibbolethTokenGenerator.SECREC_ATTR_SHIB_INDEX] = secret;
 			
 		// exercise
 		this.shibbolethTokenGenerator.verifySecretShibAppToken(tokenShibParameters);

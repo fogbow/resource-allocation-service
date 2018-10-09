@@ -12,19 +12,25 @@ import org.mockito.Mockito;
 
 public class SecretManagerTest {
 
+	private static final int GRACE_TIME = 1000;
 	private static final long EXPIRATION_INTERVAL = GenericSignatureAuthenticationHolder.EXPIRATION_INTERVAL;
 	private SecretManager secretManager;
+	private long now;
 	
 	@Before
 	public void setUp() {
 		this.secretManager = Mockito.spy(new SecretManager());
+		
+		this.now = System.currentTimeMillis();
+		Mockito.doReturn(this.now).when(this.secretManager).getNow();
 	}
 	
 	// test case: Success case
 	@Test
 	public void testVerify() {
 		// set up
-		String secret = "any_secret";
+		String timeAfterNowRasStartingTime = String.valueOf(this.now + GRACE_TIME);
+		String secret = timeAfterNowRasStartingTime;
 		
 		// exercise		
 		boolean isValid = this.secretManager.verify(secret);
@@ -33,17 +39,47 @@ public class SecretManagerTest {
 		Assert.assertTrue(isValid);
 	}
 	
+	// test case: The secret is not valid because this one was create before the RAS
+	@Test
+	public void testVerifySecretCreate() {
+		// set up
+		String timeBeforeNowRasStartingTime = String.valueOf(this.now - GRACE_TIME);
+		String secret = timeBeforeNowRasStartingTime;
+		
+		// exercise		
+		boolean isValid = this.secretManager.verify(secret);
+		
+		// verify
+		Assert.assertFalse(isValid);
+		Mockito.verify(this.secretManager, Mockito.times(1)).isValidSecret(Mockito.eq(secret));
+	}
+	
+	// test case: The secret is not valid because the your format is invalid
+	@Test
+	public void testVerifySecretInvalidFormat() {
+		// set up
+		String secret = "invalid format";
+		
+		// exercise		
+		boolean isValid = this.secretManager.verify(secret);
+		
+		// verify
+		Assert.assertFalse(isValid);
+		Mockito.verify(this.secretManager, Mockito.times(1)).isValidSecret(Mockito.eq(secret));
+	}		
+	
 	// test case: Is not valid because the secret is being used two times
 	@Test
 	public void testVerifySameSecret() {
 		// set up
-		String secret = "any_secret";
+		String timeAfterNowRasStartingTime = String.valueOf(this.now + GRACE_TIME);
+		String secret = timeAfterNowRasStartingTime;
 		
 		// exercise		
 		boolean isValidFirstTime = this.secretManager.verify(secret);
 		boolean isValidSecondTime = this.secretManager.verify(secret);
 		
-		//verify
+		// verify
 		Assert.assertTrue(isValidFirstTime);
 		Assert.assertFalse(isValidSecondTime);
 	}
@@ -52,7 +88,9 @@ public class SecretManagerTest {
 	@Test
 	public void testVerifySameSecretAfterFinishedOwnValidity() {
 		// set up
-		String secret = "any_secret";
+		String timeAfterNowRasStartingTime = String.valueOf(this.now + GRACE_TIME);
+		String secret = timeAfterNowRasStartingTime;
+		
 		long graceTime = 1000;
 		
 		addingSecretsInLimit();
@@ -61,7 +99,7 @@ public class SecretManagerTest {
 		boolean isValidFirstTime = this.secretManager.verify(secret);
 		boolean isNotValidSecondTime = this.secretManager.verify(secret);
 		
-		//verify
+		// verify
 		Assert.assertTrue(isValidFirstTime);
 		Assert.assertFalse(isNotValidSecondTime);
 		
@@ -82,7 +120,9 @@ public class SecretManagerTest {
 		
 		addingSecretsInLimit();
 		
-		String secret = "secret";
+		String timeAfterNowRasStartingTime = String.valueOf(this.now + GRACE_TIME);
+		String secret = timeAfterNowRasStartingTime;
+		
 		long nowTest = System.currentTimeMillis();
 		Mockito.doReturn(nowTest).when(this.secretManager).getNow();
 		boolean isValid = this.secretManager.verify(secret);

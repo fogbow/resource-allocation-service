@@ -30,7 +30,6 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 
 	// shib token parameters
 	private static final int SHIB_TOKEN_PARAMETERS_SIZE = 5;
-	
 	private static final int SAML_ATTRIBUTES_ATTR_SHIB_INDEX = 4;
 	private static final int COMMON_NAME_ATTR_SHIB_INDEX = 3;
 	private static final int EDU_PRINCIPAL_NAME_ATTR_SHIB_INDEX = 2;

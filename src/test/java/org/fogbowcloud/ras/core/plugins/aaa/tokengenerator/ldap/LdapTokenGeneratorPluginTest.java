@@ -18,6 +18,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 public class LdapTokenGeneratorPluginTest {
+	
     private static final String FAKE_NAME = "fake-name";
     private static final String FAKE_LOGIN = "fake-login";
     private static final String FAKE_PASSWORD = "fake-password";

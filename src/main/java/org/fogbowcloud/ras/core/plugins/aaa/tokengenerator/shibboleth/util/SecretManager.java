@@ -6,22 +6,27 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.generic.GenericSignatureAuthenticationHolder;
 
 public class SecretManager {
 	
+	private static final Logger LOGGER = Logger.getLogger(SecretManager.class);
+	
 	protected static final int MAXIMUM_MAP_SIZE = 100;
 	private Map<String, Long> secrets;
+	private Date rasStartingTime;
 	
 	public SecretManager() {
+		this.rasStartingTime = new Date(getNow());
+		
 		this.secrets = new HashMap<String, Long>();
 	}
 	
 	public synchronized boolean verify(String secret) {
 		cleanSecrets();
 		
-		boolean alreadyExists = this.secrets.containsKey(secret);
-		if (alreadyExists) {
+		if (!isValidSecret(secret)) {
 			return false;
 		}
 		
@@ -32,6 +37,25 @@ public class SecretManager {
 
 	protected long getNow() {
 		return System.currentTimeMillis();
+	}
+	
+	protected boolean isValidSecret(String secret) {
+		boolean alreadyExists = this.secrets.containsKey(secret);
+		if (alreadyExists) {
+			return false;
+		}
+		 
+		try {
+			Date secretCreationTime = new Date(Long.parseLong(secret));
+			if (secretCreationTime.before(this.rasStartingTime)) {
+				return false;
+			}		
+		} catch (NumberFormatException e) {
+			LOGGER.warn("Secret format is invalid.", e);
+			return false;
+		}
+		
+		return true;
 	}
 	
 	// check when exceed the map size
