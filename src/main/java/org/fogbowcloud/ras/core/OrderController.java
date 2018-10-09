@@ -12,9 +12,7 @@ import org.fogbowcloud.ras.core.models.InstanceStatus;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.Instance;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
-import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
-import org.fogbowcloud.ras.core.models.orders.Order;
-import org.fogbowcloud.ras.core.models.orders.OrderState;
+import org.fogbowcloud.ras.core.models.orders.*;
 import org.fogbowcloud.ras.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
@@ -112,12 +110,28 @@ public class OrderController {
     public List<InstanceStatus> getInstancesStatus(FederationUserToken federationUserToken, ResourceType resourceType) {
         List<InstanceStatus> instanceStatusList = new ArrayList<>();
         List<Order> allOrders = getAllOrders(federationUserToken, resourceType);
+
         for (Order order : allOrders) {
+            String name = null;
+
+            switch (resourceType) {
+                case COMPUTE:
+                    name = ((ComputeOrder) order).getName();
+                    break;
+                case VOLUME:
+                    name = ((VolumeOrder) order).getName();
+                    break;
+                case NETWORK:
+                    name = ((NetworkOrder) order).getName();
+                    break;
+            }
+
             // The state of the instance can be inferred from the state of the order
-            InstanceStatus instanceStatus = new InstanceStatus(order.getId(), order.getProvidingMember(),
+            InstanceStatus instanceStatus = new InstanceStatus(order.getId(), name, order.getProvidingMember(),
                     order.getCachedInstanceState());
             instanceStatusList.add(instanceStatus);
         }
+
         return instanceStatusList;
     }
 

@@ -17,6 +17,7 @@ import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -249,6 +250,7 @@ public class LocalCloudConnector implements CloudConnector {
         switch (resourceType) {
             case COMPUTE:
                 instance = this.computePlugin.getInstance(instanceId, token);
+                instance = this.getFullComputeInstance(((ComputeOrder) order), ((ComputeInstance) instance));
                 break;
             case NETWORK:
                 instance = this.networkPlugin.getInstance(instanceId, token);
@@ -258,9 +260,11 @@ public class LocalCloudConnector implements CloudConnector {
                 break;
             case ATTACHMENT:
                 instance = this.attachmentPlugin.getInstance(instanceId, token);
+                instance = this.getFullAttachmentInstance(((AttachmentOrder) order), ((AttachmentInstance) instance));
                 break;
             case PUBLIC_IP:
                 instance = this.publicIpPlugin.getInstance(instanceId, token);
+                instance = this.getFullPublicIpInstance(((PublicIpOrder) order), ((PublicIpInstance) instance));
                 break;
             default:
                 throw new UnexpectedException(String.format(Messages.Exception.UNSUPPORTED_REQUEST_TYPE, order.getType()));
@@ -268,6 +272,72 @@ public class LocalCloudConnector implements CloudConnector {
         order.setCachedInstanceState(instance.getState());
         instance.setProvider(order.getProvidingMember());
         return instance;
+    }
+
+    protected ComputeInstance getFullComputeInstance(ComputeOrder order, ComputeInstance instance)
+            throws UnexpectedException, FogbowRasException {
+        ComputeInstance fullInstance = instance;
+        String imageId = order.getImageId();
+        String imageName = getAllImages(order.getFederationUserToken()).get(imageId);
+        String publicKey = order.getPublicKey();
+
+        UserData userData = order.getUserData();
+        String userDataContents = userData != null ? userData.getExtraUserDataFileContent() : null;
+
+        Map<String, String> computeNetworks = getNetworkOrderIdsFromComputeOrder(order);
+        computeNetworks.putAll(fullInstance.getNetworks());
+
+        fullInstance.setNetworks(computeNetworks);
+        fullInstance.setImage(imageId + " : " + imageName);
+        fullInstance.setPublicKey(publicKey);
+        fullInstance.setUserData(userDataContents);
+
+        return fullInstance;
+    }
+
+    protected AttachmentInstance getFullAttachmentInstance(AttachmentOrder order, AttachmentInstance instance) {
+        AttachmentInstance fullInstance = instance;
+        String savedSource = order.getSource();
+        String savedTarget = order.getTarget();
+        ComputeOrder computeOrder = (ComputeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedSource);
+        VolumeOrder volumeOrder = (VolumeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedTarget);
+
+        fullInstance.setServerName(computeOrder.getName());
+        fullInstance.setServerId(computeOrder.getId());
+        fullInstance.setVolumeName(volumeOrder.getName());
+        fullInstance.setVolumeId(volumeOrder.getId());
+
+        return fullInstance;
+    }
+
+    protected PublicIpInstance getFullPublicIpInstance(PublicIpOrder order, PublicIpInstance instance) {
+        PublicIpInstance publicIpInstance = instance;
+        String computeOrderId = order.getComputeOrderId();
+
+        ComputeOrder retrievedComputeOrder = (ComputeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap()
+                .get(computeOrderId);
+
+        String computeInstanceName = retrievedComputeOrder.getName();
+        String computeInstanceId = retrievedComputeOrder.getId();
+        publicIpInstance.setComputeName(computeInstanceName);
+        publicIpInstance.setComputeId(computeInstanceId);
+
+        return publicIpInstance;
+    }
+
+    protected Map<String, String> getNetworkOrderIdsFromComputeOrder(ComputeOrder order) {
+        List<String> networkOrdersId = order.getNetworksId();
+        Map<String, String> computeNetworks = new HashMap<>();
+
+        for (String orderId : networkOrdersId) {
+            NetworkOrder networkOrder = (NetworkOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
+            String networkId = networkOrder.getId();
+            String networkName = networkOrder.getName();
+
+            computeNetworks.put(networkId, networkName);
+        }
+
+        return computeNetworks;
     }
 
     private InstanceState getInstanceStateBasedOnOrderState(Order order) {

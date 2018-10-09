@@ -1,6 +1,5 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
-import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.fogbowcloud.ras.core.HomeDir;
@@ -462,6 +461,8 @@ public class CloudStackComputePluginTest {
         String endpoint = getBaseEndpointFromCloudStackConf();
         String computeCommand = GetVirtualMachineRequest.LIST_VMS_COMMAND;
         String volumeCommand = GetVolumeRequest.LIST_VOLUMES_COMMAND;
+        List<String> ipAddresses =  new ArrayList<>();
+        ipAddresses.add(FAKE_ADDRESS);
 
         String expectedComputeRequestUrl = generateExpectedUrl(endpoint, computeCommand,
                 RESPONSE_KEY, JSON,
@@ -496,7 +497,7 @@ public class CloudStackComputePluginTest {
         Assert.assertEquals(FAKE_CPU_NUMBER, String.valueOf(retrievedInstance.getvCPU()));
         Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance.getRam()));
         Assert.assertEquals(FAKE_DISK, String.valueOf(retrievedInstance.getDisk()));
-        Assert.assertEquals(FAKE_ADDRESS, retrievedInstance.getLocalIpAddress());
+        Assert.assertEquals(ipAddresses, retrievedInstance.getIpAddresses());
 
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(2));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
@@ -513,6 +514,8 @@ public class CloudStackComputePluginTest {
         String computeCommand = GetVirtualMachineRequest.LIST_VMS_COMMAND;
         String volumeCommand = GetVolumeRequest.LIST_VOLUMES_COMMAND;
         String errorDiskSize = "-1";
+        List<String> ipAddresses =  new ArrayList<>();
+        ipAddresses.add(FAKE_ADDRESS);
 
         String expectedComputeRequestUrl = generateExpectedUrl(endpoint, computeCommand,
                 RESPONSE_KEY, JSON,
@@ -544,7 +547,7 @@ public class CloudStackComputePluginTest {
         Assert.assertEquals(FAKE_CPU_NUMBER, String.valueOf(retrievedInstance.getvCPU()));
         Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance.getRam()));
         Assert.assertEquals(errorDiskSize, String.valueOf(retrievedInstance.getDisk()));
-        Assert.assertEquals(FAKE_ADDRESS, retrievedInstance.getLocalIpAddress());
+        Assert.assertEquals(ipAddresses, retrievedInstance.getIpAddresses());
 
         // exercise empty response from volume request
         ComputeInstance retrievedInstance2 = this.plugin.getInstance(FAKE_ID, FAKE_TOKEN);
@@ -555,7 +558,7 @@ public class CloudStackComputePluginTest {
         Assert.assertEquals(FAKE_CPU_NUMBER, String.valueOf(retrievedInstance2.getvCPU()));
         Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance2.getRam()));
         Assert.assertEquals(errorDiskSize, String.valueOf(retrievedInstance2.getDisk()));
-        Assert.assertEquals(FAKE_ADDRESS, retrievedInstance2.getLocalIpAddress());
+        Assert.assertEquals(ipAddresses, retrievedInstance2.getIpAddresses());
 
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(4));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());

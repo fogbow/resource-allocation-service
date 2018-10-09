@@ -19,10 +19,13 @@ import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -32,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 
 @RunWith(PowerMockRunner.class)
@@ -39,6 +43,8 @@ import static org.mockito.Mockito.times;
 public class LocalCloudConnectorTest extends BaseUnitTests {
 
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
+    private static final String FAKE_SERVER_ID = "fake-server-id";
+    private static final String FAKE_VOLUME_ID = "fake-volume-id";
     private static final String FAKE_ORDER_ID = "fake-order-id";
     private static final String FAKE_IMAGE_ID = "fake-image-id";
     private static final String FAKE_IMAGE_NAME = "fake-image-name";
@@ -105,6 +111,8 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 
         this.attachmentInstance = Mockito.mock(AttachmentInstance.class);
         Mockito.when(attachmentInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
+        Mockito.when(attachmentInstance.getServerId()).thenReturn(FAKE_SERVER_ID);
+        Mockito.when(attachmentInstance.getVolumeId()).thenReturn(FAKE_VOLUME_ID);
 
         this.computeInstance = Mockito.mock(ComputeInstance.class);
         Mockito.when(computeInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
@@ -352,22 +360,35 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     // test case: The order has an InstanceID, so the method getResourceInstance() is called.
     @Test
     public void testGetAttachmentInstance() throws FogbowRasException, UnexpectedException {
-
         // set up
+        ComputeOrder source = Mockito.mock(ComputeOrder.class);
+        VolumeOrder target = Mockito.mock(VolumeOrder.class);
+        SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_SOURCE_ID, source);
+        SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_TARGET_ID, target);
         this.order = Mockito.mock(AttachmentOrder.class);
+        Mockito.when(((AttachmentOrder) this.order).getSource()).thenReturn(FAKE_SOURCE_ID);
+        Mockito.when(((AttachmentOrder) this.order).getTarget()).thenReturn(FAKE_TARGET_ID);
         Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);
         Mockito.when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
-        Mockito.when(attachmentPlugin.getInstance(Mockito.any(String.class), Mockito.any(Token.class))).thenReturn(this.attachmentInstance);
+        Mockito.when(attachmentPlugin.getInstance(Mockito.any(String.class), Mockito.any(Token.class)))
+                .thenReturn(this.attachmentInstance);
 
-        // exercise
+        //exercise
         String returnedInstanceId = this.localCloudConnector.getInstance(order).getId();
 
         // verify
         Assert.assertEquals(FAKE_INSTANCE_ID, returnedInstanceId);
-        Mockito.verify(computePlugin, times(0)).getInstance(Mockito.any(String.class), Mockito.any(Token.class));
-        Mockito.verify(volumePlugin, times(0)).getInstance(Mockito.any(String.class), Mockito.any(Token.class));
-        Mockito.verify(attachmentPlugin, times(1)).getInstance(Mockito.any(String.class), Mockito.any(Token.class));
-        Mockito.verify(networkPlugin, times(0)).getInstance(Mockito.any(String.class), Mockito.any(Token.class));
+        Mockito.verify(computePlugin, times(0)).getInstance(Mockito.any(String.class),
+                Mockito.any(Token.class));
+        Mockito.verify(volumePlugin, times(0)).getInstance(Mockito.any(String.class),
+                Mockito.any(Token.class));
+        Mockito.verify(attachmentPlugin, times(1)).getInstance(Mockito.any(String.class),
+                Mockito.any(Token.class));
+        Mockito.verify(networkPlugin, times(0)).getInstance(Mockito.any(String.class),
+                Mockito.any(Token.class));
+
+        // tear down
+        SharedOrderHolders.getInstance().getActiveOrdersMap().clear();
     }
 
     // test case: The order has an InstanceID, so the method getResourceInstance() is called.
