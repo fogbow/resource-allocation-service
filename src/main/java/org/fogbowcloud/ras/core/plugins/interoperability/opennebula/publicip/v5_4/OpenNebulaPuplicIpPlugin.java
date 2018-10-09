@@ -66,9 +66,8 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<Token> {
 
 	private PublicIpInstance createVirtualRouterInstance(VirtualRouter virtualRouter) {
 		String id = virtualRouter.getId();
-		int state = virtualRouter.state();
-		InstanceState instanceState = null;
-		String ip = virtualRouter.xpath(""); // FIXME
+		InstanceState instanceState = InstanceState.READY;
+		String ip = virtualRouter.xpath("VROUTER/AR_POOL/AR/IP"); // FIXME
 		
 		LOGGER.info(String.format(Messages.Info.MOUNTING_INSTANCE, id));
 		PublicIpInstance publicIpInstance = new PublicIpInstance(
