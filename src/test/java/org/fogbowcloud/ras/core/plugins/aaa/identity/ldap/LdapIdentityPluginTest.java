@@ -47,7 +47,6 @@ public class LdapIdentityPluginTest {
         LdapTokenGeneratorPlugin tokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
         Mockito.doReturn(this.FAKE_NAME).when(tokenGenerator).ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
 
-
         //exercise
         String federationTokenValue = tokenGenerator.createTokenValue(userCredentials);
         LdapToken ldapToken = this.ldapIdentityPlugin.createToken(federationTokenValue);
@@ -58,7 +57,7 @@ public class LdapIdentityPluginTest {
         Assert.assertEquals(split[0], ldapToken.getTokenProvider());
         Assert.assertEquals(split[1], ldapToken.getUserId());
         Assert.assertEquals(split[2], ldapToken.getUserName());
-        Assert.assertEquals(split[3], ldapToken.getExpirationTime());
+        Assert.assertEquals(split[3], String.valueOf(ldapToken.getExpirationTime()));
         Assert.assertTrue(this.ldapAuthenticationPlugin.isAuthentic(this.localMemberId, ldapToken));
     }
 

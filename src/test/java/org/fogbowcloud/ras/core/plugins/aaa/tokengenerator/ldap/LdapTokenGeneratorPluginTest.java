@@ -1,5 +1,8 @@
 package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
@@ -13,9 +16,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class LdapTokenGeneratorPluginTest {
     private static final String FAKE_NAME = "fake-name";
@@ -73,7 +73,7 @@ public class LdapTokenGeneratorPluginTest {
                 .when(this.ldapTokenGenerator).ldapAuthenticate(Mockito.eq(FAKE_LOGIN), Mockito.eq(FAKE_PASSWORD));
 
         //exercise
-        String tokenValue = this.ldapTokenGenerator.createTokenValue(userCredentials);
+        this.ldapTokenGenerator.createTokenValue(userCredentials);
     }
 
     //test case: createTokenValue with incorrect credentials should throw InvalidParameterException
@@ -89,6 +89,6 @@ public class LdapTokenGeneratorPluginTest {
                 .when(this.ldapTokenGenerator).ldapAuthenticate(Mockito.eq(FAKE_LOGIN), Mockito.eq(FAKE_PASSWORD));
 
         //exercise
-        String tokenValue = this.ldapTokenGenerator.createTokenValue(userCredentials);
+        this.ldapTokenGenerator.createTokenValue(userCredentials);
     }
 }

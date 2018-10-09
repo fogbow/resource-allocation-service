@@ -1,14 +1,11 @@
 package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap;
 
-import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
-import org.fogbowcloud.ras.core.PropertiesHolder;
-import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
-import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.exceptions.*;
-import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
-import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.RSAUtil;
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Properties;
 
 import javax.naming.AuthenticationException;
 import javax.naming.Context;
@@ -18,23 +15,24 @@ import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.GeneralSecurityException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.interfaces.RSAPrivateKey;
-import java.util.Date;
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
+
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.PropertiesHolder;
+import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
+import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.exceptions.InvalidUserCredentialsException;
+import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
+import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.generic.GenericSignatureAuthenticationHolder;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
+import org.fogbowcloud.ras.util.PropertiesUtil;
+import org.fogbowcloud.ras.util.RSAUtil;
 
 public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
-    private static final Logger LOGGER = Logger.getLogger(LdapTokenGeneratorPlugin.class);
-
+	
     private static final String LDAP_PLUGIN_CONF_FILE = "ldap-token-generator-plugin.conf";
-    private static final long EXPIRATION_INTERVAL = TimeUnit.DAYS.toMillis(1); // One day
     private static final String PROP_LDAP_BASE = "ldap_base";
     private static final String PROP_LDAP_URL = "ldap_identity_url";
     private static final String PROP_LDAP_ENCRYPT_TYPE = "ldap_encrypt_type";
@@ -54,21 +52,18 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
     private String ldapBase;
     private String ldapUrl;
     private String encryptType;
-    private RSAPrivateKey privateKey;
+	private GenericSignatureAuthenticationHolder genericSignatureAuthenticationHolder;
 
     public LdapTokenGeneratorPlugin() throws FatalErrorException {
         this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
+        this.genericSignatureAuthenticationHolder = GenericSignatureAuthenticationHolder.getInstance();
+        
         Properties properties = PropertiesUtil.readProperties(
                 HomeDir.getPath() + LDAP_PLUGIN_CONF_FILE);
         this.ldapBase = properties.getProperty(PROP_LDAP_BASE);
         this.ldapUrl = properties.getProperty(PROP_LDAP_URL);
         this.encryptType = properties.getProperty(PROP_LDAP_ENCRYPT_TYPE);
-        try {
-            this.privateKey = RSAUtil.getPrivateKey();
-        } catch (IOException | GeneralSecurityException e) {
-            throw new FatalErrorException(String.format(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE, e.getMessage()));
-        }
     }
 
     @Override
@@ -81,15 +76,14 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
         String name = null;
         name = ldapAuthenticate(userId, password);
 
-        Date expirationDate = new Date(new Date().getTime() + EXPIRATION_INTERVAL);
-        String expirationTime = Long.toString(expirationDate.getTime());
+        String expirationTime = this.genericSignatureAuthenticationHolder.generateExpirationTime();
 
         try {
             String tokenValue = this.tokenProviderId + TOKEN_VALUE_SEPARATOR + userId + TOKEN_VALUE_SEPARATOR +
                     name + TOKEN_VALUE_SEPARATOR + expirationTime;
-            String signature = createSignature(tokenValue);
+            String signature = this.genericSignatureAuthenticationHolder.createSignature(tokenValue);
             return tokenValue + TOKEN_VALUE_SEPARATOR + signature;
-        } catch (IOException | GeneralSecurityException e) {
+        } catch (Exception e) {
             throw new UnexpectedException(Messages.Exception.UNABLE_TO_SIGN_LDAP_TOKEN, e);
         }
     }
@@ -171,7 +165,7 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
         }
 
         MessageDigest algorithm = MessageDigest.getInstance(this.encryptType);
-        byte messageDigest[] = algorithm.digest(password.getBytes("UTF-8"));
+        byte messageDigest[] = algorithm.digest(password.getBytes(RSAUtil.UTF_8));
 
         StringBuilder hexString = new StringBuilder();
         for (byte b : messageDigest) {
@@ -183,7 +177,4 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
                 .replaceAll(ENCRYPT_PASS, hexString.toString());
     }
 
-    private String createSignature(String message) throws IOException, GeneralSecurityException {
-        return RSAUtil.sign(this.privateKey, message);
-    }
 }
