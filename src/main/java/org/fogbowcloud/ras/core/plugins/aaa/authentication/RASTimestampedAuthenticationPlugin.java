@@ -1,7 +1,5 @@
 package org.fogbowcloud.ras.core.plugins.aaa.authentication;
 
-import java.util.Date;
-
 import org.fogbowcloud.ras.core.models.tokens.TimestampedSignedFederationUserToken;
 
 public abstract class RASTimestampedAuthenticationPlugin extends RASAuthenticationPlugin {
@@ -13,16 +11,7 @@ public abstract class RASTimestampedAuthenticationPlugin extends RASAuthenticati
     }
     
     protected boolean checkValidity(long timestamp) {
-    	Date currentDate = new Date(getNow());
-    	Date expirationDate = new Date(timestamp);
-        if (expirationDate.before(currentDate)) {
-        	return true;
-        }
-        return false;
+    	return this.rasAuthenticationHolder.checkValidity(timestamp);
 	}
 
-	protected long getNow() {
-    	return System.currentTimeMillis();
-    }
-    
 }

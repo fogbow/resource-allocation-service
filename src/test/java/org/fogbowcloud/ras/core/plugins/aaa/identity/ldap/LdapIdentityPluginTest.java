@@ -4,7 +4,7 @@ import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.models.tokens.LdapToken;
-import org.fogbowcloud.ras.core.plugins.aaa.authentication.generic.GenericSignatureAuthenticationHolder;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.ldap.LdapAuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap.LdapTokenGeneratorPlugin;
 import org.fogbowcloud.ras.util.RSAUtil;
@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @PowerMockIgnore({"javax.management.*"})
-@PrepareForTest({ RSAUtil.class, GenericSignatureAuthenticationHolder.class })
+@PrepareForTest({ RSAUtil.class, RASAuthenticationHolder.class })
 @RunWith(PowerMockRunner.class)
 public class LdapIdentityPluginTest {
 
@@ -37,7 +37,7 @@ public class LdapIdentityPluginTest {
     private String localMemberId;
 
     Map<String, String> userCredentials = new HashMap<String, String>();
-	private GenericSignatureAuthenticationHolder genericSignatureAuthenticationHolder;
+	private RASAuthenticationHolder genericSignatureAuthenticationHolder;
 
     @Before
     public void setUp() {
@@ -52,9 +52,9 @@ public class LdapIdentityPluginTest {
         this.ldapAuthenticationPlugin = new LdapAuthenticationPlugin();
         this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
                 
-		PowerMockito.mockStatic(GenericSignatureAuthenticationHolder.class);
-		this.genericSignatureAuthenticationHolder = Mockito.mock(GenericSignatureAuthenticationHolder.class);
-		BDDMockito.given(GenericSignatureAuthenticationHolder.getInstance()).willReturn(this.genericSignatureAuthenticationHolder);
+		PowerMockito.mockStatic(RASAuthenticationHolder.class);
+		this.genericSignatureAuthenticationHolder = Mockito.mock(RASAuthenticationHolder.class);
+		BDDMockito.given(RASAuthenticationHolder.getInstance()).willReturn(this.genericSignatureAuthenticationHolder);
     }
 
     //test case: check if the token information is correct when creating a token with the correct token value.
@@ -69,7 +69,7 @@ public class LdapIdentityPluginTest {
 					.willReturn(true);
 		
 		String timeInPass =  String.valueOf(
-				System.currentTimeMillis() - GenericSignatureAuthenticationHolder.EXPIRATION_INTERVAL * 10);
+				System.currentTimeMillis() - RASAuthenticationHolder.EXPIRATION_INTERVAL * 10);
 		Mockito.doReturn(timeInPass).when(this.genericSignatureAuthenticationHolder).generateExpirationTime();		
         
         //exercise

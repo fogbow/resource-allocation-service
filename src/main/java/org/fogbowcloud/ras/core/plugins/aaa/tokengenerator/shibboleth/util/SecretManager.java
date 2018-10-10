@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.plugins.aaa.authentication.generic.GenericSignatureAuthenticationHolder;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationHolder;
 
 public class SecretManager {
 	
@@ -30,7 +30,7 @@ public class SecretManager {
 			return false;
 		}
 		
-		Long validity = getNow() + GenericSignatureAuthenticationHolder.EXPIRATION_INTERVAL;
+		Long validity = getNow() + RASAuthenticationHolder.EXPIRATION_INTERVAL;
 		this.secrets.put(secret, validity);
 		return true;
 	}

@@ -10,7 +10,7 @@ import org.fogbowcloud.ras.core.exceptions.InvalidUserCredentialsException;
 import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.LdapToken;
-import org.fogbowcloud.ras.core.plugins.aaa.authentication.generic.GenericSignatureAuthenticationHolder;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.ldap.LdapAuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.ldap.LdapIdentityPlugin;
 import org.junit.Assert;
@@ -25,7 +25,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @PowerMockIgnore({"javax.management.*"})
-@PrepareForTest({ GenericSignatureAuthenticationHolder.class })
+@PrepareForTest({ RASAuthenticationHolder.class })
 @RunWith(PowerMockRunner.class)
 public class LdapTokenGeneratorPluginTest {
 	
@@ -37,13 +37,13 @@ public class LdapTokenGeneratorPluginTest {
     private LdapAuthenticationPlugin ldapAuthenticationPlugin;
     private LdapIdentityPlugin ldapIdentityPlugin;
     private String localMemberId;
-	private GenericSignatureAuthenticationHolder genericSignatureAuthenticationHolder;
+	private RASAuthenticationHolder genericSignatureAuthenticationHolder;
 
     @Before
     public void setUp() {
-    	PowerMockito.mockStatic(GenericSignatureAuthenticationHolder.class);
-    	this.genericSignatureAuthenticationHolder = Mockito.spy(new GenericSignatureAuthenticationHolder());
-    	BDDMockito.given(GenericSignatureAuthenticationHolder.getInstance()).willReturn(this.genericSignatureAuthenticationHolder);
+    	PowerMockito.mockStatic(RASAuthenticationHolder.class);
+    	this.genericSignatureAuthenticationHolder = Mockito.spy(new RASAuthenticationHolder());
+    	BDDMockito.given(RASAuthenticationHolder.getInstance()).willReturn(this.genericSignatureAuthenticationHolder);
     	
         this.ldapTokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
         this.ldapAuthenticationPlugin = new LdapAuthenticationPlugin();
@@ -64,7 +64,7 @@ public class LdapTokenGeneratorPluginTest {
                 ldapAuthenticate(Mockito.eq(FAKE_LOGIN), Mockito.eq(FAKE_PASSWORD));
 
 		String timeInPass =  String.valueOf(
-				System.currentTimeMillis() - GenericSignatureAuthenticationHolder.EXPIRATION_INTERVAL * 10);
+				System.currentTimeMillis() - RASAuthenticationHolder.EXPIRATION_INTERVAL * 10);
 		Mockito.doReturn(timeInPass).when(this.genericSignatureAuthenticationHolder).generateExpirationTime();
         
         //exercise

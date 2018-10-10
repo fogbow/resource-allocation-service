@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.plugins.aaa.authentication.generic;
+package org.fogbowcloud.ras.core.plugins.aaa.authentication;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -13,17 +13,17 @@ import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.util.RSAUtil;
 
-public class GenericSignatureAuthenticationHolder {
+public class RASAuthenticationHolder {
 
-	private static final Logger LOGGER = Logger.getLogger(GenericSignatureAuthenticationHolder.class);
+	private static final Logger LOGGER = Logger.getLogger(RASAuthenticationHolder.class);
 	
     public static final long EXPIRATION_INTERVAL = TimeUnit.DAYS.toMillis(1); // One day
 	
 	private RSAPublicKey rasPublicKey;
 	private RSAPrivateKey rasPrivateKey;
-	private static GenericSignatureAuthenticationHolder instance;
+	private static RASAuthenticationHolder instance;
 
-	public GenericSignatureAuthenticationHolder() {
+	public RASAuthenticationHolder() {
         try {
             this.rasPublicKey = getPublicKey();
         } catch (IOException | GeneralSecurityException e) {
@@ -37,9 +37,9 @@ public class GenericSignatureAuthenticationHolder {
         }        
 	}
 	
-    public static synchronized GenericSignatureAuthenticationHolder getInstance() throws FatalErrorException {
+    public static synchronized RASAuthenticationHolder getInstance() throws FatalErrorException {
         if (instance == null) {
-            instance = new GenericSignatureAuthenticationHolder();
+            instance = new RASAuthenticationHolder();
         }
         return instance;
     }
@@ -50,6 +50,7 @@ public class GenericSignatureAuthenticationHolder {
 		} catch (Exception e) {
 	    	String errorMsg = String.format(Messages.Exception.AUTHENTICATION_ERROR);
 	    	LOGGER.error(errorMsg, e);
+			// TODO change exception	    	
 	        throw new UnauthenticatedUserException(errorMsg, e);
 		}
     }
@@ -60,14 +61,25 @@ public class GenericSignatureAuthenticationHolder {
 		return expirationTime;
 	}
     
-    protected boolean verifySignature(String tokenMessage, String signature) {
+    protected boolean verifySignature(String tokenMessage, String signature) throws UnauthenticatedUserException {
         try {
             return RSAUtil.verify(this.rasPublicKey, tokenMessage, signature);
         } catch (Exception e) {
-        	LOGGER.error(Messages.Exception.EXPIRED_TOKEN, e);
-            throw new RuntimeException(Messages.Exception.INVALID_TOKEN_SIGNATURE, e);
+        	String errorMsg = Messages.Exception.AUTHENTICATION_ERROR;
+			LOGGER.error(errorMsg, e);
+			// TODO change exception
+            throw new UnauthenticatedUserException(errorMsg, e);
         }
     }
+    
+    protected boolean checkValidity(long timestamp) {
+    	Date currentDate = new Date(getNow());
+    	Date expirationDate = new Date(timestamp);
+        if (expirationDate.before(currentDate)) {
+        	return true;
+        }
+        return false;
+	}    
 
     protected RSAPublicKey getPublicKey() throws IOException, GeneralSecurityException {
         return RSAUtil.getPublicKey();

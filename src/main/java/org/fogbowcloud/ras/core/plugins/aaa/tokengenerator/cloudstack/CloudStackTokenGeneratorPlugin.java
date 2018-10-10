@@ -1,24 +1,23 @@
 package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.Map;
+
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.Token;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowRasExceptionMapper;
-import org.fogbowcloud.ras.util.RSAUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
-
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.interfaces.RSAPrivateKey;
-import java.util.Map;
 
 public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     private static final Logger LOGGER = Logger.getLogger(CloudStackTokenGeneratorPlugin.class);
@@ -34,16 +33,13 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
     private String tokenProviderId;
     private HttpRequestClientUtil client;
-    private RSAPrivateKey privateKey;
+	private RASAuthenticationHolder rasAuthenticationHolder;
 
     public CloudStackTokenGeneratorPlugin() {
         this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         this.client = new HttpRequestClientUtil();
-        try {
-            this.privateKey = RSAUtil.getPrivateKey();
-        } catch (IOException | GeneralSecurityException e) {
-            throw new FatalErrorException(String.format(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE, e.getMessage()));
-        }
+        
+        this.rasAuthenticationHolder = RASAuthenticationHolder.getInstance();
     }
 
     @Override
@@ -120,8 +116,8 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
         }
     }
 
-    protected String createSignature(String message) throws IOException, GeneralSecurityException {
-        return RSAUtil.sign(this.privateKey, message);
+    protected String createSignature(String message) throws IOException, GeneralSecurityException, UnauthenticatedUserException {
+        return this.rasAuthenticationHolder.createSignature(message);
     }
 
     // Used for testing

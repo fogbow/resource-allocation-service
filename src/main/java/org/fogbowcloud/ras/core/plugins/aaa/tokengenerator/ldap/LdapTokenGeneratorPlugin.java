@@ -25,7 +25,7 @@ import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.InvalidUserCredentialsException;
 import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
-import org.fogbowcloud.ras.core.plugins.aaa.authentication.generic.GenericSignatureAuthenticationHolder;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.RSAUtil;
@@ -52,12 +52,12 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
     private String ldapBase;
     private String ldapUrl;
     private String encryptType;
-	private GenericSignatureAuthenticationHolder genericSignatureAuthenticationHolder;
+	private RASAuthenticationHolder rasAuthenticationHolder;
 
     public LdapTokenGeneratorPlugin() throws FatalErrorException {
         this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
-        this.genericSignatureAuthenticationHolder = GenericSignatureAuthenticationHolder.getInstance();
+        this.rasAuthenticationHolder = RASAuthenticationHolder.getInstance();
         
         Properties properties = PropertiesUtil.readProperties(
                 HomeDir.getPath() + LDAP_PLUGIN_CONF_FILE);
@@ -76,12 +76,12 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
         String name = null;
         name = ldapAuthenticate(userId, password);
 
-        String expirationTime = this.genericSignatureAuthenticationHolder.generateExpirationTime();
+        String expirationTime = this.rasAuthenticationHolder.generateExpirationTime();
 
         try {
             String tokenValue = this.tokenProviderId + TOKEN_VALUE_SEPARATOR + userId + TOKEN_VALUE_SEPARATOR +
                     name + TOKEN_VALUE_SEPARATOR + expirationTime;
-            String signature = this.genericSignatureAuthenticationHolder.createSignature(tokenValue);
+            String signature = this.rasAuthenticationHolder.createSignature(tokenValue);
             return tokenValue + TOKEN_VALUE_SEPARATOR + signature;
         } catch (Exception e) {
             throw new UnexpectedException(Messages.Exception.UNABLE_TO_SIGN_LDAP_TOKEN, e);

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.fogbowcloud.ras.core.plugins.aaa.authentication.generic.GenericSignatureAuthenticationHolder;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationHolder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,7 +13,7 @@ import org.mockito.Mockito;
 public class SecretManagerTest {
 
 	private static final int GRACE_TIME = 1000;
-	private static final long EXPIRATION_INTERVAL = GenericSignatureAuthenticationHolder.EXPIRATION_INTERVAL;
+	private static final long EXPIRATION_INTERVAL = RASAuthenticationHolder.EXPIRATION_INTERVAL;
 	private SecretManager secretManager;
 	private long now;
 	

@@ -4,28 +4,19 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.ras.util.RSAUtil;
-
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.interfaces.RSAPublicKey;
 
 public abstract class RASAuthenticationPlugin implements AuthenticationPlugin<FederationUserToken> {
-    private static final Logger LOGGER = Logger.getLogger(RASAuthenticationPlugin.class);
 
+	private static final Logger LOGGER = Logger.getLogger(RASAuthenticationPlugin.class);
+	
     private String localProviderId;
-    private RSAPublicKey publicKey;
+	protected RASAuthenticationHolder rasAuthenticationHolder;
 
-    protected RASAuthenticationPlugin() {
+    public RASAuthenticationPlugin() {
         this.localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
-        try {
-            this.publicKey = getPublicKey();
-        } catch (IOException | GeneralSecurityException e) {
-            throw new FatalErrorException(Messages.Fatal.ERROR_READING_PUBLIC_KEY_FILE);
-        }
+        this.rasAuthenticationHolder = RASAuthenticationHolder.getInstance();
     }
 
     @Override
@@ -48,15 +39,11 @@ public abstract class RASAuthenticationPlugin implements AuthenticationPlugin<Fe
 
     protected boolean verifySign(String tokenMessage, String signature) {
         try {
-            return RSAUtil.verify(this.publicKey, tokenMessage, signature);
+        	return this.rasAuthenticationHolder.verifySignature(tokenMessage, signature);
         } catch (Exception e) {
             LOGGER.error(Messages.Exception.INVALID_TOKEN_SIGNATURE, e);
             return false;
         }
-    }
-
-    protected RSAPublicKey getPublicKey() throws IOException, GeneralSecurityException {
-        return RSAUtil.getPublicKey();
     }
 
 }

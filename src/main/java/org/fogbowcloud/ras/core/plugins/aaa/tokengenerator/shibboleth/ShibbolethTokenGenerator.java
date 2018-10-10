@@ -18,7 +18,7 @@ import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.ShibbolethTokenHolder;
-import org.fogbowcloud.ras.core.plugins.aaa.authentication.generic.GenericSignatureAuthenticationHolder;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.shibboleth.util.SecretManager;
 import org.fogbowcloud.ras.util.PropertiesUtil;
@@ -44,7 +44,7 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 	
 	public static final String SHIBBOLETH_SEPARETOR = "!#!";
 	
-	private GenericSignatureAuthenticationHolder genericSignatureAuthenticationHolder;
+	private RASAuthenticationHolder rasAuthenticationHolder;
 	private SecretManager secretManager;
 	
 	private Properties properties;
@@ -58,7 +58,7 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
         this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
                 DefaultConfigurationConstants.SHIBBOLETH_CONF_FILE_NAME);
         
-        this.genericSignatureAuthenticationHolder = GenericSignatureAuthenticationHolder.getInstance();
+        this.rasAuthenticationHolder = RASAuthenticationHolder.getInstance();
         
         try {
             this.rasPrivateKey = RSAUtil.getPrivateKey();
@@ -98,7 +98,7 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 		verifySecretShibAppToken(tokenShibAppParameters);
 		
 		String rawToken = createRawToken(tokenShibAppParameters);
-		String rawTokenSignature = this.genericSignatureAuthenticationHolder.createSignature(rawToken);
+		String rawTokenSignature = this.rasAuthenticationHolder.createSignature(rawToken);
 		String tokenValue = ShibbolethTokenHolder.generateTokenValue(rawToken, rawTokenSignature);
 		
 		return tokenValue;
@@ -138,7 +138,7 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 	}
 	
 	protected String generateExpirationTime() {
-		return this.genericSignatureAuthenticationHolder.generateExpirationTime();
+		return this.rasAuthenticationHolder.generateExpirationTime();
 	}
 
 	protected void verifyShibAppTokenAuthenticity(String tokenSignature, String tokenShibApp) throws UnauthenticatedUserException {
