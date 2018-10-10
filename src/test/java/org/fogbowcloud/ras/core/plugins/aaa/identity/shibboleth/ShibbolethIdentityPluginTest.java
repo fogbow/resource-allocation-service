@@ -28,7 +28,7 @@ public class ShibbolethIdentityPluginTest {
 		this.shibbolethIdentityPlugin = Mockito.spy(new ShibbolethIdentityPlugin());
 	}
 	
-	// case: success case
+	// test case: Success case
 	@Test
 	public void testCreateToken() throws InvalidParameterException {
 		// set up
@@ -54,11 +54,11 @@ public class ShibbolethIdentityPluginTest {
 		Assert.assertEquals(userId, shibbolethToken.getUserId());
 		Assert.assertEquals(userName, shibbolethToken.getUserName());
 		Assert.assertEquals(samlAttributes, shibbolethToken.getSamlAttributes());
-		Assert.assertEquals(expirationTime, shibbolethToken.getExpirationTime());
+		Assert.assertEquals(expirationTime, shibbolethToken.getTimestamp());
 		Assert.assertEquals(rawTokenSignature, shibbolethToken.getSignature());
 	}
 	
-	// case
+	// test case: Invalid parameters
 	@Test(expected=InvalidParameterException.class)
 	public void testCreateTokenException() throws InvalidParameterException, CreateTokenException {
 		String tokenValue = "anytring";

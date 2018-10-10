@@ -28,6 +28,7 @@ public abstract class RASAuthenticationPlugin implements AuthenticationPlugin<Fe
         }
     }
 
+    @Override
     public boolean isAuthentic(String requestingMember, FederationUserToken federationUserToken)  {
         if (federationUserToken.getTokenProvider().equals(this.localProviderId)) {
             String tokenMessage = getTokenMessage(federationUserToken);
@@ -45,7 +46,7 @@ public abstract class RASAuthenticationPlugin implements AuthenticationPlugin<Fe
 
     protected abstract String getSignature(FederationUserToken federationUserToken);
 
-    private boolean verifySign(String tokenMessage, String signature) {
+    protected boolean verifySign(String tokenMessage, String signature) {
         try {
             return RSAUtil.verify(this.publicKey, tokenMessage, signature);
         } catch (Exception e) {

@@ -1,38 +1,33 @@
 package org.fogbowcloud.ras.core.plugins.aaa.authentication.ldap;
 
-import org.fogbowcloud.ras.core.PropertiesHolder;
-import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
-import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
+import org.apache.commons.lang.StringUtils;
+import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.LdapToken;
-import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
-import org.fogbowcloud.ras.core.plugins.aaa.authentication.generic.GenericSignatureAuthenticationHolder;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASTimestampedAuthenticationPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap.LdapTokenGeneratorPlugin;
 
-public class LdapAuthenticationPlugin implements AuthenticationPlugin<LdapToken> {
+//TODO implements tests
+public class LdapAuthenticationPlugin extends RASTimestampedAuthenticationPlugin {
 
-    private String localProviderId;
-	private GenericSignatureAuthenticationHolder genericSignatureAuthenticationHolder;
+	@Override
+	protected String getTokenMessage(FederationUserToken federationUserToken) {
+		String rawTokenValue = federationUserToken.getTokenValue();
+		String[] rawTokenValueSlices = rawTokenValue.split(LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
+		
+		String[] tokenValue = new String[] {
+				rawTokenValueSlices[0],
+				rawTokenValueSlices[1],
+				rawTokenValueSlices[2],
+				rawTokenValueSlices[3] 
+		};
+		
+		return StringUtils.join(tokenValue, LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR);
+	}
 
-    public LdapAuthenticationPlugin() throws FatalErrorException {
-        this.localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
-
-        this.genericSignatureAuthenticationHolder = GenericSignatureAuthenticationHolder.getInstance();
-    }
-
-    @Override
-    public boolean isAuthentic(String requestingMember, LdapToken ldapToken) {
-        if (ldapToken.getTokenProvider().equals(this.localProviderId)) {
-            try {
-            	this.genericSignatureAuthenticationHolder.checkTokenValue(ldapToken);
-                return true;
-            } catch (Exception e) {
-                return false;
-            }
-        } else if (requestingMember.equals(ldapToken.getTokenProvider().toLowerCase())) {
-            // XMPP does not differentiate lower and upper cases, thus requestingMember is always all lower case
-            return true;
-        } else {
-            return false;
-        }
-    }
+	@Override
+	protected String getSignature(FederationUserToken federationUserToken) {
+		LdapToken ldapToken = (LdapToken) federationUserToken;
+		return ldapToken.getSignature();
+	}
 
 }

@@ -10,9 +10,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
-import org.fogbowcloud.ras.core.exceptions.UnauthenticTokenException;
 import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
-import org.fogbowcloud.ras.core.models.tokens.GenericSignatureToken;
 import org.fogbowcloud.ras.util.RSAUtil;
 
 public class GenericSignatureAuthenticationHolder {
@@ -46,25 +44,6 @@ public class GenericSignatureAuthenticationHolder {
         return instance;
     }
 	
-	public void checkTokenValue(GenericSignatureToken genericSignatureToken) throws UnauthenticTokenException {
-        Date currentDate = new Date(getNow());
-        long expirationTime = genericSignatureToken.getExpirationTime();
-		Date expirationDate = new Date(expirationTime);
-
-        String tokenValue = genericSignatureToken.getRawToken();
-        String signature = genericSignatureToken.getRawTokenSignature();
-
-        if (expirationDate.before(currentDate)) {
-        	LOGGER.error(String.format(Messages.Exception.EXPIRED_TOKEN, expirationDate.toString()));
-            throw new UnauthenticTokenException(String.format(Messages.Exception.EXPIRED_TOKEN, expirationDate));
-        }
-
-        if (!verifySignature(tokenValue, signature)) {
-        	LOGGER.error(Messages.Exception.INVALID_TOKEN);
-            throw new UnauthenticTokenException(String.format(Messages.Exception.INVALID_TOKEN));
-        }
-    }
-
     public String createSignature(String message) throws UnauthenticatedUserException {
     	try {
     		return RSAUtil.sign(this.rasPrivateKey, message);

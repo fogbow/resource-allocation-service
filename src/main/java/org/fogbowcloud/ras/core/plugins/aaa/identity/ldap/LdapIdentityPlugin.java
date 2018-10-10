@@ -27,6 +27,7 @@ public class LdapIdentityPlugin implements FederationIdentityPlugin<LdapToken> {
         String uuid = split[1];
         String name = split[2];
         String expirationDate = split[3];
-        return new LdapToken(tokenProvider, federationTokenValue, uuid, name, expirationDate);
+        String signature = split[4];
+        return new LdapToken(tokenProvider, federationTokenValue, uuid, name, expirationDate, signature);
     }
 }

@@ -9,8 +9,6 @@ import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.shibboleth.Shibboleth
 import org.json.JSONException;
 import org.json.JSONObject;
 
-// TODO implement test
-// TODO logs
 public class ShibbolethTokenHolder {
 
 	protected static final String SHIBBOLETH_SEPARETOR = ShibbolethTokenGenerator.SHIBBOLETH_SEPARETOR;

@@ -95,7 +95,7 @@ public class ShibbolethTokenHolderTest {
 		Assert.assertEquals(userName, shibbolethToken.getUserName());
 		Assert.assertEquals(userId, shibbolethToken.getUserId());
 		Assert.assertEquals(signature, shibbolethToken.getSignature());
-		Assert.assertEquals(timestampNow, shibbolethToken.getExpirationTime());
+		Assert.assertEquals(timestampNow, shibbolethToken.getTimestamp());
 	}
 	
 }

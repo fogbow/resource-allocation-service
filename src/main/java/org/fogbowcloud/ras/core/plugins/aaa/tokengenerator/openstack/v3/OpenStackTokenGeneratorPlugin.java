@@ -36,7 +36,6 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     public static final Object DOMAIN = "domain";
     public static final int OPENSTACK_TOKEN_NUMBER_OF_FIELDS = 6;
 
-
     private String v3TokensEndpoint;
     private HttpRequestClientUtil client;
     private String tokenProviderId;
