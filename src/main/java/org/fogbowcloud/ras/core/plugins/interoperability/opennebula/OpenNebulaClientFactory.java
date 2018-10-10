@@ -247,28 +247,6 @@ public class OpenNebulaClientFactory {
 		return response.getMessage();
 	}
 	
-	public String attachNetworkInterfaceConnected(Client client, int id, String template) {
-		OneResponse response = VirtualRouter.nicAttach(client, id, template);
-		if (response.isError()) {
-			String message = response.getErrorMessage();
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
-			throw new InvalidParameterException(message);
-		}
-		VirtualNetwork.chmod(client, response.getIntMessage(), 744);
-		return response.getMessage();
-	}
-	
-	public String detachNetworkInterfaceConnected(Client client, int id, int nicId) {
-		OneResponse response = VirtualRouter.nicDetach(client, id, nicId);
-		if (response.isError()) {
-			String message = response.getErrorMessage();
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
-			throw new InvalidParameterException(message);
-		}
-		VirtualNetwork.chmod(client, response.getIntMessage(), 744);
-		return response.getMessage();
-	}
-	
 	private String findUserByName(UserPool userpool, String username) throws UnauthorizedRequestException {
 		for (User user : userpool) {
 			if (username.equals(user.getName())){
