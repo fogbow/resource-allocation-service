@@ -12,6 +12,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.PublicIpPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
+import org.opennebula.client.vm.VirtualMachine;
 import org.opennebula.client.vrouter.VirtualRouter;
 
 public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<Token> {
@@ -30,38 +31,46 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<Token> {
 
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, localUserAttributes.getTokenValue()));
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
-
-		CreatePublicIpRequest request = null; // TODO implement with builder patterns...
-
-		String template = request.getVirtualRouter().generateTemplate();
-		return this.factory.allocateVirtualRouter(client, template);
+		
+		// TODO create default virtual network with public ip associated... 
+		
+		String networkId = "";
+		
+		CreateNicRequest request = new CreateNicRequest.Builder().nicId(networkId).build();
+		
+		String template = request.getNic().generateTemplate();
+				
+		VirtualMachine virtualMachine = this.factory.createVirtualMachine(client, computeInstanceId);
+		
+		OneResponse response = virtualMachine.nicAttach(template);
+		if (response.isError()) {
+			String message = response.getErrorMessage();
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
+		}
+		
+		// TODO ...
+		return null;
 	}
 
 	@Override
 	public void deleteInstance(String publicIpInstanceId, Token localUserAttributes)
 			throws FogbowRasException, UnexpectedException {
 
-		LOGGER.info(
-				String.format(Messages.Info.DELETING_INSTANCE, publicIpInstanceId, localUserAttributes.getTokenValue()));
-		
+		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, publicIpInstanceId, localUserAttributes.getTokenValue()));
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
-		VirtualRouter virtualRouter = this.factory.createVirtualRouter(client, publicIpInstanceId);
-		OneResponse response = virtualRouter.delete();
-		if (response.isError()) {
-			LOGGER.error(
-					String.format(Messages.Error.ERROR_WHILE_REMOVING_VR, publicIpInstanceId, response.getMessage()));
-		}
+		
+		// TODO ...
 	}
 
 	@Override
 	public PublicIpInstance getInstance(String publicIpInstanceId, Token localUserAttributes)
 			throws FogbowRasException, UnexpectedException {
 
-		LOGGER.info(
-				String.format(Messages.Info.GETTING_INSTANCE, publicIpInstanceId, localUserAttributes.getTokenValue()));
+		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, publicIpInstanceId, localUserAttributes.getTokenValue()));
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
-		VirtualRouter virtualRouter = this.factory.createVirtualRouter(client, publicIpInstanceId);
-		return createVirtualRouterInstance(virtualRouter);
+		
+		// TODO ...
+		return null;
 	}
 
 	private PublicIpInstance createVirtualRouterInstance(VirtualRouter virtualRouter) {
