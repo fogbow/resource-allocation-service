@@ -145,32 +145,6 @@ public class OpenNebulaClientFactory {
 		return virtualNetwork;
 	}
 
-	public VirtualRouter createVirtualRouter(Client client, String instanceId)
-			throws UnauthorizedRequestException, InstanceNotFoundException {
-
-		int id = 0;
-		try {
-			id = Integer.parseInt(instanceId);
-		} catch (Exception e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_INSTANCE_ID, instanceId));
-			throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
-		}
-		VirtualRouter virtualRouter = new VirtualRouter(id, client);
-		OneResponse response = virtualRouter.info();
-
-		if (response.isError()) {
-			String message = response.getErrorMessage();
-			LOGGER.error(message);
-			// Not authorized to perform
-			if (message.contains(RESPONSE_NOT_AUTORIZED)) {
-				throw new UnauthorizedRequestException();
-			}
-			// Error getting virtual router
-			throw new InstanceNotFoundException(message);
-		}
-		return virtualRouter;
-	}
-	
 	public TemplatePool createTemplatePool(Client client) throws UnexpectedException {
 		TemplatePool templatePool = new TemplatePool(client);
 		OneResponse response = templatePool.infoAll();
@@ -232,18 +206,6 @@ public class OpenNebulaClientFactory {
 			}
 			throw new InvalidParameterException(message);
 		}
-		return response.getMessage();
-	}
-	
-	public String allocateVirtualRouter(Client client, String template) {
-		OneResponse response = VirtualRouter.allocate(client, template);
-		if (response.isError()) {
-			String message = response.getErrorMessage();
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_ROUTER, template));
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
-			throw new InvalidParameterException(message);
-		}
-		VirtualNetwork.chmod(client, response.getIntMessage(), 744);
 		return response.getMessage();
 	}
 	
