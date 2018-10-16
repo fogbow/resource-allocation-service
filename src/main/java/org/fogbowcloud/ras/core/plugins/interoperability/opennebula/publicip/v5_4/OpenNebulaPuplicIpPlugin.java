@@ -1,6 +1,10 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
+import java.util.Properties;
+
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -10,8 +14,10 @@ import org.fogbowcloud.ras.core.models.orders.PublicIpOrder;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.PublicIpPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
+import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
+import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vm.VirtualMachine;
 import org.opennebula.client.vrouter.VirtualRouter;
 
@@ -19,9 +25,16 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<Token> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaPuplicIpPlugin.class);
 
+	private static final String DEFAULT_NETWORK_BRIDGE = "default_network_bridge";
+
 	private OpenNebulaClientFactory factory;
+	private String bridge;
 
 	public OpenNebulaPuplicIpPlugin(OpenNebulaClientFactory factory) {
+		Properties properties = PropertiesUtil
+				.readProperties(HomeDir.getPath() + DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME);
+		
+		this.bridge = properties.getProperty(DEFAULT_NETWORK_BRIDGE);
 		this.factory = new OpenNebulaClientFactory();
 	}
 
@@ -34,10 +47,9 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<Token> {
 		
 		// TODO create default virtual network with public ip associated... 
 		
-		String networkId = "";
+		String nicId = PublicIpNetwork.createDefaultVirtualNetwork();
 		
-		CreateNicRequest request = new CreateNicRequest.Builder().nicId(networkId).build();
-		
+		CreateNicRequest request = new CreateNicRequest.Builder().nicId(nicId).build();
 		String template = request.getNic().generateTemplate();
 				
 		VirtualMachine virtualMachine = this.factory.createVirtualMachine(client, computeInstanceId);
@@ -87,4 +99,13 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<Token> {
 		return publicIpInstance;
 	}
 
+	public static class PublicIpNetwork {
+
+		public static String createDefaultVirtualNetwork() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+		
+	}
+	
 }
