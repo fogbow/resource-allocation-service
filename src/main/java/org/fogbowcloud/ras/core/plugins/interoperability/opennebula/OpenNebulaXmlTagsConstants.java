@@ -41,6 +41,7 @@ public class OpenNebulaXmlTagsConstants {
 		public static final String AR = "AR";
 		public static final String IP = "IP";
 		public static final String SIZE = "SIZE";
+		public static final String SECURITY_GROUPS = "SECURITY_GROUPS";
 	}
 
 }
