@@ -10,15 +10,22 @@ public class CreateNicRequest {
 
 	public CreateNicRequest(Builder builder) {
 		String nicId = builder.nicId;
-		this.nic = new NicTemplate(nicId);
+		String sgId = builder.sgId;
+		this.nic = new NicTemplate(nicId, sgId);
 	}
 
 	public static class Builder {
 
 		private String nicId;
+		private String sgId;
 
 		public Builder nicId(String nicId) {
 			this.nicId = nicId;
+			return this;
+		}
+		
+		public Builder sgId(String sgId) {
+			this.sgId = sgId;
 			return this;
 		}
 
