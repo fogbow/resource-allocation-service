@@ -29,7 +29,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     private static final Logger LOGGER = Logger.getLogger(OpenStackComputePlugin.class);
 
     public static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
-    protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
+    public static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
+    public static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
     protected static final String ID_JSON_FIELD = "id";
     protected static final String NAME_JSON_FIELD = "name";
     protected static final String SERVER_JSON_FIELD = "server";
@@ -55,7 +56,6 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     protected static final String SERVERS = "/servers";
     protected static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
     protected static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
-    protected static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
     protected static final String ADDRESS_FIELD = "addresses";
     protected static final String PROVIDER_NETWORK_FIELD = "provider";
     protected static final String ADDR_FIELD = "addr";

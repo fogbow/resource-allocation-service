@@ -12,6 +12,7 @@ import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackStateMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
+import org.fogbowcloud.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupResponse;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -46,23 +47,29 @@ public class OpenStackPublicIpPluginTest {
 	
 	// test case: success case
 	@Test
-	public void testROequestInstanceTest() throws Exception {
+	public void testRequestInstanceTest() throws Exception {
 		// set up
 		String computeInstanceId = "computeInstanceId";
 		PublicIpOrder publicIpOrder = new PublicIpOrder();
 		String externalNetworkId = "externalNetId";
-		String floatingIpEndpoint = "http://endpoint";
+		String floatingIpEndpoint = "http://floatingIpEndpoint";
 		String portId = "portId";
 		String createFloatingIpRequestBody = createFloatingIpRequestBody(externalNetworkId, FAKE_PROJECT_ID, portId);
 		String floatingIpId = "floatingIpId";
 		String responseCreateFloatingIp = getCreateFloatingIpResponseJson(floatingIpId);
-		
+		String responseCreateSecurityGroup = getCreateSecurityGroupResponseJson("securityGroupId");
+
 		Mockito.doReturn(portId).when(this.openStackPublicIpPlugin).getNetworkPortIp(
 				Mockito.eq(computeInstanceId), Mockito.eq(this.openStackV3Token));
 		Mockito.when(this.openStackPublicIpPlugin.getExternalNetworkId()).thenReturn(externalNetworkId);
 		Mockito.when(this.openStackPublicIpPlugin.getFloatingIpEndpoint()).thenReturn(floatingIpEndpoint);
+
 		Mockito.when(this.httpClient.doPostRequest(
-				Mockito.anyString(), Mockito.any(OpenStackV3Token.class), Mockito.anyString()))
+				Mockito.endsWith("security-groups"), Mockito.any(OpenStackV3Token.class), Mockito.anyString()))
+				.thenReturn(responseCreateSecurityGroup);
+
+		Mockito.when(this.httpClient.doPostRequest(
+				Mockito.eq(floatingIpEndpoint), Mockito.any(OpenStackV3Token.class), Mockito.anyString()))
 				.thenReturn(responseCreateFloatingIp);
 		
 		// exercise
@@ -82,12 +89,18 @@ public class OpenStackPublicIpPluginTest {
 		// set up
 		String computeInstanceId = "computeInstanceId";
 		PublicIpOrder publicIpOrder = new PublicIpOrder();
+		String responseCreateSecurityGroup = getCreateSecurityGroupResponseJson("securityGroupId");
+
+		Mockito.when(this.httpClient.doPostRequest(
+				Mockito.endsWith("security-groups"), Mockito.any(OpenStackV3Token.class), Mockito.anyString()))
+				.thenReturn(responseCreateSecurityGroup);
+
 		Mockito.doThrow(new FogbowRasException()).when(this.openStackPublicIpPlugin).getNetworkPortIp(
 				Mockito.eq(computeInstanceId), Mockito.eq(this.openStackV3Token));
-		
+
 		// exercise
 		this.openStackPublicIpPlugin.requestInstance(publicIpOrder, computeInstanceId, this.openStackV3Token);
-		
+
 		// verify
 		Mockito.verify(this.httpClient, Mockito.times(0)).doPostRequest(
 				Mockito.anyString(), 
@@ -283,7 +296,7 @@ public class OpenStackPublicIpPluginTest {
 		this.openStackPublicIpPlugin.setProperties(properties);
 		
 		// exercise
-		String neutroApiEndpoint = this.openStackPublicIpPlugin.getNeutroApiEndpoint();
+		String neutroApiEndpoint = this.openStackPublicIpPlugin.getNeutronApiEndpoint();
 		
 		//verify
 		Assert.assertEquals(neutroEndpoint, neutroApiEndpoint);
@@ -308,7 +321,7 @@ public class OpenStackPublicIpPluginTest {
 		Mockito.verify(this.openStackPublicIpPlugin, Mockito.times(1))
 				.getExternalNetworkId();
 		Mockito.verify(this.openStackPublicIpPlugin, Mockito.times(1))
-				.getNeutroApiEndpoint();
+				.getNeutronApiEndpoint();
 	}
 	
 	// test case: without default network in properties
@@ -348,7 +361,7 @@ public class OpenStackPublicIpPluginTest {
 			Mockito.verify(this.openStackPublicIpPlugin, Mockito.timeout(1))
 					.getExternalNetworkId();		
 			Mockito.verify(this.openStackPublicIpPlugin, Mockito.never())
-					.getNeutroApiEndpoint();			
+					.getNeutronApiEndpoint();
 		} catch (Exception e) {
 			Assert.fail();
 		}
@@ -374,7 +387,7 @@ public class OpenStackPublicIpPluginTest {
 			Mockito.verify(this.openStackPublicIpPlugin, Mockito.timeout(1))
 					.getExternalNetworkId();		
 			Mockito.verify(this.openStackPublicIpPlugin, Mockito.timeout(1))
-					.getNeutroApiEndpoint();			
+					.getNeutronApiEndpoint();
 		} catch (Exception e) {
 			Assert.fail();
 		}
@@ -500,5 +513,10 @@ public class OpenStackPublicIpPluginTest {
 		
 		return createBody.toJson();
 	}
-	
+
+	public String getCreateSecurityGroupResponseJson(String id) {
+		CreateSecurityGroupResponse.SecurityGroup securityGroup = new CreateSecurityGroupResponse.SecurityGroup(id);
+		return new CreateSecurityGroupResponse(securityGroup).toJson();
+	}
+
 }

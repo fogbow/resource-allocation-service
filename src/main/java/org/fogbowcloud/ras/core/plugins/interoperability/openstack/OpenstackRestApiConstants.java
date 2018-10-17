@@ -39,6 +39,7 @@ public class OpenstackRestApiConstants {
         public static final String UUID_KEY_JSON = "uuid";
         public static final String KEY_PAIR_KEY_JSON = "keypair";
         public static final String PUBLIC_KEY_KEY_JSON = "public_key";
+        public static final String ADD_SECURITY_GROUP_KEY_JSON = "addSecurityGroup";
     }
 
     public static class Network {
