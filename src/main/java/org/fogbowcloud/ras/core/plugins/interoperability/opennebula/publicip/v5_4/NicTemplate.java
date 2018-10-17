@@ -2,6 +2,7 @@ package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5
 
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualMachine.NETWORK_ID;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualMachine.NETWORK_INTERFACE_CONNECTED;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualNetwork.SECURITY_GROUPS;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -12,9 +13,11 @@ import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaRe
 public class NicTemplate extends OpenNebulaRequestTemplate {
 
 	private String networkId;
+	private String securityGroups;
 
-	public NicTemplate(String networkId) {
+	public NicTemplate(String networkId, String securityGroups) {
 		this.networkId = networkId;
+		this.securityGroups = securityGroups;
 	}
 
 	@XmlElement(name = NETWORK_ID)
@@ -24,5 +27,14 @@ public class NicTemplate extends OpenNebulaRequestTemplate {
 
 	public void setNetworkId(String networkId) {
 		this.networkId = networkId;
+	}
+
+	@XmlElement(name = SECURITY_GROUPS)
+	public String getSecurityGroups() {
+		return securityGroups;
+	}
+
+	public void setSecurityGroups(String securityGroups) {
+		this.securityGroups = securityGroups;
 	}
 }
