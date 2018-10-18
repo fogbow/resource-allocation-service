@@ -2,30 +2,35 @@ package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5
 
 public class CreateNicRequest {
 
-	private NicTemplate nic;
+	private NetworkInterfaceConnected nic;
+	private SecurityGroups securityGroups;
 
-	public NicTemplate getNic() {
+	public NetworkInterfaceConnected getNic() {
 		return this.nic;
 	}
 
+	public SecurityGroups getSecurityGroups() {
+		return securityGroups;
+	}
+	
 	public CreateNicRequest(Builder builder) {
 		String nicId = builder.nicId;
-		String sgId = builder.sgId;
-		this.nic = new NicTemplate(nicId, sgId);
+		String securityGroups = builder.securityGroups;
+		this.nic = new NetworkInterfaceConnected(nicId, securityGroups);
 	}
 
 	public static class Builder {
 
 		private String nicId;
-		private String sgId;
+		private String securityGroups;
 
 		public Builder nicId(String nicId) {
 			this.nicId = nicId;
 			return this;
 		}
 		
-		public Builder sgId(String sgId) {
-			this.sgId = sgId;
+		public Builder securityGroups(String securityGroups) {
+			this.securityGroups = securityGroups;
 			return this;
 		}
 
