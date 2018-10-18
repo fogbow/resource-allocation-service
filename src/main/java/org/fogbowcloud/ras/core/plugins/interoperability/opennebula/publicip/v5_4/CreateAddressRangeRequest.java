@@ -2,25 +2,23 @@ package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5
 
 public class CreateAddressRangeRequest {
 
-	private ArTemplate addressRange;
+	private AddressRange addressRange;
 	
-	public ArTemplate getAddressRange() {
+	public AddressRange getAddressRange() {
 		return this.addressRange;
 	}
 	
 	public CreateAddressRangeRequest(Builder builder) {
 		String type = builder.type;
 		String ip = builder.ip;
-		String mac = builder.mac;
 		String size = builder.size;
-		this.addressRange = new ArTemplate(type, ip, mac, size);
+		this.addressRange = new AddressRange(type, ip, size);
 	}
 	
 	public static class Builder {
 
 		private String type;
 		private String ip;
-		private String mac;
 		private String size;
 		
 		public Builder type(String type) {
@@ -33,11 +31,6 @@ public class CreateAddressRangeRequest {
 			return this;
 		}
 		
-		public Builder mac(String mac) {
-			this.mac = mac;
-			return this;
-		}
-
 		public Builder size(String size) {
 			this.size = size;
 			return this;
