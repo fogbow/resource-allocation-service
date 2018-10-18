@@ -8,12 +8,19 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaRequestTemplate;
+
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "TEMPLATE")
-public class SgTemplate {
+public class SecurityGroups extends OpenNebulaRequestTemplate {
 
 	private String name;
 	private List<Rule> rules;
+
+	public SecurityGroups(String name, List<Rule> rules) {
+		this.name = name;
+		this.rules = rules;
+	}
 
 	@XmlElement(name = "NAME")
 	public String getName() {
@@ -34,12 +41,10 @@ public class SgTemplate {
 		this.rules = rules;
 	}
 	
-	@XmlRootElement(name = "RULE")
-	public class Rule {
+	public static abstract class Rule {
 		
-		private String protocol;
-		private String ruleType;
-		private String range;
+		protected String protocol;
+		protected String type;
 		
 		@XmlElement(name = "PROTOCOL")
 		public String getProtocol() {
@@ -51,15 +56,21 @@ public class SgTemplate {
 		}
 		
 		@XmlElement(name = "RULE_TYPE")
-		public String getRuleType() {
-			return ruleType;
+		public String getType() {
+			return type;
 		}
 		
-		public void setRuleType(String ruleType) {
-			this.ruleType = ruleType;
+		public void setType(String type) {
+			this.type = type;
 		}
+	}
+	
+	@XmlRootElement(name = "RULE")
+	public static class SafetyRule {
 		
-		@XmlElement(name = "RANGE")
+		private String range;
+		 
+ 		@XmlElement(name = "RANGE")
 		public String getRange() {
 			return range;
 		}
@@ -67,6 +78,26 @@ public class SgTemplate {
 		public void setRange(String range) {
 			this.range = range;
 		}
-		
+	}
+	
+	@XmlRootElement(name = "RULE")
+	public static class DefaultRule extends Rule {
+
+		private int networkId;
+
+		public DefaultRule(String protocol, String type, int networkId) {
+			this.protocol = protocol;
+			this.type = type;
+			this.networkId = networkId;
+		}
+
+		@XmlElement(name = "NETWORK_ID")
+		public int getNetworkId() {
+			return networkId;
+		}
+
+		public void setNetworkId(int networkId) {
+			this.networkId = networkId;
+		}
 	}
 }
