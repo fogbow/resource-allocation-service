@@ -10,12 +10,12 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaRequestTemplate;
 
 @XmlRootElement(name = NETWORK_INTERFACE_CONNECTED)
-public class NicTemplate extends OpenNebulaRequestTemplate {
+public class NetworkInterfaceConnected extends OpenNebulaRequestTemplate {
 
 	private String networkId;
 	private String securityGroups;
 
-	public NicTemplate(String networkId, String securityGroups) {
+	public NetworkInterfaceConnected(String networkId, String securityGroups) {
 		this.networkId = networkId;
 		this.securityGroups = securityGroups;
 	}
