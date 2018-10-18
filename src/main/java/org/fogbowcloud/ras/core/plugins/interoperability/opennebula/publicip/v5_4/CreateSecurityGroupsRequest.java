@@ -4,27 +4,35 @@ import java.util.List;
 
 public class CreateSecurityGroupsRequest {
 
-	private SgTemplate securityGroups;
+	private SecurityGroups securityGroups;
 
-	public SgTemplate getSecurityGroups() {
+	public SecurityGroups getSecurityGroups() {
 		return this.securityGroups;
 	}
 
 	public CreateSecurityGroupsRequest(Builder builder) {
-		super();
 		String name = builder.name;
-		List<SgTemplate.Rule> rules = builder.rules;
-//		this.securityGroups = new SgTemplate(name, rules);
-		// TODO Auto-generated constructor stub
+		List<SecurityGroups.Rule> rules = builder.rules;
+		this.securityGroups = new SecurityGroups(name, rules);
 	}
 	
 	public static class Builder {
 		
 		private String name;
-		private List<SgTemplate.Rule> rules; // FIXME ...
+		private List<SecurityGroups.Rule> rules;
 		
+		public Builder name(String name) {
+			this.name = name;
+			return this;
+		}
 		
+		public Builder rules(List<SecurityGroups.Rule> rules) {
+			this.rules = rules;
+			return this;
+		}
 		
+		public CreateSecurityGroupsRequest build() {
+			return new CreateSecurityGroupsRequest(this);
+		}
 	}
-	
 }
