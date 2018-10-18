@@ -26,7 +26,6 @@ import org.opennebula.client.user.UserPool;
 import org.opennebula.client.vm.VirtualMachine;
 import org.opennebula.client.vm.VirtualMachinePool;
 import org.opennebula.client.vnet.VirtualNetwork;
-import org.opennebula.client.vrouter.VirtualRouter;
 
 public class OpenNebulaClientFactory {
 
