@@ -3,13 +3,18 @@ package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
+import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.instances.PublicIpInstance;
 import org.fogbowcloud.ras.core.models.orders.PublicIpOrder;
 import org.fogbowcloud.ras.core.models.tokens.Token;
@@ -30,12 +35,13 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<Token> {
 	private static final String DEFAULT_ADDRESS_RANGE_TYPE = "IP4";
 	private static final String DEFAULT_ADDRESS_RANGE_SIZE_KEY = "default_address_range_size";
 	private static final String DEFAULT_SECURITY_GROUPS_ID_KEY = "default_security_groups_id";
+	private static final String ID_SEPARATOR = " ";
 	private static final String INSTANCE_ID = "%s %s %s";
 	private static final String PUBLIC_IP_NAME = "Public_IP";
 	private static final String SECURITY_GROUP_PROTOCOL = "ICMP";
 	private static final String SECURITY_GROUP_INPUT_RULE_TYPE = "inbound";
 	private static final String SECURITY_GROUP_OUTPUT_RULE_TYPE = "outbound";
-	private static final String SEPARATOR = " ";
+	private static final String VIRTUAL_MACHINE_NIC_IP_PATH = "VM/NIC/IP";
 
 	private OpenNebulaClientFactory factory;
 	private String networkId;
@@ -63,12 +69,14 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<Token> {
 
 		int id = Integer.parseInt(this.networkId);
 		VirtualNetwork virtualNetwork = new VirtualNetwork(id, client);
-		addPublicIp(virtualNetwork);
+		String addressRangeId = addPublicIp(virtualNetwork);
+		String securityGroupsId = updateSecurityGroups(client, virtualNetwork);
+		String nicId = UUID.randomUUID().toString();
 
-		String securityGroups = updateSecurityGroups(client, virtualNetwork);
 		CreateNicRequest request = new CreateNicRequest.Builder()
-				.nicId(this.networkId)
-				.securityGroups(securityGroups)
+				.nicId(nicId)
+				.networkId(this.networkId)
+				.securityGroups(securityGroupsId)
 				.build();
 		
 		String template = request.getNic().generateTemplate();
@@ -80,7 +88,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<Token> {
 			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
 		}
 		
-		String instanceId = String.format(INSTANCE_ID, virtualMachine.getId(), virtualNetwork.getId(), securityGroups);
+		String instanceId = String.format(INSTANCE_ID, virtualMachine.getId(), nicId, addressRangeId);
 		return instanceId;
 	}
 
@@ -92,7 +100,13 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<Token> {
 				localUserAttributes.getTokenValue()));
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 
-		// TODO ...
+		String[] instanceIds = publicIpInstanceId.split(ID_SEPARATOR);
+		String virtualMachineId = instanceIds[0];
+		int nicId = Integer.parseInt(instanceIds[1]);
+		int arId = Integer.parseInt(instanceIds[2]);
+		
+		detachNicFromVirtualMachine(client, virtualMachineId, nicId);
+		freeAddressRangeFromVirtualNetwork(client, arId);
 	}
 
 	@Override
@@ -103,10 +117,40 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<Token> {
 				String.format(Messages.Info.GETTING_INSTANCE, publicIpInstanceId, localUserAttributes.getTokenValue()));
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 
-		// TODO ...
-		return null;
+		String[] instanceIds = publicIpInstanceId.split(ID_SEPARATOR);
+		String virtualMachineId = instanceIds[0];
+
+		VirtualMachine virtualMachine = this.factory.createVirtualMachine(client, virtualMachineId);
+		String publicIp = virtualMachine.xpath(VIRTUAL_MACHINE_NIC_IP_PATH);
+		InstanceState instanceState = InstanceState.READY;
+		
+		LOGGER.info(String.format(Messages.Info.MOUNTING_INSTANCE, publicIpInstanceId));
+		PublicIpInstance publicIpInstance = new PublicIpInstance(publicIpInstanceId, instanceState, publicIp);
+		return publicIpInstance;
 	}
 
+	private void freeAddressRangeFromVirtualNetwork(Client client, int arId)
+			throws UnauthorizedRequestException, InstanceNotFoundException {
+		
+		VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, this.networkId);
+		OneResponse response = virtualNetwork.free(arId);
+		if (response.isError()) {
+			String message = response.getErrorMessage();
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
+		}
+	}
+
+	private void detachNicFromVirtualMachine(Client client, String virtualMachineId, int nicId)
+			throws UnauthorizedRequestException, InstanceNotFoundException {
+		
+		VirtualMachine virtualMachine = this.factory.createVirtualMachine(client, virtualMachineId);
+		OneResponse response = virtualMachine.nicDetach(nicId);
+		if (response.isError()) {
+			String message = response.getErrorMessage();
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
+		}
+	}
+	
 	private String updateSecurityGroups(Client client, VirtualNetwork virtualNetwork) {
 		int id = Integer.parseInt(this.securityGroupsId);
 		SecurityGroup securityGroup = new SecurityGroup(id, client);
@@ -138,12 +182,14 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<Token> {
 		return securityGroup.getId();
 	}
 
-	private void addPublicIp(VirtualNetwork virtualNetwork) {
+	private String addPublicIp(VirtualNetwork virtualNetwork) throws InvalidParameterException {
+		String arId = UUID.randomUUID().toString();
 		String type = DEFAULT_ADDRESS_RANGE_TYPE;
 		String ip = this.addressRangeIp;
 		String size = this.addressRangeSize;
 		
 		CreateAddressRangeRequest request = new CreateAddressRangeRequest.Builder()
+				.arId(arId)
 				.type(type)
 				.ip(ip)
 				.size(size)
@@ -154,7 +200,9 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<Token> {
 		if (response.isError()) {
 			String message = response.getErrorMessage();
 			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
+			throw new InvalidParameterException(message);
 		}
+		return arId;
 	}
 	
 }
