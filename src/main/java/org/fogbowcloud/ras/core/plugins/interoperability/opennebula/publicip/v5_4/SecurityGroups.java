@@ -1,5 +1,13 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.SecurityGroups.NAME;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.SecurityGroups.NETWORK_ID;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.SecurityGroups.PROTOCOL;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.SecurityGroups.RANGE;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.SecurityGroups.RULE;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.SecurityGroups.RULE_TYPE;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.SecurityGroups.TEMPLATE;
+
 import java.util.List;
 
 import javax.xml.bind.annotation.XmlAccessType;
@@ -11,7 +19,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaRequestTemplate;
 
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlRootElement(name = "TEMPLATE")
+@XmlRootElement(name = TEMPLATE)
 public class SecurityGroups extends OpenNebulaRequestTemplate {
 
 	private String name;
@@ -22,7 +30,7 @@ public class SecurityGroups extends OpenNebulaRequestTemplate {
 		this.rules = rules;
 	}
 
-	@XmlElement(name = "NAME")
+	@XmlElement(name = NAME)
 	public String getName() {
 		return name;
 	}
@@ -32,7 +40,7 @@ public class SecurityGroups extends OpenNebulaRequestTemplate {
 	}
 
 	@XmlElementWrapper
-	@XmlElement(name = "RULE")
+	@XmlElement(name = RULE)
 	public List<Rule> getRules() {
 		return rules;
 	}
@@ -46,7 +54,7 @@ public class SecurityGroups extends OpenNebulaRequestTemplate {
 		protected String protocol;
 		protected String type;
 		
-		@XmlElement(name = "PROTOCOL")
+		@XmlElement(name = PROTOCOL)
 		public String getProtocol() {
 			return protocol;
 		}
@@ -55,7 +63,7 @@ public class SecurityGroups extends OpenNebulaRequestTemplate {
 			this.protocol = protocol;
 		}
 		
-		@XmlElement(name = "RULE_TYPE")
+		@XmlElement(name = RULE_TYPE)
 		public String getType() {
 			return type;
 		}
@@ -65,12 +73,12 @@ public class SecurityGroups extends OpenNebulaRequestTemplate {
 		}
 	}
 	
-	@XmlRootElement(name = "RULE")
+	@XmlRootElement(name = RULE)
 	public static class SafetyRule {
 		
 		private String range;
 		 
- 		@XmlElement(name = "RANGE")
+ 		@XmlElement(name = RANGE)
 		public String getRange() {
 			return range;
 		}
@@ -80,7 +88,7 @@ public class SecurityGroups extends OpenNebulaRequestTemplate {
 		}
 	}
 	
-	@XmlRootElement(name = "RULE")
+	@XmlRootElement(name = RULE)
 	public static class DefaultRule extends Rule {
 
 		private int networkId;
@@ -91,7 +99,7 @@ public class SecurityGroups extends OpenNebulaRequestTemplate {
 			this.networkId = networkId;
 		}
 
-		@XmlElement(name = "NETWORK_ID")
+		@XmlElement(name = NETWORK_ID)
 		public int getNetworkId() {
 			return networkId;
 		}
