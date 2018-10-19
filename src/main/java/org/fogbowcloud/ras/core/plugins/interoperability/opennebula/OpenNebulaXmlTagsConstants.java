@@ -15,6 +15,7 @@ public class OpenNebulaXmlTagsConstants {
 		public static final String NETWORK = "NETWORK";
 		public static final String NETWORK_ID = "NETWORK_ID";
 		public static final String NETWORK_INTERFACE_CONNECTED = "NIC";
+		public static final String NIC_ID = "NIC_ID";
 		public static final String SIZE = "SIZE";
 		public static final String NAME = "NAME";
 		public static final String TYPE = "TYPE";
@@ -26,7 +27,6 @@ public class OpenNebulaXmlTagsConstants {
 		public static final String OPENNEBULA_RAW_FSTYPE = "raw";
 		public static final String OPENNEBULA_DATASTORE_DEFAULT_DEVICE_PREFIX = "vd";
 		public static final String OPENNEBULA_PERSISTENT_DISK_YES = "YES";
-
 	}
 	
 	public static class VirtualNetwork {
@@ -42,6 +42,17 @@ public class OpenNebulaXmlTagsConstants {
 		public static final String IP = "IP";
 		public static final String SIZE = "SIZE";
 		public static final String SECURITY_GROUPS = "SECURITY_GROUPS";
+		public static final String AR_ID = "AR_ID";
 	}
 
+	public static class SecurityGroups {
+		
+		public static final String TEMPLATE = "TEMPLATE";
+		public static final String NAME = "NAME";
+		public static final String RULE = "RULE";
+		public static final String PROTOCOL = "PROTOCOL";
+		public static final String RULE_TYPE = "RULE_TYPE";
+		public static final String RANGE = "RANGE";
+		public static final String NETWORK_ID = "NETWORK_ID";
+	}
 }
