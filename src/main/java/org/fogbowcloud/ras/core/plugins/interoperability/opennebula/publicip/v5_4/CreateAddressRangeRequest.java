@@ -9,17 +9,24 @@ public class CreateAddressRangeRequest {
 	}
 	
 	public CreateAddressRangeRequest(Builder builder) {
+		String arId = builder.arId;
 		String type = builder.type;
 		String ip = builder.ip;
 		String size = builder.size;
-		this.addressRange = new AddressRange(type, ip, size);
+		this.addressRange = new AddressRange(arId, type, ip, size);
 	}
 	
 	public static class Builder {
 
+		private String arId;
 		private String type;
 		private String ip;
 		private String size;
+		
+		public Builder arId(String arId) {
+			this.arId = arId;
+			return this;
+		}
 		
 		public Builder type(String type) {
 			this.type = type;

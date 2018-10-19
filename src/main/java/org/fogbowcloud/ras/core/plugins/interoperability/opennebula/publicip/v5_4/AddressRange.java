@@ -1,24 +1,41 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualNetwork.AR;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualNetwork.AR_ID;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualNetwork.IP;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualNetwork.SIZE;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualNetwork.TYPE;
+
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaRequestTemplate;
 
-@XmlRootElement(name = "AR")
+@XmlRootElement(name = AR)
 public class AddressRange extends OpenNebulaRequestTemplate {
 
+	private String arId;
 	private String type;
 	private String ip;
 	private String size;
 	
-	public AddressRange(String type, String ip, String size) {
+	public AddressRange(String arId, String type, String ip, String size) {
+		this.arId = arId;
 		this.type = type;
 		this.ip = ip;
 		this.size = size;
 	}
 
-	@XmlElement(name = "TYPE")
+	@XmlElement(name = AR_ID)
+	public String getArId() {
+		return arId;
+	}
+
+	public void setArId(String arId) {
+		this.arId = arId;
+	}
+	
+	@XmlElement(name = TYPE)
 	public String getType() {
 		return type;
 	}
@@ -27,7 +44,7 @@ public class AddressRange extends OpenNebulaRequestTemplate {
 		this.type = type;
 	}
 	
-	@XmlElement(name = "IP")
+	@XmlElement(name = IP)
 	public String getIp() {
 		return ip;
 	}
@@ -36,7 +53,7 @@ public class AddressRange extends OpenNebulaRequestTemplate {
 		this.ip = ip;
 	}
 	
-	@XmlElement(name = "SIZE")
+	@XmlElement(name = SIZE)
 	public String getSize() {
 		return size;
 	}
