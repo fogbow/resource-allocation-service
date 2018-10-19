@@ -40,6 +40,7 @@ public class OpenstackRestApiConstants {
         public static final String KEY_PAIR_KEY_JSON = "keypair";
         public static final String PUBLIC_KEY_KEY_JSON = "public_key";
         public static final String ADD_SECURITY_GROUP_KEY_JSON = "addSecurityGroup";
+        public static final String REMOVE_SECURITY_GROUP_KEY_JSON = "removeSecurityGroup";
     }
 
     public static class Network {
@@ -65,6 +66,7 @@ public class OpenstackRestApiConstants {
         public static final String SUBNET_KEY_JSON = "subnet";
         public static final String SUBNETS_KEY_JSON = "subnets";
         public static final String STATUS_KEY_JSON = "status";
+        public static final String ETHER_TYPE_KEY_JSON = "ethertype";
     }
 
     public static class Image {

@@ -31,6 +31,9 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     public static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
     public static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
     public static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
+    public static final String SERVERS = "/servers";
+    public static final String ACTION = "action";
+
     protected static final String ID_JSON_FIELD = "id";
     protected static final String NAME_JSON_FIELD = "name";
     protected static final String SERVER_JSON_FIELD = "server";
@@ -53,7 +56,6 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     protected static final String UUID_JSON_FIELD = "uuid";
     protected static final String FOGBOW_INSTANCE_NAME = "ras-compute-";
     protected static final String PROJECT_ID = "projectId";
-    protected static final String SERVERS = "/servers";
     protected static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
     protected static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
     protected static final String ADDRESS_FIELD = "addresses";
@@ -247,8 +249,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
 
             String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
             if (!networkId.equals(defaultNetworkId)) {
-                String prefix = OpenStackNetworkPlugin.SECURITY_GROUP_PREFIX;
-                String securityGroupName = prefix + "-" + networkId;
+                String securityGroupName = OpenStackNetworkPlugin.getSGNameForPrivateNetwork(networkId);
                 securityGroups.add(new CreateComputeRequest.SecurityGroup(securityGroupName));
             }
         }
