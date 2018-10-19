@@ -3,29 +3,31 @@ package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5
 public class CreateNicRequest {
 
 	private NetworkInterfaceConnected nic;
-	private SecurityGroups securityGroups;
 
 	public NetworkInterfaceConnected getNic() {
 		return this.nic;
 	}
 
-	public SecurityGroups getSecurityGroups() {
-		return securityGroups;
-	}
-	
 	public CreateNicRequest(Builder builder) {
 		String nicId = builder.nicId;
+		String networkId = builder.networkId;
 		String securityGroups = builder.securityGroups;
-		this.nic = new NetworkInterfaceConnected(nicId, securityGroups);
+		this.nic = new NetworkInterfaceConnected(nicId, networkId, securityGroups);
 	}
 
 	public static class Builder {
 
 		private String nicId;
+		private String networkId;
 		private String securityGroups;
 
-		public Builder nicId(String nicId) {
-			this.nicId = nicId;
+		public Builder nicId(String id) {
+			this.nicId = id;
+			return this;
+		}
+		
+		public Builder networkId(String networkId) {
+			this.networkId = networkId;
 			return this;
 		}
 		
