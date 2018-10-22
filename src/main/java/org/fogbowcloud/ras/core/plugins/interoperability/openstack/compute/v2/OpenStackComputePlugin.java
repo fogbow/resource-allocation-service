@@ -189,13 +189,19 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     }
 
     private List<String> resolveNetworksId(ComputeOrder computeOrder) {
-        List<String> requestedNetworksId = new ArrayList<>();
         String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
 
         //We add the default network before any other network, because the order is very important to Openstack
         //request. Openstack will configure the routes to the external network by the first network found on request body.
-        requestedNetworksId.add(defaultNetworkId);
-        requestedNetworksId.addAll(computeOrder.getNetworksId());
+        List<String> networkIds = computeOrder.getNetworksId();
+        List<String> requestedNetworksId = new ArrayList<>();
+        boolean noNetworksProvided = networkIds == null ? true : networkIds.isEmpty();
+        if (noNetworksProvided) {
+            requestedNetworksId.add(defaultNetworkId);
+        } else {
+            requestedNetworksId.addAll(networkIds);
+        }
+
         computeOrder.setNetworksId(requestedNetworksId);
         return requestedNetworksId;
     }
