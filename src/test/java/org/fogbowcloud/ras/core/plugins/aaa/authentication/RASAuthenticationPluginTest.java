@@ -38,7 +38,7 @@ public class RASAuthenticationPluginTest {
 		PowerMockito.mockStatic(RASAuthenticationHolder.class);
 		BDDMockito.given(RASAuthenticationHolder.getInstance()).willReturn(this.rasAuthenticationHolder);
 		
-		this.rasAuthenticationPlugin = new RASAuthenticationPluginWrapper();
+		this.rasAuthenticationPlugin = Mockito.spy(new RASAuthenticationPluginWrapper());
 	}
 	
 	// test case: Same local member and is authenticated
@@ -70,6 +70,39 @@ public class RASAuthenticationPluginTest {
 		boolean isAuthenticated = this.rasAuthenticationPlugin.isAuthentic(requestingMember, federationUserToken);
 		
 		// verify
+		Assert.assertFalse(isAuthenticated);
+	}	
+	
+	// test case: The requesting member is not equals to local member and is equals to federationUserToken 
+	@Test
+	public void testIsAuthenticRequestingMemberEqualsToToken() throws UnauthenticatedUserException {
+		// set up
+		String requestingMember = "requestingmember";
+		FederationUserToken federationUserToken = new FederationUserToken(requestingMember, "", "", "");
+			    	    
+	    // exercise
+		boolean isAuthenticated = this.rasAuthenticationPlugin.isAuthentic(requestingMember, federationUserToken);
+		
+		// verify
+		Mockito.verify(this.rasAuthenticationHolder, Mockito.never()).verifySignature(Mockito.anyString(), Mockito.anyString());
+		Mockito.verify(this.rasAuthenticationPlugin, Mockito.never()).getTokenMessage(Mockito.any(FederationUserToken.class));
+		Assert.assertTrue(isAuthenticated);
+	}	
+	
+	// test case: The requesting member is not equals to local member and is not equals to federationUserToken 
+	@Test
+	public void testIsAuthenticRequestingMemberNotEqualsToToken() throws UnauthenticatedUserException {
+		// set up
+		String requestingMember = "requestingmember";
+		String requestingMemberOther = "other";
+		FederationUserToken federationUserToken = new FederationUserToken(requestingMemberOther, "", "", "");
+			    	    
+	    // exercise
+		boolean isAuthenticated = this.rasAuthenticationPlugin.isAuthentic(requestingMember, federationUserToken);
+		
+		// verify
+		Mockito.verify(this.rasAuthenticationHolder, Mockito.never()).verifySignature(Mockito.anyString(), Mockito.anyString());
+		Mockito.verify(this.rasAuthenticationPlugin, Mockito.never()).getTokenMessage(Mockito.any(FederationUserToken.class));
 		Assert.assertFalse(isAuthenticated);
 	}	
 	
