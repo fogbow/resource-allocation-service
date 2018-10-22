@@ -19,15 +19,17 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(DatabaseManager.class)
+@PrepareForTest({ DatabaseManager.class, SharedOrderHolders.class })
 public class ApplicationFacadeTest extends BaseUnitTests {
 
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
@@ -76,7 +78,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
+        this.activeOrdersMap = Mockito.spy(sharedOrderHolders.getActiveOrdersMap());
     }
 
     // test case: When calling the method deleteCompute(), the Order passed as parameter must

@@ -230,7 +230,7 @@ public class OpenStackPublicIpPluginTest {
 		String endpointExcepted = String.format("%s/%s", floatingIpEndpoint, floatingIpId);		
 		
 		// exercise
-		this.openStackPublicIpPlugin.deleteInstance(floatingIpId, openStackV3Token);
+		this.openStackPublicIpPlugin.deleteInstance(floatingIpId, null, openStackV3Token);
 		
 		// verify
 		Mockito.verify(this.httpClient, Mockito.times(1))
@@ -251,7 +251,7 @@ public class OpenStackPublicIpPluginTest {
 				this.httpClient).doDeleteRequest(Mockito.anyString(), Mockito.any(Token.class));
 		
 		// exercise
-		this.openStackPublicIpPlugin.deleteInstance(floatingIpId, openStackV3Token);
+		this.openStackPublicIpPlugin.deleteInstance(floatingIpId, null, openStackV3Token);
 	}	
 	
 	// test case: success case

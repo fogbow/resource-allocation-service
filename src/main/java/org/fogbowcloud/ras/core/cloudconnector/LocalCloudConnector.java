@@ -2,6 +2,7 @@ package org.fogbowcloud.ras.core.cloudconnector;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.InteroperabilityPluginsHolder;
+import org.fogbowcloud.ras.core.OrderController;
 import org.fogbowcloud.ras.core.SharedOrderHolders;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
@@ -142,7 +143,8 @@ public class LocalCloudConnector implements CloudConnector {
                         this.attachmentPlugin.deleteInstance(order.getInstanceId(), token);
                         break;
                     case PUBLIC_IP:
-                        this.publicIpPlugin.deleteInstance(order.getInstanceId(), token);
+                        String computeInstanceId = getComputeInstanceId((PublicIpOrder) order);
+                        this.publicIpPlugin.deleteInstance(order.getInstanceId(), computeInstanceId, token);
                         break;
                     default:
                         LOGGER.error(String.format(Messages.Error.DELETE_INSTANCE_PLUGIN_NOT_IMPLEMENTED, order.getType()));
@@ -158,6 +160,13 @@ public class LocalCloudConnector implements CloudConnector {
             LOGGER.warn(Messages.Warn.INSTANCE_ALREADY_DELETED);
             return;
         }
+    }
+
+    private String getComputeInstanceId(PublicIpOrder order) {
+        PublicIpOrder publicIpOrder = order;
+        String computeOrderId = publicIpOrder.getComputeOrderId();
+        Order computeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(computeOrderId);
+        return computeOrder == null ? null : computeOrder.getInstanceId();
     }
 
     @Override

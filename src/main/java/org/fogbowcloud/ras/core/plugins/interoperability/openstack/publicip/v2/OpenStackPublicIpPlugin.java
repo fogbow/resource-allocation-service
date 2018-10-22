@@ -148,11 +148,13 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
     }
 
     @Override
-    public void deleteInstance(String floatingIpId, OpenStackV3Token openStackV3Token) throws FogbowRasException, UnexpectedException {
+    public void deleteInstance(String floatingIpId, String computeInstanceId, OpenStackV3Token openStackV3Token) throws FogbowRasException, UnexpectedException {
         try {
             String securityGroupName = getSecurityGroupName(floatingIpId);
             // TODO continue this
+            // if (computeInstanceId != null) {
 //            disassociateSecurityGroupFromCompute(securityGroupName, computeInstanceId, openStackV3Token);
+            // }
 //            removeSecurityGroup(securityGroupId, openStackV3Token);
 
             String floatingIpEndpointPrefix = getFloatingIpEndpoint();

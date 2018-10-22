@@ -18,7 +18,7 @@ public class StubPublicIpPlugin implements PublicIpPlugin {
     }
 
     @Override
-    public void deleteInstance(String publicIpInstanceId, Token token) throws FogbowRasException, UnexpectedException {
+    public void deleteInstance(String publicIpInstanceId, String computeInstanceId, Token token) throws FogbowRasException, UnexpectedException {
 
     }
 

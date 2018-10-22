@@ -92,7 +92,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
     }
 
     @Override
-    public void deleteInstance(String publicIpInstanceId, CloudStackToken cloudStackToken)
+    public void deleteInstance(String publicIpInstanceId, String computeInstanceId, CloudStackToken cloudStackToken)
             throws FogbowRasException, UnexpectedException {
         // since we returned the id of the order on requestInstance, publicIpInstanceId
         // should be the id of the order
@@ -149,7 +149,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
                 break;
             case FAILURE:
                 // any failure should lead to a disassociation of the ip address
-                deleteInstance(orderId, token);
+                deleteInstance(orderId, null, token);
                 result = new PublicIpInstance(null, InstanceState.FAILED, null);
                 break;
             default:
