@@ -30,10 +30,9 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     public static final String V3_TOKENS_ENDPOINT_PATH = "/auth/tokens";
     public static final String X_SUBJECT_TOKEN = "X-Subject-Token";
     public static final String OPENSTACK_TOKEN_STRING_SEPARATOR = "!#!";
-    public static final String PROJECT_NAME = "projectName";
+    public static final String PROJECT_NAME = "projectname";
     public static final String PASSWORD = "password";
-    public static final String USER_ID = "userId";
-    public static final String USER_NAME = "userName";
+    public static final String USER_NAME = "username";
     public static final Object DOMAIN = "domain";
     public static final int OPENSTACK_TOKEN_NUMBER_OF_FIELDS = 6;
 

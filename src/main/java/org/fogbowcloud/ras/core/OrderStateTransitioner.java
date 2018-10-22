@@ -46,9 +46,9 @@ public class OrderStateTransitioner {
             if (order.isRequesterRemote(localMemberId)) {
                 try {
                     switch (newState) {
-                        case FAILED:
+                        case FAILED_AFTER_SUCCESSUL_REQUEST:
+                        case FAILED_ON_REQUEST:
                             notifyRequester(order, Event.INSTANCE_FAILED);
-                            newState = OrderState.CLOSED;
                             break;
                         case FULFILLED:
                             notifyRequester(order, Event.INSTANCE_FULFILLED);

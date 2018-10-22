@@ -88,10 +88,18 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		String ram = String.valueOf(foundFlavor.getRam());
 		String disk = String.valueOf(foundFlavor.getDisk());
 
-		CreateComputeRequest request = new CreateComputeRequest.Builder().contextEncoding(encoding)
-				.contextUserdata(userData).contextNetwork(hasNetwork).cpu(cpu).graphicsListen(address)
-				.graphicsType(graphicsType).imageId(imageId).volumeSize(disk).volumeType(volumeType).memory(ram)
-				.networkId(networkId).build();
+		CreateComputeRequest request = new CreateComputeRequest.Builder()
+				.contextEncoding(encoding)
+				.contextUserdata(userData)
+				.contextNetwork(hasNetwork)
+				.cpu(cpu).graphicsListen(address)
+				.graphicsType(graphicsType)
+				.imageId(imageId)
+				.volumeSize(disk)
+				.volumeType(volumeType)
+				.memory(ram)
+				.networkId(networkId)
+				.build();
 
 		String template = request.getVirtualMachine().generateTemplate();
 		return this.factory.allocateVirtualMachine(client, template);
@@ -257,10 +265,13 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		int cpu = Integer.parseInt(virtualMachine.xpath(TEMPLATE_CPU_PATH));
 		int disk = Integer.parseInt(virtualMachine.xpath(TEMPLATE_DISK_SIZE_PATH));
 		int memory = Integer.parseInt(virtualMachine.xpath(TEMPLATE_MEMORY_PATH));
-		String privateIp = virtualMachine.xpath(TEMPLATE_NIC_IP_PATH);
 
 		String state = virtualMachine.lcmStateStr();
 		InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.COMPUTE, state);
+		
+		String privateIp = virtualMachine.xpath(TEMPLATE_NIC_IP_PATH);
+		List<String> privateIpList = new ArrayList<>();
+		privateIpList.add(privateIp);
 
 		LOGGER.info(String.format(Messages.Info.MOUNTING_INSTANCE, id));
 		ComputeInstance computeInstance = new ComputeInstance(
@@ -270,7 +281,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 				cpu, 
 				memory, 
 				disk, 
-				privateIp);
+				privateIpList);
 		
 		return computeInstance;
 	}

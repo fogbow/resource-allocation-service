@@ -37,6 +37,7 @@ public class Messages {
         public static final String QUOTA_EXCEEDED = "Quota exceeded.";
         public static final String REQUESTER_DOES_NOT_OWN_REQUEST = "Requester does not own request.";
         public static final String RESOURCE_TYPE_NOT_IMPLEMENTED = "Resouce type not yet implemented.";
+        public static final String SIGNALING_MEMBER_DIFFERENT_OF_PROVIDER = "Signalling member %s is not the provider %s.";
         public static final String TOO_BIG_PUBLIC_KEY = "Too big public key.";
         public static final String TOO_BIG_USER_DATA_FILE_CONTENT = "Too big user data file.";
         public static final String UNABLE_TO_FIND_LIST_FOR_REQUESTS = "Unable to find list for requests in state %s.";
@@ -73,7 +74,6 @@ public class Messages {
         public static final String NETWORK_NOT_FOUND = "Network id %s was not found when trying to delete it.";
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_CONTENT_NULL = "Unable to add the extra user data file; content is null.";
         public static final String UNABLE_TO_ADD_EXTRA_USER_DATA_FILE_TYPE_NULL = "Unable to add the extra user data file; file type is null.";
-        public static final String UNABLE_TO_ENCODE_EXTRA_USER_DATA = "Unable to encode user data; sending request without it.";
         public static final String UNABLE_TO_DECODE_URL = "Unable to decode url %s.";
         public static final String UNABLE_TO_GENERATE_SIGNATURE = "Unable to generate signature.";
         public static final String UNABLE_TO_NOTIFY_REQUESTING_MEMBER = "Unable to notify requesting member %s for request %s.";
@@ -82,6 +82,7 @@ public class Messages {
 
     public static class Info {
         public static final String ACTIVATING_NEW_REQUEST = "Activating new request.";
+        public static final String DATABASE_URL = "Database URL: %s.";
         public static final String DELETING_INSTANCE = "Deleting instance %s with token %s.";
         public static final String GETTING_INSTANCE = "Getting instance %s with token %s.";
         public static final String GETTING_INSTANCE_FOR_REQUEST = "Trying to get an instance for request %s.";
@@ -97,7 +98,9 @@ public class Messages {
         public static final String RECEIVING_GET_REQUEST = "Get request for %s %s received.";
         public static final String RECEIVING_GET_VERSION_REQUEST = "Get request for version received.";
         public static final String RECEIVING_REMOTE_REQUEST = "Received remote request for request %s.";
+        public static final String RECOVERING_LIST_OF_ORDERS = "Recovering requests in %s state: %d requests recovered so far.";
         public static final String REQUESTING_INSTANCE = "Requesting instance with token %s.";
+        public static final String SKIPPING_BECAUSE_PROVIDER_IS_REMOTE = "Member %s skipping monitoring of request %s provided by %s.";
         public static final String STARTING_THREADS = "Starting processor threads.";
         public static final String TEMPLATE_POOL_LENGTH = "Template pool length: %s.";
     }

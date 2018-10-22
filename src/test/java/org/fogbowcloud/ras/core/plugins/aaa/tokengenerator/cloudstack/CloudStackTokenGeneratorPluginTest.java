@@ -126,7 +126,7 @@ public class CloudStackTokenGeneratorPluginTest {
         Assert.assertEquals(split[1], FAKE_TOKEN_VALUE);
         Assert.assertEquals(split[2], FAKE_ID);
         Assert.assertEquals(split[3], FAKE_FULL_USERNAME);
-        Assert.assertTrue(this.cloudStackAuthenticationPlugin.isAuthentic(token));
+        Assert.assertTrue(this.cloudStackAuthenticationPlugin.isAuthentic(this.memberId, token));
     }
 
     // Test case: throw expection in case any of the credentials are invalid

@@ -26,7 +26,9 @@ import java.util.Map;
 @PrepareForTest({RemoteFacade.class, PacketSenderHolder.class})
 public class RemoteGetAllImagesRequestHandlerTest {
 
-    private static final String IQ_RESULT_FORMAT = "\n<iq type=\"result\" id=\"%s\" from=\"%s\">\n" +
+    private static final String REQUESTING_MEMBER = "requestingmember";
+
+    private static final String IQ_RESULT_FORMAT = "\n<iq type=\"result\" id=\"%s\" from=\"%s\" to=\"%s\">\n" +
             "  <query xmlns=\"remoteGetAllImages\">\n" +
             "    <imagesMap>{\"image-id1\":\"%s\",\"image-id2\":\"%s\"}</imagesMap>\n" +
             "    <imagesMapClassName>java.util.HashMap</imagesMapClassName>\n" +
@@ -34,7 +36,7 @@ public class RemoteGetAllImagesRequestHandlerTest {
             "</iq>";
 
     private static final String IQ_ERROR_RESULT_FORMAT =
-            "\n<iq type=\"error\" id=\"%s\" from=\"%s\">\n" +
+            "\n<iq type=\"error\" id=\"%s\" from=\"%s\" to=\"%s\">\n" +
                     "  <error code=\"500\" type=\"wait\">\n" +
                     "    <undefined-condition xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n" +
                     "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">" + Messages.Exception.FOGBOW_RAS + "</text>\n" +
@@ -77,16 +79,18 @@ public class RemoteGetAllImagesRequestHandlerTest {
         images.put("image-id1", IMAGE_NAME.concat("1"));
         images.put("image-id2", IMAGE_NAME.concat("2"));
 
-        Mockito.doReturn(images).when(this.remoteFacade).getAllImages(Mockito.anyString(), Mockito.any(FederationUserToken.class));
+        Mockito.doReturn(images).when(this.remoteFacade).getAllImages(Mockito.anyString(), Mockito.anyString(),
+                Mockito.any(FederationUserToken.class));
 
         IQ iq = RemoteGetAllImagesRequest.marshal(this.provider, this.federationUserToken);
+        iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
         IQ result = this.remoteGetAllImagesRequestHandler.handle(iq);
 
         // verify
         String iqId = iq.getID();
-        String expected = String.format(IQ_RESULT_FORMAT, iqId, this.provider,
+        String expected = String.format(IQ_RESULT_FORMAT, iqId, this.provider, REQUESTING_MEMBER,
                 IMAGE_NAME.concat("1"), IMAGE_NAME.concat("2"));
         Assert.assertEquals(expected, result.toString());
     }
@@ -96,20 +100,21 @@ public class RemoteGetAllImagesRequestHandlerTest {
     @Test
     public void testHandleWhenThrowsException() throws Exception {
         // set up
-        Mockito.doThrow(new FogbowRasException()).when(this.remoteFacade).getAllImages(
+        Mockito.doThrow(new FogbowRasException()).when(this.remoteFacade).getAllImages(Mockito.anyString(),
                 Mockito.anyString(), Mockito.any(FederationUserToken.class));
 
         IQ iq = RemoteGetAllImagesRequest.marshal(this.provider, this.federationUserToken);
+        iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
         IQ result = this.remoteGetAllImagesRequestHandler.handle(iq);
 
         // verify
-        Mockito.verify(this.remoteFacade, Mockito.times(1)).getAllImages(
-                Mockito.anyString(), Mockito.any(FederationUserToken.class));
+        Mockito.verify(this.remoteFacade, Mockito.times(1)).
+                getAllImages(Mockito.anyString(), Mockito.anyString(), Mockito.any(FederationUserToken.class));
 
         String iqId = iq.getID();
-        String expected = String.format(IQ_ERROR_RESULT_FORMAT, iqId, this.provider);
+        String expected = String.format(IQ_ERROR_RESULT_FORMAT, iqId, this.provider, REQUESTING_MEMBER);
         Assert.assertEquals(expected, result.toString());
     }
 }

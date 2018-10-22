@@ -13,7 +13,7 @@ public class StubAuthenticationPlugin implements AuthenticationPlugin<Federation
     }
 
     @Override
-    public boolean isAuthentic(FederationUserToken federationToken) {
+    public boolean isAuthentic(String requestingMember, FederationUserToken federationToken) {
         return false;
     }
 

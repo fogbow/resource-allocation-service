@@ -50,7 +50,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     protected static final String PUBLIC_KEY_JSON_FIELD = "public_key";
     protected static final String KEYPAIR_JSON_FIELD = "keypair";
     protected static final String UUID_JSON_FIELD = "uuid";
-    protected static final String FOGBOW_INSTANCE_NAME = "fogbow-compute-instance-";
+    protected static final String FOGBOW_INSTANCE_NAME = "ras-compute-";
     protected static final String PROJECT_ID = "projectId";
     protected static final String SERVERS = "/servers";
     protected static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
@@ -145,7 +145,14 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }
+
         ComputeInstance computeInstance = getInstanceFromJson(jsonResponse, openStackV3Token);
+
+        String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+        Map<String, String> computeNetworks = new HashMap<>();
+        computeNetworks.put(defaultNetworkId, PROVIDER_NETWORK_FIELD);
+        computeInstance.setNetworks(computeNetworks);
+
         return computeInstance;
     }
 
@@ -370,17 +377,20 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
         String instanceId = getComputeResponse.getId();
         String hostName = getComputeResponse.getName();
 
-        GetComputeResponse.Addresses addressesContainer = getComputeResponse.getAddresses();
+        Map<String, GetComputeResponse.Address[]> addressesContainer = getComputeResponse.getAddresses();
+        List<String> ipAddresses = new ArrayList<>();
 
-        String address = "";
         if (addressesContainer != null) {
-            GetComputeResponse.Address[] addresses = addressesContainer.getProviderAddresses();
-            boolean firstAddressEmpty = addresses == null || addresses.length == 0 || addresses[0].getAddress() == null;
-            address = firstAddressEmpty ? "" : addresses[0].getAddress();
+            for (GetComputeResponse.Address[] addresses : addressesContainer.values()) {
+                for (GetComputeResponse.Address address : addresses) {
+                    ipAddresses.add(address.getAddress());
+                }
+            }
         }
 
         ComputeInstance computeInstance = new ComputeInstance(instanceId,
-                fogbowState, hostName, vcpusCount, memory, disk, address);
+                fogbowState, hostName, vcpusCount, memory, disk, ipAddresses);
+
         return computeInstance;
     }
 

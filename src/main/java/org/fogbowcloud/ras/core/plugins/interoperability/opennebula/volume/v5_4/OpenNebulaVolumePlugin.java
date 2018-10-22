@@ -32,12 +32,6 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
 
     private static final Logger LOGGER = Logger.getLogger(OpenNebulaVolumePlugin.class);
 
-    public static final String OPENNEBULA_DATABLOCK_IMAGE_TYPE = "DATABLOCK";
-    public static final String OPENNEBULA_RAW_FSTYPE = "raw";
-    public static final String OPENNEBULA_BLOCK_DISK_TYPE = "BLOCK";
-    public static final String OPENNEBULA_DATASTORE_DEFAULT_DEVICE_PREFIX = "vd";
-    public static final String OPENNEBULA_PERSISTENT_DISK_YES = "YES";
-
     private Integer dataStoreId;
     private OpenNebulaClientFactory factory;
 
@@ -64,11 +58,11 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
         CreateVolumeRequest request = new CreateVolumeRequest.Builder()
                 .name(volumeName)
                 .size(volumeSize)
-                .persistent(OPENNEBULA_PERSISTENT_DISK_YES)
-                .type(OPENNEBULA_DATABLOCK_IMAGE_TYPE)
-                .fileSystemType(OPENNEBULA_RAW_FSTYPE)
-                .diskType(OPENNEBULA_BLOCK_DISK_TYPE)
-                .devicePrefix(OPENNEBULA_DATASTORE_DEFAULT_DEVICE_PREFIX)
+                .persistent( OpenNebulaXmlTagsConstants.VirtualMachine.OPENNEBULA_PERSISTENT_DISK_YES )
+                .type( OpenNebulaXmlTagsConstants.VirtualMachine.OPENNEBULA_DATABLOCK_IMAGE_TYPE )
+                .fileSystemType( OpenNebulaXmlTagsConstants.VirtualMachine.OPENNEBULA_RAW_FSTYPE )
+                .diskType( OpenNebulaXmlTagsConstants.VirtualMachine.OPENNEBULA_BLOCK_DISK_TYPE )
+                .devicePrefix( OpenNebulaXmlTagsConstants.VirtualMachine.OPENNEBULA_DATASTORE_DEFAULT_DEVICE_PREFIX )
                 .build();
 
         String volumeTemplate = request.getVolumeImageRequestTemplate().generateTemplate();

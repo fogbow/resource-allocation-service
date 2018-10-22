@@ -27,7 +27,7 @@ public class RemoteGetOrderRequestHandler extends AbstractQueryHandler {
 
         IQ response = IQ.createResultIQ(iq);
         try {
-            Instance instance = RemoteFacade.getInstance().getResourceInstance(orderId,
+            Instance instance = RemoteFacade.getInstance().getResourceInstance(iq.getFrom().toBareJID(), orderId,
                     federationUserToken, resourceType);
 
             //on success, update response with instance data

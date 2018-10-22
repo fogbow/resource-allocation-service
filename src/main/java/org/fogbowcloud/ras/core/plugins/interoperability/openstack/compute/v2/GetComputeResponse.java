@@ -3,6 +3,9 @@ package org.fogbowcloud.ras.core.plugins.interoperability.openstack.compute.v2;
 import com.google.gson.annotations.SerializedName;
 import org.fogbowcloud.ras.util.GsonHolder;
 
+import java.util.List;
+import java.util.Map;
+
 import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Compute.*;
 
 /**
@@ -39,7 +42,7 @@ public class GetComputeResponse {
         @SerializedName(NAME_KEY_JSON)
         private String name;
         @SerializedName(ADDRESSES_KEY_JSON)
-        private Addresses addresses;
+        private Map<String, Address[]> addresses;
         @SerializedName(FLAVOR_KEY_JSON)
         private Flavor flavor;
         @SerializedName(STATUS_KEY_JSON)
@@ -54,7 +57,7 @@ public class GetComputeResponse {
         return server.name;
     }
 
-    public Addresses getAddresses() {
+    public Map<String, Address[]> getAddresses() {
         return server.addresses;
     }
 
@@ -76,15 +79,6 @@ public class GetComputeResponse {
 
         public String getId() {
             return id;
-        }
-    }
-
-    public class Addresses {
-        @SerializedName(PROVIDER_KEY_JSON)
-        private Address[] providerAddresses;
-
-        public Address[] getProviderAddresses() {
-            return providerAddresses;
         }
     }
 

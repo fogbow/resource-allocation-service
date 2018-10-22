@@ -71,7 +71,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrderList = sharedOrderHolders.getFulfilledOrdersList();
-        this.failedOrderList = sharedOrderHolders.getFailedOrdersList();
+        this.failedOrderList = sharedOrderHolders.getFailedAfterSuccessfulRequestOrdersList();
 
         this.thread = null;
     }
@@ -138,7 +138,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Order test = this.failedOrderList.getNext();
         Assert.assertNotNull(test);
         Assert.assertEquals(order.getInstanceId(), test.getInstanceId());
-        Assert.assertEquals(OrderState.FAILED, test.getOrderState());
+        Assert.assertEquals(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST, test.getOrderState());
         Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
@@ -150,7 +150,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
 
         // set up
         Order order = this.createOrder();
-        order.setOrderStateInTestMode(OrderState.FAILED);
+        order.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
         this.failedOrderList.addItem(order);
         Assert.assertNull(this.fulfilledOrderList.getNext());
 
@@ -247,7 +247,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Order test = this.failedOrderList.getNext();
         Assert.assertNotNull(test);
         Assert.assertEquals(order.getInstanceId(), test.getInstanceId());
-        Assert.assertEquals(OrderState.FAILED, test.getOrderState());
+        Assert.assertEquals(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST, test.getOrderState());
         Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
@@ -278,7 +278,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Order test = this.failedOrderList.getNext();
         Assert.assertNotNull(test);
         Assert.assertEquals(order.getInstanceId(), test.getInstanceId());
-        Assert.assertEquals(OrderState.FAILED, test.getOrderState());
+        Assert.assertEquals(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST, test.getOrderState());
         Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 

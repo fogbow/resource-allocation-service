@@ -29,7 +29,6 @@ public class RemoteGetImageRequest implements RemoteRequest<Image> {
     public Image send() throws Exception {
         IQ request = marshal(this.provider, this.imageId, this.federationUserToken);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(request);
-
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
         return unmarshalImage(response);
     }

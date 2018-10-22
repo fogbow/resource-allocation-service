@@ -2,7 +2,6 @@ package org.fogbowcloud.ras.core;
 
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.ras.core.cloudconnector.LocalCloudConnector;
-import org.fogbowcloud.ras.core.cloudconnector.RemoteCloudConnector;
 import org.fogbowcloud.ras.core.datastore.DatabaseManager;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.InstanceStatus;
@@ -50,7 +49,8 @@ public class OrderControllerTest extends BaseUnitTests {
     private ChainedList pendingOrdersList;
     private ChainedList spawningOrdersList;
     private ChainedList fulfilledOrdersList;
-    private ChainedList failedOrdersList;
+    private ChainedList failedAfterSuccessfulRequestOrdersList;
+    private ChainedList failedOnRequestOrdersList;
     private ChainedList closedOrdersList;
     private String localMember = BaseUnitTests.LOCAL_MEMBER_ID;
     private LocalCloudConnector localCloudConnector;
@@ -80,7 +80,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.pendingOrdersList = sharedOrderHolders.getPendingOrdersList();
         this.spawningOrdersList = sharedOrderHolders.getSpawningOrdersList();
         this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
-        this.failedOrdersList = sharedOrderHolders.getFailedOrdersList();
+        this.failedAfterSuccessfulRequestOrdersList = sharedOrderHolders.getFailedAfterSuccessfulRequestOrdersList();
         this.closedOrdersList = sharedOrderHolders.getClosedOrdersList();
     }
 
@@ -130,14 +130,14 @@ public class OrderControllerTest extends BaseUnitTests {
         computeOrder2.setFederationUserToken(federationUserToken);
         computeOrder2.setRequestingMember(this.localMember);
         computeOrder2.setProvidingMember(this.localMember);
-        computeOrder2.setOrderStateInTestMode(OrderState.FAILED);
+        computeOrder2.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
         computeOrder2.setCachedInstanceState(InstanceState.FAILED);
 
         this.activeOrdersMap.put(computeOrder.getId(), computeOrder);
         this.fulfilledOrdersList.addItem(computeOrder);
 
         this.activeOrdersMap.put(computeOrder2.getId(), computeOrder2);
-        this.failedOrdersList.addItem(computeOrder2);
+        this.failedAfterSuccessfulRequestOrdersList.addItem(computeOrder2);
 
         InstanceStatus statusOrder = new InstanceStatus(computeOrder.getId(),
                 computeOrder.getProvidingMember(), computeOrder.getCachedInstanceState());
@@ -286,11 +286,11 @@ public class OrderControllerTest extends BaseUnitTests {
     public void testDeleteOrderStateFailed()
             throws Exception {
         // set up
-        String orderId = getComputeOrderCreationId(OrderState.FAILED);
+        String orderId = getComputeOrderCreationId(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
         // verify
-        Assert.assertNotNull(this.failedOrdersList.getNext());
+        Assert.assertNotNull(this.failedAfterSuccessfulRequestOrdersList.getNext());
         Assert.assertNull(this.closedOrdersList.getNext());
 
         // exercise
@@ -298,9 +298,9 @@ public class OrderControllerTest extends BaseUnitTests {
 
         // verify
         Order order = this.closedOrdersList.getNext();
-        this.failedOrdersList.resetPointer();
+        this.failedAfterSuccessfulRequestOrdersList.resetPointer();
 
-        Assert.assertNull(this.failedOrdersList.getNext());
+        Assert.assertNull(this.failedAfterSuccessfulRequestOrdersList.getNext());
         Assert.assertNotNull(order);
         Assert.assertEquals(computeOrder, order);
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
@@ -472,8 +472,11 @@ public class OrderControllerTest extends BaseUnitTests {
             case FULFILLED:
                 this.fulfilledOrdersList.addItem(computeOrder);
                 break;
-            case FAILED:
-                this.failedOrdersList.addItem(computeOrder);
+            case FAILED_AFTER_SUCCESSUL_REQUEST:
+                this.failedAfterSuccessfulRequestOrdersList.addItem(computeOrder);
+                break;
+            case FAILED_ON_REQUEST:
+                this.failedOnRequestOrdersList.addItem(computeOrder);
                 break;
             case CLOSED:
                 this.closedOrdersList.addItem(computeOrder);

@@ -20,6 +20,13 @@ public class OpenNebulaXmlTagsConstants {
 		public static final String TYPE = "TYPE";
 		public static final String USERDATA = "USERDATA";
 		public static final String USERDATA_ENCODING = "USERDATA_ENCODING";
+		public static final String DEFAULT_DEVICE_PREFIX = "vd";
+		public static final String OPENNEBULA_BLOCK_DISK_TYPE = "BLOCK";
+		public static final String OPENNEBULA_DATABLOCK_IMAGE_TYPE = "DATABLOCK";
+		public static final String OPENNEBULA_RAW_FSTYPE = "raw";
+		public static final String OPENNEBULA_DATASTORE_DEFAULT_DEVICE_PREFIX = "vd";
+		public static final String OPENNEBULA_PERSISTENT_DISK_YES = "YES";
+
 	}
 	
 	public static class VirtualNetwork {

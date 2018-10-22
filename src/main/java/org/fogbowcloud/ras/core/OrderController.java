@@ -12,9 +12,7 @@ import org.fogbowcloud.ras.core.models.InstanceStatus;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.Instance;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
-import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
-import org.fogbowcloud.ras.core.models.orders.Order;
-import org.fogbowcloud.ras.core.models.orders.OrderState;
+import org.fogbowcloud.ras.core.models.orders.*;
 import org.fogbowcloud.ras.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
@@ -64,8 +62,8 @@ public class OrderController {
         synchronized (order) {
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.CLOSED)) {
-                CloudConnector provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
-                provider.deleteInstance(order);
+                CloudConnector cloudConnector = getCloudConnector(order);
+                cloudConnector.deleteInstance(order);
                 OrderStateTransitioner.transition(order, OrderState.CLOSED);
             } else {
                 String message = String.format(Messages.Error.REQUEST_ALREADY_CLOSED, order.getId());
@@ -79,8 +77,7 @@ public class OrderController {
         if (orderId == null) throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
         Order order = getOrder(orderId);
         synchronized (order) {
-            CloudConnector cloudConnector =
-                    CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
+            CloudConnector cloudConnector = getCloudConnector(order);
             Instance instance = cloudConnector.getInstance(order);
             order.setCachedInstanceState(instance.getState());
             return instance;
@@ -113,13 +110,44 @@ public class OrderController {
     public List<InstanceStatus> getInstancesStatus(FederationUserToken federationUserToken, ResourceType resourceType) {
         List<InstanceStatus> instanceStatusList = new ArrayList<>();
         List<Order> allOrders = getAllOrders(federationUserToken, resourceType);
+
         for (Order order : allOrders) {
+            String name = null;
+
+            switch (resourceType) {
+                case COMPUTE:
+                    name = ((ComputeOrder) order).getName();
+                    break;
+                case VOLUME:
+                    name = ((VolumeOrder) order).getName();
+                    break;
+                case NETWORK:
+                    name = ((NetworkOrder) order).getName();
+                    break;
+            }
+
             // The state of the instance can be inferred from the state of the order
-            InstanceStatus instanceStatus = new InstanceStatus(order.getId(), order.getProvidingMember(),
+            InstanceStatus instanceStatus = new InstanceStatus(order.getId(), name, order.getProvidingMember(),
                     order.getCachedInstanceState());
             instanceStatusList.add(instanceStatus);
         }
+
         return instanceStatusList;
+    }
+
+    private CloudConnector getCloudConnector(Order order) {
+        CloudConnector provider = null;
+        if (!order.getProvidingMember().equals(order.getRequestingMember()) &&
+                (order.getOrderState().equals(OrderState.OPEN) ||
+                        order.getOrderState().equals(OrderState.FAILED_ON_REQUEST))) {
+            // This is an order for a remote provider that has never been received by that provider.
+            // Thus, there is no need to send a delete message via a RemoteCloudConnector, and it is only
+            // necessary to call deleteInstance in the local member.
+            provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getRequestingMember());
+        } else {
+            provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
+        }
+        return provider;
     }
 
     private ComputeAllocation getUserComputeAllocation(Collection<ComputeOrder> computeOrders) {
