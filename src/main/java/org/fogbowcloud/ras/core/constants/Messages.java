@@ -121,6 +121,7 @@ public class Messages {
         public static final String ERROR_WHILE_GETTING_TEMPLATES = "Error while getting info about templates: %s.";
         public static final String ERROR_WHILE_GETTING_VOLUME_INSTANCE = "Error while getting volume instance.";
         public static final String ERROR_WHILE_REMOVING_VM = "Error while removing virtual machine: %s, with response: %s.";
+        public static final String ERROR_WHILE_REMOVING_VN = "Error while removing virtual network: %s, with response: %s.";
         public static final String ERROR_WHILE_REMOVING_VR = "Error while removing virtual router: %s, with response: %s.";
         public static final String INSTANCE_TYPE_NOT_DEFINED = "Instance type not defined.";
         public static final String INVALID_DATASTORE_DRIVER = "Invalid datastore driver.";
