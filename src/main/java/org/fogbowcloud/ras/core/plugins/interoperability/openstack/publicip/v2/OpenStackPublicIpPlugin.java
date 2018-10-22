@@ -23,6 +23,9 @@ import org.fogbowcloud.ras.core.plugins.interoperability.openstack.publicip.v2.G
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestUtil;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.net.URISyntaxException;
 import java.util.List;
@@ -43,6 +46,8 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
     protected static final String SUFFIX_ENDPOINT_PORTS = "/ports";
     protected static final String SUFFIX_ENDPOINT_SECURITY_GROUP_RULES = "/security-group-rules";
     protected static final String SUFFIX_ENDPOINT_SECURITY_GROUPS = "/security-groups";
+
+    protected static final String QUERY_SECURITY_GROUP_NAME = "name";
 
     private static final int MAXIMUM_PORTS_SIZE = 1;
     public static final String SECURITY_GROUP_DIRECTION_INGRESS = "ingress";
@@ -151,11 +156,13 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
     public void deleteInstance(String floatingIpId, String computeInstanceId, OpenStackV3Token openStackV3Token) throws FogbowRasException, UnexpectedException {
         try {
             String securityGroupName = getSecurityGroupName(floatingIpId);
-            // TODO continue this
-            // if (computeInstanceId != null) {
-//            disassociateSecurityGroupFromCompute(securityGroupName, computeInstanceId, openStackV3Token);
-            // }
-//            removeSecurityGroup(securityGroupId, openStackV3Token);
+
+            if (computeInstanceId != null) {
+                disassociateSecurityGroupFromCompute(securityGroupName, computeInstanceId, openStackV3Token);
+            }
+
+            String securityGroupId = retrieveSecurityGroupId(securityGroupName, openStackV3Token);
+            removeSecurityGroup(securityGroupId, openStackV3Token);
 
             String floatingIpEndpointPrefix = getFloatingIpEndpoint();
             String endpoint = String.format("%s/%s", floatingIpEndpointPrefix, floatingIpId);
@@ -164,6 +171,25 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }
     }
+
+    private String retrieveSecurityGroupId(String securityGroupName, OpenStackV3Token openStackV3Token) throws FogbowRasException, UnexpectedException {
+        String endpoint = getSecurityGroupsApiEndpoint() + "?" + QUERY_SECURITY_GROUP_NAME + "=" + securityGroupName;
+
+        String response = null;
+        try {
+            response = this.client.doGetRequest(endpoint, openStackV3Token);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowRasExceptionMapper.map(e);
+        }
+
+        List<ListSecurityGroups.SecurityGroup> securityGroups = ListSecurityGroups.fromJson(response).getSecurityGroups();
+        if (securityGroups.size() > 0) {
+            return securityGroups.get(0).getId();
+        } else {
+            return null;
+        }
+    }
+
 
     private String createAndAssociateSecurityGroup(String computeInstanceId, OpenStackV3Token openStackV3Token, String securityGroupName) throws FogbowRasException, UnexpectedException {
         String securityGroupId = createSecurityGroup(openStackV3Token, securityGroupName);

@@ -18,7 +18,7 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.Openst
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class RemoveSecurityGroupFromServerRequest {
-    @SerializedName(ADD_SECURITY_GROUP_KEY_JSON)
+    @SerializedName(REMOVE_SECURITY_GROUP_KEY_JSON)
     private final RemoveSecurityGroup securityGroup;
 
     private RemoveSecurityGroupFromServerRequest(RemoveSecurityGroup removeSecurityGroup) {
