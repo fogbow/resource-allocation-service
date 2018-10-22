@@ -173,7 +173,7 @@ public class ShibbolethTokenGeneratorTest {
 		String tokenSignature = "anything";
 		
 		// exercise e verify
-		this.shibbolethTokenGenerator.verifyShibAppTokenAuthenticity(tokenSignature, tokenShibApp);
+		this.shibbolethTokenGenerator.verifyShibAppKeyAuthenticity(tokenSignature, tokenShibApp);
 	}
 	
 	private String createRawRasToken(String assertionUrl, String identityProvider, 

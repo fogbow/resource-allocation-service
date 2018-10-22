@@ -39,8 +39,8 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 	private static final String SHIB_PUBLIC_FILE_PATH_PROPERTIE = "shib_public_key_file_path";
 	// credentails
 	protected static final String TOKEN_CREDENTIAL = "token";
-	protected static final String KEY_SIGNATURE_CREDENTIAL = "key";
-	protected static final String KEY_CREDENTIAL = "keySignature";
+	protected static final String KEY_SIGNATURE_CREDENTIAL = "keySignature";
+	protected static final String KEY_CREDENTIAL = "key";
 	
 	public static final String SHIBBOLETH_SEPARETOR = "!#!";
 	
@@ -90,7 +90,7 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 		
 		String keyShibApp = decryptKeyShib(keyShibAppEncrypted);
 		String tokenShib = decryptTokenShib(keyShibApp, tokenShibAppEncrypted);
-		verifyShibAppTokenAuthenticity(keySignatureShibApp, keyShibApp);
+		verifyShibAppKeyAuthenticity(keySignatureShibApp, keyShibApp);
 		
 		String[] tokenShibAppParameters = tokenShib.split(SHIBBOLETH_SEPARETOR);		
 		checkTokenFormat(tokenShibAppParameters);
@@ -141,9 +141,9 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 		return this.rasAuthenticationHolder.generateExpirationTime();
 	}
 
-	protected void verifyShibAppTokenAuthenticity(String tokenSignature, String tokenShibApp) throws UnauthenticatedUserException {
+	protected void verifyShibAppKeyAuthenticity(String signature, String message) throws UnauthenticatedUserException {
 		try {
-			RSAUtil.verify(this.shibAppPublicKey, tokenShibApp, tokenSignature);
+			RSAUtil.verify(this.shibAppPublicKey, message, signature);
 		} catch (Exception e) {
         	String errorMsg = String.format(Messages.Exception.AUTHENTICATION_ERROR);
         	LOGGER.error(errorMsg, e);

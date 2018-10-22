@@ -5,7 +5,6 @@ import org.fogbowcloud.ras.core.models.tokens.ShibbolethToken;
 import org.fogbowcloud.ras.core.models.tokens.ShibbolethTokenHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASTimestampedAuthenticationPlugin;
 
-// TODO implements tests
 public class ShibbolethAuthenticationPlugin extends RASTimestampedAuthenticationPlugin {
 
 	@Override
