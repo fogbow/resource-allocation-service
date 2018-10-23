@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.shibboleth.ShibbolethTokenGenerator;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -107,9 +108,8 @@ public class ShibbolethTokenHolder {
 	public static class CreateTokenException extends Exception {
 	    private static final long serialVersionUID = 1L;
 
-	    // TODO use Message class
 	    public CreateTokenException(String errorMsg) {
-	        super("Is not possible create the Shibboleth token: " + errorMsg);
+	        super(String.format(Messages.Exception.INVALID_SHIBBOLETH_TOKEN, errorMsg));
 	    }
 
 	}
