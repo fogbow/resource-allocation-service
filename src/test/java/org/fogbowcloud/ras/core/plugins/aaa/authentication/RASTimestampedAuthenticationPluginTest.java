@@ -40,7 +40,7 @@ public class RASTimestampedAuthenticationPluginTest {
 		Assert.assertTrue(this.rasTimestamped.checkValidity(timestamp));
 	}
 	
-	public class RASTimestampedAuthenticationPluginWraper extends RASTimestampedAuthenticationPlugin {
+	private class RASTimestampedAuthenticationPluginWraper extends RASTimestampedAuthenticationPlugin {
 
 		@Override
 		protected String getTokenMessage(FederationUserToken federationUserToken) {return null;}

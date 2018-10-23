@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
+import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.util.RSAUtil;
 
@@ -44,14 +45,13 @@ public class RASAuthenticationHolder {
         return instance;
     }
 	
-    public String createSignature(String message) throws UnauthenticatedUserException {
+    public String createSignature(String message) throws FogbowRasException {
     	try {
     		return RSAUtil.sign(this.rasPrivateKey, message);
 		} catch (Exception e) {
 	    	String errorMsg = String.format(Messages.Exception.AUTHENTICATION_ERROR);
 	    	LOGGER.error(errorMsg, e);
-			// TODO change exception	    	
-	        throw new UnauthenticatedUserException(errorMsg, e);
+	        throw new FogbowRasException(errorMsg, e);
 		}
     }
     
@@ -61,14 +61,13 @@ public class RASAuthenticationHolder {
 		return expirationTime;
 	}
     
-    protected boolean verifySignature(String tokenMessage, String signature) throws UnauthenticatedUserException {
+    protected boolean verifySignature(String tokenMessage, String signature) throws FogbowRasException {
         try {
             return RSAUtil.verify(this.rasPublicKey, tokenMessage, signature);
         } catch (Exception e) {
         	String errorMsg = Messages.Exception.AUTHENTICATION_ERROR;
 			LOGGER.error(errorMsg, e);
-			// TODO change exception
-            throw new UnauthenticatedUserException(errorMsg, e);
+            throw new FogbowRasException(errorMsg, e);
         }
     }
     
