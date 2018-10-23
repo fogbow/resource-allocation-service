@@ -54,7 +54,7 @@ class GeneralConfigurations:
   type_network = 'network'
   type_volume = 'volume'
   type_attachment = 'attachment'
-  type_image = 'image'
+  type_image = 'imageId'
 
   #compute attributes
   computes_endpoint = 'computes/'

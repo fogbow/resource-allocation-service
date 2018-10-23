@@ -10,7 +10,7 @@ public interface PublicIpPlugin<T extends Token> {
 
     String requestInstance(PublicIpOrder publicIpOrder, String computeInstanceId, T token) throws FogbowRasException, UnexpectedException;
 
-    void deleteInstance(String publicIpInstanceId, T token) throws FogbowRasException, UnexpectedException;
+    void deleteInstance(String publicIpInstanceId, String computeInstanceId, T token) throws FogbowRasException, UnexpectedException;
 
     PublicIpInstance getInstance(String publicIpInstanceId, T token) throws FogbowRasException, UnexpectedException;
 

@@ -17,6 +17,7 @@ import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -77,27 +78,26 @@ public class LocalCloudConnector implements CloudConnector {
                 requestInstance = this.volumePlugin.requestInstance(volumeOrder, token);
                 break;
             case ATTACHMENT:
-                // As the order parameter came from the rest API, the Source and Target fields are actually
+                // As the order parameter came from the rest API, the Compute and Volume fields are actually
                 // ComputeOrder and VolumeOrder Ids, since these are the Ids that are known to users/applications
-                // using the API. Thus, before requesting the plugin to create the Attachment, we need to replace
-                // The ComputeOrderId of the source by its corresponding ComputeInstanceId, and the VolumeOrderId
-                // of the target by its corresponding VolumeInstanceId.
+                // using the API. Thus, before requesting the plugin to create the Attachment, we need to replace the
+                // ComputeOrderId and the VolumeOrderId by their corresponding ComputeInstanceId and VolumeInstanceId.
                 // We save the Order Ids in the original order, to restore these values, after the Attachment is
                 // requested in the cloud.
                 AttachmentOrder attachmentOrder = (AttachmentOrder) order;
-                String savedSource = attachmentOrder.getComputeId();
-                String savedTarget = attachmentOrder.getVolumeId();
-                Order sourceOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedSource);
-                Order targetOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedTarget);
-                attachmentOrder.setComputeId(sourceOrder.getInstanceId());
-                attachmentOrder.setVolumeId(targetOrder.getInstanceId());
+                String savedComputeOrderId = attachmentOrder.getComputeId();
+                String savedVolumeOrderId = attachmentOrder.getVolumeId();
+                Order attachmentComputeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedComputeOrderId);
+                Order attachmentVolumeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedVolumeOrderId);
+                attachmentOrder.setComputeId(attachmentComputeOrder.getInstanceId());
+                attachmentOrder.setVolumeId(attachmentVolumeOrder.getInstanceId());
                 try {
                     requestInstance = this.attachmentPlugin.requestInstance(attachmentOrder, token);
                 } catch (Throwable e) {
                     throw e;
                 } finally {
-                    attachmentOrder.setComputeId(savedSource);
-                    attachmentOrder.setVolumeId(savedTarget);
+                    attachmentOrder.setComputeId(savedComputeOrderId);
+                    attachmentOrder.setVolumeId(savedVolumeOrderId);
                 }
                 break;
             case PUBLIC_IP:
@@ -141,7 +141,8 @@ public class LocalCloudConnector implements CloudConnector {
                         this.attachmentPlugin.deleteInstance(order.getInstanceId(), token);
                         break;
                     case PUBLIC_IP:
-                        this.publicIpPlugin.deleteInstance(order.getInstanceId(), token);
+                        String computeInstanceId = getComputeInstanceId((PublicIpOrder) order);
+                        this.publicIpPlugin.deleteInstance(order.getInstanceId(), computeInstanceId, token);
                         break;
                     default:
                         LOGGER.error(String.format(Messages.Error.DELETE_INSTANCE_PLUGIN_NOT_IMPLEMENTED, order.getType()));
@@ -159,6 +160,13 @@ public class LocalCloudConnector implements CloudConnector {
         }
     }
 
+    private String getComputeInstanceId(PublicIpOrder order) {
+        PublicIpOrder publicIpOrder = order;
+        String computeOrderId = publicIpOrder.getComputeOrderId();
+        Order computeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(computeOrderId);
+        return computeOrder == null ? null : computeOrder.getInstanceId();
+    }
+
     @Override
     public Instance getInstance(Order order) throws FogbowRasException, UnexpectedException {
         Instance instance;
@@ -170,6 +178,8 @@ public class LocalCloudConnector implements CloudConnector {
             String instanceId = order.getInstanceId();
             if (instanceId != null) {
                 instance = getResourceInstance(order, order.getType(), token);
+                // Setting instance common fields that do not need to be set by the plugin
+                instance.setProvider(order.getProvidingMember());
                 // The user believes that the order id is actually the instance id.
                 // So we need to set the instance id accordingly before returning the instance.
                 instance.setId(order.getId());
@@ -249,6 +259,7 @@ public class LocalCloudConnector implements CloudConnector {
         switch (resourceType) {
             case COMPUTE:
                 instance = this.computePlugin.getInstance(instanceId, token);
+                instance = this.getFullComputeInstance(((ComputeOrder) order), ((ComputeInstance) instance));
                 break;
             case NETWORK:
                 instance = this.networkPlugin.getInstance(instanceId, token);
@@ -258,9 +269,11 @@ public class LocalCloudConnector implements CloudConnector {
                 break;
             case ATTACHMENT:
                 instance = this.attachmentPlugin.getInstance(instanceId, token);
+                instance = this.getFullAttachmentInstance(((AttachmentOrder) order), ((AttachmentInstance) instance));
                 break;
             case PUBLIC_IP:
                 instance = this.publicIpPlugin.getInstance(instanceId, token);
+                instance = this.getFullPublicIpInstance(((PublicIpOrder) order), ((PublicIpInstance) instance));
                 break;
             default:
                 throw new UnexpectedException(String.format(Messages.Exception.UNSUPPORTED_REQUEST_TYPE, order.getType()));
@@ -268,6 +281,72 @@ public class LocalCloudConnector implements CloudConnector {
         order.setCachedInstanceState(instance.getState());
         instance.setProvider(order.getProvidingMember());
         return instance;
+    }
+
+    protected ComputeInstance getFullComputeInstance(ComputeOrder order, ComputeInstance instance)
+            throws UnexpectedException, FogbowRasException {
+        ComputeInstance fullInstance = instance;
+        String imageId = order.getImageId();
+        String imageName = getAllImages(order.getFederationUserToken()).get(imageId);
+        String publicKey = order.getPublicKey();
+
+        UserData userData = order.getUserData();
+        String userDataContents = userData != null ? userData.getExtraUserDataFileContent() : null;
+
+        Map<String, String> computeNetworks = getNetworkOrderIdsFromComputeOrder(order);
+        computeNetworks.putAll(fullInstance.getNetworks());
+
+        fullInstance.setNetworks(computeNetworks);
+        fullInstance.setImageId(imageId + " : " + imageName);
+        fullInstance.setPublicKey(publicKey);
+        fullInstance.setUserData(userDataContents);
+
+        return fullInstance;
+    }
+
+    protected AttachmentInstance getFullAttachmentInstance(AttachmentOrder order, AttachmentInstance instance) {
+        AttachmentInstance fullInstance = instance;
+        String savedVolumeId = order.getVolumeId();
+        String savedComputeId = order.getComputeId();
+        ComputeOrder computeOrder = (ComputeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedComputeId);
+        VolumeOrder volumeOrder = (VolumeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedVolumeId);
+
+        fullInstance.setComputeName(computeOrder.getName());
+        fullInstance.setComputeId(computeOrder.getId());
+        fullInstance.setVolumeName(volumeOrder.getName());
+        fullInstance.setVolumeId(volumeOrder.getId());
+
+        return fullInstance;
+    }
+
+    protected PublicIpInstance getFullPublicIpInstance(PublicIpOrder order, PublicIpInstance instance) {
+        PublicIpInstance publicIpInstance = instance;
+        String computeOrderId = order.getComputeOrderId();
+
+        ComputeOrder retrievedComputeOrder = (ComputeOrder) SharedOrderHolders.getInstance().getActiveOrdersMap()
+                .get(computeOrderId);
+
+        String computeInstanceName = retrievedComputeOrder.getName();
+        String computeInstanceId = retrievedComputeOrder.getId();
+        publicIpInstance.setComputeName(computeInstanceName);
+        publicIpInstance.setComputeId(computeInstanceId);
+
+        return publicIpInstance;
+    }
+
+    protected Map<String, String> getNetworkOrderIdsFromComputeOrder(ComputeOrder order) {
+        List<String> networkOrdersId = order.getNetworksId();
+        Map<String, String> computeNetworks = new HashMap<>();
+
+        for (String orderId : networkOrdersId) {
+            NetworkOrder networkOrder = (NetworkOrder) SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
+            String networkId = networkOrder.getId();
+            String networkName = networkOrder.getName();
+
+            computeNetworks.put(networkId, networkName);
+        }
+
+        return computeNetworks;
     }
 
     private InstanceState getInstanceStateBasedOnOrderState(Order order) {

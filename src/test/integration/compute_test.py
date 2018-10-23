@@ -160,7 +160,7 @@ class ComputeTests:
 
   @classmethod
   def empty_allocation(cls, allocation):
-    if allocation['vCPU'] == 0 and allocation['ram'] == 0 and allocation['instances'] == 0:
+    if allocation['vCPU'] == 0 and allocation['memory'] == 0 and allocation['instances'] == 0:
       return True
     return False
 

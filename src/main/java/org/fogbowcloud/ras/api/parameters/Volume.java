@@ -2,23 +2,25 @@ package org.fogbowcloud.ras.api.parameters;
 
 import org.fogbowcloud.ras.core.models.orders.VolumeOrder;
 
-public class Volume extends OrderApiParameter<VolumeOrder> {
-
-    private int volumeSize;
+public class Volume {
+    private String provider;
     private String name;
+    private int volumeSize;
 
-    @Override
     public VolumeOrder getOrder() {
-        VolumeOrder order = new VolumeOrder(null, null, null, volumeSize, name);
+        VolumeOrder order = new VolumeOrder(provider, name, volumeSize);
         return order;
     }
 
-    public int getVolumeSize() {
-        return volumeSize;
+    public String getProvider() {
+        return provider;
     }
 
     public String getName() {
         return name;
     }
 
+    public int getVolumeSize() {
+        return volumeSize;
+    }
 }

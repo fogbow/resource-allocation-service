@@ -104,8 +104,7 @@ public class CloudStackAttachmentPluginTest {
         Mockito.when(this.client.doGetRequest(request, this.token)).thenReturn(response);
 
         // exercise
-        AttachmentOrder order = new AttachmentOrder(null, FAKE_MEMBER, FAKE_MEMBER,
-                FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
+        AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER, FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
 
         String volumeId = this.plugin.requestInstance(order, this.token);
 
@@ -138,8 +137,7 @@ public class CloudStackAttachmentPluginTest {
 
         try {
             // exercise
-            AttachmentOrder order = new AttachmentOrder(null, FAKE_MEMBER, FAKE_MEMBER,
-                    FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
+            AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER, FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
 
             this.plugin.requestInstance(order, this.token);
         } finally {
@@ -170,8 +168,7 @@ public class CloudStackAttachmentPluginTest {
 
         try {
             // exercise
-            AttachmentOrder order = new AttachmentOrder(null, FAKE_MEMBER, FAKE_MEMBER,
-                    FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
+            AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER, FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
 
             this.plugin.requestInstance(order, this.token);
         } finally {
@@ -202,8 +199,7 @@ public class CloudStackAttachmentPluginTest {
 
         try {
             // exercise
-            AttachmentOrder order = new AttachmentOrder(null, FAKE_MEMBER, FAKE_MEMBER,
-                    FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
+            AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER, FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
 
             this.plugin.requestInstance(order, this.token);
         } finally {
@@ -234,8 +230,7 @@ public class CloudStackAttachmentPluginTest {
 
         try {
             // exercise
-            AttachmentOrder order = new AttachmentOrder(null, FAKE_MEMBER, FAKE_MEMBER,
-                    FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
+            AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER, FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
 
             this.plugin.requestInstance(order, this.token);
         } finally {
@@ -274,8 +269,7 @@ public class CloudStackAttachmentPluginTest {
         Mockito.when(this.client.doGetRequest(request, this.token)).thenReturn(response);
 
         // exercise
-        AttachmentOrder order = new AttachmentOrder(null, FAKE_MEMBER, FAKE_MEMBER,
-                FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
+        AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER, FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
 
         this.plugin.requestInstance(order, this.token);
 
@@ -335,7 +329,7 @@ public class CloudStackAttachmentPluginTest {
         Assert.assertEquals(attachmentInstanceId, recoveredInstance.getId());
         String device = String.valueOf(deviceId);
         Assert.assertEquals(device, recoveredInstance.getDevice());
-        Assert.assertEquals(virtualMachineId, String.valueOf(recoveredInstance.getServerId()));
+        Assert.assertEquals(virtualMachineId, String.valueOf(recoveredInstance.getComputeId()));
         Assert.assertEquals(state, String.valueOf(recoveredInstance.getState()));
         Assert.assertEquals(id, String.valueOf(recoveredInstance.getVolumeId()));
 
@@ -382,7 +376,7 @@ public class CloudStackAttachmentPluginTest {
         Assert.assertEquals(state, String.valueOf(recoveredInstance.getState()));
         Assert.assertEquals(attachmentInstanceId, recoveredInstance.getId());
         Assert.assertNull(recoveredInstance.getDevice());
-        Assert.assertNull(recoveredInstance.getServerId());
+        Assert.assertNull(recoveredInstance.getComputeId());
         Assert.assertNull(recoveredInstance.getVolumeId());
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(request, this.token);
@@ -428,7 +422,7 @@ public class CloudStackAttachmentPluginTest {
         Assert.assertEquals(state, String.valueOf(recoveredInstance.getState()));
         Assert.assertEquals(attachmentInstanceId, recoveredInstance.getId());
         Assert.assertNull(recoveredInstance.getDevice());
-        Assert.assertNull(recoveredInstance.getServerId());
+        Assert.assertNull(recoveredInstance.getComputeId());
         Assert.assertNull(recoveredInstance.getVolumeId());
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(request, this.token);

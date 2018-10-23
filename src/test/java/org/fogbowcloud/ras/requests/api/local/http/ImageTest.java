@@ -94,7 +94,7 @@ public class ImageTest {
         Assert.assertEquals(3, resultMap.size());
     }
 
-    // test case: Test if given an existing image id, the getImage() returns that image properly.
+    // test case: Test if given an existing image id, the getImageId() returns that image properly.
     @Test
     public void testGetImageById() throws Exception {
         // set up
@@ -124,7 +124,7 @@ public class ImageTest {
         Assert.assertEquals(image.getSize(), resultImage.getSize());
     }
 
-    // test case: Test if given an invalid image id, the getImage() returns just NOT_FOUND.
+    // test case: Test if given an invalid image id, the getImageId() returns just NOT_FOUND.
     @Test
     public void testGetImageWithInvalidId() throws Exception {
         // set up

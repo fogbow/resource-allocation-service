@@ -21,26 +21,25 @@ public class NetworkOrder extends Order {
     private NetworkAllocationMode allocation;
 
     public NetworkOrder() {
-        super(UUID.randomUUID().toString());
+        this(UUID.randomUUID().toString());
     }
 
-    /**
-     * Creating Order with predefined Id.
-     */
-    public NetworkOrder(String id, FederationUserToken federationUserToken, String requestingMember,
-                        String providingMember, String name, String gateway, String address,
+    public NetworkOrder(String id) {
+        super(id);
+    }
+
+    public NetworkOrder(String providingMember, String name, String gateway, String address,
                         NetworkAllocationMode allocation) {
-        super(id, federationUserToken, requestingMember, providingMember);
-        this.name = name;
-        this.gateway = gateway;
-        this.address = address;
-        this.allocation = allocation;
+        this(null, null, providingMember, name, gateway, address, allocation);
     }
 
     public NetworkOrder(FederationUserToken federationUserToken, String requestingMember, String providingMember,
                         String name, String gateway, String address, NetworkAllocationMode allocation) {
-        this(UUID.randomUUID().toString(), federationUserToken, requestingMember, providingMember,
-                name, gateway, address, allocation);
+        super(UUID.randomUUID().toString(), providingMember, federationUserToken, requestingMember);
+        this.name = name;
+        this.gateway = gateway;
+        this.address = address;
+        this.allocation = allocation;
     }
 
     public String getName() {

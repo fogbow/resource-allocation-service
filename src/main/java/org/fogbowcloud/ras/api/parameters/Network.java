@@ -3,19 +3,21 @@ package org.fogbowcloud.ras.api.parameters;
 import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 
-public class Network extends OrderApiParameter<NetworkOrder> {
-
+public class Network {
     public static final String allocationAllowableValues = getAllocationAllowableValues();
-
+    private String provider;
     private String name;
     private String gateway;
     private String address;
     private NetworkAllocationMode allocation;
 
-    @Override
     public NetworkOrder getOrder() {
-        return new NetworkOrder(null, null, null,
-            name, gateway, address, allocation);
+        NetworkOrder order = new NetworkOrder(provider, name, gateway, address, allocation);
+        return order;
+    }
+
+    public String getProvider() {
+        return provider;
     }
 
     public String getName() {

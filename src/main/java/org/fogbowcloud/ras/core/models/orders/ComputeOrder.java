@@ -42,16 +42,23 @@ public class ComputeOrder extends Order {
     private List<String> networksId;
 
     public ComputeOrder() {
-        super(UUID.randomUUID().toString());
+        this(UUID.randomUUID().toString());
     }
 
-    /**
-     * Creating Order with predefined Id.
-     */
-    public ComputeOrder(String id, FederationUserToken federationUserToken, String requestingMember,
-                        String providingMember, String name, int vCPU, int memory, int disk, String imageId,
+    public ComputeOrder(String id) {
+        super(id);
+    }
+
+    public ComputeOrder(String providingMember, String name, int vCPU, int memory, int disk, String imageId,
                         UserData userData, String publicKey, List<String> networksId) {
-        super(id, federationUserToken, requestingMember, providingMember);
+        this(null, null, providingMember, name, vCPU, memory, disk, imageId,
+                        userData, publicKey, networksId);
+    }
+
+    public ComputeOrder(FederationUserToken federationUserToken, String requestingMember, String providingMember,
+                        String name, int vCPU, int memory, int disk, String imageId, UserData userData, String publicKey,
+                        List<String> networksId) {
+        super(UUID.randomUUID().toString(), providingMember, federationUserToken, requestingMember);
         this.name = name;
         this.vCPU = vCPU;
         this.memory = memory;
@@ -61,13 +68,6 @@ public class ComputeOrder extends Order {
         this.publicKey = publicKey;
         this.networksId = networksId;
         this.actualAllocation = new ComputeAllocation();
-    }
-
-    public ComputeOrder(FederationUserToken federationUserToken, String requestingMember, String providingMember,
-                        String name, int vCPU, int memory, int disk, String imageId, UserData userData, String publicKey,
-                        List<String> networksId) {
-        this(UUID.randomUUID().toString(), federationUserToken, requestingMember, providingMember,
-                name, vCPU, memory, disk, imageId, userData, publicKey, networksId);
     }
 
     public ComputeAllocation getActualAllocation() {
@@ -80,6 +80,10 @@ public class ComputeOrder extends Order {
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public int getvCPU() {

@@ -1,13 +1,15 @@
 package org.fogbowcloud.ras.core.models.instances;
 
 public class AttachmentInstance extends Instance {
-    private String serverId;
+    private String computeId;
     private String volumeId;
     private String device;
+    private String computeName;
+    private String volumeName;
 
-    public AttachmentInstance(String id, InstanceState state, String serverId, String volumeId, String device) {
+    public AttachmentInstance(String id, InstanceState state, String computeId, String volumeId, String device) {
         super(id, state);
-        this.serverId = serverId;
+        this.computeId = computeId;
         this.volumeId = volumeId;
         this.device = device;
     }
@@ -20,11 +22,35 @@ public class AttachmentInstance extends Instance {
         return this.device;
     }
 
-    public String getServerId() {
-        return this.serverId;
+    public String getComputeId() {
+        return this.computeId;
+    }
+
+    public void setComputeId(String computeId) {
+        this.computeId = computeId;
     }
 
     public String getVolumeId() {
         return this.volumeId;
+    }
+
+    public void setVolumeId(String volumeId) {
+        this.volumeId = volumeId;
+    }
+
+    public String getComputeName() {
+        return computeName;
+    }
+
+    public void setComputeName(String computeName) {
+        this.computeName = computeName;
+    }
+
+    public String getVolumeName() {
+        return volumeName;
+    }
+
+    public void setVolumeName(String volumeName) {
+        this.volumeName = volumeName;
     }
 }

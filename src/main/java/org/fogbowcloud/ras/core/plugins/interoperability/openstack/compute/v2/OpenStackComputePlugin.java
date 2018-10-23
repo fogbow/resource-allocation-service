@@ -29,7 +29,11 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     private static final Logger LOGGER = Logger.getLogger(OpenStackComputePlugin.class);
 
     public static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
-    protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
+    public static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
+    public static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
+    public static final String SERVERS = "/servers";
+    public static final String ACTION = "action";
+
     protected static final String ID_JSON_FIELD = "id";
     protected static final String NAME_JSON_FIELD = "name";
     protected static final String SERVER_JSON_FIELD = "server";
@@ -52,10 +56,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     protected static final String UUID_JSON_FIELD = "uuid";
     protected static final String FOGBOW_INSTANCE_NAME = "ras-compute-";
     protected static final String PROJECT_ID = "projectId";
-    protected static final String SERVERS = "/servers";
     protected static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
     protected static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
-    protected static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
     protected static final String ADDRESS_FIELD = "addresses";
     protected static final String PROVIDER_NETWORK_FIELD = "provider";
     protected static final String ADDR_FIELD = "addr";
@@ -145,7 +147,14 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }
+
         ComputeInstance computeInstance = getInstanceFromJson(jsonResponse, openStackV3Token);
+
+        String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+        Map<String, String> computeNetworks = new HashMap<>();
+        computeNetworks.put(defaultNetworkId, PROVIDER_NETWORK_FIELD);
+        computeInstance.setNetworks(computeNetworks);
+
         return computeInstance;
     }
 
@@ -180,13 +189,19 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     }
 
     private List<String> resolveNetworksId(ComputeOrder computeOrder) {
-        List<String> requestedNetworksId = new ArrayList<>();
         String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
 
         //We add the default network before any other network, because the order is very important to Openstack
         //request. Openstack will configure the routes to the external network by the first network found on request body.
-        requestedNetworksId.add(defaultNetworkId);
-        requestedNetworksId.addAll(computeOrder.getNetworksId());
+        List<String> networkIds = computeOrder.getNetworksId();
+        List<String> requestedNetworksId = new ArrayList<>();
+        boolean noNetworksProvided = networkIds == null ? true : networkIds.isEmpty();
+        if (noNetworksProvided) {
+            requestedNetworksId.add(defaultNetworkId);
+        } else {
+            requestedNetworksId.addAll(networkIds);
+        }
+
         computeOrder.setNetworksId(requestedNetworksId);
         return requestedNetworksId;
     }
@@ -240,8 +255,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
 
             String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
             if (!networkId.equals(defaultNetworkId)) {
-                String prefix = OpenStackNetworkPlugin.SECURITY_GROUP_PREFIX;
-                String securityGroupName = prefix + "-" + networkId;
+                String securityGroupName = OpenStackNetworkPlugin.getSGNameForPrivateNetwork(networkId);
                 securityGroups.add(new CreateComputeRequest.SecurityGroup(securityGroupName));
             }
         }
@@ -370,17 +384,20 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
         String instanceId = getComputeResponse.getId();
         String hostName = getComputeResponse.getName();
 
-        GetComputeResponse.Addresses addressesContainer = getComputeResponse.getAddresses();
+        Map<String, GetComputeResponse.Address[]> addressesContainer = getComputeResponse.getAddresses();
+        List<String> ipAddresses = new ArrayList<>();
 
-        String address = "";
         if (addressesContainer != null) {
-            GetComputeResponse.Address[] addresses = addressesContainer.getProviderAddresses();
-            boolean firstAddressEmpty = addresses == null || addresses.length == 0 || addresses[0].getAddress() == null;
-            address = firstAddressEmpty ? "" : addresses[0].getAddress();
+            for (GetComputeResponse.Address[] addresses : addressesContainer.values()) {
+                for (GetComputeResponse.Address address : addresses) {
+                    ipAddresses.add(address.getAddress());
+                }
+            }
         }
 
         ComputeInstance computeInstance = new ComputeInstance(instanceId,
-                fogbowState, hostName, vcpusCount, memory, disk, address);
+                fogbowState, hostName, vcpusCount, memory, disk, ipAddresses);
+
         return computeInstance;
     }
 

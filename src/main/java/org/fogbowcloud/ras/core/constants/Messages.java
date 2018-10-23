@@ -50,6 +50,7 @@ public class Messages {
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
         public static final String WRONG_URI_SYNTAX = "Wrong syntax for endpoint %s.";
+        public static final String UNABLE_TO_CREATE_AND_ASSOCIATE_SECURITY_GROUP = "Unable to create and associate security group";
     }
 
     public static class Fatal {
