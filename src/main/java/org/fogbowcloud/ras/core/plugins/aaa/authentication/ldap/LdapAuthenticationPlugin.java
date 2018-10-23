@@ -6,7 +6,6 @@ import org.fogbowcloud.ras.core.models.tokens.LdapToken;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASTimestampedAuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap.LdapTokenGeneratorPlugin;
 
-//TODO implements tests
 public class LdapAuthenticationPlugin extends RASTimestampedAuthenticationPlugin {
 
 	@Override
