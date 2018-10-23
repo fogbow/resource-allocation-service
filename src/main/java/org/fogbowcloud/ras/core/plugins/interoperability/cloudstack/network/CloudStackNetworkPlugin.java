@@ -107,7 +107,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
         List<GetNetworkResponse.Network> networks = response.getNetworks();
 
         if (networks != null && networks.size() > 0) {
-            // since an id were specified, there should be no more than one network in the response
+            // since an id was specified, there should be no more than one network in the response
             return getNetworkInstance(networks.get(0));
         } else {
             throw new InstanceNotFoundException();

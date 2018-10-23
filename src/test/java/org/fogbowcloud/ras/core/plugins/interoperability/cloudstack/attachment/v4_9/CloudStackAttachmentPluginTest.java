@@ -52,7 +52,7 @@ public class CloudStackAttachmentPluginTest {
     private static final String ATTACH_VOLUME_RESPONSE_KEY = "attachvolumeresponse";
     private static final String DETACH_VOLUME_RESPONSE_KEY = "detachvolumeresponse";
     private static final String EMPTY_INSTANCE = "";
-    private static final String ATTACHING_STATE = String.valueOf(InstanceState.ATTACHING);
+    private static final String CREATING_STATE = String.valueOf(InstanceState.CREATING);
     private static final String READY_STATE = String.valueOf(InstanceState.READY);
     private static final String FAILED_STATE = String.valueOf(InstanceState.FAILED);
     private static final int JOB_STATUS_PENDING = 0;
@@ -372,7 +372,7 @@ public class CloudStackAttachmentPluginTest {
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
 
-        String state = ATTACHING_STATE;
+        String state = CREATING_STATE;
         Assert.assertEquals(state, String.valueOf(recoveredInstance.getState()));
         Assert.assertEquals(attachmentInstanceId, recoveredInstance.getId());
         Assert.assertNull(recoveredInstance.getDevice());

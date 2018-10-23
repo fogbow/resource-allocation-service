@@ -11,6 +11,7 @@ import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
 import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
@@ -159,6 +160,7 @@ public class CloudStackNetworkPluginTest {
         Assert.assertEquals(FAKE_ADDRESS, retrievedInstance.getCidr());
         Assert.assertEquals(FAKE_GATEWAY, retrievedInstance.getGateway());
         Assert.assertEquals(FAKE_NAME, retrievedInstance.getName());
+        Assert.assertEquals(InstanceState.READY, retrievedInstance.getState());
 
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(1));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());

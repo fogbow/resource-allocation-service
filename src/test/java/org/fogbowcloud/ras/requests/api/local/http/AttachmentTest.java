@@ -163,9 +163,9 @@ public class AttachmentTest {
     // Check if the request response is compatible with the value produced by facade.
     @Test
     public void testGetAllAttachmentsStatus() throws Exception {
-        InstanceStatus AttachmentStatus1 = new InstanceStatus("fake-Id-1", "fake-provider", InstanceState.IN_USE);
-        InstanceStatus AttachmentStatus2 = new InstanceStatus("fake-Id-2", "fake-provider", InstanceState.IN_USE);
-        InstanceStatus AttachmentStatus3 = new InstanceStatus("fake-Id-3", "fake-provider", InstanceState.IN_USE);
+        InstanceStatus AttachmentStatus1 = new InstanceStatus("fake-Id-1", "fake-provider", InstanceState.UNAVAILABLE);
+        InstanceStatus AttachmentStatus2 = new InstanceStatus("fake-Id-2", "fake-provider", InstanceState.UNAVAILABLE);
+        InstanceStatus AttachmentStatus3 = new InstanceStatus("fake-Id-3", "fake-provider", InstanceState.UNAVAILABLE);
 
         List<InstanceStatus> AttachmentStatusList =
                 Arrays.asList(AttachmentStatus1, AttachmentStatus2, AttachmentStatus3);
