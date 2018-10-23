@@ -45,6 +45,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     private static final String FAKE_IMAGE_ID = "fake-image-id";
     private static final String FAKE_IMAGE_NAME = "fake-image-name";
     private static final String FAKE_COMPUTE_ID = "fake-compute-id";
+    private static final String FAKE_USER_ID = "fake-user-id";
     private static final int VCPU_TOTAL = 2;
     private static final int RAM_TOTAL = 2048;
     private static final int INSTANCES_TOTAL = 2;
@@ -96,6 +97,9 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         this.volumePlugin = Mockito.mock(VolumePlugin.class);
         this.imagePlugin = Mockito.mock(ImagePlugin.class);
         this.computeQuotaPlugin = Mockito.mock(ComputeQuotaPlugin.class);
+
+        // mocking federation user token calls
+        Mockito.when(federationUserToken.getUserId()).thenReturn(FAKE_USER_ID);
 
         // mocking instances/image and the return of getID method
         this.networkInstance = Mockito.mock(NetworkInstance.class);
@@ -166,6 +170,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     public void testRequestComputeInstance() throws FogbowRasException, UnexpectedException {
         // set up
         this.order = Mockito.mock(ComputeOrder.class);
+        Mockito.when(this.order.getFederationUserToken()).thenReturn(this.federationUserToken);
         Mockito.when(this.order.getType()).thenReturn(ResourceType.COMPUTE);
         Mockito.when(computePlugin.requestInstance(Mockito.any(ComputeOrder.class), Mockito.any(Token.class))).thenReturn(FAKE_INSTANCE_ID);
 
@@ -187,9 +192,12 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         // set up
         ComputeOrder source = Mockito.mock(ComputeOrder.class);
         VolumeOrder target = Mockito.mock(VolumeOrder.class);
+        Mockito.when(source.getFederationUserToken()).thenReturn(this.federationUserToken);
+        Mockito.when(target.getFederationUserToken()).thenReturn(this.federationUserToken);
         SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_COMPUTE_ID, source);
         SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_VOLUME_ID, target);
         this.order = Mockito.mock(AttachmentOrder.class);
+        Mockito.when(this.order.getFederationUserToken()).thenReturn(this.federationUserToken);
         Mockito.when(((AttachmentOrder) this.order).getComputeId()).thenReturn(FAKE_COMPUTE_ID);
         Mockito.when(((AttachmentOrder) this.order).getVolumeId()).thenReturn(FAKE_VOLUME_ID);
         Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);
@@ -259,6 +267,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 
         // set up
         this.order = Mockito.mock(ComputeOrder.class);
+        Mockito.when(this.order.getFederationUserToken()).thenReturn(this.federationUserToken);
         Mockito.when(this.order.getType()).thenReturn(ResourceType.COMPUTE);
         Mockito.when(computePlugin.requestInstance(Mockito.any(ComputeOrder.class), Mockito.any(Token.class))).thenReturn(null);
 
@@ -285,9 +294,12 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         // set up
         ComputeOrder source = Mockito.mock(ComputeOrder.class);
         VolumeOrder target = Mockito.mock(VolumeOrder.class);
+        Mockito.when(source.getFederationUserToken()).thenReturn(this.federationUserToken);
+        Mockito.when(target.getFederationUserToken()).thenReturn(this.federationUserToken);
         SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_COMPUTE_ID, source);
         SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_VOLUME_ID, target);
         this.order = Mockito.mock(AttachmentOrder.class);
+        Mockito.when(this.order.getFederationUserToken()).thenReturn(this.federationUserToken);
         Mockito.when(((AttachmentOrder) this.order).getComputeId()).thenReturn(FAKE_COMPUTE_ID);
         Mockito.when(((AttachmentOrder) this.order).getVolumeId()).thenReturn(FAKE_VOLUME_ID);
         Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);

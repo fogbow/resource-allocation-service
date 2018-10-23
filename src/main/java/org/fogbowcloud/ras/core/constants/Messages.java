@@ -40,6 +40,7 @@ public class Messages {
         public static final String SIGNALING_MEMBER_DIFFERENT_OF_PROVIDER = "Signalling member %s is not the provider %s.";
         public static final String TOO_BIG_PUBLIC_KEY = "Too big public key.";
         public static final String TOO_BIG_USER_DATA_FILE_CONTENT = "Too big user data file.";
+        public static final String TRYING_TO_OPERATE_ON_SOMEONELSES_RESOURCE = "Trying to use someone else's resource.";
         public static final String UNABLE_TO_FIND_LIST_FOR_REQUESTS = "Unable to find list for requests in state %s.";
         public static final String UNABLE_TO_LOAD_LDAP_ACCOUNT = "Unable to load account summary from LDAP Network.";
         public static final String UNABLE_TO_PROCESS_EMPTY_REQUEST = "Unable to process request with null reference.";
@@ -49,8 +50,8 @@ public class Messages {
         public static final String UNAVAILABLE_PROVIDER = "Provider is not available.";
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
-        public static final String WRONG_URI_SYNTAX = "Wrong syntax for endpoint %s.";
         public static final String UNABLE_TO_CREATE_AND_ASSOCIATE_SECURITY_GROUP = "Unable to create and associate security group";
+        public static final String WRONG_URI_SYNTAX = "Wrong syntax for endpoint %s.";
     }
 
     public static class Fatal {
@@ -99,8 +100,8 @@ public class Messages {
         public static final String RECEIVING_GET_VERSION_REQUEST = "Get request for version received.";
         public static final String RECEIVING_REMOTE_REQUEST = "Received remote request for request %s.";
         public static final String RECOVERING_LIST_OF_ORDERS = "Recovering requests in %s state: %d requests recovered so far.";
-        public static final String STARTING_THREADS = "Starting processor threads.";
         public static final String SKIPPING_BECAUSE_PROVIDER_IS_REMOTE = "Member %s skipping monitoring of request %s provided by %s.";
+        public static final String STARTING_THREADS = "Starting processor threads.";
     }
 
     public static class Error {

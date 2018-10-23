@@ -60,7 +60,6 @@ public class LocalCloudConnector implements CloudConnector {
                 // We save the list of NetworkOrderIds in the original order, to restore these values, after
                 // the Compute instance is requested in the cloud.
                 ComputeOrder computeOrder = (ComputeOrder) order;
-                // ToDO: check if all networks belong to the user that is requesting the compute
                 List<String> savedNetworkOrderIds = computeOrder.getNetworksId();
                 List<String> networkInstanceIds = getNetworkInstanceIdsFromNetworkOrderIds(computeOrder);
                 computeOrder.setNetworksId(networkInstanceIds);
@@ -81,18 +80,25 @@ public class LocalCloudConnector implements CloudConnector {
                 requestInstance = this.volumePlugin.requestInstance(volumeOrder, token);
                 break;
             case ATTACHMENT:
+                // Check if both the compute and the volume orders belong to the user issuing the attachment order
+                AttachmentOrder attachmentOrder = (AttachmentOrder) order;
+                String savedComputeOrderId = attachmentOrder.getComputeId();
+                String savedVolumeOrderId = attachmentOrder.getVolumeId();
+                Order attachmentComputeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedComputeOrderId);
+                Order attachmentVolumeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedVolumeOrderId);
+                String attachmentOrderUserId = attachmentOrder.getFederationUserToken().getUserId();
+                String computeOrderUserId = attachmentComputeOrder.getFederationUserToken().getUserId();
+                String volumeOrderUserId = attachmentVolumeOrder.getFederationUserToken().getUserId();
+                if (!attachmentOrderUserId.equals(computeOrderUserId) ||
+                        !attachmentOrderUserId.equals(volumeOrderUserId)) {
+                    throw new InvalidParameterException(Messages.Exception.TRYING_TO_OPERATE_ON_SOMEONELSES_RESOURCE);
+                }
                 // As the order parameter came from the rest API, the Compute and Volume fields are actually
                 // ComputeOrder and VolumeOrder Ids, since these are the Ids that are known to users/applications
                 // using the API. Thus, before requesting the plugin to create the Attachment, we need to replace the
                 // ComputeOrderId and the VolumeOrderId by their corresponding ComputeInstanceId and VolumeInstanceId.
                 // We save the Order Ids in the original order, to restore these values, after the Attachment is
                 // requested in the cloud.
-                // ToDO: check if both the compute and the volume belong to the user that is requesting the attachment
-                AttachmentOrder attachmentOrder = (AttachmentOrder) order;
-                String savedComputeOrderId = attachmentOrder.getComputeId();
-                String savedVolumeOrderId = attachmentOrder.getVolumeId();
-                Order attachmentComputeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedComputeOrderId);
-                Order attachmentVolumeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(savedVolumeOrderId);
                 attachmentOrder.setComputeId(attachmentComputeOrder.getInstanceId());
                 attachmentOrder.setVolumeId(attachmentVolumeOrder.getInstanceId());
                 try {
@@ -111,7 +117,12 @@ public class LocalCloudConnector implements CloudConnector {
 
                 Order retrievedComputeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap()
                         .get(computeOrderId);
-                // ToDO: check if the compute belongs to the user that is requesting the public IP
+
+                String publicIpOrderUserId = publicIpOrder.getFederationUserToken().getUserId();
+                String targetComputeOrderUserId = retrievedComputeOrder.getFederationUserToken().getUserId();
+                if (!publicIpOrderUserId.equals(targetComputeOrderUserId)) {
+                    throw new InvalidParameterException(Messages.Exception.TRYING_TO_OPERATE_ON_SOMEONELSES_RESOURCE);
+                }
 
                 String computeInstanceId = retrievedComputeOrder.getInstanceId();
                 if (computeInstanceId != null) {
@@ -249,18 +260,17 @@ public class LocalCloudConnector implements CloudConnector {
         List<String> networkOrdersId = order.getNetworksId();
         List<String> networkInstanceIDs = new LinkedList<String>();
 
-        FederationUserToken federationUserToken = order.getFederationUserToken();
+        String computeOrderUserId = order.getFederationUserToken().getUserId();
 
         for (String orderId : networkOrdersId) {
             Order networkOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
 
             if (networkOrder == null) {
-                throw new InvalidParameterException();
+                throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
             } else {
                 String networkOrderUserId = networkOrder.getFederationUserToken().getUserId();
-                String computeOrderUserId = order.getFederationUserToken().getUserId();
                 if (!networkOrderUserId.equals(computeOrderUserId)) {
-                    throw new InvalidParameterException();
+                    throw new InvalidParameterException(Messages.Exception.TRYING_TO_OPERATE_ON_SOMEONELSES_RESOURCE);
                 }
             }
 
