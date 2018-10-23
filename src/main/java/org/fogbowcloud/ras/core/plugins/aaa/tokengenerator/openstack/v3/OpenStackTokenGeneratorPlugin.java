@@ -110,7 +110,7 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
         }
     }
 
-    protected String createSignature(String message) throws IOException, GeneralSecurityException, UnauthenticatedUserException {
+    protected String createSignature(String message) throws IOException, GeneralSecurityException, FogbowRasException {
         return this.rasAuthenticationHolder.createSignature(message);
     }
     

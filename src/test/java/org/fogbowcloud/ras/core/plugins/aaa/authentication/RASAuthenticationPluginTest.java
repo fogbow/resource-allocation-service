@@ -2,6 +2,7 @@ package org.fogbowcloud.ras.core.plugins.aaa.authentication;
 
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
+import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.junit.Assert;
@@ -43,7 +44,7 @@ public class RASAuthenticationPluginTest {
 	
 	// test case: Same local member and is authenticated
 	@Test
-	public void testIsAuthentic() throws UnauthenticatedUserException {
+	public void testIsAuthentic() throws FogbowRasException {
 		// set up
 		String requestingMember = DEFAULT_LOCAL_MEMBER_ID;
 		FederationUserToken federationUserToken = new FederationUserToken(requestingMember, "", "", "");
@@ -59,7 +60,7 @@ public class RASAuthenticationPluginTest {
 	
 	// test case: Same local member and is not authenticated
 	@Test
-	public void testIsNotAuthentic() throws UnauthenticatedUserException {
+	public void testIsNotAuthentic() throws FogbowRasException {
 		// set up
 		String requestingMember = DEFAULT_LOCAL_MEMBER_ID;
 		FederationUserToken federationUserToken = new FederationUserToken(requestingMember, "", "", "");
@@ -75,7 +76,7 @@ public class RASAuthenticationPluginTest {
 	
 	// test case: The requesting member is not equals to local member and is equals to federationUserToken 
 	@Test
-	public void testIsAuthenticRequestingMemberEqualsToToken() throws UnauthenticatedUserException {
+	public void testIsAuthenticRequestingMemberEqualsToToken() throws FogbowRasException {
 		// set up
 		String requestingMember = "requestingmember";
 		FederationUserToken federationUserToken = new FederationUserToken(requestingMember, "", "", "");
@@ -91,7 +92,7 @@ public class RASAuthenticationPluginTest {
 	
 	// test case: The requesting member is not equals to local member and is not equals to federationUserToken 
 	@Test
-	public void testIsAuthenticRequestingMemberNotEqualsToToken() throws UnauthenticatedUserException {
+	public void testIsAuthenticRequestingMemberNotEqualsToToken() throws FogbowRasException {
 		// set up
 		String requestingMember = "requestingmember";
 		String requestingMemberOther = "other";
