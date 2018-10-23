@@ -58,6 +58,7 @@ public class LocalCloudConnector implements CloudConnector {
                 // We save the list of NetworkOrderIds in the original order, to restore these values, after
                 // the Compute instance is requested in the cloud.
                 ComputeOrder computeOrder = (ComputeOrder) order;
+                // ToDO: check if all networks belong to the user that is requesting the compute
                 List<String> savedNetworkOrderIds = computeOrder.getNetworksId();
                 List<String> networkInstanceIds = getNetworkInstanceIdsFromNetworkOrderIds(computeOrder);
                 computeOrder.setNetworksId(networkInstanceIds);
@@ -84,6 +85,7 @@ public class LocalCloudConnector implements CloudConnector {
                 // ComputeOrderId and the VolumeOrderId by their corresponding ComputeInstanceId and VolumeInstanceId.
                 // We save the Order Ids in the original order, to restore these values, after the Attachment is
                 // requested in the cloud.
+                // ToDO: check if both the compute and the volume belong to the user that is requesting the attachment
                 AttachmentOrder attachmentOrder = (AttachmentOrder) order;
                 String savedComputeOrderId = attachmentOrder.getComputeId();
                 String savedVolumeOrderId = attachmentOrder.getVolumeId();
@@ -107,6 +109,7 @@ public class LocalCloudConnector implements CloudConnector {
 
                 Order retrievedComputeOrder = SharedOrderHolders.getInstance().getActiveOrdersMap()
                         .get(computeOrderId);
+                // ToDO: check if the compute belongs to the user that is requesting the public IP
 
                 String computeInstanceId = retrievedComputeOrder.getInstanceId();
                 if (computeInstanceId != null) {
@@ -291,15 +294,20 @@ public class LocalCloudConnector implements CloudConnector {
         String publicKey = order.getPublicKey();
 
         UserData userData = order.getUserData();
-        String userDataContents = userData != null ? userData.getExtraUserDataFileContent() : null;
+        String userDataContent = userData != null ? userData.getExtraUserDataFileContent() : null;
 
+        // If no network ids were informed by the user, the default network is used and the compute is attached
+        // to this network. The plugin has already added this information to the instance. Otherwise, the information
+        // added by the plugin needs to be overwritten, since a compute instance is either attached to the networks
+        // informed by the user in the request, or to default network (if no networks are informed).
         Map<String, String> computeNetworks = getNetworkOrderIdsFromComputeOrder(order);
-        computeNetworks.putAll(fullInstance.getNetworks());
+        if (!computeNetworks.isEmpty()) {
+            fullInstance.setNetworks(computeNetworks);
+        }
 
-        fullInstance.setNetworks(computeNetworks);
         fullInstance.setImageId(imageId + " : " + imageName);
         fullInstance.setPublicKey(publicKey);
-        fullInstance.setUserData(userDataContents);
+        fullInstance.setUserDataContent(userDataContent);
 
         return fullInstance;
     }

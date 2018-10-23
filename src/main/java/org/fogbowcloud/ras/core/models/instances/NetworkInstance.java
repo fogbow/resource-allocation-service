@@ -4,23 +4,23 @@ import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
 
 public class NetworkInstance extends Instance {
     private String name;
-    private String address;
+    private String cidr;
     private String gateway;
+    private NetworkAllocationMode allocationMode;
     private String vLAN;
-    private NetworkAllocationMode allocation;
     private String networkInterface;
     private String MACInterface;
     private String interfaceState;
 
-    public NetworkInstance(String id, InstanceState instanceState, String name, String address, String gateway,
+    public NetworkInstance(String id, InstanceState instanceState, String name, String cidr, String gateway,
                            String vLAN, NetworkAllocationMode networkAllocationMode, String networkInterface,
                            String MACInterface, String interfaceState) {
         super(id, instanceState);
         this.name = name;
-        this.address = address;
+        this.cidr = cidr;
         this.gateway = gateway;
         this.vLAN = vLAN;
-        this.allocation = networkAllocationMode;
+        this.allocationMode = networkAllocationMode;
         this.networkInterface = networkInterface;
         this.MACInterface = MACInterface;
         this.interfaceState = interfaceState;
@@ -34,8 +34,8 @@ public class NetworkInstance extends Instance {
         return name;
     }
 
-    public String getAddress() {
-        return address;
+    public String getCidr() {
+        return cidr;
     }
 
     public String getGateway() {
@@ -46,12 +46,12 @@ public class NetworkInstance extends Instance {
         return vLAN;
     }
 
-    public NetworkAllocationMode getAllocation() {
-        return allocation;
+    public NetworkAllocationMode getAllocationMode() {
+        return allocationMode;
     }
 
-    public void setAllocation(NetworkAllocationMode allocation) {
-        this.allocation = allocation;
+    public void setAllocationMode(NetworkAllocationMode allocationMode) {
+        this.allocationMode = allocationMode;
     }
 
     public String getInterfaceState() {

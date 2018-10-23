@@ -22,7 +22,7 @@ class ComputeTests:
     cls.test_get_by_id_compute(data_for_local)
     print('-Test %d: get local quota' % cls.which_test_case())
     cls.test_quota(data_for_local)
-    print('-Test %d: get local allocation:' % cls.which_test_case())
+    print('-Test %d: get local allocationMode:' % cls.which_test_case())
     cls.test_allocation(data_for_local)
     if GeneralConfigurations.remote_member:
       data_for_remote = {GeneralConfigurations.providingMember: GeneralConfigurations.remote_member}
@@ -38,7 +38,7 @@ class ComputeTests:
       cls.test_get_by_id_compute(data_for_remote)
       print('-Test %d: get remote quota' % cls.which_test_case())
       cls.test_quota(data_for_remote)
-      print('-Test %d: get remote allocation:' % cls.which_test_case())
+      print('-Test %d: get remote allocationMode:' % cls.which_test_case())
       cls.test_allocation(data_for_remote)
 
   @classmethod
@@ -132,7 +132,7 @@ class ComputeTests:
       return
     if not cls.empty_allocation(response_get_allocation.json()):
       print(response_get_allocation.json())
-      print('  Failed, allocation already in use, trying next test')
+      print('  Failed, allocationMode already in use, trying next test')
       return
     orders_id = CommonMethods.post_multiple_orders(extra_data, GeneralConfigurations.max_computes, GeneralConfigurations.type_compute)
     if not orders_id:
@@ -141,12 +141,12 @@ class ComputeTests:
     for order in orders_id:
       cls.wait_instance_ready(order, GeneralConfigurations.type_compute)
     response_get_allocation = cls.get_allocation(member)
-    allocation = response_get_allocation.json()
-    if cls.empty_allocation(allocation):
+    allocationMode = response_get_allocation.json()
+    if cls.empty_allocation(allocationMode):
       CommonMethods.delete_multiple_orders(orders_id, GeneralConfigurations.type_compute)
-      print('  Failed. Allocation was not in use. Actual allocation was: %s' % allocation)
+      print('  Failed. Allocation was not in use. Actual allocationMode was: %s' % allocationMode)
       return
-    if allocation['instances'] == GeneralConfigurations.max_computes:
+    if allocationMode['instances'] == GeneralConfigurations.max_computes:
       print('  Ok. Removing compute')
     else:
       print('  Failed. Removing compute')
@@ -159,8 +159,8 @@ class ComputeTests:
     return response
 
   @classmethod
-  def empty_allocation(cls, allocation):
-    if allocation['vCPU'] == 0 and allocation['memory'] == 0 and allocation['instances'] == 0:
+  def empty_allocation(cls, allocationMode):
+    if allocationMode['vCPU'] == 0 and allocationMode['memory'] == 0 and allocationMode['instances'] == 0:
       return True
     return False
 

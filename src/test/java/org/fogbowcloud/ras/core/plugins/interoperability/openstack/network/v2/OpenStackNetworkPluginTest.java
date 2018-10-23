@@ -339,7 +339,7 @@ public class OpenStackNetworkPluginTest {
         Assert.assertTrue(subnetJsonObject.optString(OpenStackNetworkPlugin.KEY_NAME)
                 .contains(OpenStackNetworkPlugin.DEFAULT_SUBNET_NAME));
         Assert.assertEquals(order.getId(), subnetJsonObject.optString(OpenStackNetworkPlugin.KEY_NETWORK_ID));
-        Assert.assertEquals(order.getAddress(), subnetJsonObject.optString(OpenStackNetworkPlugin.KEY_CIDR));
+        Assert.assertEquals(order.getCidr(), subnetJsonObject.optString(OpenStackNetworkPlugin.KEY_CIDR));
         Assert.assertEquals(order.getGateway(), subnetJsonObject.optString(OpenStackNetworkPlugin.KEY_GATEWAY_IP));
         Assert.assertEquals(true, subnetJsonObject.optBoolean(OpenStackNetworkPlugin.KEY_ENABLE_DHCP));
         Assert.assertEquals(OpenStackNetworkPlugin.DEFAULT_IP_VERSION,
@@ -363,7 +363,7 @@ public class OpenStackNetworkPluginTest {
         //verify
         JSONObject subnetJsonObject = generateJsonEntityToCreateSubnet
                 .optJSONObject(OpenStackNetworkPlugin.KEY_JSON_SUBNET);
-        Assert.assertEquals(OpenStackNetworkPlugin.DEFAULT_NETWORK_ADDRESS,
+        Assert.assertEquals(OpenStackNetworkPlugin.DEFAULT_NETWORK_CIDR,
                 subnetJsonObject.optString(OpenStackNetworkPlugin.KEY_CIDR));
     }
 
@@ -477,8 +477,8 @@ public class OpenStackNetworkPluginTest {
         Assert.assertEquals(vlan, instance.getvLAN());
         Assert.assertEquals(InstanceState.READY, instance.getState());
         Assert.assertEquals(gatewayIp, instance.getGateway());
-        Assert.assertEquals(cidr, instance.getAddress());
-        Assert.assertEquals(NetworkAllocationMode.DYNAMIC, instance.getAllocation());
+        Assert.assertEquals(cidr, instance.getCidr());
+        Assert.assertEquals(NetworkAllocationMode.DYNAMIC, instance.getAllocationMode());
     }
 
 

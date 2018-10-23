@@ -106,7 +106,7 @@ public class OpenStackVolumePluginTest {
         // verify
         Mockito.verify(this.httpRequestClientUtil).doGetRequest(Mockito.anyString(), Mockito.any(Token.class));
         Assert.assertEquals(FAKE_NAME, volumeInstance.getName());
-        Assert.assertEquals(Integer.parseInt(FAKE_SIZE), volumeInstance.getSize());
+        Assert.assertEquals(Integer.parseInt(FAKE_SIZE), volumeInstance.getVolumeSize());
     }
 
     // test case: Check if the request in deleteInstance() is executed properly with the right parameters.

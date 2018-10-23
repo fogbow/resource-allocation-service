@@ -15,10 +15,10 @@ public class NetworkOrder extends Order {
     @Column
     private String gateway;
     @Column
-    private String address;
+    private String cidr;
     @Column
     @Enumerated(EnumType.STRING)
-    private NetworkAllocationMode allocation;
+    private NetworkAllocationMode allocationMode;
 
     public NetworkOrder() {
         this(UUID.randomUUID().toString());
@@ -28,18 +28,18 @@ public class NetworkOrder extends Order {
         super(id);
     }
 
-    public NetworkOrder(String providingMember, String name, String gateway, String address,
-                        NetworkAllocationMode allocation) {
-        this(null, null, providingMember, name, gateway, address, allocation);
+    public NetworkOrder(String providingMember, String name, String gateway, String cidr,
+                        NetworkAllocationMode allocationMode) {
+        this(null, null, providingMember, name, gateway, cidr, allocationMode);
     }
 
     public NetworkOrder(FederationUserToken federationUserToken, String requestingMember, String providingMember,
-                        String name, String gateway, String address, NetworkAllocationMode allocation) {
+                        String name, String gateway, String cidr, NetworkAllocationMode allocationMode) {
         super(UUID.randomUUID().toString(), providingMember, federationUserToken, requestingMember);
         this.name = name;
         this.gateway = gateway;
-        this.address = address;
-        this.allocation = allocation;
+        this.cidr = cidr;
+        this.allocationMode = allocationMode;
     }
 
     public String getName() {
@@ -50,12 +50,12 @@ public class NetworkOrder extends Order {
         return gateway;
     }
 
-    public String getAddress() {
-        return address;
+    public String getCidr() {
+        return cidr;
     }
 
-    public NetworkAllocationMode getAllocation() {
-        return allocation;
+    public NetworkAllocationMode getAllocationMode() {
+        return allocationMode;
     }
 
     @Override

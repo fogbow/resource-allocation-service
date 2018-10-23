@@ -21,7 +21,7 @@ public class ComputeInstance extends Instance {
     private Map<String, String> networks;
     private String imageId;
     private String publicKey;
-    private String userData;
+    private String userDataContent;
 
     public ComputeInstance(String id, InstanceState state, String name, int vCPU, int memory, int disk,
                            List<String> ipAddresses) {
@@ -34,7 +34,7 @@ public class ComputeInstance extends Instance {
     }
 
     public ComputeInstance(String id, InstanceState state, String name, int vCPU, int memory, int disk,
-                           List<String> ipAddresses, String imageId, String publicKey, String userData) {
+                           List<String> ipAddresses, String imageId, String publicKey, String userDataContent) {
         super(id, state);
         this.name = name;
         this.vCPU = vCPU;
@@ -43,7 +43,7 @@ public class ComputeInstance extends Instance {
         this.ipAddresses = ipAddresses;
         this.imageId = imageId;
         this.publicKey = publicKey;
-        this.userData = userData;
+        this.userDataContent = userDataContent;
     }
 
     public ComputeInstance(String id) {
@@ -94,12 +94,12 @@ public class ComputeInstance extends Instance {
         this.publicKey = publicKey;
     }
 
-    public String getUserData() {
-        return userData;
+    public String getUserDataContent() {
+        return userDataContent;
     }
 
-    public void setUserData(String userData) {
-        this.userData = userData;
+    public void setUserDataContent(String userDataContent) {
+        this.userDataContent = userDataContent;
     }
 
     @Override

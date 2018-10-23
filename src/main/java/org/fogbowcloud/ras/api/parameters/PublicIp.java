@@ -4,10 +4,10 @@ import org.fogbowcloud.ras.core.models.orders.PublicIpOrder;
 
 public class PublicIp {
     private String provider;
-    private String computeOrderId;
+    private String computeId;
 
     public PublicIpOrder getOrder() {
-        PublicIpOrder order = new PublicIpOrder(provider, computeOrderId);
+        PublicIpOrder order = new PublicIpOrder(provider, computeId);
         return order;
     }
 
@@ -15,7 +15,7 @@ public class PublicIp {
         return provider;
     }
 
-    public String getComputeOrderId() {
-        return computeOrderId;
+    public String getComputeId() {
+        return computeId;
     }
 }

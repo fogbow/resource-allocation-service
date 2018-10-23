@@ -156,7 +156,7 @@ public class CloudStackNetworkPluginTest {
 
         // verify
         Assert.assertEquals(FAKE_ID, retrievedInstance.getId());
-        Assert.assertEquals(FAKE_ADDRESS, retrievedInstance.getAddress());
+        Assert.assertEquals(FAKE_ADDRESS, retrievedInstance.getCidr());
         Assert.assertEquals(FAKE_GATEWAY, retrievedInstance.getGateway());
         Assert.assertEquals(FAKE_NAME, retrievedInstance.getName());
 

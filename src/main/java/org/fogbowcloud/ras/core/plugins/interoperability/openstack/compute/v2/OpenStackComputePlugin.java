@@ -59,7 +59,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     protected static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
     protected static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
     protected static final String ADDRESS_FIELD = "addresses";
-    protected static final String PROVIDER_NETWORK_FIELD = "provider";
+    protected static final String PROVIDER_NETWORK_FIELD = "default";
     protected static final String ADDR_FIELD = "addr";
     private TreeSet<HardwareRequirements> hardwareRequirementsList;
     private Properties properties;
@@ -104,7 +104,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
             synchronized (computeOrder) {
                 ComputeAllocation actualAllocation = new ComputeAllocation(
                         hardwareRequirements.getCpu(),
-                        hardwareRequirements.getRam(),
+                        hardwareRequirements.getMemory(),
                         1);
                 // When the ComputeOrder is remote, this field must be copied into its local counterpart
                 // that is updated when the requestingMember receives the reply from the providingMember
@@ -150,6 +150,10 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
 
         ComputeInstance computeInstance = getInstanceFromJson(jsonResponse, openStackV3Token);
 
+        // Case the user has specified no private networks, than the compute instance was attached to
+        // the default network. When inserting the data that come from the order in the instance, if
+        // networks were set, then the default network was not inserted, and this information will be
+        // overwritten.
         String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
         Map<String, String> computeNetworks = new HashMap<>();
         computeNetworks.put(defaultNetworkId, PROVIDER_NETWORK_FIELD);
@@ -292,7 +296,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
         TreeSet<HardwareRequirements> hardwareRequirementsList = getHardwareRequirementsList();
         for (HardwareRequirements hardwareRequirements : hardwareRequirementsList) {
             if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
-                    && hardwareRequirements.getRam() >= computeOrder.getMemory()
+                    && hardwareRequirements.getMemory() >= computeOrder.getMemory()
                     && hardwareRequirements.getDisk() >= computeOrder.getDisk()) {
                 return hardwareRequirements;
             }
@@ -375,7 +379,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
         }
 
         int vcpusCount = hardwareRequirements.getCpu();
-        int memory = hardwareRequirements.getRam();
+        int memory = hardwareRequirements.getMemory();
         int disk = hardwareRequirements.getDisk();
 
         String openStackState = getComputeResponse.getStatus();

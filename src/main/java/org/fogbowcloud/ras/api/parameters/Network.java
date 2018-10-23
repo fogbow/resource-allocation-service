@@ -8,11 +8,11 @@ public class Network {
     private String provider;
     private String name;
     private String gateway;
-    private String address;
-    private NetworkAllocationMode allocation;
+    private String cidr;
+    private NetworkAllocationMode allocationMode;
 
     public NetworkOrder getOrder() {
-        NetworkOrder order = new NetworkOrder(provider, name, gateway, address, allocation);
+        NetworkOrder order = new NetworkOrder(provider, name, gateway, cidr, allocationMode);
         return order;
     }
 
@@ -28,12 +28,12 @@ public class Network {
         return gateway;
     }
 
-    public String getAddress() {
-        return address;
+    public String getCidr() {
+        return cidr;
     }
 
-    public NetworkAllocationMode getAllocation() {
-        return allocation;
+    public NetworkAllocationMode getAllocationMode() {
+        return allocationMode;
     }
 
     private static String getAllocationAllowableValues() {
