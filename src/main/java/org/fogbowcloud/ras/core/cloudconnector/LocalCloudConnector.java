@@ -6,6 +6,7 @@ import org.fogbowcloud.ras.core.SharedOrderHolders;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
+import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.images.Image;
@@ -16,6 +17,7 @@ import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
+import org.omg.CORBA.DynAnyPackage.Invalid;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -243,12 +245,25 @@ public class LocalCloudConnector implements CloudConnector {
     /**
      * protected visibility for tests
      */
-    protected List<String> getNetworkInstanceIdsFromNetworkOrderIds(ComputeOrder order) {
+    protected List<String> getNetworkInstanceIdsFromNetworkOrderIds(ComputeOrder order) throws InvalidParameterException {
         List<String> networkOrdersId = order.getNetworksId();
         List<String> networkInstanceIDs = new LinkedList<String>();
 
+        FederationUserToken federationUserToken = order.getFederationUserToken();
+
         for (String orderId : networkOrdersId) {
             Order networkOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
+
+            if (networkOrder == null) {
+                throw new InvalidParameterException();
+            } else {
+                String networkOrderUserId = networkOrder.getFederationUserToken().getUserId();
+                String computeOrderUserId = order.getFederationUserToken().getUserId();
+                if (!networkOrderUserId.equals(computeOrderUserId)) {
+                    throw new InvalidParameterException();
+                }
+            }
+
             String instanceId = networkOrder.getInstanceId();
             networkInstanceIDs.add(instanceId);
         }

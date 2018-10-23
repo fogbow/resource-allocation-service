@@ -5,6 +5,7 @@ import org.fogbowcloud.ras.core.InteroperabilityPluginsHolder;
 import org.fogbowcloud.ras.core.SharedOrderHolders;
 import org.fogbowcloud.ras.core.datastore.DatabaseManager;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.images.Image;
@@ -130,9 +131,12 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     // test case: When calling the method getNetworkInstanceIdsFromNetworkOrderIds(), it must return
     // the collection of NetworkInstancesIds corresponding to the list of NetworkOrderIds in the order received.
     @Test
-    public void testGetNetworkInstanceIdsFromNetworkOrderIds() {
+    public void testGetNetworkInstanceIdsFromNetworkOrderIds() throws InvalidParameterException {
         // set up
         NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
+        FederationUserToken federationUser = new FederationUserToken(
+                "fake-tokenProvider", "fake-token-value", "fake-user-id", "fake-user-name");
+        Mockito.when(networkOrder.getFederationUserToken()).thenReturn(federationUser);
 
         Mockito.doReturn(FAKE_ORDER_ID).when(networkOrder).getId();
         Mockito.doReturn(FAKE_INSTANCE_ID).when(networkOrder).getInstanceId();
@@ -143,6 +147,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         networkOrderIdsList.add(FAKE_ORDER_ID);
 
         ComputeOrder computeOrder = new ComputeOrder();
+        computeOrder.setFederationUserToken(federationUser);
         computeOrder.setNetworksId(networkOrderIdsList);
 
         List<String> expectedList = new ArrayList<>();
@@ -159,7 +164,6 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     // test case: Request allocationAllowableValues compute instance when the plugin returns allocationAllowableValues correct id
     @Test
     public void testRequestComputeInstance() throws FogbowRasException, UnexpectedException {
-
         // set up
         this.order = Mockito.mock(ComputeOrder.class);
         Mockito.when(this.order.getType()).thenReturn(ResourceType.COMPUTE);
