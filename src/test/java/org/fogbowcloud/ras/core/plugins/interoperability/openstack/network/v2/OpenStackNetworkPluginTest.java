@@ -56,8 +56,7 @@ public class OpenStackNetworkPluginTest {
     private static final String SUFFIX_ENDPOINT_DELETE_SECURITY_GROUP = OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP +
             File.separator + SECURITY_GROUP_ID;
     private static final String SUFFIX_ENDPOINT_GET_SECURITY_GROUP = OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP + "?" +
-            OpenStackNetworkPlugin.QUERY_NAME + "=" + OpenStackNetworkPlugin.SECURITY_GROUP_PREFIX + "-"
-            + NETWORK_ID;
+            OpenStackNetworkPlugin.QUERY_NAME + "=" + OpenStackNetworkPlugin.SECURITY_GROUP_PREFIX + NETWORK_ID;
 
     private OpenStackNetworkPlugin openStackNetworkPlugin;
     private OpenStackV3Token defaultLocalUserAttributes;
@@ -493,8 +492,7 @@ public class OpenStackNetworkPluginTest {
         JSONObject securityGroupResponse = createSecurityGroupGetResponse(SECURITY_GROUP_ID);
         String suffixEndpointNetwork = OpenStackNetworkPlugin.SUFFIX_ENDPOINT_NETWORK + "/" + NETWORK_ID;
         String suffixEndpointGetSG = OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP + "?" +
-                OpenStackNetworkPlugin.QUERY_NAME + "=" + OpenStackNetworkPlugin.SECURITY_GROUP_PREFIX + "-"
-                + NETWORK_ID;
+                OpenStackNetworkPlugin.QUERY_NAME + "=" + OpenStackNetworkPlugin.SECURITY_GROUP_PREFIX + NETWORK_ID;
         String suffixEndpointDeleteSG = OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP + "/" + SECURITY_GROUP_ID;
 
         Mockito.doNothing().when(this.httpRequestClientUtil).doDeleteRequest(
