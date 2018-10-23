@@ -37,7 +37,7 @@ class ImageTests:
       return
     images_id = response_get_all.json().keys()
     if (len(images_id) <= 0):
-      print("  Failed. Expected at least 1 image available, but got %d" % len(images_id))
+      print("  Failed. Expected at least 1 imageId available, but got %d" % len(images_id))
       return
     print('  Ok')
 

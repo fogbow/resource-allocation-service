@@ -163,7 +163,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
-    // test case: When running thread in the FulfilledProcessor without a LocalMember, the method
+    // test case: When running thread in the FulfilledProcessor without allocationAllowableValues LocalMember, the method
     // processFulfilledOrder() must not change OrderState to Failed and must remain in Fulfilled
     // list.
     @Test
@@ -239,7 +239,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.thread.start();
 
         /**
-         * here may be a false positive depending on how long the machine will take to run the test
+         * here may be allocationAllowableValues false positive depending on how long the machine will take to run the test
          */
         Thread.sleep(MAX_SLEEP_TIME);
 
@@ -282,7 +282,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
-    // test case: When running thread in the FulfilledProcessor with OrderState Null must throw a
+    // test case: When running thread in the FulfilledProcessor with OrderState Null must throw allocationAllowableValues
     // ThrowableException.
     @Test
     public void testRunThrowableExceptionWhileTryingToProcessOrderStateNull()
@@ -308,7 +308,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Mockito.verify(this.fulfilledProcessor, Mockito.times(1)).processFulfilledOrder(order);
     }
 
-    // test case: When running thread in the FulfilledProcessor with OrderState Null must throw a
+    // test case: When running thread in the FulfilledProcessor with OrderState Null must throw allocationAllowableValues
     // UnexpectedException.
     @Test
     public void testThrowUnexpectedExceptionWhileTryingToProcessOrder()

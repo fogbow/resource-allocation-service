@@ -2,12 +2,12 @@ package org.fogbowcloud.ras.core.models.instances;
 
 public class VolumeInstance extends Instance {
     private String name;
-    private int size;
+    private int volumeSize;
 
-    public VolumeInstance(String id, InstanceState instanceState, String name, int size) {
+    public VolumeInstance(String id, InstanceState instanceState, String name, int volumeSize) {
         super(id, instanceState);
         this.name = name;
-        this.size = size;
+        this.volumeSize = volumeSize;
     }
 
     public VolumeInstance(String id) {
@@ -22,11 +22,11 @@ public class VolumeInstance extends Instance {
         this.name = name;
     }
 
-    public int getSize() {
-        return this.size;
+    public int getVolumeSize() {
+        return this.volumeSize;
     }
 
-    public void setSize(int size) {
-        this.size = size;
+    public void setVolumeSize(int volumeSize) {
+        this.volumeSize = volumeSize;
     }
 }

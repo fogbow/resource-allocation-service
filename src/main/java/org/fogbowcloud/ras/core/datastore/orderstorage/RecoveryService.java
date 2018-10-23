@@ -24,19 +24,19 @@ public class RecoveryService {
         return orderRepository.findByOrderState(orderState);
     }
 
-    public Order save(Order order) throws UnexpectedException {
+    public void save(Order order) throws UnexpectedException {
         if (orderRepository.exists(order.getId())) {
             throw new UnexpectedException(Messages.Exception.REQUEST_ALREADY_EXIST);
         }
 
-        return orderRepository.save(order);
+        this.orderRepository.save(order);
     }
 
-    public Order update(Order order) throws UnexpectedException {
+    public void update(Order order) throws UnexpectedException {
         if (!orderRepository.exists(order.getId())) {
             throw new UnexpectedException(Messages.Exception.INEXISTENT_REQUEST);
         }
 
-        return orderRepository.save(order);
+        this.orderRepository.save(order);
     }
 }

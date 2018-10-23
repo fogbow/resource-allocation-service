@@ -2,8 +2,6 @@ package org.fogbowcloud.ras.core;
 
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.ras.core.cloudconnector.LocalCloudConnector;
-import org.fogbowcloud.ras.core.cloudconnector.RemoteCloudConnector;
-import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Operation;
 import org.fogbowcloud.ras.core.datastore.DatabaseManager;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
@@ -18,16 +16,14 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.BDDMockito;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(DatabaseManager.class)
+@PrepareForTest({ DatabaseManager.class, SharedOrderHolders.class })
 public class ApplicationFacadeTest extends BaseUnitTests {
 
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
@@ -76,7 +72,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
-        this.activeOrdersMap = sharedOrderHolders.getActiveOrdersMap();
+        this.activeOrdersMap = Mockito.spy(sharedOrderHolders.getActiveOrdersMap());
     }
 
     // test case: When calling the method deleteCompute(), the Order passed as parameter must
@@ -328,7 +324,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         }
     }
 
-    // test case: calling createCompute with a too long public key throws an InvalidParameterException.
+    // test case: calling createCompute with allocationAllowableValues too long public key throws an InvalidParameterException.
     @Test(expected = InvalidParameterException.class)
     public void testCreateComputeWithTooLongPrivateKey() throws Exception {
         // set up
@@ -338,7 +334,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         this.application.createCompute(order, FAKE_FEDERATION_TOKEN_VALUE);
     }
 
-    // test case: calling createCompute with a too long extra user data file content throws an InvalidParameterException.
+    // test case: calling createCompute with allocationAllowableValues too long extra user data file content throws an InvalidParameterException.
     @Test(expected = InvalidParameterException.class)
     public void testCreateComputeWithTooLongExtraUserDataFileContent() throws Exception {
         // set up
@@ -384,7 +380,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the getCompute() method without authentication, it must
-    // throw a UnauthenticatedUserException.
+    // throw allocationAllowableValues UnauthenticatedUserException.
     @Test(expected = UnauthenticatedUserException.class) // verify
     public void testGetComputeOrderWithoutAuthentication() throws Exception {
 
@@ -426,7 +422,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the getCompute() method with an operation not authorized, it must
-    // expected a UnauthorizedRequestException.
+    // expected allocationAllowableValues UnauthorizedRequestException.
     @Test(expected = UnauthorizedRequestException.class) // verify
     public void testGetComputeOrderWithOperationNotAuthorized() throws Exception {
 
@@ -595,7 +591,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the getVolume() method without authentication, it must
-    // throw a UnauthenticatedUserException.
+    // throw allocationAllowableValues UnauthenticatedUserException.
     @Test(expected = UnauthenticatedUserException.class) // verify
     public void testGetVolumeOrderWithoutAuthentication() throws Exception {
 
@@ -638,7 +634,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the getVolume() method with operation not authorized, it must
-    // expected a UnauthorizedRequestException.
+    // expected allocationAllowableValues UnauthorizedRequestException.
     @Test(expected = UnauthorizedRequestException.class) // verify
     public void testGetVolumeOrderWithOperationNotAuthorized() throws Exception {
 
@@ -941,7 +937,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the getNetwork() method without authentication, it must
-    // expected a UnauthenticatedUserException.
+    // expected allocationAllowableValues UnauthenticatedUserException.
     @Test(expected = UnauthenticatedUserException.class) // verify
     public void testGetNetworkOrderWithoutAuthentication() throws Exception {
 
@@ -981,7 +977,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the getNetwork() method with an operation not authorized, it must
-    // expected a UnauthorizedRequestException.
+    // expected allocationAllowableValues UnauthorizedRequestException.
     @Test(expected = UnauthorizedRequestException.class) // verify
     public void testGetNetworkOrderWithOperationNotAuthorized() throws Exception {
 
@@ -1246,7 +1242,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the getAttachment() method without authentication, it must
-    // expected a UnauthenticatedUserException.
+    // expected allocationAllowableValues UnauthenticatedUserException.
     @Test
             // verify
             (expected = UnauthenticatedUserException.class)
@@ -1290,7 +1286,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the getAttachment() method performing an operation without
-    // authorization, it must expected a UnauthorizedRequestException.
+    // authorization, it must expected allocationAllowableValues UnauthorizedRequestException.
     @Test(expected = UnauthorizedRequestException.class) // verify
     public void testGetAttachmentOrderWithOperationNotAuthorized() throws Exception {
 
@@ -1557,7 +1553,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the getPublicIp() method performing an operation without
-    // authorization, it must throw a UnauthorizedRequestException.
+    // authorization, it must throw allocationAllowableValues UnauthorizedRequestException.
     @Test(expected = UnauthorizedRequestException.class) // verify
     public void testGetPublicIpOrderWithOperationNotAuthorized() throws Exception {
         // set up
@@ -1597,7 +1593,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the getPublicIp() method without authentication, it must
-    // throw a UnauthenticatedUserException.
+    // throw allocationAllowableValues UnauthenticatedUserException.
     @Test(expected = UnauthenticatedUserException.class)
     public void testGetPublicIpOrderWithoutAuthentication() throws Exception {
         // set up
@@ -1643,7 +1639,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the createPublicIp() method without
-    // authentication, it must throw a UnauthenticatedUserException.
+    // authentication, it must throw allocationAllowableValues UnauthenticatedUserException.
     @Test
     public void testCreatePublicIpOrderWithoutAuthentication() throws Exception {
         // set up
@@ -1697,7 +1693,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     // test case: When calling the createPublicIp() method with an operation that is not authorized,
-    // it must throw a UnauthorizedRequestException.
+    // it must throw allocationAllowableValues UnauthorizedRequestException.
     @Test
     public void testCreatePublicIpOrderWithOperationNotAuthorized() throws Exception {
         // set up
@@ -1746,8 +1742,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
                 FAKE_FEDERATION_TOKEN_VALUE,
                 FAKE_USER_ID, FAKE_USER_NAME);
-        VolumeOrder order = new VolumeOrder(federationUserToken, FAKE_MEMBER_ID, FAKE_MEMBER_ID, 1,
-                FAKE_VOLUME_NAME);
+        VolumeOrder order = new VolumeOrder(federationUserToken, FAKE_MEMBER_ID, FAKE_MEMBER_ID, FAKE_VOLUME_NAME, 1
+        );
 
         VolumeInstance volumeInstanceExcepted = new VolumeInstance(order.getId());
         Mockito.doReturn(volumeInstanceExcepted).when(this.orderController)
@@ -1774,25 +1770,19 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     }
 
     private AttachmentOrder createAttachmentOrder() throws Exception {
-        FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
-                FAKE_FEDERATION_TOKEN_VALUE,
-                FAKE_USER_ID, FAKE_USER_NAME);
-
         ComputeOrder computeOrder = new ComputeOrder();
         ComputeInstance computeInstance = new ComputeInstance(FAKE_SOURCE_ID);
         computeOrder.setInstanceId(computeInstance.getId());
         this.activeOrdersMap.put(computeOrder.getId(), computeOrder);
-        String sourceId = computeOrder.getId();
+        String computeOrderId = computeOrder.getId();
 
         VolumeOrder volumeOrder = new VolumeOrder();
         VolumeInstance volumeInstance = new VolumeInstance(FAKE_TARGET_ID);
         volumeOrder.setInstanceId(volumeInstance.getId());
         this.activeOrdersMap.put(volumeOrder.getId(), volumeOrder);
-        String targetId = volumeOrder.getId();
+        String volumeOrderId = volumeOrder.getId();
 
-        AttachmentOrder order = new AttachmentOrder(federationUserToken, FAKE_MEMBER_ID,
-                FAKE_MEMBER_ID,
-                sourceId, targetId, FAKE_DEVICE_MOUNT_POINT);
+        AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER_ID, computeOrderId, volumeOrderId, FAKE_DEVICE_MOUNT_POINT);
 
         AttachmentInstance attachmentInstance = new AttachmentInstance(order.getId());
 

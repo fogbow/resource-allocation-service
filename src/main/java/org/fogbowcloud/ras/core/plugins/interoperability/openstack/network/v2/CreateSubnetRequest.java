@@ -52,7 +52,7 @@ public class CreateSubnetRequest {
         @SerializedName(GATEWAY_IP_KEY_JSON)
         private final String gatewayIp;
         @SerializedName(CIDR_KEY_JSON)
-        private final String networkAddress;
+        private final String networkCidr;
         @SerializedName(ENABLE_DHCP_KEY_JSON)
         private final boolean dhcpEnabled;
         @SerializedName(DNS_NAMESERVERS_KEY_JSON)
@@ -64,7 +64,7 @@ public class CreateSubnetRequest {
             this.networkId = builder.networkId;
             this.ipVersion = builder.ipVersion;
             this.gatewayIp = builder.gatewayIp;
-            this.networkAddress = builder.networkAddress;
+            this.networkCidr = builder.networkCidr;
             this.dhcpEnabled = builder.dhcpEnabled;
             this.dnsNameServers = builder.dnsNameServers;
         }
@@ -76,7 +76,7 @@ public class CreateSubnetRequest {
         private String networkId;
         private int ipVersion;
         private String gatewayIp;
-        private String networkAddress;
+        private String networkCidr;
         private boolean dhcpEnabled;
         private List<String> dnsNameServers;
 
@@ -105,8 +105,8 @@ public class CreateSubnetRequest {
             return this;
         }
 
-        public Builder networkAddress(String networkAddress) {
-            this.networkAddress = networkAddress;
+        public Builder networkCidr(String networkCidr) {
+            this.networkCidr = networkCidr;
             return this;
         }
 

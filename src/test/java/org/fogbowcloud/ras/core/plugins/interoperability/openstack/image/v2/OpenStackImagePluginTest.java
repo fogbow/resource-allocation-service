@@ -123,7 +123,7 @@ public class OpenStackImagePluginTest {
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(endpoint3, localUserAttributes);
     }
 
-    //test case: Check if getImage is returning all expected images from Json response properly.
+    //test case: Check if getImageId is returning all expected images from Json response properly.
     @Test
     public void testGetImage() throws FogbowRasException, UnexpectedException, HttpResponseException {
         //set up
@@ -149,7 +149,7 @@ public class OpenStackImagePluginTest {
         Assert.assertEquals(expectedImage, imagePluginOutput);
     }
 
-    //test case: Check if getImage returns null when the state is not ACTIVE_STATE.
+    //test case: Check if getImageId returns null when the state is not ACTIVE_STATE.
     @Test
     public void testGetImageWhenImageStateIsNotActivated() throws FogbowRasException, UnexpectedException, HttpResponseException {
         //set up
@@ -175,7 +175,7 @@ public class OpenStackImagePluginTest {
         Assert.assertEquals(expectedPluginOutput, imagePluginOutput);
     }
 
-    //test case: Test if getImage throws UnauthorizedRequestException when the http requisition is SC_FORBIDDEN.
+    //test case: Test if getImageId throws UnauthorizedRequestException when the http requisition is SC_FORBIDDEN.
     @Test(expected = UnauthorizedRequestException.class)
     public void testGetImageWhenForbidden() throws FogbowRasException, UnexpectedException, HttpResponseException {
         //set up

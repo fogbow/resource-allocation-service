@@ -57,7 +57,7 @@ public class LdapIdentityPluginTest {
 		BDDMockito.given(RASAuthenticationHolder.getInstance()).willReturn(this.genericSignatureAuthenticationHolder);
     }
 
-    //test case: check if the token information is correct when creating a token with the correct token value.
+    //test case: check if the token information is correct when creating allocationAllowableValues token with the correct token value.
     @Test
     public void testCreateToken() throws Exception {
         //set up
@@ -86,7 +86,7 @@ public class LdapIdentityPluginTest {
         Assert.assertTrue(this.ldapAuthenticationPlugin.isAuthentic(this.localMemberId, ldapToken));
     }
 
-    //test case: check if the token information is correct when creating a token with the correct token value.
+    //test case: check if the token information is correct when creating allocationAllowableValues token with the correct token value.
     @Test(expected = InvalidParameterException.class)
     public void testCreateTokenIncorrectTokenValue() throws Exception {
         //exercise

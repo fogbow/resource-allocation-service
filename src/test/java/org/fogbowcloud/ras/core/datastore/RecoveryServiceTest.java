@@ -115,7 +115,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
     }
 
 
-    // test case: Adding a new compute order to database and checking with a query.
+    // test case: Adding allocationAllowableValues new compute order to database and checking with allocationAllowableValues query.
     @Test
     public void testAddComputeOrder() throws UnexpectedException {
 
@@ -123,8 +123,8 @@ public class RecoveryServiceTest extends BaseUnitTests {
         FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
                 FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
 
-        computeOrder = new ComputeOrder(FAKE_ID_1, federationUserToken,
-                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
+        computeOrder = new ComputeOrder(
+                FAKE_PROVIDING_MEMBER, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
                 FAKE_DISK_AMOUNT, FAKE_IMAGE_NAME, new UserData(FAKE_USER_DATA_FILE,
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), FAKE_PUBLIC_KEY, null);
         computeOrder.setOrderStateInTestMode(OrderState.OPEN);
@@ -138,7 +138,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
         Assert.assertEquals(computeOrder, orders.get(0));
     }
 
-    // test case: Adding a new open compute order to database and checking that there is one element in open state
+    // test case: Adding allocationAllowableValues new open compute order to database and checking that there is one element in open state
     // and there is no elements in pending state. After set the order state to pending, check reverse situation.
     @Test
     public void testAddComputeOrderSettingState() throws UnexpectedException {
@@ -147,8 +147,8 @@ public class RecoveryServiceTest extends BaseUnitTests {
         FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
                 FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
 
-        computeOrder = new ComputeOrder(FAKE_ID_1, federationUserToken,
-                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
+        computeOrder = new ComputeOrder(
+                FAKE_PROVIDING_MEMBER, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
                 FAKE_DISK_AMOUNT, FAKE_IMAGE_NAME, new UserData(FAKE_USER_DATA_FILE,
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), FAKE_PUBLIC_KEY, null);
         computeOrder.setOrderStateInTestMode(OrderState.OPEN);
@@ -186,26 +186,26 @@ public class RecoveryServiceTest extends BaseUnitTests {
                 FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
 
         // creating computing order with open state
-        computeOrder = new ComputeOrder(FAKE_ID_1, federationUserToken,
-                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
+        computeOrder = new ComputeOrder(
+                FAKE_PROVIDING_MEMBER, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
                 FAKE_DISK_AMOUNT, FAKE_IMAGE_NAME, new UserData(FAKE_USER_DATA_FILE,
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), FAKE_PUBLIC_KEY, null);
         computeOrder.setOrderStateInTestMode(OrderState.OPEN);
 
         // creating attachment order with open state
-        Order attachmentOrder = new AttachmentOrder("fake-att-id", federationUserToken, "requestingMember",
+        Order attachmentOrder = new AttachmentOrder(
                 "providingMember", "source", "target", "device");
         attachmentOrder.setOrderStateInTestMode(OrderState.OPEN);
 
         // creating network order with fulfilled state
-        Order networkOrder = new NetworkOrder("fake-net-id", federationUserToken,
-                "requestingMember", "providingMember", "name", "gateway",
+        Order networkOrder = new NetworkOrder(
+                "providingMember", "name", "gateway",
                 "address", NetworkAllocationMode.STATIC);
         networkOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 
         // creating volume order with fulfilled state
-        Order volumeOrder = new VolumeOrder("fake-vol-id", federationUserToken,
-                "requestingMember", "providingMember", 0, "volume-name");
+        Order volumeOrder = new VolumeOrder(
+                "providingMember", "volume-name", 0);
         volumeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 
         // exercise
@@ -229,8 +229,8 @@ public class RecoveryServiceTest extends BaseUnitTests {
         FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
                 FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
 
-        computeOrder = new ComputeOrder(FAKE_ID_1, federationUserToken,
-                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
+        computeOrder = new ComputeOrder(
+                FAKE_PROVIDING_MEMBER, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
                 FAKE_DISK_AMOUNT, FAKE_IMAGE_NAME, new UserData(FAKE_USER_DATA_FILE,
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), FAKE_PUBLIC_KEY, null);
         computeOrder.setOrderStateInTestMode(OrderState.OPEN);
@@ -241,7 +241,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
 
     }
 
-    // test case: Call the update method of a non-existent order and checking the exception
+    // test case: Call the update method of allocationAllowableValues non-existent order and checking the exception
     @Test(expected = UnexpectedException.class)
     public void testUpdateNonExistentOrder() throws UnexpectedException {
 
@@ -249,8 +249,8 @@ public class RecoveryServiceTest extends BaseUnitTests {
         FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
                 FAKE_TOKEN_VALUE, FAKE_ID_1, FAKE_USER);
 
-        computeOrder = new ComputeOrder(FAKE_ID_1, federationUserToken,
-                FAKE_REQUESTING_MEMBER, FAKE_PROVIDING_MEMBER, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
+        computeOrder = new ComputeOrder(
+                FAKE_PROVIDING_MEMBER, FAKE_INSTANCE_NAME, FAKE_CPU_AMOUNT, FAKE_RAM_AMOUNT,
                 FAKE_DISK_AMOUNT, FAKE_IMAGE_NAME, new UserData(FAKE_USER_DATA_FILE,
                 CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), FAKE_PUBLIC_KEY, null);
         computeOrder.setOrderStateInTestMode(OrderState.OPEN);

@@ -1,7 +1,7 @@
 package org.fogbowcloud.ras.requests.api.local.http;
 
 import com.google.gson.Gson;
-import org.fogbowcloud.ras.api.http.NetworkOrdersController;
+import org.fogbowcloud.ras.api.http.Network;
 import org.fogbowcloud.ras.core.ApplicationFacade;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
@@ -30,14 +30,14 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
-@WebMvcTest(value = NetworkOrdersController.class, secure = false)
+@WebMvcTest(value = Network.class, secure = false)
 @PrepareForTest(ApplicationFacade.class)
-public class NetworkOrdersControllerTest {
+public class NetworkTest {
 
     private static final String CORRECT_BODY =
             "{\"requestingMember\":\"req-member\", \"providingMember\":\"prov-member\", \"gateway\":\"gateway\", \"address\":\"address\", \"allocation\":\"dynamic\"}";
 
-    private static final String NETWORK_END_POINT = "/" + NetworkOrdersController.NETWORK_ENDPOINT;
+    private static final String NETWORK_END_POINT = "/" + Network.NETWORK_ENDPOINT;
 
     private ApplicationFacade facade;
 
@@ -137,7 +137,7 @@ public class NetworkOrdersControllerTest {
     private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         String fakeFederationTokenValue = "fake-access-id";
-        headers.set(NetworkOrdersController.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
+        headers.set(Network.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
         return headers;
     }
 

@@ -20,7 +20,7 @@ import java.util.Properties;
 import java.util.Set;
 
 /**
- * Build a <a href="https://help.ubuntu.com/community/CloudInit">CloudInit</a> UserData file.
+ * Build allocationAllowableValues <allocationAllowableValues href="https://help.ubuntu.com/community/CloudInit">CloudInit</allocationAllowableValues> UserData file.
  * <p>
  * <p>Sample:
  * <p>
@@ -48,7 +48,7 @@ import java.util.Set;
  * "http://bazaar.launchpad.net/~ubuntu-on-ec2/ubuntu-on-ec2/cloud-utils/view/head:/write-mime-multipart"
  * >write-mime-multipart</a> python script.
  *
- * @author <a href="mailto:cyrille@cyrilleleclerc.com">Cyrille Le Clerc</a>
+ * @author <allocationAllowableValues href="mailto:cyrille@cyrilleleclerc.com">Cyrille Le Clerc</allocationAllowableValues>
  * @see com.amazonaws.services.ec2.model.RunInstancesRequest#withUserData(String)
  * @see com.amazonaws.services.ec2.AmazonEC2.runInstances(RunInstancesRequest)
  */
@@ -77,7 +77,7 @@ public class CloudInitUserDataBuilder {
          */
         CLOUD_CONFIG("text/cloud-config", "cloudinit-cloud-config.txt"), //
         /**
-         * This content is a "include" file. The file contains a list of urls, one per line. Each of
+         * This content is allocationAllowableValues "include" file. The file contains allocationAllowableValues list of urls, one per line. Each of
          * the URLs will be read, and their content will be passed through this same set of rules.
          * Ie, the content read from the URL can be gzipped, mime-multi-part, or plain text
          * <p>
@@ -87,8 +87,8 @@ public class CloudInitUserDataBuilder {
          */
         INCLUDE_URL("text/x-include-url", "cloudinit-x-include-url.txt"), //
         /**
-         * This is a 'part-handler'. It will be written to a file in /var/lib/cloud/data based on
-         * its filename. This must be python code that contains a list_types method and a
+         * This is allocationAllowableValues 'part-handler'. It will be written to allocationAllowableValues file in /var/lib/cloud/data based on
+         * its filename. This must be python code that contains allocationAllowableValues list_types method and allocationAllowableValues
          * handle_type method. Once the section is read the 'list_types' method will be called. It
          * must return a list of mime-types that this part-handler handlers.
          * <p>

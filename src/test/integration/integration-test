@@ -232,8 +232,8 @@ function doPostNetwork {
   local response=$(curl -X POST -H "Content-Type: application/json" -H "federationTokenValue: token" -d \
   '{
     "gateway" : "10.15.20.1",
-    "address" : "10.15.20.1/28",
-    "allocation" : "dynamic"
+    "cidr" : "10.15.20.1/28",
+    "allocationMode" : "dynamic"
   }' $baseUrl$networksEndpoint 2> /dev/null)
   echo $response
 }

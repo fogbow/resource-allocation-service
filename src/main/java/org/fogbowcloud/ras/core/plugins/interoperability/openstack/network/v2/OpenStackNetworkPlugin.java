@@ -56,13 +56,15 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
     protected static final String DEFAULT_NETWORK_NAME = "ras-network";
     protected static final String DEFAULT_SUBNET_NAME = "ras-subnet";
     protected static final String[] DEFAULT_DNS_NAME_SERVERS = new String[]{"8.8.8.8", "8.8.4.4"};
-    protected static final String DEFAULT_NETWORK_ADDRESS = "192.168.0.1/24";
+    protected static final String DEFAULT_NETWORK_CIDR = "192.168.0.1/24";
     // security group properties
     protected static final String INGRESS_DIRECTION = "ingress";
     protected static final String TCP_PROTOCOL = "tcp";
     protected static final String ICMP_PROTOCOL = "icmp";
     protected static final int SSH_PORT = 22;
-    public static final String SECURITY_GROUP_PREFIX = "ras-sg";
+
+    protected static final String SECURITY_GROUP_PREFIX = "ras-sg-pn-";
+
     private HttpRequestClientUtil client;
     private String networkV2APIEndpoint;
     private String[] dnsList;
@@ -75,13 +77,6 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
         initClient();
     }
 
-    protected void setDNSList(Properties properties) {
-        String dnsProperty = properties.getProperty(KEY_DNS_NAMESERVERS);
-        if (dnsProperty != null) {
-            this.dnsList = dnsProperty.split(",");
-        }
-    }
-
     @Override
     public String requestInstance(NetworkOrder order, OpenStackV3Token openStackV3Token)
             throws FogbowRasException, UnexpectedException {
@@ -90,11 +85,53 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
         CreateNetworkResponse createNetworkResponse = createNetwork(order.getName(), openStackV3Token, tenantId);
         String createdNetworkId = createNetworkResponse.getId();
         createSubNet(openStackV3Token, order, createdNetworkId, tenantId);
-        String securityGroupName = SECURITY_GROUP_PREFIX + "-" + createdNetworkId;
+        String securityGroupName = getSGNameForPrivateNetwork(createdNetworkId);
         CreateSecurityGroupResponse securityGroupResponse = createSecurityGroup(openStackV3Token, securityGroupName,
                 tenantId, createdNetworkId);
         createSecurityGroupRules(order, openStackV3Token, createdNetworkId, securityGroupResponse.getId());
         return createdNetworkId;
+    }
+
+    @Override
+    public NetworkInstance getInstance(String instanceId, OpenStackV3Token openStackV3Token)
+            throws FogbowRasException, UnexpectedException {
+        String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK + "/" + instanceId;
+        String responseStr = null;
+        try {
+            responseStr = this.client.doGetRequest(endpoint, openStackV3Token);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowRasExceptionMapper.map(e);
+        }
+        return getInstanceFromJson(responseStr, openStackV3Token);
+    }
+
+    @Override
+    public void deleteInstance(String networkId, OpenStackV3Token openStackV3Token) throws FogbowRasException, UnexpectedException {
+        try {
+            removeNetwork(openStackV3Token, networkId);
+        } catch (InstanceNotFoundException e) {
+            // continue and try to delete the security group
+            LOGGER.warn(String.format(Messages.Warn.NETWORK_NOT_FOUND, networkId));
+        } catch (UnexpectedException | FogbowRasException e) {
+            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_NETWORK, networkId));
+            throw e;
+        }
+
+        String securityGroupId = retrieveSecurityGroupId(getSGNameForPrivateNetwork(networkId), openStackV3Token);
+
+        try {
+            removeSecurityGroup(openStackV3Token, securityGroupId);
+        } catch (UnexpectedException | FogbowRasException e) {
+            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_SECURITY_GROUP, securityGroupId));
+            throw e;
+        }
+    }
+
+    protected void setDNSList(Properties properties) {
+        String dnsProperty = properties.getProperty(KEY_DNS_NAMESERVERS);
+        if (dnsProperty != null) {
+            this.dnsList = dnsProperty.split(",");
+        }
     }
 
     private CreateNetworkResponse createNetwork(String name, OpenStackV3Token openStackV3Token, String tenantId)
@@ -179,8 +216,8 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
     private void createSecurityGroupRules(NetworkOrder order, OpenStackV3Token openStackV3Token, String networkId, String securityGroupId)
             throws UnexpectedException, FogbowRasException {
         try {
-            CreateSecurityGroupRuleRequest sshRuleRequest = createSshRuleRequest(order.getAddress(), securityGroupId);
-            CreateSecurityGroupRuleRequest icmpRuleRequest = createIcmpRuleRequest(order.getAddress(), securityGroupId);
+            CreateSecurityGroupRuleRequest sshRuleRequest = createSshRuleRequest(order.getCidr(), securityGroupId);
+            CreateSecurityGroupRuleRequest icmpRuleRequest = createIcmpRuleRequest(order.getCidr(), securityGroupId);
 
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES;
             this.client.doPostRequest(endpoint, openStackV3Token, sshRuleRequest.toJson());
@@ -211,43 +248,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
         return securityGroupId;
     }
 
-    @Override
-    public NetworkInstance getInstance(String instanceId, OpenStackV3Token openStackV3Token)
-            throws FogbowRasException, UnexpectedException {
-        String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_NETWORK + "/" + instanceId;
-        String responseStr = null;
-        try {
-            responseStr = this.client.doGetRequest(endpoint, openStackV3Token);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowRasExceptionMapper.map(e);
-        }
-        return getInstanceFromJson(responseStr, openStackV3Token);
-    }
-
-    @Override
-    public void deleteInstance(String networkId, OpenStackV3Token openStackV3Token) throws FogbowRasException, UnexpectedException {
-        try {
-            removeNetwork(openStackV3Token, networkId);
-        } catch (InstanceNotFoundException e) {
-            // continue and try to delete the security group
-            LOGGER.warn(String.format(Messages.Warn.NETWORK_NOT_FOUND, networkId));
-        } catch (UnexpectedException | FogbowRasException e) {
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_NETWORK, networkId));
-            throw e;
-        }
-
-        String securityGroupId = retrieveSecurityGroupId(networkId, openStackV3Token);
-
-        try {
-            removeSecurityGroup(openStackV3Token, securityGroupId);
-        } catch (UnexpectedException | FogbowRasException e) {
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_SECURITY_GROUP, securityGroupId));
-            throw e;
-        }
-    }
-
-    protected String retrieveSecurityGroupId(String networkId, OpenStackV3Token openStackV3Token) throws FogbowRasException, UnexpectedException {
-        String securityGroupName = SECURITY_GROUP_PREFIX + "-" + networkId;
+    protected String retrieveSecurityGroupId(String securityGroupName, OpenStackV3Token openStackV3Token) throws FogbowRasException, UnexpectedException {
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP + "?" + QUERY_NAME + "=" + securityGroupName;
         String responseStr = null;
         try {
@@ -274,21 +275,21 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
             throws FogbowRasException, UnexpectedException {
         GetNetworkResponse getNetworkResponse = GetNetworkResponse.fromJson(json);
         String networkId = getNetworkResponse.getId();
-        String label = getNetworkResponse.getName();
+        String name = getNetworkResponse.getName();
         String instanceState = getNetworkResponse.getStatus();
         String vlan = getNetworkResponse.getSegmentationId();
 
         List<String> subnets = getNetworkResponse.getSubnets();
         String subnetId = subnets == null || subnets.size() == 0 ? null : subnets.get(0);
 
-        String address = null;
+        String cidr = null;
         String gateway = null;
         NetworkAllocationMode allocationMode = null;
         try {
             GetSubnetResponse subnetInformation = getSubnetInformation(openStackV3Token, subnetId);
 
             gateway = subnetInformation.getGatewayIp();
-            address = subnetInformation.getSubnetAddress();
+            cidr = subnetInformation.getSubnetCidr();
             boolean dhcpEnabled = subnetInformation.isDhcpEnabled();
 
             allocationMode = dhcpEnabled ? NetworkAllocationMode.DYNAMIC : NetworkAllocationMode.STATIC;
@@ -301,7 +302,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
         NetworkInstance instance = null;
         if (networkId != null) {
             InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.NETWORK, instanceState);
-            instance = new NetworkInstance(networkId, fogbowState, label, address, gateway,
+            instance = new NetworkInstance(networkId, fogbowState, name, cidr, gateway,
                     vlan, allocationMode, null, null, null);
         }
         return instance;
@@ -342,10 +343,10 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
         String gateway = order.getGateway();
         gateway = gateway == null || gateway.isEmpty() ? null : gateway;
 
-        String networkAddress = order.getAddress();
-        networkAddress = networkAddress == null ? DEFAULT_NETWORK_ADDRESS : networkAddress;
+        String networkCidr = order.getCidr();
+        networkCidr = networkCidr == null ? DEFAULT_NETWORK_CIDR : networkCidr;
 
-        boolean dhcpEnabled = !NetworkAllocationMode.STATIC.equals(order.getAllocation());
+        boolean dhcpEnabled = !NetworkAllocationMode.STATIC.equals(order.getAllocationMode());
         String[] dnsNamesServers = this.dnsList == null ? DEFAULT_DNS_NAME_SERVERS : this.dnsList;
 
         CreateSubnetRequest createSubnetRequest = new CreateSubnetRequest.Builder()
@@ -354,7 +355,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
                 .networkId(networkId)
                 .ipVersion(ipVersion)
                 .gatewayIp(gateway)
-                .networkAddress(networkAddress)
+                .networkCidr(networkCidr)
                 .dhcpEnabled(dhcpEnabled)
                 .dnsNameServers(Arrays.asList(dnsNamesServers))
                 .build();
@@ -383,5 +384,9 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
 
     protected String[] getDnsList() {
         return dnsList;
+    }
+
+    public static String getSGNameForPrivateNetwork(String networkId) {
+        return SECURITY_GROUP_PREFIX + networkId;
     }
 }

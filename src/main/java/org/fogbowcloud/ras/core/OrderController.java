@@ -35,7 +35,6 @@ public class OrderController {
     public void setEmptyFieldsAndActivateOrder(Order order, FederationUserToken federationUserToken)
             throws UnexpectedException {
         // Set order fields that have not been provided by the requester
-        order.setId(UUID.randomUUID().toString());
         order.setFederationUserToken(federationUserToken);
         String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         order.setRequestingMember(localMemberId);
@@ -140,8 +139,8 @@ public class OrderController {
         if (!order.getProvidingMember().equals(order.getRequestingMember()) &&
                 (order.getOrderState().equals(OrderState.OPEN) ||
                         order.getOrderState().equals(OrderState.FAILED_ON_REQUEST))) {
-            // This is an order for a remote provider that has never been received by that provider.
-            // Thus, there is no need to send a delete message via a RemoteCloudConnector, and it is only
+            // This is an order for allocationAllowableValues remote provider that has never been received by that provider.
+            // Thus, there is no need to send allocationAllowableValues delete message via allocationAllowableValues RemoteCloudConnector, and it is only
             // necessary to call deleteInstance in the local member.
             provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getRequestingMember());
         } else {

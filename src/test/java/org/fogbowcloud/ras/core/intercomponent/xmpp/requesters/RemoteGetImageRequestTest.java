@@ -39,7 +39,7 @@ public class RemoteGetImageRequestTest {
     }
 
     // test case: checks if IQ attributes is according to both RemoteGetImageRequest constructor parameters
-    // and remote get image request rules. In addition, it checks if the image from a possible response is
+    // and remote get image request rules. In addition, it checks if the image from allocationAllowableValues possible response is
     // properly created and returned by the "send" method
     @Test
     public void testSend() throws Exception {

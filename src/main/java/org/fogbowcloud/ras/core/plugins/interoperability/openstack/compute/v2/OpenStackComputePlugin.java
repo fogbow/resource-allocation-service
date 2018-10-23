@@ -29,7 +29,11 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     private static final Logger LOGGER = Logger.getLogger(OpenStackComputePlugin.class);
 
     public static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
-    protected static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
+    public static final String COMPUTE_NOVAV2_URL_KEY = "openstack_nova_v2_url";
+    public static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
+    public static final String SERVERS = "/servers";
+    public static final String ACTION = "action";
+
     protected static final String ID_JSON_FIELD = "id";
     protected static final String NAME_JSON_FIELD = "name";
     protected static final String SERVER_JSON_FIELD = "server";
@@ -52,12 +56,10 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     protected static final String UUID_JSON_FIELD = "uuid";
     protected static final String FOGBOW_INSTANCE_NAME = "ras-compute-";
     protected static final String PROJECT_ID = "projectId";
-    protected static final String SERVERS = "/servers";
     protected static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
     protected static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
-    protected static final String COMPUTE_V2_API_ENDPOINT = "/v2/";
     protected static final String ADDRESS_FIELD = "addresses";
-    protected static final String PROVIDER_NETWORK_FIELD = "provider";
+    protected static final String PROVIDER_NETWORK_FIELD = "default";
     protected static final String ADDR_FIELD = "addr";
     private TreeSet<HardwareRequirements> hardwareRequirementsList;
     private Properties properties;
@@ -102,7 +104,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
             synchronized (computeOrder) {
                 ComputeAllocation actualAllocation = new ComputeAllocation(
                         hardwareRequirements.getCpu(),
-                        hardwareRequirements.getRam(),
+                        hardwareRequirements.getMemory(),
                         1);
                 // When the ComputeOrder is remote, this field must be copied into its local counterpart
                 // that is updated when the requestingMember receives the reply from the providingMember
@@ -148,6 +150,10 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
 
         ComputeInstance computeInstance = getInstanceFromJson(jsonResponse, openStackV3Token);
 
+        // Case the user has specified no private networks, than the compute instance was attached to
+        // the default network. When inserting the data that come from the order in the instance, if
+        // networks were set, then the default network was not inserted, and this information will be
+        // overwritten.
         String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
         Map<String, String> computeNetworks = new HashMap<>();
         computeNetworks.put(defaultNetworkId, PROVIDER_NETWORK_FIELD);
@@ -187,13 +193,19 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     }
 
     private List<String> resolveNetworksId(ComputeOrder computeOrder) {
-        List<String> requestedNetworksId = new ArrayList<>();
         String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
 
         //We add the default network before any other network, because the order is very important to Openstack
         //request. Openstack will configure the routes to the external network by the first network found on request body.
-        requestedNetworksId.add(defaultNetworkId);
-        requestedNetworksId.addAll(computeOrder.getNetworksId());
+        List<String> networkIds = computeOrder.getNetworksId();
+        List<String> requestedNetworksId = new ArrayList<>();
+        boolean noNetworksProvided = networkIds == null ? true : networkIds.isEmpty();
+        if (noNetworksProvided) {
+            requestedNetworksId.add(defaultNetworkId);
+        } else {
+            requestedNetworksId.addAll(networkIds);
+        }
+
         computeOrder.setNetworksId(requestedNetworksId);
         return requestedNetworksId;
     }
@@ -247,8 +259,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
 
             String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
             if (!networkId.equals(defaultNetworkId)) {
-                String prefix = OpenStackNetworkPlugin.SECURITY_GROUP_PREFIX;
-                String securityGroupName = prefix + "-" + networkId;
+                String securityGroupName = OpenStackNetworkPlugin.getSGNameForPrivateNetwork(networkId);
                 securityGroups.add(new CreateComputeRequest.SecurityGroup(securityGroupName));
             }
         }
@@ -285,7 +296,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
         TreeSet<HardwareRequirements> hardwareRequirementsList = getHardwareRequirementsList();
         for (HardwareRequirements hardwareRequirements : hardwareRequirementsList) {
             if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
-                    && hardwareRequirements.getRam() >= computeOrder.getMemory()
+                    && hardwareRequirements.getMemory() >= computeOrder.getMemory()
                     && hardwareRequirements.getDisk() >= computeOrder.getDisk()) {
                 return hardwareRequirements;
             }
@@ -368,7 +379,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
         }
 
         int vcpusCount = hardwareRequirements.getCpu();
-        int memory = hardwareRequirements.getRam();
+        int memory = hardwareRequirements.getMemory();
         int disk = hardwareRequirements.getDisk();
 
         String openStackState = getComputeResponse.getStatus();

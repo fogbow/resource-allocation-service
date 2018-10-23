@@ -37,17 +37,17 @@ public abstract class Order implements Serializable {
 
     public Order(String id) {
         this.id = id;
-        this.federationUserToken = new FederationUserToken();
     }
 
-    /**
-     * Creating Order with predefined Id.
-     */
-    public Order(String id, FederationUserToken federationUserToken, String requestingMember, String providingMember) {
+    public Order(String id, String providingMember) {
         this(id);
+        this.providingMember = providingMember;
+    }
+
+    public Order(String id, String providingMember, FederationUserToken federationUserToken, String requestingMember) {
+        this(id, providingMember);
         this.federationUserToken = federationUserToken;
         this.requestingMember = requestingMember;
-        this.providingMember = providingMember;
     }
 
     public String getId() {
@@ -60,10 +60,6 @@ public abstract class Order implements Serializable {
 
     public synchronized OrderState getOrderState() {
         return this.orderState;
-    }
-
-    public synchronized void setOrderStateInRecoveryMode(OrderState state) {
-        this.orderState = state;
     }
 
     public synchronized void setOrderStateInTestMode(OrderState state) {

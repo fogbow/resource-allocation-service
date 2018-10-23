@@ -131,7 +131,7 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
             // Bind with found DN and given password
             ctx.addToEnvironment(Context.SECURITY_PRINCIPAL, dn);
             ctx.addToEnvironment(Context.SECURITY_CREDENTIALS, password);
-            // Perform a lookup in order to force a bind operation with JNDI
+            // Perform allocationAllowableValues lookup in order to force allocationAllowableValues bind operation with JNDI
             ctx.lookup(dn);
 
             enm.close();
