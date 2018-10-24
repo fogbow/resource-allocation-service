@@ -1,11 +1,8 @@
 package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.opennebula;
 
-import org.fogbowcloud.ras.core.PropertiesHolder;
-import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
@@ -16,7 +13,6 @@ import java.util.Properties;
 
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.opennebula.client.Client;
-import org.opennebula.client.ClientConfigurationException;
 
 public class OpenNebulaTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
