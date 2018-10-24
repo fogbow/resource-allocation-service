@@ -81,7 +81,6 @@ public class OpenStackComputePluginTest {
         this.httpRequestClientUtilMock = Mockito.mock(HttpRequestClientUtil.class);
         this.launchCommandGeneratorMock = Mockito.mock(LaunchCommandGenerator.class);
         this.networksId.add(privateNetworkId);
-        this.responseNetworkIds.add(defaultNetworkId);
         this.responseNetworkIds.add(privateNetworkId);
 
         String tenantId = "tenant-id";
@@ -247,9 +246,9 @@ public class OpenStackComputePluginTest {
         String instanceId = this.computePlugin.requestInstance(computeOrder, this.openStackV3Token);
 
         // verify
-        Assert.assertEquals(this.argString.getValue(), computeEndpoint);
-        Assert.assertEquals(this.argToken.getValue(), this.openStackV3Token);
-        JSONAssert.assertEquals(this.argBodyString.getValue(), computeJson.toString(), false);
+        Assert.assertEquals(computeEndpoint, this.argString.getValue());
+        Assert.assertEquals(this.openStackV3Token, this.argToken.getValue());
+        JSONAssert.assertEquals(computeJson.toString(), this.argBodyString.getValue(), false);
         Assert.assertEquals(expectedInstanceId, instanceId);
     }
 
@@ -483,13 +482,13 @@ public class OpenStackComputePluginTest {
         String instanceId = this.computePlugin.requestInstance(computeOrder, this.openStackV3Token);
 
         // verify
-        Assert.assertEquals(this.argString.getAllValues().get(0), this.osKeyPairEndpoint);
-        Assert.assertEquals(this.argToken.getAllValues().get(0), this.openStackV3Token);
-        JSONAssert.assertEquals(this.argBodyString.getAllValues().get(0).toString(), rootKeypairJson.toString(), false);
+        Assert.assertEquals(this.osKeyPairEndpoint, this.argString.getAllValues().get(0));
+        Assert.assertEquals(this.openStackV3Token, this.argToken.getAllValues().get(0));
+        JSONAssert.assertEquals(rootKeypairJson.toString(), this.argBodyString.getAllValues().get(0).toString(), false);
 
-        Assert.assertEquals(this.argString.getAllValues().get(1), computeEndpoint);
-        Assert.assertEquals(this.argToken.getAllValues().get(1), this.openStackV3Token);
-        JSONAssert.assertEquals(this.argBodyString.getAllValues().get(1).toString(), computeJson.toString(), false);
+        Assert.assertEquals(computeEndpoint, this.argString.getAllValues().get(1));
+        Assert.assertEquals(this.openStackV3Token, this.argToken.getAllValues().get(1));
+        JSONAssert.assertEquals(computeJson.toString(), this.argBodyString.getAllValues().get(1).toString(), false);
 
         Assert.assertEquals(expectedInstanceId, instanceId);
     }
@@ -518,13 +517,13 @@ public class OpenStackComputePluginTest {
         String instanceId = this.computePlugin.requestInstance(computeOrder, this.openStackV3Token);
 
         // verify
-        Assert.assertEquals(this.argString.getAllValues().get(0), this.osKeyPairEndpoint);
-        Assert.assertEquals(this.argToken.getAllValues().get(0), this.openStackV3Token);
-        JSONAssert.assertEquals(this.argBodyString.getAllValues().get(0).toString(), rootKeypairJson.toString(), false);
+        Assert.assertEquals(this.osKeyPairEndpoint, this.argString.getAllValues().get(0));
+        Assert.assertEquals(this.openStackV3Token, this.argToken.getAllValues().get(0));
+        JSONAssert.assertEquals(rootKeypairJson.toString(), this.argBodyString.getAllValues().get(0).toString(), false);
 
-        Assert.assertEquals(this.argString.getAllValues().get(1), computeEndpoint);
-        Assert.assertEquals(this.argToken.getAllValues().get(1), this.openStackV3Token);
-        JSONAssert.assertEquals(this.argBodyString.getAllValues().get(1).toString(), computeJson.toString(), false);
+        Assert.assertEquals(computeEndpoint, this.argString.getAllValues().get(1));
+        Assert.assertEquals(this.openStackV3Token, this.argToken.getAllValues().get(1));
+        JSONAssert.assertEquals(computeJson.toString(), this.argBodyString.getAllValues().get(1).toString(), false);
 
         Assert.assertEquals(expectedInstanceId, instanceId);
     }
@@ -657,8 +656,14 @@ public class OpenStackComputePluginTest {
         return root;
     }
 
-    private JSONObject generateJsonRequest(String imageId, String flavorId, String userData, String keyName, List<String> networksId, String randomUUID) {
+    private JSONObject generateJsonRequest(String imageId, String flavorId, String userData, String keyName, List<String> networkIds, String randomUUID) {
         JSONObject server = new JSONObject();
+
+        // when the user doesn't provide a network, the default network should be added in the request
+        if (networkIds.isEmpty()) {
+            networkIds.add(defaultNetworkId);
+        }
+
         server.put(OpenStackComputePlugin.NAME_JSON_FIELD, OpenStackComputePlugin.FOGBOW_INSTANCE_NAME + randomUUID);
         server.put(OpenStackComputePlugin.IMAGE_JSON_FIELD, imageId);
         server.put(OpenStackComputePlugin.FLAVOR_REF_JSON_FIELD, flavorId);
@@ -666,20 +671,24 @@ public class OpenStackComputePluginTest {
 
         JSONArray networks = new JSONArray();
 
-        for (String id : networksId) {
+        for (String id : networkIds) {
             JSONObject netId = new JSONObject();
             netId.put(OpenStackComputePlugin.UUID_JSON_FIELD, id);
             networks.put(netId);
         }
         server.put(OpenStackComputePlugin.NETWORK_JSON_FIELD, networks);
 
-        if (networksId.size() > 1) {
-            JSONArray securityGroups = new JSONArray();
-            JSONObject securityGroup = new JSONObject();
-            String securityGroupName = OpenStackNetworkPlugin.getSGNameForPrivateNetwork(privateNetworkId);
-            securityGroup.put(OpenStackComputePlugin.NAME_JSON_FIELD, securityGroupName);
-            securityGroups.put(securityGroup);
-            server.put(OpenStackComputePlugin.SECURITY_JSON_FIELD, securityGroups);
+        if (networkIds.size() > 0) {
+            for (String networkId : networkIds) {
+                if (!networkId.equals(defaultNetworkId)) {
+                    JSONArray securityGroups = new JSONArray();
+                    JSONObject securityGroup = new JSONObject();
+                    String securityGroupName = OpenStackNetworkPlugin.getSGNameForPrivateNetwork(networkId);
+                    securityGroup.put(OpenStackComputePlugin.NAME_JSON_FIELD, securityGroupName);
+                    securityGroups.put(securityGroup);
+                    server.put(OpenStackComputePlugin.SECURITY_JSON_FIELD, securityGroups);
+                }
+            }
         }
 
         if (keyName != null) {
