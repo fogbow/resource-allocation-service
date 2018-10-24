@@ -17,12 +17,13 @@ public class VirtualMachineTemplate extends OpenNebulaRequestTemplate {
 	private VirtualMachineVolumeDisk volumeDisk;
 	private String memory;
 	private VirtualMachineNic networkInterfaceConnected;
-	
+
+	public VirtualMachineTemplate() {}
+
 	public VirtualMachineTemplate(VirtualMachineContext context, String cpu, VirtualMachineGraphics graphics,
 			VirtualMachineImageDisk imageDisk, VirtualMachineVolumeDisk volumeDisk, String memory,
 			VirtualMachineNic networkInterfaceConnected) {
 		
-		super();
 		this.context = context;
 		this.cpu = cpu;
 		this.graphics = graphics;
