@@ -33,6 +33,7 @@ public class Messages {
         public static final String REQUEST_INSTANCE_NULL = "Request instance id for request %s is null.";
         public static final String PLUGIN_FOR_REQUEST_INSTANCE_NOT_IMPLEMENTED = "No requestInstance method implemented for request %s.";
         public static final String PORT_NOT_FOUND = "No port found connecting virtual machine %s to default network %s.";
+        public static final String PROVIDERS_DONT_MATCH = "The attachment provider does not match with the compute and/or volume providers.";
         public static final String QUOTA_ENDPOINT_NOT_IMPLEMENTED = "Quota endpoint for %s not yet implemented.";
         public static final String QUOTA_EXCEEDED = "Quota exceeded.";
         public static final String REQUESTER_DOES_NOT_OWN_REQUEST = "Requester does not own request.";
@@ -40,7 +41,7 @@ public class Messages {
         public static final String SIGNALING_MEMBER_DIFFERENT_OF_PROVIDER = "Signalling member %s is not the provider %s.";
         public static final String TOO_BIG_PUBLIC_KEY = "Too big public key.";
         public static final String TOO_BIG_USER_DATA_FILE_CONTENT = "Too big user data file.";
-        public static final String TRYING_TO_OPERATE_ON_SOMEONELSES_RESOURCE = "Trying to use someone else's resource.";
+        public static final String TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER = "Trying to use resources from another user.";
         public static final String UNABLE_TO_FIND_LIST_FOR_REQUESTS = "Unable to find list for requests in state %s.";
         public static final String UNABLE_TO_LOAD_LDAP_ACCOUNT = "Unable to load account summary from LDAP Network.";
         public static final String UNABLE_TO_PROCESS_EMPTY_REQUEST = "Unable to process request with null reference.";

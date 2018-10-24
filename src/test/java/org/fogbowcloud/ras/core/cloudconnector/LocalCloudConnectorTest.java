@@ -46,6 +46,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     private static final String FAKE_IMAGE_NAME = "fake-image-name";
     private static final String FAKE_COMPUTE_ID = "fake-compute-id";
     private static final String FAKE_USER_ID = "fake-user-id";
+    private static final String FAKE_PROVIDER = "fake-provider";
     private static final int VCPU_TOTAL = 2;
     private static final int RAM_TOTAL = 2048;
     private static final int INSTANCES_TOTAL = 2;
@@ -193,11 +194,14 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         ComputeOrder source = Mockito.mock(ComputeOrder.class);
         VolumeOrder target = Mockito.mock(VolumeOrder.class);
         Mockito.when(source.getFederationUserToken()).thenReturn(this.federationUserToken);
+        Mockito.when(source.getProvidingMember()).thenReturn(FAKE_PROVIDER);
         Mockito.when(target.getFederationUserToken()).thenReturn(this.federationUserToken);
+        Mockito.when(target.getProvidingMember()).thenReturn(FAKE_PROVIDER);
         SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_COMPUTE_ID, source);
         SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_VOLUME_ID, target);
         this.order = Mockito.mock(AttachmentOrder.class);
         Mockito.when(this.order.getFederationUserToken()).thenReturn(this.federationUserToken);
+        Mockito.when(this.order.getProvidingMember()).thenReturn(FAKE_PROVIDER);
         Mockito.when(((AttachmentOrder) this.order).getComputeId()).thenReturn(FAKE_COMPUTE_ID);
         Mockito.when(((AttachmentOrder) this.order).getVolumeId()).thenReturn(FAKE_VOLUME_ID);
         Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);
@@ -295,11 +299,14 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         ComputeOrder source = Mockito.mock(ComputeOrder.class);
         VolumeOrder target = Mockito.mock(VolumeOrder.class);
         Mockito.when(source.getFederationUserToken()).thenReturn(this.federationUserToken);
+        Mockito.when(source.getProvidingMember()).thenReturn(FAKE_PROVIDER);
         Mockito.when(target.getFederationUserToken()).thenReturn(this.federationUserToken);
+        Mockito.when(target.getProvidingMember()).thenReturn(FAKE_PROVIDER);
         SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_COMPUTE_ID, source);
         SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_VOLUME_ID, target);
         this.order = Mockito.mock(AttachmentOrder.class);
         Mockito.when(this.order.getFederationUserToken()).thenReturn(this.federationUserToken);
+        Mockito.when(this.order.getProvidingMember()).thenReturn(FAKE_PROVIDER);
         Mockito.when(((AttachmentOrder) this.order).getComputeId()).thenReturn(FAKE_COMPUTE_ID);
         Mockito.when(((AttachmentOrder) this.order).getVolumeId()).thenReturn(FAKE_VOLUME_ID);
         Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);

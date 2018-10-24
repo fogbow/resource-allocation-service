@@ -91,7 +91,15 @@ public class LocalCloudConnector implements CloudConnector {
                 String volumeOrderUserId = attachmentVolumeOrder.getFederationUserToken().getUserId();
                 if (!attachmentOrderUserId.equals(computeOrderUserId) ||
                         !attachmentOrderUserId.equals(volumeOrderUserId)) {
-                    throw new InvalidParameterException(Messages.Exception.TRYING_TO_OPERATE_ON_SOMEONELSES_RESOURCE);
+                    throw new InvalidParameterException(Messages.Exception.TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER);
+                }
+                // Check if both compute and volume belong to the requested provider
+                String attachmentProvider = attachmentOrder.getProvidingMember();
+                String computeProvider = attachmentComputeOrder.getProvidingMember();
+                String volumeProvider = attachmentVolumeOrder.getProvidingMember();
+                if (!attachmentProvider.equals(computeProvider) ||
+                        !attachmentProvider.equals(volumeProvider)) {
+                    throw new InvalidParameterException(Messages.Exception.PROVIDERS_DONT_MATCH);
                 }
                 // As the order parameter came from the rest API, the Compute and Volume fields are actually
                 // ComputeOrder and VolumeOrder Ids, since these are the Ids that are known to users/applications
@@ -121,7 +129,7 @@ public class LocalCloudConnector implements CloudConnector {
                 String publicIpOrderUserId = publicIpOrder.getFederationUserToken().getUserId();
                 String targetComputeOrderUserId = retrievedComputeOrder.getFederationUserToken().getUserId();
                 if (!publicIpOrderUserId.equals(targetComputeOrderUserId)) {
-                    throw new InvalidParameterException(Messages.Exception.TRYING_TO_OPERATE_ON_SOMEONELSES_RESOURCE);
+                    throw new InvalidParameterException(Messages.Exception.TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER);
                 }
 
                 String computeInstanceId = retrievedComputeOrder.getInstanceId();
@@ -270,7 +278,7 @@ public class LocalCloudConnector implements CloudConnector {
             } else {
                 String networkOrderUserId = networkOrder.getFederationUserToken().getUserId();
                 if (!networkOrderUserId.equals(computeOrderUserId)) {
-                    throw new InvalidParameterException(Messages.Exception.TRYING_TO_OPERATE_ON_SOMEONELSES_RESOURCE);
+                    throw new InvalidParameterException(Messages.Exception.TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER);
                 }
             }
 
