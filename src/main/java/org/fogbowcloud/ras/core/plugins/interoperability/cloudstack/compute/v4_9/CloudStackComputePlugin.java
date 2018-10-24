@@ -161,8 +161,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         List<String> requestedNetworksId = new ArrayList<>();
 
         requestedNetworksId.add(this.defaultNetworkId);
-        requestedNetworksId.addAll(computeOrder.getNetworksId());
-        computeOrder.setNetworksId(requestedNetworksId);
+        requestedNetworksId.addAll(computeOrder.getNetworkIds());
+        computeOrder.setNetworkIds(requestedNetworksId);
 
         return StringUtils.join(requestedNetworksId, ",");
     }

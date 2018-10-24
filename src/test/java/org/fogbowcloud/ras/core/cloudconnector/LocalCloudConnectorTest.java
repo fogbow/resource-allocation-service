@@ -153,7 +153,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setFederationUserToken(federationUser);
-        computeOrder.setNetworksId(networkOrderIdsList);
+        computeOrder.setNetworkIds(networkOrderIdsList);
 
         List<String> expectedList = new ArrayList<>();
         expectedList.add(FAKE_INSTANCE_ID);

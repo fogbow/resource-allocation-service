@@ -40,7 +40,7 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
             // Here, we need to instantiate the FileReader, because, once we read this file, the stream goes to the end
             // of the file, preventing to read the file again.
             cloudInitUserDataBuilder.addCloudConfig(new FileReader(this.CLOUD_CONFIG_FILE_PATH));
-            if (order.getNetworksId().size() > 1) {
+            if (order.getNetworkIds().size() > 1) {
                 cloudInitUserDataBuilder.addShellScript(new FileReader(this.BRING_UP_NETWORK_INTERFACE_SCRIPT_PATH));
             }
         } catch (IOException e) {

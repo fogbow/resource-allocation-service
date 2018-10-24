@@ -197,7 +197,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
 
         //We add the default network before any other network, because the order is very important to Openstack
         //request. Openstack will configure the routes to the external network by the first network found on request body.
-        List<String> networkIds = computeOrder.getNetworksId();
+        List<String> networkIds = computeOrder.getNetworkIds();
         List<String> requestedNetworksId = new ArrayList<>();
         boolean noNetworksProvided = networkIds == null ? true : networkIds.isEmpty();
         if (noNetworksProvided) {
@@ -206,7 +206,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
             requestedNetworksId.addAll(networkIds);
         }
 
-        computeOrder.setNetworksId(requestedNetworksId);
+        computeOrder.setNetworkIds(requestedNetworksId);
         return requestedNetworksId;
     }
 

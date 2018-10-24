@@ -63,7 +63,7 @@ class GeneralConfigurations:
   tokens_endpoint = 'tokens/'
   available_quota = 'availableQuota'
   instances_quota = 'instances'
-  networksId_key = 'networksId'
+  networksId_key = 'networkIds'
 
   #network attributes
   networks_endpoint = 'networks/'

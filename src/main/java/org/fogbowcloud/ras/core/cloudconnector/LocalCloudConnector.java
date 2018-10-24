@@ -17,7 +17,6 @@ import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
-import org.omg.CORBA.DynAnyPackage.Invalid;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -60,15 +59,15 @@ public class LocalCloudConnector implements CloudConnector {
                 // We save the list of NetworkOrderIds in the original order, to restore these values, after
                 // the Compute instance is requested in the cloud.
                 ComputeOrder computeOrder = (ComputeOrder) order;
-                List<String> savedNetworkOrderIds = computeOrder.getNetworksId();
+                List<String> savedNetworkOrderIds = computeOrder.getNetworkIds();
                 List<String> networkInstanceIds = getNetworkInstanceIdsFromNetworkOrderIds(computeOrder);
-                computeOrder.setNetworksId(networkInstanceIds);
+                computeOrder.setNetworkIds(networkInstanceIds);
                 try {
                     requestInstance = this.computePlugin.requestInstance(computeOrder, token);
                 } catch (Throwable e) {
                     throw e;
                 } finally {
-                    computeOrder.setNetworksId(savedNetworkOrderIds);
+                    computeOrder.setNetworkIds(savedNetworkOrderIds);
                 }
                 break;
             case NETWORK:
@@ -265,7 +264,7 @@ public class LocalCloudConnector implements CloudConnector {
      * protected visibility for tests
      */
     protected List<String> getNetworkInstanceIdsFromNetworkOrderIds(ComputeOrder order) throws InvalidParameterException {
-        List<String> networkOrdersId = order.getNetworksId();
+        List<String> networkOrdersId = order.getNetworkIds();
         List<String> networkInstanceIDs = new LinkedList<String>();
 
         String computeOrderUserId = order.getFederationUserToken().getUserId();
@@ -376,7 +375,7 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     protected Map<String, String> getNetworkOrderIdsFromComputeOrder(ComputeOrder order) {
-        List<String> networkOrdersId = order.getNetworksId();
+        List<String> networkOrdersId = order.getNetworkIds();
         Map<String, String> computeNetworks = new HashMap<>();
 
         for (String orderId : networkOrdersId) {
