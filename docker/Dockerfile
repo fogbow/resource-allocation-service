@@ -20,7 +20,7 @@ WORKDIR /root
 # Installing Manager
 RUN \
   git clone https://github.com/fogbow/resource-allocation-service.git && \
-  (cd resource-allocation-service && git checkout refactor-first-release)
+  (cd resource-allocation-service && git checkout develop)
 
 # Define working directory.
 WORKDIR /root/resource-allocation-service
