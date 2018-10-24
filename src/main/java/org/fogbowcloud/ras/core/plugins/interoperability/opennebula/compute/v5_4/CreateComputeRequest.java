@@ -9,7 +9,6 @@ public class CreateComputeRequest {
 	}
 
 	public CreateComputeRequest(Builder builder) {
-		super();
 		String cpu = builder.cpu;
 		String memory = builder.memory;
 		VirtualMachineContext context = buildContext(builder);
@@ -133,7 +132,5 @@ public class CreateComputeRequest {
 		public CreateComputeRequest build() {
 			return new CreateComputeRequest(this);
 		}
-
 	}
-
 }
