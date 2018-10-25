@@ -1,6 +1,9 @@
 package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.opennebula;
 
+import org.fogbowcloud.ras.core.PropertiesHolder;
+import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -8,21 +11,38 @@ import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.interfaces.RSAPrivateKey;
 import java.util.Map;
 import java.util.Properties;
 
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.util.RSAUtil;
 import org.opennebula.client.Client;
+import sun.security.provider.PolicySpiFile;
 
 public class OpenNebulaTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
+    private RSAPrivateKey privateKey;
     private Properties properties;
     private static final String USERNAME = "username";
     private static final String PASSWORD = "password";
-    private static final String OPENNEBULA_TOKEN_SEPARTOR = ":";
+    private static final String OPENNEBULA_TOKEN_VALUE_SEPARTOR = ":";
+    private static final String OPENNEBULA_FIELD_SEPARATOR = "#&#";
 
-    public OpenNebulaTokenGeneratorPlugin() {
-         this.properties = PropertiesUtil.readProperties(DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME);
+    private String provider;
+
+    public OpenNebulaTokenGeneratorPlugin() throws FatalErrorException {
+        this.properties = PropertiesUtil.readProperties(DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME);
+        this.provider = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+
+        try {
+
+            this.privateKey = RSAUtil.getPrivateKey();
+        } catch (IOException | GeneralSecurityException e) {
+            throw new FatalErrorException(String.format(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE, e.getMessage()));
+        }
     }
 
     @Override
@@ -33,11 +53,24 @@ public class OpenNebulaTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
         OpenNebulaClientFactory factory = new OpenNebulaClientFactory();
 
-        String tokenValue = properties.getProperty(USERNAME) + OPENNEBULA_TOKEN_SEPARTOR + properties.getProperty(PASSWORD);
+        String userName = properties.getProperty(USERNAME);
+        String password = properties.getProperty(PASSWORD);
+
+        String openNebulaTokenValue = userName + OPENNEBULA_TOKEN_VALUE_SEPARTOR + password;
 
         // Trying to create a new client fo checking if login data from conf file is correct
-        Client oneClient = factory.createClient(tokenValue);
+        Client oneClient = factory.createClient(openNebulaTokenValue);
 
-        return tokenValue;
+        String rawTokenValue = this.provider + OPENNEBULA_FIELD_SEPARATOR + openNebulaTokenValue + OPENNEBULA_FIELD_SEPARATOR
+                + userName;
+
+        try {
+            String signature = RSAUtil.sign(this.privateKey, rawTokenValue);
+            String federationTokenValue = rawTokenValue + OPENNEBULA_FIELD_SEPARATOR + signature;
+            return federationTokenValue;
+
+        } catch (IOException | GeneralSecurityException e) {
+            throw new FatalErrorException(String.format(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE, e.getMessage()));
+        }
     }
 }
