@@ -13,4 +13,8 @@ public class OpenNebulaToken extends FederationUserToken {
 		super(provider, tokenValue, userName, userName);
 		this.signature = signature;
 	}
+
+	public String getSignature() {
+		return signature;
+	}
 }
