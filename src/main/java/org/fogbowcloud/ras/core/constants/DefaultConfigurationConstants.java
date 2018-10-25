@@ -25,6 +25,7 @@ public class DefaultConfigurationConstants {
     public static final String FULFILLED_ORDERS_SLEEP_TIME = Long.toString(TimeUnit.SECONDS.toMillis(10));
     // reference value is 1 minute
     public static final String HTTP_REQUEST_TIMEOUT = Long.toString(TimeUnit.MINUTES.toMillis(1));
+    public static final String BUILD_NUMBER = "[testing mode]";
 
     // INTERCOMPONENT CONF DEFAULTS
     // reference value is 5 seconds

@@ -3,6 +3,7 @@ package org.fogbowcloud.ras.core;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.ras.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.ras.core.constants.Operation;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.datastore.DatabaseManager;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
@@ -42,6 +43,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     private static final String FAKE_SOURCE_ID = "fake-source-id";
     private static final String FAKE_TARGET_ID = "fake-target-id";
     private static final String FAKE_DEVICE_MOUNT_POINT = "fake-device-mount-point";
+    private static final String VALID_PATH_CONF = "ras.conf";
+    private static final String VALID_PATH_CONF_WITHOUT_BUILD_PROPERTY = "ras-without-build-number.conf";
 
     private ApplicationFacade application;
     private AaaController aaaController;
@@ -73,6 +76,30 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.activeOrdersMap = Mockito.spy(sharedOrderHolders.getActiveOrdersMap());
+    }
+
+    @Test
+    public void testVersion() throws Exception {
+        // Setup
+        this.application.setBuildNumber(HomeDir.getPath() + this.VALID_PATH_CONF);
+
+        // Exercise
+        String build = this.application.getVersionNumber();
+
+        // Test
+        Assert.assertEquals(SystemConstants.API_VERSION_NUMBER + "-" + "abcd", build);
+    }
+
+    @Test
+    public void testVersionWithoutBuildProperty() throws Exception {
+        // Setup
+        this.application.setBuildNumber(HomeDir.getPath() + this.VALID_PATH_CONF_WITHOUT_BUILD_PROPERTY);
+
+        // Exercise
+        String build = this.application.getVersionNumber();
+
+        // Test
+        Assert.assertTrue(build.equals(SystemConstants.API_VERSION_NUMBER + "-" + "[testing mode]"));
     }
 
     // test case: When calling the method deleteCompute(), the Order passed as parameter must
