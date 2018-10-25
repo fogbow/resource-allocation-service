@@ -29,7 +29,7 @@ public class OpenNebulaTokenGeneratorPlugin implements TokenGeneratorPlugin {
     private static final String USERNAME = "username";
     private static final String PASSWORD = "password";
     private static final String OPENNEBULA_TOKEN_VALUE_SEPARTOR = ":";
-    private static final String OPENNEBULA_FIELD_SEPARATOR = "#$#";
+    private static final String OPENNEBULA_FIELD_SEPARATOR = "#&#";
 
     private String provider;
 
@@ -62,12 +62,12 @@ public class OpenNebulaTokenGeneratorPlugin implements TokenGeneratorPlugin {
         Client oneClient = factory.createClient(openNebulaTokenValue);
 
         String rawTokenValue = this.provider + OPENNEBULA_FIELD_SEPARATOR + openNebulaTokenValue + OPENNEBULA_FIELD_SEPARATOR
-                + properties.getProperty(PASSWORD) + OPENNEBULA_FIELD_SEPARATOR;
+                + userName;
 
         try {
             String signature = RSAUtil.sign(this.privateKey, rawTokenValue);
-            String tokenValue = rawTokenValue + OPENNEBULA_FIELD_SEPARATOR + signature;
-            return tokenValue;
+            String federationTokenValue = rawTokenValue + OPENNEBULA_FIELD_SEPARATOR + signature;
+            return federationTokenValue;
 
         } catch (IOException | GeneralSecurityException e) {
             throw new FatalErrorException(String.format(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE, e.getMessage()));
