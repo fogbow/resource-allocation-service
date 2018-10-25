@@ -676,7 +676,7 @@ public class OpenStackComputePluginTest {
         if (networksId.size() > 1) {
             JSONArray securityGroups = new JSONArray();
             JSONObject securityGroup = new JSONObject();
-            String securityGroupName = OpenStackNetworkPlugin.SECURITY_GROUP_PREFIX + "-" + this.privateNetworkId;
+            String securityGroupName = OpenStackNetworkPlugin.getSGNameForPrivateNetwork(privateNetworkId);
             securityGroup.put(OpenStackComputePlugin.NAME_JSON_FIELD, securityGroupName);
             securityGroups.put(securityGroup);
             server.put(OpenStackComputePlugin.SECURITY_JSON_FIELD, securityGroups);
