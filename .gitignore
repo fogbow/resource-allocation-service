@@ -1,6 +1,9 @@
 /target/
 !.mvn/wrapper/maven-wrapper.jar
 
+### Ignire all DBs ###
+*.db
+
 ### STS ###
 .apt_generated
 .classpath
