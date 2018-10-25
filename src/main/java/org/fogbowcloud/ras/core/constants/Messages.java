@@ -112,6 +112,7 @@ public class Messages {
         public static final String ERROR_WHILE_CREATING_CLIENT = "Error while creating client.";
         public static final String ERROR_WHILE_CREATING_NETWORK = "Error while creating a network from template: %s.";
         public static final String ERROR_WHILE_CREATING_IMAGE = "Error while creating a image from template: %s.";
+        public static final String ERROR_WHILE_CREATING_ROUTER = "Error while creating a router from template: %s.";
         public static final String ERROR_WHILE_CONSUMING_RESPONSE = "Error while consuming response %s.";
         public static final String ERROR_WHILE_CONVERTING_INSTANCE_ID = "Error while converting instanceid %s to integer.";
         public static final String ERROR_WHILE_INSTANTIATING_FROM_TEMPLATE = "Error while instatiating an instance from template: %s.";
@@ -121,6 +122,8 @@ public class Messages {
         public static final String ERROR_WHILE_GETTING_TEMPLATES = "Error while getting info about templates: %s.";
         public static final String ERROR_WHILE_GETTING_VOLUME_INSTANCE = "Error while getting volume instance.";
         public static final String ERROR_WHILE_REMOVING_VM = "Error while removing virtual machine: %s, with response: %s.";
+        public static final String ERROR_WHILE_REMOVING_VN = "Error while removing virtual network: %s, with response: %s.";
+        public static final String ERROR_WHILE_REMOVING_VR = "Error while removing virtual router: %s, with response: %s.";
         public static final String INSTANCE_TYPE_NOT_DEFINED = "Instance type not defined.";
         public static final String INVALID_DATASTORE_DRIVER = "Invalid datastore driver.";
         public static final String INVALID_TOKEN_VALUE = "Invalid token value: %s.";
