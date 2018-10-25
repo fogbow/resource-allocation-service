@@ -1,9 +1,6 @@
 package org.fogbowcloud.ras.core.models.tokens;
 
-import java.util.List;
-
 import javax.persistence.Column;
-import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 
 @Entity
