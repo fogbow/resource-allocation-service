@@ -9,6 +9,9 @@ public class OpenStackV3Token extends SignedFederationUserToken {
     @Column
     private String projectId;
 
+    public OpenStackV3Token() {
+    }
+
     public OpenStackV3Token(String tokenProvider, String tokenValue, String userId, String name, 
     						String projectId, String signature) {
         super(tokenProvider, tokenValue, userId, name, signature);

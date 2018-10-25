@@ -20,6 +20,9 @@ public class ShibbolethToken extends TimestampedSignedFederationUserToken {
 	@MapKeyColumn (name="RANGE_ID")
 	@Column
     private Map<String, String> samlAttributes;
+
+	public ShibbolethToken() {
+	}
     
 	public ShibbolethToken(String tokenProvider, String tokenValue, String userId,
 			String name, Map<String, String> samlAttributes, long expirationTime, String signature) {

@@ -14,6 +14,9 @@ public class SignedFederationUserToken extends FederationUserToken {
     @Column(length = MAX_SIGNATURE_SIZE)
 	private String signature;
 
+    public SignedFederationUserToken() {
+	}
+
 	public SignedFederationUserToken(String tokenProvider, String federationUserTokenValue, String userId,
 			String userName, String signature) {
 		super(tokenProvider, federationUserTokenValue, userId, userName);

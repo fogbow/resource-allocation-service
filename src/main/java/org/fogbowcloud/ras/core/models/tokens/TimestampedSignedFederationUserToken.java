@@ -11,14 +11,17 @@ public class TimestampedSignedFederationUserToken extends SignedFederationUserTo
 
 	@Column
 	private long timestamp;
-	
+
+	public TimestampedSignedFederationUserToken() {
+	}
+
 	public TimestampedSignedFederationUserToken(String tokenProvider, String federationUserTokenValue, String userId,
 			String userName, String signature, long timestamp) {
 		super(tokenProvider, federationUserTokenValue, userId, userName, signature);
 		this.timestamp = timestamp;
 	}
-	
-	public long getTimestamp() {
+
+    public long getTimestamp() {
 		return timestamp;
 	}
 

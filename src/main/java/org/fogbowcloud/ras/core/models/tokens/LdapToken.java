@@ -7,6 +7,9 @@ import javax.persistence.InheritanceType;
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
 public class LdapToken extends TimestampedSignedFederationUserToken  {
+
+    public LdapToken() {
+    }
 	
     public LdapToken(String tokenProvider, String federationUserTokenValue, String userId, String userName,
                      String expirationTime, String signature) {
