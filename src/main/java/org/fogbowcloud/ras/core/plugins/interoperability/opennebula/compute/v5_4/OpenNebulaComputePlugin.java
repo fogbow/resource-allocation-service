@@ -57,6 +57,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 	private static final int FIRST_AVAILABLE_ID = 0;
 
 	private OpenNebulaClientFactory factory;
+
 	private TreeSet<HardwareRequirements> flavors;
 	private Properties properties;
 	
@@ -75,7 +76,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 
 		String encoding = USERDATA_ENCODING_CONTEXT;
-		String userData = computeOrder.getUserData().toString(); // TODO verify this is correct
+		String userData = computeOrder.getUserData().getExtraUserDataFileContent();
 		String hasNetwork = NETWORK_CONFIRMATION_CONTEXT;
 		String address = DEFAULT_GRAPHIC_ADDRESS;
 		String graphicsType = DEFAULT_GRAPHIC_TYPE;
@@ -147,7 +148,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		return requestedNetworksId.get(FIRST_AVAILABLE_ID);
 	}
 	
-	private HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, Token token)
+	protected HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, Token token)
 			throws NoAvailableResourcesException, UnexpectedException {
 		
 		HardwareRequirements bestFlavor = getBestFlavor(computeOrder, token);
@@ -169,7 +170,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		return null;
 	}
 
-	private void updateHardwareRequirements(Token localUserAttributes) throws UnexpectedException {
+	protected void updateHardwareRequirements(Token localUserAttributes) throws UnexpectedException {
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 		Map<String, String> imageSizeMap = getImageSizes(client);
 		List<HardwareRequirements> flavors = new ArrayList<>();
@@ -259,7 +260,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		}
 	}
 
-	private ComputeInstance createVirtualMachineInstance(VirtualMachine virtualMachine) {
+	protected ComputeInstance createVirtualMachineInstance(VirtualMachine virtualMachine) {
 		String id = virtualMachine.getId();
 		String hostName = virtualMachine.xpath(TEMPLATE_NAME_PATH);
 		int cpu = Integer.parseInt(virtualMachine.xpath(TEMPLATE_CPU_PATH));
@@ -285,4 +286,13 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		
 		return computeInstance;
 	}
+	
+	protected void setFactory(OpenNebulaClientFactory factory) {
+		this.factory = factory;
+	}
+	
+	protected void setFlavors(TreeSet<HardwareRequirements> flavors) {
+		this.flavors = flavors;
+	}
+	
 }
