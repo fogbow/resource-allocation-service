@@ -27,6 +27,7 @@ public class ConfigurationConstants {
     public static final String FULFILLED_ORDERS_SLEEP_TIME_KEY = "fulfilled_orders_sleep_time";
     public static final String CLOSED_ORDERS_SLEEP_TIME_KEY = "closed_orders_sleep_period";
     public static final String HTTP_REQUEST_TIMEOUT = "http_request_timeout";
+    public static final String BUILD_NUMBER = "build_number";
 
     // HISTORY & RECOVERY DATABASE CONF
     public static final String DATABASE_URL = "jdbc_database_url";

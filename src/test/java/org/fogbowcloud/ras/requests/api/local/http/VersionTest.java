@@ -2,6 +2,8 @@ package org.fogbowcloud.ras.requests.api.local.http;
 
 import org.fogbowcloud.ras.api.http.Version;
 import org.fogbowcloud.ras.core.ApplicationFacade;
+import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,7 +53,7 @@ public class VersionTest {
         BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
 
         // exercise
-        Mockito.doReturn(ApplicationFacade.VERSION_NUMBER).when(this.facade).getVersionNumber();
+        Mockito.doReturn(SystemConstants.API_VERSION_NUMBER).when(this.facade).getVersionNumber();
 
         HttpHeaders headers = new HttpHeaders();
 
@@ -65,7 +67,7 @@ public class VersionTest {
         // verify
         Mockito.verify(this.facade, times(1)).getVersionNumber();
 
-        Assert.assertEquals(versionNumber, ApplicationFacade.VERSION_NUMBER);
+        Assert.assertEquals(versionNumber, SystemConstants.API_VERSION_NUMBER);
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
     }
 }
