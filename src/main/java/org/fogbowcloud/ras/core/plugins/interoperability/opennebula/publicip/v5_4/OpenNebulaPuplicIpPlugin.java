@@ -93,7 +93,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<Token> {
 	}
 
 	@Override
-	public void deleteInstance(String publicIpInstanceId, Token localUserAttributes)
+	public void deleteInstance(String publicIpInstanceId, String computeInstanceId, Token localUserAttributes)
 			throws FogbowRasException, UnexpectedException {
 
 		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, publicIpInstanceId,
@@ -204,5 +204,5 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<Token> {
 		}
 		return arId;
 	}
-	
+
 }
