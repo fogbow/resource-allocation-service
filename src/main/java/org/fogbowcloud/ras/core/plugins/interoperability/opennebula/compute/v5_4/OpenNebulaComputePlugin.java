@@ -177,20 +177,22 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		List<HardwareRequirements> flavorsTemplate = new ArrayList<>();
 
 		TemplatePool templatePool = this.factory.createTemplatePool(client);
-		HardwareRequirements flavor;
-		for (Template template : templatePool) {
-			String name = template.xpath(NAME_FIELD);
-			int memory = Integer.parseInt(template.xpath(TEMPLATE_MEMORY_PATH));
-			int cpu = Integer.parseInt(template.xpath(TEMPLATE_CPU_PATH));
-			int disk = 0;
+		if (templatePool != null) {
+			HardwareRequirements flavor;
+			for (Template template : templatePool) {
+				String name = template.xpath(NAME_FIELD);
+				int memory = Integer.parseInt(template.xpath(TEMPLATE_MEMORY_PATH));
+				int cpu = Integer.parseInt(template.xpath(TEMPLATE_CPU_PATH));
+				int disk = 0;
 
-			flavor = new HardwareRequirements(name, null, cpu, memory, disk); // TODO verify field null
-			flavorsTemplate.add(flavor);
+				flavor = new HardwareRequirements(name, null, cpu, memory, disk); // TODO verify field null
+				flavorsTemplate.add(flavor);
 
-			if (containsFlavor(flavor, this.flavors)) {
-				int size = loadImageSizeDisk(imageSizeMap, template);
-				flavor = new HardwareRequirements(name, null, cpu, memory, size); // TODO verify field null
-				flavors.add(flavor);
+				if (containsFlavor(flavor, this.flavors)) {
+					int size = loadImageSizeDisk(imageSizeMap, template);
+					flavor = new HardwareRequirements(name, null, cpu, memory, size); // TODO verify field null
+					flavors.add(flavor);
+				}
 			}
 		}
 
@@ -228,7 +230,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		return size;
 	}
 
-	private Map<String, String> getImageSizes(Client client) throws UnexpectedException {
+	protected Map<String, String> getImageSizes(Client client) throws UnexpectedException {
 		Map<String, String> imageSizeMap = new HashMap<String, String>();
 		ImagePool imagePool = this.factory.createImagePool(client);
 		for (Image image : imagePool) {
@@ -237,7 +239,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		return imageSizeMap;
 	}
 
-	private boolean containsFlavor(HardwareRequirements flavor, Collection<HardwareRequirements> flavors) {
+	protected boolean containsFlavor(HardwareRequirements flavor, Collection<HardwareRequirements> flavors) {
 		List<HardwareRequirements> list = new ArrayList<>(flavors);
 		for (HardwareRequirements item : list) {
 			if (item.getName().equals(flavor.getName())) {
@@ -247,7 +249,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		return false;
 	}
 
-	private void removeInvalidFlavors(List<HardwareRequirements> flavors) {
+	protected void removeInvalidFlavors(List<HardwareRequirements> flavors) {
 		ArrayList<HardwareRequirements> copyFlavors = new ArrayList<>(this.flavors);
 		for (HardwareRequirements flavor : copyFlavors) {
 			if (!containsFlavor(flavor, flavors) && copyFlavors.size() != 0) {
