@@ -1,7 +1,9 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
 
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
@@ -18,6 +20,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
+import org.opennebula.client.template.TemplatePool;
 import org.opennebula.client.vm.VirtualMachine;
 
 public class OpenNebulaComputePluginTest {
@@ -33,7 +36,6 @@ public class OpenNebulaComputePluginTest {
 		this.factory = Mockito.mock(OpenNebulaClientFactory.class);
 		this.plugin = Mockito.spy(new OpenNebulaComputePlugin());
 		this.flavors = Mockito.spy(new TreeSet<>());
-		
 	}
 	
 	// Test case: ...
@@ -51,14 +53,14 @@ public class OpenNebulaComputePluginTest {
 	
 	// Test case: ...
 	@Test
-	public void testRequestInstanceSuccessful() throws UnexpectedException, FogbowRasException {
+	public void testRequestInstanceSuccessfulWithNetworksId() throws UnexpectedException, FogbowRasException {
 		// set up
 		Token token = new Token(LOCAL_TOKEN_VALUE);
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
-		ComputeOrder computeOrder = createComputeOrder();
+		ComputeOrder computeOrder = createComputeOrder(listNetworksId());
 		HardwareRequirements flavor = createHardwareRequirements();
 		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, token);
 
@@ -75,6 +77,57 @@ public class OpenNebulaComputePluginTest {
 
 	// Test case: ...
 	@Test
+	public void testRequestInstanceSuccessfulWithoutNetworksId() throws UnexpectedException, FogbowRasException {
+		// set up
+		Token token = new Token(LOCAL_TOKEN_VALUE);
+		Client client = this.factory.createClient(token.getTokenValue());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		this.plugin.setFactory(this.factory);
+
+		ComputeOrder computeOrder = createComputeOrder(null);
+		HardwareRequirements flavor = createHardwareRequirements();
+		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, token);
+
+		// exercise
+		this.plugin.requestInstance(computeOrder, token);
+
+		// verify
+		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
+		Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(ComputeOrder.class),
+				Mockito.any(Token.class));
+		Mockito.verify(this.factory, Mockito.times(1)).allocateVirtualMachine(Mockito.any(Client.class),
+				Mockito.anyString());
+	}
+
+	// Test case: ...
+	@Test
+	public void testDeleteInstanceUnsuccessfully() throws UnexpectedException, FogbowRasException {
+		// set up
+		Token token = new Token(LOCAL_TOKEN_VALUE);
+		Client client = this.factory.createClient(token.getTokenValue());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		this.plugin.setFactory(this.factory);
+
+		String instanceId = "fake-instance-id";
+		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
+		Mockito.doReturn(virtualMachine).when(this.factory).createVirtualMachine(client, instanceId);
+		OneResponse response = Mockito.mock(OneResponse.class);
+		Mockito.doReturn(response).when(virtualMachine).terminate();
+		Mockito.doReturn(false).when(response).isError();
+
+		// exercise
+		this.plugin.deleteInstance(instanceId, token);
+
+		// verify
+		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
+		Mockito.verify(this.factory, Mockito.times(1)).createVirtualMachine(Mockito.any(Client.class),
+				Mockito.anyString());
+		Mockito.verify(virtualMachine, Mockito.times(1)).terminate();
+		Mockito.verify(response, Mockito.times(1)).isError();
+	}
+		
+	// Test case: ...
+	@Test
 	public void testDeleteInstanceSuccessful() throws UnexpectedException, FogbowRasException {
 		// set up
 		Token token = new Token(LOCAL_TOKEN_VALUE);
@@ -87,6 +140,7 @@ public class OpenNebulaComputePluginTest {
 		Mockito.doReturn(virtualMachine).when(this.factory).createVirtualMachine(client, instanceId);
 		OneResponse response = Mockito.mock(OneResponse.class);
 		Mockito.doReturn(response).when(virtualMachine).terminate();
+		Mockito.doReturn(true).when(response).isError();
 
 		// exercise
 		this.plugin.deleteInstance(instanceId, token);
@@ -96,6 +150,7 @@ public class OpenNebulaComputePluginTest {
 		Mockito.verify(this.factory, Mockito.times(1)).createVirtualMachine(Mockito.any(Client.class),
 				Mockito.anyString());
 		Mockito.verify(virtualMachine, Mockito.times(1)).terminate();
+		Mockito.verify(response, Mockito.times(1)).isError();
 	}
 	
 	// Test case: ...
@@ -126,6 +181,45 @@ public class OpenNebulaComputePluginTest {
 		Mockito.verify(this.factory, Mockito.times(1)).createVirtualMachine(Mockito.any(Client.class),
 				Mockito.anyString());
 		Mockito.verify(this.plugin, Mockito.times(1)).createVirtualMachineInstance(virtualMachine);
+	}
+	
+	// Test case: ...
+	@Test
+	public void testGetInstance() throws UnexpectedException, FogbowRasException {
+		// set up
+		Token token = new Token(LOCAL_TOKEN_VALUE);
+		Client client = this.factory.createClient(token.getTokenValue());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		this.plugin.setFactory(this.factory);
+		this.plugin.setFlavors(this.flavors);
+		
+		Map<String, String> imageSizeMap = createImageSizeMap();
+		Mockito.doReturn(imageSizeMap).when(this.plugin).getImageSizes(client);
+		
+		TemplatePool templatePool = null;
+		Mockito.doReturn(templatePool).when(this.factory).createTemplatePool(client);
+		
+		String instanceId = "fake-instance-id";
+		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
+		Mockito.doReturn(virtualMachine).when(this.factory).createVirtualMachine(client, instanceId);
+
+		ComputeInstance computeInstance = CreateComputeInstance();
+		Mockito.doReturn(computeInstance).when(this.plugin).createVirtualMachineInstance(virtualMachine);
+
+		// exercise
+		this.plugin.getInstance(instanceId, token);
+
+		// verify
+		Mockito.verify(this.factory, Mockito.times(3)).createClient(Mockito.anyString());
+		Mockito.verify(this.factory, Mockito.times(1)).createVirtualMachine(Mockito.any(Client.class),
+				Mockito.anyString());
+		Mockito.verify(this.plugin, Mockito.times(1)).createVirtualMachineInstance(virtualMachine);
+	}
+
+	private Map<String, String> createImageSizeMap() {
+		Map<String, String> imageSizeMap = new HashMap<>();
+		imageSizeMap.put("fake-image", "fake-image-size-value");
+		return imageSizeMap;
 	}
 
 	private ComputeInstance CreateComputeInstance() {
@@ -167,18 +261,22 @@ public class OpenNebulaComputePluginTest {
 		return new HardwareRequirements(name, null, cpu, ram, disk);
 	}
 
-	private ComputeOrder createComputeOrder() {
+	private List<String> listNetworksId() {
+		String privateNetworkId = "fake-private-network-id";
+		List<String> networksId = new ArrayList<>();
+		networksId.add(privateNetworkId);
+		return networksId;
+	}
+	
+	private ComputeOrder createComputeOrder(List<String> networksId) {
 		int cpu = 2;
 		int memory = 1024;
 		int disk = 8;
 		
 		String imageId = "fake-image-id";
 		String publicKey = "fake-public-key";
-		String privateNetworkId = "fake-private-network-id";
 		
 		UserData userData = new UserData();
-		List<String> networksId = new ArrayList<>();
-		networksId.add(privateNetworkId);
 		
 		ComputeOrder computeOrder = new ComputeOrder(
 				null, 
