@@ -121,15 +121,15 @@ public class OrderControllerTest extends BaseUnitTests {
                 "token-value", "fake-id", "fake-user");
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setFederationUserToken(federationUserToken);
-        computeOrder.setRequestingMember(this.localMember);
-        computeOrder.setProvidingMember(this.localMember);
+        computeOrder.setRequester(this.localMember);
+        computeOrder.setProvider(this.localMember);
         computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
         computeOrder.setCachedInstanceState(InstanceState.READY);
 
         ComputeOrder computeOrder2 = new ComputeOrder();
         computeOrder2.setFederationUserToken(federationUserToken);
-        computeOrder2.setRequestingMember(this.localMember);
-        computeOrder2.setProvidingMember(this.localMember);
+        computeOrder2.setRequester(this.localMember);
+        computeOrder2.setProvider(this.localMember);
         computeOrder2.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
         computeOrder2.setCachedInstanceState(InstanceState.FAILED);
 
@@ -140,9 +140,9 @@ public class OrderControllerTest extends BaseUnitTests {
         this.failedAfterSuccessfulRequestOrdersList.addItem(computeOrder2);
 
         InstanceStatus statusOrder = new InstanceStatus(computeOrder.getId(),
-                computeOrder.getProvidingMember(), computeOrder.getCachedInstanceState());
+                computeOrder.getProvider(), computeOrder.getCachedInstanceState());
         InstanceStatus statusOrder2 = new InstanceStatus(computeOrder2.getId(),
-                computeOrder2.getProvidingMember(), computeOrder2.getCachedInstanceState());
+                computeOrder2.getProvider(), computeOrder2.getCachedInstanceState());
 
         // exercise
         List<InstanceStatus> instances = this.ordersController.getInstancesStatus(federationUserToken,
@@ -238,8 +238,8 @@ public class OrderControllerTest extends BaseUnitTests {
                 "token-value", "fake-id", "fake-user");
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setFederationUserToken(federationUserToken);
-        computeOrder.setRequestingMember(this.localMember);
-        computeOrder.setProvidingMember(this.localMember);
+        computeOrder.setRequester(this.localMember);
+        computeOrder.setProvider(this.localMember);
         computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 
         computeOrder.setActualAllocation(new ComputeAllocation(1, 2, 3));
@@ -269,8 +269,8 @@ public class OrderControllerTest extends BaseUnitTests {
                 "token-value", "fake-id", "fake-user");
         NetworkOrder networkOrder = new NetworkOrder();
         networkOrder.setFederationUserToken(federationUserToken);
-        networkOrder.setRequestingMember(this.localMember);
-        networkOrder.setProvidingMember(this.localMember);
+        networkOrder.setRequester(this.localMember);
+        networkOrder.setProvider(this.localMember);
         networkOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 
         this.fulfilledOrdersList.addItem(networkOrder);
@@ -451,8 +451,8 @@ public class OrderControllerTest extends BaseUnitTests {
 
         ComputeOrder computeOrder = Mockito.spy(new ComputeOrder());
         computeOrder.setFederationUserToken(federationUserToken);
-        computeOrder.setRequestingMember(this.localMember);
-        computeOrder.setProvidingMember(this.localMember);
+        computeOrder.setRequester(this.localMember);
+        computeOrder.setProvider(this.localMember);
         computeOrder.setOrderStateInTestMode(orderState);
 
         orderId = computeOrder.getId();

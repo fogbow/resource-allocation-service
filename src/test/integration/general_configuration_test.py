@@ -42,7 +42,7 @@ class GeneralConfigurations:
   #general attributes
   json_header = {"Content-Type": "application/json"}
   status_endpoint = 'status'
-  providingMember = 'providingMember'
+  provider = 'provider'
 
   #http status
   ok_status = 200

@@ -84,7 +84,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
 
         //verify
         String orderId = order.getId();
-        String orderProvidingMember = order.getProvidingMember();
+        String orderProvidingMember = order.getProvider();
         String expected = String.format(IQ_RESULT_FORMAT, orderId, orderProvidingMember, REQUESTING_MEMBER);
         Assert.assertEquals(expected, result.toString());
     }
@@ -96,7 +96,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
         this.order = new ComputeOrder(null, REQUESTING_MEMBER, "providingmember",
                 "hostName", 1, 2, 3, "imageId", null, "publicKey", new ArrayList<>());
 
-        Mockito.doThrow(new FogbowRasException()).when(this.remoteFacade).deleteOrder(this.order.getRequestingMember(),
+        Mockito.doThrow(new FogbowRasException()).when(this.remoteFacade).deleteOrder(this.order.getRequester(),
                 this.order.getId(), this.order.getFederationUserToken(), this.order.getType());
 
         IQ iq = RemoteDeleteOrderRequest.marshal(this.order);
@@ -107,11 +107,11 @@ public class RemoteDeleteOrderRequestHandlerTest {
 
         //verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).
-                deleteOrder(this.order.getRequestingMember(), this.order.getId(),
+                deleteOrder(this.order.getRequester(), this.order.getId(),
                 this.order.getFederationUserToken(), this.order.getType());
 
         String orderId = order.getId();
-        String orderProvidingMember = order.getProvidingMember();
+        String orderProvidingMember = order.getProvider();
         String expected = String.format(IQ_ERROR_RESULT_FORMAT, orderId, orderProvidingMember, REQUESTING_MEMBER);
         Assert.assertEquals(expected, result.toString());
     }

@@ -92,9 +92,9 @@ public class RemoteFacade {
         // order is a java object that represents the order passed in the message
         // actualOrder is the java object that represents this order inside the current server
         Order localOrder = this.orderController.getOrder(remoteOrder.getId());
-        if (!localOrder.getProvidingMember().equals(signallingMember)) {
+        if (!localOrder.getProvider().equals(signallingMember)) {
             throw new UnexpectedException(String.format(Messages.Exception.SIGNALING_MEMBER_DIFFERENT_OF_PROVIDER,
-                    signallingMember, localOrder.getProvidingMember()));
+                    signallingMember, localOrder.getProvider()));
         }
         updateLocalOrder(localOrder, remoteOrder, event);
         switch (event) {

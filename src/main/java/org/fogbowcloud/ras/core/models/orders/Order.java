@@ -24,9 +24,9 @@ public abstract class Order implements Serializable {
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     private FederationUserToken federationUserToken;
     @Column
-    private String requestingMember;
+    private String requester;
     @Column
-    private String providingMember;
+    private String provider;
     @Column
     private String instanceId;
     @Column
@@ -39,15 +39,15 @@ public abstract class Order implements Serializable {
         this.id = id;
     }
 
-    public Order(String id, String providingMember) {
+    public Order(String id, String provider) {
         this(id);
-        this.providingMember = providingMember;
+        this.provider = provider;
     }
 
-    public Order(String id, String providingMember, FederationUserToken federationUserToken, String requestingMember) {
-        this(id, providingMember);
+    public Order(String id, String provider, FederationUserToken federationUserToken, String requester) {
+        this(id, provider);
         this.federationUserToken = federationUserToken;
-        this.requestingMember = requestingMember;
+        this.requester = requester;
     }
 
     public String getId() {
@@ -86,20 +86,20 @@ public abstract class Order implements Serializable {
         this.federationUserToken = federationUserToken;
     }
 
-    public String getRequestingMember() {
-        return this.requestingMember;
+    public String getRequester() {
+        return this.requester;
     }
 
-    public void setRequestingMember(String requestingMember) {
-        this.requestingMember = requestingMember;
+    public void setRequester(String requester) {
+        this.requester = requester;
     }
 
-    public String getProvidingMember() {
-        return this.providingMember;
+    public String getProvider() {
+        return this.provider;
     }
 
-    public void setProvidingMember(String providingMember) {
-        this.providingMember = providingMember;
+    public void setProvider(String provider) {
+        this.provider = provider;
     }
 
     public String getInstanceId() {
@@ -119,11 +119,11 @@ public abstract class Order implements Serializable {
     }
 
     public boolean isProviderLocal(String localMemberId) {
-        return this.providingMember.equals(localMemberId);
+        return this.provider.equals(localMemberId);
     }
 
     public boolean isRequesterRemote(String localMemberId) {
-        return !this.requestingMember.equals(localMemberId);
+        return !this.requester.equals(localMemberId);
     }
 
     public abstract ResourceType getType();
@@ -153,7 +153,7 @@ public abstract class Order implements Serializable {
     @Override
     public String toString() {
         return "Order [id=" + this.id + ", orderState=" + this.orderState + ", federationUserToken="
-                + this.federationUserToken + ", requestingMember=" + this.requestingMember + ", providingMember="
-                + this.providingMember + ", instanceId=" + this.instanceId + "]";
+                + this.federationUserToken + ", requester=" + this.requester + ", provider="
+                + this.provider + ", instanceId=" + this.instanceId + "]";
     }
 }

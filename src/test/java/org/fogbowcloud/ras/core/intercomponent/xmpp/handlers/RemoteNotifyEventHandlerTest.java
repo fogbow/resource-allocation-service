@@ -16,7 +16,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -78,7 +77,7 @@ public class RemoteNotifyEventHandlerTest {
         Mockito.verify(this.remoteFacade, Mockito.times(1)).
                 handleRemoteEvent(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.event), Mockito.eq(this.order));
 
-        String requestingMember = this.order.getRequestingMember();
+        String requestingMember = this.order.getRequester();
         String expected = String.format(IQ_RESULT, orderId, requestingMember, REQUESTING_MEMBER);
 
         Assert.assertEquals(expected, result.toString());
@@ -103,7 +102,7 @@ public class RemoteNotifyEventHandlerTest {
         Mockito.verify(this.remoteFacade, Mockito.times(1)).
                 handleRemoteEvent(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(this.event), Mockito.eq(this.order));
 
-        String requestingMember = this.order.getRequestingMember();
+        String requestingMember = this.order.getRequester();
         String expected = String.format(IQ_ERROR_RESULT, orderId, requestingMember, REQUESTING_MEMBER);
 
         Assert.assertEquals(expected, result.toString());

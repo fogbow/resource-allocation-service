@@ -16,7 +16,7 @@ class ImageTests:
     print('-Test %d: get by id local images' % cls.which_test_case())
     cls.test_get_by_id_images(data_for_local)
     if GeneralConfigurations.remote_member:
-      data_for_remote = {GeneralConfigurations.providingMember: GeneralConfigurations.remote_member}
+      data_for_remote = {GeneralConfigurations.provider: GeneralConfigurations.remote_member}
       print('-Test %d: get all remote images' % cls.which_test_case())
       cls.test_get_all_images(data_for_remote)
       print('-Test %d: get by id remote images' % cls.which_test_case())

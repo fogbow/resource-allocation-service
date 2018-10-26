@@ -10,7 +10,7 @@ class CommonMethods:
   url_attachments= GeneralConfigurations.base_url + GeneralConfigurations.attachments_endpoint
   url_images= GeneralConfigurations.base_url + GeneralConfigurations.images_endpoint
 
-  data_compute = {'vCPU': GeneralConfigurations.vCPU, 'memory': GeneralConfigurations.memory, 'disk': GeneralConfigurations.disk, 'providingMember': GeneralConfigurations.local_member, 'imageId': GeneralConfigurations.imageId, 'publicKey': GeneralConfigurations.publicKey}
+  data_compute = {'vCPU': GeneralConfigurations.vCPU, 'memory': GeneralConfigurations.memory, 'disk': GeneralConfigurations.disk, 'provider': GeneralConfigurations.local_member, 'imageId': GeneralConfigurations.imageId, 'publicKey': GeneralConfigurations.publicKey}
   data_network = {'cidr': GeneralConfigurations.cidr, 'allocationMode': GeneralConfigurations.allocationMode}
   data_volume = {'volumeSize': GeneralConfigurations.volume_size}
   data_attachment = {'device':'/dev/sdd'}

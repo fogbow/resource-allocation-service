@@ -55,7 +55,7 @@ public class RemoteNotifyEventRequestTest {
         //verify
         IQ iq = argIQ.getValue();
         Assert.assertEquals(IQ.Type.set.toString(), iq.getType().toString());
-        Assert.assertEquals(this.order.getRequestingMember().toString(), iq.getTo().toString());
+        Assert.assertEquals(this.order.getRequester().toString(), iq.getTo().toString());
         Assert.assertEquals(this.order.getId(), iq.getID().toString());
 
         Element iqElementQuery = iq.getElement().element(IqElement.QUERY.toString());

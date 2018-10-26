@@ -76,7 +76,7 @@ public class RemoteCreateOrderRequestHandlerTest {
                 activateOrder(Mockito.anyString(), Mockito.eq(order));
 
         String orderId = order.getId();
-        String providingMember = order.getProvidingMember();
+        String providingMember = order.getProvider();
         String expected = String.format(IQ_RESULT, orderId, providingMember, REQUESTING_MEMBER);
 
         Assert.assertEquals(expected, result.toString());
@@ -103,7 +103,7 @@ public class RemoteCreateOrderRequestHandlerTest {
                 activateOrder(Mockito.anyString(), Mockito.eq(order));
 
         String orderId = order.getId();
-        String providingMember = order.getProvidingMember();
+        String providingMember = order.getProvider();
         String expected = String.format(IQ_ERROR_RESULT, orderId, providingMember, REQUESTING_MEMBER);
 
         Assert.assertEquals(expected, result.toString());

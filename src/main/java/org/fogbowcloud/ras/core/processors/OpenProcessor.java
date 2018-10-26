@@ -71,7 +71,7 @@ public class OpenProcessor implements Runnable {
             if (orderState.equals(OrderState.OPEN)) {
                 try {
                     CloudConnector cloudConnector =
-                            CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
+                            CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider());
                     String orderInstanceId = cloudConnector.requestInstance(order);
                     order.setInstanceId(orderInstanceId);
                     updateOrderStateAfterProcessing(order);

@@ -109,8 +109,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // set up
         Order order = createComputeOrder();
-        order.setRequestingMember(getLocalMemberId());
-        order.setProvidingMember(getLocalMemberId());
+        order.setRequester(getLocalMemberId());
+        order.setProvider(getLocalMemberId());
         OrderStateTransitioner.activateOrder(order);
 
         Mockito.doNothing().when(this.aaaController)
@@ -689,8 +689,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         VolumeOrder order = createVolumeOrder();
         OrderStateTransitioner.activateOrder(order);
-        order.setRequestingMember(getLocalMemberId());
-        order.setProvidingMember(getLocalMemberId());
+        order.setRequester(getLocalMemberId());
+        order.setProvider(getLocalMemberId());
 
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
         Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString())).thenReturn(localCloudConnector);
@@ -1032,8 +1032,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         NetworkOrder order = createNetworkOrder();
         OrderStateTransitioner.activateOrder(order);
-        order.setRequestingMember(getLocalMemberId());
-        order.setProvidingMember(getLocalMemberId());
+        order.setRequester(getLocalMemberId());
+        order.setProvider(getLocalMemberId());
 
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
         Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString())).thenReturn(localCloudConnector);
@@ -1341,8 +1341,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         AttachmentOrder order = createAttachmentOrder();
         OrderStateTransitioner.activateOrder(order);
-        order.setRequestingMember(getLocalMemberId());
-        order.setProvidingMember(getLocalMemberId());
+        order.setRequester(getLocalMemberId());
+        order.setProvider(getLocalMemberId());
 
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
         Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString())).thenReturn(localCloudConnector);
@@ -1553,8 +1553,8 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         // set up
         PublicIpOrder order = createPublicIpOrder();
         OrderStateTransitioner.activateOrder(order);
-        order.setRequestingMember(getLocalMemberId());
-        order.setProvidingMember(getLocalMemberId());
+        order.setRequester(getLocalMemberId());
+        order.setProvider(getLocalMemberId());
 
         Mockito.doNothing().when(this.aaaController)
                 .authenticateAndAuthorize(Mockito.anyString(), Mockito.any(FederationUserToken.class),

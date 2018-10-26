@@ -93,9 +93,9 @@ public class LocalCloudConnector implements CloudConnector {
                     throw new InvalidParameterException(Messages.Exception.TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER);
                 }
                 // Check if both compute and volume belong to the requested provider
-                String attachmentProvider = attachmentOrder.getProvidingMember();
-                String computeProvider = attachmentComputeOrder.getProvidingMember();
-                String volumeProvider = attachmentVolumeOrder.getProvidingMember();
+                String attachmentProvider = attachmentOrder.getProvider();
+                String computeProvider = attachmentComputeOrder.getProvider();
+                String volumeProvider = attachmentVolumeOrder.getProvider();
                 if (!attachmentProvider.equals(computeProvider) ||
                         !attachmentProvider.equals(volumeProvider)) {
                     throw new InvalidParameterException(Messages.Exception.PROVIDERS_DONT_MATCH);
@@ -202,7 +202,7 @@ public class LocalCloudConnector implements CloudConnector {
             if (instanceId != null) {
                 instance = getResourceInstance(order, order.getType(), token);
                 // Setting instance common fields that do not need to be set by the plugin
-                instance.setProvider(order.getProvidingMember());
+                instance.setProvider(order.getProvider());
                 // The user believes that the order id is actually the instance id.
                 // So we need to set the instance id accordingly before returning the instance.
                 instance.setId(order.getId());
@@ -314,7 +314,7 @@ public class LocalCloudConnector implements CloudConnector {
                 throw new UnexpectedException(String.format(Messages.Exception.UNSUPPORTED_REQUEST_TYPE, order.getType()));
         }
         order.setCachedInstanceState(instance.getState());
-        instance.setProvider(order.getProvidingMember());
+        instance.setProvider(order.getProvider());
         return instance;
     }
 

@@ -44,7 +44,7 @@ function doPostCompute {
       "vCPU" : 1,
       "memory" : 1024,
       "disk" : 30,
-      "providingMember" : "fake-localidentity-member",
+      "provider" : "fake-localidentity-member",
       "imageId" : "9b672abd-67f7-463e-b926-a87adbc80860",
       "publicKey" : ""
   }' $baseUrl$computesEndpoint 2> /dev/null)
