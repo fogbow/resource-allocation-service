@@ -1,8 +1,5 @@
 package org.fogbowcloud.ras.core.intercomponent.xmpp.handlers;
 
-import com.sun.org.apache.regexp.internal.RE;
-import org.fogbowcloud.ras.core.PropertiesHolder;
-import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
