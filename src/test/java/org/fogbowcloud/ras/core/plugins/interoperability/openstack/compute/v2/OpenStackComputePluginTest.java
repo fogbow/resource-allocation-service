@@ -81,6 +81,7 @@ public class OpenStackComputePluginTest {
         this.httpRequestClientUtilMock = Mockito.mock(HttpRequestClientUtil.class);
         this.launchCommandGeneratorMock = Mockito.mock(LaunchCommandGenerator.class);
         this.networksId.add(privateNetworkId);
+        this.responseNetworkIds.add(defaultNetworkId);
         this.responseNetworkIds.add(privateNetworkId);
 
         String tenantId = "tenant-id";

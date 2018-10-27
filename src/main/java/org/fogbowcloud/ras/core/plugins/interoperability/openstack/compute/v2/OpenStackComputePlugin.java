@@ -195,19 +195,18 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     private List<String> resolveNetworksId(ComputeOrder computeOrder) {
         String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
 
-        //We add the default network before any other network, because the order is very important to Openstack
-        //request. Openstack will configure the routes to the external network by the first network found on request body.
-        List<String> networkIds = computeOrder.getNetworkIds();
-        List<String> requestedNetworksId = new ArrayList<>();
-        boolean noNetworksProvided = networkIds == null ? true : networkIds.isEmpty();
-        if (noNetworksProvided) {
-            requestedNetworksId.add(defaultNetworkId);
-        } else {
-            requestedNetworksId.addAll(networkIds);
-        }
+        // Even if one or more private networks are informed in networkIds, we still need to include the default
+        // network, since this is the only network that has external set to true, and a floating IP can only
+        // be attached to such type of network.
+        // We add the default network before any other network, because the order is very important to Openstack
+        // request. Openstack will configure the routes to the external network by the first network found on request
+        // body.
+        List<String> requestedNetworkIds = new ArrayList<>();
+        requestedNetworkIds.add(defaultNetworkId);
+        requestedNetworkIds.addAll(computeOrder.getNetworkIds());
 
-        computeOrder.setNetworkIds(requestedNetworksId);
-        return requestedNetworksId;
+        computeOrder.setNetworkIds(requestedNetworkIds);
+        return requestedNetworkIds;
     }
 
     private String getKeyName(String projectId, OpenStackV3Token openStackV3Token, String publicKey)
