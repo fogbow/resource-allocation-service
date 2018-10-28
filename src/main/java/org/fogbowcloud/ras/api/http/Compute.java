@@ -96,6 +96,7 @@ public class Compute {
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
         LOGGER.info(String.format(Messages.Info.RECEIVING_COMPUTE_QUOTA_REQUEST, QUOTA_ENDPOINT, memberId));
+        System.out.println(String.format(Messages.Info.RECEIVING_COMPUTE_QUOTA_REQUEST, QUOTA_ENDPOINT, memberId));
         ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(memberId, federationTokenValue);
         return new ResponseEntity<>(quotaInstance, HttpStatus.OK);
     }

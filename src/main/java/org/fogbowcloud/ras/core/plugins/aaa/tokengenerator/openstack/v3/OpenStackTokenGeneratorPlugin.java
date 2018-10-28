@@ -75,7 +75,7 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
             LOGGER.debug("Sending create token request to cloud: " + jsonBody);
             response = this.client.doPostRequest(this.v3TokensEndpoint, jsonBody);
         } catch (HttpResponseException e) {
-            LOGGER.debug("Failure: " + e.getMessage() + e.getStatusCode());
+            LOGGER.debug("Failure: " + e.getMessage() + " " + e.getStatusCode());
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }
         String tokenString = getTokenFromJson(response);
