@@ -237,7 +237,9 @@ public class LocalCloudConnector implements CloudConnector {
     @Override
     public Quota getUserQuota(FederationUserToken federationUserToken, ResourceType resourceType) throws
             FogbowRasException, UnexpectedException {
+        LOGGER.debug("Mapping user: " + federationUserToken.getUserName());
         Token token = this.mapperPlugin.map(federationUserToken);
+        LOGGER.debug("Token mapped: " + (token == null ? "null" : token.getTokenValue()));
         switch (resourceType) {
             case COMPUTE:
                 return this.computeQuotaPlugin.getUserQuota(token);

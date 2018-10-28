@@ -65,9 +65,11 @@ public class RemoteFacade {
 
     public Quota getUserQuota(String requestingMember, String memberId, FederationUserToken federationUserToken,
                               ResourceType resourceType) throws Exception {
+        LOGGER.debug("AA: for user: " + federationUserToken.toString());
         this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken,
                 Operation.GET_USER_QUOTA, resourceType, memberId);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
+        LOGGER.debug("Calling quota plugin at site: " + memberId);
         return cloudConnector.getUserQuota(federationUserToken, resourceType);
     }
 
