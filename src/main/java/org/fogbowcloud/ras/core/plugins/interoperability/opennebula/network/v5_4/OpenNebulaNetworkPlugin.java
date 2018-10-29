@@ -13,7 +13,7 @@ import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
 import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
-import org.fogbowcloud.ras.core.models.tokens.Token;
+import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.NetworkPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
@@ -22,38 +22,39 @@ import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.vnet.VirtualNetwork;
 
-public class OpenNebulaNetworkPlugin implements NetworkPlugin<Token> {
+public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaNetworkPlugin.class);
 
-	private static final String DEFAULT_NETWORK_BRIDGE = "default_network_bridge";
+	private static final String DEFAULT_NETWORK_BRIDGE_KEY = "default_network_bridge";
 	private static final String DEFAULT_NETWORK_DESCRIPTION = "Virtual network created by %s.";
 	private static final String DEFAULT_NETWORK_TYPE = "RANGED";
-	private static final String NETWORK_ADDRESS_RANGE_SYZE = "256";
+	private static final String NETWORK_ADDRESS_RANGE_SYZE = "1";
 	private static final String NETWORK_ADDRESS_RANGE_TYPE = "IP4";
 	private static final String TEMPLATE_NETWORK_ADDRESS_PATH = "TEMPLATE/NETWORK_ADDRESS";
 	private static final String TEMPLATE_NETWORK_GATEWAY_PATH = "TEMPLATE/NETWORK_GATEWAY";
 	private static final String TEMPLATE_VLAN_ID_PATH = "TEMPLATE/VLAN_ID";
 	
 	private OpenNebulaClientFactory factory;
+
 	private String bridge;
 	
 	public OpenNebulaNetworkPlugin() {
 		Properties properties = PropertiesUtil
 				.readProperties(HomeDir.getPath() + DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME);
-		this.bridge = properties.getProperty(DEFAULT_NETWORK_BRIDGE);
+		this.bridge = properties.getProperty(DEFAULT_NETWORK_BRIDGE_KEY);
 		this.factory = new OpenNebulaClientFactory();
 	}
 
 	@Override
-	public String requestInstance(NetworkOrder networkOrder, Token localUserAttributes)
+	public String requestInstance(NetworkOrder networkOrder, OpenNebulaToken localUserAttributes)
 			throws FogbowRasException, UnexpectedException {
 		
-		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, localUserAttributes.getTokenValue()));
+		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, localUserAttributes.getUserName()));
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 		
 		String name = networkOrder.getName();
-		String description = String.format(DEFAULT_NETWORK_DESCRIPTION, localUserAttributes.getTokenValue());
+		String description = String.format(DEFAULT_NETWORK_DESCRIPTION, localUserAttributes.getUserName());
 		String type = DEFAULT_NETWORK_TYPE;
 		String bridge = this.bridge;
 		String address = networkOrder.getAddress();
@@ -79,11 +80,11 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<Token> {
 	}
 
 	@Override
-	public NetworkInstance getInstance(String networkInstanceId, Token localUserAttributes)
+	public NetworkInstance getInstance(String networkInstanceId, OpenNebulaToken localUserAttributes)
 			throws FogbowRasException, UnexpectedException {
 
 		LOGGER.info(
-				String.format(Messages.Info.GETTING_INSTANCE, networkInstanceId, localUserAttributes.getTokenValue()));
+				String.format(Messages.Info.GETTING_INSTANCE, networkInstanceId, localUserAttributes.getUserName()));
 		
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 		VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, networkInstanceId);
@@ -91,11 +92,11 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<Token> {
 	}
 
 	@Override
-	public void deleteInstance(String networkInstanceId, Token localUserAttributes)
+	public void deleteInstance(String networkInstanceId, OpenNebulaToken localUserAttributes)
 			throws FogbowRasException, UnexpectedException {
 
 		LOGGER.info(
-				String.format(Messages.Info.DELETING_INSTANCE, networkInstanceId, localUserAttributes.getTokenValue()));
+				String.format(Messages.Info.DELETING_INSTANCE, networkInstanceId, localUserAttributes.getUserName()));
 		
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 		VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, networkInstanceId);
@@ -106,7 +107,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<Token> {
 		}
 	}
 
-	private NetworkInstance createInstance(VirtualNetwork virtualNetwork) {
+	protected NetworkInstance createInstance(VirtualNetwork virtualNetwork) {
 		String id = virtualNetwork.getId();
 		String name = virtualNetwork.getName();
 		String address = virtualNetwork.xpath(TEMPLATE_NETWORK_ADDRESS_PATH);
@@ -132,6 +133,10 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<Token> {
 				interfaceState);
 		
 		return networkInstance;
+	}
+	
+	protected void setFactory(OpenNebulaClientFactory factory) {
+		this.factory = factory;
 	}
 	
 }
