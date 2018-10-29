@@ -16,6 +16,8 @@ public class VirtualNetworkTemplate extends OpenNebulaRequestTemplate {
 	private String networkAddress;
 	private String networkGateway;
 	private VirtualNetworkAddressRange addressRange;
+	
+	public VirtualNetworkTemplate() {}
 
 	public VirtualNetworkTemplate(String name, String description, String type, String bridge,
 			String networkAddress, String networkGateway, VirtualNetworkAddressRange addressRange) {
