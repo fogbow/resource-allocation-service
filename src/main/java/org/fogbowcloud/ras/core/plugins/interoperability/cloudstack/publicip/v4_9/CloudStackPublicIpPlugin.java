@@ -121,7 +121,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
         PublicIpInstance result;
         switch (queryAsyncJobResult.getJobStatus()) {
             case PROCESSING:
-                result = new PublicIpInstance(null, InstanceState.SPAWNING, null);
+                result = new PublicIpInstance(null, InstanceState.CREATING, null);
                 break;
             case SUCCESS:
                 switch (currentAsyncRequest.getState()) {
@@ -136,7 +136,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
                         String createFirewallRuleJobId = createFirewallRule(ipAddressId, token);
                         currentAsyncRequest.setCurrentJobId(createFirewallRuleJobId);
                         currentAsyncRequest.setState(PublicIpSubState.CREATING_FIREWALL_RULE);
-                        result = instanceFromCurrentAsyncRequest(currentAsyncRequest, InstanceState.SPAWNING);
+                        result = instanceFromCurrentAsyncRequest(currentAsyncRequest, InstanceState.CREATING);
                         break;
                     case CREATING_FIREWALL_RULE:
                         currentAsyncRequest.setState(PublicIpSubState.READY);

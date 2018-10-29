@@ -1,21 +1,10 @@
 package org.fogbowcloud.ras.core.plugins.aaa.authentication.openstack.v3;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPrivateKey;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.ProtocolVersion;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.HttpResponseException;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.message.BasicStatusLine;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
@@ -30,8 +19,8 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 public class OpenStackAuthenticationPluginTest {
+	
     private OpenStackAuthenticationPlugin authenticationPlugin;
-
     private String userId;
     private String projectId;
     private String providerId;

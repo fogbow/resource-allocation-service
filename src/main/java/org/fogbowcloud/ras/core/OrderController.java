@@ -20,7 +20,6 @@ import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class OrderController {
@@ -35,12 +34,11 @@ public class OrderController {
     public void setEmptyFieldsAndActivateOrder(Order order, FederationUserToken federationUserToken)
             throws UnexpectedException {
         // Set order fields that have not been provided by the requester
-        order.setId(UUID.randomUUID().toString());
         order.setFederationUserToken(federationUserToken);
         String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
-        order.setRequestingMember(localMemberId);
-        if (order.getProvidingMember() == null) {
-            order.setProvidingMember(localMemberId);
+        order.setRequester(localMemberId);
+        if (order.getProvider() == null) {
+            order.setProvider(localMemberId);
         }
         // Set an initial state for the instance that is yet to be created in the cloud
         order.setCachedInstanceState(InstanceState.DISPATCHED);
@@ -127,7 +125,7 @@ public class OrderController {
             }
 
             // The state of the instance can be inferred from the state of the order
-            InstanceStatus instanceStatus = new InstanceStatus(order.getId(), name, order.getProvidingMember(),
+            InstanceStatus instanceStatus = new InstanceStatus(order.getId(), name, order.getProvider(),
                     order.getCachedInstanceState());
             instanceStatusList.add(instanceStatus);
         }
@@ -137,16 +135,30 @@ public class OrderController {
 
     private CloudConnector getCloudConnector(Order order) {
         CloudConnector provider = null;
-        if (!order.getProvidingMember().equals(order.getRequestingMember()) &&
-                (order.getOrderState().equals(OrderState.OPEN) ||
-                        order.getOrderState().equals(OrderState.FAILED_ON_REQUEST))) {
+        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        if (order.isProviderLocal(localMemberId)) {
+            provider = CloudConnectorFactory.getInstance().getCloudConnector(localMemberId);
+        } else {
+            if (order.getOrderState().equals(OrderState.OPEN) ||
+                    order.getOrderState().equals(OrderState.FAILED_ON_REQUEST)) {
             // This is an order for a remote provider that has never been received by that provider.
             // Thus, there is no need to send a delete message via a RemoteCloudConnector, and it is only
             // necessary to call deleteInstance in the local member.
-            provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getRequestingMember());
-        } else {
-            provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvidingMember());
+                provider = CloudConnectorFactory.getInstance().getCloudConnector(localMemberId);
+            } else {
+                provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider());
+            }
         }
+//        if (!order.getProvider().equals(order.getRequester()) &&
+//                (order.getOrderState().equals(OrderState.OPEN) ||
+//                        order.getOrderState().equals(OrderState.FAILED_ON_REQUEST))) {
+//            // This is an order for allocationAllowableValues remote provider that has never been received by that provider.
+//            // Thus, there is no need to send allocationAllowableValues delete message via allocationAllowableValues RemoteCloudConnector, and it is only
+//            // necessary to call deleteInstance in the local member.
+//            provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getRequester());
+//        } else {
+//            provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider());
+//        }
         return provider;
     }
 

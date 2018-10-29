@@ -76,13 +76,13 @@ public class RemoteCreateOrderRequestHandlerTest {
                 activateOrder(Mockito.anyString(), Mockito.eq(order));
 
         String orderId = order.getId();
-        String providingMember = order.getProvidingMember();
+        String providingMember = order.getProvider();
         String expected = String.format(IQ_RESULT, orderId, providingMember, REQUESTING_MEMBER);
 
         Assert.assertEquals(expected, result.toString());
     }
 
-    // test case: When an Exception occurs, the handle method must return a response error.
+    // test case: When an Exception occurs, the handle method must return allocationAllowableValues response error.
     @Test
     public void testHandleWhenThrowsException() throws FogbowRasException, UnexpectedException {
         // set up
@@ -103,7 +103,7 @@ public class RemoteCreateOrderRequestHandlerTest {
                 activateOrder(Mockito.anyString(), Mockito.eq(order));
 
         String orderId = order.getId();
-        String providingMember = order.getProvidingMember();
+        String providingMember = order.getProvider();
         String expected = String.format(IQ_ERROR_RESULT, orderId, providingMember, REQUESTING_MEMBER);
 
         Assert.assertEquals(expected, result.toString());

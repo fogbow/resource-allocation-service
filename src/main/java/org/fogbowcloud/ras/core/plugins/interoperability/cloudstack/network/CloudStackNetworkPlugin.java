@@ -53,9 +53,9 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
     @Override
     public String requestInstance(NetworkOrder networkOrder, CloudStackToken cloudStackToken)
             throws FogbowRasException {
-        SubnetUtils.SubnetInfo subnetInfo = getSubnetInfo(networkOrder.getAddress());
+        SubnetUtils.SubnetInfo subnetInfo = getSubnetInfo(networkOrder.getCidr());
         if (subnetInfo == null) {
-            throw new InvalidParameterException(String.format(Messages.Exception.INVALID_CIDR, networkOrder.getAddress()));
+            throw new InvalidParameterException(String.format(Messages.Exception.INVALID_CIDR, networkOrder.getCidr()));
         }
 
         String name = networkOrder.getName();
@@ -107,7 +107,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
         List<GetNetworkResponse.Network> networks = response.getNetworks();
 
         if (networks != null && networks.size() > 0) {
-            // since an id were specified, there should be no more than one network in the response
+            // since an id was specified, there should be no more than one network in the response
             return getNetworkInstance(networks.get(0));
         } else {
             throw new InstanceNotFoundException();

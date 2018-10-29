@@ -78,8 +78,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         }
 
         int disk = computeOrder.getDisk();
-        // NOTE(pauloewerton): cloudstack allows creating a vm without explicitly choosing a disk size. in that case,
-        // a minimum root disk for the selected template is created. also zeroing disk param in case no minimum disk
+        // NOTE(pauloewerton): cloudstack allows creating allocationAllowableValues vm without explicitly choosing allocationAllowableValues disk size. in that case,
+        // allocationAllowableValues minimum root disk for the selected template is created. also zeroing disk param in case no minimum disk
         // offering is found.
         String diskOfferingId = disk > 0 ? getDiskOfferingId(disk, cloudStackToken) : null;
 
@@ -161,8 +161,8 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         List<String> requestedNetworksId = new ArrayList<>();
 
         requestedNetworksId.add(this.defaultNetworkId);
-        requestedNetworksId.addAll(computeOrder.getNetworksId());
-        computeOrder.setNetworksId(requestedNetworksId);
+        requestedNetworksId.addAll(computeOrder.getNetworkIds());
+        computeOrder.setNetworkIds(requestedNetworksId);
 
         return StringUtils.join(requestedNetworksId, ",");
     }

@@ -36,6 +36,7 @@ public class GenericAllToOneFederationToLocalMapper implements FederationToLocal
 
     @Override
     public Token map(FederationUserToken user) throws UnexpectedException, FogbowRasException {
+        LOGGER.debug("Creating local token: " + this.credentials.values());
         String tokenString = this.tokenGeneratorPlugin.createTokenValue(this.credentials);
         return this.federationIdentityPlugin.createToken(tokenString);
     }

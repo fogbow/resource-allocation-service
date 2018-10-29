@@ -1,8 +1,5 @@
 package org.fogbowcloud.ras.core.intercomponent.xmpp.handlers;
 
-import com.sun.org.apache.regexp.internal.RE;
-import org.fogbowcloud.ras.core.PropertiesHolder;
-import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -64,7 +61,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
         BDDMockito.given(RemoteFacade.getInstance()).willReturn(this.remoteFacade);
     }
 
-    // test case: When calling the method handle passing a valid IQ object, it must create an OK
+    // test case: When calling the method handle passing allocationAllowableValues valid IQ object, it must create an OK
     // result IQ and return it.
     @Test
     public void testHandleWithValidIQ() throws FogbowRasException, UnexpectedException {
@@ -87,19 +84,19 @@ public class RemoteDeleteOrderRequestHandlerTest {
 
         //verify
         String orderId = order.getId();
-        String orderProvidingMember = order.getProvidingMember();
+        String orderProvidingMember = order.getProvider();
         String expected = String.format(IQ_RESULT_FORMAT, orderId, orderProvidingMember, REQUESTING_MEMBER);
         Assert.assertEquals(expected, result.toString());
     }
 
-    // test case: When an exception occurs while deleting, the method handle should return a response error
+    // test case: When an exception occurs while deleting, the method handle should return allocationAllowableValues response error
     @Test
     public void testHandleWhenExceptionIsThrown() throws Exception {
         //set up
         this.order = new ComputeOrder(null, REQUESTING_MEMBER, "providingmember",
                 "hostName", 1, 2, 3, "imageId", null, "publicKey", new ArrayList<>());
 
-        Mockito.doThrow(new FogbowRasException()).when(this.remoteFacade).deleteOrder(this.order.getRequestingMember(),
+        Mockito.doThrow(new FogbowRasException()).when(this.remoteFacade).deleteOrder(this.order.getRequester(),
                 this.order.getId(), this.order.getFederationUserToken(), this.order.getType());
 
         IQ iq = RemoteDeleteOrderRequest.marshal(this.order);
@@ -110,11 +107,11 @@ public class RemoteDeleteOrderRequestHandlerTest {
 
         //verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).
-                deleteOrder(this.order.getRequestingMember(), this.order.getId(),
+                deleteOrder(this.order.getRequester(), this.order.getId(),
                 this.order.getFederationUserToken(), this.order.getType());
 
         String orderId = order.getId();
-        String orderProvidingMember = order.getProvidingMember();
+        String orderProvidingMember = order.getProvider();
         String expected = String.format(IQ_ERROR_RESULT_FORMAT, orderId, orderProvidingMember, REQUESTING_MEMBER);
         Assert.assertEquals(expected, result.toString());
     }

@@ -52,8 +52,8 @@ public class OrderTimestampStorage extends OrderStorage {
             orderStatement.setString(4, order.getSpec());
             orderStatement.setString(5, order.getFederationUserToken().getUserId());
             orderStatement.setString(6, order.getFederationUserToken().getUserName());
-            orderStatement.setString(7, order.getRequestingMember());
-            orderStatement.setString(8, order.getProvidingMember());
+            orderStatement.setString(7, order.getRequester());
+            orderStatement.setString(8, order.getProvider());
             orderStatement.setTimestamp(9, new Timestamp(new Date().getTime()));
 
             orderStatement.executeUpdate();
@@ -76,7 +76,7 @@ public class OrderTimestampStorage extends OrderStorage {
         }
     }
 
-    // Used for tests. Returns a map of found order and the list of states
+    // Used for tests. Returns allocationAllowableValues map of found order and the list of states
     protected Map<String, List<String>> selectOrderById(String orderId) throws SQLException {
         PreparedStatement selectMemberStatement = null;
 

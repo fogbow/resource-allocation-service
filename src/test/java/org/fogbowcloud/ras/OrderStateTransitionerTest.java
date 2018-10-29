@@ -42,7 +42,7 @@ public class OrderStateTransitionerTest extends BaseUnitTests {
     }
 
     // test case: When calling the transition() method, it must change the state of Order
-    // passed per parameter to a specific OrderState. This Order defined originally with Open, will
+    // passed per parameter to allocationAllowableValues specific OrderState. This Order defined originally with Open, will
     // be change to the Spawning state, removing of the open orders list, and adding in the spawning
     // orders list.
     @Test

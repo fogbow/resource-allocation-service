@@ -2,7 +2,6 @@ package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.security.interfaces.RSAPrivateKey;
 import java.util.Map;
 import java.util.Properties;
 
@@ -16,11 +15,12 @@ import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.RSAUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
 public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
@@ -36,11 +36,10 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     public static final Object DOMAIN = "domain";
     public static final int OPENSTACK_TOKEN_NUMBER_OF_FIELDS = 6;
 
-
     private String v3TokensEndpoint;
     private HttpRequestClientUtil client;
     private String tokenProviderId;
-	private RSAPrivateKey privateKey;
+	private RASAuthenticationHolder rasAuthenticationHolder;
 
     public OpenStackTokenGeneratorPlugin() throws FatalErrorException {
         this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
@@ -53,11 +52,7 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
             this.v3TokensEndpoint = identityUrl + V3_TOKENS_ENDPOINT_PATH;
         }
         
-        try {
-            this.privateKey = RSAUtil.getPrivateKey();
-        } catch (IOException | GeneralSecurityException e) {
-            throw new FatalErrorException(String.format(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE, e.getMessage()));
-        }        
+        this.rasAuthenticationHolder = RASAuthenticationHolder.getInstance();
         
         this.client = new HttpRequestClientUtil();
     }
@@ -77,8 +72,10 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
         HttpRequestClientUtil.Response response = null;
         try {
+            LOGGER.debug("Sending create token request to cloud: " + jsonBody);
             response = this.client.doPostRequest(this.v3TokensEndpoint, jsonBody);
         } catch (HttpResponseException e) {
+            LOGGER.debug("Failure: " + e.getMessage() + " " + e.getStatusCode());
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }
         String tokenString = getTokenFromJson(response);
@@ -115,8 +112,8 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
         }
     }
 
-    protected String createSignature(String message) throws IOException, GeneralSecurityException {
-        return RSAUtil.sign(this.privateKey, message);
+    protected String createSignature(String message) throws IOException, GeneralSecurityException, FogbowRasException {
+        return this.rasAuthenticationHolder.createSignature(message);
     }
     
     private String mountJsonBody(Map<String, String> credentials) {

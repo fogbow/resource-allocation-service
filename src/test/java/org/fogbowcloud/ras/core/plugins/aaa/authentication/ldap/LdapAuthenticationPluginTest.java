@@ -1,16 +1,16 @@
 package org.fogbowcloud.ras.core.plugins.aaa.authentication.ldap;
 
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.fogbowcloud.ras.core.models.tokens.LdapToken;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.ldap.LdapIdentityPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap.LdapTokenGeneratorPlugin;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 public class LdapAuthenticationPluginTest {
 
@@ -37,24 +37,6 @@ public class LdapAuthenticationPluginTest {
         this.userCredentials.put(LdapTokenGeneratorPlugin.CRED_PUBLIC_KEY, "public_key_path");
     }
 
-    //test case: check if isAuthentic returns true when the tokenValue is not expired.
-    @Test
-    public void testGetTokenValidTokenValue() throws Exception {
-        //set up
-        LdapIdentityPlugin identityPlugin = Mockito.spy(new LdapIdentityPlugin());
-        LdapTokenGeneratorPlugin tokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
-        Mockito.doReturn(this.name).when(tokenGenerator).ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
-        Mockito.doReturn(true).when(this.authenticationPlugin).verifySign(Mockito.anyString(),
-                Mockito.anyString());
-
-        //exercise
-        String tokenValue = tokenGenerator.createTokenValue(this.userCredentials);
-        FederationUserToken token = identityPlugin.createToken(tokenValue);
-
-        //verify
-        Assert.assertTrue(this.authenticationPlugin.isAuthentic(FAKE_MEMBER_ID, token));
-    }
-
     //test case: check if isAuthentic returns false when the tokenValue is invalid (signature doesn't match).
     @Test
     public void testGetTokenExpiredTokenValue() throws Exception {
@@ -70,7 +52,7 @@ public class LdapAuthenticationPluginTest {
                 LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR + split[2] +
                 LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR + split[3] +
                 LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR + split[4];
-        FederationUserToken newToken = identityPlugin.createToken(newTokenValue);
+        LdapToken newToken = identityPlugin.createToken(newTokenValue);
 
         //verify
         Assert.assertFalse(this.authenticationPlugin.isAuthentic(FAKE_MEMBER_ID, newToken));
@@ -92,7 +74,7 @@ public class LdapAuthenticationPluginTest {
                 LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR + newExpirationTime
                 + LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR + split[3]
                 + LdapTokenGeneratorPlugin.TOKEN_VALUE_SEPARATOR + split[4];
-        FederationUserToken newToken = identityPlugin.createToken(newTokenValue);
+        LdapToken newToken = identityPlugin.createToken(newTokenValue);
 
         //verify
         Assert.assertFalse(this.authenticationPlugin.isAuthentic(FAKE_MEMBER_ID, newToken));

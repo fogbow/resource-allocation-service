@@ -49,7 +49,7 @@ public class OpenStackTokenGeneratorPluginTest {
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
     }
 
-    //test case: createTokenValue with valid credentials should generate a string with the appropriate values
+    //test case: createTokenValue with valid credentials should generate allocationAllowableValues string with the appropriate values
     @Test
     public void testCreateTokenValueValidCredentials() throws IOException, FogbowRasException,
             UnexpectedException, GeneralSecurityException {
