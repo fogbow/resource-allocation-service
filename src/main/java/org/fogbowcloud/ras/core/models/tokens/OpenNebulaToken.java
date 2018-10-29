@@ -9,8 +9,8 @@ public class OpenNebulaToken extends FederationUserToken {
 	@Column
 	private String signature;
 	
-	public OpenNebulaToken(String provider, String tokenValue, String userName, String signature) {
-		super(provider, tokenValue, userName, userName);
+	public OpenNebulaToken(String provider, String tokenValue, String userId, String userName, String signature) {
+		super(provider, tokenValue, userId, userName);
 		this.signature = signature;
 	}
 
