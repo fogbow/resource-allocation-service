@@ -49,7 +49,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 	private String addressRangeIp;
 	private String addressRangeSize;
 
-	public OpenNebulaPuplicIpPlugin(OpenNebulaClientFactory factory) {
+	public OpenNebulaPuplicIpPlugin() {
 		Properties properties = PropertiesUtil
 				.readProperties(HomeDir.getPath() + DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME);
 
