@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.network.v5_4;
 
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
@@ -9,11 +10,17 @@ import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.vnet.VirtualNetwork;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({VirtualNetwork.class})
 public class OpenNebulaNetworkPluginTest {
 
 	private static final String LOCAL_TOKEN_VALUE = "user:password";
@@ -29,14 +36,14 @@ public class OpenNebulaNetworkPluginTest {
 
 	@Before
 	public void setUp() {
-		this.factory = Mockito.mock(OpenNebulaClientFactory.class);
+		this.factory = Mockito.spy(new OpenNebulaClientFactory());
 		this.plugin = Mockito.spy(new OpenNebulaNetworkPlugin());
 	}
 
-	// test case: ...
-	@Test(expected = UnexpectedException.class)
-	public void testRequestInstanceThrowUnespectedExceptionWhenCallCreateClient()
-			throws UnexpectedException, FogbowRasException {
+	// test case: When calling the requestInstance method, if the OpenNebulaClientFactory class
+	// can not create a valid client from a token value, it must throw a UnespectedException.
+	@Test(expected = UnexpectedException.class) // verify
+	public void testRequestInstanceThrowUnespectedException() throws UnexpectedException, FogbowRasException {
 		// set up
 		NetworkOrder networkOrder = new NetworkOrder();
 		OpenNebulaToken token = createOpenNebulaToken();
@@ -47,7 +54,8 @@ public class OpenNebulaNetworkPluginTest {
 		this.plugin.requestInstance(networkOrder, token);
 	}
 
-	// test case ...
+	// test case: When calling the requestInstance method, with the valid client and
+	// template, a virtual network will be allocated. Returned instance ID.
 	@Test
 	public void testRequestInstanceSuccessful() throws UnexpectedException, FogbowRasException {
 		// set up
@@ -58,20 +66,51 @@ public class OpenNebulaNetworkPluginTest {
 
 		NetworkOrder networkOrder = createNetworkOrder();
 		String template = generateNetworkTemplate();
-				
+
+		OneResponse response = Mockito.mock(OneResponse.class);
+		PowerMockito.mockStatic(VirtualNetwork.class);
+		PowerMockito.when(VirtualNetwork.allocate(client, template)).thenReturn(response);
+		Mockito.doReturn(false).when(response).isError();
+
 		// exercise
 		this.plugin.requestInstance(networkOrder, token);
 
 		// verify
 		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
-		Mockito.verify(this.factory, Mockito.times(1)).allocateVirtualNetwork(Mockito.eq(client),
-				Mockito.eq(template));
+		Mockito.verify(this.factory, Mockito.times(1)).allocateVirtualNetwork(Mockito.eq(client), Mockito.eq(template));
 	}
+	
+	// test case: When calling the requestInstance method, and an error occurs while
+	// attempting to allocate a virtual network, an InvalidParameterException will
+	// be thrown.
+	@Test(expected = InvalidParameterException.class)
+	public void testRequestInstanceThrowInvalidParameterException() throws UnexpectedException, FogbowRasException {
+		// set up
+		OpenNebulaToken token = createOpenNebulaToken();
+		Client client = this.factory.createClient(token.getTokenValue());
+		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
+		this.plugin.setFactory(this.factory);
 
-	// test case: ...
-	@Test(expected = UnexpectedException.class)
-	public void testDeleteInstanceThrowUnespectedExceptionWhenCallCreateClient()
-			throws UnexpectedException, FogbowRasException {
+		NetworkOrder networkOrder = createNetworkOrder();
+		String template = generateNetworkTemplate();
+
+		OneResponse response = Mockito.mock(OneResponse.class);
+		PowerMockito.mockStatic(VirtualNetwork.class);
+		PowerMockito.when(VirtualNetwork.allocate(client, template)).thenReturn(response);
+		Mockito.doReturn(true).when(response).isError();
+
+		// exercise
+		this.plugin.requestInstance(networkOrder, token);
+
+		// verify
+		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
+		Mockito.verify(this.factory, Mockito.times(1)).allocateVirtualNetwork(Mockito.eq(client), Mockito.eq(template));
+	}
+	
+	// test case: When calling the deleteInstance method, if the OpenNebulaClientFactory class
+	// can not create a valid client from a token value, it must throw a UnespectedException.
+	@Test(expected = UnexpectedException.class) // verify
+	public void testDeleteInstanceThrowUnespectedException() throws UnexpectedException, FogbowRasException {
 		// set up
 		String instanceId = FAKE_INSTANCE_ID;
 		OpenNebulaToken token = createOpenNebulaToken();
@@ -82,9 +121,10 @@ public class OpenNebulaNetworkPluginTest {
 		this.plugin.deleteInstance(instanceId, token);
 	}
 
-	// test case: ...
+	// test case: When calling the deleteInstance method, if the removal call is not
+	// answered an error response is returned.
 	@Test
-	public void testDeleteInstanceUnsuccessfully() throws UnexpectedException, FogbowRasException {
+	public void testDeleteInstanceUnsuccessful() throws UnexpectedException, FogbowRasException {
 		// set up
 		OpenNebulaToken token = createOpenNebulaToken();
 		Client client = this.factory.createClient(token.getTokenValue());
@@ -109,9 +149,10 @@ public class OpenNebulaNetworkPluginTest {
 		Mockito.verify(response, Mockito.times(1)).isError();
 	}
 
-	// test case: ...
+	// test case: When calling the deleteInstance method, with the instance ID and
+	// token valid, the instance of virtual network will be removed.
 	@Test
-	public void testDeleteInstanceSuccessfully() throws UnexpectedException, FogbowRasException {
+	public void testDeleteInstanceSuccessful() throws UnexpectedException, FogbowRasException {
 		// set up
 		OpenNebulaToken token = createOpenNebulaToken();
 		Client client = this.factory.createClient(token.getTokenValue());
@@ -136,10 +177,10 @@ public class OpenNebulaNetworkPluginTest {
 		Mockito.verify(response, Mockito.times(1)).isError();
 	}
 
-	// test case: ...
-	@Test(expected = UnexpectedException.class)
-	public void testGetInstanceThrowUnespectedExceptionWhenCallCreateClient()
-			throws UnexpectedException, FogbowRasException {
+	// test case: When calling the getInstance method, if the OpenNebulaClientFactory class
+	// can not create a valid client from a token value, it must throw a UnespectedException.
+	@Test(expected = UnexpectedException.class) // verify
+	public void testGetInstanceThrowUnespectedException() throws UnexpectedException, FogbowRasException {
 		// set up
 		String instanceId = FAKE_INSTANCE_ID;
 		OpenNebulaToken token = createOpenNebulaToken();
@@ -150,7 +191,8 @@ public class OpenNebulaNetworkPluginTest {
 		this.plugin.getInstance(instanceId, token);
 	}
 
-	// test case: ...
+	// test case: When calling the deleteInstance method, with a valid client from a token value and
+	// instance ID, it must returned a instance of a virtual network.
 	@Test
 	public void testGetInstanceSuccessful() throws UnexpectedException, FogbowRasException {
 		// set up
@@ -210,6 +252,7 @@ public class OpenNebulaNetworkPluginTest {
 		String userId = null;
 		String userName = FAKE_USER_NAME;
 		String signature = null;
+		
 		OpenNebulaToken token = new OpenNebulaToken(
 				provider, 
 				tokenValue, 
@@ -225,7 +268,7 @@ public class OpenNebulaNetworkPluginTest {
 				"<TEMPLATE>\n" + 
 				"    <AR>\n" + 
 				"        <IP>fake-address</IP>\n" + 
-				"        <SIZE>1</SIZE>\n" + 
+				"        <SIZE>256</SIZE>\n" + 
 				"        <TYPE>IP4</TYPE>\n" + 
 				"    </AR>\n" + 
 				"    <BRIDGE></BRIDGE>\n" + 
