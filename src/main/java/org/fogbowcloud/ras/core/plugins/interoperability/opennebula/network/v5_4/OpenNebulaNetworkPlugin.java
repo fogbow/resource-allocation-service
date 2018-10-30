@@ -29,7 +29,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 	private static final String DEFAULT_NETWORK_BRIDGE_KEY = "default_network_bridge";
 	private static final String DEFAULT_NETWORK_DESCRIPTION = "Virtual network created by %s.";
 	private static final String DEFAULT_NETWORK_TYPE = "RANGED";
-	private static final String NETWORK_ADDRESS_RANGE_SYZE = "1";
+	private static final String NETWORK_ADDRESS_RANGE_SYZE = "256";
 	private static final String NETWORK_ADDRESS_RANGE_TYPE = "IP4";
 	private static final String TEMPLATE_NETWORK_ADDRESS_PATH = "TEMPLATE/NETWORK_ADDRESS";
 	private static final String TEMPLATE_NETWORK_GATEWAY_PATH = "TEMPLATE/NETWORK_GATEWAY";
