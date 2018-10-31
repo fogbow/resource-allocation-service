@@ -1,0 +1,4 @@
+#!/bin/bash
+DIRNAME=`dirname $0`
+cd $DIRNAME/..
+java -jar target/fogbow-ras-core-0.0.1-SNAPSHOT-exec.jar "src/main/resources/private" &
