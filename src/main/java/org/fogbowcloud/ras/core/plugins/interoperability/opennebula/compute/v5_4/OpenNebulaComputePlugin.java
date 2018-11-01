@@ -85,7 +85,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 
 		HardwareRequirements foundFlavor = findSmallestFlavor(computeOrder, localUserAttributes);
 		String cpu = String.valueOf(foundFlavor.getCpu());
-		String ram = String.valueOf(foundFlavor.getRam());
+		String ram = String.valueOf(foundFlavor.getMemory());
 		String disk = String.valueOf(foundFlavor.getDisk());
 
 		CreateComputeRequest request = new CreateComputeRequest.Builder()
@@ -139,11 +139,11 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 	private String resolveNetworksId(ComputeOrder computeOrder) {
 		List<String> requestedNetworksId = new ArrayList<>();
         String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
-        if (!computeOrder.getNetworksId().isEmpty()) {
-        	requestedNetworksId.addAll(computeOrder.getNetworksId());
+        if (!computeOrder.getNetworkIds().isEmpty()) {
+        	requestedNetworksId.addAll(computeOrder.getNetworkIds());
         }
         requestedNetworksId.add(defaultNetworkId);        
-        computeOrder.setNetworksId(requestedNetworksId);
+        computeOrder.setNetworkIds(requestedNetworksId);
 		return requestedNetworksId.get(FIRST_AVAILABLE_ID);
 	}
 	
@@ -161,7 +161,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		updateHardwareRequirements(token);
 		for (HardwareRequirements hardwareRequirements : this.flavors) {
 			if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
-					&& hardwareRequirements.getRam() >= computeOrder.getMemory()
+					&& hardwareRequirements.getMemory() >= computeOrder.getMemory()
 					&& hardwareRequirements.getDisk() >= computeOrder.getDisk()) {
 				return hardwareRequirements;
 			}
