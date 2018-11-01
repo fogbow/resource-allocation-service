@@ -12,7 +12,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 public class DefaultLaunchCommandGeneratorTest {
@@ -240,7 +239,7 @@ public class DefaultLaunchCommandGeneratorTest {
     }
 
     private ArrayList<UserData> createExampleUserData() {
-        UserData userDataScript = new UserData(EXTRA_USER_DATA_FILE, EXTRA_USER_DATA_FILE_TYPE);
+        UserData userDataScript = new UserData(EXTRA_USER_DATA_FILE, EXTRA_USER_DATA_FILE_TYPE, "fake-tag");
         ArrayList<UserData> userDataScripts = new ArrayList<UserData>();
         userDataScripts.add(userDataScript);
         return userDataScripts;

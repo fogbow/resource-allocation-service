@@ -55,7 +55,7 @@ public class OrderTimestampStorageTest {
         FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
                 "token-value", "fake-id", "fake-user");
 
-        UserData fakeUserData = new UserData("extraUserDataFile", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
+        UserData fakeUserData = new UserData("extraUserDataFile", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag");
         ArrayList<UserData> userData = new ArrayList<UserData>(Arrays.asList(new UserData[] { fakeUserData }));
 
         orderTest = new ComputeOrder(federationUserToken,
