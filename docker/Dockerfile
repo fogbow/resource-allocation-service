@@ -1,5 +1,7 @@
 FROM openjdk:8
 
+ARG BRANCH=master
+
 # Install.
 RUN \
   sed -i 's/# \(.*multiverse$\)/\1/g' /etc/apt/sources.list && \
@@ -20,7 +22,7 @@ WORKDIR /root
 # Installing Manager
 RUN \
   git clone https://github.com/fogbow/resource-allocation-service.git && \
-  (cd resource-allocation-service && git checkout develop)
+  (cd resource-allocation-service && git checkout $BRANCH)
 
 # Define working directory.
 WORKDIR /root/resource-allocation-service
