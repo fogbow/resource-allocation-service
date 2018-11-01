@@ -129,6 +129,8 @@ public class CloudStackComputePluginTest {
         UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
         String fakeUserDataString = Base64.getEncoder().encodeToString(
                 fakeUserData.getExtraUserDataFileContent().getBytes("UTF-8"));
+        ArrayList<UserData> userData = new ArrayList<>();
+        userData.add(fakeUserData);
 
         List<String> fakeNetworkdIds = new ArrayList<>();
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
@@ -168,7 +170,7 @@ public class CloudStackComputePluginTest {
         // exercise
         ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
-                Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+                Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
         // verify
@@ -189,6 +191,7 @@ public class CloudStackComputePluginTest {
         String fakeImageId = null;
 
         UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
+        ArrayList<UserData> userData = new ArrayList<UserData>(Arrays.asList(new UserData[] { fakeUserData }));
 
         List<String> fakeNetworkdIds = new ArrayList<>();
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
@@ -196,7 +199,7 @@ public class CloudStackComputePluginTest {
         // exercise
         ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
-                Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+                Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
@@ -215,6 +218,8 @@ public class CloudStackComputePluginTest {
 
         String fakeImageId = "fake-image-id";
         UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
+        ArrayList<UserData> userData = new ArrayList<UserData>(Arrays.asList(new UserData[] { fakeUserData }));
+
         List<String> fakeNetworkdIds = new ArrayList<>();
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
 
@@ -227,7 +232,7 @@ public class CloudStackComputePluginTest {
         // exercise
         ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
-                Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+                Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
@@ -247,6 +252,8 @@ public class CloudStackComputePluginTest {
 
         String fakeImageId = "fake-image-id";
         UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
+        ArrayList<UserData> userData = new ArrayList<UserData>(Arrays.asList(new UserData[] { fakeUserData }));
+
         List<String> fakeNetworkdIds = new ArrayList<>();
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
 
@@ -265,7 +272,7 @@ public class CloudStackComputePluginTest {
         // exercise
         ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
-                Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+                Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
@@ -286,6 +293,8 @@ public class CloudStackComputePluginTest {
 
         String fakeImageId = "fake-image-id";
         UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
+        ArrayList<UserData> userData = new ArrayList<UserData>(Arrays.asList(new UserData[] { fakeUserData }));
+
         List<String> fakeNetworkdIds = new ArrayList<>();
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
 
@@ -307,7 +316,7 @@ public class CloudStackComputePluginTest {
         // exercise
         ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
-                Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+                Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
@@ -330,6 +339,8 @@ public class CloudStackComputePluginTest {
 
         String fakeImageId = "fake-image-id";
         UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
+        ArrayList<UserData> userData = new ArrayList<UserData>(Arrays.asList(new UserData[] { fakeUserData }));
+
         List<String> fakeNetworkdIds = new ArrayList<>();
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
 
@@ -372,7 +383,7 @@ public class CloudStackComputePluginTest {
         // exercise
         ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
-                Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+                Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
@@ -399,6 +410,8 @@ public class CloudStackComputePluginTest {
         String fakeImageId = "fake-image-id";
 
         UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
+        ArrayList<UserData> userData = new ArrayList<UserData>(Arrays.asList(new UserData[] { fakeUserData }));
+
         String fakeUserDataString = Base64.getEncoder().encodeToString(
                 fakeUserData.getExtraUserDataFileContent().getBytes("UTF-8"));
 
@@ -440,7 +453,7 @@ public class CloudStackComputePluginTest {
         // exercise
         ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
-                Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+                Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
         // verify

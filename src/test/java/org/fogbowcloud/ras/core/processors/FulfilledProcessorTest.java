@@ -346,7 +346,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
 
         Order order = new ComputeOrder(federationUserToken, requestingMember, providingMember, FAKE_INSTANCE_NAME, 8, 1024,
-                30, FAKE_IMAGE_NAME, userData, FAKE_PUBLIC_KEY, null);
+                30, FAKE_IMAGE_NAME, mockUserData(), FAKE_PUBLIC_KEY, null);
 
         return order;
     }

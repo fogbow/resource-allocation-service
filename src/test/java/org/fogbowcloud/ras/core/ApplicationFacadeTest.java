@@ -21,6 +21,7 @@ import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
@@ -1784,7 +1785,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER, FAKE_FEDERATION_TOKEN_VALUE,
                 FAKE_USER_ID, FAKE_USER_NAME);
         ComputeOrder order = new ComputeOrder(federationUserToken, FAKE_MEMBER_ID, FAKE_MEMBER_ID, FAKE_INSTANCE_NAME, 2, 2,
-                30, FAKE_IMAGE_NAME, new UserData(), FAKE_PUBLIC_KEY, null);
+                30, FAKE_IMAGE_NAME, mockUserData(), FAKE_PUBLIC_KEY, null);
 
         ComputeInstance computeInstanceExcepted = new ComputeInstance(order.getId());
 
@@ -1828,7 +1829,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         ComputeOrder computeOrder = new ComputeOrder();
         ComputeInstance computeInstance = new ComputeInstance(FAKE_SOURCE_ID);
         computeOrder.setInstanceId(computeInstance.getId());
-        String sourceId = computeOrder.getId();
         this.activeOrdersMap.put(computeOrder.getId(), computeOrder);
 
         PublicIpOrder order = new PublicIpOrder(federationUserToken, FAKE_MEMBER_ID, FAKE_MEMBER_ID,
@@ -1850,8 +1850,13 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
     private void setVeryLongUserDataFileContent(ComputeOrder order) {
         String extraUserDataFileContent = new String(new char[UserData.MAX_EXTRA_USER_DATA_FILE_CONTENT + 1]);
-        UserData userData = new UserData();
-        userData.setExtraUserDataFileContent(extraUserDataFileContent);
-        order.setUserData(userData);
+
+        UserData userDataScript = new UserData();
+        userDataScript.setExtraUserDataFileContent(extraUserDataFileContent);
+
+        ArrayList<UserData> userDataScripts = new ArrayList<>();
+        userDataScripts.add(userDataScript);
+
+        order.setUserData(userDataScripts);
     }
 }

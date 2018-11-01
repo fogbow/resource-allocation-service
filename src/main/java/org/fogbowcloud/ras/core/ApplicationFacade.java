@@ -17,7 +17,6 @@ import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 
-import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -70,10 +69,16 @@ public class ApplicationFacade {
         if (order.getPublicKey() != null && order.getPublicKey().length() > ComputeOrder.MAX_PUBLIC_KEY_SIZE) {
             throw new InvalidParameterException(Messages.Exception.TOO_BIG_PUBLIC_KEY);
         }
-        if (order.getUserData() != null && order.getUserData().getExtraUserDataFileContent() != null &&
-                order.getUserData().getExtraUserDataFileContent().length() > UserData.MAX_EXTRA_USER_DATA_FILE_CONTENT) {
-            throw new InvalidParameterException(Messages.Exception.TOO_BIG_USER_DATA_FILE_CONTENT);
+
+        if (order.getUserData() != null) {
+            for (UserData userDataScript : order.getUserData()) {
+                if (userDataScript != null && userDataScript.getExtraUserDataFileContent() != null &&
+                    userDataScript.getExtraUserDataFileContent().length() > UserData.MAX_EXTRA_USER_DATA_FILE_CONTENT) {
+                    throw new InvalidParameterException(Messages.Exception.TOO_BIG_USER_DATA_FILE_CONTENT);
+                }
+            }
         }
+
         return activateOrder(order, federationTokenValue);
     }
 

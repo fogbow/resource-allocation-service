@@ -1,5 +1,7 @@
 package org.fogbowcloud.ras.core.models.instances;
 
+import org.fogbowcloud.ras.core.models.orders.UserData;
+
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +23,7 @@ public class ComputeInstance extends Instance {
     private Map<String, String> networks;
     private String imageId;
     private String publicKey;
-    private String userDataContent;
+    private List<UserData> userData;
 
     public ComputeInstance(String id, InstanceState state, String name, int vCPU, int memory, int disk,
                            List<String> ipAddresses) {
@@ -34,7 +36,7 @@ public class ComputeInstance extends Instance {
     }
 
     public ComputeInstance(String id, InstanceState state, String name, int vCPU, int memory, int disk,
-                           List<String> ipAddresses, String imageId, String publicKey, String userDataContent) {
+                           List<String> ipAddresses, String imageId, String publicKey, List<UserData> userData) {
         super(id, state);
         this.name = name;
         this.vCPU = vCPU;
@@ -43,7 +45,7 @@ public class ComputeInstance extends Instance {
         this.ipAddresses = ipAddresses;
         this.imageId = imageId;
         this.publicKey = publicKey;
-        this.userDataContent = userDataContent;
+        this.userData = userData;
     }
 
     public ComputeInstance(String id) {
@@ -94,12 +96,12 @@ public class ComputeInstance extends Instance {
         this.publicKey = publicKey;
     }
 
-    public String getUserDataContent() {
-        return userDataContent;
+    public List<UserData> getUserData() {
+        return userData;
     }
 
-    public void setUserDataContent(String userDataContent) {
-        this.userDataContent = userDataContent;
+    public void setUserData(List<UserData> userData) {
+        this.userData = userData;
     }
 
     @Override

@@ -327,8 +327,7 @@ public class LocalCloudConnector implements CloudConnector {
         String imageName = getAllImages(order.getFederationUserToken()).get(imageId);
         String publicKey = order.getPublicKey();
 
-        UserData userData = order.getUserData();
-        String userDataContent = userData != null ? userData.getExtraUserDataFileContent() : null;
+        List<UserData> userData = order.getUserData();
 
         // If no network ids were informed by the user, the default network is used and the compute is attached
         // to this network. The plugin has already added this information to the instance. Otherwise, the information
@@ -341,7 +340,7 @@ public class LocalCloudConnector implements CloudConnector {
 
         fullInstance.setImageId(imageId + " : " + imageName);
         fullInstance.setPublicKey(publicKey);
-        fullInstance.setUserDataContent(userDataContent);
+        fullInstance.setUserData(userData);
 
         return fullInstance;
     }
