@@ -86,20 +86,23 @@ public class OrderTimestampStorageTest {
 
         // set up
         ComputeOrder computeOrder = new ComputeOrder();
+        computeOrder.setFederationUserToken(new FederationUserToken());
         computeOrder.setActualAllocation(new ComputeAllocation(2, 4, 1));
         computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
         computeOrder.setId("fake-id-1");
 
         NetworkOrder networkOrder = new NetworkOrder();
+        networkOrder.setFederationUserToken(new FederationUserToken());
         networkOrder.setOrderStateInTestMode(OrderState.OPEN);
         networkOrder.setId("fake-id-2");
 
         AttachmentOrder attachmentOrder = new AttachmentOrder();
+        attachmentOrder.setFederationUserToken(new FederationUserToken());
         attachmentOrder.setOrderStateInTestMode(OrderState.SPAWNING);
         attachmentOrder.setId("fake-id-3");
 
         VolumeOrder volumeOrder = new VolumeOrder(new FederationUserToken(),
-                "reqMem", "provMember", 50, "volume-test");
+                "reqMem", "provMember", "volume-test", 50);
         volumeOrder.setOrderStateInTestMode(OrderState.CLOSED);
         volumeOrder.setId("fake-id-4");
 

@@ -19,7 +19,7 @@ public class CloudConnectorFactoryTest {
         this.cloudConnectorFactory.setLocalMemberId(LOCAL_MEMBER_ID);
     }
 
-    // test case: When calling getCloudConnector by passing a memberId equal to a previously
+    // test case: When calling getCloudConnector by passing allocationAllowableValues memberId equal to allocationAllowableValues previously
     // configured local member, it must return an instance of LocalCloudConnector.
     @Test
     public void testGetCloudConnectorLocal() {
@@ -39,7 +39,7 @@ public class CloudConnectorFactoryTest {
         Assert.assertTrue(localCloudConnector instanceof LocalCloudConnector);
     }
 
-    // test case: When calling getCloudConnector by passing a different memberId from a previously
+    // test case: When calling getCloudConnector by passing allocationAllowableValues different memberId from allocationAllowableValues previously
     // configured local member, it must return an instance of RemoteCloudConnector.
     @Test
     public void testGetCloudConnectorRemote() {

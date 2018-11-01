@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import org.fogbowcloud.ras.util.GsonHolder;
 import org.fogbowcloud.ras.util.JsonSerializable;
 
+import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Attachment.DEVICE_KEY_JSON;
 import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Attachment.VOLUME_ATTACHMENT_KEY_JSON;
 import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Attachment.VOLUME_ID_KEY_JSON;
 
@@ -12,9 +13,10 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.Openst
  * <p>
  * Request example:
  * {
- * "volumeAttachment": {
- * "volumeId": "a26887c6-c47b-4654-abb5-dfadf7d3f803"
- * }
+ *   "volumeAttachment": {
+ *      "volumeId": "a26887c6-c47b-4654-abb5-dfadf7d3f803",
+ *      "device": "/dev/vdd"
+ *      }
  * }
  */
 public class CreateAttachmentRequest implements JsonSerializable {
@@ -33,17 +35,26 @@ public class CreateAttachmentRequest implements JsonSerializable {
     public static class Attachment {
         @SerializedName(VOLUME_ID_KEY_JSON)
         private final String volumeId;
+        @SerializedName(DEVICE_KEY_JSON)
+        private final String device;
 
         public Attachment(Builder builder) {
             this.volumeId = builder.volumeId;
+            this.device = builder.device;
         }
     }
 
     public static class Builder {
         private String volumeId;
+        private String device;
 
         public Builder volumeId(String volumeId) {
             this.volumeId = volumeId;
+            return this;
+        }
+
+        public Builder device(String device) {
+            this.device = device;
             return this;
         }
 

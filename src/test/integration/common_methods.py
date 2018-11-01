@@ -10,8 +10,8 @@ class CommonMethods:
   url_attachments= GeneralConfigurations.base_url + GeneralConfigurations.attachments_endpoint
   url_images= GeneralConfigurations.base_url + GeneralConfigurations.images_endpoint
 
-  data_compute = {'vCPU': GeneralConfigurations.vCPU, 'memory': GeneralConfigurations.memory, 'disk': GeneralConfigurations.disk, 'providingMember': GeneralConfigurations.local_member, 'imageId': GeneralConfigurations.imageId, 'publicKey': GeneralConfigurations.publicKey}
-  data_network = {'address': GeneralConfigurations.address, 'allocation': GeneralConfigurations.allocation}
+  data_compute = {'vCPU': GeneralConfigurations.vCPU, 'memory': GeneralConfigurations.memory, 'disk': GeneralConfigurations.disk, 'provider': GeneralConfigurations.local_member, 'imageId': GeneralConfigurations.imageId, 'publicKey': GeneralConfigurations.publicKey}
+  data_network = {'cidr': GeneralConfigurations.cidr, 'allocationMode': GeneralConfigurations.allocationMode}
   data_volume = {'volumeSize': GeneralConfigurations.volume_size}
   data_attachment = {'device':'/dev/sdd'}
 
@@ -38,10 +38,10 @@ class CommonMethods:
     return True
 
   @classmethod
-  def wait_compute_available(cls, size, member):
+  def wait_compute_available(cls, volumeSize, member):
     for x in range(GeneralConfigurations.max_tries + 1):
       instances_available = cls.get_available_instances(member)
-      if instances_available < size:
+      if instances_available < volumeSize:
         print('  No instances available, waiting for resources')
         if(x < GeneralConfigurations.max_tries):
           time.sleep(GeneralConfigurations.sleep_time_secs)

@@ -23,7 +23,7 @@ class AttachmentTests:
     print('-Test %d: delete local attachment' % cls.which_test_case())
     cls.test_delete_attachment(data_for_local)
     if GeneralConfigurations.remote_member:
-      data_for_remote = {GeneralConfigurations.providingMember: GeneralConfigurations.remote_member}
+      data_for_remote = {GeneralConfigurations.provider: GeneralConfigurations.remote_member}
       print('-Test %d: post remote attachment' % cls.which_test_case())
       cls.test_post_attachment(data_for_remote)
       print('-Test %d: get by id remote attachment' % cls.which_test_case())
@@ -77,7 +77,7 @@ class AttachmentTests:
     if not cls.__post_attachment(extra_data):
       print('  Failed.')
       return
-    if GeneralConfigurations.providingMember in data:
+    if GeneralConfigurations.provider in data:
       #if it is remote, we need to wait order request to be received
       time.sleep(30)
     else:
@@ -104,7 +104,7 @@ class AttachmentTests:
     if not cls.__post_attachment(extra_data):
       print('  Failed.')
       return
-    if GeneralConfigurations.providingMember in data:
+    if GeneralConfigurations.provider in data:
       #if it is remote, we need to wait order request to be received
       time.sleep(30)
     else:
@@ -126,7 +126,7 @@ class AttachmentTests:
       print('  Failed.')
       return
     CommonMethods.delete_order(cls.attachment_id, GeneralConfigurations.type_attachment)
-    if GeneralConfigurations.providingMember in data:
+    if GeneralConfigurations.provider in data:
       #if it is remote, we need to wait order request to be received
       time.sleep(30)
     else:
@@ -171,7 +171,7 @@ class AttachmentTests:
     CommonMethods.delete_order(cls.attachment_id, GeneralConfigurations.type_attachment)
     CommonMethods.delete_order(cls.compute_id, GeneralConfigurations.type_compute)
     CommonMethods.delete_order(cls.volume_id, GeneralConfigurations.type_volume)
-    if GeneralConfigurations.providingMember in data:
+    if GeneralConfigurations.provider in data:
       #if it is remote, we need to wait order request to be received
       time.sleep(30)
     else:

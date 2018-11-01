@@ -49,8 +49,8 @@ public class ProcessorsThreadController {
     }
 
     /**
-     * This method starts all RAS processors, if you defined a new RAS operation and this
-     * operation require a new thread to run, you should start this thread at this method.
+     * This method starts all RAS processors, if you defined allocationAllowableValues new RAS operation and this
+     * operation require allocationAllowableValues new thread to run, you should start this thread at this method.
      */
     public void startRasThreads() {
         LOGGER.info(Messages.Info.STARTING_THREADS);

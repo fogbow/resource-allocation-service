@@ -87,9 +87,9 @@ public class CloudStackVolumePluginTest {
         this.token = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_USERNAME, FAKE_SIGNATURE);
     }
 
-    // test case: When calling the requestInstance method with a size compatible with the
-    // orchestrator's disk offering, HTTP GET requests must be made with a signed token, one to get
-    // the compatible disk offering Id attached to the requisition, and another to create a volume
+    // test case: When calling the requestInstance method with allocationAllowableValues size compatible with the
+    // orchestrator's disk offering, HTTP GET requests must be made with allocationAllowableValues signed token, one to get
+    // the compatible disk offering Id attached to the requisition, and another to create allocationAllowableValues volume
     // of compatible size, returning the id of the VolumeInstance object.
     @Test
     public void testCreateRequestInstanceSuccessfulWithDiskSizeCompatible()
@@ -130,7 +130,7 @@ public class CloudStackVolumePluginTest {
 
         // exercise
         VolumeOrder order =
-                new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, COMPATIBLE_SIZE, FAKE_NAME);
+                new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, COMPATIBLE_SIZE);
         String volumeId = this.plugin.requestInstance(order, this.token);
 
         // verify
@@ -147,9 +147,9 @@ public class CloudStackVolumePluginTest {
         Assert.assertEquals(expectedId, volumeId);
     }
 
-    // test case: When calling the requestInstance method to get a size customized by the
-    // orchestrator's disk offering, HTTP GET requests must be made with a signed token, one to get
-    // the standard disk offering Id attached to the requisition, and another to create a volume of
+    // test case: When calling the requestInstance method to get allocationAllowableValues size customized by the
+    // orchestrator's disk offering, HTTP GET requests must be made with allocationAllowableValues signed token, one to get
+    // the standard disk offering Id attached to the requisition, and another to create allocationAllowableValues volume of
     // customized size, returning the id of the VolumeInstance object.
     @Test
     public void testCreateRequestInstanceSuccessfulWithDiskSizeCustomized()
@@ -190,7 +190,7 @@ public class CloudStackVolumePluginTest {
 
         // exercise
         VolumeOrder order =
-                new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, CUSTOMIZED_SIZE, FAKE_NAME);
+                new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, CUSTOMIZED_SIZE);
         String volumeId = this.plugin.requestInstance(order, this.token);
 
         // verify
@@ -207,7 +207,7 @@ public class CloudStackVolumePluginTest {
         Assert.assertEquals(expectedId, volumeId);
     }
 
-    // test case: When calling the requestInstance method with a user without permission, an
+    // test case: When calling the requestInstance method with allocationAllowableValues user without permission, an
     // UnauthorizedRequestException must be thrown.
     @Test(expected = UnauthorizedRequestException.class)
     public void testCreateRequestInstanceThrowUnauthorizedRequestException()
@@ -226,7 +226,7 @@ public class CloudStackVolumePluginTest {
         try {
             // exercise
             VolumeOrder order =
-                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, CUSTOMIZED_SIZE, FAKE_NAME);
+                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, CUSTOMIZED_SIZE);
             this.plugin.requestInstance(order, this.token);
         } finally {
             // verify
@@ -256,7 +256,7 @@ public class CloudStackVolumePluginTest {
         try {
             // exercise
             VolumeOrder order =
-                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, CUSTOMIZED_SIZE, FAKE_NAME);
+                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, CUSTOMIZED_SIZE);
             this.plugin.requestInstance(order, this.token);
         } finally {
             // verify
@@ -286,7 +286,7 @@ public class CloudStackVolumePluginTest {
         try {
             // exercise
             VolumeOrder order =
-                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, CUSTOMIZED_SIZE, FAKE_NAME);
+                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, CUSTOMIZED_SIZE);
             this.plugin.requestInstance(order, this.token);
         } finally {
             // verify
@@ -298,7 +298,7 @@ public class CloudStackVolumePluginTest {
         }
     }
     
-    // test case: When calling the requestInstance method with a unauthenticated user, an
+    // test case: When calling the requestInstance method with allocationAllowableValues unauthenticated user, an
     // UnauthenticatedUserException must be thrown.
     @Test(expected = UnauthenticatedUserException.class)
     public void testCreateRequestInstanceThrowUnauthenticatedUserException()
@@ -317,7 +317,7 @@ public class CloudStackVolumePluginTest {
         try {
             // exercise
             VolumeOrder order =
-                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, CUSTOMIZED_SIZE, FAKE_NAME);
+                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, CUSTOMIZED_SIZE);
             this.plugin.requestInstance(order, this.token);
         } finally {
             // verify
@@ -329,8 +329,8 @@ public class CloudStackVolumePluginTest {
         }
     }
     
-    // test case: When calling the getInstance method, an HTTP GET request must be made with a
-    // signed token, which returns a response in the JSON format for the retrieval of the
+    // test case: When calling the getInstance method, an HTTP GET request must be made with allocationAllowableValues
+    // signed token, which returns allocationAllowableValues response in the JSON format for the retrieval of the
     // VolumeInstance object.
     @Test
     public void testGetInstanceRequestSuccessful()
@@ -366,12 +366,12 @@ public class CloudStackVolumePluginTest {
 
         Assert.assertEquals(id, recoveredInstance.getId());
         Assert.assertEquals(name, recoveredInstance.getName());
-        Assert.assertEquals(COMPATIBLE_SIZE, recoveredInstance.getSize());
+        Assert.assertEquals(COMPATIBLE_SIZE, recoveredInstance.getVolumeSize());
 
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(request, this.token);
     }
 
-    // test case: When calling the getInstance method with a user without permission, an
+    // test case: When calling the getInstance method with allocationAllowableValues user without permission, an
     // UnauthorizedRequestException must be thrown.
     @Test(expected = UnauthorizedRequestException.class)
     public void testGetInstanceThrowUnauthorizedRequestException()
@@ -428,7 +428,7 @@ public class CloudStackVolumePluginTest {
         }
     }
     
-    // test case: When calling the getInstance method with a unauthenticated user, an
+    // test case: When calling the getInstance method with allocationAllowableValues unauthenticated user, an
     // UnauthenticatedUserException must be thrown.
     @Test(expected = UnauthenticatedUserException.class)
     public void testGetInstanceThrowUnauthenticatedUserException()
@@ -486,7 +486,7 @@ public class CloudStackVolumePluginTest {
         }
     }
     
-    // test case: When calling the getInstance method and an HTTP GET request returns a failure
+    // test case: When calling the getInstance method and an HTTP GET request returns allocationAllowableValues failure
     // response in JSON format, an UnexpectedException must be thrown.
     @Test(expected = UnexpectedException.class)
     public void testGetInstanceThrowUnexpectedException()
@@ -528,8 +528,8 @@ public class CloudStackVolumePluginTest {
         }
     }
 
-    // test case: When calling the deleteInstance method, an HTTP GET request must be made with a
-    // signed token, which returns a response in the JSON format.
+    // test case: When calling the deleteInstance method, an HTTP GET request must be made with allocationAllowableValues
+    // signed token, which returns allocationAllowableValues response in the JSON format.
     @Test
     public void testDeleteInstanceRequestSuccessful()
             throws HttpResponseException, FogbowRasException, UnexpectedException {
@@ -568,7 +568,7 @@ public class CloudStackVolumePluginTest {
         DeleteVolumeResponse.fromJson(Mockito.eq(response));
     }
 
-    // test case: When calling the deleteInstance method with a user without permission, an
+    // test case: When calling the deleteInstance method with allocationAllowableValues user without permission, an
     // UnauthorizedRequestException must be thrown.
     @Test(expected = UnauthorizedRequestException.class)
     public void testDeleteInstanceThrowUnauthorizedRequestException()
@@ -625,7 +625,7 @@ public class CloudStackVolumePluginTest {
         }
     }
 
-    // test case: When calling the deleteInstance method with a unauthenticated user, an
+    // test case: When calling the deleteInstance method with allocationAllowableValues unauthenticated user, an
     // UnauthenticatedUserException must be thrown.
     @Test(expected = UnauthenticatedUserException.class)
     public void testDeleteInstanceThrowUnauthenticatedUserException()
@@ -683,7 +683,7 @@ public class CloudStackVolumePluginTest {
         }
     }
     
-    // test case: When calling the deleteInstance method and an HTTP GET request returns a failure
+    // test case: When calling the deleteInstance method and an HTTP GET request returns allocationAllowableValues failure
     // response in JSON format, an UnexpectedException must be thrown.
     @Test(expected = UnexpectedException.class)
     public void testDeleteInstanceThrowUnexpectedException()

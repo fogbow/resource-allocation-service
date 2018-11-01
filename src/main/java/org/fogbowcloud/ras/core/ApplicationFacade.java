@@ -3,9 +3,7 @@ package org.fogbowcloud.ras.core;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
-import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
-import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.constants.Operation;
+import org.fogbowcloud.ras.core.constants.*;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.InstanceStatus;
 import org.fogbowcloud.ras.core.models.ResourceType;
@@ -17,21 +15,26 @@ import org.fogbowcloud.ras.core.models.quotas.Quota;
 import org.fogbowcloud.ras.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.ras.util.PropertiesUtil;
 
+import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 public class ApplicationFacade {
     private final Logger LOGGER = Logger.getLogger(ApplicationFacade.class);
 
     private static ApplicationFacade instance;
-    public static final String VERSION_NUMBER = "2.1.1";
     private AaaController aaaController;
     private OrderController orderController;
     private String memberId;
+    private String buildNumber;
 
     private ApplicationFacade() {
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        this.buildNumber = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.BUILD_NUMBER,
+                DefaultConfigurationConstants.BUILD_NUMBER);
     }
 
     public static ApplicationFacade getInstance() {
@@ -49,6 +52,17 @@ public class ApplicationFacade {
 
     public synchronized void setOrderController(OrderController orderController) {
         this.orderController = orderController;
+    }
+
+    // Used for testing
+    protected void setBuildNumber(String fileName) {
+        Properties properties = PropertiesUtil.readProperties(fileName);
+        this.buildNumber = properties.getProperty(ConfigurationConstants.BUILD_NUMBER,
+                DefaultConfigurationConstants.BUILD_NUMBER);
+    }
+
+    public String getVersionNumber() {
+        return SystemConstants.API_VERSION_NUMBER + "-" + this.buildNumber;
     }
 
     public String createCompute(ComputeOrder order, String federationTokenValue) throws FogbowRasException,
@@ -150,10 +164,6 @@ public class ApplicationFacade {
     public String createTokenValue(Map<String, String> userCredentials) throws UnexpectedException, FogbowRasException {
         // There is no need to authenticate the user or authorize this operation
         return this.aaaController.createTokenValue(userCredentials);
-    }
-
-    public String getVersionNumber() {
-        return this.VERSION_NUMBER;
     }
 
     private String activateOrder(Order order, String federationTokenValue) throws FogbowRasException,

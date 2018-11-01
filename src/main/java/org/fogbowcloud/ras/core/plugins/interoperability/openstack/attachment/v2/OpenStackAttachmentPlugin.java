@@ -42,12 +42,13 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3To
     public String requestInstance(AttachmentOrder attachmentOrder, OpenStackV3Token openStackV3Token)
             throws FogbowRasException, UnexpectedException {
         String projectId = openStackV3Token.getProjectId();
-        String serverId = attachmentOrder.getSource();
-        String volumeId = attachmentOrder.getTarget();
+        String serverId = attachmentOrder.getComputeId();
+        String volumeId = attachmentOrder.getVolumeId();
+        String device = attachmentOrder.getDevice();
 
         String jsonRequest = null;
         try {
-            jsonRequest = generateJsonToAttach(volumeId);
+            jsonRequest = generateJsonToAttach(volumeId, device);
         } catch (JSONException e) {
             String message = Messages.Error.UNABLE_TO_GENERATE_JSON;
             LOGGER.error(message, e);
@@ -60,7 +61,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3To
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }
-        return attachmentOrder.getSource() + SEPARATOR_ID + attachmentOrder.getTarget();
+        return attachmentOrder.getComputeId() + SEPARATOR_ID + attachmentOrder.getVolumeId();
     }
 
     @Override
@@ -94,12 +95,12 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3To
         String[] separatorInstanceId = instanceId.split(SEPARATOR_ID);
 
         // this variable refers to computeInstanceId received in the first part of the vector
-        String serverId = separatorInstanceId[0];
+        String computeId = separatorInstanceId[0];
 
         // this variable refers to volumeInstanceId received in the second part of the vector
         String volumeId = separatorInstanceId[1];
 
-        String requestEndpoint = getPrefixEndpoint(projectId) + SERVERS + serverId + OS_VOLUME_ATTACHMENTS + "/" + volumeId;
+        String requestEndpoint = getPrefixEndpoint(projectId) + SERVERS + computeId + OS_VOLUME_ATTACHMENTS + "/" + volumeId;
 
         String jsonResponse = null;
         try {
@@ -116,7 +117,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3To
         try {
             GetAttachmentResponse getAttachmentResponse = GetAttachmentResponse.fromJson(jsonResponse);
             String id = getAttachmentResponse.getId();
-            String serverId = getAttachmentResponse.getServerId();
+            String computeId = getAttachmentResponse.getServerId();
             String volumeId = getAttachmentResponse.getVolumeId();
             String device = getAttachmentResponse.getDevice();
 
@@ -125,7 +126,7 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3To
             String openStackState = "";
             InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.ATTACHMENT, openStackState);
 
-            AttachmentInstance attachmentInstance = new AttachmentInstance(id, fogbowState, serverId, volumeId, device);
+            AttachmentInstance attachmentInstance = new AttachmentInstance(id, fogbowState, computeId, volumeId, device);
             return attachmentInstance;
 
         } catch (JSONException e) {
@@ -139,9 +140,10 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3To
         return this.properties.getProperty(COMPUTE_NOVAV2_URL_KEY) + COMPUTE_V2_API_ENDPOINT + projectId;
     }
 
-    protected String generateJsonToAttach(String volume) throws JSONException {
+    protected String generateJsonToAttach(String volumeId, String device) throws JSONException {
         CreateAttachmentRequest createAttachmentRequest = new CreateAttachmentRequest.Builder()
-                .volumeId(volume)
+                .volumeId(volumeId)
+                .device(device)
                 .build();
         return createAttachmentRequest.toJson();
     }

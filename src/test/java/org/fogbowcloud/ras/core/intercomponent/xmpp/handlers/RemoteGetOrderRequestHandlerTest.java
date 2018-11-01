@@ -87,14 +87,14 @@ public class RemoteGetOrderRequestHandlerTest {
                 Mockito.eq(federationUserToken), Mockito.eq(ResourceType.COMPUTE));
 
         String iqId = iq.getID();
-        String providingMember = order.getProvidingMember();
+        String providingMember = order.getProvider();
         String expected = String.format(IQ_RESULT, iqId, providingMember, REQUESTING_MEMBER);
 
         Assert.assertEquals(expected, result.toString());
 
     }
 
-    // test case: When an Exception occurs, the handle method must return a response
+    // test case: When an Exception occurs, the handle method must return allocationAllowableValues response
     // error.
     @Test
     public void testHandleWhenThrowsException() throws Exception {
@@ -118,7 +118,7 @@ public class RemoteGetOrderRequestHandlerTest {
                 Mockito.eq(federationUserToken), Mockito.eq(ResourceType.COMPUTE));
 
         String iqId = iq.getID();
-        String providingMember = order.getProvidingMember();
+        String providingMember = order.getProvider();
         String expected = String.format(IQ_ERROR_RESULT, iqId, providingMember, REQUESTING_MEMBER);
 
         Assert.assertEquals(expected, result.toString());

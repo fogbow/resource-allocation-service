@@ -4,12 +4,12 @@ import java.util.List;
 import java.util.Map;
 
 public class ComputeInstance extends Instance {
-    private String hostName;
+    private String name;
     private int vCPU;
     /**
      * Memory attribute, must be set in MB.
      */
-    private int ram;
+    private int memory;
     /**
      * Disk attribute, must be set in GB.
      */
@@ -19,31 +19,31 @@ public class ComputeInstance extends Instance {
      * Order-related properties
      */
     private Map<String, String> networks;
-    private String image;
+    private String imageId;
     private String publicKey;
-    private String userData;
+    private String userDataContent;
 
-    public ComputeInstance(String id, InstanceState state, String hostName, int vCPU, int ram, int disk,
+    public ComputeInstance(String id, InstanceState state, String name, int vCPU, int memory, int disk,
                            List<String> ipAddresses) {
         super(id, state);
-        this.hostName = hostName;
+        this.name = name;
         this.vCPU = vCPU;
-        this.ram = ram;
+        this.memory = memory;
         this.disk = disk;
         this.ipAddresses = ipAddresses;
     }
 
-    public ComputeInstance(String id, InstanceState state, String hostName, int vCPU, int ram, int disk,
-                           List<String> ipAddresses, String image, String publicKey, String userData) {
+    public ComputeInstance(String id, InstanceState state, String name, int vCPU, int memory, int disk,
+                           List<String> ipAddresses, String imageId, String publicKey, String userDataContent) {
         super(id, state);
-        this.hostName = hostName;
+        this.name = name;
         this.vCPU = vCPU;
-        this.ram = ram;
+        this.memory = memory;
         this.disk = disk;
         this.ipAddresses = ipAddresses;
-        this.image = image;
+        this.imageId = imageId;
         this.publicKey = publicKey;
-        this.userData = userData;
+        this.userDataContent = userDataContent;
     }
 
     public ComputeInstance(String id) {
@@ -54,16 +54,16 @@ public class ComputeInstance extends Instance {
         return this.disk;
     }
 
-    public String getHostName() {
-        return this.hostName;
+    public String getName() {
+        return this.name;
     }
 
     public List<String> getIpAddresses() {
         return this.ipAddresses;
     }
 
-    public int getRam() {
-        return this.ram;
+    public int getMemory() {
+        return this.memory;
     }
 
     public int getvCPU() {
@@ -78,12 +78,12 @@ public class ComputeInstance extends Instance {
         this.networks = networks;
     }
 
-    public String getImage() {
-        return image;
+    public String getImageId() {
+        return imageId;
     }
 
-    public void setImage(String image) {
-        this.image = image;
+    public void setImageId(String imageId) {
+        this.imageId = imageId;
     }
 
     public String getPublicKey() {
@@ -94,12 +94,12 @@ public class ComputeInstance extends Instance {
         this.publicKey = publicKey;
     }
 
-    public String getUserData() {
-        return userData;
+    public String getUserDataContent() {
+        return userDataContent;
     }
 
-    public void setUserData(String userData) {
-        this.userData = userData;
+    public void setUserDataContent(String userDataContent) {
+        this.userDataContent = userDataContent;
     }
 
     @Override
@@ -111,9 +111,9 @@ public class ComputeInstance extends Instance {
         ComputeInstance that = (ComputeInstance) o;
 
         if (vCPU != that.vCPU) return false;
-        if (ram != that.ram) return false;
+        if (memory != that.memory) return false;
         if (disk != that.disk) return false;
-        if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
         return ipAddresses != null ? ipAddresses.equals(that.ipAddresses) : that.ipAddresses == null;
     }
 }

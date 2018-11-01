@@ -16,17 +16,20 @@ public class PublicIpOrder extends Order {
     private String computeOrderId;
 
     public PublicIpOrder() {
-        super(UUID.randomUUID().toString());
+        this(UUID.randomUUID().toString());
+    }
+
+    public PublicIpOrder(String id) {
+        super(id);
+    }
+
+    public PublicIpOrder(String providingMember, String computeOrderId) {
+        this(null, null, providingMember, computeOrderId);
     }
 
     public PublicIpOrder(FederationUserToken federationUserToken, String requestingMember,
                          String providingMember, String computeOrderId) {
-        this(UUID.randomUUID().toString(), federationUserToken, requestingMember, providingMember, computeOrderId);
-    }
-
-    public PublicIpOrder(String id, FederationUserToken federationUserToken, String requestingMember,
-                         String providingMember, String computeOrderId) {
-        super(id, federationUserToken, requestingMember, providingMember);
+        super(UUID.randomUUID().toString(), providingMember, federationUserToken, requestingMember);
         this.computeOrderId = computeOrderId;
     }
 
