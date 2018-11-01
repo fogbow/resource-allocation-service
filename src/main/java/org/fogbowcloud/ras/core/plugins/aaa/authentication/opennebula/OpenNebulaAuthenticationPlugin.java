@@ -6,6 +6,7 @@ import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGeneratorPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.opennebula.OpenNebulaTokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.opennebula.client.Client;
 
@@ -14,11 +15,6 @@ import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPublicKey;
 
 public class OpenNebulaAuthenticationPlugin extends RASAuthenticationPlugin {
-    @Override
-    public boolean isAuthentic(String requestingMember, FederationUserToken federationUserToken) {
-        return super.isAuthentic(requestingMember, federationUserToken);
-    }
-
     @Override
     protected String getTokenMessage(FederationUserToken federationUserToken) {
         OpenNebulaToken oneToken = (OpenNebulaToken) federationUserToken;
@@ -39,17 +35,12 @@ public class OpenNebulaAuthenticationPlugin extends RASAuthenticationPlugin {
             oneToken.getUserName(),
             oneToken.getSignature()
         };
-        return StringUtils.join(parameters, CloudStackTokenGeneratorPlugin.CLOUDSTACK_TOKEN_STRING_SEPARATOR);
+        return StringUtils.join(parameters, OpenNebulaTokenGeneratorPlugin.OPENNEBULA_FIELD_SEPARATOR);
     }
 
     @Override
     protected String getSignature(FederationUserToken federationUserToken) {
         OpenNebulaToken oneToken = (OpenNebulaToken) federationUserToken;
         return oneToken.getSignature();
-    }
-
-    @Override
-    protected RSAPublicKey getPublicKey() throws IOException, GeneralSecurityException {
-        return super.getPublicKey();
     }
 }

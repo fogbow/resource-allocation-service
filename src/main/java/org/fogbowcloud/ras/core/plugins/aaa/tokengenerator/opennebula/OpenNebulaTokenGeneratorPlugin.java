@@ -28,10 +28,10 @@ public class OpenNebulaTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
     private RSAPrivateKey privateKey;
     private Properties properties;
-    private static final String USERNAME = "username";
-    private static final String PASSWORD = "password";
-    private static final String OPENNEBULA_TOKEN_VALUE_SEPARTOR = ":";
-    private static final String OPENNEBULA_FIELD_SEPARATOR = "#&#";
+    public static final String USERNAME = "username";
+    public static final String PASSWORD = "password";
+    public static final String OPENNEBULA_TOKEN_VALUE_SEPARTOR = ":";
+    public static final String OPENNEBULA_FIELD_SEPARATOR = "#&#";
 
     private String provider;
 

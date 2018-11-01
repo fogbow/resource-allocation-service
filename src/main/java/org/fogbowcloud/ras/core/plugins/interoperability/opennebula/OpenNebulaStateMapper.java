@@ -33,7 +33,7 @@ public class OpenNebulaStateMapper {
                     case ONE_VM_RUNNING_STATE:
                         return InstanceState.READY;
                     case ONE_VM_SUSPENDED_STATE:
-                        return InstanceState.INACTIVE;
+                        return InstanceState.UNAVAILABLE;
                     case ONE_VM_FAILURE_STATE:
                         return InstanceState.FAILED;
                     default:
@@ -51,7 +51,7 @@ public class OpenNebulaStateMapper {
             case IMAGE:
                 switch (oneState) {
                     case ONE_IMAGE_INIT_STATE:
-                        return InstanceState.SPAWNING;
+                        return InstanceState.CREATING;
                     case ONE_IMAGE_READY_STATE:
                         return InstanceState.READY;
                     case ONE_IMAGE_ERROR_STATE:
@@ -63,7 +63,7 @@ public class OpenNebulaStateMapper {
             case NETWORK:
                 switch (oneState) {
                     case ONE_NETWORK_INIT_STATE:
-                        return InstanceState.SPAWNING;
+                        return InstanceState.CREATING;
                     case ONE_NETWORK_ACTIVE_STATE:
                         return InstanceState.READY;
                     case ONE_NETWORK_FAILURE_STATE:
