@@ -1,6 +1,6 @@
 package org.fogbowcloud.ras.requests.api.local.http;
 
-import org.fogbowcloud.ras.api.http.ComputeOrdersController;
+import org.fogbowcloud.ras.api.http.Compute;
 import org.fogbowcloud.ras.api.http.HttpExceptionToErrorConditionTranslator;
 import org.junit.Before;
 import org.mockito.Mockito;
@@ -9,18 +9,18 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 public class ExceptionHandlerControllerTest {
 
-    private final String COMPUTE_ENDPOINT = "/" + ComputeOrdersController.COMPUTE_ENDPOINT + "/";
-    private final String URI_COMPUTE_ENDPOINT = "uri=/" + ComputeOrdersController.COMPUTE_ENDPOINT + "/";
+    private final String COMPUTE_ENDPOINT = "/" + Compute.COMPUTE_ENDPOINT + "/";
+    private final String URI_COMPUTE_ENDPOINT = "uri=/" + Compute.COMPUTE_ENDPOINT + "/";
 
     private MockMvc mockMvc;
 
-    private ComputeOrdersController computeOrdersController;
+    private Compute compute;
 
     @Before
     public void setup() {
-        this.computeOrdersController = Mockito.mock(ComputeOrdersController.class);
+        this.compute = Mockito.mock(Compute.class);
         this.mockMvc =
-                MockMvcBuilders.standaloneSetup(computeOrdersController)
+                MockMvcBuilders.standaloneSetup(compute)
                         .setControllerAdvice(new HttpExceptionToErrorConditionTranslator())
                         .build();
     }

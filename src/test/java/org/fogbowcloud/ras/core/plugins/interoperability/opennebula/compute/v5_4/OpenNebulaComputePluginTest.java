@@ -135,39 +135,6 @@ public class OpenNebulaComputePluginTest {
 		Mockito.verify(this.factory, Mockito.times(1)).allocateVirtualMachine(Mockito.eq(client), Mockito.eq(template));
 	}
 	
-	// Test case: ...
-		@Test
-		public void testRequestInstance() throws UnexpectedException, FogbowRasException {
-			// set up
-			Token token = new Token(LOCAL_TOKEN_VALUE);
-			Client client = this.factory.createClient(token.getTokenValue());
-			Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
-			this.plugin.setFactory(this.factory);
-
-			List<String> networksId = null;
-			int cpu = 1;
-			int memory = 2048;
-			int disk = 8;
-			
-			ComputeOrder computeOrder = createComputeOrder(networksId,cpu, memory, disk);
-			HardwareRequirements flavor = null;
-			Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, token);
-
-//			String networkId = null;
-//			String template = generateTemplate(String.valueOf(4), String.valueOf(2048), networkId, String.valueOf(8));
-
-			// exercise
-			this.plugin.requestInstance(computeOrder, token);
-
-			// verify
-			Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
-			Mockito.verify(this.plugin, Mockito.times(1)).findSmallestFlavor(Mockito.any(ComputeOrder.class),
-					Mockito.any(Token.class));
-//			Mockito.verify(this.factory, Mockito.times(1)).allocateVirtualMachine(Mockito.eq(client), Mockito.eq(template));
-		}
-	
-	
-
 	private Template mockIteratorTemplatePool(Client client) throws UnexpectedException {
 		TemplatePool templatePool = Mockito.mock(TemplatePool.class);
 		Mockito.doReturn(templatePool).when(this.factory).createTemplatePool(client);

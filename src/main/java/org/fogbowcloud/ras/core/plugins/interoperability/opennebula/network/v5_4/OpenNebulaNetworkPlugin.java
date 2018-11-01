@@ -57,10 +57,10 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 		String description = String.format(DEFAULT_NETWORK_DESCRIPTION, localUserAttributes.getUserName());
 		String type = DEFAULT_NETWORK_TYPE;
 		String bridge = this.bridge;
-		String address = networkOrder.getAddress();
+		String address = networkOrder.getCidr();
 		String gateway = networkOrder.getGateway();
 		String rangeType = NETWORK_ADDRESS_RANGE_TYPE;
-		String rangeIp = networkOrder.getAddress();
+		String rangeIp = networkOrder.getCidr();
 		String rangeSize = NETWORK_ADDRESS_RANGE_SYZE;
 		
 		CreateNetworkRequest request = new CreateNetworkRequest.Builder()

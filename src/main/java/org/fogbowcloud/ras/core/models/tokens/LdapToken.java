@@ -1,23 +1,19 @@
 package org.fogbowcloud.ras.core.models.tokens;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 
 @Entity
-public class LdapToken extends FederationUserToken {
-    @Column
-    private String expirationTime;
+@Inheritance(strategy = InheritanceType.JOINED)
+public class LdapToken extends TimestampedSignedFederationUserToken  {
 
     public LdapToken() {
     }
-
+	
     public LdapToken(String tokenProvider, String federationUserTokenValue, String userId, String userName,
-                     String expirationTime) {
-        super(tokenProvider, federationUserTokenValue, userId, userName);
-        this.expirationTime = expirationTime;
+                     String expirationTime, String signature) {
+    	super(tokenProvider, federationUserTokenValue, userId, userName, signature, Long.valueOf(expirationTime));
     }
 
-    public String getExpirationTime() {
-        return this.expirationTime;
-    }
 }

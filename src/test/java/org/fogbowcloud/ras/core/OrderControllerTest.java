@@ -121,15 +121,15 @@ public class OrderControllerTest extends BaseUnitTests {
                 "token-value", "fake-id", "fake-user");
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setFederationUserToken(federationUserToken);
-        computeOrder.setRequestingMember(this.localMember);
-        computeOrder.setProvidingMember(this.localMember);
+        computeOrder.setRequester(this.localMember);
+        computeOrder.setProvider(this.localMember);
         computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
         computeOrder.setCachedInstanceState(InstanceState.READY);
 
         ComputeOrder computeOrder2 = new ComputeOrder();
         computeOrder2.setFederationUserToken(federationUserToken);
-        computeOrder2.setRequestingMember(this.localMember);
-        computeOrder2.setProvidingMember(this.localMember);
+        computeOrder2.setRequester(this.localMember);
+        computeOrder2.setProvider(this.localMember);
         computeOrder2.setOrderStateInTestMode(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
         computeOrder2.setCachedInstanceState(InstanceState.FAILED);
 
@@ -140,9 +140,9 @@ public class OrderControllerTest extends BaseUnitTests {
         this.failedAfterSuccessfulRequestOrdersList.addItem(computeOrder2);
 
         InstanceStatus statusOrder = new InstanceStatus(computeOrder.getId(),
-                computeOrder.getProvidingMember(), computeOrder.getCachedInstanceState());
+                computeOrder.getProvider(), computeOrder.getCachedInstanceState());
         InstanceStatus statusOrder2 = new InstanceStatus(computeOrder2.getId(),
-                computeOrder2.getProvidingMember(), computeOrder2.getCachedInstanceState());
+                computeOrder2.getProvider(), computeOrder2.getCachedInstanceState());
 
         // exercise
         List<InstanceStatus> instances = this.ordersController.getInstancesStatus(federationUserToken,
@@ -171,7 +171,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(computeOrder, this.openOrdersList.getNext());
     }
 
-    // test case: Get a not active Order, must throw InstanceNotFoundException.
+    // test case: Get allocationAllowableValues not active Order, must throw InstanceNotFoundException.
     @Test(expected = InstanceNotFoundException.class) // verify
     public void testGetInactiveOrder() throws InstanceNotFoundException {
         // set up
@@ -238,8 +238,8 @@ public class OrderControllerTest extends BaseUnitTests {
                 "token-value", "fake-id", "fake-user");
         ComputeOrder computeOrder = new ComputeOrder();
         computeOrder.setFederationUserToken(federationUserToken);
-        computeOrder.setRequestingMember(this.localMember);
-        computeOrder.setProvidingMember(this.localMember);
+        computeOrder.setRequester(this.localMember);
+        computeOrder.setProvider(this.localMember);
         computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 
         computeOrder.setActualAllocation(new ComputeAllocation(1, 2, 3));
@@ -269,8 +269,8 @@ public class OrderControllerTest extends BaseUnitTests {
                 "token-value", "fake-id", "fake-user");
         NetworkOrder networkOrder = new NetworkOrder();
         networkOrder.setFederationUserToken(federationUserToken);
-        networkOrder.setRequestingMember(this.localMember);
-        networkOrder.setProvidingMember(this.localMember);
+        networkOrder.setRequester(this.localMember);
+        networkOrder.setProvider(this.localMember);
         networkOrder.setOrderStateInTestMode(OrderState.FULFILLED);
 
         this.fulfilledOrdersList.addItem(networkOrder);
@@ -280,7 +280,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.getUserAllocation(this.localMember, federationUserToken, ResourceType.NETWORK);
     }
 
-    // test case: Checks if deleting a failed order, this one will be moved to the closed orders
+    // test case: Checks if deleting allocationAllowableValues failed order, this one will be moved to the closed orders
     // list.
     @Test
     public void testDeleteOrderStateFailed()
@@ -306,7 +306,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
-    // test case: Checks if deleting a fulfilled order, this one will be moved to the closed orders
+    // test case: Checks if deleting allocationAllowableValues fulfilled order, this one will be moved to the closed orders
     // list.
     @Test
     public void testDeleteOrderStateFulfilled()
@@ -331,7 +331,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
-    // test case: Checks if deleting a spawning order, this one will be moved to the closed orders
+    // test case: Checks if deleting allocationAllowableValues spawning order, this one will be moved to the closed orders
     // list.
     @Test
     public void testDeleteOrderStateSpawning()
@@ -356,7 +356,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
-    // test case: Checks if deleting a pending order, this one will be moved to the closed orders
+    // test case: Checks if deleting allocationAllowableValues pending order, this one will be moved to the closed orders
     // list.
     @Test
     public void testDeleteOrderStatePending()
@@ -381,7 +381,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
-    // test case: Checks if deleting a open order, this one will be moved to the closed orders list.
+    // test case: Checks if deleting allocationAllowableValues open order, this one will be moved to the closed orders list.
     @Test
     public void testDeleteOrderStateOpen()
             throws Exception {
@@ -405,7 +405,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
-    // test case: Deleting a null order must return a FogbowRasException.
+    // test case: Deleting allocationAllowableValues null order must return allocationAllowableValues FogbowRasException.
     @Test(expected = FogbowRasException.class) // verify
     public void testDeleteNullOrder()
             throws Exception {
@@ -419,7 +419,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.getOrder("invalid-order-id");
     }
 
-    // test case: Getting an order passing a different ResourceType must raise InstanceNotFoundException.
+    // test case: Getting an order passing allocationAllowableValues different ResourceType must raise InstanceNotFoundException.
     // ToDO: The refactor in ApplicationFacade moved the this logic out from OrderController; this test should be moved elsewhere.
     @Ignore
     @Test(expected = InstanceNotFoundException.class)
@@ -451,8 +451,8 @@ public class OrderControllerTest extends BaseUnitTests {
 
         ComputeOrder computeOrder = Mockito.spy(new ComputeOrder());
         computeOrder.setFederationUserToken(federationUserToken);
-        computeOrder.setRequestingMember(this.localMember);
-        computeOrder.setProvidingMember(this.localMember);
+        computeOrder.setRequester(this.localMember);
+        computeOrder.setProvider(this.localMember);
         computeOrder.setOrderStateInTestMode(orderState);
 
         orderId = computeOrder.getId();

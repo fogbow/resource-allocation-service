@@ -13,12 +13,20 @@ public class ListSecurityGroups {
     @SerializedName(SECURITY_GROUPS_KEY_JSON)
     private List<SecurityGroup> securityGroups;
 
+    public List<SecurityGroup> getSecurityGroups() {
+        return securityGroups;
+    }
+
+    public void setSecurityGroups(List<SecurityGroup> securityGroups) {
+        this.securityGroups = securityGroups;
+    }
+
     public static ListSecurityGroups fromJson(String json) {
         return GsonHolder.getInstance().fromJson(json, ListSecurityGroups.class);
     }
 
-    public List<SecurityGroup> getSecurityGroups() {
-        return securityGroups;
+    public String toJson() {
+        return GsonHolder.getInstance().toJson(this);
     }
 
     public static class SecurityGroup {
@@ -28,6 +36,10 @@ public class ListSecurityGroups {
 
         public String getId() {
             return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
         }
     }
 

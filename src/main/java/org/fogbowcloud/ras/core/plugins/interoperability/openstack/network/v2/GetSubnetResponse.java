@@ -33,7 +33,7 @@ public class GetSubnetResponse {
         @SerializedName(ENABLE_DHCP_KEY_JSON)
         private boolean dhcpEnabled;
         @SerializedName(CIDR_KEY_JSON)
-        private String subnetAddress;
+        private String subnetCidr;
     }
 
     public String getGatewayIp() {
@@ -44,7 +44,7 @@ public class GetSubnetResponse {
         return subnet.dhcpEnabled;
     }
 
-    public String getSubnetAddress() {
-        return subnet.subnetAddress;
+    public String getSubnetCidr() {
+        return subnet.subnetCidr;
     }
 }

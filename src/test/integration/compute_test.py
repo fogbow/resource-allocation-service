@@ -22,10 +22,10 @@ class ComputeTests:
     cls.test_get_by_id_compute(data_for_local)
     print('-Test %d: get local quota' % cls.which_test_case())
     cls.test_quota(data_for_local)
-    print('-Test %d: get local allocation:' % cls.which_test_case())
+    print('-Test %d: get local allocationMode:' % cls.which_test_case())
     cls.test_allocation(data_for_local)
     if GeneralConfigurations.remote_member:
-      data_for_remote = {GeneralConfigurations.providingMember: GeneralConfigurations.remote_member}
+      data_for_remote = {GeneralConfigurations.provider: GeneralConfigurations.remote_member}
       print('-Test %d: post remote compute' % cls.which_test_case())
       cls.test_post_compute(data_for_remote)
       print('-Test %d: post remote compute attached to a remote private network' % cls.which_test_case())
@@ -38,7 +38,7 @@ class ComputeTests:
       cls.test_get_by_id_compute(data_for_remote)
       print('-Test %d: get remote quota' % cls.which_test_case())
       cls.test_quota(data_for_remote)
-      print('-Test %d: get remote allocation:' % cls.which_test_case())
+      print('-Test %d: get remote allocationMode:' % cls.which_test_case())
       cls.test_allocation(data_for_remote)
 
   @classmethod
@@ -51,7 +51,7 @@ class ComputeTests:
   def test_post_compute(cls, data):
     extra_data = {}
     extra_data.update(data)
-    member = extra_data[GeneralConfigurations.providingMember] if GeneralConfigurations.providingMember in extra_data else GeneralConfigurations.local_member
+    member = extra_data[GeneralConfigurations.provider] if GeneralConfigurations.provider in extra_data else GeneralConfigurations.local_member
     if not CommonMethods.wait_compute_available(1, member):
       print('  Failed. There is not %d instance(s) available.' % 1)
       return
@@ -102,10 +102,10 @@ class ComputeTests:
     extra_data = {}
     extra_data.update(data)
     response_get_quota = None
-    member = extra_data[GeneralConfigurations.providingMember] if GeneralConfigurations.providingMember in extra_data else GeneralConfigurations.local_member
-    if GeneralConfigurations.providingMember in data:
+    member = extra_data[GeneralConfigurations.provider] if GeneralConfigurations.provider in extra_data else GeneralConfigurations.local_member
+    if GeneralConfigurations.provider in data:
       #if remote
-      response_get_quota = CommonMethods.get_quota(data[GeneralConfigurations.providingMember])
+      response_get_quota = CommonMethods.get_quota(data[GeneralConfigurations.provider])
     else:
       response_get_quota = CommonMethods.get_quota(member)
     if response_get_quota.status_code != GeneralConfigurations.ok_status:
@@ -122,7 +122,7 @@ class ComputeTests:
   def test_allocation(cls, data):
     extra_data = {}
     extra_data.update(data)
-    member = extra_data[GeneralConfigurations.providingMember] if GeneralConfigurations.providingMember in extra_data else GeneralConfigurations.local_member
+    member = extra_data[GeneralConfigurations.provider] if GeneralConfigurations.provider in extra_data else GeneralConfigurations.local_member
     if not CommonMethods.wait_compute_available(GeneralConfigurations.max_computes, member):
       print('  Failed. There is not %d instances available.' % GeneralConfigurations.max_computes)
       return
@@ -132,7 +132,7 @@ class ComputeTests:
       return
     if not cls.empty_allocation(response_get_allocation.json()):
       print(response_get_allocation.json())
-      print('  Failed, allocation already in use, trying next test')
+      print('  Failed, allocationMode already in use, trying next test')
       return
     orders_id = CommonMethods.post_multiple_orders(extra_data, GeneralConfigurations.max_computes, GeneralConfigurations.type_compute)
     if not orders_id:
@@ -141,12 +141,12 @@ class ComputeTests:
     for order in orders_id:
       cls.wait_instance_ready(order, GeneralConfigurations.type_compute)
     response_get_allocation = cls.get_allocation(member)
-    allocation = response_get_allocation.json()
-    if cls.empty_allocation(allocation):
+    allocationMode = response_get_allocation.json()
+    if cls.empty_allocation(allocationMode):
       CommonMethods.delete_multiple_orders(orders_id, GeneralConfigurations.type_compute)
-      print('  Failed. Allocation was not in use. Actual allocation was: %s' % allocation)
+      print('  Failed. Allocation was not in use. Actual allocationMode was: %s' % allocationMode)
       return
-    if allocation['instances'] == GeneralConfigurations.max_computes:
+    if allocationMode['instances'] == GeneralConfigurations.max_computes:
       print('  Ok. Removing compute')
     else:
       print('  Failed. Removing compute')
@@ -159,8 +159,8 @@ class ComputeTests:
     return response
 
   @classmethod
-  def empty_allocation(cls, allocation):
-    if allocation['vCPU'] == 0 and allocation['ram'] == 0 and allocation['instances'] == 0:
+  def empty_allocation(cls, allocationMode):
+    if allocationMode['vCPU'] == 0 and allocationMode['memory'] == 0 and allocationMode['instances'] == 0:
       return True
     return False
 
@@ -170,7 +170,7 @@ class ComputeTests:
     extra_data = {}
     extra_data.update(data)
     fake_id = 'fake-id'
-    member = extra_data[GeneralConfigurations.providingMember] if GeneralConfigurations.providingMember in extra_data else GeneralConfigurations.local_member
+    member = extra_data[GeneralConfigurations.provider] if GeneralConfigurations.provider in extra_data else GeneralConfigurations.local_member
     if not CommonMethods.wait_compute_available(GeneralConfigurations.max_computes, member):
       print('  Failed. There is not %d instances available.' % GeneralConfigurations.max_computes)
       return
@@ -185,7 +185,7 @@ class ComputeTests:
       #time to wait order to be deleted
       time.sleep(20)
       return
-    if GeneralConfigurations.providingMember in extra_data:
+    if GeneralConfigurations.provider in extra_data:
       #if it is remote, we need to wait order request to be received
       time.sleep(10)
     response_get = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_compute)
@@ -202,7 +202,7 @@ class ComputeTests:
   def test_get_all_compute(cls, data):
     extra_data = {}
     extra_data.update(data)
-    member = extra_data[GeneralConfigurations.providingMember] if GeneralConfigurations.providingMember in extra_data else GeneralConfigurations.local_member
+    member = extra_data[GeneralConfigurations.provider] if GeneralConfigurations.provider in extra_data else GeneralConfigurations.local_member
     if not CommonMethods.wait_compute_available(GeneralConfigurations.max_computes, member):
       print('  Failed. There is not %d instances available.' % GeneralConfigurations.max_computes)
       return
@@ -214,7 +214,7 @@ class ComputeTests:
     if not orders_id:
       print('  Failed. Could not create computes')
       return
-    if GeneralConfigurations.providingMember in extra_data:
+    if GeneralConfigurations.provider in extra_data:
       #if it is remote, we need to wait order request to be received
       time.sleep(10)
     response_get = CommonMethods.get_all_order(GeneralConfigurations.type_compute)
@@ -254,7 +254,7 @@ class ComputeTests:
     if not order_id:
       print('  Failed. Could not create a compute')
       return
-    if GeneralConfigurations.providingMember in extra_data:
+    if GeneralConfigurations.provider in extra_data:
       #if it is remote, we need to wait order request to be received
       time.sleep(10)
     get_response = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_compute)
@@ -266,7 +266,7 @@ class ComputeTests:
       print('  Failed. Could not get order by id')
       return
     CommonMethods.delete_order(order_id, GeneralConfigurations.type_compute)
-    if GeneralConfigurations.providingMember in extra_data:
+    if GeneralConfigurations.provider in extra_data:
       #if it is remote, we need to wait delete request to be received
       time.sleep(10)
     get_response = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_compute)

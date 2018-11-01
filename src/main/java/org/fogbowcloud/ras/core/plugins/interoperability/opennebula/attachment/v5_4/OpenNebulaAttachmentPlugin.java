@@ -31,8 +31,8 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<Token> {
 
     @Override
     public String requestInstance(AttachmentOrder attachmentOrder, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
-        String serverId = attachmentOrder.getSource();
-        String volumeId = attachmentOrder.getTarget();
+        String serverId = attachmentOrder.getComputeId();
+        String volumeId = attachmentOrder.getVolumeId();
 
         Client client = this.factory.createClient(localUserAttributes.getTokenValue());
         String diskTemplate = generateDiskTemplate(volumeId);

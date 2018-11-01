@@ -65,9 +65,11 @@ public class RemoteFacade {
 
     public Quota getUserQuota(String requestingMember, String memberId, FederationUserToken federationUserToken,
                               ResourceType resourceType) throws Exception {
+        LOGGER.debug("AA: for user: " + federationUserToken.toString());
         this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken,
                 Operation.GET_USER_QUOTA, resourceType, memberId);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
+        LOGGER.debug("Calling quota plugin at site: " + memberId);
         return cloudConnector.getUserQuota(federationUserToken, resourceType);
     }
 
@@ -92,9 +94,9 @@ public class RemoteFacade {
         // order is a java object that represents the order passed in the message
         // actualOrder is the java object that represents this order inside the current server
         Order localOrder = this.orderController.getOrder(remoteOrder.getId());
-        if (!localOrder.getProvidingMember().equals(signallingMember)) {
+        if (!localOrder.getProvider().equals(signallingMember)) {
             throw new UnexpectedException(String.format(Messages.Exception.SIGNALING_MEMBER_DIFFERENT_OF_PROVIDER,
-                    signallingMember, localOrder.getProvidingMember()));
+                    signallingMember, localOrder.getProvider()));
         }
         updateLocalOrder(localOrder, remoteOrder, event);
         switch (event) {

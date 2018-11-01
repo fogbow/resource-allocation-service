@@ -47,7 +47,7 @@ public class RemoteCreateOrderRequestTest {
         this.remoteCreateOrderRequest.send();
 
         // verify
-        // as IQ does not implement equals we need a matcher
+        // as IQ does not implement equals we need allocationAllowableValues matcher
         IQMatcher matcher = new IQMatcher(expectedIQ);
         Mockito.verify(this.packetSender).syncSendPacket(Mockito.argThat(matcher));
     }

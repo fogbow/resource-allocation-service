@@ -23,13 +23,13 @@ public class RemoteNotifyEventRequest implements RemoteRequest<Void> {
         IQ iq = RemoteNotifyEventRequest.marshall(this.order, this.event);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
-        XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getRequestingMember());
+        XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getRequester());
         return null;
     }
 
     public static IQ marshall(Order order, Event event) {
         IQ iq = new IQ(IQ.Type.set);
-        iq.setTo(order.getRequestingMember());
+        iq.setTo(order.getRequester());
         iq.setID(order.getId());
 
         //marshall order parcel

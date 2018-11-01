@@ -109,7 +109,7 @@ public class CloudStackComputePluginTest {
         this.plugin.setLaunchCommandGenerator(this.launchCommandGeneratorMock);
     }
 
-    // Test case: when deploying a virtual machine, the token should be signed and five HTTP GET requests should be made:
+    // Test case: when deploying allocationAllowableValues virtual machine, the token should be signed and five HTTP GET requests should be made:
     // 1) retrieve the service offerings from the cloudstack compute service; 2) retrieve disk offerings
     // from the cloudstack volume service; 3) register ssh keypair using public key passed in the order; // 4) request
     // to the compute service to actually create the vm; 5) delete keypair used to created the vm.
@@ -384,7 +384,7 @@ public class CloudStackComputePluginTest {
                 .doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN));
     }
 
-    // Test case: http request fails on attempting to deploy a new virtual machine
+    // Test case: http request fails on attempting to deploy allocationAllowableValues new virtual machine
     @Test(expected = FogbowRasException.class)
     public void testRequestInstanceFail() throws FogbowRasException, HttpResponseException, UnexpectedException, UnsupportedEncodingException {
         // set up
@@ -451,9 +451,9 @@ public class CloudStackComputePluginTest {
                 Mockito.eq(FAKE_TOKEN));
     }
 
-    // Test case: when getting a virtual machine, the token should be signed and two HTTP GET requests should be made:
+    // Test case: when getting allocationAllowableValues virtual machine, the token should be signed and two HTTP GET requests should be made:
     // one to retrieve the virtual machine from the cloudstack compute service and another to retrieve that vm disk
-    // size from the cloudstack volume service. Finally, a valid compute instance should be returned from those
+    // size from the cloudstack volume service. Finally, allocationAllowableValues valid compute instance should be returned from those
     // requests results.
     @Test
     public void testGetInstance() throws UnexpectedException, FogbowRasException, HttpResponseException {
@@ -492,10 +492,10 @@ public class CloudStackComputePluginTest {
 
         // verify
         Assert.assertEquals(FAKE_ID, retrievedInstance.getId());
-        Assert.assertEquals(FAKE_INSTANCE_NAME, retrievedInstance.getHostName());
+        Assert.assertEquals(FAKE_INSTANCE_NAME, retrievedInstance.getName());
         Assert.assertEquals("READY", retrievedInstance.getState().name());
         Assert.assertEquals(FAKE_CPU_NUMBER, String.valueOf(retrievedInstance.getvCPU()));
-        Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance.getRam()));
+        Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance.getMemory()));
         Assert.assertEquals(FAKE_DISK, String.valueOf(retrievedInstance.getDisk()));
         Assert.assertEquals(ipAddresses, retrievedInstance.getIpAddresses());
 
@@ -506,7 +506,7 @@ public class CloudStackComputePluginTest {
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(expectedVolumeRequestUrl, FAKE_TOKEN);
     }
 
-    // Test case: when getting a virtual machine which root disk size could not be retrieved, default volume size to -1
+    // Test case: when getting allocationAllowableValues virtual machine which root disk size could not be retrieved, default volume size to -1
     @Test
     public void testGetInstanceNoVolume() throws FogbowRasException, HttpResponseException {
         // set up
@@ -542,10 +542,10 @@ public class CloudStackComputePluginTest {
         ComputeInstance retrievedInstance = this.plugin.getInstance(FAKE_ID, FAKE_TOKEN);
 
         Assert.assertEquals(FAKE_ID, retrievedInstance.getId());
-        Assert.assertEquals(FAKE_INSTANCE_NAME, retrievedInstance.getHostName());
+        Assert.assertEquals(FAKE_INSTANCE_NAME, retrievedInstance.getName());
         Assert.assertEquals("READY", retrievedInstance.getState().name());
         Assert.assertEquals(FAKE_CPU_NUMBER, String.valueOf(retrievedInstance.getvCPU()));
-        Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance.getRam()));
+        Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance.getMemory()));
         Assert.assertEquals(errorDiskSize, String.valueOf(retrievedInstance.getDisk()));
         Assert.assertEquals(ipAddresses, retrievedInstance.getIpAddresses());
 
@@ -553,10 +553,10 @@ public class CloudStackComputePluginTest {
         ComputeInstance retrievedInstance2 = this.plugin.getInstance(FAKE_ID, FAKE_TOKEN);
 
         Assert.assertEquals(FAKE_ID, retrievedInstance2.getId());
-        Assert.assertEquals(FAKE_INSTANCE_NAME, retrievedInstance2.getHostName());
+        Assert.assertEquals(FAKE_INSTANCE_NAME, retrievedInstance2.getName());
         Assert.assertEquals("READY", retrievedInstance2.getState().name());
         Assert.assertEquals(FAKE_CPU_NUMBER, String.valueOf(retrievedInstance2.getvCPU()));
-        Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance2.getRam()));
+        Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance2.getMemory()));
         Assert.assertEquals(errorDiskSize, String.valueOf(retrievedInstance2.getDisk()));
         Assert.assertEquals(ipAddresses, retrievedInstance2.getIpAddresses());
 

@@ -1,29 +1,22 @@
 package org.fogbowcloud.ras.core.plugins.aaa.authentication.cloudstack;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.interfaces.RSAPrivateKey;
+
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.*;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.message.BasicStatusLine;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
-import org.fogbowcloud.ras.core.plugins.aaa.authentication.openstack.v3.OpenStackAuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGeneratorPlugin;
 import org.fogbowcloud.ras.util.RSAUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.GeneralSecurityException;
-import java.security.interfaces.RSAPrivateKey;
 
 public class CloudStackAuthenticationPluginTest {
     private CloudStackAuthenticationPlugin authenticationPlugin;

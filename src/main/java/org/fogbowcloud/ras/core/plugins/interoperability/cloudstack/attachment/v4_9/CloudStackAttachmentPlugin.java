@@ -38,8 +38,8 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackTo
     public String requestInstance(AttachmentOrder attachmentOrder,
             CloudStackToken localUserAttributes) throws FogbowRasException, UnexpectedException {
         
-        String virtualMachineId = attachmentOrder.getSource();
-        String volumeId = attachmentOrder.getTarget();
+        String virtualMachineId = attachmentOrder.getComputeId();
+        String volumeId = attachmentOrder.getVolumeId();
         
         AttachVolumeRequest request = new AttachVolumeRequest.Builder()
                 .id(volumeId)

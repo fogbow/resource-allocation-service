@@ -55,10 +55,10 @@ public class OrderStateTransitioner {
                             break;
                     }
                 } catch (Exception e) {
-                    String message = String.format(Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_MEMBER, order.getRequestingMember(), order.getId());
+                    String message = String.format(Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_MEMBER, order.getRequester(), order.getId());
                     LOGGER.warn(message);
                     // Keep trying to notify until the site is up again
-                    // The site admin might want to monitor the warn log in case a site never
+                    // The site admin might want to monitor the warn log in case allocationAllowableValues site never
                     // recovers. In this case the site admin may delete the order using an
                     // appropriate tool.
                     return;

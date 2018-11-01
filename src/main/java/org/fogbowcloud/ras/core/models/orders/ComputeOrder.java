@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-
 @Entity
 @Table(name = "compute_order_table")
 public class ComputeOrder extends Order {
@@ -40,19 +39,20 @@ public class ComputeOrder extends Order {
     private ComputeAllocation actualAllocation;
     @Column
     @ElementCollection(fetch = FetchType.EAGER)
-    private List<String> networksId;
+    private List<String> networkIds;
 
     public ComputeOrder() {
-        super(UUID.randomUUID().toString());
+        this(UUID.randomUUID().toString());
     }
 
-    /**
-     * Creating Order with predefined Id.
-     */
-    public ComputeOrder(String id, FederationUserToken federationUserToken, String requestingMember,
-                        String providingMember, String name, int vCPU, int memory, int disk, String imageId,
-                        UserData userData, String publicKey, List<String> networksId) {
-        super(id, federationUserToken, requestingMember, providingMember);
+    public ComputeOrder(String id) {
+        super(id);
+    }
+
+    public ComputeOrder(String id, FederationUserToken federationUserToken, String requestingMember, String providingMember,
+                        String name, int vCPU, int memory, int disk, String imageId, UserData userData, String publicKey,
+                        List<String> networkIds) {
+        super(id, providingMember, federationUserToken, requestingMember);
         this.name = name;
         this.vCPU = vCPU;
         this.memory = memory;
@@ -60,15 +60,21 @@ public class ComputeOrder extends Order {
         this.imageId = imageId;
         this.userData = userData;
         this.publicKey = publicKey;
-        this.networksId = networksId;
+        this.networkIds = networkIds;
         this.actualAllocation = new ComputeAllocation();
+    }
+
+    public ComputeOrder(String providingMember, String name, int vCPU, int memory, int disk, String imageId,
+                        UserData userData, String publicKey, List<String> networkIds) {
+        this(null, null, providingMember, name, vCPU, memory, disk, imageId,
+                        userData, publicKey, networkIds);
     }
 
     public ComputeOrder(FederationUserToken federationUserToken, String requestingMember, String providingMember,
                         String name, int vCPU, int memory, int disk, String imageId, UserData userData, String publicKey,
-                        List<String> networksId) {
-        this(UUID.randomUUID().toString(), federationUserToken, requestingMember, providingMember,
-                name, vCPU, memory, disk, imageId, userData, publicKey, networksId);
+                        List<String> networkIds) {
+        this(UUID.randomUUID().toString(), federationUserToken, requestingMember, providingMember, name, vCPU, memory,
+                disk, imageId, userData, publicKey, networkIds);
     }
 
     public ComputeAllocation getActualAllocation() {
@@ -124,15 +130,15 @@ public class ComputeOrder extends Order {
         this.publicKey = publicKey;
     }
 
-    public List<String> getNetworksId() {
-        if (networksId == null) {
+    public List<String> getNetworkIds() {
+        if (networkIds == null) {
             return Collections.unmodifiableList(new ArrayList<>());
         }
-        return Collections.unmodifiableList(this.networksId);
+        return Collections.unmodifiableList(this.networkIds);
     }
 
-    public void setNetworksId(List<String> networksId) {
-        this.networksId = networksId;
+    public void setNetworkIds(List<String> networkIds) {
+        this.networkIds = networkIds;
     }
 
     @Override

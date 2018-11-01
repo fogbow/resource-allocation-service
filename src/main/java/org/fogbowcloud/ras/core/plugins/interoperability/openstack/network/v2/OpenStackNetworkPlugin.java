@@ -56,7 +56,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
     protected static final String DEFAULT_NETWORK_NAME = "ras-network";
     protected static final String DEFAULT_SUBNET_NAME = "ras-subnet";
     protected static final String[] DEFAULT_DNS_NAME_SERVERS = new String[]{"8.8.8.8", "8.8.4.4"};
-    protected static final String DEFAULT_NETWORK_ADDRESS = "192.168.0.1/24";
+    protected static final String DEFAULT_NETWORK_CIDR = "192.168.0.1/24";
     // security group properties
     protected static final String INGRESS_DIRECTION = "ingress";
     protected static final String TCP_PROTOCOL = "tcp";
@@ -216,8 +216,8 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
     private void createSecurityGroupRules(NetworkOrder order, OpenStackV3Token openStackV3Token, String networkId, String securityGroupId)
             throws UnexpectedException, FogbowRasException {
         try {
-            CreateSecurityGroupRuleRequest sshRuleRequest = createSshRuleRequest(order.getAddress(), securityGroupId);
-            CreateSecurityGroupRuleRequest icmpRuleRequest = createIcmpRuleRequest(order.getAddress(), securityGroupId);
+            CreateSecurityGroupRuleRequest sshRuleRequest = createSshRuleRequest(order.getCidr(), securityGroupId);
+            CreateSecurityGroupRuleRequest icmpRuleRequest = createIcmpRuleRequest(order.getCidr(), securityGroupId);
 
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES;
             this.client.doPostRequest(endpoint, openStackV3Token, sshRuleRequest.toJson());
@@ -275,21 +275,21 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
             throws FogbowRasException, UnexpectedException {
         GetNetworkResponse getNetworkResponse = GetNetworkResponse.fromJson(json);
         String networkId = getNetworkResponse.getId();
-        String label = getNetworkResponse.getName();
+        String name = getNetworkResponse.getName();
         String instanceState = getNetworkResponse.getStatus();
         String vlan = getNetworkResponse.getSegmentationId();
 
         List<String> subnets = getNetworkResponse.getSubnets();
         String subnetId = subnets == null || subnets.size() == 0 ? null : subnets.get(0);
 
-        String address = null;
+        String cidr = null;
         String gateway = null;
         NetworkAllocationMode allocationMode = null;
         try {
             GetSubnetResponse subnetInformation = getSubnetInformation(openStackV3Token, subnetId);
 
             gateway = subnetInformation.getGatewayIp();
-            address = subnetInformation.getSubnetAddress();
+            cidr = subnetInformation.getSubnetCidr();
             boolean dhcpEnabled = subnetInformation.isDhcpEnabled();
 
             allocationMode = dhcpEnabled ? NetworkAllocationMode.DYNAMIC : NetworkAllocationMode.STATIC;
@@ -302,7 +302,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
         NetworkInstance instance = null;
         if (networkId != null) {
             InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.NETWORK, instanceState);
-            instance = new NetworkInstance(networkId, fogbowState, label, address, gateway,
+            instance = new NetworkInstance(networkId, fogbowState, name, cidr, gateway,
                     vlan, allocationMode, null, null, null);
         }
         return instance;
@@ -343,10 +343,10 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
         String gateway = order.getGateway();
         gateway = gateway == null || gateway.isEmpty() ? null : gateway;
 
-        String networkAddress = order.getAddress();
-        networkAddress = networkAddress == null ? DEFAULT_NETWORK_ADDRESS : networkAddress;
+        String networkCidr = order.getCidr();
+        networkCidr = networkCidr == null ? DEFAULT_NETWORK_CIDR : networkCidr;
 
-        boolean dhcpEnabled = !NetworkAllocationMode.STATIC.equals(order.getAllocation());
+        boolean dhcpEnabled = !NetworkAllocationMode.STATIC.equals(order.getAllocationMode());
         String[] dnsNamesServers = this.dnsList == null ? DEFAULT_DNS_NAME_SERVERS : this.dnsList;
 
         CreateSubnetRequest createSubnetRequest = new CreateSubnetRequest.Builder()
@@ -355,7 +355,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
                 .networkId(networkId)
                 .ipVersion(ipVersion)
                 .gatewayIp(gateway)
-                .networkAddress(networkAddress)
+                .networkCidr(networkCidr)
                 .dhcpEnabled(dhcpEnabled)
                 .dnsNameServers(Arrays.asList(dnsNamesServers))
                 .build();

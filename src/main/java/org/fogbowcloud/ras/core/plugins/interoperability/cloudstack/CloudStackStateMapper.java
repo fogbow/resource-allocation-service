@@ -26,43 +26,54 @@ public class CloudStackStateMapper {
 
         switch (type) {
             case COMPUTE:
-                if (cloudStackState.equalsIgnoreCase(RUNNING_STATUS)) {
-                    return InstanceState.READY;
-                } else if (cloudStackState.equalsIgnoreCase(DOWN_STATUS) || cloudStackState.equalsIgnoreCase(STOPPED_STATUS) ||
-                           cloudStackState.equalsIgnoreCase(STOPPING_STATUS) || cloudStackState.equalsIgnoreCase(STARTING_STATUS) ||
-                           cloudStackState.equalsIgnoreCase(EXPUNGING_STATUS)) {
-                    return InstanceState.INACTIVE;
-                } else if (cloudStackState.equalsIgnoreCase(ERROR_STATUS)) {
-                    return InstanceState.FAILED;
-                } else if (cloudStackState.equalsIgnoreCase(STARTING_STATUS)) {
-                    return InstanceState.SPAWNING;
-                } else {
-                    LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, cloudStackState,
-                            "CloudStackComputePlugin"));
-                    return InstanceState.INCONSISTENT;
+                switch(cloudStackState) {
+                    case RUNNING_STATUS:
+                        return InstanceState.READY;
+                    case DOWN_STATUS:
+                    case STOPPED_STATUS:
+                    case STOPPING_STATUS:
+                    case EXPUNGING_STATUS:
+                        return InstanceState.UNAVAILABLE;
+                    case STARTING_STATUS:
+                        return InstanceState.CREATING;
+                    case ERROR_STATUS:
+                        return InstanceState.FAILED;
+                    default:
+                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, cloudStackState,
+                                "CloudStackComputePlugin"));
+                        return InstanceState.INCONSISTENT;
                 }
             case VOLUME:
-                if (cloudStackState.equalsIgnoreCase(CREATING_STATUS)) {
-                    return InstanceState.CREATING;
-                } else if (cloudStackState.equalsIgnoreCase(READY_STATUS)) {
-                    return InstanceState.READY;
-                } else {
-                    LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, cloudStackState,
-                            "CloudStackVolumePlugin"));
-                    return InstanceState.INCONSISTENT;
+                switch(cloudStackState) {
+                    case READY_STATUS:
+                        return InstanceState.READY;
+                    case CREATING_STATUS:
+                        return InstanceState.CREATING;
+                    case ERROR_STATUS:
+                    case FAILURE_STATUS:
+                        return InstanceState.FAILED;
+                    default:
+                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, cloudStackState,
+                                "CloudStackVolumePlugin"));
+                        return InstanceState.INCONSISTENT;
                 }
             case ATTACHMENT:
-                if (cloudStackState.equalsIgnoreCase(PENDING_STATUS)) {
-                    return InstanceState.ATTACHING;
-                } else if (cloudStackState.equalsIgnoreCase(READY_STATUS)) {
-                    return InstanceState.READY;
-                } else if (cloudStackState.equalsIgnoreCase(FAILURE_STATUS)) {
-                    return InstanceState.FAILED;
-                } else {
-                    LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, cloudStackState,
-                            "CloudStackAttachmentPlugin"));
-                    return InstanceState.INCONSISTENT;
+                switch(cloudStackState) {
+                    case READY_STATUS:
+                        return InstanceState.READY;
+                    case PENDING_STATUS:
+                        return InstanceState.CREATING;
+                    case ERROR_STATUS:
+                    case FAILURE_STATUS:
+                        return InstanceState.FAILED;
+                    default:
+                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, cloudStackState,
+                                "CloudStackAttachmentPlugin"));
+                        return InstanceState.INCONSISTENT;
                 }
+            case NETWORK:
+                // ToDo: find documentation to set this up appropriately
+                return InstanceState.READY;
             default:
                 LOGGER.error(Messages.Error.INSTANCE_TYPE_NOT_DEFINED);
                 return InstanceState.INCONSISTENT;

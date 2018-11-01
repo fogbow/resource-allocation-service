@@ -51,7 +51,7 @@ public class RemoteGetAllImagesRequestTest {
     }
 
     // test case: checks if IQ attributes is according to both RemoteGetAllImagesRequestTest constructor parameters
-    // and remote get all images request rules. In addition, it checks if the image map from a possible response is
+    // and remote get all images request rules. In addition, it checks if the image map from allocationAllowableValues possible response is
     // properly created and returned by the "send" method
     @Test
     public void testSend() throws Exception {
@@ -63,7 +63,7 @@ public class RemoteGetAllImagesRequestTest {
         this.remoteGetAllImagesRequest.send();
 
         // verify
-        // as IQ does not implement equals we need a matcher
+        // as IQ does not implement equals we need allocationAllowableValues matcher
         IQ expectedIQ = RemoteGetAllImagesRequest.marshal(PROVIDER, federationUserToken);
         IQMatcher matcher = new IQMatcher(expectedIQ);
         Mockito.verify(this.packetSender).syncSendPacket(Mockito.argThat(matcher));

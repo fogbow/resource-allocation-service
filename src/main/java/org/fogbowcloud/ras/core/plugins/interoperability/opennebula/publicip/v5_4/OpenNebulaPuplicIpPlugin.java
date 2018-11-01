@@ -17,7 +17,7 @@ import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.instances.PublicIpInstance;
 import org.fogbowcloud.ras.core.models.orders.PublicIpOrder;
-import org.fogbowcloud.ras.core.models.tokens.Token;
+import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.PublicIpPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.fogbowcloud.ras.util.PropertiesUtil;
@@ -27,7 +27,7 @@ import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vm.VirtualMachine;
 import org.opennebula.client.vnet.VirtualNetwork;
 
-public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<Token> {
+public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaPuplicIpPlugin.class);
 	private static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
@@ -49,7 +49,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<Token> {
 	private String addressRangeIp;
 	private String addressRangeSize;
 
-	public OpenNebulaPuplicIpPlugin(OpenNebulaClientFactory factory) {
+	public OpenNebulaPuplicIpPlugin() {
 		Properties properties = PropertiesUtil
 				.readProperties(HomeDir.getPath() + DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME);
 
@@ -61,7 +61,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<Token> {
 	}
 
 	@Override
-	public String requestInstance(PublicIpOrder publicIpOrder, String computeInstanceId, Token localUserAttributes)
+	public String requestInstance(PublicIpOrder publicIpOrder, String computeInstanceId, OpenNebulaToken localUserAttributes)
 			throws FogbowRasException, UnexpectedException {
 
 		LOGGER.info(String.format(Messages.Info.REQUESTING_INSTANCE, localUserAttributes.getTokenValue()));
@@ -78,22 +78,22 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<Token> {
 				.networkId(this.networkId)
 				.securityGroups(securityGroupsId)
 				.build();
-		
+
 		String template = request.getNic().generateTemplate();
-		
+
 		VirtualMachine virtualMachine = this.factory.createVirtualMachine(client, computeInstanceId);
 		OneResponse response = virtualMachine.nicAttach(template);
 		if (response.isError()) {
 			String message = response.getErrorMessage();
 			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
 		}
-		
+
 		String instanceId = String.format(INSTANCE_ID, virtualMachine.getId(), nicId, addressRangeId);
 		return instanceId;
 	}
 
 	@Override
-	public void deleteInstance(String publicIpInstanceId, String computeInstanceId, Token localUserAttributes)
+	public void deleteInstance(String publicIpInstanceId, String computeInstanceId, OpenNebulaToken localUserAttributes)
 			throws FogbowRasException, UnexpectedException {
 
 		LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, publicIpInstanceId,
@@ -104,13 +104,13 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<Token> {
 		String virtualMachineId = instanceIds[0];
 		int nicId = Integer.parseInt(instanceIds[1]);
 		int arId = Integer.parseInt(instanceIds[2]);
-		
+
 		detachNicFromVirtualMachine(client, virtualMachineId, nicId);
 		freeAddressRangeFromVirtualNetwork(client, arId);
 	}
 
 	@Override
-	public PublicIpInstance getInstance(String publicIpInstanceId, Token localUserAttributes)
+	public PublicIpInstance getInstance(String publicIpInstanceId, OpenNebulaToken localUserAttributes)
 			throws FogbowRasException, UnexpectedException {
 
 		LOGGER.info(
