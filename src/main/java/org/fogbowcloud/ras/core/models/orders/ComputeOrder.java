@@ -109,7 +109,7 @@ public class ComputeOrder extends Order {
         return imageId;
     }
 
-    public List<UserData> getUserData() {
+    public ArrayList<UserData> getUserData() {
         return userData;
     }
 
