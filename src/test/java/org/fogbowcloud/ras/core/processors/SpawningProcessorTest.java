@@ -301,10 +301,9 @@ public class SpawningProcessorTest extends BaseUnitTests {
         FederationUserToken federationUserToken = Mockito.mock(FederationUserToken.class);
         String requestingMember = BaseUnitTests.LOCAL_MEMBER_ID;
         String providingMember = BaseUnitTests.LOCAL_MEMBER_ID;
-        UserData userData = Mockito.mock(UserData.class);
 
         Order order = new ComputeOrder(federationUserToken, requestingMember,
-                providingMember, FAKE_INSTANCE_NAME, 8, 1024, 30, FAKE_IMAGE_NAME, userData, FAKE_PUBLIC_KEY, null);
+                providingMember, FAKE_INSTANCE_NAME, 8, 1024, 30, FAKE_IMAGE_NAME, mockUserData(), FAKE_PUBLIC_KEY, null);
 
         return order;
     }

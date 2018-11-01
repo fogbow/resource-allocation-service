@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
@@ -47,23 +48,26 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
             throw new FatalErrorException(e.getMessage());
         }
 
-        UserData userData = order.getUserData();
+        List<UserData> userDataScripts = order.getUserDataScripts();
 
-        if (userData != null) {
-            String normalizedExtraUserData = null;
-            String extraUserDataFileContent = userData.getExtraUserDataFileContent();
-            if (extraUserDataFileContent != null) {
-                normalizedExtraUserData = new String(Base64.decodeBase64(extraUserDataFileContent));
+        if (userDataScripts != null) {
+            for (UserData userDataScript : userDataScripts) {
+                if (userDataScript != null) {
+                    String normalizedExtraUserData = null;
+                    String extraUserDataFileContent = userDataScript.getExtraUserDataFileContent();
+                    if (extraUserDataFileContent != null) {
+                        normalizedExtraUserData = new String(Base64.decodeBase64(extraUserDataFileContent));
+                    }
+
+                    CloudInitUserDataBuilder.FileType extraUserDataFileType = userDataScript.getExtraUserDataFileType();
+                    addExtraUserData(cloudInitUserDataBuilder, normalizedExtraUserData, extraUserDataFileType);
+                }
             }
-
-            CloudInitUserDataBuilder.FileType extraUserDataFileType = userData.getExtraUserDataFileType();
-            addExtraUserData(cloudInitUserDataBuilder, normalizedExtraUserData, extraUserDataFileType);
         }
 
+
         String mimeString = cloudInitUserDataBuilder.buildUserData();
-
         mimeString = applyTokensReplacements(order, mimeString);
-
         String base64String = new String(Base64.encodeBase64(mimeString.getBytes(StandardCharsets.UTF_8),
                 false, false), StandardCharsets.UTF_8);
         return base64String;

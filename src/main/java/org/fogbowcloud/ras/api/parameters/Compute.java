@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.api.parameters;
 
+import java.util.ArrayList;
 import java.util.List;
 import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 import org.fogbowcloud.ras.core.models.orders.UserData;
@@ -12,7 +13,7 @@ public class Compute {
     private int disk;
     private String imageId;
     private String publicKey;
-    private UserData userData;
+    private ArrayList<UserData> userData;
     private List<String> networkIds;
 
     public String getProvider() {
@@ -47,7 +48,7 @@ public class Compute {
         return networkIds;
     }
 
-    public UserData getUserData() {
+    public List<UserData> getUserData() {
         return userData;
     }
 

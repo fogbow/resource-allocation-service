@@ -11,6 +11,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 public class DefaultLaunchCommandGeneratorTest {
@@ -19,9 +21,9 @@ public class DefaultLaunchCommandGeneratorTest {
 
     private DefaultLaunchCommandGenerator launchCommandGenerator;
 
-    private final static String EXTRA_USER_DATA_FILE = "fake-extra-user-data-file";
+    private static final String EXTRA_USER_DATA_FILE = "fake-extra-user-data-file";
 
-    private CloudInitUserDataBuilder.FileType extraUserDataFileType =
+    private static final CloudInitUserDataBuilder.FileType EXTRA_USER_DATA_FILE_TYPE =
             CloudInitUserDataBuilder.FileType.SHELL_SCRIPT;
 
     @Before
@@ -85,11 +87,11 @@ public class DefaultLaunchCommandGeneratorTest {
 
         // exercise
         this.launchCommandGenerator.addExtraUserData(
-                cloudInitUserDataBuilder, EXTRA_USER_DATA_FILE, this.extraUserDataFileType);
+                cloudInitUserDataBuilder, EXTRA_USER_DATA_FILE, this.EXTRA_USER_DATA_FILE_TYPE);
 
         // verify
         String userData = cloudInitUserDataBuilder.buildUserData();
-        Assert.assertTrue(userData.contains(this.extraUserDataFileType.getMimeType()));
+        Assert.assertTrue(userData.contains(this.EXTRA_USER_DATA_FILE_TYPE.getMimeType()));
         Assert.assertTrue(userData.contains(EXTRA_USER_DATA_FILE));
     }
 
@@ -103,11 +105,11 @@ public class DefaultLaunchCommandGeneratorTest {
 
         // exercise
         this.launchCommandGenerator.addExtraUserData(
-                cloudInitUserDataBuilder, null, this.extraUserDataFileType);
+                cloudInitUserDataBuilder, null, this.EXTRA_USER_DATA_FILE_TYPE);
 
         // verify
         String userData = cloudInitUserDataBuilder.buildUserData();
-        Assert.assertFalse(userData.contains(this.extraUserDataFileType.getMimeType()));
+        Assert.assertFalse(userData.contains(this.EXTRA_USER_DATA_FILE_TYPE.getMimeType()));
         Assert.assertFalse(userData.contains(EXTRA_USER_DATA_FILE));
     }
 
@@ -126,7 +128,7 @@ public class DefaultLaunchCommandGeneratorTest {
 
         // verify
         String userData = cloudInitUserDataBuilder.buildUserData();
-        Assert.assertFalse(userData.contains(this.extraUserDataFileType.getMimeType()));
+        Assert.assertFalse(userData.contains(this.EXTRA_USER_DATA_FILE_TYPE.getMimeType()));
         Assert.assertFalse(userData.contains(EXTRA_USER_DATA_FILE));
     }
 
@@ -162,7 +164,6 @@ public class DefaultLaunchCommandGeneratorTest {
 
     private ComputeOrder createComputeOrder() {
         FederationUserToken federationUserToken = Mockito.mock(FederationUserToken.class);
-        UserData userData = new UserData(EXTRA_USER_DATA_FILE, this.extraUserDataFileType);
         String imageName = "fake-image-name";
         String requestingMember =
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
@@ -181,7 +182,7 @@ public class DefaultLaunchCommandGeneratorTest {
                         1024,
                         30,
                         imageName,
-                        userData,
+                        createExampleUserData(),
                         publicKey,
                         null);
         return localOrder;
@@ -189,7 +190,6 @@ public class DefaultLaunchCommandGeneratorTest {
 
     private ComputeOrder createComputeOrderWithoutExtraUserData() {
         FederationUserToken federationUserToken = Mockito.mock(FederationUserToken.class);
-        UserData userData = new UserData(null, null);
         String imageName = "fake-image-name";
         String requestingMember =
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
@@ -208,7 +208,7 @@ public class DefaultLaunchCommandGeneratorTest {
                         1024,
                         30,
                         imageName,
-                        userData,
+                        null,
                         publicKey,
                         null);
         return localOrder;
@@ -216,7 +216,6 @@ public class DefaultLaunchCommandGeneratorTest {
 
     private ComputeOrder createComputeOrderWithoutPublicKey() {
         FederationUserToken federationUserToken = Mockito.mock(FederationUserToken.class);
-        UserData userData = new UserData(EXTRA_USER_DATA_FILE, this.extraUserDataFileType);
         String imageName = "fake-image-name";
         String requestingMember =
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
@@ -234,10 +233,17 @@ public class DefaultLaunchCommandGeneratorTest {
                         1024,
                         30,
                         imageName,
-                        userData,
+                        createExampleUserData(),
                         null,
                         null);
         return localOrder;
+    }
+
+    private ArrayList<UserData> createExampleUserData() {
+        UserData userDataScript = new UserData(EXTRA_USER_DATA_FILE, EXTRA_USER_DATA_FILE_TYPE);
+        ArrayList<UserData> userDataScripts = new ArrayList<UserData>();
+        userDataScripts.add(userDataScript);
+        return userDataScripts;
     }
 
 }
