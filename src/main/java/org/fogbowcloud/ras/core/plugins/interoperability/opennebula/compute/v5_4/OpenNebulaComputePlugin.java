@@ -42,7 +42,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 	private static final String DEFAULT_GRAPHIC_TYPE = "vnc";
 	private static final String DEFAULT_VOLUME_TYPE = "fs";
 	private static final String IMAGE_SIZE_PATH = "SIZE";
-	private static final String NAME_FIELD = "NAME";
 	private static final String NETWORK_CONFIRMATION_CONTEXT = "YES";
 	private static final String TEMPLATE_CPU_PATH = "TEMPLATE/CPU";
 	private static final String TEMPLATE_DISK_IMAGE_INDEX = "TEMPLATE/DISK[%s]/IMAGE";
@@ -158,7 +157,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		return bestFlavor;
 	}
 	
-	private HardwareRequirements getBestFlavor(ComputeOrder computeOrder, Token token) throws UnexpectedException {
+	protected HardwareRequirements getBestFlavor(ComputeOrder computeOrder, Token token) throws UnexpectedException {
 		updateHardwareRequirements(token);
 		for (HardwareRequirements hardwareRequirements : this.flavors) {
 			if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
@@ -180,17 +179,18 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		if (templatePool != null) {
 			HardwareRequirements flavor;
 			for (Template template : templatePool) {
-				String name = template.xpath(NAME_FIELD);
-				int memory = Integer.parseInt(template.xpath(TEMPLATE_MEMORY_PATH));
+				String id = template.getId();
+				String name = template.getName();
 				int cpu = Integer.parseInt(template.xpath(TEMPLATE_CPU_PATH));
+				int memory = Integer.parseInt(template.xpath(TEMPLATE_MEMORY_PATH));
 				int disk = 0;
 
-				flavor = new HardwareRequirements(name, null, cpu, memory, disk); // TODO verify field null
+				flavor = new HardwareRequirements(name, id, cpu, memory, disk);
 				flavorsTemplate.add(flavor);
 
 				if (containsFlavor(flavor, this.flavors)) {
 					int size = loadImageSizeDisk(imageSizeMap, template);
-					flavor = new HardwareRequirements(name, null, cpu, memory, size); // TODO verify field null
+					flavor = new HardwareRequirements(name, id, cpu, memory, size);
 					flavors.add(flavor);
 				}
 			}
@@ -202,7 +202,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		removeInvalidFlavors(flavorsTemplate);
 	}
 
-	private int loadImageSizeDisk(Map<String, String> map, Template template) {
+	protected int loadImageSizeDisk(Map<String, String> map, Template template) {
 		int index = 1;
 		int size = 0;
 		while (true) {
@@ -266,8 +266,8 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		String id = virtualMachine.getId();
 		String hostName = virtualMachine.xpath(TEMPLATE_NAME_PATH);
 		int cpu = Integer.parseInt(virtualMachine.xpath(TEMPLATE_CPU_PATH));
-		int disk = Integer.parseInt(virtualMachine.xpath(TEMPLATE_DISK_SIZE_PATH));
 		int memory = Integer.parseInt(virtualMachine.xpath(TEMPLATE_MEMORY_PATH));
+		int disk = Integer.parseInt(virtualMachine.xpath(TEMPLATE_DISK_SIZE_PATH));
 
 		String state = virtualMachine.lcmStateStr();
 		InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.COMPUTE, state);
