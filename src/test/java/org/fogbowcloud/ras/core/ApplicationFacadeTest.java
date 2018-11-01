@@ -22,7 +22,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
@@ -1858,6 +1857,6 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         ArrayList<UserData> userDataScripts = new ArrayList<>();
         userDataScripts.add(userDataScript);
 
-        order.setUserDataScripts(userDataScripts);
+        order.setUserData(userDataScripts);
     }
 }

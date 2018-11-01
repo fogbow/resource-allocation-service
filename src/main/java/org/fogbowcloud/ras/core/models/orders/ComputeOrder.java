@@ -32,7 +32,7 @@ public class ComputeOrder extends Order {
     @Column
     private String imageId;
     @Embedded
-    private ArrayList<UserData> userDataScripts;
+    private ArrayList<UserData> userData;
     @Column(length = MAX_PUBLIC_KEY_SIZE)
     private String publicKey;
     @Embedded
@@ -50,7 +50,7 @@ public class ComputeOrder extends Order {
     }
 
     public ComputeOrder(String id, FederationUserToken federationUserToken, String requestingMember, String providingMember,
-                        String name, int vCPU, int memory, int disk, String imageId, ArrayList<UserData> userDataScripts, String publicKey,
+                        String name, int vCPU, int memory, int disk, String imageId, ArrayList<UserData> userData, String publicKey,
                         List<String> networkIds) {
         super(id, providingMember, federationUserToken, requestingMember);
         this.name = name;
@@ -58,23 +58,23 @@ public class ComputeOrder extends Order {
         this.memory = memory;
         this.disk = disk;
         this.imageId = imageId;
-        this.userDataScripts = userDataScripts;
+        this.userData = userData;
         this.publicKey = publicKey;
         this.networkIds = networkIds;
         this.actualAllocation = new ComputeAllocation();
     }
 
     public ComputeOrder(String providingMember, String name, int vCPU, int memory, int disk, String imageId,
-                        ArrayList<UserData> userDataScripts, String publicKey, List<String> networkIds) {
+                        ArrayList<UserData> userData, String publicKey, List<String> networkIds) {
         this(null, null, providingMember, name, vCPU, memory, disk, imageId,
-                userDataScripts, publicKey, networkIds);
+                userData, publicKey, networkIds);
     }
 
     public ComputeOrder(FederationUserToken federationUserToken, String requestingMember, String providingMember,
-                        String name, int vCPU, int memory, int disk, String imageId, ArrayList<UserData> userDataScripts, String publicKey,
+                        String name, int vCPU, int memory, int disk, String imageId, ArrayList<UserData> userData, String publicKey,
                         List<String> networkIds) {
         this(UUID.randomUUID().toString(), federationUserToken, requestingMember, providingMember, name, vCPU, memory,
-                disk, imageId, userDataScripts, publicKey, networkIds);
+                disk, imageId, userData, publicKey, networkIds);
     }
 
     public ComputeAllocation getActualAllocation() {
@@ -109,12 +109,12 @@ public class ComputeOrder extends Order {
         return imageId;
     }
 
-    public List<UserData> getUserDataScripts() {
-        return userDataScripts;
+    public List<UserData> getUserData() {
+        return userData;
     }
 
-    public void setUserDataScripts(ArrayList<UserData> userDataScripts) {
-        this.userDataScripts = userDataScripts;
+    public void setUserData(ArrayList<UserData> userData) {
+        this.userData = userData;
     }
 
     @Override

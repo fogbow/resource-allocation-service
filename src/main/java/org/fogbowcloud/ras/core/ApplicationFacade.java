@@ -70,8 +70,8 @@ public class ApplicationFacade {
             throw new InvalidParameterException(Messages.Exception.TOO_BIG_PUBLIC_KEY);
         }
 
-        if (order.getUserDataScripts() != null) {
-            for (UserData userDataScript : order.getUserDataScripts()) {
+        if (order.getUserData() != null) {
+            for (UserData userDataScript : order.getUserData()) {
                 if (userDataScript != null && userDataScript.getExtraUserDataFileContent() != null &&
                     userDataScript.getExtraUserDataFileContent().length() > UserData.MAX_EXTRA_USER_DATA_FILE_CONTENT) {
                     throw new InvalidParameterException(Messages.Exception.TOO_BIG_USER_DATA_FILE_CONTENT);

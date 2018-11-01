@@ -327,7 +327,7 @@ public class LocalCloudConnector implements CloudConnector {
         String imageName = getAllImages(order.getFederationUserToken()).get(imageId);
         String publicKey = order.getPublicKey();
 
-        List<UserData> userData = order.getUserDataScripts();
+        List<UserData> userData = order.getUserData();
 
         // If no network ids were informed by the user, the default network is used and the compute is attached
         // to this network. The plugin has already added this information to the instance. Otherwise, the information

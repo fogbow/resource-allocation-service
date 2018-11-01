@@ -48,7 +48,7 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
             throw new FatalErrorException(e.getMessage());
         }
 
-        List<UserData> userDataScripts = order.getUserDataScripts();
+        List<UserData> userDataScripts = order.getUserData();
 
         if (userDataScripts != null) {
             for (UserData userDataScript : userDataScripts) {
