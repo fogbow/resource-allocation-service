@@ -130,7 +130,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 	}
 
 	private void freeAddressRangeFromVirtualNetwork(Client client, int arId)
-			throws UnauthorizedRequestException, InstanceNotFoundException {
+			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 		
 		VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, this.networkId);
 		OneResponse response = virtualNetwork.free(arId);
@@ -141,7 +141,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 	}
 
 	private void detachNicFromVirtualMachine(Client client, String virtualMachineId, int nicId)
-			throws UnauthorizedRequestException, InstanceNotFoundException {
+			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 		
 		VirtualMachine virtualMachine = this.factory.createVirtualMachine(client, virtualMachineId);
 		OneResponse response = virtualMachine.nicDetach(nicId);

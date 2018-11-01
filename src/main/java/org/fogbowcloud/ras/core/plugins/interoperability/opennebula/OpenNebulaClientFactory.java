@@ -1,6 +1,5 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula;
 
-import java.security.InvalidParameterException;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -8,6 +7,7 @@ import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
+import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.NoAvailableResourcesException;
 import org.fogbowcloud.ras.core.exceptions.QuotaExceededException;
 import org.fogbowcloud.ras.core.exceptions.UnauthorizedRequestException;
@@ -80,7 +80,7 @@ public class OpenNebulaClientFactory {
 	}
 
 	public VirtualMachine createVirtualMachine(Client client, String instanceId)
-			throws UnauthorizedRequestException, InstanceNotFoundException {
+			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 
 		int id = 0;
 		try {
@@ -119,7 +119,7 @@ public class OpenNebulaClientFactory {
 	}
 
 	public VirtualNetwork createVirtualNetwork(Client client, String instanceId)
-			throws UnauthorizedRequestException, InstanceNotFoundException {
+			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 
 		int id = 0;
 		try {
@@ -165,7 +165,7 @@ public class OpenNebulaClientFactory {
  		return user;
     }
 
-	public String allocateImage(Client client, String template, Integer datastoreId) {
+	public String allocateImage(Client client, String template, Integer datastoreId) throws InvalidParameterException {
 		OneResponse response = Image.allocate(client, template, datastoreId);
 		if (response.isError()) {
 			String message = response.getErrorMessage();
@@ -177,20 +177,20 @@ public class OpenNebulaClientFactory {
 		return response.getMessage();
 	}
 
-	public String allocateVirtualNetwork(Client client, String template) {
+	public String allocateVirtualNetwork(Client client, String template) throws InvalidParameterException {
 		OneResponse response = VirtualNetwork.allocate(client, template);
 		if (response.isError()) {
 			String message = response.getErrorMessage();
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_NETWORK, template));
 			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
-			throw new InvalidParameterException(message);
+			throw new InvalidParameterException();
 		}
 		VirtualNetwork.chmod(client, response.getIntMessage(), 744);
 		return response.getMessage();
 	}
 
 	public String allocateVirtualMachine(Client client, String template)
-			throws QuotaExceededException, NoAvailableResourcesException {
+			throws QuotaExceededException, NoAvailableResourcesException, InvalidParameterException {
 		OneResponse response = VirtualMachine.allocate(client, template);
 		if (response.isError()) {
 			String message = response.getErrorMessage();
