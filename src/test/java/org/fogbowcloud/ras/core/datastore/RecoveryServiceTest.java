@@ -54,7 +54,7 @@ public class RecoveryServiceTest extends BaseUnitTests {
     private static final String FAKE_USER_DATA_FILE = "extraUserDataFile";
 
     public static final ArrayList<UserData> FAKE_USER_DATA = new ArrayList<UserData>(Arrays.asList(
-            new UserData[] { new UserData(FAKE_USER_DATA_FILE, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG)}));
+            new UserData[] { new UserData(FAKE_USER_DATA_FILE, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag")}));
 
     @Autowired
     private RecoveryService recoveryService;
