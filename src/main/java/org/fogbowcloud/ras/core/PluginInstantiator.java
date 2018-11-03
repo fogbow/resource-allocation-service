@@ -1,7 +1,7 @@
 package org.fogbowcloud.ras.core;
 
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.authorization.AuthorizationPlugin;
@@ -31,8 +31,8 @@ public class PluginInstantiator {
     protected PluginInstantiator() {
         String path = HomeDir.getPath();
         List<String> configFilesNames = new ArrayList<>();
-        configFilesNames.add(path + DefaultConfigurationConstants.INTEROPERABILITY_CONF_FILE_NAME);
-        configFilesNames.add(path + DefaultConfigurationConstants.AAA_CONF_FILE_NAME);
+        configFilesNames.add(path + SystemConstants.INTEROPERABILITY_CONF_FILE_NAME);
+        configFilesNames.add(path + SystemConstants.AAA_CONF_FILE_NAME);
         this.properties = PropertiesUtil.readProperties(configFilesNames);
         this.pluginFactory = new PluginFactory();
     }

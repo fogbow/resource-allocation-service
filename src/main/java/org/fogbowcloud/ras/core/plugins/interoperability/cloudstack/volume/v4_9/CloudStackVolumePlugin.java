@@ -5,6 +5,7 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -38,7 +39,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
     private String zoneId;
 
     public CloudStackVolumePlugin() {
-        String filePath = HomeDir.getPath() + File.separator + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
+        String filePath = HomeDir.getPath() + File.separator + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
 
         Properties properties = PropertiesUtil.readProperties(filePath);
         this.zoneId = properties.getProperty(CLOUDSTACK_ZONE_ID_KEY);

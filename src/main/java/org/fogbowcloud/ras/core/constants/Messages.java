@@ -7,7 +7,6 @@ public class Messages {
         public static final String ATTEMPTING_TO_REMOVE_A_NULL_REQUEST = "Attempting to remove allocationAllowableValues null request.";
         public static final String AUTHENTICATION_ERROR = "Authentication error.";
         public static final String AUTHORIZATION_ERROR = "Authorization error.";
-        public static final String EXPIRED_TOKEN = "Token has expired at %s.";
         public static final String FATAL_ERROR = "Fatal error.";
         public static final String FOGBOW_RAS = "Fogbow RAS exception.";
         public static final String INCORRECT_PROVIDING_MEMBER = "Incorrect providing member.";
@@ -18,7 +17,6 @@ public class Messages {
         public static final String INVALID_CREDENTIALS = "Invalid credentials.";
         public static final String INVALID_PARAMETER = "Invalid parameter.";
         public static final String INVALID_PORT_SIZE = "Invalid port size %s for virtual machine %s and default network %s.";
-        public static final String INVALID_TOKEN = "Invalid token %s.";
         public static final String INVALID_TOKEN_SIGNATURE = "Invalid token signature.";
         public static final String LDAP_URL_MISSING = "No LDAP url in configuration file.";
         public static final String MISMATCHING_RESOURCE_TYPE = "Mismatching resource type.";
@@ -51,7 +49,6 @@ public class Messages {
         public static final String UNAVAILABLE_PROVIDER = "Provider is not available.";
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
-        public static final String UNABLE_TO_CREATE_AND_ASSOCIATE_SECURITY_GROUP = "Unable to create and associate security group";
         public static final String WRONG_URI_SYNTAX = "Wrong syntax for endpoint %s.";
         public static final String INVALID_SHIBBOLETH_TOKEN = "Is not possible create the Shibboleth token: %s";
     }
@@ -89,7 +86,6 @@ public class Messages {
         public static final String DATABASE_URL = "Database URL: %s.";
         public static final String DELETING_INSTANCE = "Deleting instance %s with token %s.";
         public static final String GETTING_INSTANCE = "Getting instance %s with token %s.";
-        public static final String GETTING_INSTANCE_FOR_REQUEST = "Trying to get an instance for request %s.";
         public static final String INSTANCE_HAS_FAILED = "Instance associated to request %s has failed.";
         public static final String RECEIVING_COMPUTE_QUOTA_REQUEST = "Get compute %s request for member %s received.";
         public static final String RECEIVING_CREATE_REQUEST = "Create request for %s received.";
@@ -102,7 +98,6 @@ public class Messages {
         public static final String RECEIVING_GET_VERSION_REQUEST = "Get request for version received.";
         public static final String RECEIVING_REMOTE_REQUEST = "Received remote request for request %s.";
         public static final String RECOVERING_LIST_OF_ORDERS = "Recovering requests in %s state: %d requests recovered so far.";
-        public static final String SKIPPING_BECAUSE_PROVIDER_IS_REMOTE = "Member %s skipping monitoring of request %s provided by %s.";
         public static final String STARTING_THREADS = "Starting processor threads.";
     }
 

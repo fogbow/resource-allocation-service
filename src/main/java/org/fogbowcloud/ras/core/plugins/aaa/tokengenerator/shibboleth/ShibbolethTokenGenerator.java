@@ -11,8 +11,8 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
@@ -56,7 +56,7 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 		this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 		
         this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                DefaultConfigurationConstants.SHIBBOLETH_CONF_FILE_NAME);
+                SystemConstants.SHIBBOLETH_CONF_FILE_NAME);
         
         this.rasAuthenticationHolder = RASAuthenticationHolder.getInstance();
         

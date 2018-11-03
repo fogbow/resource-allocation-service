@@ -13,6 +13,7 @@ import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
@@ -45,7 +46,7 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
         this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
         Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
+                SystemConstants.OPENSTACK_CONF_FILE_NAME);
 
         String identityUrl = properties.getProperty(OPENSTACK_KEYSTONE_V3_URL);
         if (isUrlValid(identityUrl)) {

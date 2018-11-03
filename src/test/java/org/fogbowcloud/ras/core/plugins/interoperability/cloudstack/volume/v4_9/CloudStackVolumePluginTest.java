@@ -4,7 +4,7 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.fogbowcloud.ras.core.HomeDir;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.instances.VolumeInstance;
 import org.fogbowcloud.ras.core.models.orders.VolumeOrder;
@@ -727,7 +727,7 @@ public class CloudStackVolumePluginTest {
     
     private String getBaseEndpointFromCloudStackConf() {
         String filePath = HomeDir.getPath() + File.separator
-                + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
+                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
 
         Properties properties = PropertiesUtil.readProperties(filePath);
         return properties.getProperty(BASE_ENDPOINT_KEY);
