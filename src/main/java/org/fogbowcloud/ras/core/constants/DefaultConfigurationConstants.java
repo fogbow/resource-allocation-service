@@ -3,17 +3,6 @@ package org.fogbowcloud.ras.core.constants;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultConfigurationConstants {
-    // CONFIGURATION FILES PATHS
-    public static final String RAS_CONF_FILE_NAME = "ras.conf";
-    public static final String INTERCOMPONENT_CONF_FILE_NAME = "intercomponent.conf";
-    public static final String INTEROPERABILITY_CONF_FILE_NAME = "interoperability.conf";
-    public static final String AAA_CONF_FILE_NAME = "aaa.conf";
-    public static final String SHIBBOLETH_CONF_FILE_NAME = "shibboleth.conf";
-
-    // CLOUD PLUGINS CONF FILES PATHS
-    public static final String OPENSTACK_CONF_FILE_NAME = "openstack.conf";
-    public static final String CLOUDSTACK_CONF_FILE_NAME = "cloudstack.conf";
-
     // RAS CONF DEFAULTS
     // reference value is 1 second
     public static final String OPEN_ORDERS_SLEEP_TIME = Long.toString(TimeUnit.SECONDS.toMillis(1));

@@ -3,8 +3,8 @@ package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
@@ -47,7 +47,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 
     public CloudStackPublicIpPlugin() {
         String cloudStackConfFilePath = HomeDir.getPath() + File.separator
-                + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
+                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
 
         Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
         this.defaultNetworkId = properties.getProperty(DEFAULT_NETWORK_ID_KEY);
