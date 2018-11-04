@@ -48,14 +48,11 @@ public class SwaggerConfiguration {
 
         ApiInfoBuilder apiInfoBuilder = new ApiInfoBuilder();
 
-        // TODO Add License to the documentation?
         apiInfoBuilder.title(API_TITLE);
         apiInfoBuilder.description(API_DESCRIPTION);
         apiInfoBuilder.version(versionNumber);
         apiInfoBuilder.contact(CONTACT);
 
         return apiInfoBuilder;
-
     }
-
 }

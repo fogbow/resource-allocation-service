@@ -36,9 +36,15 @@ public class PublicIp {
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
-        String publicIpId = ApplicationFacade.getInstance().createPublicIp(publicIp.getOrder(), federationTokenValue);
-        return new ResponseEntity<String>(publicIpId, HttpStatus.CREATED);
+
+        try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
+            String publicIpId = ApplicationFacade.getInstance().createPublicIp(publicIp.getOrder(), federationTokenValue);
+            return new ResponseEntity<String>(publicIpId, HttpStatus.CREATED);
+        } catch (Exception e) {
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            throw e;
+        }
     }
 
     @ApiOperation(value = ApiDocumentation.PublicIp.GET_BY_ID_OPERATION)
@@ -49,10 +55,16 @@ public class PublicIp {
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.RECEIVING_GET_REQUEST, ORDER_CONTROLLER_TYPE, publicIpId));
-        PublicIpInstance publicIpInstance =
+
+        try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_GET_REQUEST, ORDER_CONTROLLER_TYPE, publicIpId));
+            PublicIpInstance publicIpInstance =
                 ApplicationFacade.getInstance().getPublicIp(publicIpId, federationTokenValue);
-        return new ResponseEntity<>(publicIpInstance, HttpStatus.OK);
+            return new ResponseEntity<>(publicIpInstance, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            throw e;
+        }
     }
 
     @ApiOperation(value = ApiDocumentation.PublicIp.DELETE_OPERATION)
@@ -63,9 +75,15 @@ public class PublicIp {
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, ORDER_CONTROLLER_TYPE, publicIpId));
-        ApplicationFacade.getInstance().deletePublicIp(publicIpId, federationTokenValue);
-        return new ResponseEntity<>(HttpStatus.OK);
+
+        try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, ORDER_CONTROLLER_TYPE, publicIpId));
+            ApplicationFacade.getInstance().deletePublicIp(publicIpId, federationTokenValue);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            throw e;
+        }
     }
 
     @ApiOperation(value = ApiDocumentation.PublicIp.GET_OPERATION)
@@ -74,9 +92,15 @@ public class PublicIp {
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
-        List<InstanceStatus> publicIpStatus =
+
+        try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
+            List<InstanceStatus> publicIpStatus =
                 ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.PUBLIC_IP);
-        return new ResponseEntity<>(publicIpStatus, HttpStatus.OK);
+            return new ResponseEntity<>(publicIpStatus, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            throw e;
+        }
     }
 }

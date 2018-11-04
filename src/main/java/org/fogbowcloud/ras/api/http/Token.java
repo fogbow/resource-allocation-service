@@ -31,8 +31,14 @@ public class Token {
             @ApiParam(value = ApiDocumentation.Token.CREATE_REQUEST_BODY)
             @RequestBody HashMap<String, String> userCredentials)
             throws FogbowRasException, UnexpectedException {
-        LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_TOKEN_REQUEST, userCredentials.size()));
-        String tokenValue = ApplicationFacade.getInstance().createTokenValue(userCredentials);
-        return new ResponseEntity<String>(tokenValue, HttpStatus.CREATED);
+
+        try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_TOKEN_REQUEST, userCredentials.size()));
+            String tokenValue = ApplicationFacade.getInstance().createTokenValue(userCredentials);
+            return new ResponseEntity<String>(tokenValue, HttpStatus.CREATED);
+        } catch (Exception e) {
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            throw e;
+        }
     }
 }

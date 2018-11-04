@@ -34,9 +34,15 @@ public class Attachment {
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
-        String attachmentId = ApplicationFacade.getInstance().createAttachment(attachment.getOrder(), federationTokenValue);
-        return new ResponseEntity<String>(attachmentId, HttpStatus.CREATED);
+
+        try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
+            String attachmentId = ApplicationFacade.getInstance().createAttachment(attachment.getOrder(), federationTokenValue);
+            return new ResponseEntity<String>(attachmentId, HttpStatus.CREATED);
+        } catch (Exception e) {
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            throw e;
+        }
     }
 
     @RequestMapping(value = "/status", method = RequestMethod.GET)
@@ -45,10 +51,16 @@ public class Attachment {
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
-        List<InstanceStatus> attachmentInstanceStatus =
+
+        try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
+            List<InstanceStatus> attachmentInstanceStatus =
                 ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.ATTACHMENT);
-        return new ResponseEntity<>(attachmentInstanceStatus, HttpStatus.OK);
+            return new ResponseEntity<>(attachmentInstanceStatus, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            throw e;
+        }
     }
 
     @RequestMapping(value = "/{attachmentId}", method = RequestMethod.GET)
@@ -59,10 +71,16 @@ public class Attachment {
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.RECEIVING_GET_REQUEST, ORDER_CONTROLLER_TYPE, attachmentId));
-        AttachmentInstance attachmentInstance =
+
+        try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_GET_REQUEST, ORDER_CONTROLLER_TYPE, attachmentId));
+            AttachmentInstance attachmentInstance =
                 ApplicationFacade.getInstance().getAttachment(attachmentId, federationTokenValue);
-        return new ResponseEntity<>(attachmentInstance, HttpStatus.OK);
+            return new ResponseEntity<>(attachmentInstance, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            throw e;
+        }
     }
 
     @RequestMapping(value = "/{attachmentId}", method = RequestMethod.DELETE)
@@ -73,8 +91,14 @@ public class Attachment {
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, ORDER_CONTROLLER_TYPE, attachmentId));
-        ApplicationFacade.getInstance().deleteAttachment(attachmentId, federationTokenValue);
-        return new ResponseEntity<>(HttpStatus.OK);
+
+        try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, ORDER_CONTROLLER_TYPE, attachmentId));
+            ApplicationFacade.getInstance().deleteAttachment(attachmentId, federationTokenValue);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            throw e;
+        }
     }
 }
