@@ -31,7 +31,7 @@ public class OpenStackVolumePluginTest {
     private final String FAKE_PROJECT_ID = "fake-project-id";
     private final String FAKE_INSTANCE_ID = "instance-id";
 
-    // TODO create this json with allocationAllowableValues library
+    // TODO create this json with a library
     private final String FAKE_VOLUME_JSON = "{\"volume\":{\"size\":2,\"name\":\"fake-name\", " +
             "\"id\": \"fake-id\", \"status\": \"fake-status\"}}";
 
