@@ -33,9 +33,15 @@ public class Image {
             @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
             @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId)
             throws Exception {
-        LOGGER.info(Messages.Info.RECEIVING_GET_ALL_IMAGES_REQUEST);
-        Map<String, String> imagesMap = ApplicationFacade.getInstance().getAllImages(memberId, federationTokenValue);
-        return new ResponseEntity<>(imagesMap, HttpStatus.OK);
+
+        try {
+            LOGGER.info(Messages.Info.RECEIVING_GET_ALL_IMAGES_REQUEST);
+            Map<String, String> imagesMap = ApplicationFacade.getInstance().getAllImages(memberId, federationTokenValue);
+            return new ResponseEntity<>(imagesMap, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            throw e;
+        }
     }
 
     @ApiOperation(value = ApiDocumentation.Image.GET_BY_ID_OPERATION)
@@ -48,8 +54,14 @@ public class Image {
             @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
             @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.RECEIVING_GET_IMAGE_REQUEST, imageId));
-        org.fogbowcloud.ras.core.models.images.Image image = ApplicationFacade.getInstance().getImage(memberId, imageId, federationTokenValue);
-        return new ResponseEntity<>(image, HttpStatus.OK);
+
+        try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_GET_IMAGE_REQUEST, imageId));
+            org.fogbowcloud.ras.core.models.images.Image image = ApplicationFacade.getInstance().getImage(memberId, imageId, federationTokenValue);
+            return new ResponseEntity<>(image, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            throw e;
+        }
     }
 }

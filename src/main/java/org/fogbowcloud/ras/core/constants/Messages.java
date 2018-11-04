@@ -9,6 +9,7 @@ public class Messages {
         public static final String AUTHORIZATION_ERROR = "Authorization error.";
         public static final String FATAL_ERROR = "Fatal error.";
         public static final String FOGBOW_RAS = "Fogbow RAS exception.";
+        public static final String GENERIC_EXCEPTION = "Operation returned error: %s";
         public static final String INCORRECT_PROVIDING_MEMBER = "Incorrect providing member.";
         public static final String INEXISTENT_REQUEST = "Request does not exist.";
         public static final String INSTANCE_ID_NOT_INFORMED = "No instance identification informed.";
