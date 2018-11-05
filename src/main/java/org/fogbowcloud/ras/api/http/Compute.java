@@ -12,12 +12,14 @@ import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.InstanceStatus;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.ComputeInstance;
+import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 import org.fogbowcloud.ras.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @CrossOrigin
@@ -47,7 +49,15 @@ public class Compute {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
-            String computeId = ApplicationFacade.getInstance().createCompute(compute.getOrder(), federationTokenValue);
+
+            ComputeOrder computeOrder = compute.getOrder();
+            // if userData is null we need to prevent a NullPointerException when trying to save the order
+            // in the database
+            if (computeOrder.getUserData() == null) {
+                computeOrder.setUserData(new ArrayList<>());
+            }
+
+            String computeId = ApplicationFacade.getInstance().createCompute(computeOrder, federationTokenValue);
             return new ResponseEntity<String>(computeId, HttpStatus.CREATED);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
