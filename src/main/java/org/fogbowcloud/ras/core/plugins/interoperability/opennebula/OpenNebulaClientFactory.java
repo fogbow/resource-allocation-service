@@ -44,7 +44,6 @@ public class OpenNebulaClientFactory {
 	public OpenNebulaClientFactory() {
 		Properties properties = PropertiesUtil
 				.readProperties(HomeDir.getPath() + DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME);
-
 		this.endpoint = properties.getProperty(OPENNEBULA_RPC_ENDPOINT_URL);
 	}
 
@@ -191,6 +190,7 @@ public class OpenNebulaClientFactory {
 
 	public String allocateVirtualMachine(Client client, String template)
 			throws QuotaExceededException, NoAvailableResourcesException, InvalidParameterException {
+		
 		OneResponse response = VirtualMachine.allocate(client, template);
 		if (response.isError()) {
 			String message = response.getErrorMessage();
