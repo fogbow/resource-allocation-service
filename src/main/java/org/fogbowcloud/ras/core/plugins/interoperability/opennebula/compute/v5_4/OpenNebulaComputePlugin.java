@@ -111,7 +111,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 
 		LOGGER.info(
 				String.format(Messages.Info.GETTING_INSTANCE, computeInstanceId, localUserAttributes.getTokenValue()));
-		
 		if (this.flavors == null || this.flavors.isEmpty()) {
 			updateHardwareRequirements(localUserAttributes);
 		}
@@ -126,7 +125,6 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 
 		LOGGER.info(
 				String.format(Messages.Info.DELETING_INSTANCE, computeInstanceId, localUserAttributes.getTokenValue()));
-		
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 		VirtualMachine virtualMachine = this.factory.createVirtualMachine(client, computeInstanceId);
 		OneResponse response = virtualMachine.terminate();
@@ -159,6 +157,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 	
 	protected HardwareRequirements getBestFlavor(ComputeOrder computeOrder, Token token) throws UnexpectedException {
 		updateHardwareRequirements(token);
+		
 		for (HardwareRequirements hardwareRequirements : this.flavors) {
 			if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
 					&& hardwareRequirements.getMemory() >= computeOrder.getMemory()
@@ -253,11 +252,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		ArrayList<HardwareRequirements> copyFlavors = new ArrayList<>(this.flavors);
 		for (HardwareRequirements flavor : copyFlavors) {
 			if (!containsFlavor(flavor, flavors) && copyFlavors.size() != 0) {
-				try {
-					this.flavors.remove(flavor);					
-				} catch (Exception e) {
-					LOGGER.error(e);
-				}
+				this.flavors.remove(flavor);
 			}
 		}
 	}
