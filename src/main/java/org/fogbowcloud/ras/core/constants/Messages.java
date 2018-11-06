@@ -86,6 +86,7 @@ public class Messages {
         public static final String ACTIVATING_NEW_REQUEST = "Activating new request.";
         public static final String DATABASE_URL = "Database URL: %s.";
         public static final String DELETING_INSTANCE = "Deleting instance %s with token %s.";
+        public static final String DELETING_ORDER_INSTANCE_NOT_FOUND = "Deleting order %s associated with nonexistent instance.";
         public static final String GETTING_INSTANCE = "Getting instance %s with token %s.";
         public static final String INSTANCE_HAS_FAILED = "Instance associated to request %s has failed.";
         public static final String RECEIVING_COMPUTE_QUOTA_REQUEST = "Get compute %s request for member %s received.";
