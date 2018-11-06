@@ -32,3 +32,7 @@ src/main/resources/private/
 
 ### Visual Studio Code ###
 .vscode
+
+### DB files ###
+*.db
+
