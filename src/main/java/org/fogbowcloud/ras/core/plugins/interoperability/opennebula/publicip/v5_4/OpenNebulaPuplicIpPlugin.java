@@ -38,10 +38,11 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 	private static final String ID_SEPARATOR = " ";
 	private static final String INSTANCE_ID = "%s %s %s";
 	private static final String PUBLIC_IP_NAME = "Public_IP";
-	private static final String SECURITY_GROUP_PROTOCOL = "ICMP";
+	private static final String SECURITY_GROUP_DEFAULT_VALUE = "All";
 	private static final String SECURITY_GROUP_INPUT_RULE_TYPE = "inbound";
 	private static final String SECURITY_GROUP_OUTPUT_RULE_TYPE = "outbound";
 	private static final String VIRTUAL_MACHINE_NIC_IP_PATH = "VM/NIC/IP";
+	
 
 	private OpenNebulaClientFactory factory;
 	private String networkId;
@@ -91,7 +92,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		String instanceId = String.format(INSTANCE_ID, virtualMachine.getId(), nicId, addressRangeId);
 		return instanceId;
 	}
-
+	
 	@Override
 	public void deleteInstance(String publicIpInstanceId, String computeInstanceId, OpenNebulaToken localUserAttributes)
 			throws FogbowRasException, UnexpectedException {
@@ -156,15 +157,16 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		SecurityGroup securityGroup = new SecurityGroup(id, client);
 		
 		String name = PUBLIC_IP_NAME;
-		String protocol = SECURITY_GROUP_PROTOCOL;
+		String protocol = SECURITY_GROUP_DEFAULT_VALUE;
 		String inputRuleType = SECURITY_GROUP_INPUT_RULE_TYPE;
 		String outputRuleType = SECURITY_GROUP_OUTPUT_RULE_TYPE;
+		String portRange = SECURITY_GROUP_DEFAULT_VALUE;
 		int networkId = 0;
 		
-		SecurityGroups.Rule defaultInputRule = new SecurityGroups.DefaultRule(protocol, inputRuleType, networkId); 
-		SecurityGroups.Rule defaultOutputRule = new SecurityGroups.DefaultRule(protocol, outputRuleType, networkId);
+		SafetyRule defaultInputRule = new SafetyRule(protocol, inputRuleType, portRange, networkId); 
+		SafetyRule defaultOutputRule = new SafetyRule(protocol, outputRuleType, portRange, networkId);
 		
-		List<SecurityGroups.Rule> rules = new ArrayList<>();
+		List<SafetyRule> rules = new ArrayList<>();
 		rules.add(defaultInputRule);
 		rules.add(defaultOutputRule);
 		

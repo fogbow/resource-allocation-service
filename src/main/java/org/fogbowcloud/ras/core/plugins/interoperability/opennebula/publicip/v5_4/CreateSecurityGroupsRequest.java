@@ -12,21 +12,23 @@ public class CreateSecurityGroupsRequest {
 
 	public CreateSecurityGroupsRequest(Builder builder) {
 		String name = builder.name;
-		List<SecurityGroups.Rule> rules = builder.rules;
-		this.securityGroups = new SecurityGroups(name, rules);
+		List<SafetyRule> rules = builder.rules;
+		this.securityGroups = new SecurityGroups();
+		this.securityGroups.setName(name);
+		this.securityGroups.setRules(rules);
 	}
 	
 	public static class Builder {
 		
 		private String name;
-		private List<SecurityGroups.Rule> rules;
+		private List<SafetyRule> rules;
 		
 		public Builder name(String name) {
 			this.name = name;
 			return this;
 		}
 		
-		public Builder rules(List<SecurityGroups.Rule> rules) {
+		public Builder rules(List<SafetyRule> rules) {
 			this.rules = rules;
 			return this;
 		}
