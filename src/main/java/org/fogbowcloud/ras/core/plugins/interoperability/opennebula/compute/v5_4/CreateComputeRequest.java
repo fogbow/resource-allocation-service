@@ -17,14 +17,14 @@ public class CreateComputeRequest {
 		VirtualMachineVolumeDisk volumeDisk = buildVolume(builder);
 		VirtualMachineNic nic = buildNetworkInterfaceConnected(builder);
 		
-		this.virtualMachine = new VirtualMachineTemplate(
-				context, 
-				cpu, 
-				graphics, 
-				imageDisk, 
-				volumeDisk, 
-				memory, 
-				nic);
+		this.virtualMachine = new VirtualMachineTemplate();
+		this.virtualMachine.setContext(context);
+		this.virtualMachine.setCpu(cpu);
+		this.virtualMachine.setGraphics(graphics);
+		this.virtualMachine.setImageDisk(imageDisk);
+		this.virtualMachine.setVolumeDisk(volumeDisk);
+		this.virtualMachine.setMemory(memory);
+		this.virtualMachine.setNetworkInterfaceConnected(nic);
 	}
 
 	private VirtualMachineNic buildNetworkInterfaceConnected(Builder builder) {
