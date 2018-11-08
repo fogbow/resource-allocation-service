@@ -208,17 +208,9 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 			String imageDiskName = template.xpath(String.format(TEMPLATE_DISK_IMAGE_INDEX, index));
 			String volatileDiskSize = template.xpath(String.format(TEMPLATE_DISK_SIZE_INDEX, index));
 			if (volatileDiskSize != null && !volatileDiskSize.isEmpty()) {
-				try {
-					size += Integer.parseInt(volatileDiskSize);
-				} catch (Exception e) {
-					LOGGER.error(e);
-				}
+				size += Integer.parseInt(volatileDiskSize);
 			} else if (imageDiskName != null && !imageDiskName.isEmpty()){
-				try {
-					size += Integer.parseInt(map.get(imageDiskName));
-				} catch (Exception e) {
-					LOGGER.error(e);
-				}
+				size += Integer.parseInt(map.get(imageDiskName));
 			}
 			index++;
 			String templateDiskIndex = String.format(TEMPLATE_DISK_INDEX, index);
