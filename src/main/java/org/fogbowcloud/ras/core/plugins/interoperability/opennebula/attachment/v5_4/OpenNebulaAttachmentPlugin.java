@@ -1,7 +1,5 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.attachment.v5_4;
 
-
-import org.bouncycastle.crypto.engines.CamelliaLightEngine;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
@@ -12,7 +10,6 @@ import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.AttachmentPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
-import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.image.Image;
@@ -21,7 +18,8 @@ import org.opennebula.client.vm.VirtualMachine;
 
 public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<Token> {
 
-    private final String SEPARATOR_ID= " ";
+	private static final String DEFAULT_DEVICE_PREFIX = "vd";
+    private static final String SEPARATOR_ID= " ";
 
     private OpenNebulaClientFactory factory;
 
@@ -73,7 +71,7 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<Token> {
 
         InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.ATTACHMENT, oneImage.stateString());
 
-        String attachmentDevice = oneImage.xpath(OpenNebulaXmlTagsConstants.VirtualMachine.DEFAULT_DEVICE_PREFIX);
+        String attachmentDevice = oneImage.xpath(DEFAULT_DEVICE_PREFIX);
 
         return new AttachmentInstance(attachmentInstanceId, instanceState, serverId, volumeId, attachmentDevice);
     }

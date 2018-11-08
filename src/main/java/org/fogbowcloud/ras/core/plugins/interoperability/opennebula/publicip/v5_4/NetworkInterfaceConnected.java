@@ -1,9 +1,9 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualMachine.NETWORK_ID;
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualMachine.NETWORK_INTERFACE_CONNECTED;
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualMachine.NIC_ID;
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualNetwork.SECURITY_GROUPS;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.NETWORK_ID;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.NETWORK_INTERFACE_CONNECTED;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.NIC_ID;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.SECURITY_GROUPS;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -16,6 +16,8 @@ public class NetworkInterfaceConnected extends OpenNebulaRequestTemplate {
 	private String nicId;
 	private String networkId;
 	private String securityGroups;
+
+	public NetworkInterfaceConnected() {}
 
 	public NetworkInterfaceConnected(String nicId, String networkId, String securityGroups) {
 		this.nicId = nicId;
