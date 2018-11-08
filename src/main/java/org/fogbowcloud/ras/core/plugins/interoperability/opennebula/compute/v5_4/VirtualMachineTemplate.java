@@ -1,6 +1,12 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualMachine.*;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualMachine.CONTEXT;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualMachine.CPU;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualMachine.DISK;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualMachine.GRAPHICS;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualMachine.MEMORY;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualMachine.NETWORK_INTERFACE_CONNECTED;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.VirtualMachine.TEMPLATE;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -17,21 +23,6 @@ public class VirtualMachineTemplate extends OpenNebulaRequestTemplate {
 	private VirtualMachineVolumeDisk volumeDisk;
 	private String memory;
 	private VirtualMachineNic networkInterfaceConnected;
-
-	public VirtualMachineTemplate() {}
-
-	public VirtualMachineTemplate(VirtualMachineContext context, String cpu, VirtualMachineGraphics graphics,
-			VirtualMachineImageDisk imageDisk, VirtualMachineVolumeDisk volumeDisk, String memory,
-			VirtualMachineNic networkInterfaceConnected) {
-		
-		this.context = context;
-		this.cpu = cpu;
-		this.graphics = graphics;
-		this.imageDisk = imageDisk;
-		this.volumeDisk = volumeDisk;
-		this.memory = memory;
-		this.networkInterfaceConnected = networkInterfaceConnected;
-	}
 
 	@XmlElement(name = CONTEXT)
 	public VirtualMachineContext getContext() {
