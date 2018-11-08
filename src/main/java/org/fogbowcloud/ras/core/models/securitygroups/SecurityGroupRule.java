@@ -1,5 +1,7 @@
 package org.fogbowcloud.ras.core.models.securitygroups;
 
+import org.fogbowcloud.ras.core.models.ResourceType;
+
 import java.util.Objects;
 
 public class SecurityGroupRule {
@@ -78,6 +80,10 @@ public class SecurityGroupRule {
 
     public void setProtocol(Protocol protocol) {
         this.protocol = protocol;
+    }
+
+    public ResourceType getType() {
+        return ResourceType.SECURITY_GROUP_RULE;
     }
 
     @Override

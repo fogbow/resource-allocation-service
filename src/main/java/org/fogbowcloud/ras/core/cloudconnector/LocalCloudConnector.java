@@ -13,6 +13,7 @@ import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.instances.*;
 import org.fogbowcloud.ras.core.models.orders.*;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
+import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
@@ -260,6 +261,21 @@ public class LocalCloudConnector implements CloudConnector {
             throws FogbowRasException, UnexpectedException {
         Token token = this.mapperPlugin.map(federationUserToken);
         return this.imagePlugin.getImage(imageId, token);
+    }
+
+    @Override
+    public String requestSecurityGroupRules(String orderId, SecurityGroupRule securityGroupRule, FederationUserToken federationUserToken) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<SecurityGroupRule> getAllSecurityGroupRules(String orderId, FederationUserToken federationUserToken) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void deleteSecurityGroupRules(String securityGroupRuleId, FederationUserToken federationUserToken) {
+        throw new UnsupportedOperationException();
     }
 
     /**
