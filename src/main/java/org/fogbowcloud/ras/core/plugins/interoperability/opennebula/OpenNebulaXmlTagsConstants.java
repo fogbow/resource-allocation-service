@@ -2,8 +2,6 @@ package org.fogbowcloud.ras.core.plugins.interoperability.opennebula;
 
 public class OpenNebulaXmlTagsConstants {
 
-	public static class VirtualMachine {
-		
 		public static final String TEMPLATE = "TEMPLATE";
 		public static final String CONTEXT = "CONTEXT";
 		public static final String CPU = "CPU";
@@ -21,38 +19,17 @@ public class OpenNebulaXmlTagsConstants {
 		public static final String TYPE = "TYPE";
 		public static final String USERDATA = "USERDATA";
 		public static final String USERDATA_ENCODING = "USERDATA_ENCODING";
-		public static final String DEFAULT_DEVICE_PREFIX = "vd";
-		public static final String OPENNEBULA_BLOCK_DISK_TYPE = "BLOCK";
-		public static final String OPENNEBULA_DATABLOCK_IMAGE_TYPE = "DATABLOCK";
-		public static final String OPENNEBULA_RAW_FSTYPE = "raw";
-		public static final String OPENNEBULA_DATASTORE_DEFAULT_DEVICE_PREFIX = "vd";
-		public static final String OPENNEBULA_PERSISTENT_DISK_YES = "YES";
-	}
-	
-	public static class VirtualNetwork {
-		
-		public static final String TEMPLATE = "TEMPLATE";
-		public static final String NAME = "NAME";
 		public static final String DESCRIPTION = "DESCRIPTION";
-		public static final String TYPE = "TYPE";
 		public static final String BRIDGE = "BRIDGE";
 		public static final String NETWORK_ADDRESS = "NETWORK_ADDRESS";
 		public static final String NETWORK_GATEWAY = "NETWORK_GATEWAY";
 		public static final String AR = "AR";
 		public static final String IP = "IP";
-		public static final String SIZE = "SIZE";
 		public static final String SECURITY_GROUPS = "SECURITY_GROUPS";
 		public static final String AR_ID = "AR_ID";
-	}
-
-	public static class SecurityGroups {
-		
-		public static final String TEMPLATE = "TEMPLATE";
-		public static final String NAME = "NAME";
 		public static final String RULE = "RULE";
 		public static final String PROTOCOL = "PROTOCOL";
 		public static final String RULE_TYPE = "RULE_TYPE";
 		public static final String RANGE = "RANGE";
-		public static final String NETWORK_ID = "NETWORK_ID";
-	}
+		public static final String RULES = "RULES";
 }
