@@ -1,5 +1,16 @@
 package org.fogbowcloud.ras.core.models.securitygroups;
 
 public enum Protocol {
-    TCP, UDP, ICMP
+    TCP("tcp"), UDP("udp"), ICMP("icmp");
+
+    private String protocol;
+
+    Protocol(String protocol) {
+        this.protocol = protocol;
+    }
+
+    @Override
+    public String toString() {
+        return this.protocol;
+    }
 }

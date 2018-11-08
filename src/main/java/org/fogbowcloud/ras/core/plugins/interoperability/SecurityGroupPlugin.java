@@ -9,15 +9,14 @@ import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroup;
 import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 
+import java.util.List;
+
 public interface SecurityGroupPlugin<T extends Token> {
 
-    public String requestSecurityGroupRule(SecurityGroupRule securityGroupRule, T localUserAttributes)
+    public String requestSecurityGroupRule(SecurityGroupRule securityGroupRule, String securityGroupId, T localUserAttributes)
             throws FogbowRasException, UnexpectedException;
 
-    public SecurityGroup getSecurityGroup(String securityGroupId, T localUserAttributes)
-            throws FogbowRasException, UnexpectedException;
-
-    public SecurityGroupRule getSecurityGroupRule(String orderId, T localUserAttributes)
+    public List<SecurityGroupRule> getSecurityGroupRules(String securityGroupId, T localUserAttributes)
             throws FogbowRasException, UnexpectedException;
 
     public void deleteSecurityGroupRule(String securityGroupRuleId, T localUserAttributes)

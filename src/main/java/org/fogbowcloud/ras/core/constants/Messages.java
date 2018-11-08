@@ -127,6 +127,7 @@ public class Messages {
         public static final String UNABLE_TO_GENERATE_JSON = "Unable to generate json.";
         public static final String UNABLE_TO_GET_ATTACHMENT_INSTANCE = "Unable to get attachment instance from json.";
         public static final String UNABLE_TO_GET_NETWORK = "Unable to get network information from json %s.";
+        public static final String UNABLE_TO_GET_SECURITY_GROUP = "Unable to get security group information from json %s.";
         public static final String UNABLE_TO_GET_TOKEN_FROM_JSON = "Unable to get token from json.";
         public static final String UNABLE_TO_RETRIEVE_NETWORK_ID = "Unable to retrieve network id from json %s.";
         public static final String UNABLE_TO_ROLLBACK_TRANSACTION = "Unable to rollback transaction.";
