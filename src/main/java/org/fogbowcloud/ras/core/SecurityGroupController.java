@@ -4,6 +4,7 @@ import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
+import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 
 import java.util.List;
 import java.util.Map;
@@ -21,22 +22,22 @@ public class SecurityGroupController {
         this.securityGroupRulesMap = new ConcurrentHashMap<>();
     }
 
-    public String createSecurityGroupRules(Order majorOrder, SecurityGroupRule securityGroupRule) {
-        String memberId = majorOrder.getProvider();
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
-        return cloudConnector.requestSecurityGroupRules(majorOrder.getId(), securityGroupRule, majorOrder.getFederationUserToken());
+    public String createSecurityGroupRules(String majorOrderId, SecurityGroupRule securityGroupRule, String providerId,
+                                           FederationUserToken federationUserToken) {
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId);
+        return cloudConnector.requestSecurityGroupRules(majorOrderId, securityGroupRule, federationUserToken);
     }
 
-    public List<SecurityGroupRule> getAllSecurityGroupRules(Order majorOrder) {
-        String memberId = majorOrder.getProvider();
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
-        return cloudConnector.getAllSecurityGroupRules(majorOrder.getId(), majorOrder.getFederationUserToken());
+    public List<SecurityGroupRule> getAllSecurityGroupRules(String majorOrderId, String providerId,
+                                                            FederationUserToken federationUserToken) {
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId);
+        return cloudConnector.getAllSecurityGroupRules(majorOrderId, federationUserToken);
     }
 
-    public void deleteSecurityGroupRules(Order majorOrder, String securityGroupRuleId) {
-        String memberId = majorOrder.getProvider();
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
-        cloudConnector.deleteSecurityGroupRules(securityGroupRuleId, majorOrder.getFederationUserToken());
+    public void deleteSecurityGroupRules(String securityGroupRuleId, String providerId,
+                                         FederationUserToken federationUserToken) {
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId);
+        cloudConnector.deleteSecurityGroupRules(securityGroupRuleId, federationUserToken);
     }
 
 }
