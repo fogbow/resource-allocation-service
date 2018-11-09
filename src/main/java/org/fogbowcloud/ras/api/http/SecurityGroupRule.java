@@ -7,19 +7,20 @@ import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin
 @RestController
-@RequestMapping(value = SecurityGroupRule.SECURITY_GROUP_ENDPOINT)
+@RequestMapping(value = "{resource:" + SecurityGroupRule.NETWORK_OR_PUBLIC_IP_REGEX + "}")
 public class SecurityGroupRule {
 
     Logger LOGGER = Logger.getLogger(SecurityGroupRule.class);
 
-    public static final String SECURITY_GROUP_ENDPOINT = "securityGroups";
-    public static final String RULE_ENDPOINT = "rules";
+    public static final String SECURITY_GROUP_RULES_ENDPOINT = "securityGroupRules";
     public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
     public static final String ORDER_CONTROLLER_TYPE = "security group rule";
+    public static final String NETWORK_OR_PUBLIC_IP_REGEX = Network.NETWORK_ENDPOINT + "|" +
+            PublicIp.PUBLIC_IP_ENDPOINT;
 
-    @RequestMapping(value = "/" + RULE_ENDPOINT, method = RequestMethod.POST)
+    @RequestMapping(value = "/{orderId}/" + SECURITY_GROUP_RULES_ENDPOINT, method = RequestMethod.POST)
     public ResponseEntity<SecurityGroupRule> createSecurityGroupRule (
-            @RequestBody String orderId,
+            @PathVariable String orderId,
             @RequestBody SecurityGroupRule securityGroupRule,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue) {
 
@@ -28,9 +29,9 @@ public class SecurityGroupRule {
         throw new UnsupportedOperationException();
     }
 
-    @RequestMapping(value = "/" + RULE_ENDPOINT, method = RequestMethod.GET)
+    @RequestMapping(value = "/{orderId}/" + SECURITY_GROUP_RULES_ENDPOINT, method = RequestMethod.GET)
     public ResponseEntity<SecurityGroupRule> getAllSecurityGroupRules (
-            @RequestParam("orderId") String orderId,
+            @PathVariable("orderId") String orderId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue) {
 
         LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
@@ -38,7 +39,7 @@ public class SecurityGroupRule {
         throw new UnsupportedOperationException();
     }
 
-    @RequestMapping(value = "/" + RULE_ENDPOINT + "/{ruleId}", method = RequestMethod.POST)
+    @RequestMapping(value = "/{orderId}/" + SECURITY_GROUP_RULES_ENDPOINT + "/{ruleId}", method = RequestMethod.POST)
     public ResponseEntity<SecurityGroupRule> deleteSecurityGroupRule (
             @PathVariable String ruleId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue) {
