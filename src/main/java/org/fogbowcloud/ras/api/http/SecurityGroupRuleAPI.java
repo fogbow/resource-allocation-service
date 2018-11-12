@@ -46,7 +46,7 @@ public class SecurityGroupRuleAPI {
 
     @RequestMapping(value = "/{orderId}/" + SECURITY_GROUP_RULES_ENDPOINT, method = RequestMethod.GET)
     public ResponseEntity<List<SecurityGroupRule>> getAllSecurityGroupRules (
-            @PathVariable("orderId") String orderId,
+            @PathVariable String orderId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws UnavailableProviderException, UnauthorizedRequestException, InvalidParameterException,
             UnauthenticatedUserException, InstanceNotFoundException {
@@ -62,7 +62,7 @@ public class SecurityGroupRuleAPI {
         }
     }
 
-    @RequestMapping(value = "/{orderId}/" + SECURITY_GROUP_RULES_ENDPOINT + "/{ruleId}", method = RequestMethod.POST)
+    @RequestMapping(value = "/{orderId}/" + SECURITY_GROUP_RULES_ENDPOINT + "/{ruleId}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> deleteSecurityGroupRule (
             @PathVariable String orderId,
             @PathVariable String ruleId,
@@ -79,5 +79,4 @@ public class SecurityGroupRuleAPI {
             throw e;
         }
     }
-
 }
