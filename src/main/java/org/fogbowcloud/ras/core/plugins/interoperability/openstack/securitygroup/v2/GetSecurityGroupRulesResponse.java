@@ -35,14 +35,10 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.Openst
  */
 public class GetSecurityGroupRulesResponse {
     @SerializedName(SECURITY_GROUP_RULES_KEY_JSON)
-    private SecurityGroupRules securityGroupRules;
+    private List<SecurityGroupRule> securityGroupRules;
 
     public static GetSecurityGroupRulesResponse fromJson(String json) {
         return GsonHolder.getInstance().fromJson(json, GetSecurityGroupRulesResponse.class);
-    }
-
-    public class SecurityGroupRules {
-        private List<SecurityGroupRule> securityGroupRules;
     }
 
     public class SecurityGroupRule {
@@ -91,6 +87,6 @@ public class GetSecurityGroupRulesResponse {
     }
 
     public List<SecurityGroupRule> getSecurityGroupRules() {
-        return securityGroupRules.securityGroupRules;
+        return this.securityGroupRules;
     }
 }

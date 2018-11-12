@@ -45,7 +45,7 @@ public class OpenStackSecurityGroupPlugin implements SecurityGroupPlugin<OpenSta
     public String requestSecurityGroupRule(SecurityGroupRule securityGroupRule, String securityGroupId,
                                            OpenStackV3Token openStackV3Token)
             throws FogbowRasException, UnexpectedException {
-        CreateSecurityGroupRuleResponse createNetworkResponse = null;
+        CreateSecurityGroupRuleResponse createSecurityGroupRuleResponse = null;
 
         String cidr = securityGroupRule.getCidr();
         int portFrom = securityGroupRule.getPortFrom();
@@ -67,7 +67,7 @@ public class OpenStackSecurityGroupPlugin implements SecurityGroupPlugin<OpenSta
 
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES;
             String response = this.client.doPostRequest(endpoint, openStackV3Token, createSecurityGroupRuleRequest.toJson());
-            createNetworkResponse = CreateSecurityGroupRuleResponse.fromJson(response);
+            createSecurityGroupRuleResponse = CreateSecurityGroupRuleResponse.fromJson(response);
         } catch (JSONException e) {
             String message = Messages.Error.UNABLE_TO_GENERATE_JSON;
             LOGGER.error(message, e);
@@ -76,7 +76,7 @@ public class OpenStackSecurityGroupPlugin implements SecurityGroupPlugin<OpenSta
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }
 
-        return createNetworkResponse.getId();
+        return createSecurityGroupRuleResponse.getId();
     }
 
     @Override
@@ -104,7 +104,7 @@ public class OpenStackSecurityGroupPlugin implements SecurityGroupPlugin<OpenSta
         try {
             for (GetSecurityGroupRulesResponse.SecurityGroupRule securityGroupRule : securityGroupRules) {
                 Direction direction = securityGroupRule.getDirection().equalsIgnoreCase("ingress") ? Direction.IN : Direction.OUT;
-                EtherType etherType = securityGroupRule.getEtherType().equals("IPv4") ? EtherType.IPv4 : EtherType.IPv6;
+                EtherType etherType = securityGroupRule.getEtherType().equals("IPv6") ? EtherType.IPv6 : EtherType.IPv4;
                 Protocol protocol;
 
                 switch(securityGroupRule.getProtocol()) {
@@ -152,5 +152,9 @@ public class OpenStackSecurityGroupPlugin implements SecurityGroupPlugin<OpenSta
 
     private void initClient() {
         this.client = new HttpRequestClientUtil();
+    }
+
+    protected void setClient(HttpRequestClientUtil client) {
+        this.client = client;
     }
 }

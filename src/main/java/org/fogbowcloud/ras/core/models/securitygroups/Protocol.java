@@ -1,7 +1,7 @@
 package org.fogbowcloud.ras.core.models.securitygroups;
 
 public enum Protocol {
-    TCP("tcp"), UDP("udp"), ICMP("icmp");
+    TCP("tcp"), UDP("udp"), ICMP("icmp"), ANY("any");
 
     private String protocol;
 
