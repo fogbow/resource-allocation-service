@@ -17,19 +17,25 @@ import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONException;
 
+import javax.ws.rs.core.UriBuilder;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import static org.fogbowcloud.ras.core.constants.Messages.Exception.MULTIPLE_SECURITY_GROUPS_EQUALLY_NAMED;
+
 public class OpenStackSecurityGroupPlugin implements SecurityGroupPlugin<OpenStackV3Token> {
     private static final Logger LOGGER = Logger.getLogger(OpenStackSecurityGroupPlugin.class);
 
-    public static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
+    protected static final String NETWORK_NEUTRON_V2_URL_KEY = "openstack_neutron_v2_url";
     protected static final String V2_API_ENDPOINT = "/v2.0";
     protected static final String SUFFIX_ENDPOINT_SECURITY_GROUP_RULES = "/security-group-rules";
     protected static final String QUERY_PREFIX = "?";
     protected static final String VALUE_QUERY_PREFIX = "?";
     protected static final String SECURITY_GROUP_ID_PARAM = "security_group_id";
+    protected static final String NAME_PARAM_KEY = "name";
+    protected static final String SECURITY_GROUPS_ENDPOINT = "security-groups";
 
     private String networkV2APIEndpoint;
     private HttpRequestClientUtil client;
@@ -37,7 +43,7 @@ public class OpenStackSecurityGroupPlugin implements SecurityGroupPlugin<OpenSta
     public OpenStackSecurityGroupPlugin() throws FatalErrorException {
         Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
                 SystemConstants.OPENSTACK_CONF_FILE_NAME);
-        this.networkV2APIEndpoint = properties.getProperty(NETWORK_NEUTRONV2_URL_KEY) + V2_API_ENDPOINT;
+        this.networkV2APIEndpoint = properties.getProperty(NETWORK_NEUTRON_V2_URL_KEY) + V2_API_ENDPOINT;
         initClient();
     }
 
@@ -80,8 +86,28 @@ public class OpenStackSecurityGroupPlugin implements SecurityGroupPlugin<OpenSta
     }
 
     @Override
-    public String retrieveSecurityGroupId(String securityGroupName, OpenStackV3Token localUserAttributes) {
-        return null;
+    public String retrieveSecurityGroupId(String securityGroupName, OpenStackV3Token openStackV3Token) throws UnexpectedException, FogbowRasException {
+        URI uri = UriBuilder
+                .fromPath(this.networkV2APIEndpoint)
+                .path(SECURITY_GROUPS_ENDPOINT)
+                .queryParam(NAME_PARAM_KEY, securityGroupName)
+                .build();
+
+        String endpoint = uri.toString();
+        String responseStr = null;
+        try {
+            responseStr = this.client.doGetRequest(endpoint, openStackV3Token);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowRasExceptionMapper.map(e);
+        }
+
+        GetSecurityGroupsResponse getSecurityGroupsResponse = GetSecurityGroupsResponse.fromJson(responseStr);
+        List<GetSecurityGroupsResponse.SecurityGroup> securityGroups = getSecurityGroupsResponse.getSecurityGroups();
+        if (securityGroups.size() == 1) {
+            return securityGroups.get(0).getId();
+        } else {
+            throw new FogbowRasException(String.format(MULTIPLE_SECURITY_GROUPS_EQUALLY_NAMED, securityGroupName));
+        }
     }
 
     @Override
@@ -97,10 +123,10 @@ public class OpenStackSecurityGroupPlugin implements SecurityGroupPlugin<OpenSta
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }
 
-        return getSecurityGroupFromJson(responseStr);
+        return getSecurityGroupRulesFromJson(responseStr);
     }
 
-    protected List<SecurityGroupRule> getSecurityGroupFromJson(String json)
+    protected List<SecurityGroupRule> getSecurityGroupRulesFromJson(String json)
             throws FogbowRasException {
         GetSecurityGroupRulesResponse getSecurityGroupResponse = GetSecurityGroupRulesResponse.fromJson(json);
         List<GetSecurityGroupRulesResponse.SecurityGroupRule> securityGroupRules = getSecurityGroupResponse.getSecurityGroupRules();

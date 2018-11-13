@@ -52,6 +52,7 @@ public class Messages {
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
         public static final String WRONG_URI_SYNTAX = "Wrong syntax for endpoint %s.";
         public static final String INVALID_SHIBBOLETH_TOKEN = "Is not possible create the Shibboleth token: %s";
+        public static final String MULTIPLE_SECURITY_GROUPS_EQUALLY_NAMED = "There should be exactly one security group with name <%s>";
     }
 
     public static class Fatal {

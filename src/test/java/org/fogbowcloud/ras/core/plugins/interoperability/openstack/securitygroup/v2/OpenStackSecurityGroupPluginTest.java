@@ -13,7 +13,6 @@ import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.securitygroups.*;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
-import org.fogbowcloud.ras.core.plugins.interoperability.openstack.network.v2.OpenStackNetworkPlugin;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONException;
 import org.junit.After;
@@ -25,8 +24,6 @@ import org.mockito.Mockito;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -85,7 +82,7 @@ public class OpenStackSecurityGroupPluginTest {
                 .doPostRequest(Mockito.endsWith(OpenStackSecurityGroupPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES),
                         Mockito.eq(this.defaultLocalUserAttributes), Mockito.anyString());
 
-        Mockito.doReturn(null).when(this.openStackSecurityGroupPlugin).getSecurityGroupFromJson(Mockito.anyString());
+        Mockito.doReturn(null).when(this.openStackSecurityGroupPlugin).getSecurityGroupRulesFromJson(Mockito.anyString());
         SecurityGroupRule securityGroupRule = createEmptySecurityGroupRule();
 
         //exercise
@@ -170,6 +167,11 @@ public class OpenStackSecurityGroupPluginTest {
         //verify
         Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doDeleteRequest(
                 Mockito.endsWith(suffixEndpointSecurityGroup), Mockito.eq(this.defaultLocalUserAttributes));
+    }
+
+    @Test
+    public void testRetrieveSecurityGroupId() {
+        
     }
 
     private SecurityGroupRule createEmptySecurityGroupRule() {

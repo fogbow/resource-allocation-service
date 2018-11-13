@@ -55,6 +55,7 @@ public class OpenstackRestApiConstants {
         public static final String ENABLE_DHCP_KEY_JSON = "enable_dhcp";
         public static final String DNS_NAMESERVERS_KEY_JSON = "dns_nameservers";
         public static final String SECURITY_GROUP_KEY_JSON = "security_group";
+        public static final String SECURITY_GROUPS_KEY_JSON = "security_group";
         public static final String SECURITY_GROUP_RULE_KEY_JSON = "security_group_rule";
         public static final String SECURITY_GROUP_RULES_KEY_JSON = "security_group_rules";
         public static final String DIRECTION_KEY_JSON = "direction";
