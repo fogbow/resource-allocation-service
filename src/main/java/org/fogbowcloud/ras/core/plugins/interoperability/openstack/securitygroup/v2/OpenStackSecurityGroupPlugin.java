@@ -80,6 +80,11 @@ public class OpenStackSecurityGroupPlugin implements SecurityGroupPlugin<OpenSta
     }
 
     @Override
+    public String retrieveSecurityGroupId(String securityGroupName, OpenStackV3Token localUserAttributes) {
+        return null;
+    }
+
+    @Override
     public List<SecurityGroupRule> getSecurityGroupRules(String securityGroupId, OpenStackV3Token openStackV3Token)
             throws FogbowRasException, UnexpectedException {
         String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES + QUERY_PREFIX +
