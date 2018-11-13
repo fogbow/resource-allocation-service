@@ -55,6 +55,10 @@ public class ApplicationFacade {
         this.orderController = orderController;
     }
 
+    public synchronized void setSecurityGroupController(SecurityGroupController securityGroupController) {
+        this.securityGroupController = securityGroupController;
+    }
+
     // Used for testing
     protected void setBuildNumber(String fileName) {
         Properties properties = PropertiesUtil.readProperties(fileName);

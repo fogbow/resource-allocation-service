@@ -51,10 +51,10 @@ public class SecurityGroupController {
         String securityGroupName;
         switch (majorOrder.getType()) {
             case NETWORK:
-                securityGroupName = NetworkPlugin.SECURITY_GROUP_PREFIX + majorOrder.getId();
+                securityGroupName = NetworkPlugin.SECURITY_GROUP_PREFIX + majorOrder.getInstanceId();
                 break;
             case PUBLIC_IP:
-                securityGroupName = PublicIpPlugin.SECURITY_GROUP_PREFIX + majorOrder.getId();
+                securityGroupName = PublicIpPlugin.SECURITY_GROUP_PREFIX + majorOrder.getInstanceId();
                 break;
             default:
                 throw new InvalidParameterException();

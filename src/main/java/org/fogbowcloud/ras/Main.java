@@ -40,10 +40,12 @@ public class Main implements ApplicationRunner {
             String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
             AaaController aaaController = new AaaController(aaaPluginsHolder);
             OrderController orderController = new OrderController();
+            SecurityGroupController securityGroupController = new SecurityGroupController();
             ApplicationFacade applicationFacade = ApplicationFacade.getInstance();
             RemoteFacade remoteFacade = RemoteFacade.getInstance();
             applicationFacade.setAaaController(aaaController);
             applicationFacade.setOrderController(orderController);
+            applicationFacade.setSecurityGroupController(securityGroupController);
             remoteFacade.setAaaController(aaaController);
             remoteFacade.setOrderController(orderController);
 
