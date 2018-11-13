@@ -35,6 +35,7 @@ public class LocalCloudConnector implements CloudConnector {
     private final NetworkPlugin<Token> networkPlugin;
     private final VolumePlugin<Token> volumePlugin;
     private final ImagePlugin<Token> imagePlugin;
+    private final SecurityGroupPlugin<Token> securityGroupPlugin;
 
     public LocalCloudConnector(FederationToLocalMapperPlugin mapperPlugin, InteroperabilityPluginsHolder interoperabilityPluginsHolder) {
         this.mapperPlugin = mapperPlugin;
@@ -45,6 +46,7 @@ public class LocalCloudConnector implements CloudConnector {
         this.volumePlugin = interoperabilityPluginsHolder.getVolumePlugin();
         this.imagePlugin = interoperabilityPluginsHolder.getImagePlugin();
         this.publicIpPlugin = interoperabilityPluginsHolder.getPublicIpPlugin();
+        this.securityGroupPlugin = interoperabilityPluginsHolder.getSecurityGroupPlugin();
     }
 
     @Override
@@ -264,18 +266,26 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public String requestSecurityGroupRules(String orderId, SecurityGroupRule securityGroupRule, FederationUserToken federationUserToken) {
-        throw new UnsupportedOperationException();
+    public String requestSecurityGroupRule(String securityGroupName, SecurityGroupRule securityGroupRule,
+            FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException {
+        Token token = this.mapperPlugin.map(federationUserToken);
+        String securityGroupId = this.securityGroupPlugin.retrieveSecurityGroupId(securityGroupName, token);
+        return this.securityGroupPlugin.requestSecurityGroupRule(securityGroupRule, securityGroupId, token);
     }
 
     @Override
-    public List<SecurityGroupRule> getAllSecurityGroupRules(String orderId, FederationUserToken federationUserToken) {
-        throw new UnsupportedOperationException();
+    public List<SecurityGroupRule> getAllSecurityGroupRules(String securityGroupName,
+            FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException {
+        Token token = this.mapperPlugin.map(federationUserToken);
+        String securityGroupId = this.securityGroupPlugin.retrieveSecurityGroupId(securityGroupName, token);
+        return this.securityGroupPlugin.getSecurityGroupRules(securityGroupId, token);
     }
 
     @Override
-    public void deleteSecurityGroupRules(String securityGroupRuleId, FederationUserToken federationUserToken) {
-        throw new UnsupportedOperationException();
+    public void deleteSecurityGroupRule(String securityGroupRuleId, FederationUserToken federationUserToken)
+            throws UnexpectedException, FogbowRasException {
+        Token token = this.mapperPlugin.map(federationUserToken);
+        this.securityGroupPlugin.deleteSecurityGroupRule(securityGroupRuleId, token);
     }
 
     /**

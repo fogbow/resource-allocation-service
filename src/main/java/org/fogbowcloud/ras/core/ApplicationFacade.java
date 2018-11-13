@@ -174,30 +174,26 @@ public class ApplicationFacade {
     }
 
     public String createSecurityGroupRules(String orderId, SecurityGroupRule securityGroupRule,
-                                           String federationTokenValue) throws InstanceNotFoundException,
-            UnavailableProviderException, UnauthorizedRequestException, UnauthenticatedUserException,
-            InvalidParameterException {
+                String federationTokenValue) throws FogbowRasException, UnexpectedException {
         Order majorOrder = orderController.getOrder(orderId);
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
         this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.CREATE,
                 securityGroupRule.getType());
-        return securityGroupController.createSecurityGroupRules(orderId, securityGroupRule, majorOrder.getProvider(),
+        return securityGroupController.createSecurityGroupRules(majorOrder, securityGroupRule, majorOrder.getProvider(),
                 requester);
     }
 
     public List<SecurityGroupRule> getAllSecurityGroupRules(String orderId, String federationTokenValue)
-            throws InstanceNotFoundException, UnavailableProviderException, UnauthorizedRequestException,
-            UnauthenticatedUserException, InvalidParameterException {
+            throws FogbowRasException, UnexpectedException {
         Order majorOrder = orderController.getOrder(orderId);
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
         this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.GET_ALL,
                 ResourceType.SECURITY_GROUP_RULE);
-        return securityGroupController.getAllSecurityGroupRules(orderId, majorOrder.getProvider(), requester);
+        return securityGroupController.getAllSecurityGroupRules(majorOrder, requester);
     }
 
     public void deleteSecurityGroupRules(String orderId, String securityGroupRuleId, String federationTokenValue)
-            throws InstanceNotFoundException, UnavailableProviderException, UnauthorizedRequestException,
-            UnauthenticatedUserException, InvalidParameterException {
+            throws FogbowRasException, UnexpectedException {
         Order majorOrder = orderController.getOrder(orderId);
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
         this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.DELETE,

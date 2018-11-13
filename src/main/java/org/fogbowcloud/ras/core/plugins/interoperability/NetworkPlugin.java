@@ -8,6 +8,8 @@ import org.fogbowcloud.ras.core.models.tokens.Token;
 
 public interface NetworkPlugin<T extends Token> {
 
+    public static final String SECURITY_GROUP_PREFIX = "ras-sg-pn-";
+
     public String requestInstance(NetworkOrder networkOrder, T localUserAttributes)
             throws FogbowRasException, UnexpectedException;
 

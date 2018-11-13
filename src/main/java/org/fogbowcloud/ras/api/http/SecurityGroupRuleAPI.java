@@ -29,8 +29,7 @@ public class SecurityGroupRuleAPI {
             @PathVariable String orderId,
             @RequestBody SecurityGroupRule securityGroupRule,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws UnavailableProviderException, UnauthorizedRequestException, InvalidParameterException,
-            UnauthenticatedUserException, InstanceNotFoundException {
+            throws FogbowRasException, UnexpectedException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
@@ -48,8 +47,7 @@ public class SecurityGroupRuleAPI {
     public ResponseEntity<List<SecurityGroupRule>> getAllSecurityGroupRules (
             @PathVariable String orderId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws UnavailableProviderException, UnauthorizedRequestException, InvalidParameterException,
-            UnauthenticatedUserException, InstanceNotFoundException {
+            throws FogbowRasException, UnexpectedException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
@@ -67,8 +65,7 @@ public class SecurityGroupRuleAPI {
             @PathVariable String orderId,
             @PathVariable String ruleId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws UnavailableProviderException, UnauthorizedRequestException, InvalidParameterException,
-            UnauthenticatedUserException, InstanceNotFoundException {
+            throws FogbowRasException, UnexpectedException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, ORDER_CONTROLLER_TYPE, ruleId));

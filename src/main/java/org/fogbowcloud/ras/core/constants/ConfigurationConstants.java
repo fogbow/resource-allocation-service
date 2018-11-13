@@ -10,6 +10,7 @@ public class ConfigurationConstants {
     public static final String NETWORK_PLUGIN_CLASS_KEY = "network_plugin_class";
     public static final String VOLUME_PLUGIN_CLASS_KEY = "volume_plugin_class";
     public static final String IMAGE_PLUGIN_CLASS_KEY = "image_plugin_class";
+    public static final String SECURITY_GROUP_PLUGIN_CLASS_KEY = "security_group_plugin_class";
     // AAA
     public static final String TOKEN_GENERATOR_PLUGIN_CLASS = "token_generator_plugin_class";
     public static final String FEDERATION_IDENTITY_PLUGIN_CLASS_KEY = "federation_identity_plugin_class";

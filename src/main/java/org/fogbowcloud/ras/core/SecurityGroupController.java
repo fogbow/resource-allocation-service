@@ -2,9 +2,14 @@ package org.fogbowcloud.ras.core;
 
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
+import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.ras.core.plugins.interoperability.NetworkPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.PublicIpPlugin;
 
 import java.util.List;
 import java.util.Map;
@@ -22,22 +27,39 @@ public class SecurityGroupController {
         this.securityGroupRulesMap = new ConcurrentHashMap<>();
     }
 
-    public String createSecurityGroupRules(String majorOrderId, SecurityGroupRule securityGroupRule, String providerId,
-                                           FederationUserToken federationUserToken) {
+    public String createSecurityGroupRules(Order majorOrder, SecurityGroupRule securityGroupRule, String providerId,
+            FederationUserToken federationUserToken) throws FogbowRasException, UnexpectedException {
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId);
-        return cloudConnector.requestSecurityGroupRules(majorOrderId, securityGroupRule, federationUserToken);
+        String securityGroupName = getSecurityGroupName(majorOrder);
+        return cloudConnector.requestSecurityGroupRule(securityGroupName, securityGroupRule, federationUserToken);
     }
 
-    public List<SecurityGroupRule> getAllSecurityGroupRules(String majorOrderId, String providerId,
-                                                            FederationUserToken federationUserToken) {
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId);
-        return cloudConnector.getAllSecurityGroupRules(majorOrderId, federationUserToken);
+    public List<SecurityGroupRule> getAllSecurityGroupRules(Order majorOrder, FederationUserToken federationUserToken)
+            throws FogbowRasException, UnexpectedException {
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(majorOrder.getProvider());
+        String securityGroupName = getSecurityGroupName(majorOrder);
+        return cloudConnector.getAllSecurityGroupRules(securityGroupName, federationUserToken);
     }
 
     public void deleteSecurityGroupRules(String securityGroupRuleId, String providerId,
-                                         FederationUserToken federationUserToken) {
+            FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException {
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId);
-        cloudConnector.deleteSecurityGroupRules(securityGroupRuleId, federationUserToken);
+        cloudConnector.deleteSecurityGroupRule(securityGroupRuleId, federationUserToken);
+    }
+
+    private String getSecurityGroupName(Order majorOrder) throws InvalidParameterException {
+        String securityGroupName;
+        switch (majorOrder.getType()) {
+            case NETWORK:
+                securityGroupName = NetworkPlugin.SECURITY_GROUP_PREFIX + majorOrder.getId();
+                break;
+            case PUBLIC_IP:
+                securityGroupName = PublicIpPlugin.SECURITY_GROUP_PREFIX + majorOrder.getId();
+                break;
+            default:
+                throw new InvalidParameterException();
+        }
+        return securityGroupName;
     }
 
 }

@@ -79,7 +79,7 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public String requestSecurityGroupRules(String orderId, SecurityGroupRule securityGroupRule, FederationUserToken federationUserToken) {
+    public String requestSecurityGroupRule(String securityGroupName, SecurityGroupRule securityGroupRule, FederationUserToken federationUserToken) {
         throw new UnsupportedOperationException();
     }
 
@@ -89,7 +89,7 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public void deleteSecurityGroupRules(String securityGroupRuleId, FederationUserToken federationUserToken) {
+    public void deleteSecurityGroupRule(String securityGroupRuleId, FederationUserToken federationUserToken) {
         throw new UnsupportedOperationException();
     }
 }

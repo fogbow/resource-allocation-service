@@ -1,5 +1,7 @@
 package org.fogbowcloud.ras.core.cloudconnector;
 
+import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.instances.Instance;
@@ -70,22 +72,23 @@ public interface CloudConnector {
     /**
      * Gets all security group rules from a specific orderId (must be a publicIp or a network)
      *
-     * @param orderId             the Id of the order to be retrieved
+     * @param securityGroupName   the security group name to retrieve all rules
      * @param federationUserToken the attributes of the federation user
      * @return a list containing all security group rules
      */
-    List<SecurityGroupRule> getAllSecurityGroupRules(String orderId, FederationUserToken federationUserToken);
+    List<SecurityGroupRule> getAllSecurityGroupRules(String securityGroupName, FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException;
 
     /**
      * Requests a new security group rule in the cloud (either locally or remotely) using the requirements contained
      * security group rule.
      *
-     * @param orderId             the Id of the order to be retrieved
+     * @param securityGroupName   the security group name to be added a new rule
      * @param securityGroupRule   the rule to be added
      * @param federationUserToken the attributes of the federation user
      * @return the string that represents the security group rule Id
      */
-    String requestSecurityGroupRules(String orderId, SecurityGroupRule securityGroupRule, FederationUserToken federationUserToken);
+    String requestSecurityGroupRule(String securityGroupName, SecurityGroupRule securityGroupRule,
+            FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException;
 
     /**
      * Deletes in the cloud the security group rule associated to a security group.
@@ -93,5 +96,5 @@ public interface CloudConnector {
      * @param securityGroupRuleId the Id of the security group rule to be retrieved
      * @param federationUserToken the attributes of the federation user
      */
-    void deleteSecurityGroupRules(String securityGroupRuleId, FederationUserToken federationUserToken);
+    void deleteSecurityGroupRule(String securityGroupRuleId, FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException;
 }
