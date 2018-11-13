@@ -7,9 +7,11 @@ import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.instances.Instance;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
+import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class RemoteCloudConnector implements CloudConnector {
     private static final Logger LOGGER = Logger.getLogger(RemoteCloudConnector.class);
@@ -74,5 +76,20 @@ public class RemoteCloudConnector implements CloudConnector {
                 federationUserToken);
         Image image = remoteGetImageRequest.send();
         return image;
+    }
+
+    @Override
+    public String requestSecurityGroupRules(String orderId, SecurityGroupRule securityGroupRule, FederationUserToken federationUserToken) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<SecurityGroupRule> getAllSecurityGroupRules(String orderId, FederationUserToken federationUserToken) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void deleteSecurityGroupRules(String securityGroupRuleId, FederationUserToken federationUserToken) {
+        throw new UnsupportedOperationException();
     }
 }

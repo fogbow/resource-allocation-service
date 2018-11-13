@@ -14,6 +14,7 @@ import org.fogbowcloud.ras.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
 import org.fogbowcloud.ras.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
+import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 
@@ -27,6 +28,7 @@ public class ApplicationFacade {
     private static ApplicationFacade instance;
     private AaaController aaaController;
     private OrderController orderController;
+    private SecurityGroupController securityGroupController;
     private String memberId;
     private String buildNumber;
 
@@ -169,6 +171,38 @@ public class ApplicationFacade {
     public String createTokenValue(Map<String, String> userCredentials) throws UnexpectedException, FogbowRasException {
         // There is no need to authenticate the user or authorize this operation
         return this.aaaController.createTokenValue(userCredentials);
+    }
+
+    public String createSecurityGroupRules(String orderId, SecurityGroupRule securityGroupRule,
+                                           String federationTokenValue) throws InstanceNotFoundException,
+            UnavailableProviderException, UnauthorizedRequestException, UnauthenticatedUserException,
+            InvalidParameterException {
+        Order majorOrder = orderController.getOrder(orderId);
+        FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.CREATE,
+                securityGroupRule.getType());
+        return securityGroupController.createSecurityGroupRules(orderId, securityGroupRule, majorOrder.getProvider(),
+                requester);
+    }
+
+    public List<SecurityGroupRule> getAllSecurityGroupRules(String orderId, String federationTokenValue)
+            throws InstanceNotFoundException, UnavailableProviderException, UnauthorizedRequestException,
+            UnauthenticatedUserException, InvalidParameterException {
+        Order majorOrder = orderController.getOrder(orderId);
+        FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.GET_ALL,
+                ResourceType.SECURITY_GROUP_RULE);
+        return securityGroupController.getAllSecurityGroupRules(orderId, majorOrder.getProvider(), requester);
+    }
+
+    public void deleteSecurityGroupRules(String orderId, String securityGroupRuleId, String federationTokenValue)
+            throws InstanceNotFoundException, UnavailableProviderException, UnauthorizedRequestException,
+            UnauthenticatedUserException, InvalidParameterException {
+        Order majorOrder = orderController.getOrder(orderId);
+        FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.DELETE,
+                ResourceType.SECURITY_GROUP_RULE);
+        securityGroupController.deleteSecurityGroupRules(securityGroupRuleId, majorOrder.getProvider(), requester);
     }
 
     private String activateOrder(Order order, String federationTokenValue) throws FogbowRasException,

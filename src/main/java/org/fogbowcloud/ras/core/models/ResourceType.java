@@ -6,7 +6,8 @@ public enum ResourceType {
     VOLUME("volume"),
     ATTACHMENT("attachment"),
     IMAGE("image"),
-    PUBLIC_IP("publicIp");
+    PUBLIC_IP("publicIp"),
+    SECURITY_GROUP_RULE("securityGroupRule");
 
     private String value;
 
