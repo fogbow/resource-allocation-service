@@ -1,12 +1,12 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 
-import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaRequestTemplate;
+import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshallerTemplate;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "IMAGE")
-public class VolumeImageRequestTemplate extends OpenNebulaRequestTemplate {
+public class VolumeImageRequestTemplate extends OpenNebulaMarshallerTemplate {
     private String name;
     private String persistent;
     private String type;

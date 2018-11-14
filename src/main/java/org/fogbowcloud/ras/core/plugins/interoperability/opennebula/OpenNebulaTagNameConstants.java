@@ -1,6 +1,6 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula;
 
-public class OpenNebulaXmlTagsConstants {
+public class OpenNebulaTagNameConstants {
 
 		public static final String TEMPLATE = "TEMPLATE";
 		public static final String CONTEXT = "CONTEXT";

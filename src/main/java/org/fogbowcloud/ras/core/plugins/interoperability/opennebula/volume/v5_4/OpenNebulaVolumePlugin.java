@@ -17,7 +17,7 @@ import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.VolumePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
-import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants;
+import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -68,7 +68,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
                 .devicePrefix(OPENNEBULA_DATASTORE_DEFAULT_DEVICE_PREFIX)
                 .build();
 
-        String volumeTemplate = request.getVolumeImageRequestTemplate().generateTemplate();
+        String volumeTemplate = request.getVolumeImageRequestTemplate().marshalTemplate();
 
         return this.factory.allocateImage(oneClient, volumeTemplate, dataStoreId);
     }
@@ -81,7 +81,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
 
         Image oneImage = imagePool.getById(Integer.parseInt(volumeInstanceId));
 
-        int imageSize = Integer.parseInt(oneImage.xpath(OpenNebulaXmlTagsConstants.SIZE));
+        int imageSize = Integer.parseInt(oneImage.xpath(OpenNebulaTagNameConstants.SIZE));
 
         String instanceName = oneImage.getName();
 

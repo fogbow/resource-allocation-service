@@ -101,7 +101,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 				.networkId(networkId)
 				.build();
 
-		String template = request.getVirtualMachine().generateTemplate();
+		String template = request.getVirtualMachine().marshalTemplate();
 		return this.factory.allocateVirtualMachine(client, template);
 	}
 

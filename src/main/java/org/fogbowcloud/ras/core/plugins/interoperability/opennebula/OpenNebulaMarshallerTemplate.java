@@ -8,11 +8,11 @@ import javax.xml.bind.Marshaller;
 
 import org.apache.log4j.Logger;
 
-public class OpenNebulaRequestTemplate {
+public class OpenNebulaMarshallerTemplate {
 
-	private final static Logger LOGGER = Logger.getLogger(OpenNebulaRequestTemplate.class);
+	private final static Logger LOGGER = Logger.getLogger(OpenNebulaMarshallerTemplate.class);
 	
-	public String generateTemplate() {
+	public String marshalTemplate() {
 		StringWriter writer = new StringWriter();
 		String xml = null;
 	    try {

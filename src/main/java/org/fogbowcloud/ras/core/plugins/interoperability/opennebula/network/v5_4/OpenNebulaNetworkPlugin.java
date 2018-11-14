@@ -75,7 +75,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 				.rangeSize(rangeSize)
 				.build();
 		
-		String template = request.getVirtualNetwork().generateTemplate();
+		String template = request.getVirtualNetwork().marshalTemplate();
 		return this.factory.allocateVirtualNetwork(client, template);
 	}
 

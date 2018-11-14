@@ -1,17 +1,17 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.NETWORK_ID;
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.NETWORK_INTERFACE_CONNECTED;
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.NIC_ID;
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.SECURITY_GROUPS;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NETWORK_ID;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NETWORK_INTERFACE_CONNECTED;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NIC_ID;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.SECURITY_GROUPS;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaRequestTemplate;
+import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshallerTemplate;
 
 @XmlRootElement(name = NETWORK_INTERFACE_CONNECTED)
-public class NetworkInterfaceConnected extends OpenNebulaRequestTemplate {
+public class NetworkInterfaceConnected extends OpenNebulaMarshallerTemplate {
 
 	private String nicId;
 	private String networkId;
