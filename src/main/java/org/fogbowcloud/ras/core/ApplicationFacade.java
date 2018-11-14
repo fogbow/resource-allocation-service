@@ -178,8 +178,12 @@ public class ApplicationFacade {
     }
 
     public String createSecurityGroupRules(String orderId, SecurityGroupRule securityGroupRule,
-                String federationTokenValue) throws FogbowRasException, UnexpectedException {
+            String federationTokenValue, ResourceType resourceTypeFromEndpoint)
+            throws FogbowRasException, UnexpectedException {
         Order majorOrder = orderController.getOrder(orderId);
+        if (majorOrder.getType() != resourceTypeFromEndpoint) {
+            throw new InstanceNotFoundException();
+        }
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
         this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.CREATE,
                 ResourceType.SECURITY_GROUP_RULE);
@@ -187,18 +191,24 @@ public class ApplicationFacade {
                 requester);
     }
 
-    public List<SecurityGroupRule> getAllSecurityGroupRules(String orderId, String federationTokenValue)
-            throws FogbowRasException, UnexpectedException {
+    public List<SecurityGroupRule> getAllSecurityGroupRules(String orderId, String federationTokenValue,
+            ResourceType resourceTypeFromEndpoint) throws FogbowRasException, UnexpectedException {
         Order majorOrder = orderController.getOrder(orderId);
+        if (majorOrder.getType() != resourceTypeFromEndpoint) {
+            throw new InstanceNotFoundException();
+        }
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
         this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.GET_ALL,
                 ResourceType.SECURITY_GROUP_RULE);
         return securityGroupController.getAllSecurityGroupRules(majorOrder, requester);
     }
 
-    public void deleteSecurityGroupRules(String orderId, String securityGroupRuleId, String federationTokenValue)
-            throws FogbowRasException, UnexpectedException {
+    public void deleteSecurityGroupRules(String orderId, String securityGroupRuleId, String federationTokenValue,
+            ResourceType resourceTypeFromEndpoint) throws FogbowRasException, UnexpectedException {
         Order majorOrder = orderController.getOrder(orderId);
+        if (majorOrder.getType() != resourceTypeFromEndpoint) {
+            throw new InstanceNotFoundException();
+        }
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
         this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.DELETE,
                 ResourceType.SECURITY_GROUP_RULE);

@@ -27,6 +27,7 @@ public class SecurityGroupRuleAPI {
 
     @RequestMapping(value = "/{orderId}/" + SECURITY_GROUP_RULES_ENDPOINT, method = RequestMethod.POST)
     public ResponseEntity<String> createSecurityGroupRule (
+            @PathVariable String resource,
             @PathVariable String orderId,
             @RequestBody SecurityGroupRule securityGroupRule,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
@@ -35,7 +36,7 @@ public class SecurityGroupRuleAPI {
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
             String ruleId = ApplicationFacade.getInstance().createSecurityGroupRules(orderId, securityGroupRule,
-                    federationTokenValue);
+                    federationTokenValue, getResourceTypeFromEndpoint(resource));
             return new ResponseEntity<String>(ruleId, HttpStatus.CREATED);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
@@ -46,6 +47,7 @@ public class SecurityGroupRuleAPI {
 
     @RequestMapping(value = "/{orderId}/" + SECURITY_GROUP_RULES_ENDPOINT, method = RequestMethod.GET)
     public ResponseEntity<List<SecurityGroupRule>> getAllSecurityGroupRules (
+            @PathVariable String resource,
             @PathVariable String orderId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowRasException, UnexpectedException {
@@ -53,7 +55,7 @@ public class SecurityGroupRuleAPI {
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
             List<SecurityGroupRule> securityGroupRules = ApplicationFacade.getInstance().
-                    getAllSecurityGroupRules(orderId, federationTokenValue);
+                    getAllSecurityGroupRules(orderId, federationTokenValue, getResourceTypeFromEndpoint(resource));
             return new ResponseEntity<>(securityGroupRules, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
@@ -63,6 +65,7 @@ public class SecurityGroupRuleAPI {
 
     @RequestMapping(value = "/{orderId}/" + SECURITY_GROUP_RULES_ENDPOINT + "/{ruleId}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> deleteSecurityGroupRule (
+            @PathVariable String resource,
             @PathVariable String orderId,
             @PathVariable String ruleId,
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
@@ -70,7 +73,8 @@ public class SecurityGroupRuleAPI {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, ORDER_CONTROLLER_TYPE, ruleId));
-            ApplicationFacade.getInstance().deleteSecurityGroupRules(orderId, ruleId, federationTokenValue);
+            ApplicationFacade.getInstance().deleteSecurityGroupRules(orderId, ruleId, federationTokenValue,
+                    getResourceTypeFromEndpoint(resource));
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
@@ -78,4 +82,13 @@ public class SecurityGroupRuleAPI {
         }
     }
 
+    private ResourceType getResourceTypeFromEndpoint(String endpoint) {
+        if (endpoint.equals(Network.NETWORK_ENDPOINT)) {
+            return ResourceType.NETWORK;
+        } else if(endpoint.equals(PublicIp.PUBLIC_IP_ENDPOINT)) {
+            return ResourceType.PUBLIC_IP;
+        } else {
+            throw new IllegalArgumentException(Messages.Exception.INVALID_RESOURCE);
+        }
+    }
 }

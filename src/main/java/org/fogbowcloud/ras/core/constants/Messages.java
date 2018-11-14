@@ -19,6 +19,7 @@ public class Messages {
         public static final String INVALID_PARAMETER = "Invalid parameter.";
         public static final String INVALID_PORT_SIZE = "Invalid port size %s for virtual machine %s and default network %s.";
         public static final String INVALID_PROTOCOL = "Protocol <%s> is not one of %s.";
+        public static final String INVALID_RESOURCE = "Invalid resource type.";
         public static final String INVALID_TOKEN_SIGNATURE = "Invalid token signature.";
         public static final String LDAP_URL_MISSING = "No LDAP url in configuration file.";
         public static final String MISMATCHING_RESOURCE_TYPE = "Mismatching resource type.";
