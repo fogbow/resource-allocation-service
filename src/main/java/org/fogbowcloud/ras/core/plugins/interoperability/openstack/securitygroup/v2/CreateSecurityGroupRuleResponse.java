@@ -1,9 +1,11 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.openstack.securitygroup.v2;
 
 import com.google.gson.annotations.SerializedName;
+import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
 import org.fogbowcloud.ras.util.GsonHolder;
 
 import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Network.ID_KEY_JSON;
+import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Network.SECURITY_GROUP_RULE_KEY_JSON;
 
 /**
  * Documentation: https://developer.openstack.org/api-ref/network/v2/
@@ -31,6 +33,7 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.Openst
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
 public class CreateSecurityGroupRuleResponse {
+    @SerializedName(SECURITY_GROUP_RULE_KEY_JSON)
     public SecurityGroupRule securityGroupRule;
 
     public CreateSecurityGroupRuleResponse(SecurityGroupRule securityGroupRule) {

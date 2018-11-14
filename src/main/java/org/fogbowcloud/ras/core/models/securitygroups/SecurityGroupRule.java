@@ -82,10 +82,6 @@ public class SecurityGroupRule {
         this.protocol = protocol;
     }
 
-    public ResourceType getType() {
-        return ResourceType.SECURITY_GROUP_RULE;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

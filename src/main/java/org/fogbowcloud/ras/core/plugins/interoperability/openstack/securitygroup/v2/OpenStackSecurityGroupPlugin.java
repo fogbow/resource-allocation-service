@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import static org.fogbowcloud.ras.core.constants.Messages.Exception.INVALID_PROTOCOL;
 import static org.fogbowcloud.ras.core.constants.Messages.Exception.MULTIPLE_SECURITY_GROUPS_EQUALLY_NAMED;
 
 public class OpenStackSecurityGroupPlugin implements SecurityGroupPlugin<OpenStackV3Token> {
@@ -32,7 +33,7 @@ public class OpenStackSecurityGroupPlugin implements SecurityGroupPlugin<OpenSta
     protected static final String V2_API_ENDPOINT = "/v2.0";
     protected static final String SUFFIX_ENDPOINT_SECURITY_GROUP_RULES = "/security-group-rules";
     protected static final String QUERY_PREFIX = "?";
-    protected static final String VALUE_QUERY_PREFIX = "?";
+    protected static final String VALUE_QUERY_PREFIX = "=";
     protected static final String SECURITY_GROUP_ID_PARAM = "security_group_id";
     protected static final String NAME_PARAM_KEY = "name";
     protected static final String SECURITY_GROUPS_ENDPOINT = "security-groups";
@@ -138,18 +139,23 @@ public class OpenStackSecurityGroupPlugin implements SecurityGroupPlugin<OpenSta
                 EtherType etherType = securityGroupRule.getEtherType().equals("IPv6") ? EtherType.IPv6 : EtherType.IPv4;
                 Protocol protocol;
 
-                switch(securityGroupRule.getProtocol()) {
-                    case "tcp":
-                        protocol = Protocol.TCP;
-                        break;
-                    case "udp":
-                        protocol = Protocol.UDP;
-                        break;
-                    case "icmp":
-                        protocol = Protocol.ICMP;
-                        break;
-                    default:
-                        protocol = Protocol.TCP;
+                if (securityGroupRule.getProtocol() != null) {
+                    switch(securityGroupRule.getProtocol()) {
+                        case "tcp":
+                            protocol = Protocol.TCP;
+                            break;
+                        case "udp":
+                            protocol = Protocol.UDP;
+                            break;
+                        case "icmp":
+                            protocol = Protocol.ICMP;
+                            break;
+                        default:
+                            throw new FogbowRasException(String.format(INVALID_PROTOCOL, securityGroupRule.getProtocol(),
+                                    Protocol.values()));
+                    }
+                } else {
+                    protocol = Protocol.ANY;
                 }
 
                 SecurityGroupRule rule = new SecurityGroupRule(direction, securityGroupRule.getPortFrom(),

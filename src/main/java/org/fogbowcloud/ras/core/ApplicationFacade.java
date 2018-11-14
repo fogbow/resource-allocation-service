@@ -182,7 +182,7 @@ public class ApplicationFacade {
         Order majorOrder = orderController.getOrder(orderId);
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
         this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.CREATE,
-                securityGroupRule.getType());
+                ResourceType.SECURITY_GROUP_RULE);
         return securityGroupController.createSecurityGroupRules(majorOrder, securityGroupRule, majorOrder.getProvider(),
                 requester);
     }
