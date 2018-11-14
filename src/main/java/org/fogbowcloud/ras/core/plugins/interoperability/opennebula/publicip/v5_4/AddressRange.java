@@ -1,65 +1,55 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.AR;
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.AR_ID;
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.IP;
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.SIZE;
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaXmlTagsConstants.TYPE;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.AR;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.IP;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.SIZE;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TEMPLATE;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TYPE;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaRequestTemplate;
+import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshallerTemplate;
 
-@XmlRootElement(name = AR)
-public class AddressRange extends OpenNebulaRequestTemplate {
+@XmlRootElement(name = TEMPLATE)
+public class AddressRange extends OpenNebulaMarshallerTemplate {
 
-	private String arId;
-	private String type;
-	private String ip;
-	private String size;
+	private Range range;
 	
-	public AddressRange(String arId, String type, String ip, String size) {
-		this.arId = arId;
-		this.type = type;
-		this.ip = ip;
-		this.size = size;
-	}
+	public AddressRange() {}
 
-	@XmlElement(name = AR_ID)
-	public String getArId() {
-		return arId;
+	public AddressRange(String type, String ip, String size) {
+		this.range = new Range();
+		this.range.type = type;
+		this.range.ip = ip;
+		this.range.size = size;
 	}
 
-	public void setArId(String arId) {
-		this.arId = arId;
-	}
-	
-	@XmlElement(name = TYPE)
-	public String getType() {
-		return type;
-	}
-	
-	public void setType(String type) {
-		this.type = type;
-	}
-	
-	@XmlElement(name = IP)
-	public String getIp() {
-		return ip;
-	}
-	
-	public void setIp(String ip) {
-		this.ip = ip;
-	}
-	
-	@XmlElement(name = SIZE)
-	public String getSize() {
-		return size;
-	}
-	
-	public void setRangeSize(String size) {
-		this.size = size;
+	@XmlElement(name = AR)
+	public Range getRange() {
+		return range;
 	}
 
+	@XmlRootElement(name = AR)
+	public static class Range {
+		
+		private String type;
+		private String ip;
+		private String size;
+		
+		@XmlElement(name = TYPE)
+		public String getType() {
+			return type;
+		}
+		
+		@XmlElement(name = IP)
+		public String getIp() {
+			return ip;
+		}
+		
+		@XmlElement(name = SIZE)
+		public String getSize() {
+			return size;
+		}
+	}
 }
