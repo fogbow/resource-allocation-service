@@ -18,6 +18,7 @@ import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.orders.OrderState;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
+import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 
 import java.util.Map;
@@ -133,5 +134,13 @@ public class RemoteFacade {
 
     public synchronized void setOrderController(OrderController orderController) {
         this.orderController = orderController;
+    }
+
+    public String createSecurityRule(String requestingMember, String orderId, SecurityGroupRule securityGroupRule) {
+        throw new UnsupportedOperationException();
+    }
+
+    public void deleteSecurityRule(String requestingMember, String orderId, String ruleId) {
+        throw new UnsupportedOperationException();
     }
 }
