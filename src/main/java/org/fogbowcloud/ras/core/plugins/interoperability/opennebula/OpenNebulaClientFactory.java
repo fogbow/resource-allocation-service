@@ -20,6 +20,7 @@ import org.opennebula.client.group.Group;
 import org.opennebula.client.group.GroupPool;
 import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
+import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.template.TemplatePool;
 import org.opennebula.client.user.User;
 import org.opennebula.client.user.UserPool;
@@ -176,6 +177,17 @@ public class OpenNebulaClientFactory {
 		return response.getMessage();
 	}
 
+	public String allocateSecurityGroups(Client client, String template) throws InvalidParameterException {
+		OneResponse response = SecurityGroup.allocate(client, template);
+		if (response.isError()) {
+			String message = response.getErrorMessage();
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_SECURITY_GROUPS, template));
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
+			throw new InvalidParameterException();
+		}
+		return response.getMessage();
+	}
+	
 	public String allocateVirtualNetwork(Client client, String template) throws InvalidParameterException {
 		OneResponse response = VirtualNetwork.allocate(client, template);
 		if (response.isError()) {
