@@ -185,21 +185,10 @@ public class OpenNebulaClientFactory {
 			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
 			throw new InvalidParameterException();
 		}
-		return response.getMessage();
-	}
-	
-	public String allocateVirtualNetwork(Client client, String template) throws InvalidParameterException {
-		OneResponse response = VirtualNetwork.allocate(client, template);
-		if (response.isError()) {
-			String message = response.getErrorMessage();
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_NETWORK, template));
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
-			throw new InvalidParameterException();
-		}
 		VirtualNetwork.chmod(client, response.getIntMessage(), 744);
 		return response.getMessage();
 	}
-
+	
 	public String allocateVirtualMachine(Client client, String template)
 			throws QuotaExceededException, NoAvailableResourcesException, InvalidParameterException {
 		
@@ -217,9 +206,70 @@ public class OpenNebulaClientFactory {
 			}
 			throw new InvalidParameterException(message);
 		}
+		VirtualMachine.chmod(client, response.getIntMessage(), 744);
 		return response.getMessage();
 	}
 	
+	public String allocateVirtualNetwork(Client client, String template) throws InvalidParameterException {
+		OneResponse response = VirtualNetwork.allocate(client, template);
+		if (response.isError()) {
+			String message = response.getErrorMessage();
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_NETWORK, template));
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
+			throw new InvalidParameterException();
+		}
+		VirtualNetwork.chmod(client, response.getIntMessage(), 744);
+		return response.getMessage();
+	}
+
+	public String addAddressRangeToVirtualNetwork(Client client, String instanceId, String template)
+			throws InvalidParameterException, UnauthorizedRequestException, InstanceNotFoundException {
+
+		VirtualNetwork virtualNetwork = createVirtualNetwork(client, instanceId);
+		OneResponse response = virtualNetwork.addAr(template);
+		if (response.isError()) {
+			String message = response.getErrorMessage();
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_AR, template));
+			throw new InvalidParameterException(message);
+		}
+		VirtualNetwork.chmod(client, response.getIntMessage(), 744);
+		String addressRangeId = getContentFromArId(virtualNetwork);
+		return addressRangeId;
+	}
+
+	public String attachNicToVirtualMachine(Client client, String instanceId, String template)
+			throws InvalidParameterException, UnauthorizedRequestException, InstanceNotFoundException {
+		
+		VirtualMachine virtualMachine = createVirtualMachine(client, instanceId);
+		OneResponse response = virtualMachine.nicAttach(template);
+		if (response.isError()) {
+			String message = response.getErrorMessage();
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_NIC, template));
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
+			throw new InvalidParameterException();
+		}
+		VirtualMachine.chmod(client, response.getIntMessage(), 744);
+		String nicId = getContentFromNicId(virtualMachine);
+		return nicId;
+	}
+
+	private String getContentFromArId(VirtualNetwork virtualNetwork) {
+		OneResponse response = virtualNetwork.info();
+		String xml = response.getMessage();
+		OpenNebulaUnmarshallerContents unmarshallerContents = new OpenNebulaUnmarshallerContents(xml);
+		String content = unmarshallerContents.unmarshalLastItemOf(OpenNebulaTagNameConstants.AR_ID);
+		return content;
+	}
+	
+	private String getContentFromNicId(VirtualMachine virtualMachine) {
+		OneResponse response = virtualMachine.info();
+		String xml = response.getMessage();
+		OpenNebulaUnmarshallerContents unmarshallerContents = new OpenNebulaUnmarshallerContents(xml);
+		String content = unmarshallerContents.unmarshalLastItemOf(OpenNebulaTagNameConstants.NIC_ID);
+		return content;
+	}
+
 	private String findUserByName(UserPool userpool, String username) throws UnauthorizedRequestException {
 		for (User user : userpool) {
 			if (username.equals(user.getName())){
