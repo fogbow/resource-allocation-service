@@ -266,19 +266,17 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public String requestSecurityGroupRule(String securityGroupName, SecurityGroupRule securityGroupRule,
-            FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException {
+    public List<SecurityGroupRule> getAllSecurityGroupRules(Order majorOrder, FederationUserToken federationUserToken)
+            throws UnexpectedException, FogbowRasException {
         Token token = this.mapperPlugin.map(federationUserToken);
-        String securityGroupId = this.securityGroupPlugin.retrieveSecurityGroupId(securityGroupName, token);
-        return this.securityGroupPlugin.requestSecurityGroupRule(securityGroupRule, securityGroupId, token);
+        return this.securityGroupPlugin.getSecurityGroupRules(majorOrder, token);
     }
 
     @Override
-    public List<SecurityGroupRule> getAllSecurityGroupRules(String securityGroupName,
-            FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException {
+    public String requestSecurityGroupRule(Order majorOrder, SecurityGroupRule securityGroupRule,
+                FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException {
         Token token = this.mapperPlugin.map(federationUserToken);
-        String securityGroupId = this.securityGroupPlugin.retrieveSecurityGroupId(securityGroupName, token);
-        return this.securityGroupPlugin.getSecurityGroupRules(securityGroupId, token);
+        return this.securityGroupPlugin.requestSecurityGroupRule(securityGroupRule, majorOrder, token);
     }
 
     @Override

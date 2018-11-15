@@ -9,8 +9,11 @@ import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.securitygroups.*;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
+import org.fogbowcloud.ras.core.plugins.interoperability.NetworkPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.PublicIpPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.SecurityGroupPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.util.PropertiesUtil;
@@ -49,45 +52,95 @@ public class OpenStackSecurityGroupPlugin implements SecurityGroupPlugin<OpenSta
     }
 
     @Override
-    public String requestSecurityGroupRule(SecurityGroupRule securityGroupRule, String securityGroupId,
-                                           OpenStackV3Token openStackV3Token)
-            throws FogbowRasException, UnexpectedException {
-        CreateSecurityGroupRuleResponse createSecurityGroupRuleResponse = null;
+    public String requestSecurityGroupRule(SecurityGroupRule securityGroupRule, Order majorOrder,
+                OpenStackV3Token openStackV3Token) throws FogbowRasException, UnexpectedException {
+            CreateSecurityGroupRuleResponse createSecurityGroupRuleResponse = null;
 
-        String cidr = securityGroupRule.getCidr();
-        int portFrom = securityGroupRule.getPortFrom();
-        int portTo = securityGroupRule.getPortTo();
-        String direction = securityGroupRule.getDirection().toString();
-        String etherType = securityGroupRule.getEtherType().toString();
-        String protocol = securityGroupRule.getProtocol().toString();
+            String cidr = securityGroupRule.getCidr();
+            int portFrom = securityGroupRule.getPortFrom();
+            int portTo = securityGroupRule.getPortTo();
+            String direction = securityGroupRule.getDirection().toString();
+            String etherType = securityGroupRule.getEtherType().toString();
+            String protocol = securityGroupRule.getProtocol().toString();
+
+            String securityGroupName = retrieveSecurityGroupName(majorOrder);
+            String securityGroupId = retrieveSecurityGroupId(securityGroupName, openStackV3Token);
+
+            try {
+                CreateSecurityGroupRuleRequest createSecurityGroupRuleRequest = new CreateSecurityGroupRuleRequest.Builder()
+                        .securityGroupId(securityGroupId)
+                        .remoteIpPrefix(cidr)
+                        .portRangeMin(portFrom)
+                        .portRangeMax(portTo)
+                        .direction(direction)
+                        .etherType(etherType)
+                        .protocol(protocol)
+                        .build();
+
+                String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES;
+                String response = this.client.doPostRequest(endpoint, openStackV3Token, createSecurityGroupRuleRequest.toJson());
+                createSecurityGroupRuleResponse = CreateSecurityGroupRuleResponse.fromJson(response);
+            } catch (JSONException e) {
+                String message = Messages.Error.UNABLE_TO_GENERATE_JSON;
+                LOGGER.error(message, e);
+                throw new InvalidParameterException(message, e);
+            } catch (HttpResponseException e) {
+                OpenStackHttpToFogbowRasExceptionMapper.map(e);
+            }
+
+            return createSecurityGroupRuleResponse.getId();
+    }
+
+    @Override
+    public List<SecurityGroupRule> getSecurityGroupRules(Order majorOrder, OpenStackV3Token openStackV3Token)
+            throws FogbowRasException, UnexpectedException {
+        String securityGroupName = retrieveSecurityGroupName(majorOrder);
+        String securityGroupId = retrieveSecurityGroupId(securityGroupName, openStackV3Token);
+
+        String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES + QUERY_PREFIX +
+                SECURITY_GROUP_ID_PARAM + VALUE_QUERY_PREFIX + securityGroupId;
+        String responseStr = null;
 
         try {
-            CreateSecurityGroupRuleRequest createSecurityGroupRuleRequest = new CreateSecurityGroupRuleRequest.Builder()
-                    .securityGroupId(securityGroupId)
-                    .remoteIpPrefix(cidr)
-                    .portRangeMin(portFrom)
-                    .portRangeMax(portTo)
-                    .direction(direction)
-                    .etherType(etherType)
-                    .protocol(protocol)
-                    .build();
-
-            String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES;
-            String response = this.client.doPostRequest(endpoint, openStackV3Token, createSecurityGroupRuleRequest.toJson());
-            createSecurityGroupRuleResponse = CreateSecurityGroupRuleResponse.fromJson(response);
-        } catch (JSONException e) {
-            String message = Messages.Error.UNABLE_TO_GENERATE_JSON;
-            LOGGER.error(message, e);
-            throw new InvalidParameterException(message, e);
+            responseStr = this.client.doGetRequest(endpoint, openStackV3Token);
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }
 
-        return createSecurityGroupRuleResponse.getId();
+        return getSecurityGroupRulesFromJson(responseStr);
     }
 
     @Override
-    public String retrieveSecurityGroupId(String securityGroupName, OpenStackV3Token openStackV3Token) throws UnexpectedException, FogbowRasException {
+    public void deleteSecurityGroupRule(String securityGroupRuleId, OpenStackV3Token openStackV3Token)
+            throws FogbowRasException, UnexpectedException {
+        String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES + "/" + securityGroupRuleId;
+
+        try {
+            this.client.doDeleteRequest(endpoint, openStackV3Token);
+        } catch (HttpResponseException e) {
+            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, securityGroupRuleId));
+            OpenStackHttpToFogbowRasExceptionMapper.map(e);
+        }
+
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, securityGroupRuleId, openStackV3Token.getTokenValue()));
+    }
+
+    private String retrieveSecurityGroupName(Order majorOrder) throws InvalidParameterException {
+        String securityGroupName;
+        switch (majorOrder.getType()) {
+            case NETWORK:
+                securityGroupName = NetworkPlugin.SECURITY_GROUP_PREFIX + majorOrder.getInstanceId();
+                break;
+            case PUBLIC_IP:
+                securityGroupName = PublicIpPlugin.SECURITY_GROUP_PREFIX + majorOrder.getInstanceId();
+                break;
+            default:
+                throw new InvalidParameterException();
+        }
+        return securityGroupName;
+    }
+
+    private String retrieveSecurityGroupId(String securityGroupName, OpenStackV3Token openStackV3Token) throws UnexpectedException, FogbowRasException {
         URI uri = UriBuilder
                 .fromPath(this.networkV2APIEndpoint)
                 .path(SECURITY_GROUPS_ENDPOINT)
@@ -109,22 +162,6 @@ public class OpenStackSecurityGroupPlugin implements SecurityGroupPlugin<OpenSta
         } else {
             throw new FogbowRasException(String.format(MULTIPLE_SECURITY_GROUPS_EQUALLY_NAMED, securityGroupName));
         }
-    }
-
-    @Override
-    public List<SecurityGroupRule> getSecurityGroupRules(String securityGroupId, OpenStackV3Token openStackV3Token)
-            throws FogbowRasException, UnexpectedException {
-        String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES + QUERY_PREFIX +
-                SECURITY_GROUP_ID_PARAM + VALUE_QUERY_PREFIX + securityGroupId;
-        String responseStr = null;
-
-        try {
-            responseStr = this.client.doGetRequest(endpoint, openStackV3Token);
-        } catch (HttpResponseException e) {
-            OpenStackHttpToFogbowRasExceptionMapper.map(e);
-        }
-
-        return getSecurityGroupRulesFromJson(responseStr);
     }
 
     protected List<SecurityGroupRule> getSecurityGroupRulesFromJson(String json)
@@ -170,21 +207,6 @@ public class OpenStackSecurityGroupPlugin implements SecurityGroupPlugin<OpenSta
         }
 
         return rules;
-    }
-
-    @Override
-    public void deleteSecurityGroupRule(String securityGroupRuleId, OpenStackV3Token openStackV3Token)
-            throws FogbowRasException, UnexpectedException {
-        String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES + "/" + securityGroupRuleId;
-
-        try {
-            this.client.doDeleteRequest(endpoint, openStackV3Token);
-        } catch (HttpResponseException e) {
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, securityGroupRuleId));
-            OpenStackHttpToFogbowRasExceptionMapper.map(e);
-        }
-
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, securityGroupRuleId, openStackV3Token.getTokenValue()));
     }
 
     private void initClient() {

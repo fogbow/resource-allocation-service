@@ -13,12 +13,10 @@ import java.util.List;
 
 public interface SecurityGroupPlugin<T extends Token> {
 
-    public String requestSecurityGroupRule(SecurityGroupRule securityGroupRule, String securityGroupId, T localUserAttributes)
+    public String requestSecurityGroupRule(SecurityGroupRule securityGroupRule, Order majorOrder, T localUserAttributes)
             throws FogbowRasException, UnexpectedException;
 
-    public String retrieveSecurityGroupId(String securityGroupName, T localUserAttributes) throws UnexpectedException, FogbowRasException;
-
-    public List<SecurityGroupRule> getSecurityGroupRules(String securityGroupId, T localUserAttributes)
+    public List<SecurityGroupRule> getSecurityGroupRules(Order majorOrder, T localUserAttributes)
             throws FogbowRasException, UnexpectedException;
 
     public void deleteSecurityGroupRule(String securityGroupRuleId, T localUserAttributes)

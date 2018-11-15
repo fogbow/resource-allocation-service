@@ -72,22 +72,22 @@ public interface CloudConnector {
     /**
      * Gets all security group rules from a specific orderId (must be a publicIp or a network)
      *
-     * @param securityGroupName   the security group name to retrieve all rules
+     * @param majorOrder          the order that this security group is attached to
      * @param federationUserToken the attributes of the federation user
      * @return a list containing all security group rules
      */
-    List<SecurityGroupRule> getAllSecurityGroupRules(String securityGroupName, FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException;
+    List<SecurityGroupRule> getAllSecurityGroupRules(Order majorOrder, FederationUserToken federationUserToken) throws Exception;
 
     /**
      * Requests a new security group rule in the cloud (either locally or remotely) using the requirements contained
      * security group rule.
      *
-     * @param securityGroupName   the security group name to be added a new rule
+     * @param majorOrder          the order that this security group is attached to
      * @param securityGroupRule   the rule to be added
      * @param federationUserToken the attributes of the federation user
      * @return the string that represents the security group rule Id
      */
-    String requestSecurityGroupRule(String securityGroupName, SecurityGroupRule securityGroupRule,
+    String requestSecurityGroupRule(Order majorOrder, SecurityGroupRule securityGroupRule,
             FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException;
 
     /**
@@ -96,5 +96,5 @@ public interface CloudConnector {
      * @param securityGroupRuleId the Id of the security group rule to be retrieved
      * @param federationUserToken the attributes of the federation user
      */
-    void deleteSecurityGroupRule(String securityGroupRuleId, FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException;
+    void deleteSecurityGroupRule(String securityGroupRuleId, FederationUserToken federationUserToken) throws Exception;
 }

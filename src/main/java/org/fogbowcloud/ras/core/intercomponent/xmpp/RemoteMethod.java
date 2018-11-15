@@ -8,9 +8,9 @@ public enum RemoteMethod {
     REMOTE_GET_ORDER("remoteGetOrder"),
     REMOTE_GET_USER_QUOTA("remoteGetUserQuota"),
     REMOTE_NOTIFY_EVENT("remoteNotifyEvent"),
-    REMOTE_CREATE_SECURITY_GROUP("remoteCreateSecurityGroup"),
-    REMOTE_GET_SECURITY_GROUP("remoteGetSecurityGroup"),
-    REMOTE_DELETE_SECURITY_GROUP("remoteDeleteSecurityGroup");
+    REMOTE_CREATE_SECURITY_RULE("remoteCreateSecurityRule"),
+    REMOTE_GET_ALL_SECURITY_RULES("remoteGetAllSecurityRules"),
+    REMOTE_DELETE_SECURITY_RULE("remoteDeleteSecurityRule");
 
     private final String method;
 

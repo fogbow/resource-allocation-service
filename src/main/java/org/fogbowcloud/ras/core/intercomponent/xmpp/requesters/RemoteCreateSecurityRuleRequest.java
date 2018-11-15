@@ -1,18 +1,19 @@
-package org.fogbowcloud.ras.core.intercomponent.xmpp.handlers;
+package org.fogbowcloud.ras.core.intercomponent.xmpp.requesters;
 
+import com.google.gson.Gson;
 import org.apache.log4j.Logger;
 import org.dom4j.Element;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
-import org.fogbowcloud.ras.core.intercomponent.xmpp.requesters.RemoteRequest;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.securitygroups.Direction;
 import org.fogbowcloud.ras.core.models.securitygroups.EtherType;
 import org.fogbowcloud.ras.core.models.securitygroups.Protocol;
 import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
+import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.util.GsonHolder;
 import org.xmpp.packet.IQ;
 
@@ -20,31 +21,39 @@ public class RemoteCreateSecurityRuleRequest implements RemoteRequest<Void> {
     private static final Logger LOGGER = Logger.getLogger(RemoteCreateSecurityRuleRequest.class);
 
     private SecurityGroupRule securityGroupRule;
-    private Order majorOrder;
+    private FederationUserToken federationUserToken;
+    private String provider;
+    private String orderId;
 
-    public RemoteCreateSecurityRuleRequest(SecurityGroupRule securityGroupRule, Order majorOrder) {
+    public RemoteCreateSecurityRuleRequest(SecurityGroupRule securityGroupRule, FederationUserToken federationUserToken,
+                                           String provider, String orderId) {
         this.securityGroupRule = securityGroupRule;
-        this.majorOrder = majorOrder;
+        this.federationUserToken = federationUserToken;
+        this.provider = provider;
+        this.orderId = orderId;
     }
 
     @Override
     public Void send() throws Exception {
-        IQ iq = marshal(this.securityGroupRule, this.majorOrder);
+        IQ iq = marshal();
 
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
-        XmppErrorConditionToExceptionTranslator.handleError(response, this.majorOrder.getProvider());
+        XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
         return null;
     }
 
-    private IQ marshal(SecurityGroupRule securityGroupRule, Order majorOrder) {
+    private IQ marshal() {
         IQ iq = new IQ(IQ.Type.set);
-        iq.setTo(majorOrder.getProvider());
+        iq.setTo(provider);
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
-                RemoteMethod.REMOTE_CREATE_SECURITY_GROUP.toString());
+                RemoteMethod.REMOTE_CREATE_SECURITY_RULE.toString());
 
         Element orderIdElement = queryElement.addElement(IqElement.ORDER_ID.toString());
-        orderIdElement.setText(majorOrder.getId());
+        orderIdElement.setText(orderId);
+
+        Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
+        userElement.setText(new Gson().toJson(federationUserToken));
 
         Element securityRuleElement = queryElement.addElement(IqElement.SECURITY_RULE.toString());
         securityRuleElement.setText(GsonHolder.getInstance().toJson(securityGroupRule));
@@ -63,6 +72,6 @@ public class RemoteCreateSecurityRuleRequest implements RemoteRequest<Void> {
         Order o = new NetworkOrder();
         o.setProvider("ufrgs");
 
-        System.out.println(new RemoteCreateSecurityRuleRequest(s, o).marshal(s, o));
+//        System.out.println(new RemoteCreateSecurityRuleRequest(s, o, new FederationUserToken()).marshal());
     }
 }

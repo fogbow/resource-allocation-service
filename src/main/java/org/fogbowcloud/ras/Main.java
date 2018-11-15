@@ -48,6 +48,7 @@ public class Main implements ApplicationRunner {
             applicationFacade.setSecurityGroupController(securityGroupController);
             remoteFacade.setAaaController(aaaController);
             remoteFacade.setOrderController(orderController);
+            remoteFacade.setSecurityGroupController(securityGroupController);
 
             // Setting up xmpp packet sender and cloud connector's factory
             String xmppJid = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_JID_KEY);

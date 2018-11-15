@@ -187,8 +187,7 @@ public class ApplicationFacade {
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
         this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.CREATE,
                 ResourceType.SECURITY_GROUP_RULE);
-        return securityGroupController.createSecurityGroupRules(majorOrder, securityGroupRule, majorOrder.getProvider(),
-                requester);
+        return securityGroupController.createSecurityGroupRules(majorOrder, securityGroupRule, requester);
     }
 
     public List<SecurityGroupRule> getAllSecurityGroupRules(String orderId, String federationTokenValue,
