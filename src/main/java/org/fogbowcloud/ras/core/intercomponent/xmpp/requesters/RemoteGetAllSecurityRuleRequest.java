@@ -39,7 +39,7 @@ public class RemoteGetAllSecurityRuleRequest implements RemoteRequest<List<Secur
     }
 
     private IQ marshal() {
-        IQ iq = new IQ(IQ.Type.set);
+        IQ iq = new IQ(IQ.Type.get);
         iq.setTo(provider);
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
