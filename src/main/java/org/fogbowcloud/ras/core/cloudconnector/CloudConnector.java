@@ -88,7 +88,7 @@ public interface CloudConnector {
      * @return the string that represents the security group rule Id
      */
     String requestSecurityGroupRule(Order majorOrder, SecurityGroupRule securityGroupRule,
-            FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException;
+            FederationUserToken federationUserToken) throws Exception;
 
     /**
      * Deletes in the cloud the security group rule associated to a security group.
@@ -96,5 +96,6 @@ public interface CloudConnector {
      * @param securityGroupRuleId the Id of the security group rule to be retrieved
      * @param federationUserToken the attributes of the federation user
      */
-    void deleteSecurityGroupRule(String securityGroupRuleId, FederationUserToken federationUserToken) throws Exception;
+    void deleteSecurityGroupRule(String securityGroupRuleId, FederationUserToken federationUserToken)
+            throws Exception;
 }

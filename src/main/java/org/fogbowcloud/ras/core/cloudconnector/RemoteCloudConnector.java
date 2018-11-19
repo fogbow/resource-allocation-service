@@ -81,28 +81,26 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public List<SecurityGroupRule> getAllSecurityGroupRules(String securityGroupName,
-            FederationUserToken federationUserToken) throws Exception {
+    public List<SecurityGroupRule> getAllSecurityGroupRules(Order majorOrder, FederationUserToken federationUserToken)
+            throws Exception {
         RemoteGetAllSecurityRuleRequest remoteGetAllSecurityRuleRequest =
-                new RemoteGetAllSecurityRuleRequest(this.destinationMember, "");
+                new RemoteGetAllSecurityRuleRequest(this.destinationMember, majorOrder, federationUserToken);
         return remoteGetAllSecurityRuleRequest.send();
     }
 
     @Override
-    public String requestSecurityGroupRule(String securityGroupName, SecurityGroupRule securityGroupRule,
-            FederationUserToken federationUserToken) throws Exception {
+    public String requestSecurityGroupRule(Order majorOrder, SecurityGroupRule securityGroupRule,
+                                           FederationUserToken federationUserToken) throws Exception {
         RemoteCreateSecurityRuleRequest remoteCreateSecurityRuleRequest =
-                new RemoteCreateSecurityRuleRequest(securityGroupRule, federationUserToken);
+                new RemoteCreateSecurityRuleRequest(securityGroupRule, federationUserToken, this.destinationMember, majorOrder);
         remoteCreateSecurityRuleRequest.send();
         return null;
     }
 
     @Override
-    public void deleteSecurityGroupRule(String securityGroupRuleId, FederationUserToken federationUserToken)
-            throws Exception {
+    public void deleteSecurityGroupRule(String securityGroupRuleId, FederationUserToken federationUserToken) throws Exception {
         RemoteDeleteSecurityRuleRequest remoteDeleteSecurityRuleRequest =
                 new RemoteDeleteSecurityRuleRequest(securityGroupRuleId, this.destinationMember, federationUserToken);
         remoteDeleteSecurityRuleRequest.send();
     }
-
 }

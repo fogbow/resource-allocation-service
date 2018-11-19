@@ -179,7 +179,7 @@ public class ApplicationFacade {
 
     public String createSecurityGroupRules(String orderId, SecurityGroupRule securityGroupRule,
             String federationTokenValue, ResourceType resourceTypeFromEndpoint)
-            throws FogbowRasException, UnexpectedException {
+            throws Exception {
         Order majorOrder = orderController.getOrder(orderId);
         if (majorOrder.getType() != resourceTypeFromEndpoint) {
             throw new InstanceNotFoundException();
@@ -191,7 +191,7 @@ public class ApplicationFacade {
     }
 
     public List<SecurityGroupRule> getAllSecurityGroupRules(String orderId, String federationTokenValue,
-            ResourceType resourceTypeFromEndpoint) throws FogbowRasException, UnexpectedException {
+            ResourceType resourceTypeFromEndpoint) throws Exception {
         Order majorOrder = orderController.getOrder(orderId);
         if (majorOrder.getType() != resourceTypeFromEndpoint) {
             throw new InstanceNotFoundException();
@@ -203,7 +203,7 @@ public class ApplicationFacade {
     }
 
     public void deleteSecurityGroupRules(String orderId, String securityGroupRuleId, String federationTokenValue,
-            ResourceType resourceTypeFromEndpoint) throws FogbowRasException, UnexpectedException {
+            ResourceType resourceTypeFromEndpoint) throws Exception {
         Order majorOrder = orderController.getOrder(orderId);
         if (majorOrder.getType() != resourceTypeFromEndpoint) {
             throw new InstanceNotFoundException();

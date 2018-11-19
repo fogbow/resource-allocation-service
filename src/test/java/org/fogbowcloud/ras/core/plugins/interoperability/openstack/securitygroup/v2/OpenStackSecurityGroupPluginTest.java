@@ -10,7 +10,11 @@ import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
+import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
+import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 import org.fogbowcloud.ras.core.models.securitygroups.*;
+import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
@@ -41,6 +45,11 @@ public class OpenStackSecurityGroupPluginTest {
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_NAME = "fake-name";
     private static final String FAKE_PROJECT_ID = "fake-project-id";
+    private static final String FAKE_FEDERATION_TOKEN_VALUE = "federation-token-value";
+    private static final String FAKE_USER_NAME = "fake-user-name";
+    private static final String FAKE_MEMBER_ID = "fake-member-id";
+    private static final String FAKE_GATEWAY = "fake-gateway";
+    private static final String FAKE_ADDRESS = "fake-address";
 
     private static final String SUFFIX_ENDPOINT_SECURITY_GROUP_RULES = OpenStackSecurityGroupPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES  +
             OpenStackSecurityGroupPlugin.QUERY_PREFIX;
@@ -73,7 +82,7 @@ public class OpenStackSecurityGroupPluginTest {
 
     //test case: The http client must make only 1 request
     @Test
-    public void testRequestSecurityGroupRule() throws IOException, FogbowRasException, UnexpectedException {
+    public void testRequestSecurityGroupRule() throws Exception {
         //set up
         // post network
         String createSecurityGroupRuleResponse = new CreateSecurityGroupRuleResponse(
@@ -82,11 +91,16 @@ public class OpenStackSecurityGroupPluginTest {
                 .doPostRequest(Mockito.endsWith(OpenStackSecurityGroupPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES),
                         Mockito.eq(this.defaultLocalUserAttributes), Mockito.anyString());
 
-        Mockito.doReturn(null).when(this.openStackSecurityGroupPlugin).getSecurityGroupRulesFromJson(Mockito.anyString());
+        Mockito.doReturn(null).when(this.openStackSecurityGroupPlugin).
+                getSecurityGroupRulesFromJson(Mockito.anyString());
+        Mockito.doReturn(SECURITY_GROUP_ID).when(this.openStackSecurityGroupPlugin).
+                retrieveSecurityGroupId(Mockito.anyString(), Mockito.any(OpenStackV3Token.class));
         SecurityGroupRule securityGroupRule = createEmptySecurityGroupRule();
+        NetworkOrder order = createNetworkOrder();
 
         //exercise
-        this.openStackSecurityGroupPlugin.requestSecurityGroupRule(securityGroupRule, SECURITY_GROUP_ID, this.defaultLocalUserAttributes);
+        this.openStackSecurityGroupPlugin.requestSecurityGroupRule(securityGroupRule, order,
+                this.defaultLocalUserAttributes);
 
         //verify
         Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doPostRequest(
@@ -96,15 +110,16 @@ public class OpenStackSecurityGroupPluginTest {
 
     //test case: Tests if an exception will be thrown in case that openstack raise an error in security group rule request.
     @Test
-    public void testRequestSecurityGroupRuleNetworkError() throws IOException, UnexpectedException {
+    public void testRequestSecurityGroupRuleNetworkError() throws Exception {
         //set up
         HttpResponse httpResponsePostNetwork = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
         Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork);
         SecurityGroupRule securityGroupRule = createEmptySecurityGroupRule();
+        NetworkOrder order = createNetworkOrder();
 
         //exercise
         try {
-            this.openStackSecurityGroupPlugin.requestSecurityGroupRule(securityGroupRule, SECURITY_GROUP_ID,
+            this.openStackSecurityGroupPlugin.requestSecurityGroupRule(securityGroupRule, order,
                     this.defaultLocalUserAttributes);
             Assert.fail();
         } catch (FogbowRasException e) {
@@ -119,7 +134,7 @@ public class OpenStackSecurityGroupPluginTest {
 
     //test case: Tests get security group rule from json response
     @Test
-    public void testGetSecurityGroupRuleFromJson() throws JSONException, IOException, FogbowRasException, UnexpectedException {
+    public void testGetSecurityGroupRuleFromJson() throws Exception {
         //set up
         String id = "securityGroupRuleId";
         String cidr = "0.0.0.0";
@@ -128,6 +143,7 @@ public class OpenStackSecurityGroupPluginTest {
         String direction = "egress";
         String etherType = "IPv4";
         String protocol = "tcp";
+        NetworkOrder order = createNetworkOrder();
 
         // Generating security group rule response string
         JSONObject securityGroupRuleContentJsonObject = generateJsonResponseForSecurityGroupRules(id, cidr, portFrom, portTo,
@@ -135,9 +151,11 @@ public class OpenStackSecurityGroupPluginTest {
 
         HttpResponse httpResponseGetSecurityGroups = createHttpResponse(securityGroupRuleContentJsonObject.toString(), HttpStatus.SC_OK);
         Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponseGetSecurityGroups);
+        Mockito.doReturn(SECURITY_GROUP_ID).when(this.openStackSecurityGroupPlugin).
+                retrieveSecurityGroupId(Mockito.anyString(), Mockito.any(OpenStackV3Token.class));
 
         //exercise
-        List<SecurityGroupRule> securityGroups = this.openStackSecurityGroupPlugin.getSecurityGroupRules(SECURITY_GROUP_ID,
+        List<SecurityGroupRule> securityGroups = this.openStackSecurityGroupPlugin.getSecurityGroupRules(order,
                 this.defaultLocalUserAttributes);
         SecurityGroupRule securityGroupRule = securityGroups.get(0);
 
@@ -190,6 +208,18 @@ public class OpenStackSecurityGroupPluginTest {
         Mockito.when(httpResponse.getStatusLine()).thenReturn(statusLine);
 
         return httpResponse;
+    }
+
+    private NetworkOrder createNetworkOrder() throws Exception {
+        FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
+                FAKE_FEDERATION_TOKEN_VALUE,
+                FAKE_USER_ID, FAKE_USER_NAME);
+        NetworkOrder order = new NetworkOrder(federationUserToken, FAKE_MEMBER_ID, FAKE_MEMBER_ID,
+                FAKE_NAME, FAKE_GATEWAY, FAKE_ADDRESS, NetworkAllocationMode.STATIC);
+
+        NetworkInstance networtkInstanceExcepted = new NetworkInstance(order.getId());
+        order.setInstanceId(networtkInstanceExcepted.getId());
+        return order;
     }
 
     private JSONObject generateJsonResponseForSecurityGroupRules(String securityGroupId, String cidr, int portFrom, int portTo,

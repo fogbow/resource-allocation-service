@@ -140,7 +140,7 @@ public class OpenStackSecurityGroupPlugin implements SecurityGroupPlugin<OpenSta
         return securityGroupName;
     }
 
-    private String retrieveSecurityGroupId(String securityGroupName, OpenStackV3Token openStackV3Token) throws UnexpectedException, FogbowRasException {
+    protected String retrieveSecurityGroupId(String securityGroupName, OpenStackV3Token openStackV3Token) throws UnexpectedException, FogbowRasException {
         URI uri = UriBuilder
                 .fromPath(this.networkV2APIEndpoint)
                 .path(SECURITY_GROUPS_ENDPOINT)

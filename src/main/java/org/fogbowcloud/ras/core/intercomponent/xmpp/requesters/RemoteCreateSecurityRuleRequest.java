@@ -23,14 +23,14 @@ public class RemoteCreateSecurityRuleRequest implements RemoteRequest<Void> {
     private SecurityGroupRule securityGroupRule;
     private FederationUserToken federationUserToken;
     private String provider;
-    private String orderId;
+    private Order majorOrder;
 
     public RemoteCreateSecurityRuleRequest(SecurityGroupRule securityGroupRule, FederationUserToken federationUserToken,
-                                           String provider, String orderId) {
+                                           String provider, Order majorOrder) {
         this.securityGroupRule = securityGroupRule;
         this.federationUserToken = federationUserToken;
         this.provider = provider;
-        this.orderId = orderId;
+        this.majorOrder = majorOrder;
     }
 
     @Override
@@ -50,7 +50,7 @@ public class RemoteCreateSecurityRuleRequest implements RemoteRequest<Void> {
                 RemoteMethod.REMOTE_CREATE_SECURITY_RULE.toString());
 
         Element orderIdElement = queryElement.addElement(IqElement.ORDER_ID.toString());
-        orderIdElement.setText(orderId);
+        orderIdElement.setText(majorOrder.getId());
 
         Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
         userElement.setText(new Gson().toJson(federationUserToken));

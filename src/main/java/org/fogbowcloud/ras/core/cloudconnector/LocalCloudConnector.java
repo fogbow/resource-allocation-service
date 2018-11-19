@@ -280,8 +280,7 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public void deleteSecurityGroupRule(String securityGroupRuleId, FederationUserToken federationUserToken)
-            throws UnexpectedException, FogbowRasException {
+    public void deleteSecurityGroupRule(String securityGroupRuleId, FederationUserToken federationUserToken) throws Exception {
         Token token = this.mapperPlugin.map(federationUserToken);
         this.securityGroupPlugin.deleteSecurityGroupRule(securityGroupRuleId, token);
     }

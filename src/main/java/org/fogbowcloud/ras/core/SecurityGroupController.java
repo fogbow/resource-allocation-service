@@ -21,7 +21,7 @@ public class SecurityGroupController {
     }
 
     public String createSecurityGroupRules(Order majorOrder, SecurityGroupRule securityGroupRule,
-            FederationUserToken federationUserToken) throws FogbowRasException, UnexpectedException {
+            FederationUserToken federationUserToken) throws Exception {
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(majorOrder.getProvider());
         return cloudConnector.requestSecurityGroupRule(majorOrder, securityGroupRule, federationUserToken);
     }
