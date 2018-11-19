@@ -157,9 +157,8 @@ public class RemoteFacade {
         return securityGroupController.createSecurityGroupRules(majorOrder, securityGroupRule, federationUserToken);
     }
 
-    public List<SecurityGroupRule> getAllSecurityRules(String requestingMember, String securityGroupName,
-            FederationUserToken federationUserToken) throws Exception {
-        String orderId = getOrderIdFromSecurityRuleName(securityGroupName);
+    public List<SecurityGroupRule> getAllSecurityRules(String requestingMember, String orderId,
+                                                       FederationUserToken federationUserToken) throws Exception {
         Order majorOrder = orderController.getOrder(orderId);
         this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, Operation.CREATE,
                 ResourceType.SECURITY_GROUP_RULE, majorOrder.getProvider());
