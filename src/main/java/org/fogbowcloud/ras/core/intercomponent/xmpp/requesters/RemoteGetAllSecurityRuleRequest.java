@@ -8,7 +8,6 @@ import org.fogbowcloud.ras.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
-import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.xmpp.packet.IQ;
@@ -19,12 +18,12 @@ public class RemoteGetAllSecurityRuleRequest implements RemoteRequest<List<Secur
     private static final Logger LOGGER = Logger.getLogger(RemoteGetAllSecurityRuleRequest.class);
 
     private String provider;
-    private Order majorOrder;
+    private String orderId;
     private FederationUserToken federationUserToken;
 
-    public RemoteGetAllSecurityRuleRequest(String provider, Order majorOrder, FederationUserToken federationUserToken) {
+    public RemoteGetAllSecurityRuleRequest(String provider, String orderId, FederationUserToken federationUserToken) {
         this.provider = provider;
-        this.majorOrder = majorOrder;
+        this.orderId = orderId;
         this.federationUserToken = federationUserToken;
     }
 
@@ -48,14 +47,8 @@ public class RemoteGetAllSecurityRuleRequest implements RemoteRequest<List<Secur
         Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
         userElement.setText(new Gson().toJson(federationUserToken));
 
-        Element orderElement = queryElement.addElement(IqElement.ORDER.toString());
-
-        Element orderClassNameElement =
-                queryElement.addElement(IqElement.ORDER_CLASS_NAME.toString());
-        orderClassNameElement.setText(majorOrder.getClass().getName());
-
-        String orderJson = new Gson().toJson(majorOrder);
-        orderElement.setText(orderJson);
+        Element orderIdElement = queryElement.addElement(IqElement.ORDER_ID.toString());
+        orderIdElement.setText(orderId);
 
         return iq;
     }

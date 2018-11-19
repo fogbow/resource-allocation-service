@@ -84,7 +84,7 @@ public class RemoteCloudConnector implements CloudConnector {
     public List<SecurityGroupRule> getAllSecurityGroupRules(Order majorOrder, FederationUserToken federationUserToken)
             throws Exception {
         RemoteGetAllSecurityRuleRequest remoteGetAllSecurityRuleRequest =
-                new RemoteGetAllSecurityRuleRequest(this.destinationMember, majorOrder, federationUserToken);
+                new RemoteGetAllSecurityRuleRequest(this.destinationMember, majorOrder.getId(), federationUserToken);
         return remoteGetAllSecurityRuleRequest.send();
     }
 
