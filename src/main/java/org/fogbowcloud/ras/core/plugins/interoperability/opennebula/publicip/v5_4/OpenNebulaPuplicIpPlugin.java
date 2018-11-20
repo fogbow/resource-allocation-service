@@ -70,7 +70,8 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		String securityGroupsId = this.factory.allocateSecurityGroup(client, template);
 		
 		template = createAddressRangeTemplate();
-		String addressRangeId = addAddressRangeToVirtualNetwork(client, securityGroupsId, template);
+		VirtualNetwork virtualNetwork = addAddressRange(client, template);
+		String addressRangeId = getAddressRangeIdFromContentOf(virtualNetwork);
 
 		template = createNicTemplate(securityGroupsId);
 		String nicId = attachNicToVirtualMachine(client, computeInstanceId, template);
@@ -172,10 +173,16 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		return template;
 	}
 
-	protected String addAddressRangeToVirtualNetwork(Client client, String networkId, String template)
-			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
-		
-		VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, networkId);
+	protected String getAddressRangeIdFromContentOf(VirtualNetwork virtualNetwork) {
+		OneResponse response = virtualNetwork.info();
+		String xml = response.getMessage();
+		OpenNebulaUnmarshallerContents unmarshallerContents = new OpenNebulaUnmarshallerContents(xml);
+		String content = unmarshallerContents.unmarshalLastItemOf(OpenNebulaTagNameConstants.AR_ID);
+		return content;
+	}
+
+	protected VirtualNetwork addAddressRange(Client client, String template) throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
+		VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, this.networkId);
 		OneResponse response = virtualNetwork.addAr(template);
 		if (response.isError()) {
 			String message = response.getErrorMessage();
@@ -183,17 +190,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_AR, template));
 			throw new InvalidParameterException(message);
 		}
-		VirtualNetwork.chmod(client, response.getIntMessage(), 744);
-		String addressRangeId = getContentFromArId(virtualNetwork);
-		return addressRangeId;
-	}
-
-	protected String getContentFromArId(VirtualNetwork virtualNetwork) {
-		OneResponse response = virtualNetwork.info();
-		String xml = response.getMessage();
-		OpenNebulaUnmarshallerContents unmarshallerContents = new OpenNebulaUnmarshallerContents(xml);
-		String content = unmarshallerContents.unmarshalLastItemOf(OpenNebulaTagNameConstants.AR_ID);
-		return content;
+		return virtualNetwork;
 	}
 	
 	protected String createAddressRangeTemplate()
