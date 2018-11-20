@@ -25,7 +25,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({SecurityGroup.class, VirtualMachine.class})
+@PrepareForTest({SecurityGroup.class, VirtualMachine.class, VirtualNetwork.class})
 public class OpenNebulaPublicIpPluginTest {
 
 	private static final String LOCAL_TOKEN_VALUE = "user:password";
@@ -71,25 +71,27 @@ public class OpenNebulaPublicIpPluginTest {
 		String computeInstanceId = "1";
 		Mockito.doReturn(computeInstanceId).when(this.factory).allocateSecurityGroup(client, sgTemplate);
 		
-		OneResponse response = Mockito.mock(OneResponse.class);
+		OneResponse sgResponse = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(SecurityGroup.class);
-		BDDMockito.given(SecurityGroup.allocate(Mockito.any(), Mockito.any())).willReturn(response);
-		Mockito.when(response.isError()).thenReturn(false);
+		BDDMockito.given(SecurityGroup.allocate(Mockito.any(), Mockito.any())).willReturn(sgResponse);
+		Mockito.when(sgResponse.isError()).thenReturn(false);
+
+		String networkId = "0";
+		String arTemplate = generateAddressRange();
+		OneResponse arResponse = Mockito.mock(OneResponse.class);
+		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
+		Mockito.doReturn(virtualNetwork).when(this.factory).createVirtualNetwork(client, networkId);
+		Mockito.when(virtualNetwork.addAr(Mockito.contains(arTemplate))).thenReturn(arResponse);
+		Mockito.when(arResponse.isError()).thenReturn(false);
 		
-		Assert.assertFalse(response.isError());
+		OneResponse vnResponse = Mockito.mock(OneResponse.class);
+		Mockito.when(virtualNetwork.info()).thenReturn(vnResponse);
+		Mockito.when(vnResponse.getMessage()).thenReturn("<AR_ID>1</AR_ID>");
 		
-		PublicIpOrder publicIpOrder = createPublicIpOrder();
-		
-//		String securityGroupsId = "1";
-//		
-//		SecurityGroups securityGroups = Mockito.mock(SecurityGroups.class);
-//		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
-//		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
-//		
-//		String arTemplate = generateAddressRange();
-//		String nicTemplate = generateNicTemplate();
+		// TODO Mock Nic template...
 		
 		// exercise
+		PublicIpOrder publicIpOrder = createPublicIpOrder();
 		this.plugin.requestInstance(publicIpOrder, computeInstanceId, token);
 				
 		// verify
@@ -243,12 +245,12 @@ public class OpenNebulaPublicIpPluginTest {
 	
 	private String generateAddressRange() {
 		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
-				"<TEMPLATE>\n" +
-				"	<AR>\n" + 
-				"    	<IP>10.0.0.150</IP>\n" + 
-				"    	<SIZE>51</SIZE>\n" +
-				"    	<TYPE>IP4</TYPE>\n" +
-				"	</AR>\n" +
+				"<TEMPLATE>\n" + 
+				"    <AR>\n" + 
+				"        <IP>10.0.0.150</IP>\n" + 
+				"        <SIZE>51</SIZE>\n" + 
+				"        <TYPE>IP4</TYPE>\n" + 
+				"    </AR>\n" + 
 				"</TEMPLATE>";
 		
 		return template;
