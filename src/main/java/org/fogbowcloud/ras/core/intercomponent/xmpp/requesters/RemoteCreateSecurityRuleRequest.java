@@ -39,7 +39,6 @@ public class RemoteCreateSecurityRuleRequest implements RemoteRequest<Void> {
 
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
-
         return null;
     }
 

@@ -4,7 +4,6 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import org.fogbowcloud.ras.api.http.Network;
 import org.fogbowcloud.ras.api.http.PublicIp;
-import org.fogbowcloud.ras.api.http.SecurityGroupRuleAPI;
 import org.fogbowcloud.ras.core.ApplicationFacade;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.ResourceType;
@@ -37,9 +36,9 @@ import java.util.List;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
-@WebMvcTest(value = SecurityGroupRuleAPI.class, secure = false)
+@WebMvcTest({Network.class, PublicIp.class})
 @PrepareForTest(ApplicationFacade.class)
-public class SecurityGroupRuleAPITest {
+public class SecurityRuleAPITest {
 
     private static final String CORRECT_BODY =
             "{\n" +
@@ -52,7 +51,7 @@ public class SecurityGroupRuleAPITest {
             "}";
 
     private static final String WRONG_BODY = "";
-    private static final String FAKE_SG_RULE_ID = "fake-sg-rule-id";
+    private static final String FAKE_SECURITY_RULE_ID = "fake-security-rule-id";
     private static final String FAKE_ORDER_ID = "fakeOrderId";
 
     @Autowired
@@ -61,9 +60,9 @@ public class SecurityGroupRuleAPITest {
     private ApplicationFacade facade;
 
     private static final String NETWORK_ENDPOINT = "/" + Network.NETWORK_ENDPOINT + "/" + FAKE_ORDER_ID + "/" +
-            SecurityGroupRuleAPI.SECURITY_GROUP_RULES_ENDPOINT;
+            Network.SECURITY_RULES_ENDPOINT;
     private static final String PUBLIC_IP_ENDPOINT = "/" + PublicIp.PUBLIC_IP_ENDPOINT + "/" + FAKE_ORDER_ID + "/" +
-            SecurityGroupRuleAPI.SECURITY_GROUP_RULES_ENDPOINT;
+            PublicIp.SECURITY_RULES_ENDPOINT;
 
     @Before
     public void setUp() {
@@ -77,7 +76,7 @@ public class SecurityGroupRuleAPITest {
     @Test
     public void testPost() throws Exception {
         // set up
-        Mockito.doReturn(FAKE_SG_RULE_ID).when(this.facade).createSecurityGroupRules(Mockito.anyString(),
+        Mockito.doReturn(FAKE_SECURITY_RULE_ID).when(this.facade).createSecurityGroupRules(Mockito.anyString(),
                 Mockito.any(SecurityGroupRule.class), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
 
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.POST, NETWORK_ENDPOINT, getHttpHeaders(),
@@ -89,11 +88,11 @@ public class SecurityGroupRuleAPITest {
         // verify
         int expectedStatus = HttpStatus.CREATED.value();
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Assert.assertEquals(FAKE_SG_RULE_ID, result.getResponse().getContentAsString());
+        Assert.assertEquals(FAKE_SECURITY_RULE_ID, result.getResponse().getContentAsString());
 
         //set up
         requestBuilder = createRequestBuilder(HttpMethod.POST, PUBLIC_IP_ENDPOINT, getHttpHeaders(), CORRECT_BODY);
-        Mockito.doReturn(FAKE_SG_RULE_ID).when(this.facade).createSecurityGroupRules(Mockito.anyString(),
+        Mockito.doReturn(FAKE_SECURITY_RULE_ID).when(this.facade).createSecurityGroupRules(Mockito.anyString(),
                 Mockito.any(SecurityGroupRule.class), Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
 
         // exercise: Make the request
@@ -101,7 +100,7 @@ public class SecurityGroupRuleAPITest {
 
         // verify
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Assert.assertEquals(FAKE_SG_RULE_ID, result.getResponse().getContentAsString());
+        Assert.assertEquals(FAKE_SECURITY_RULE_ID, result.getResponse().getContentAsString());
         Mockito.verify(this.facade, Mockito.times(2)).createSecurityGroupRules(
                 Mockito.anyString(), Mockito.any(SecurityGroupRule.class), Mockito.anyString(), Mockito.any(ResourceType.class));
     }
@@ -111,7 +110,7 @@ public class SecurityGroupRuleAPITest {
     @Test
     public void testWrongPost() throws Exception {
         // set up
-        Mockito.doReturn(FAKE_SG_RULE_ID).when(this.facade).createSecurityGroupRules(Mockito.anyString(),
+        Mockito.doReturn(FAKE_SECURITY_RULE_ID).when(this.facade).createSecurityGroupRules(Mockito.anyString(),
                 Mockito.any(SecurityGroupRule.class), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
 
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.POST, NETWORK_ENDPOINT, getHttpHeaders(),
@@ -127,7 +126,7 @@ public class SecurityGroupRuleAPITest {
         // set up
         requestBuilder = createRequestBuilder(HttpMethod.POST, PUBLIC_IP_ENDPOINT, getHttpHeaders(),
                 WRONG_BODY);
-        Mockito.doReturn(FAKE_SG_RULE_ID).when(this.facade).createSecurityGroupRules(Mockito.anyString(),
+        Mockito.doReturn(FAKE_SECURITY_RULE_ID).when(this.facade).createSecurityGroupRules(Mockito.anyString(),
                 Mockito.any(SecurityGroupRule.class), Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
 
         // exercise: Make the request
@@ -465,7 +464,7 @@ public class SecurityGroupRuleAPITest {
     private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         String fakeFederationTokenValue = "fake-access-id";
-        headers.set(SecurityGroupRuleAPI.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
+        headers.set(Network.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
         return headers;
     }
 
