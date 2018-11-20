@@ -9,9 +9,9 @@ import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -57,7 +57,6 @@ public class OpenNebulaNetworkPluginTest {
 
 	// test case: When calling the requestInstance method, with the valid client and
 	// template, a virtual network will be allocated. Returned instance ID.
-	@Ignore
 	@Test
 	public void testRequestInstanceSuccessful() throws UnexpectedException, FogbowRasException {
 		// set up
@@ -71,8 +70,8 @@ public class OpenNebulaNetworkPluginTest {
 
 		OneResponse response = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(VirtualNetwork.class);
-		PowerMockito.when(VirtualNetwork.allocate(client, template)).thenReturn(response);
-		Mockito.doReturn(false).when(response).isError();
+		BDDMockito.given(VirtualNetwork.allocate(Mockito.any(), Mockito.any())).willReturn(response);
+		Mockito.when(response.isError()).thenReturn(false);
 
 		// exercise
 		this.plugin.requestInstance(networkOrder, token);
@@ -85,7 +84,6 @@ public class OpenNebulaNetworkPluginTest {
 	// test case: When calling the requestInstance method, and an error occurs while
 	// attempting to allocate a virtual network, an InvalidParameterException will
 	// be thrown.
-	@Ignore
 	@Test(expected = InvalidParameterException.class)
 	public void testRequestInstanceThrowInvalidParameterException() throws UnexpectedException, FogbowRasException {
 		// set up
@@ -274,7 +272,7 @@ public class OpenNebulaNetworkPluginTest {
 				"        <SIZE>256</SIZE>\n" + 
 				"        <TYPE>IP4</TYPE>\n" + 
 				"    </AR>\n" + 
-				"    <BRIDGE></BRIDGE>\n" + 
+				"    <BRIDGE>br0</BRIDGE>\n" + 
 				"    <DESCRIPTION>Virtual network created by fake-user-name.</DESCRIPTION>\n" + 
 				"    <NAME>fake-network-name</NAME>\n" + 
 				"    <NETWORK_ADDRESS>fake-address</NETWORK_ADDRESS>\n" + 
