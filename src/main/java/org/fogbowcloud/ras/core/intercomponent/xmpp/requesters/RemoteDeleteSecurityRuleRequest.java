@@ -50,11 +50,4 @@ public class RemoteDeleteSecurityRuleRequest implements RemoteRequest<Void> {
 
         return iq;
     }
-
-    public static void main(String[] args) {
-        Order o = new NetworkOrder();
-        String ruleId = "fake-ruleId";
-//        System.out.println(new RemoteDeleteSecurityRuleRequest(o, ruleId).marshal());
-
-    }
 }

@@ -39,6 +39,7 @@ public class RemoteCreateSecurityRuleRequest implements RemoteRequest<Void> {
 
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
+
         return null;
     }
 
@@ -58,20 +59,5 @@ public class RemoteCreateSecurityRuleRequest implements RemoteRequest<Void> {
         Element securityRuleElement = queryElement.addElement(IqElement.SECURITY_RULE.toString());
         securityRuleElement.setText(GsonHolder.getInstance().toJson(securityGroupRule));
         return iq;
-    }
-
-    public static void main(String[] args) {
-        SecurityGroupRule s = new SecurityGroupRule();
-        s.setCidr("asdasd");
-        s.setDirection(Direction.IN);
-        s.setEtherType(EtherType.IPv4);
-        s.setPortFrom(1000);
-        s.setPortTo(1000);
-        s.setProtocol(Protocol.ICMP);
-
-        Order o = new NetworkOrder();
-        o.setProvider("ufrgs");
-
-//        System.out.println(new RemoteCreateSecurityRuleRequest(s, o, new FederationUserToken()).marshal());
     }
 }
