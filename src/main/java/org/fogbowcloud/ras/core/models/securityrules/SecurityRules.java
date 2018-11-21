@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.models.securitygroups;
+package org.fogbowcloud.ras.core.models.securityrules;
 
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 
@@ -6,17 +6,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class SecurityGroup {
+public class SecurityRules {
 
     private String instanceId;
     private FederationUserToken federationUserToken;
-    private List<SecurityGroupRule> rules;
+    private List<SecurityRule> rules;
 
-    public SecurityGroup() {
+    public SecurityRules() {
         rules = new ArrayList<>();
     }
 
-    public SecurityGroup(FederationUserToken federationUserToken, List<SecurityGroupRule> rules) {
+    public SecurityRules(FederationUserToken federationUserToken, List<SecurityRule> rules) {
         this.federationUserToken = federationUserToken;
         this.rules = rules;
     }
@@ -37,11 +37,11 @@ public class SecurityGroup {
         this.federationUserToken = federationUserToken;
     }
 
-    public List<SecurityGroupRule> getRules() {
+    public List<SecurityRule> getRules() {
         return rules;
     }
 
-    public void setRules(List<SecurityGroupRule> rules) {
+    public void setRules(List<SecurityRule> rules) {
         this.rules = rules;
     }
 
@@ -49,7 +49,7 @@ public class SecurityGroup {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        SecurityGroup that = (SecurityGroup) o;
+        SecurityRules that = (SecurityRules) o;
         return Objects.equals(getInstanceId(), that.getInstanceId()) &&
                 Objects.equals(getFederationUserToken(), that.getFederationUserToken()) &&
                 Objects.equals(getRules(), that.getRules());

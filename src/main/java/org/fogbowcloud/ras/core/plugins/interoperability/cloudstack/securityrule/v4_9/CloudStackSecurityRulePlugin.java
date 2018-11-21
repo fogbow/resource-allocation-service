@@ -3,25 +3,25 @@ package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.securityrul
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.orders.Order;
-import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
+import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.Token;
-import org.fogbowcloud.ras.core.plugins.interoperability.SecurityGroupPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.SecurityRulePlugin;
 
 import java.util.List;
 
-public class CloudStackSecurityRulePlugin implements SecurityGroupPlugin {
+public class CloudStackSecurityRulePlugin implements SecurityRulePlugin {
     @Override
-    public String requestSecurityGroupRule(SecurityGroupRule securityGroupRule, Order majorOrder, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
+    public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public List<SecurityGroupRule> getSecurityGroupRules(Order majorOrder, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
+    public List<SecurityRule> getSecurityRules(Order majorOrder, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void deleteSecurityGroupRule(String securityGroupRuleId, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
+    public void deleteSecurityRule(String securityRuleId, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
         throw new UnsupportedOperationException();
     }
 }

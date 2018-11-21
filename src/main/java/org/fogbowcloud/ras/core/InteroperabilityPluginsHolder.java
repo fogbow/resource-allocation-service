@@ -10,7 +10,7 @@ public class InteroperabilityPluginsHolder {
     private final NetworkPlugin networkPlugin;
     private final VolumePlugin volumePlugin;
     private final ImagePlugin imagePlugin;
-    private final SecurityGroupPlugin securityGroupPlugin;
+    private final SecurityRulePlugin securityRulePlugin;
 
     public InteroperabilityPluginsHolder(PluginInstantiator instantiationInitService) {
         this.publicIpPlugin = instantiationInitService.getPublicIpPlugin();
@@ -20,7 +20,7 @@ public class InteroperabilityPluginsHolder {
         this.networkPlugin = instantiationInitService.getNetworkPlugin();
         this.volumePlugin = instantiationInitService.getVolumePlugin();
         this.imagePlugin = instantiationInitService.getImagePlugin();
-        this.securityGroupPlugin = instantiationInitService.getSecurityGroupPlugin();
+        this.securityRulePlugin = instantiationInitService.getSecurityRulePlugin();
     }
 
     public PublicIpPlugin getPublicIpPlugin() {
@@ -51,7 +51,7 @@ public class InteroperabilityPluginsHolder {
         return this.imagePlugin;
     }
 
-    public SecurityGroupPlugin getSecurityGroupPlugin() {
-        return this.securityGroupPlugin;
+    public SecurityRulePlugin getSecurityRulePlugin() {
+        return this.securityRulePlugin;
     }
 }

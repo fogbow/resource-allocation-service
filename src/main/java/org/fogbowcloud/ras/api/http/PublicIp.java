@@ -10,7 +10,7 @@ import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.models.InstanceStatus;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.PublicIpInstance;
-import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
+import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -110,18 +110,18 @@ public class PublicIp {
 
     @ApiOperation(value = ApiDocumentation.PublicIp.CREATE_SECURITY_RULE_OPERATION)
     @RequestMapping(value = "/{orderId}/" + SECURITY_RULES_ENDPOINT, method = RequestMethod.POST)
-    public ResponseEntity<String> createSecurityGroupRule (
+    public ResponseEntity<String> createSecurityRule(
             @ApiParam(value = ApiDocumentation.PublicIp.ID)
             @PathVariable String orderId,
             @ApiParam(value = ApiDocumentation.PublicIp.CREATE_SECURITY_RULE_REQUEST_BODY)
-            @RequestBody SecurityGroupRule securityGroupRule,
+            @RequestBody SecurityRule securityRule,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, SECURITY_RULE_NAME));
-            String ruleId = ApplicationFacade.getInstance().createSecurityGroupRules(orderId, securityGroupRule,
+            String ruleId = ApplicationFacade.getInstance().createSecurityRule(orderId, securityRule,
                     federationTokenValue, ResourceType.PUBLIC_IP);
             return new ResponseEntity<String>(ruleId, HttpStatus.CREATED);
         } catch (Exception e) {
@@ -132,7 +132,7 @@ public class PublicIp {
 
     @ApiOperation(value = ApiDocumentation.PublicIp.GET_SECURITY_RULE_OPERATION)
     @RequestMapping(value = "/{orderId}/" + SECURITY_RULES_ENDPOINT, method = RequestMethod.GET)
-    public ResponseEntity<List<SecurityGroupRule>> getAllSecurityGroupRules (
+    public ResponseEntity<List<SecurityRule>> getAllSecurityRules(
             @ApiParam(value = ApiDocumentation.PublicIp.ID)
             @PathVariable String orderId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
@@ -141,9 +141,9 @@ public class PublicIp {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, SECURITY_RULE_NAME));
-            List<SecurityGroupRule> securityGroupRules = ApplicationFacade.getInstance().
-                    getAllSecurityGroupRules(orderId, federationTokenValue, ResourceType.PUBLIC_IP);
-            return new ResponseEntity<>(securityGroupRules, HttpStatus.OK);
+            List<SecurityRule> securityRules = ApplicationFacade.getInstance().
+                    getAllSecurityRules(orderId, federationTokenValue, ResourceType.PUBLIC_IP);
+            return new ResponseEntity<>(securityRules, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
             throw e;
@@ -152,7 +152,7 @@ public class PublicIp {
 
     @ApiOperation(value = ApiDocumentation.PublicIp.DELETE_SECURITY_RULE_OPERATION)
     @RequestMapping(value = "/{orderId}/" + SECURITY_RULES_ENDPOINT + "/{ruleId}", method = RequestMethod.DELETE)
-    public ResponseEntity<Boolean> deleteSecurityGroupRule (
+    public ResponseEntity<Boolean> deleteSecurityRule(
             @ApiParam(value = ApiDocumentation.PublicIp.ID)
             @PathVariable String orderId,
             @ApiParam(value = ApiDocumentation.PublicIp.SECURITY_RULE_ID)
@@ -163,7 +163,7 @@ public class PublicIp {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, SECURITY_RULE_NAME, ruleId));
-            ApplicationFacade.getInstance().deleteSecurityGroupRules(orderId, ruleId, federationTokenValue,
+            ApplicationFacade.getInstance().deleteSecurityRule(orderId, ruleId, federationTokenValue,
                     ResourceType.PUBLIC_IP);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
