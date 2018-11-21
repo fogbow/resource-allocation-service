@@ -74,7 +74,8 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		String addressRangeId = getAddressRangeIdFromContentOf(virtualNetwork);
 
 		template = createNicTemplate(securityGroupsId);
-		String nicId = attachNicToVirtualMachine(client, computeInstanceId, template);
+		VirtualMachine virtualMachine = attachNetworkInterfaceConnected(client, computeInstanceId, template);
+		String nicId = getNicIdFromContenOf(virtualMachine);
 
 		String instanceId = String.format(INSTANCE_ID, computeInstanceId, nicId, addressRangeId, securityGroupsId);
 		return instanceId;
@@ -116,7 +117,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		return publicIpInstance;
 	}
 
-	protected void freeAddressRangeFromVirtualNetwork(Client client, int arId)
+	private void freeAddressRangeFromVirtualNetwork(Client client, int arId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 		
 		VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, this.networkId);
@@ -127,7 +128,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		}
 	}
 
-	protected void detachNicFromVirtualMachine(Client client, String virtualMachineId, int nicId)
+	private void detachNicFromVirtualMachine(Client client, String virtualMachineId, int nicId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 		
 		VirtualMachine virtualMachine = this.factory.createVirtualMachine(client, virtualMachineId);
@@ -138,8 +139,16 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		}
 	}
 	
-	protected String attachNicToVirtualMachine(Client client, String computeInstanceId, String template)
-			throws InvalidParameterException, UnauthorizedRequestException, InstanceNotFoundException {
+	private String getNicIdFromContenOf(VirtualMachine virtualMachine) {
+		OneResponse response = virtualMachine.info();
+		String xml = response.getMessage();
+		OpenNebulaUnmarshallerContents unmarshallerContents = new OpenNebulaUnmarshallerContents(xml);
+		String content = unmarshallerContents.unmarshalLastItemOf(OpenNebulaTagNameConstants.NIC_ID);
+		return content;
+	}
+
+	private VirtualMachine attachNetworkInterfaceConnected(Client client, String computeInstanceId, String template)
+			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 		
 		VirtualMachine virtualMachine = this.factory.createVirtualMachine(client, computeInstanceId);
 		OneResponse response = virtualMachine.nicAttach(template);
@@ -149,20 +158,10 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
 			throw new InvalidParameterException();
 		}
-		VirtualMachine.chmod(client, response.getIntMessage(), 744);
-		String nicId = getContentFromNicId(virtualMachine);
-		return nicId;
-	}
-
-	protected String getContentFromNicId(VirtualMachine virtualMachine) {
-		OneResponse response = virtualMachine.info();
-		String xml = response.getMessage();
-		OpenNebulaUnmarshallerContents unmarshallerContents = new OpenNebulaUnmarshallerContents(xml);
-		String content = unmarshallerContents.unmarshalLastItemOf(OpenNebulaTagNameConstants.NIC_ID);
-		return content;
+		return virtualMachine;
 	}
 	
-	protected String createNicTemplate(String securityGroupsId) {
+	private String createNicTemplate(String securityGroupsId) {
 		String template;
 		CreateNicRequest request = new CreateNicRequest.Builder()
 				.networkId(this.networkId)
@@ -173,7 +172,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		return template;
 	}
 
-	protected String getAddressRangeIdFromContentOf(VirtualNetwork virtualNetwork) {
+	private String getAddressRangeIdFromContentOf(VirtualNetwork virtualNetwork) {
 		OneResponse response = virtualNetwork.info();
 		String xml = response.getMessage();
 		OpenNebulaUnmarshallerContents unmarshallerContents = new OpenNebulaUnmarshallerContents(xml);
@@ -181,7 +180,9 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		return content;
 	}
 
-	protected VirtualNetwork addAddressRange(Client client, String template) throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
+	private VirtualNetwork addAddressRange(Client client, String template)
+			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
+		
 		VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, this.networkId);
 		OneResponse response = virtualNetwork.addAr(template);
 		if (response.isError()) {
@@ -193,7 +194,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		return virtualNetwork;
 	}
 	
-	protected String createAddressRangeTemplate()
+	private String createAddressRangeTemplate()
 			throws InvalidParameterException, UnauthorizedRequestException, InstanceNotFoundException {
 		
 		String type = DEFAULT_ADDRESS_RANGE_TYPE;
@@ -210,7 +211,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		return template;
 	}
 	
-	protected String createSecurityGroupsTemplate() throws InvalidParameterException {
+	private String createSecurityGroupsTemplate() throws InvalidParameterException {
 		String name = PUBLIC_IP_NAME;
 		String protocol = SECURITY_GROUP_DEFAULT_PROTOCOL;
 		String inputRuleType = SECURITY_GROUP_INPUT_RULE_TYPE;
