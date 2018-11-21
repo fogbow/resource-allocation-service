@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.models.securitygroups;
+package org.fogbowcloud.ras.core.models.securityrules;
 
 public enum Protocol {
     TCP("tcp"), UDP("udp"), ICMP("icmp"), ANY("any");

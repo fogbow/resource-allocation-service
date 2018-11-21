@@ -7,7 +7,7 @@ import org.fogbowcloud.ras.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
-import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
+import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.util.GsonHolder;
 import org.jamppa.component.handler.AbstractQueryHandler;
@@ -24,11 +24,11 @@ public class RemoteCreateSecurityRuleRequestHandler extends AbstractQueryHandler
     public IQ handle(IQ iq) {
         String orderId = unmarshalOrderId(iq);
         FederationUserToken federationUserToken = unmarshalFederationUserToken(iq);
-        SecurityGroupRule securityGroupRule = unmarshalSecurityRule(iq);
+        SecurityRule securityRule = unmarshalSecurityRule(iq);
 
         IQ response = IQ.createResultIQ(iq);
         try {
-            RemoteFacade.getInstance().createSecurityRule(iq.getFrom().toBareJID(), orderId, securityGroupRule,
+            RemoteFacade.getInstance().createSecurityRule(iq.getFrom().toBareJID(), orderId, securityRule,
                     federationUserToken);
         } catch (Throwable e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
@@ -37,11 +37,11 @@ public class RemoteCreateSecurityRuleRequestHandler extends AbstractQueryHandler
         return response;
     }
 
-    private SecurityGroupRule unmarshalSecurityRule(IQ iq) {
+    private SecurityRule unmarshalSecurityRule(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
         Element securityRuleElement = queryElement.element(IqElement.SECURITY_RULE.toString());
         return GsonHolder.getInstance()
-                .fromJson(securityRuleElement.getText(), SecurityGroupRule.class);
+                .fromJson(securityRuleElement.getText(), SecurityRule.class);
     }
 
     private String unmarshalOrderId(IQ iq) {

@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.plugins.interoperability.openstack.securitygroup.v2;
+package org.fogbowcloud.ras.core.plugins.interoperability.openstack.securityrule.v2;
 
 import com.google.gson.annotations.SerializedName;
 import org.fogbowcloud.ras.util.GsonHolder;

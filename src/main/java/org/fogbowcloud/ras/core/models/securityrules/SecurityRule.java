@@ -1,10 +1,8 @@
-package org.fogbowcloud.ras.core.models.securitygroups;
-
-import org.fogbowcloud.ras.core.models.ResourceType;
+package org.fogbowcloud.ras.core.models.securityrules;
 
 import java.util.Objects;
 
-public class SecurityGroupRule {
+public class SecurityRule {
 
     private String instanceId;
     private String cidr;
@@ -14,10 +12,10 @@ public class SecurityGroupRule {
     private EtherType etherType;
     private Protocol protocol;
 
-    public SecurityGroupRule() {
+    public SecurityRule() {
     }
 
-    public SecurityGroupRule(Direction direction, int portFrom, int portTo, String cidr, EtherType etherType, Protocol protocol) {
+    public SecurityRule(Direction direction, int portFrom, int portTo, String cidr, EtherType etherType, Protocol protocol) {
         this.direction = direction;
         this.portFrom = portFrom;
         this.portTo = portTo;
@@ -86,7 +84,7 @@ public class SecurityGroupRule {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        SecurityGroupRule that = (SecurityGroupRule) o;
+        SecurityRule that = (SecurityRule) o;
         return getPortFrom() == that.getPortFrom() &&
                 getPortTo() == that.getPortTo() &&
                 Objects.equals(getInstanceId(), that.getInstanceId()) &&

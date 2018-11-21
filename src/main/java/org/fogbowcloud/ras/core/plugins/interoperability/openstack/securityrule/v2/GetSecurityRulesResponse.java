@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.plugins.interoperability.openstack.securitygroup.v2;
+package org.fogbowcloud.ras.core.plugins.interoperability.openstack.securityrule.v2;
 
 import com.google.gson.annotations.SerializedName;
 import org.fogbowcloud.ras.util.GsonHolder;
@@ -33,15 +33,15 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.Openst
  *     }
  * </p>
  */
-public class GetSecurityGroupRulesResponse {
+public class GetSecurityRulesResponse {
     @SerializedName(SECURITY_GROUP_RULES_KEY_JSON)
-    private List<SecurityGroupRule> securityGroupRules;
+    private List<SecurityRules> securityRules;
 
-    public static GetSecurityGroupRulesResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, GetSecurityGroupRulesResponse.class);
+    public static GetSecurityRulesResponse fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, GetSecurityRulesResponse.class);
     }
 
-    public class SecurityGroupRule {
+    public class SecurityRules {
         @SerializedName(ID_KEY_JSON)
         private String id;
         @SerializedName(REMOTE_IP_PREFIX_KEY_JSON)
@@ -86,7 +86,7 @@ public class GetSecurityGroupRulesResponse {
         }
     }
 
-    public List<SecurityGroupRule> getSecurityGroupRules() {
-        return this.securityGroupRules;
+    public List<SecurityRules> getSecurityRules() {
+        return this.securityRules;
     }
 }

@@ -4,11 +4,11 @@ import org.apache.http.client.HttpResponseException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.orders.Order;
-import org.fogbowcloud.ras.core.models.securitygroups.Direction;
-import org.fogbowcloud.ras.core.models.securitygroups.EtherType;
-import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
+import org.fogbowcloud.ras.core.models.securityrules.Direction;
+import org.fogbowcloud.ras.core.models.securityrules.EtherType;
+import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.Token;
-import org.fogbowcloud.ras.core.plugins.interoperability.SecurityGroupPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.SecurityRulePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackQueryAsyncJobResponse;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackQueryJobResult;
@@ -19,7 +19,7 @@ import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
 import java.util.List;
 
-public class CloudStackSecurityRulePlugin implements SecurityGroupPlugin {
+public class CloudStackSecurityRulePlugin implements SecurityRulePlugin {
 
     private HttpRequestClientUtil client;
 
@@ -28,19 +28,19 @@ public class CloudStackSecurityRulePlugin implements SecurityGroupPlugin {
     }
 
     @Override
-    public String requestSecurityGroupRule(SecurityGroupRule securityGroupRule, Order majorOrder,
-                                           Token localUserAttributes) throws FogbowRasException, UnexpectedException {
-        if (securityGroupRule.getDirection() == Direction.OUT) {
+    public String requestSecurityRule(SecurityRule securityRule, Order majorOrder,
+                                      Token localUserAttributes) throws FogbowRasException, UnexpectedException {
+        if (securityRule.getDirection() == Direction.OUT) {
             throw new UnsupportedOperationException();
         }
-        if (securityGroupRule.getEtherType() == EtherType.IPv6) {
+        if (securityRule.getEtherType() == EtherType.IPv6) {
             throw new UnsupportedOperationException();
         }
 
-        String cidr = securityGroupRule.getCidr();
-        String portFrom = Integer.toString(securityGroupRule.getPortFrom());
-        String portTo = Integer.toString(securityGroupRule.getPortTo());
-        String protocol = securityGroupRule.getProtocol().toString();
+        String cidr = securityRule.getCidr();
+        String portFrom = Integer.toString(securityRule.getPortFrom());
+        String portTo = Integer.toString(securityRule.getPortTo());
+        String protocol = securityRule.getProtocol().toString();
 
         CreateFirewallRuleRequest createFirewallRuleRequest = new CreateFirewallRuleRequest.Builder()
                 .protocol(protocol)
@@ -66,12 +66,12 @@ public class CloudStackSecurityRulePlugin implements SecurityGroupPlugin {
     }
 
     @Override
-    public List<SecurityGroupRule> getSecurityGroupRules(Order majorOrder, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
+    public List<SecurityRule> getSecurityRules(Order majorOrder, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void deleteSecurityGroupRule(String securityGroupRuleId, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
+    public void deleteSecurityRule(String securityRuleId, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
         throw new UnsupportedOperationException();
     }
 

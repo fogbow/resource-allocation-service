@@ -13,7 +13,7 @@ import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.instances.*;
 import org.fogbowcloud.ras.core.models.orders.*;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
-import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
+import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
@@ -35,7 +35,7 @@ public class LocalCloudConnector implements CloudConnector {
     private final NetworkPlugin<Token> networkPlugin;
     private final VolumePlugin<Token> volumePlugin;
     private final ImagePlugin<Token> imagePlugin;
-    private final SecurityGroupPlugin<Token> securityGroupPlugin;
+    private final SecurityRulePlugin<Token> securityRulePlugin;
 
     public LocalCloudConnector(FederationToLocalMapperPlugin mapperPlugin, InteroperabilityPluginsHolder interoperabilityPluginsHolder) {
         this.mapperPlugin = mapperPlugin;
@@ -46,7 +46,7 @@ public class LocalCloudConnector implements CloudConnector {
         this.volumePlugin = interoperabilityPluginsHolder.getVolumePlugin();
         this.imagePlugin = interoperabilityPluginsHolder.getImagePlugin();
         this.publicIpPlugin = interoperabilityPluginsHolder.getPublicIpPlugin();
-        this.securityGroupPlugin = interoperabilityPluginsHolder.getSecurityGroupPlugin();
+        this.securityRulePlugin = interoperabilityPluginsHolder.getSecurityRulePlugin();
     }
 
     @Override
@@ -266,23 +266,23 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public List<SecurityGroupRule> getAllSecurityGroupRules(Order majorOrder, FederationUserToken federationUserToken)
+    public List<SecurityRule> getAllSecurityRules(Order majorOrder, FederationUserToken federationUserToken)
             throws UnexpectedException, FogbowRasException {
         Token token = this.mapperPlugin.map(federationUserToken);
-        return this.securityGroupPlugin.getSecurityGroupRules(majorOrder, token);
+        return this.securityRulePlugin.getSecurityRules(majorOrder, token);
     }
 
     @Override
-    public String requestSecurityGroupRule(Order majorOrder, SecurityGroupRule securityGroupRule,
-                FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException {
+    public String requestSecurityRule(Order majorOrder, SecurityRule securityRule,
+                                      FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException {
         Token token = this.mapperPlugin.map(federationUserToken);
-        return this.securityGroupPlugin.requestSecurityGroupRule(securityGroupRule, majorOrder, token);
+        return this.securityRulePlugin.requestSecurityRule(securityRule, majorOrder, token);
     }
 
     @Override
-    public void deleteSecurityGroupRule(String securityGroupRuleId, FederationUserToken federationUserToken) throws Exception {
+    public void deleteSecurityRule(String securityRuleId, FederationUserToken federationUserToken) throws Exception {
         Token token = this.mapperPlugin.map(federationUserToken);
-        this.securityGroupPlugin.deleteSecurityGroupRule(securityGroupRuleId, token);
+        this.securityRulePlugin.deleteSecurityRule(securityRuleId, token);
     }
 
     /**
