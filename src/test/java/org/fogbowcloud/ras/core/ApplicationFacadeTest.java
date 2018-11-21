@@ -5,13 +5,11 @@ import org.fogbowcloud.ras.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.ras.core.constants.Operation;
 import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.datastore.DatabaseManager;
-import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
-import org.fogbowcloud.ras.core.exceptions.UnauthorizedRequestException;
-import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.*;
 import org.fogbowcloud.ras.core.models.orders.*;
+import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.junit.Assert;
 import org.junit.Before;
@@ -22,6 +20,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
@@ -29,6 +28,7 @@ import java.util.Map;
 public class ApplicationFacadeTest extends BaseUnitTests {
 
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
+    private static final String FAKE_RULE_ID = "fake-rule-id";
     private static final String FAKE_INSTANCE_NAME = "fake-instance-name";
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_FEDERATION_TOKEN_VALUE = "federation-token-value";
@@ -50,6 +50,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     private ApplicationFacade application;
     private AaaController aaaController;
     private OrderController orderController;
+    private SecurityGroupController securityGroupController;
     private Map<String, Order> activeOrdersMap;
 
     private LocalCloudConnector localCloudConnector;
@@ -61,9 +62,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         super.mockReadOrdersFromDataBase();
 
         this.orderController = Mockito.spy(new OrderController());
+        this.securityGroupController = Mockito.spy(new SecurityGroupController());
         this.application = ApplicationFacade.getInstance();
         this.application.setAaaController(this.aaaController);
         this.application.setOrderController(this.orderController);
+        this.application.setSecurityGroupController(this.securityGroupController);
 
         PluginInstantiator instantiationInitService = PluginInstantiator.getInstance();
         InteroperabilityPluginsHolder interoperabilityPluginsHolder = new InteroperabilityPluginsHolder(instantiationInitService);
@@ -1748,6 +1751,228 @@ public class ApplicationFacadeTest extends BaseUnitTests {
                             Mockito.any(ResourceType.class));
 
             Assert.assertNull(order.getOrderState());
+        }
+    }
+
+    // test case: Creating a security rule for a network via public ip endpoint, it should raise an InstanceNotFoundException.
+    @Test
+    public void testCreateSecurityRuleForNetworkViaPublicIp() throws Exception {
+        // set up
+        Mockito.doReturn(createNetworkOrder()).when(orderController).getOrder(Mockito.anyString());
+
+        // exercise
+        try {
+            application.createSecurityGroupRules(FAKE_INSTANCE_ID, Mockito.mock(SecurityGroupRule.class),
+                    FAKE_FEDERATION_TOKEN_VALUE, ResourceType.PUBLIC_IP);
+            // verify
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // Exception thrown
+        }
+    }
+
+    // test case: Creating a security rule for a public ip via network endpoint, it should raise an InstanceNotFoundException.
+    @Test
+    public void testCreateSecurityRuleForPublicIpViaNetwork() throws Exception {
+        // set up
+        Mockito.doReturn(createPublicIpOrder()).when(orderController).getOrder(Mockito.anyString());
+
+        // exercise
+        try {
+            application.createSecurityGroupRules(FAKE_INSTANCE_ID, Mockito.mock(SecurityGroupRule.class),
+                    FAKE_FEDERATION_TOKEN_VALUE, ResourceType.NETWORK);
+            // verify
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // Exception thrown
+        }
+    }
+
+    // test case: Creating a security rule for a public ip via its endpoint, it should return the rule id.
+    @Test
+    public void testCreateSecurityRuleForPublicIp() throws Exception {
+        // set up
+        Mockito.doReturn(createPublicIpOrder()).when(orderController).getOrder(Mockito.anyString());
+        Mockito.doReturn(Mockito.mock(FederationUserToken.class)).when(aaaController).getFederationUser(Mockito.anyString());
+        Mockito.doNothing().when(aaaController).authenticateAndAuthorize(Mockito.anyString(),
+                Mockito.any(FederationUserToken.class), Mockito.any(Operation.class), Mockito.any(ResourceType.class));
+        Mockito.doReturn(FAKE_INSTANCE_ID).when(securityGroupController).createSecurityGroupRules(Mockito.any(Order.class),
+                Mockito.any(SecurityGroupRule.class), Mockito.any(FederationUserToken.class));
+
+        // exercise
+        try {
+            application.createSecurityGroupRules(FAKE_INSTANCE_ID, Mockito.mock(SecurityGroupRule.class),
+                    FAKE_FEDERATION_TOKEN_VALUE, ResourceType.PUBLIC_IP);
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.fail();
+        }
+    }
+
+    // test case: Creating a security rule for a network via its endpoint, it should return the rule id.
+    @Test
+    public void testCreateSecurityRuleForNetwork() throws Exception {
+        // set up
+        Mockito.doReturn(createNetworkOrder()).when(orderController).getOrder(Mockito.anyString());
+        Mockito.doReturn(Mockito.mock(FederationUserToken.class)).when(aaaController).getFederationUser(Mockito.anyString());
+        Mockito.doNothing().when(aaaController).authenticateAndAuthorize(Mockito.anyString(),
+                Mockito.any(FederationUserToken.class), Mockito.any(Operation.class), Mockito.any(ResourceType.class));
+        Mockito.doReturn(FAKE_INSTANCE_ID).when(securityGroupController).createSecurityGroupRules(Mockito.any(Order.class),
+                Mockito.any(SecurityGroupRule.class), Mockito.any(FederationUserToken.class));
+
+        // exercise
+        try {
+            application.createSecurityGroupRules(FAKE_INSTANCE_ID, Mockito.mock(SecurityGroupRule.class),
+                    FAKE_FEDERATION_TOKEN_VALUE, ResourceType.NETWORK);
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.fail();
+        }
+    }
+
+    // test case: Get all security rules from a network via public ip endpoint, it should raise an InstanceNotFoundException.
+    @Test
+    public void testGetSecurityRulesForNetworkViaPublicIp() throws Exception {
+        // set up
+        Mockito.doReturn(createNetworkOrder()).when(orderController).getOrder(Mockito.anyString());
+
+        // exercise
+        try {
+            application.getAllSecurityGroupRules(FAKE_INSTANCE_ID, FAKE_FEDERATION_TOKEN_VALUE, ResourceType.PUBLIC_IP);
+            // verify
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // Exception thrown
+        }
+    }
+
+    // test case: Get all security rules from a public ip via network endpoint, it should raise an InstanceNotFoundException.
+    @Test
+    public void testGetSecurityRuleForPublicIpViaNetwork() throws Exception {
+        // set up
+        Mockito.doReturn(createPublicIpOrder()).when(orderController).getOrder(Mockito.anyString());
+
+        // exercise
+        try {
+            application.getAllSecurityGroupRules(FAKE_INSTANCE_ID, FAKE_FEDERATION_TOKEN_VALUE, ResourceType.NETWORK);
+            // verify
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // Exception thrown
+        }
+    }
+    // test case: Get all security rules for a public ip via its endpoint, it should return the rule id.
+    @Test
+    public void testGetSecurityRuleForPublicIp() throws Exception {
+        // set up
+        Mockito.doReturn(createPublicIpOrder()).when(orderController).getOrder(Mockito.anyString());
+        Mockito.doReturn(Mockito.mock(FederationUserToken.class)).when(aaaController).getFederationUser(Mockito.anyString());
+        Mockito.doNothing().when(aaaController).authenticateAndAuthorize(Mockito.anyString(),
+                Mockito.any(FederationUserToken.class), Mockito.any(Operation.class), Mockito.any(ResourceType.class));
+        Mockito.doReturn(new ArrayList<SecurityGroupRule>()).when(securityGroupController).getAllSecurityGroupRules(
+                Mockito.any(Order.class), Mockito.any(FederationUserToken.class));
+
+        // exercise
+        try {
+            application.getAllSecurityGroupRules(FAKE_INSTANCE_ID, FAKE_FEDERATION_TOKEN_VALUE, ResourceType.PUBLIC_IP);
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.fail();
+        }
+    }
+
+    // test case: Get all security rules for a network via its endpoint, it should return the rule id.
+    @Test
+    public void testGetSecurityRuleForNetwork() throws Exception {
+        // set up
+        Mockito.doReturn(createNetworkOrder()).when(orderController).getOrder(Mockito.anyString());
+        Mockito.doReturn(Mockito.mock(FederationUserToken.class)).when(aaaController).getFederationUser(Mockito.anyString());
+        Mockito.doNothing().when(aaaController).authenticateAndAuthorize(Mockito.anyString(),
+                Mockito.any(FederationUserToken.class), Mockito.any(Operation.class), Mockito.any(ResourceType.class));
+        Mockito.doReturn(new ArrayList<SecurityGroupRule>()).when(securityGroupController).getAllSecurityGroupRules(
+                Mockito.any(Order.class), Mockito.any(FederationUserToken.class));
+
+        // exercise
+        try {
+            application.getAllSecurityGroupRules(FAKE_INSTANCE_ID, FAKE_FEDERATION_TOKEN_VALUE, ResourceType.NETWORK);
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.fail();
+        }
+    }
+
+    // test case: Delete a security rule from a network via public ip endpoint, it should raise an InstanceNotFoundException.
+    @Test
+    public void testDeleteSecurityRulesForNetworkViaPublicIp() throws Exception {
+        // set up
+        Mockito.doReturn(createNetworkOrder()).when(orderController).getOrder(Mockito.anyString());
+
+        // exercise
+        try {
+            application.deleteSecurityGroupRules(FAKE_INSTANCE_ID, FAKE_RULE_ID, FAKE_FEDERATION_TOKEN_VALUE,
+                    ResourceType.PUBLIC_IP);
+            // verify
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // Exception thrown
+        }
+    }
+
+    // test case: Delete a security rule from a public ip via network endpoint, it should raise an InstanceNotFoundException.
+    @Test
+    public void testDeleteSecurityRuleForPublicIpViaNetwork() throws Exception {
+        // set up
+        Mockito.doReturn(createPublicIpOrder()).when(orderController).getOrder(Mockito.anyString());
+
+        // exercise
+        try {
+            application.deleteSecurityGroupRules(FAKE_INSTANCE_ID, FAKE_RULE_ID, FAKE_FEDERATION_TOKEN_VALUE,
+                    ResourceType.NETWORK);
+            // verify
+            Assert.fail();
+        } catch (InstanceNotFoundException e) {
+            // Exception thrown
+        }
+    }
+    // test case: Delete a security rule for a public ip via its endpoint, it should return the rule id.
+    @Test
+    public void testDeleteSecurityRuleForPublicIp() throws Exception {
+        // set up
+        Mockito.doReturn(createPublicIpOrder()).when(orderController).getOrder(Mockito.anyString());
+        Mockito.doReturn(Mockito.mock(FederationUserToken.class)).when(aaaController).getFederationUser(Mockito.anyString());
+        Mockito.doNothing().when(aaaController).authenticateAndAuthorize(Mockito.anyString(),
+                Mockito.any(FederationUserToken.class), Mockito.any(Operation.class), Mockito.any(ResourceType.class));
+        Mockito.doNothing().when(securityGroupController).deleteSecurityGroupRules(
+                Mockito.anyString(), Mockito.anyString(), Mockito.any(FederationUserToken.class));
+
+        // exercise
+        try {
+            application.deleteSecurityGroupRules(FAKE_INSTANCE_ID, FAKE_RULE_ID, FAKE_FEDERATION_TOKEN_VALUE,
+                    ResourceType.PUBLIC_IP);
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.fail();
+        }
+    }
+
+    // test case: Delete a security rule for a network via its endpoint, it should return the rule id.
+    @Test
+    public void testDeleteSecurityRuleForNetwork() throws Exception {
+        // set up
+        Mockito.doReturn(createNetworkOrder()).when(orderController).getOrder(Mockito.anyString());
+        Mockito.doReturn(Mockito.mock(FederationUserToken.class)).when(aaaController).getFederationUser(Mockito.anyString());
+        Mockito.doNothing().when(aaaController).authenticateAndAuthorize(Mockito.anyString(),
+                Mockito.any(FederationUserToken.class), Mockito.any(Operation.class), Mockito.any(ResourceType.class));
+        Mockito.doNothing().when(securityGroupController).deleteSecurityGroupRules(
+                Mockito.anyString(), Mockito.anyString(), Mockito.any(FederationUserToken.class));
+
+        // exercise
+        try {
+            application.deleteSecurityGroupRules(FAKE_INSTANCE_ID, FAKE_RULE_ID, FAKE_FEDERATION_TOKEN_VALUE,
+                    ResourceType.NETWORK);
+        } catch (InstanceNotFoundException e) {
+            // verify
+            Assert.fail();
         }
     }
 
