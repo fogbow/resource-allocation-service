@@ -10,7 +10,6 @@ import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
@@ -25,13 +24,15 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({SecurityGroup.class, VirtualMachine.class, VirtualNetwork.class})
+@PrepareForTest({SecurityGroup.class})
 public class OpenNebulaPublicIpPluginTest {
 
 	private static final String LOCAL_TOKEN_VALUE = "user:password";
 	private static final String FAKE_USER_NAME = "fake-user-name";
 	private static final String FAKE_INSTANCE_ID = "1 1 1 1";
-	private static final String VIRTUAL_MACHINE_NIC_IP_PATH = null;
+	private static final String VIRTUAL_MACHINE_NIC_IP_PATH = "VM/NIC/IP";
+	private static final String VIRTUAL_NETWORK_CONTENT = "<AR_ID>1</AR_ID>";
+	private static final String VIRTUAL_MACHINE_CONTENT = "<NIC_ID>1</NIC_ID>";
 
 	private OpenNebulaClientFactory factory;
 	private OpenNebulaPuplicIpPlugin plugin;
@@ -57,24 +58,32 @@ public class OpenNebulaPublicIpPluginTest {
 		this.plugin.requestInstance(publicIpOrder, computeInstanceId, token);
 	}
 	
-	// test case: FIXME ...
-	@Ignore
+	// test case: When calling the requestInstance method, with the valid client and 
+	// template, a security group will be allocated, a public IP address range will
+	// be added to a virtual network, and the NIC containing the reference to the
+	// network and the security group will be appended to virtual machine, returning
+	// a set of ID's from this instance.
 	@Test
-	public void testRequestInstance() throws UnexpectedException, FogbowRasException {
+	public void testRequestInstanceSuccessful() throws UnexpectedException, FogbowRasException {
 		// set up
 		OpenNebulaToken token = createOpenNebulaToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
-		
-		String sgTemplate = generateSecurityGroupsTemplate();
+
 		String computeInstanceId = "1";
-		Mockito.doReturn(computeInstanceId).when(this.factory).allocateSecurityGroup(client, sgTemplate);
-		
+		PublicIpOrder publicIpOrder = createPublicIpOrder();
+
+		String sgTemplate = generateSecurityGroupsTemplate();
+		String securityGroupsId = "1";
+		Mockito.doReturn(securityGroupsId).when(this.factory).allocateSecurityGroup(client, sgTemplate);
+
 		OneResponse sgResponse = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(SecurityGroup.class);
-		BDDMockito.given(SecurityGroup.allocate(Mockito.any(), Mockito.any())).willReturn(sgResponse);
+		BDDMockito.given(SecurityGroup.allocate(Mockito.any(Client.class), Mockito.contains(sgTemplate)))
+				.willReturn(sgResponse);
 		Mockito.when(sgResponse.isError()).thenReturn(false);
+		Mockito.when(sgResponse.getMessage()).thenReturn(securityGroupsId);
 
 		String networkId = "0";
 		String arTemplate = generateAddressRange();
@@ -83,20 +92,33 @@ public class OpenNebulaPublicIpPluginTest {
 		Mockito.doReturn(virtualNetwork).when(this.factory).createVirtualNetwork(client, networkId);
 		Mockito.when(virtualNetwork.addAr(Mockito.contains(arTemplate))).thenReturn(arResponse);
 		Mockito.when(arResponse.isError()).thenReturn(false);
-		
+
 		OneResponse vnResponse = Mockito.mock(OneResponse.class);
 		Mockito.when(virtualNetwork.info()).thenReturn(vnResponse);
-		Mockito.when(vnResponse.getMessage()).thenReturn("<AR_ID>1</AR_ID>");
-		
-		// TODO Mock Nic template...
-		
+		Mockito.when(vnResponse.getMessage()).thenReturn(VIRTUAL_NETWORK_CONTENT);
+
+		String nicTemplate = generateNicTemplate();
+		OneResponse nicResponse = Mockito.mock(OneResponse.class);
+		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
+		Mockito.doReturn(virtualMachine).when(this.factory).createVirtualMachine(client, computeInstanceId);
+		Mockito.when(virtualMachine.nicAttach(Mockito.contains(nicTemplate))).thenReturn(nicResponse);
+		Mockito.when(nicResponse.isError()).thenReturn(false);
+
+		OneResponse vmResponse = Mockito.mock(OneResponse.class);
+		Mockito.when(virtualMachine.info()).thenReturn(vmResponse);
+		Mockito.when(vmResponse.getMessage()).thenReturn(VIRTUAL_MACHINE_CONTENT);
+
 		// exercise
-		PublicIpOrder publicIpOrder = createPublicIpOrder();
 		this.plugin.requestInstance(publicIpOrder, computeInstanceId, token);
-				
+
 		// verify
-		Mockito.verify(this.factory, Mockito.times(1)).createClient(Mockito.anyString());
-		Mockito.verify(this.factory, Mockito.times(1)).allocateSecurityGroup(Mockito.eq(client), Mockito.eq(sgTemplate));
+		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
+		Mockito.verify(this.factory, Mockito.times(1)).allocateSecurityGroup(Mockito.eq(client),
+				Mockito.eq(sgTemplate));
+		Mockito.verify(this.factory, Mockito.times(1)).createVirtualNetwork(client, networkId);
+		Mockito.verify(this.factory, Mockito.times(1)).createVirtualMachine(client, computeInstanceId);
+		Mockito.verify(virtualNetwork, Mockito.times(1)).addAr(Mockito.eq(arTemplate));
+		Mockito.verify(virtualMachine, Mockito.times(1)).nicAttach(Mockito.eq(nicTemplate));
 	}
 	
 	// test case: When calling the deleteInstance method, if the OpenNebulaClientFactory class
@@ -233,12 +255,12 @@ public class OpenNebulaPublicIpPluginTest {
 
 	private String generateNicTemplate() {
 		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
-				"<TEMPLATE>\n" +
-				"	<NIC>\n" + 
-				"   	<NETWORK_ID>0</NETWORK_ID>\n" + 
-				"   	<SECURITY_GROUPS>1</SECURITY_GROUPS>\n" + 
-				"	</NIC>" +
-				"</TEMPLATE>";
+				"<TEMPLATE>\n" + 
+				"    <NIC>\n" + 
+				"        <NETWORK_ID>0</NETWORK_ID>\n" + 
+				"        <SECURITY_GROUPS>1</SECURITY_GROUPS>\n" + 
+				"    </NIC>\n" + 
+				"</TEMPLATE>\n";
 		
 		return template;
 	}
@@ -251,7 +273,7 @@ public class OpenNebulaPublicIpPluginTest {
 				"        <SIZE>51</SIZE>\n" + 
 				"        <TYPE>IP4</TYPE>\n" + 
 				"    </AR>\n" + 
-				"</TEMPLATE>";
+				"</TEMPLATE>\n";
 		
 		return template;
 	}
@@ -272,9 +294,8 @@ public class OpenNebulaPublicIpPluginTest {
 				"        <RANGE>1000:2000</RANGE>\n" + 
 				"        <RULE_TYPE>outbound</RULE_TYPE>\n" + 
 				"    </RULE>\n" + 
-				"</TEMPLATE>";
+				"</TEMPLATE>\n";
 		
 		return template;
 	}	
-	
 }
