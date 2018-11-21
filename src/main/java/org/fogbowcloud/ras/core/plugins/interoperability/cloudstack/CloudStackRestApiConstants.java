@@ -116,4 +116,11 @@ public class CloudStackRestApiConstants {
         public static final String API_KEY_JSON = "apikey";
         public static final String SECRET_KEY_JSON = "secretkey";
     }
+    
+    public static class SecurityGroupPlugin {
+    	public static final String LIST_FIREWALL_RULES_COMMAND = "listFirewallRules";
+    	public static final String IP_ADDRESS_ID_KEY_JSON = "ipaddressid";
+    	public static final String LIST_FIREWALL_RULES_KEY_JSON = "listfirewallrulesresponse";
+    	
+    }
 }
