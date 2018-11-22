@@ -75,6 +75,7 @@ public class CloudStackRestApiConstants {
         public static final String JOB_ID_KEY_JSON = "jobid";
         public static final String JOB_RESULT_KEY_JSON = "jobresult";
         public static final String JOB_STATUS_KEY_JSON = "jobstatus";
+        public static final String JOB_INSTANCE_ID_KEY_JSON = "jobinstanceid";
 
     }
 
