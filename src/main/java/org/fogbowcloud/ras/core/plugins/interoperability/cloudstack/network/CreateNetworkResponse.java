@@ -22,7 +22,7 @@ public class CreateNetworkResponse {
     }
 
     private class Network {
-        @SerializedName(CloudStackRestApiConstants.Network.ID_KEY)
+        @SerializedName(CloudStackRestApiConstants.Network.ID_KEY_JSON)
         private String id;
     }
 }
