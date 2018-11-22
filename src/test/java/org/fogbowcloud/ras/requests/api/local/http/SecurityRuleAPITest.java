@@ -7,7 +7,7 @@ import org.fogbowcloud.ras.api.http.PublicIp;
 import org.fogbowcloud.ras.core.ApplicationFacade;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.ResourceType;
-import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
+import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -71,13 +71,13 @@ public class SecurityRuleAPITest {
         BDDMockito.given(ApplicationFacade.getInstance()).willReturn(this.facade);
     }
 
-    //test case: Request a security group rule creation and test successful return. Also check if the request has
+    //test case: Request a security rule creation and test successful return. Also check if the request has
     // same behaviour in both endpoints (/networks and /publicIps)
     @Test
     public void testPost() throws Exception {
         // set up
-        Mockito.doReturn(FAKE_SECURITY_RULE_ID).when(this.facade).createSecurityGroupRules(Mockito.anyString(),
-                Mockito.any(SecurityGroupRule.class), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
+        Mockito.doReturn(FAKE_SECURITY_RULE_ID).when(this.facade).createSecurityRule(Mockito.anyString(),
+                Mockito.any(SecurityRule.class), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
 
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.POST, NETWORK_ENDPOINT, getHttpHeaders(),
                 CORRECT_BODY);
@@ -92,8 +92,8 @@ public class SecurityRuleAPITest {
 
         //set up
         requestBuilder = createRequestBuilder(HttpMethod.POST, PUBLIC_IP_ENDPOINT, getHttpHeaders(), CORRECT_BODY);
-        Mockito.doReturn(FAKE_SECURITY_RULE_ID).when(this.facade).createSecurityGroupRules(Mockito.anyString(),
-                Mockito.any(SecurityGroupRule.class), Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
+        Mockito.doReturn(FAKE_SECURITY_RULE_ID).when(this.facade).createSecurityRule(Mockito.anyString(),
+                Mockito.any(SecurityRule.class), Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
 
         // exercise: Make the request
         result = this.mockMvc.perform(requestBuilder).andReturn();
@@ -101,17 +101,17 @@ public class SecurityRuleAPITest {
         // verify
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
         Assert.assertEquals(FAKE_SECURITY_RULE_ID, result.getResponse().getContentAsString());
-        Mockito.verify(this.facade, Mockito.times(2)).createSecurityGroupRules(
-                Mockito.anyString(), Mockito.any(SecurityGroupRule.class), Mockito.anyString(), Mockito.any(ResourceType.class));
+        Mockito.verify(this.facade, Mockito.times(2)).createSecurityRule(
+                Mockito.anyString(), Mockito.any(SecurityRule.class), Mockito.anyString(), Mockito.any(ResourceType.class));
     }
 
-    // test case: Request a security group rule creation and test bad request return. Also check if the request has
+    // test case: Request a security rule creation and test bad request return. Also check if the request has
     // same behaviour in both endpoints (/networks and /publicIps)
     @Test
     public void testWrongPost() throws Exception {
         // set up
-        Mockito.doReturn(FAKE_SECURITY_RULE_ID).when(this.facade).createSecurityGroupRules(Mockito.anyString(),
-                Mockito.any(SecurityGroupRule.class), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
+        Mockito.doReturn(FAKE_SECURITY_RULE_ID).when(this.facade).createSecurityRule(Mockito.anyString(),
+                Mockito.any(SecurityRule.class), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
 
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.POST, NETWORK_ENDPOINT, getHttpHeaders(),
                 WRONG_BODY);
@@ -126,25 +126,25 @@ public class SecurityRuleAPITest {
         // set up
         requestBuilder = createRequestBuilder(HttpMethod.POST, PUBLIC_IP_ENDPOINT, getHttpHeaders(),
                 WRONG_BODY);
-        Mockito.doReturn(FAKE_SECURITY_RULE_ID).when(this.facade).createSecurityGroupRules(Mockito.anyString(),
-                Mockito.any(SecurityGroupRule.class), Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
+        Mockito.doReturn(FAKE_SECURITY_RULE_ID).when(this.facade).createSecurityRule(Mockito.anyString(),
+                Mockito.any(SecurityRule.class), Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
 
         // exercise: Make the request
         result = this.mockMvc.perform(requestBuilder).andReturn();
 
         // verify
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, Mockito.times(0)).createSecurityGroupRules(
-                Mockito.anyString(), Mockito.any(SecurityGroupRule.class), Mockito.anyString(), Mockito.any(ResourceType.class));
+        Mockito.verify(this.facade, Mockito.times(0)).createSecurityRule(
+                Mockito.anyString(), Mockito.any(SecurityRule.class), Mockito.anyString(), Mockito.any(ResourceType.class));
     }
 
-    // test case: Request a security group rule creation with an unauthorized user. Also check if the request has
+    // test case: Request a security rule creation with an unauthorized user. Also check if the request has
     // same behaviour in both endpoints (/networks and /publicIps)
     @Test
-    public void testCreateSecurityGroupRuleUnauthorizedException() throws Exception {
+    public void testCreateSecurityRuleUnauthorizedException() throws Exception {
         // set up
-        Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).createSecurityGroupRules(Mockito.anyString(),
-                Mockito.any(SecurityGroupRule.class), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
+        Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).createSecurityRule(Mockito.anyString(),
+                Mockito.any(SecurityRule.class), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
 
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.POST, NETWORK_ENDPOINT, getHttpHeaders(),
                 CORRECT_BODY);
@@ -159,25 +159,25 @@ public class SecurityRuleAPITest {
         // set up
         requestBuilder = createRequestBuilder(HttpMethod.POST, PUBLIC_IP_ENDPOINT, getHttpHeaders(),
                 CORRECT_BODY);
-        Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).createSecurityGroupRules(Mockito.anyString(),
-                Mockito.any(SecurityGroupRule.class), Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
+        Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).createSecurityRule(Mockito.anyString(),
+                Mockito.any(SecurityRule.class), Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
 
         // exercise: Make the request
         result = this.mockMvc.perform(requestBuilder).andReturn();
 
         // verify
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, Mockito.times(2)).createSecurityGroupRules(
-                Mockito.anyString(), Mockito.any(SecurityGroupRule.class), Mockito.anyString(), Mockito.any(ResourceType.class));
+        Mockito.verify(this.facade, Mockito.times(2)).createSecurityRule(
+                Mockito.anyString(), Mockito.any(SecurityRule.class), Mockito.anyString(), Mockito.any(ResourceType.class));
     }
 
-    // test case: Request a security group rule creation with an unauthenticated user. Also check if the request has
+    // test case: Request a security rule creation with an unauthenticated user. Also check if the request has
     // same behaviour in both endpoints (/networks and /publicIps)
     @Test
-    public void testCreateSecurityGroupRuleUnauthenticatedException() throws Exception {
+    public void testCreateSecurityRuleUnauthenticatedException() throws Exception {
         // set up
-        Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).createSecurityGroupRules(
-                Mockito.anyString(), Mockito.any(SecurityGroupRule.class), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
+        Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).createSecurityRule(
+                Mockito.anyString(), Mockito.any(SecurityRule.class), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.POST, NETWORK_ENDPOINT, getHttpHeaders(),
                 CORRECT_BODY);
 
@@ -191,8 +191,8 @@ public class SecurityRuleAPITest {
         // set up
         requestBuilder = createRequestBuilder(HttpMethod.POST, PUBLIC_IP_ENDPOINT, getHttpHeaders(),
                 CORRECT_BODY);
-        Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).createSecurityGroupRules(
-                Mockito.anyString(), Mockito.any(SecurityGroupRule.class), Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
+        Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).createSecurityRule(
+                Mockito.anyString(), Mockito.any(SecurityRule.class), Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
 
         // exercise
         result = this.mockMvc.perform(requestBuilder).andReturn();
@@ -200,17 +200,17 @@ public class SecurityRuleAPITest {
         // verify
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 
-        Mockito.verify(this.facade, Mockito.times(2)).createSecurityGroupRules(
-                Mockito.anyString(), Mockito.any(SecurityGroupRule.class), Mockito.anyString(), Mockito.any(ResourceType.class));
+        Mockito.verify(this.facade, Mockito.times(2)).createSecurityRule(
+                Mockito.anyString(), Mockito.any(SecurityRule.class), Mockito.anyString(), Mockito.any(ResourceType.class));
     }
 
 
-    // test case: Request the list of all security group rules when the facade returns an empty list. Also check if
+    // test case: Request the list of all security rules when the facade returns an empty list. Also check if
     // the request has same behaviour in both endpoints (/networks and /publicIps)
     @Test
-    public void testGetAllSecurityGroupRulesEmptyList() throws Exception {
+    public void testGetAllSecurityRulesEmptyList() throws Exception {
         // set up
-        Mockito.doReturn(new ArrayList<SecurityGroupRule>()).when(this.facade).getAllSecurityGroupRules(
+        Mockito.doReturn(new ArrayList<SecurityRule>()).when(this.facade).getAllSecurityRules(
                 Mockito.anyString(), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, NETWORK_ENDPOINT, getHttpHeaders(), "");
 
@@ -226,7 +226,7 @@ public class SecurityRuleAPITest {
 
         // set up
         requestBuilder = createRequestBuilder(HttpMethod.GET, PUBLIC_IP_ENDPOINT, getHttpHeaders(), "");
-        Mockito.doReturn(new ArrayList<SecurityGroupRule>()).when(this.facade).getAllSecurityGroupRules(
+        Mockito.doReturn(new ArrayList<SecurityRule>()).when(this.facade).getAllSecurityRules(
                 Mockito.anyString(), Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
 
         // exercise
@@ -235,29 +235,29 @@ public class SecurityRuleAPITest {
         // verify
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
         Assert.assertEquals(expectedResult, result.getResponse().getContentAsString());
-        Mockito.verify(this.facade, Mockito.times(2)).getAllSecurityGroupRules(
+        Mockito.verify(this.facade, Mockito.times(2)).getAllSecurityRules(
                 Mockito.anyString(), Mockito.anyString(), Mockito.any(ResourceType.class));
     }
 
 
-    // test case: Request the list of all security group rules status when the facade returns a non-empty list.
+    // test case: Request the list of all security rules status when the facade returns a non-empty list.
     // Also check if the request has same behaviour in both endpoints (/networks and /publicIps)
     @Test
-    public void testGetAllSecurityGroupRulesWhenHasData() throws Exception {
+    public void testGetAllSecurityRulesWhenHasData() throws Exception {
         // set up
         final String FAKE_ID_1 = "fake-Id-1";
         final String FAKE_ID_2 = "fake-Id-2";
         final String FAKE_ID_3 = "fake-Id-3";
 
-        SecurityGroupRule rule1 = new SecurityGroupRule();
+        SecurityRule rule1 = new SecurityRule();
         rule1.setInstanceId(FAKE_ID_1);
-        SecurityGroupRule rule2 = new SecurityGroupRule();
+        SecurityRule rule2 = new SecurityRule();
         rule2.setInstanceId(FAKE_ID_2);
-        SecurityGroupRule rule3 = new SecurityGroupRule();
+        SecurityRule rule3 = new SecurityRule();
         rule3.setInstanceId(FAKE_ID_3);
 
-        List<SecurityGroupRule> securityGroupRuleList = Arrays.asList(new SecurityGroupRule[]{rule1, rule2, rule3});
-        Mockito.doReturn(securityGroupRuleList).when(this.facade).getAllSecurityGroupRules(
+        List<SecurityRule> securityRuleList = Arrays.asList(new SecurityRule[]{rule1, rule2, rule3});
+        Mockito.doReturn(securityRuleList).when(this.facade).getAllSecurityRules(
                 Mockito.anyString(), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
 
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, NETWORK_ENDPOINT, getHttpHeaders(), "");
@@ -269,9 +269,9 @@ public class SecurityRuleAPITest {
         int expectedStatus = HttpStatus.OK.value();
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 
-        TypeToken<List<SecurityGroupRule>> token = new TypeToken<List<SecurityGroupRule>>() {};
+        TypeToken<List<SecurityRule>> token = new TypeToken<List<SecurityRule>>() {};
 
-        List<SecurityGroupRule> resultList = new Gson().fromJson(result.getResponse().getContentAsString(),
+        List<SecurityRule> resultList = new Gson().fromJson(result.getResponse().getContentAsString(),
                 token.getType());
         Assert.assertEquals(3, resultList.size());
         Assert.assertEquals(FAKE_ID_1, resultList.get(0).getInstanceId());
@@ -280,7 +280,7 @@ public class SecurityRuleAPITest {
 
         // set up
         requestBuilder = createRequestBuilder(HttpMethod.GET, NETWORK_ENDPOINT, getHttpHeaders(), "");
-        Mockito.doReturn(securityGroupRuleList).when(this.facade).getAllSecurityGroupRules(
+        Mockito.doReturn(securityRuleList).when(this.facade).getAllSecurityRules(
                 Mockito.anyString(), Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
 
         // exercise
@@ -295,16 +295,16 @@ public class SecurityRuleAPITest {
         Assert.assertEquals(FAKE_ID_2, resultList.get(1).getInstanceId());
         Assert.assertEquals(FAKE_ID_3, resultList.get(2).getInstanceId());
 
-        Mockito.verify(this.facade, Mockito.times(2)).getAllSecurityGroupRules(Mockito.anyString(), Mockito.anyString(), Mockito.any(ResourceType.class));
+        Mockito.verify(this.facade, Mockito.times(2)).getAllSecurityRules(Mockito.anyString(), Mockito.anyString(), Mockito.any(ResourceType.class));
     }
 
-    // test case: Delete a security group rule by its id and test successfully return. Also check if the request has
+    // test case: Delete a security rule by its id and test successfully return. Also check if the request has
     // same behaviour in both endpoints (/networks and /publicIps)
     @Test
-    public void testDeleteExistingSecurityGroupRule() throws Exception {
+    public void testDeleteExistingSecurityRule() throws Exception {
         // set up
         final String FAKE_ID = "fake-Id-1";
-        Mockito.doNothing().when(this.facade).deleteSecurityGroupRules(Mockito.anyString(), Mockito.anyString(),
+        Mockito.doNothing().when(this.facade).deleteSecurityRule(Mockito.anyString(), Mockito.anyString(),
                 Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
         String deleteEndpoint = NETWORK_ENDPOINT + "/" + FAKE_ID;
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.DELETE, deleteEndpoint, getHttpHeaders(), "");
@@ -319,7 +319,7 @@ public class SecurityRuleAPITest {
         // set up
         deleteEndpoint = PUBLIC_IP_ENDPOINT + "/" + FAKE_ID;
         requestBuilder = createRequestBuilder(HttpMethod.DELETE, deleteEndpoint, getHttpHeaders(), "");
-        Mockito.doNothing().when(this.facade).deleteSecurityGroupRules(Mockito.anyString(), Mockito.anyString(),
+        Mockito.doNothing().when(this.facade).deleteSecurityRule(Mockito.anyString(), Mockito.anyString(),
                 Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
 
         // exercise
@@ -328,19 +328,19 @@ public class SecurityRuleAPITest {
         // verify
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 
-        Mockito.verify(this.facade, Mockito.times(2)).deleteSecurityGroupRules(
+        Mockito.verify(this.facade, Mockito.times(2)).deleteSecurityRule(
                 Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(ResourceType.class));
     }
 
-    // test case: Delete a security group rule not found. Also check if the request has same behaviour in both
+    // test case: Delete a security rule not found. Also check if the request has same behaviour in both
     // endpoints (/networks and /publicIps)
     @Test
-    public void testDeleteNotFoundSecurityGroupRule() throws Exception {
+    public void testDeleteNotFoundSecurityRule() throws Exception {
         // set up
         final String FAKE_ID = "fake-Id-1";
         String deleteEndpoint = NETWORK_ENDPOINT + "/" + FAKE_ID;
 
-        Mockito.doThrow(new InstanceNotFoundException()).when(this.facade).deleteSecurityGroupRules(
+        Mockito.doThrow(new InstanceNotFoundException()).when(this.facade).deleteSecurityRule(
                 Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.DELETE, deleteEndpoint, getHttpHeaders(), "");
 
@@ -355,7 +355,7 @@ public class SecurityRuleAPITest {
         // set up
         deleteEndpoint = PUBLIC_IP_ENDPOINT + "/" + FAKE_ID;
         requestBuilder = createRequestBuilder(HttpMethod.DELETE, deleteEndpoint, getHttpHeaders(), "");
-        Mockito.doThrow(new InstanceNotFoundException()).when(this.facade).deleteSecurityGroupRules(
+        Mockito.doThrow(new InstanceNotFoundException()).when(this.facade).deleteSecurityRule(
                 Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
 
         // exercise
@@ -364,11 +364,11 @@ public class SecurityRuleAPITest {
         // verify
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 
-        Mockito.verify(this.facade, Mockito.times(2)).deleteSecurityGroupRules(
+        Mockito.verify(this.facade, Mockito.times(2)).deleteSecurityRule(
                 Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(ResourceType.class));
     }
 
-    // test case: Delete a security group rule with unauthenticated user. Also check if the request has same behaviour
+    // test case: Delete a security rule with unauthenticated user. Also check if the request has same behaviour
     // in both endpoints (/networks and /publicIps)
     @Test
     public void testDeleteUnauthenticatedException() throws Exception {
@@ -376,7 +376,7 @@ public class SecurityRuleAPITest {
         final String FAKE_ID = "fake-Id-1";
         String deleteEndpoint = NETWORK_ENDPOINT + "/" + FAKE_ID;
 
-        Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).deleteSecurityGroupRules(
+        Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).deleteSecurityRule(
                 Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.DELETE, deleteEndpoint, getHttpHeaders(), "");
 
@@ -390,7 +390,7 @@ public class SecurityRuleAPITest {
         // set up
         deleteEndpoint = PUBLIC_IP_ENDPOINT + "/" + FAKE_ID;
         requestBuilder = createRequestBuilder(HttpMethod.DELETE, deleteEndpoint, getHttpHeaders(), "");
-        Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).deleteSecurityGroupRules(
+        Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).deleteSecurityRule(
                 Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
 
         // exercise
@@ -399,18 +399,18 @@ public class SecurityRuleAPITest {
         // verify
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 
-        Mockito.verify(this.facade, Mockito.times(2)).deleteSecurityGroupRules(
+        Mockito.verify(this.facade, Mockito.times(2)).deleteSecurityRule(
                 Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(ResourceType.class));
     }
 
-    // test case: Delete a security group rule with unauthorized user. Also check if the request has same behaviour
+    // test case: Delete a security rule with unauthorized user. Also check if the request has same behaviour
     // in both endpoints (/networks and /publicIps)
     @Test
     public void testDeleteUnauthorizedException() throws Exception {
         // set up
         final String FAKE_ID = "fake-Id-1";
         String deleteEndpoint = NETWORK_ENDPOINT + "/" + FAKE_ID;
-        Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).deleteSecurityGroupRules(
+        Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).deleteSecurityRule(
                 Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.eq(ResourceType.NETWORK));
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.DELETE, deleteEndpoint, getHttpHeaders(), "");
 
@@ -423,7 +423,7 @@ public class SecurityRuleAPITest {
 
         // set up
         requestBuilder = createRequestBuilder(HttpMethod.DELETE, deleteEndpoint, getHttpHeaders(), "");
-        Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).deleteSecurityGroupRules(
+        Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).deleteSecurityRule(
                 Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.eq(ResourceType.PUBLIC_IP));
 
         // exercise
@@ -432,7 +432,7 @@ public class SecurityRuleAPITest {
         // verify
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
 
-        Mockito.verify(this.facade, Mockito.times(2)).deleteSecurityGroupRules(
+        Mockito.verify(this.facade, Mockito.times(2)).deleteSecurityRule(
                 Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(ResourceType.class));
     }
 

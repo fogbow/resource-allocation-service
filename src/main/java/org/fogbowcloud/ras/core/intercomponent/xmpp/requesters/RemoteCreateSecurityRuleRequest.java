@@ -7,12 +7,8 @@ import org.fogbowcloud.ras.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
-import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 import org.fogbowcloud.ras.core.models.orders.Order;
-import org.fogbowcloud.ras.core.models.securitygroups.Direction;
-import org.fogbowcloud.ras.core.models.securitygroups.EtherType;
-import org.fogbowcloud.ras.core.models.securitygroups.Protocol;
-import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
+import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.util.GsonHolder;
 import org.xmpp.packet.IQ;
@@ -20,14 +16,14 @@ import org.xmpp.packet.IQ;
 public class RemoteCreateSecurityRuleRequest implements RemoteRequest<Void> {
     private static final Logger LOGGER = Logger.getLogger(RemoteCreateSecurityRuleRequest.class);
 
-    private SecurityGroupRule securityGroupRule;
+    private SecurityRule securityRule;
     private FederationUserToken federationUserToken;
     private String provider;
     private Order majorOrder;
 
-    public RemoteCreateSecurityRuleRequest(SecurityGroupRule securityGroupRule, FederationUserToken federationUserToken,
+    public RemoteCreateSecurityRuleRequest(SecurityRule securityRule, FederationUserToken federationUserToken,
                                            String provider, Order majorOrder) {
-        this.securityGroupRule = securityGroupRule;
+        this.securityRule = securityRule;
         this.federationUserToken = federationUserToken;
         this.provider = provider;
         this.majorOrder = majorOrder;
@@ -56,7 +52,7 @@ public class RemoteCreateSecurityRuleRequest implements RemoteRequest<Void> {
         userElement.setText(new Gson().toJson(federationUserToken));
 
         Element securityRuleElement = queryElement.addElement(IqElement.SECURITY_RULE.toString());
-        securityRuleElement.setText(GsonHolder.getInstance().toJson(securityGroupRule));
+        securityRuleElement.setText(GsonHolder.getInstance().toJson(securityRule));
         return iq;
     }
 }

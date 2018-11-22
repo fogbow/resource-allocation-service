@@ -1,7 +1,6 @@
-package org.fogbowcloud.ras.core.plugins.interoperability.openstack.securitygroup.v2;
+package org.fogbowcloud.ras.core.plugins.interoperability.openstack.securityrule.v2;
 
 import com.google.gson.annotations.SerializedName;
-import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
 import org.fogbowcloud.ras.util.GsonHolder;
 
 import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants.Network.ID_KEY_JSON;
@@ -32,31 +31,31 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.Openst
  * <p>
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
-public class CreateSecurityGroupRuleResponse {
+public class CreateSecurityRuleResponse {
     @SerializedName(SECURITY_GROUP_RULE_KEY_JSON)
-    public SecurityGroupRule securityGroupRule;
+    public SecurityRule securityRule;
 
-    public CreateSecurityGroupRuleResponse(SecurityGroupRule securityGroupRule) {
-        this.securityGroupRule = securityGroupRule;
+    public CreateSecurityRuleResponse(SecurityRule securityRule) {
+        this.securityRule = securityRule;
     }
 
     public String getId() {
-        return securityGroupRule.id;
+        return securityRule.id;
     }
 
     public String toJson() {
         return GsonHolder.getInstance().toJson(this);
     }
 
-    public static CreateSecurityGroupRuleResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, CreateSecurityGroupRuleResponse.class);
+    public static CreateSecurityRuleResponse fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, CreateSecurityRuleResponse.class);
     }
 
-    public static class SecurityGroupRule {
+    public static class SecurityRule {
         @SerializedName(ID_KEY_JSON)
         private String id;
 
-        public SecurityGroupRule(String id) {
+        public SecurityRule(String id) {
             this.id = id;
         }
     }

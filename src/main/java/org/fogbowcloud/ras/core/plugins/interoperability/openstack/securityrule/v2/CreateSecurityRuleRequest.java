@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.plugins.interoperability.openstack.securitygroup.v2;
+package org.fogbowcloud.ras.core.plugins.interoperability.openstack.securityrule.v2;
 
 import com.google.gson.annotations.SerializedName;
 import org.fogbowcloud.ras.util.GsonHolder;
@@ -22,19 +22,19 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.openstack.Openst
  * <p>
  * We use the @SerializedName annotation to specify that the request parameter is not equal to the class field.
  */
-public class CreateSecurityGroupRuleRequest {
+public class CreateSecurityRuleRequest {
     @SerializedName(SECURITY_GROUP_RULE_KEY_JSON)
-    private SecurityGroupRule securityGroupRule;
+    private SecurityRule securityRule;
 
-    public CreateSecurityGroupRuleRequest(SecurityGroupRule securityGroupRule) {
-        this.securityGroupRule = securityGroupRule;
+    public CreateSecurityRuleRequest(SecurityRule securityRule) {
+        this.securityRule = securityRule;
     }
 
     public String toJson() {
         return GsonHolder.getInstance().toJson(this);
     }
 
-    public static class SecurityGroupRule {
+    public static class SecurityRule {
         @SerializedName(SECURITY_GROUP_ID_KEY_JSON)
         private String securityGroupId;
         @SerializedName(REMOTE_IP_PREFIX_KEY_JSON)
@@ -50,7 +50,7 @@ public class CreateSecurityGroupRuleRequest {
         @SerializedName(PROTOCOL_KEY_JSON)
         private String protocol;
 
-        private SecurityGroupRule(Builder builder) {
+        private SecurityRule(Builder builder) {
             this.securityGroupId = builder.securityGroupId;
             this.remoteIpPrefix =  builder.remoteIpPrefix;
             this.portRangeMin = builder.portRangeMin;
@@ -105,9 +105,9 @@ public class CreateSecurityGroupRuleRequest {
             return this;
         }
 
-        public CreateSecurityGroupRuleRequest build() {
-            SecurityGroupRule securityGroupRule = new SecurityGroupRule(this);
-            return new CreateSecurityGroupRuleRequest(securityGroupRule);
+        public CreateSecurityRuleRequest build() {
+            SecurityRule securityRule = new SecurityRule(this);
+            return new CreateSecurityRuleRequest(securityRule);
         }
     }
 }

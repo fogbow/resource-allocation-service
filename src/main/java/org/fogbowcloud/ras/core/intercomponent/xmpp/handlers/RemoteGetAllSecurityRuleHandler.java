@@ -6,7 +6,7 @@ import org.fogbowcloud.ras.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
-import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
+import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
@@ -28,9 +28,9 @@ public class RemoteGetAllSecurityRuleHandler extends AbstractQueryHandler {
 
         IQ response = IQ.createResultIQ(iq);
         try {
-            List<SecurityGroupRule> securityGroupRuleList =  RemoteFacade.getInstance().
+            List<SecurityRule> securityRuleList =  RemoteFacade.getInstance().
                     getAllSecurityRules(iq.getFrom().toBareJID(), orderId, federationUserToken);
-            updateResponse(response, securityGroupRuleList);
+            updateResponse(response, securityRuleList);
         } catch (Throwable e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
@@ -44,14 +44,14 @@ public class RemoteGetAllSecurityRuleHandler extends AbstractQueryHandler {
         return orderIdElement.getText();
     }
 
-    private void updateResponse(IQ response, List<SecurityGroupRule> securityGroupRuleList) {
+    private void updateResponse(IQ response, List<SecurityRule> securityRuleList) {
         Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GET_ALL_SECURITY_RULES);
-        Element securityGroupRuleListElement = queryEl.addElement(IqElement.SECURITY_RULE_LIST.toString());
+        Element securityRuleListElement = queryEl.addElement(IqElement.SECURITY_RULE_LIST.toString());
 
         Element imagesMapClassNameElement = queryEl.addElement(IqElement.SECURITY_RULE_LIST_CLASS_NAME.toString());
-        imagesMapClassNameElement.setText(securityGroupRuleList.getClass().getName());
+        imagesMapClassNameElement.setText(securityRuleList.getClass().getName());
 
-        securityGroupRuleListElement.setText(new Gson().toJson(securityGroupRuleList));
+        securityRuleListElement.setText(new Gson().toJson(securityRuleList));
     }
 
     private FederationUserToken unmarshalFederationUserToken(IQ iq) {

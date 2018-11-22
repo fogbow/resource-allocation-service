@@ -1,13 +1,11 @@
 package org.fogbowcloud.ras.core.cloudconnector;
 
-import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
-import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.instances.Instance;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
-import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
+import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 
 import java.util.List;
@@ -76,26 +74,26 @@ public interface CloudConnector {
      * @param federationUserToken the attributes of the federation user
      * @return a list containing all security group rules
      */
-    List<SecurityGroupRule> getAllSecurityGroupRules(Order majorOrder, FederationUserToken federationUserToken) throws Exception;
+    List<SecurityRule> getAllSecurityRules(Order majorOrder, FederationUserToken federationUserToken) throws Exception;
 
     /**
      * Requests a new security group rule in the cloud (either locally or remotely) using the requirements contained
      * security group rule.
      *
      * @param majorOrder          the order that this security group is attached to
-     * @param securityGroupRule   the rule to be added
+     * @param securityRule   the rule to be added
      * @param federationUserToken the attributes of the federation user
      * @return the string that represents the security group rule Id
      */
-    String requestSecurityGroupRule(Order majorOrder, SecurityGroupRule securityGroupRule,
-            FederationUserToken federationUserToken) throws Exception;
+    String requestSecurityRule(Order majorOrder, SecurityRule securityRule,
+                               FederationUserToken federationUserToken) throws Exception;
 
     /**
      * Deletes in the cloud the security group rule associated to a security group.
      *
-     * @param securityGroupRuleId the Id of the security group rule to be retrieved
+     * @param securityRuleId the Id of the security group rule to be retrieved
      * @param federationUserToken the attributes of the federation user
      */
-    void deleteSecurityGroupRule(String securityGroupRuleId, FederationUserToken federationUserToken)
+    void deleteSecurityRule(String securityRuleId, FederationUserToken federationUserToken)
             throws Exception;
 }

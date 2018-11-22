@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.plugins.interoperability.openstack.securitygroup.v2;
+package org.fogbowcloud.ras.core.plugins.interoperability.openstack.securityrule.v2;
 
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
@@ -13,7 +13,7 @@ import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
 import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
-import org.fogbowcloud.ras.core.models.securitygroups.*;
+import org.fogbowcloud.ras.core.models.securityrules.*;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenstackRestApiConstants;
@@ -33,11 +33,11 @@ import java.util.Properties;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class OpenStackSecurityGroupPluginTest {
+public class OpenStackSecurityRulesPluginTest {
 
     private static final String NETWORK_NEUTRONV2_URL_KEY = "openstack_neutron_v2_url";
     private static final String DEFAULT_NETWORK_URL = "http://localhost:0000";
-    private static final String SECURITY_GROUP_RULE_ID = "securityGroupRuleId";
+    private static final String SECURITY_RULE_ID = "securityRuleId";
     private static final String SECURITY_GROUP_ID = "securityGroupId";
 
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
@@ -51,10 +51,10 @@ public class OpenStackSecurityGroupPluginTest {
     private static final String FAKE_GATEWAY = "fake-gateway";
     private static final String FAKE_ADDRESS = "fake-address";
 
-    private static final String SUFFIX_ENDPOINT_SECURITY_GROUP_RULES = OpenStackSecurityGroupPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES  +
-            OpenStackSecurityGroupPlugin.QUERY_PREFIX;
+    private static final String SUFFIX_ENDPOINT_SECURITY_GROUP_RULES = OpenStackSecurityRulePlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES  +
+            OpenStackSecurityRulePlugin.QUERY_PREFIX;
 
-    private OpenStackSecurityGroupPlugin openStackSecurityGroupPlugin;
+    private OpenStackSecurityRulePlugin openStackSecurityRulePlugin;
     private OpenStackV3Token defaultLocalUserAttributes;
     private HttpClient client;
     private Properties properties;
@@ -65,11 +65,11 @@ public class OpenStackSecurityGroupPluginTest {
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         this.properties = propertiesHolder.getProperties();
         this.properties.put(NETWORK_NEUTRONV2_URL_KEY, DEFAULT_NETWORK_URL);
-        this.openStackSecurityGroupPlugin = Mockito.spy(new OpenStackSecurityGroupPlugin());
+        this.openStackSecurityRulePlugin = Mockito.spy(new OpenStackSecurityRulePlugin());
 
         this.client = Mockito.mock(HttpClient.class);
         this.httpRequestClientUtil = Mockito.spy(new HttpRequestClientUtil(this.client));
-        this.openStackSecurityGroupPlugin.setClient(this.httpRequestClientUtil);
+        this.openStackSecurityRulePlugin.setClient(this.httpRequestClientUtil);
 
         this.defaultLocalUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID,
                 FAKE_NAME, FAKE_PROJECT_ID, null);
@@ -82,44 +82,44 @@ public class OpenStackSecurityGroupPluginTest {
 
     //test case: The http client must make only 1 request
     @Test
-    public void testRequestSecurityGroupRule() throws Exception {
+    public void testRequestSecurityRule() throws Exception {
         //set up
         // post network
-        String createSecurityGroupRuleResponse = new CreateSecurityGroupRuleResponse(
-                new CreateSecurityGroupRuleResponse.SecurityGroupRule(SECURITY_GROUP_RULE_ID)).toJson();
-        Mockito.doReturn(createSecurityGroupRuleResponse).when(this.httpRequestClientUtil)
-                .doPostRequest(Mockito.endsWith(OpenStackSecurityGroupPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES),
+        String createSecurityRuleResponse = new CreateSecurityRuleResponse(
+                new CreateSecurityRuleResponse.SecurityRule(SECURITY_RULE_ID)).toJson();
+        Mockito.doReturn(createSecurityRuleResponse).when(this.httpRequestClientUtil)
+                .doPostRequest(Mockito.endsWith(OpenStackSecurityRulePlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES),
                         Mockito.eq(this.defaultLocalUserAttributes), Mockito.anyString());
 
-        Mockito.doReturn(null).when(this.openStackSecurityGroupPlugin).
-                getSecurityGroupRulesFromJson(Mockito.anyString());
-        Mockito.doReturn(SECURITY_GROUP_ID).when(this.openStackSecurityGroupPlugin).
+        Mockito.doReturn(null).when(this.openStackSecurityRulePlugin).
+                getSecurityRulesFromJson(Mockito.anyString());
+        Mockito.doReturn(SECURITY_GROUP_ID).when(this.openStackSecurityRulePlugin).
                 retrieveSecurityGroupId(Mockito.anyString(), Mockito.any(OpenStackV3Token.class));
-        SecurityGroupRule securityGroupRule = createEmptySecurityGroupRule();
+        SecurityRule securityRule = createEmptySecurityRule();
         NetworkOrder order = createNetworkOrder();
 
         //exercise
-        this.openStackSecurityGroupPlugin.requestSecurityGroupRule(securityGroupRule, order,
+        this.openStackSecurityRulePlugin.requestSecurityRule(securityRule, order,
                 this.defaultLocalUserAttributes);
 
         //verify
         Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doPostRequest(
-                Mockito.endsWith(OpenStackSecurityGroupPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES),
+                Mockito.endsWith(OpenStackSecurityRulePlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES),
                 Mockito.eq(this.defaultLocalUserAttributes), Mockito.anyString());
     }
 
-    //test case: Tests if an exception will be thrown in case that openstack raise an error in security group rule request.
+    //test case: Tests if an exception will be thrown in case that openstack raise an error in security rule request.
     @Test
-    public void testRequestSecurityGroupRuleNetworkError() throws Exception {
+    public void testRequestSecurityRuleNetworkError() throws Exception {
         //set up
         HttpResponse httpResponsePostNetwork = createHttpResponse("", HttpStatus.SC_BAD_REQUEST);
         Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponsePostNetwork);
-        SecurityGroupRule securityGroupRule = createEmptySecurityGroupRule();
+        SecurityRule securityRule = createEmptySecurityRule();
         NetworkOrder order = createNetworkOrder();
 
         //exercise
         try {
-            this.openStackSecurityGroupPlugin.requestSecurityGroupRule(securityGroupRule, order,
+            this.openStackSecurityRulePlugin.requestSecurityRule(securityRule, order,
                     this.defaultLocalUserAttributes);
             Assert.fail();
         } catch (FogbowRasException e) {
@@ -132,11 +132,11 @@ public class OpenStackSecurityGroupPluginTest {
         Mockito.verify(this.client, Mockito.times(1)).execute(Mockito.any(HttpUriRequest.class));
     }
 
-    //test case: Tests get security group rule from json response
+    //test case: Tests get security rule from json response
     @Test
-    public void testGetSecurityGroupRuleFromJson() throws Exception {
+    public void testGetSecurityRuleFromJson() throws Exception {
         //set up
-        String id = "securityGroupRuleId";
+        String id = "securityRuleId";
         String cidr = "0.0.0.0";
         int portFrom = 0;
         int portTo = 0;
@@ -145,46 +145,46 @@ public class OpenStackSecurityGroupPluginTest {
         String protocol = "tcp";
         NetworkOrder order = createNetworkOrder();
 
-        // Generating security group rule response string
-        JSONObject securityGroupRuleContentJsonObject = generateJsonResponseForSecurityGroupRules(id, cidr, portFrom, portTo,
+        // Generating security rule response string
+        JSONObject securityRuleContentJsonObject = generateJsonResponseForSecurityRules(id, cidr, portFrom, portTo,
                 direction, etherType, protocol);
 
-        HttpResponse httpResponseGetSecurityGroups = createHttpResponse(securityGroupRuleContentJsonObject.toString(), HttpStatus.SC_OK);
-        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponseGetSecurityGroups);
-        Mockito.doReturn(SECURITY_GROUP_ID).when(this.openStackSecurityGroupPlugin).
+        HttpResponse httpResponseGetSecurityRules = createHttpResponse(securityRuleContentJsonObject.toString(), HttpStatus.SC_OK);
+        Mockito.when(this.client.execute(Mockito.any(HttpUriRequest.class))).thenReturn(httpResponseGetSecurityRules);
+        Mockito.doReturn(SECURITY_GROUP_ID).when(this.openStackSecurityRulePlugin).
                 retrieveSecurityGroupId(Mockito.anyString(), Mockito.any(OpenStackV3Token.class));
 
         //exercise
-        List<SecurityGroupRule> securityGroups = this.openStackSecurityGroupPlugin.getSecurityGroupRules(order,
+        List<SecurityRule> securityRules = this.openStackSecurityRulePlugin.getSecurityRules(order,
                 this.defaultLocalUserAttributes);
-        SecurityGroupRule securityGroupRule = securityGroups.get(0);
+        SecurityRule securityRule = securityRules.get(0);
 
         //verify
-        Assert.assertEquals(id, securityGroupRule.getInstanceId());
-        Assert.assertEquals(cidr, securityGroupRule.getCidr());
-        Assert.assertEquals(portFrom, securityGroupRule.getPortFrom());
-        Assert.assertEquals(portTo, securityGroupRule.getPortTo());
-        Assert.assertEquals(direction, securityGroupRule.getDirection().toString());
-        Assert.assertEquals(etherType, securityGroupRule.getEtherType().toString());
-        Assert.assertEquals(protocol, securityGroupRule.getProtocol().toString());
+        Assert.assertEquals(id, securityRule.getInstanceId());
+        Assert.assertEquals(cidr, securityRule.getCidr());
+        Assert.assertEquals(portFrom, securityRule.getPortFrom());
+        Assert.assertEquals(portTo, securityRule.getPortTo());
+        Assert.assertEquals(direction, securityRule.getDirection().toString());
+        Assert.assertEquals(etherType, securityRule.getEtherType().toString());
+        Assert.assertEquals(protocol, securityRule.getProtocol().toString());
     }
 
-    //test case: Tests remove security group rule
+    //test case: Tests remove security rule
     @Test
     public void testRemoveInstance() throws IOException, JSONException, FogbowRasException, UnexpectedException {
         //set up
-        String suffixEndpointSecurityGroup = OpenStackSecurityGroupPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES + "/" +
-                SECURITY_GROUP_RULE_ID;
+        String suffixEndpointSecurityRules = OpenStackSecurityRulePlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES + "/" +
+                SECURITY_RULE_ID;
 
         Mockito.doNothing().when(this.httpRequestClientUtil).doDeleteRequest(
-                Mockito.endsWith(suffixEndpointSecurityGroup), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(suffixEndpointSecurityRules), Mockito.eq(this.defaultLocalUserAttributes));
 
         //exercise
-        this.openStackSecurityGroupPlugin.deleteSecurityGroupRule(SECURITY_GROUP_RULE_ID, this.defaultLocalUserAttributes);
+        this.openStackSecurityRulePlugin.deleteSecurityRule(SECURITY_RULE_ID, this.defaultLocalUserAttributes);
 
         //verify
         Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doDeleteRequest(
-                Mockito.endsWith(suffixEndpointSecurityGroup), Mockito.eq(this.defaultLocalUserAttributes));
+                Mockito.endsWith(suffixEndpointSecurityRules), Mockito.eq(this.defaultLocalUserAttributes));
     }
 
     @Test
@@ -192,8 +192,8 @@ public class OpenStackSecurityGroupPluginTest {
         
     }
 
-    private SecurityGroupRule createEmptySecurityGroupRule() {
-        return new SecurityGroupRule(Direction.OUT, 0, 0, "0.0.0.0/0 ", EtherType.IPv4, Protocol.TCP);
+    private SecurityRule createEmptySecurityRule() {
+        return new SecurityRule(Direction.OUT, 0, 0, "0.0.0.0/0 ", EtherType.IPv4, Protocol.TCP);
     }
 
     private HttpResponse createHttpResponse(String content, int httpStatus) throws IOException {
@@ -222,25 +222,25 @@ public class OpenStackSecurityGroupPluginTest {
         return order;
     }
 
-    private JSONObject generateJsonResponseForSecurityGroupRules(String securityGroupId, String cidr, int portFrom, int portTo,
-                                                                 String direction, String etherType, String protocol) {
-        JSONObject securityGroupRuleContentJsonObject = new JSONObject();
+    private JSONObject generateJsonResponseForSecurityRules(String securityGroupId, String cidr, int portFrom, int portTo,
+                                                            String direction, String etherType, String protocol) {
+        JSONObject securityRuleContentJsonObject = new JSONObject();
 
-        securityGroupRuleContentJsonObject.put(OpenstackRestApiConstants.Network.ID_KEY_JSON, securityGroupId);
-        securityGroupRuleContentJsonObject.put(OpenstackRestApiConstants.Network.REMOTE_IP_PREFIX_KEY_JSON, cidr);
-        securityGroupRuleContentJsonObject.put(OpenstackRestApiConstants.Network.MAX_PORT_KEY_JSON, portTo);
-        securityGroupRuleContentJsonObject.put(OpenstackRestApiConstants.Network.MIN_PORT_KEY_JSON, portFrom);
-        securityGroupRuleContentJsonObject.put(OpenstackRestApiConstants.Network.DIRECTION_KEY_JSON, direction);
-        securityGroupRuleContentJsonObject.put(OpenstackRestApiConstants.Network.ETHER_TYPE_KEY_JSON, etherType);
-        securityGroupRuleContentJsonObject.put(OpenstackRestApiConstants.Network.PROTOCOL_KEY_JSON, protocol);
+        securityRuleContentJsonObject.put(OpenstackRestApiConstants.Network.ID_KEY_JSON, securityGroupId);
+        securityRuleContentJsonObject.put(OpenstackRestApiConstants.Network.REMOTE_IP_PREFIX_KEY_JSON, cidr);
+        securityRuleContentJsonObject.put(OpenstackRestApiConstants.Network.MAX_PORT_KEY_JSON, portTo);
+        securityRuleContentJsonObject.put(OpenstackRestApiConstants.Network.MIN_PORT_KEY_JSON, portFrom);
+        securityRuleContentJsonObject.put(OpenstackRestApiConstants.Network.DIRECTION_KEY_JSON, direction);
+        securityRuleContentJsonObject.put(OpenstackRestApiConstants.Network.ETHER_TYPE_KEY_JSON, etherType);
+        securityRuleContentJsonObject.put(OpenstackRestApiConstants.Network.PROTOCOL_KEY_JSON, protocol);
 
-        JSONArray securityGroupRulesJsonArray = new JSONArray();
-        securityGroupRulesJsonArray.add(securityGroupRuleContentJsonObject);
+        JSONArray securityRulesJsonArray = new JSONArray();
+        securityRulesJsonArray.add(securityRuleContentJsonObject);
 
-        JSONObject securityGroupRulesContentJsonObject = new JSONObject();
-        securityGroupRulesContentJsonObject.put(OpenstackRestApiConstants.Network.SECURITY_GROUP_RULES_KEY_JSON,
-                securityGroupRulesJsonArray);
+        JSONObject securityRulesContentJsonObject = new JSONObject();
+        securityRulesContentJsonObject.put(OpenstackRestApiConstants.Network.SECURITY_GROUP_RULES_KEY_JSON,
+                securityRulesJsonArray);
 
-        return securityGroupRulesContentJsonObject;
+        return securityRulesContentJsonObject;
     }
 }

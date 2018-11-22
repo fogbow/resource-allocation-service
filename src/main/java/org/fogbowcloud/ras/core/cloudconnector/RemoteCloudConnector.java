@@ -1,15 +1,13 @@
 package org.fogbowcloud.ras.core.cloudconnector;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
-import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.requesters.*;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.instances.Instance;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
-import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
+import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 
 import java.util.HashMap;
@@ -81,7 +79,7 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public List<SecurityGroupRule> getAllSecurityGroupRules(Order majorOrder, FederationUserToken federationUserToken)
+    public List<SecurityRule> getAllSecurityRules(Order majorOrder, FederationUserToken federationUserToken)
             throws Exception {
         RemoteGetAllSecurityRuleRequest remoteGetAllSecurityRuleRequest =
                 new RemoteGetAllSecurityRuleRequest(this.destinationMember, majorOrder.getId(), federationUserToken);
@@ -89,18 +87,18 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public String requestSecurityGroupRule(Order majorOrder, SecurityGroupRule securityGroupRule,
-                                           FederationUserToken federationUserToken) throws Exception {
+    public String requestSecurityRule(Order majorOrder, SecurityRule securityRule,
+                                      FederationUserToken federationUserToken) throws Exception {
         RemoteCreateSecurityRuleRequest remoteCreateSecurityRuleRequest =
-                new RemoteCreateSecurityRuleRequest(securityGroupRule, federationUserToken, this.destinationMember, majorOrder);
+                new RemoteCreateSecurityRuleRequest(securityRule, federationUserToken, this.destinationMember, majorOrder);
         remoteCreateSecurityRuleRequest.send();
         return null;
     }
 
     @Override
-    public void deleteSecurityGroupRule(String securityGroupRuleId, FederationUserToken federationUserToken) throws Exception {
+    public void deleteSecurityRule(String securityRuleId, FederationUserToken federationUserToken) throws Exception {
         RemoteDeleteSecurityRuleRequest remoteDeleteSecurityRuleRequest =
-                new RemoteDeleteSecurityRuleRequest(securityGroupRuleId, this.destinationMember, federationUserToken);
+                new RemoteDeleteSecurityRuleRequest(securityRuleId, this.destinationMember, federationUserToken);
         remoteDeleteSecurityRuleRequest.send();
     }
 }

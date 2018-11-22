@@ -9,7 +9,7 @@ import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.*;
 import org.fogbowcloud.ras.core.models.orders.*;
-import org.fogbowcloud.ras.core.models.securitygroups.SecurityGroupRule;
+import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.junit.Assert;
 import org.junit.Before;
@@ -20,7 +20,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
@@ -50,7 +49,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     private ApplicationFacade application;
     private AaaController aaaController;
     private OrderController orderController;
-    private SecurityGroupController securityGroupController;
+    private SecurityRuleController securityRuleController;
     private Map<String, Order> activeOrdersMap;
 
     private LocalCloudConnector localCloudConnector;
@@ -62,11 +61,11 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         super.mockReadOrdersFromDataBase();
 
         this.orderController = Mockito.spy(new OrderController());
-        this.securityGroupController = Mockito.spy(new SecurityGroupController());
+        this.securityRuleController = Mockito.spy(new SecurityRuleController());
         this.application = ApplicationFacade.getInstance();
         this.application.setAaaController(this.aaaController);
         this.application.setOrderController(this.orderController);
-        this.application.setSecurityGroupController(this.securityGroupController);
+        this.application.setSecurityRuleController(this.securityRuleController);
 
         PluginInstantiator instantiationInitService = PluginInstantiator.getInstance();
         InteroperabilityPluginsHolder interoperabilityPluginsHolder = new InteroperabilityPluginsHolder(instantiationInitService);
@@ -1762,7 +1761,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // exercise
         try {
-            application.createSecurityGroupRules(FAKE_INSTANCE_ID, Mockito.mock(SecurityGroupRule.class),
+            application.createSecurityRule(FAKE_INSTANCE_ID, Mockito.mock(SecurityRule.class),
                     FAKE_FEDERATION_TOKEN_VALUE, ResourceType.PUBLIC_IP);
             // verify
             Assert.fail();
@@ -1779,7 +1778,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // exercise
         try {
-            application.createSecurityGroupRules(FAKE_INSTANCE_ID, Mockito.mock(SecurityGroupRule.class),
+            application.createSecurityRule(FAKE_INSTANCE_ID, Mockito.mock(SecurityRule.class),
                     FAKE_FEDERATION_TOKEN_VALUE, ResourceType.NETWORK);
             // verify
             Assert.fail();
@@ -1796,12 +1795,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doReturn(Mockito.mock(FederationUserToken.class)).when(aaaController).getFederationUser(Mockito.anyString());
         Mockito.doNothing().when(aaaController).authenticateAndAuthorize(Mockito.anyString(),
                 Mockito.any(FederationUserToken.class), Mockito.any(Operation.class), Mockito.any(ResourceType.class));
-        Mockito.doReturn(FAKE_INSTANCE_ID).when(securityGroupController).createSecurityGroupRules(Mockito.any(Order.class),
-                Mockito.any(SecurityGroupRule.class), Mockito.any(FederationUserToken.class));
+        Mockito.doReturn(FAKE_INSTANCE_ID).when(securityRuleController).createSecurityRule(Mockito.any(Order.class),
+                Mockito.any(SecurityRule.class), Mockito.any(FederationUserToken.class));
 
         // exercise
         try {
-            application.createSecurityGroupRules(FAKE_INSTANCE_ID, Mockito.mock(SecurityGroupRule.class),
+            application.createSecurityRule(FAKE_INSTANCE_ID, Mockito.mock(SecurityRule.class),
                     FAKE_FEDERATION_TOKEN_VALUE, ResourceType.PUBLIC_IP);
         } catch (InstanceNotFoundException e) {
             // verify
@@ -1817,12 +1816,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doReturn(Mockito.mock(FederationUserToken.class)).when(aaaController).getFederationUser(Mockito.anyString());
         Mockito.doNothing().when(aaaController).authenticateAndAuthorize(Mockito.anyString(),
                 Mockito.any(FederationUserToken.class), Mockito.any(Operation.class), Mockito.any(ResourceType.class));
-        Mockito.doReturn(FAKE_INSTANCE_ID).when(securityGroupController).createSecurityGroupRules(Mockito.any(Order.class),
-                Mockito.any(SecurityGroupRule.class), Mockito.any(FederationUserToken.class));
+        Mockito.doReturn(FAKE_INSTANCE_ID).when(securityRuleController).createSecurityRule(Mockito.any(Order.class),
+                Mockito.any(SecurityRule.class), Mockito.any(FederationUserToken.class));
 
         // exercise
         try {
-            application.createSecurityGroupRules(FAKE_INSTANCE_ID, Mockito.mock(SecurityGroupRule.class),
+            application.createSecurityRule(FAKE_INSTANCE_ID, Mockito.mock(SecurityRule.class),
                     FAKE_FEDERATION_TOKEN_VALUE, ResourceType.NETWORK);
         } catch (InstanceNotFoundException e) {
             // verify
@@ -1838,7 +1837,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // exercise
         try {
-            application.getAllSecurityGroupRules(FAKE_INSTANCE_ID, FAKE_FEDERATION_TOKEN_VALUE, ResourceType.PUBLIC_IP);
+            application.getAllSecurityRules(FAKE_INSTANCE_ID, FAKE_FEDERATION_TOKEN_VALUE, ResourceType.PUBLIC_IP);
             // verify
             Assert.fail();
         } catch (InstanceNotFoundException e) {
@@ -1854,7 +1853,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // exercise
         try {
-            application.getAllSecurityGroupRules(FAKE_INSTANCE_ID, FAKE_FEDERATION_TOKEN_VALUE, ResourceType.NETWORK);
+            application.getAllSecurityRules(FAKE_INSTANCE_ID, FAKE_FEDERATION_TOKEN_VALUE, ResourceType.NETWORK);
             // verify
             Assert.fail();
         } catch (InstanceNotFoundException e) {
@@ -1869,12 +1868,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doReturn(Mockito.mock(FederationUserToken.class)).when(aaaController).getFederationUser(Mockito.anyString());
         Mockito.doNothing().when(aaaController).authenticateAndAuthorize(Mockito.anyString(),
                 Mockito.any(FederationUserToken.class), Mockito.any(Operation.class), Mockito.any(ResourceType.class));
-        Mockito.doReturn(new ArrayList<SecurityGroupRule>()).when(securityGroupController).getAllSecurityGroupRules(
+        Mockito.doReturn(new ArrayList<SecurityRule>()).when(securityRuleController).getAllSecurityRules(
                 Mockito.any(Order.class), Mockito.any(FederationUserToken.class));
 
         // exercise
         try {
-            application.getAllSecurityGroupRules(FAKE_INSTANCE_ID, FAKE_FEDERATION_TOKEN_VALUE, ResourceType.PUBLIC_IP);
+            application.getAllSecurityRules(FAKE_INSTANCE_ID, FAKE_FEDERATION_TOKEN_VALUE, ResourceType.PUBLIC_IP);
         } catch (InstanceNotFoundException e) {
             // verify
             Assert.fail();
@@ -1889,12 +1888,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doReturn(Mockito.mock(FederationUserToken.class)).when(aaaController).getFederationUser(Mockito.anyString());
         Mockito.doNothing().when(aaaController).authenticateAndAuthorize(Mockito.anyString(),
                 Mockito.any(FederationUserToken.class), Mockito.any(Operation.class), Mockito.any(ResourceType.class));
-        Mockito.doReturn(new ArrayList<SecurityGroupRule>()).when(securityGroupController).getAllSecurityGroupRules(
+        Mockito.doReturn(new ArrayList<SecurityRule>()).when(securityRuleController).getAllSecurityRules(
                 Mockito.any(Order.class), Mockito.any(FederationUserToken.class));
 
         // exercise
         try {
-            application.getAllSecurityGroupRules(FAKE_INSTANCE_ID, FAKE_FEDERATION_TOKEN_VALUE, ResourceType.NETWORK);
+            application.getAllSecurityRules(FAKE_INSTANCE_ID, FAKE_FEDERATION_TOKEN_VALUE, ResourceType.NETWORK);
         } catch (InstanceNotFoundException e) {
             // verify
             Assert.fail();
@@ -1909,7 +1908,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // exercise
         try {
-            application.deleteSecurityGroupRules(FAKE_INSTANCE_ID, FAKE_RULE_ID, FAKE_FEDERATION_TOKEN_VALUE,
+            application.deleteSecurityRule(FAKE_INSTANCE_ID, FAKE_RULE_ID, FAKE_FEDERATION_TOKEN_VALUE,
                     ResourceType.PUBLIC_IP);
             // verify
             Assert.fail();
@@ -1926,7 +1925,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
 
         // exercise
         try {
-            application.deleteSecurityGroupRules(FAKE_INSTANCE_ID, FAKE_RULE_ID, FAKE_FEDERATION_TOKEN_VALUE,
+            application.deleteSecurityRule(FAKE_INSTANCE_ID, FAKE_RULE_ID, FAKE_FEDERATION_TOKEN_VALUE,
                     ResourceType.NETWORK);
             // verify
             Assert.fail();
@@ -1942,12 +1941,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doReturn(Mockito.mock(FederationUserToken.class)).when(aaaController).getFederationUser(Mockito.anyString());
         Mockito.doNothing().when(aaaController).authenticateAndAuthorize(Mockito.anyString(),
                 Mockito.any(FederationUserToken.class), Mockito.any(Operation.class), Mockito.any(ResourceType.class));
-        Mockito.doNothing().when(securityGroupController).deleteSecurityGroupRules(
+        Mockito.doNothing().when(securityRuleController).deleteSecurityRule(
                 Mockito.anyString(), Mockito.anyString(), Mockito.any(FederationUserToken.class));
 
         // exercise
         try {
-            application.deleteSecurityGroupRules(FAKE_INSTANCE_ID, FAKE_RULE_ID, FAKE_FEDERATION_TOKEN_VALUE,
+            application.deleteSecurityRule(FAKE_INSTANCE_ID, FAKE_RULE_ID, FAKE_FEDERATION_TOKEN_VALUE,
                     ResourceType.PUBLIC_IP);
         } catch (InstanceNotFoundException e) {
             // verify
@@ -1963,12 +1962,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doReturn(Mockito.mock(FederationUserToken.class)).when(aaaController).getFederationUser(Mockito.anyString());
         Mockito.doNothing().when(aaaController).authenticateAndAuthorize(Mockito.anyString(),
                 Mockito.any(FederationUserToken.class), Mockito.any(Operation.class), Mockito.any(ResourceType.class));
-        Mockito.doNothing().when(securityGroupController).deleteSecurityGroupRules(
+        Mockito.doNothing().when(securityRuleController).deleteSecurityRule(
                 Mockito.anyString(), Mockito.anyString(), Mockito.any(FederationUserToken.class));
 
         // exercise
         try {
-            application.deleteSecurityGroupRules(FAKE_INSTANCE_ID, FAKE_RULE_ID, FAKE_FEDERATION_TOKEN_VALUE,
+            application.deleteSecurityRule(FAKE_INSTANCE_ID, FAKE_RULE_ID, FAKE_FEDERATION_TOKEN_VALUE,
                     ResourceType.NETWORK);
         } catch (InstanceNotFoundException e) {
             // verify
