@@ -132,6 +132,7 @@ public class CloudStackRestApiConstants {
     	public static final String START_PORT_KEY_JSON = "startport";
     	public static final String END_PORT_KEY_JSON = "endport";
     	public static final String PROPOCOL_KEY_JSON = "protocol";
+    	public static final String IP_ADDRESS_KEY_JSON = "ipaddress";
     	
     	public static final String TCP_VALUE_PROTOCOL = "tcp";
     	public static final String UDP_VALUE_PROTOCOL = "udp";

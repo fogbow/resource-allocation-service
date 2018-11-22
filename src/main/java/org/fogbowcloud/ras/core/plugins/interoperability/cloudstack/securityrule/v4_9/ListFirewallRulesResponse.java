@@ -1,21 +1,23 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9;
 
+import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.SecurityGroupPlugin.ALL_VALUE_PROTOCOL;
 import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.SecurityGroupPlugin.CIDR_LIST_KEY_JSON;
 import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.SecurityGroupPlugin.END_PORT_KEY_JSON;
 import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.SecurityGroupPlugin.FIREWALL_RULE_KEY_JSON;
+import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.SecurityGroupPlugin.ICMP_VALUE_PROTOCOL;
 import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.SecurityGroupPlugin.ID_KEY_JSON;
 import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.SecurityGroupPlugin.LIST_FIREWALL_RULES_KEY_JSON;
 import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.SecurityGroupPlugin.PROPOCOL_KEY_JSON;
 import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.SecurityGroupPlugin.START_PORT_KEY_JSON;
 import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.SecurityGroupPlugin.TCP_VALUE_PROTOCOL;
 import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.SecurityGroupPlugin.UDP_VALUE_PROTOCOL;
-import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.SecurityGroupPlugin.ICMP_VALUE_PROTOCOL;
-import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.SecurityGroupPlugin.ALL_VALUE_PROTOCOL;
+import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.SecurityGroupPlugin.IP_ADDRESS_KEY_JSON;
 
 import java.util.List;
 
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.securityrules.Direction;
+import org.fogbowcloud.ras.core.models.securityrules.EtherType;
 import org.fogbowcloud.ras.core.models.securityrules.Protocol;
 import org.fogbowcloud.ras.util.GsonHolder;
 
@@ -34,6 +36,7 @@ import com.google.gson.annotations.SerializedName;
  *        "protocol":"tcp",
  *        "startport":23,
  *        "endport":24,
+ *        "ipaddress" : "0.0.0.1",
  *        "cidrlist":"0.0.0.0/0",            
  *      },
  *      {  
@@ -41,6 +44,7 @@ import com.google.gson.annotations.SerializedName;
  *        "protocol":"tcp",
  *        "startport":22,
  *        "endport":22,
+ *        "ipaddress" : "0.0.0.2",
  *        "cidrlist":"0.0.0.0/0",
  *      }
  *    ]
@@ -78,55 +82,44 @@ public class ListFirewallRulesResponse {
         private int portFrom;
     	@SerializedName(END_PORT_KEY_JSON)
         private int portTo;
-        private Direction direction = Direction.IN;       
         @SerializedName(PROPOCOL_KEY_JSON)
 		private String protocol;
+        @SerializedName(IP_ADDRESS_KEY_JSON)
+        private String ipaddress;
         
-		// TODO check: where is this information ?
-        //private EtherType etherType;
-
 		public String getInstanceId() {
 			return instanceId;
-		}
-
-		public void setInstanceId(String instanceId) {
-			this.instanceId = instanceId;
 		}
 
 		public String getCidr() {
 			return cidr;
 		}
 
-		public void setCidr(String cidr) {
-			this.cidr = cidr;
-		}
-
 		public int getPortFrom() {
 			return portFrom;
-		}
-
-		public void setPortFrom(int portFrom) {
-			this.portFrom = portFrom;
 		}
 
 		public int getPortTo() {
 			return portTo;
 		}
 
-		public void setPortTo(int portTo) {
-			this.portTo = portTo;
-		}
-
 		public Direction getDirection() {
-			return direction;
-		}
-
-		public void setDirection(Direction direction) {
-			this.direction = direction;
+			return Direction.IN;
 		}
 
 		public String getProtocol() {
 			return protocol;
+		}
+		
+		public EtherType getFogbowEtherType() throws UnexpectedException {
+			if (CIRDUtils.isIpv4(this.ipaddress)) {
+				return EtherType.IPv4;
+			} else if (CIRDUtils.isIpv6(this.ipaddress)) {
+				return EtherType.IPv6;
+			}
+			// TODO check if is necessary use the class Message
+			// TODO Is the UnexpectedException correct in this case ?
+			throw new UnexpectedException("Is not a ipv4 neither ipv6"); 
 		}
 		
 		public Protocol getFogbowProtocol() throws UnexpectedException {
@@ -140,8 +133,9 @@ public class ListFirewallRulesResponse {
 			case ALL_VALUE_PROTOCOL:
 				return Protocol.ANY;
 			default:
-				// TODO add message
-				throw new UnexpectedException("");
+				// TODO check if is necessary use the class Message
+				// TODO Is the UnexpectedException correct in this case ?				
+				throw new UnexpectedException("Protocol not determined in the documentation");
 			}
 		}
 
