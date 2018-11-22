@@ -46,6 +46,14 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin {
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
 
+        DeleteFirewallRuleResponse firewallRuleResponse = DeleteFirewallRuleResponse.fromJson(jsonResponse);
 
+        boolean success = firewallRuleResponse.isSuccess();
+
+        if (!success) {
+            String message = firewallRuleResponse.getDisplayText();
+            throw new UnexpectedException(message);
+
+        }
     }
 }
