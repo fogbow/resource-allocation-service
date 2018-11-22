@@ -32,4 +32,9 @@ public class OpenNebulaTagNameConstants {
 		public static final String RULE_TYPE = "RULE_TYPE";
 		public static final String RANGE = "RANGE";
 		public static final String RULES = "RULES";
+		public static final String IMAGE = "IMAGE";
+		public static final String PERSISTENT = "PERSISTENT";
+		public static final String FILE_SYSTEM_TYPE = "FSTYPE";
+		public static final String DISK_TYPE = "DISK_TYPE";
+		public static final String DEVICE_PREFIX = "DEV_PREFIX";
 }
