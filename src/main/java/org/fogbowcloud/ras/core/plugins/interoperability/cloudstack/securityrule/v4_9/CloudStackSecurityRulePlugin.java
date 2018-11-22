@@ -2,7 +2,6 @@ package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.securityrul
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.orders.Order;
@@ -119,7 +118,8 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         }
     }
 
-    private CloudStackQueryAsyncJobResponse getAsyncJobResponse(HttpRequestClientUtil client, String jobId, Token token) throws FogbowRasException {
+    private CloudStackQueryAsyncJobResponse getAsyncJobResponse(HttpRequestClientUtil client, String jobId, Token token)
+            throws FogbowRasException {
         String jsonResponse = CloudStackQueryJobResult.getQueryJobResult(client, jobId, token);
         return CloudStackQueryAsyncJobResponse.fromJson(jsonResponse);
     }
