@@ -55,10 +55,15 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
 
 		Client client = factory.createClient(localUserAttributes.getTokenValue());
 
-		CreateVolumeRequest request = new CreateVolumeRequest.Builder().name(volumeName).size(volumeSize)
-				.persistent(PERSISTENT_DISK_CONFIRMATION).type(DATABLOCK_IMAGE_TYPE)
-				.fileSystemType(FILE_SYSTEM_TYPE_RAW).diskType(BLOCK_DISK_TYPE)
-				.devicePrefix(DEFAULT_DATASTORE_DEVICE_PREFIX).build();
+		CreateVolumeRequest request = new CreateVolumeRequest.Builder()
+				.name(volumeName)
+				.size(volumeSize)
+				.persistent(PERSISTENT_DISK_CONFIRMATION)
+				.type(DATABLOCK_IMAGE_TYPE)
+				.fileSystemType(FILE_SYSTEM_TYPE_RAW)
+				.diskType(BLOCK_DISK_TYPE)
+				.devicePrefix(DEFAULT_DATASTORE_DEVICE_PREFIX)
+				.build();
 
 		String template = request.getVolumeImage().marshalTemplate();
 		return this.factory.allocateImage(client, template, this.dataStoreId);
