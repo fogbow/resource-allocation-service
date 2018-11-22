@@ -156,5 +156,6 @@ public class Messages {
 		public static final String ERROR_WHILE_CREATING_SECURITY_GROUPS = "Error while creating a security groups from template: %s.";
 		public static final String ERROR_WHILE_CREATING_NIC = "Error while creating a network interface connected from template: %s.";
 		public static final String ERROR_WHILE_CREATING_AR = "Error while creating a address range from template: %s.";
+		public static final String ERROR_WHILE_REMOVING_VI = "Error while removing volume image: %s, with response: %s.";
     }
 }
