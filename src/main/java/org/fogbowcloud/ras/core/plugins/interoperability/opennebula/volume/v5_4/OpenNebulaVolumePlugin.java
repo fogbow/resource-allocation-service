@@ -1,6 +1,5 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 
-import java.io.File;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
@@ -28,80 +27,74 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
 
     private static final Logger LOGGER = Logger.getLogger(OpenNebulaVolumePlugin.class);
     
-    public static final String COMPUTE_ONE_DATASTORE_ID = "compute_one_datastore_id";
-	public static final String OPENNEBULA_BLOCK_DISK_TYPE = "BLOCK";
-	public static final String OPENNEBULA_DATABLOCK_IMAGE_TYPE = "DATABLOCK";
-	public static final String OPENNEBULA_RAW_FSTYPE = "raw";
-	public static final String OPENNEBULA_DATASTORE_DEFAULT_DEVICE_PREFIX = "vd";
-	public static final String OPENNEBULA_PERSISTENT_DISK_YES = "YES";
-
-    private Integer dataStoreId;
+    public static final String DEFAULT_DATASTORE_ID = "default_datastore_id";
+	public static final String BLOCK_DISK_TYPE = "BLOCK";
+	public static final String DATABLOCK_IMAGE_TYPE = "DATABLOCK";
+	public static final String FILE_SYSTEM_TYPE_RAW = "raw";
+	public static final String DEFAULT_DATASTORE_DEVICE_PREFIX = "vd";
+	public static final String PERSISTENT_DISK_CONFIRMATION = "YES";
+    
     private OpenNebulaClientFactory factory;
+    
+    private Integer dataStoreId;
 
-    Properties properties;
+	public OpenNebulaVolumePlugin() {
+		String filePath = HomeDir.getPath() + DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME;
+		Properties properties = PropertiesUtil.readProperties(filePath);
+		String dataStoreValue = properties.getProperty(DEFAULT_DATASTORE_ID);
+		this.dataStoreId = dataStoreValue == null ? null : Integer.valueOf(dataStoreValue);
+		this.factory = new OpenNebulaClientFactory();
+	}
 
-    public OpenNebulaVolumePlugin() {
-        super();
-        this.factory = new OpenNebulaClientFactory();
+	@Override
+	public String requestInstance(VolumeOrder volumeOrder, Token localUserAttributes)
+			throws FogbowRasException, UnexpectedException {
+		
+		String volumeName = volumeOrder.getName();
+		int volumeSize = volumeOrder.getVolumeSize();
 
-        String filePath = HomeDir.getPath() + File.separator + DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME;
-        properties = PropertiesUtil.readProperties(filePath);
+		Client client = factory.createClient(localUserAttributes.getTokenValue());
 
-        String dataStoreIdStr = properties.getProperty(COMPUTE_ONE_DATASTORE_ID);
-        dataStoreId = dataStoreIdStr == null ? null: Integer.valueOf(dataStoreIdStr);
-    }
+		CreateVolumeRequest request = new CreateVolumeRequest.Builder().name(volumeName).size(volumeSize)
+				.persistent(PERSISTENT_DISK_CONFIRMATION).type(DATABLOCK_IMAGE_TYPE)
+				.fileSystemType(FILE_SYSTEM_TYPE_RAW).diskType(BLOCK_DISK_TYPE)
+				.devicePrefix(DEFAULT_DATASTORE_DEVICE_PREFIX).build();
 
-    @Override
-    public String requestInstance(VolumeOrder volumeOrder, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
-        String volumeName = volumeOrder.getName();
-        int volumeSize = volumeOrder.getVolumeSize();
+		String template = request.getVolumeImage().marshalTemplate();
+		return this.factory.allocateImage(client, template, this.dataStoreId);
+	}
 
-        Client oneClient = factory.createClient(localUserAttributes.getTokenValue());
+	@Override
+	public VolumeInstance getInstance(String volumeInstanceId, Token localUserAttributes)
+			throws FogbowRasException, UnexpectedException {
+		
+		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+		ImagePool imagePool = this.factory.createImagePool(client);
+		Image image = imagePool.getById(Integer.parseInt(volumeInstanceId));
 
-        CreateVolumeRequest request = new CreateVolumeRequest.Builder()
-                .name(volumeName)
-                .size(volumeSize)
-                .persistent(OPENNEBULA_PERSISTENT_DISK_YES)
-                .type(OPENNEBULA_DATABLOCK_IMAGE_TYPE)
-                .fileSystemType(OPENNEBULA_RAW_FSTYPE)
-                .diskType(OPENNEBULA_BLOCK_DISK_TYPE)
-                .devicePrefix(OPENNEBULA_DATASTORE_DEFAULT_DEVICE_PREFIX)
-                .build();
+		int imageSize = Integer.parseInt(image.xpath(OpenNebulaTagNameConstants.SIZE));
+		String imageName = image.getName();
+		String imageState = image.shortStateStr();
+		InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.VOLUME, imageState);
 
-        String volumeTemplate = request.getVolumeImageRequestTemplate().marshalTemplate();
+		return new VolumeInstance(volumeInstanceId, instanceState, imageName, imageSize);
+	}
 
-        return this.factory.allocateImage(oneClient, volumeTemplate, dataStoreId);
-    }
+	@Override
+	public void deleteInstance(String volumeInstanceId, Token localUserAttributes)
+			throws FogbowRasException, UnexpectedException {
 
-    @Override
-    public VolumeInstance getInstance(String volumeInstanceId, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
-        Client oneClient  = this.factory.createClient(localUserAttributes.getTokenValue());
+		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+		ImagePool imagePool = this.factory.createImagePool(client);
+		Image image = imagePool.getById(Integer.parseInt(volumeInstanceId));
+		OneResponse response = image.delete();
+		if (response.isError()) {
+			LOGGER.error(
+					String.format(Messages.Error.ERROR_WHILE_REMOVING_VI, volumeInstanceId, response.getMessage()));
+		}
+	}
 
-        ImagePool imagePool = this.factory.createImagePool(oneClient);
-
-        Image oneImage = imagePool.getById(Integer.parseInt(volumeInstanceId));
-
-        int imageSize = Integer.parseInt(oneImage.xpath(OpenNebulaTagNameConstants.SIZE));
-
-        String instanceName = oneImage.getName();
-
-        InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.VOLUME, oneImage.stateString());
-
-        return new VolumeInstance(volumeInstanceId, instanceState, instanceName, imageSize);
-    }
-
-    @Override
-    public void deleteInstance(String volumeInstanceId, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
-        Client oneClient = this.factory.createClient(localUserAttributes.getTokenValue());
-        ImagePool imagePool = this.factory.createImagePool(oneClient);
-        Image oneImage = imagePool.getById(Integer.parseInt(volumeInstanceId));
-
-        OneResponse response = oneImage.delete();
-
-        if(response.isError()){
-
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, volumeInstanceId));
-            throw new UnexpectedException(response.getMessage());
-        }
-    }
+	protected void setFactory(OpenNebulaClientFactory factory) {
+		this.factory = factory;		
+	}
 }
