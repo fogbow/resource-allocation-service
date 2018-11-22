@@ -2,31 +2,31 @@ package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.volume.v5_4
 
 public class CreateVolumeRequest {
 
-    private VolumeImageRequestTemplate volumeImageRequestTemplate;
+    private VolumeImage volumeImage;
 
     public CreateVolumeRequest(Builder builder) {
-        String name = builder.name;
-        String persistent = builder.persistent;
-        String type = builder.type;
-        String fstype = builder.fstype;
-        String diskType = builder.diskType;
-        String devPrefix = builder.devPrefix;
-        int size = builder.size;
-        this.volumeImageRequestTemplate = new VolumeImageRequestTemplate(
-            name, persistent, type, fstype, diskType, devPrefix, size);
+    	this.volumeImage = new VolumeImage();
+    	this.volumeImage.setName(builder.name);
+    	this.volumeImage.setPersistent(builder.persistent);
+    	this.volumeImage.setType(builder.type);
+    	this.volumeImage.setFileSystemType(builder.fileSystemType);
+    	this.volumeImage.setDiskType(builder.diskType);
+    	this.volumeImage.setDevicePrefix(builder.devicePrefix);
+    	this.volumeImage.setSize(builder.size);
     }
 
-    public VolumeImageRequestTemplate getVolumeImageRequestTemplate() {
-        return volumeImageRequestTemplate;
+    public VolumeImage getVolumeImage() {
+        return volumeImage;
     }
 
     public static class Builder {
-        private String name;
+        
+    	private String name;
         private String persistent;
         private String type;
-        private String fstype;
+        private String fileSystemType;
         private String diskType;
-        private String devPrefix;
+        private String devicePrefix;
         private int size;
 
         public Builder name(String name) {
@@ -44,8 +44,8 @@ public class CreateVolumeRequest {
             return this;
         }
 
-        public Builder fileSystemType(String fstype) {
-            this.fstype = fstype;
+        public Builder fileSystemType(String fileSystemType) {
+            this.fileSystemType = fileSystemType;
             return this;
         }
 
@@ -54,8 +54,8 @@ public class CreateVolumeRequest {
             return this;
         }
 
-        public Builder devicePrefix(String devPrefix) {
-            this.devPrefix = devPrefix;
+        public Builder devicePrefix(String devicePrefix) {
+            this.devicePrefix = devicePrefix;
             return this;
         }
 
@@ -65,7 +65,6 @@ public class CreateVolumeRequest {
         }
 
         public CreateVolumeRequest build(){
-
             return new CreateVolumeRequest(this);
         }
     }

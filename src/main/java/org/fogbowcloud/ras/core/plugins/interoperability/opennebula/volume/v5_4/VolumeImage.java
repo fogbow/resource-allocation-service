@@ -1,31 +1,31 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 
-import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshallerTemplate;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.DEVICE_PREFIX;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.DISK_TYPE;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.FILE_SYSTEM_TYPE;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.IMAGE;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NAME;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.PERSISTENT;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.SIZE;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TYPE;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name = "IMAGE")
-public class VolumeImageRequestTemplate extends OpenNebulaMarshallerTemplate {
-    private String name;
+import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshallerTemplate;
+
+@XmlRootElement(name = IMAGE)
+public class VolumeImage extends OpenNebulaMarshallerTemplate {
+    
+	private String name;
     private String persistent;
     private String type;
-    private String fstype;
+    private String fileSystemType;
     private String diskType;
-    private String devPrefix;
+    private String devicePrefix;
     private int size;
 
-    public VolumeImageRequestTemplate(String name, String persistent, String type, String fstype, String diskType, String devPrefix, int size) {
-        this.name = name;
-        this.persistent = persistent;
-        this.type = type;
-        this.fstype = fstype;
-        this.diskType = diskType;
-        this.devPrefix = devPrefix;
-        this.size = size;
-    }
-
-    @XmlElement(name = "NAME")
+    @XmlElement(name = NAME)
     public String getName() {
         return name;
     }
@@ -34,7 +34,7 @@ public class VolumeImageRequestTemplate extends OpenNebulaMarshallerTemplate {
         this.name = name;
     }
 
-    @XmlElement(name = "PERSISTENT")
+    @XmlElement(name = PERSISTENT)
     public String getPersistent() {
         return persistent;
     }
@@ -43,7 +43,7 @@ public class VolumeImageRequestTemplate extends OpenNebulaMarshallerTemplate {
         this.persistent = persistent;
     }
 
-    @XmlElement(name = "SIZE")
+    @XmlElement(name = SIZE)
     public int getSize() {
         return size;
     }
@@ -52,7 +52,7 @@ public class VolumeImageRequestTemplate extends OpenNebulaMarshallerTemplate {
         this.size = size;
     }
 
-    @XmlElement(name = "TYPE")
+    @XmlElement(name = TYPE)
     public String getType() {
         return type;
     }
@@ -61,16 +61,16 @@ public class VolumeImageRequestTemplate extends OpenNebulaMarshallerTemplate {
         this.type = type;
     }
 
-    @XmlElement(name = "FSTYPE")
-    public String getFstype() {
-        return fstype;
+    @XmlElement(name = FILE_SYSTEM_TYPE)
+    public String getFileSystemType() {
+        return fileSystemType;
     }
 
-    public void setFstype(String fstype) {
-        this.fstype = fstype;
+    public void setFileSystemType(String fileSystemType) {
+        this.fileSystemType = fileSystemType;
     }
 
-    @XmlElement(name = "DISK_TYPE")
+    @XmlElement(name = DISK_TYPE)
     public String getDiskType() {
         return diskType;
     }
@@ -79,12 +79,12 @@ public class VolumeImageRequestTemplate extends OpenNebulaMarshallerTemplate {
         this.diskType = diskType;
     }
 
-    @XmlElement(name = "DEV_PREFIX")
-    public String getDevPrefix() {
-        return devPrefix;
+    @XmlElement(name = DEVICE_PREFIX)
+    public String getDevicePrefix() {
+        return devicePrefix;
     }
 
-    public void setDevPrefix(String devPrefix) {
-        this.devPrefix = devPrefix;
+    public void setDevicePrefix(String devicePrefix) {
+        this.devicePrefix = devicePrefix;
     }
 }
