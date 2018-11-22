@@ -12,7 +12,6 @@ import org.fogbowcloud.ras.core.models.securityrules.EtherType;
 import org.fogbowcloud.ras.core.models.securityrules.Protocol;
 import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
-import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.SecurityRulePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
@@ -45,7 +44,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         }
     }
        
-    protected List<SecurityRule> getFirewallRules(String ipAddressId, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
+    protected List<SecurityRule> getFirewallRules(String ipAddressId, CloudStackToken localUserAttributes) throws FogbowRasException, UnexpectedException {
     	ListFirewallRulesRequest request = new ListFirewallRulesRequest.Builder()
     			.ipAddressId(ipAddressId)
     			.build();
