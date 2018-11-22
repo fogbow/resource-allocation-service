@@ -1,22 +1,25 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.http.client.HttpResponseException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.orders.Order;
+import org.fogbowcloud.ras.core.models.securityrules.Direction;
+import org.fogbowcloud.ras.core.models.securityrules.EtherType;
+import org.fogbowcloud.ras.core.models.securityrules.Protocol;
 import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
+import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.SecurityRulePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
-import org.fogbowcloud.ras.core.plugins.interoperability.openstack.network.v2.CreateSecurityGroupRuleRequest.SecurityGroupRule;
+import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9.ListFirewallRulesResponse.SecurityRuleResponse;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
-
-// TODO add the CloudstackToken in the interface generics:  SecurityGroupPlugin<CloudStackToken>
-public class CloudStackSecurityRulePlugin implements SecurityRulePlugin {
+public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudStackToken> {
 	
 	private HttpRequestClientUtil client;
 
@@ -25,12 +28,12 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin {
 	}
 	
     @Override
-    public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
+    public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, CloudStackToken localUserAttributes) throws FogbowRasException, UnexpectedException {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public List<SecurityGroupRule> getSecurityRules(Order majorOrder, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
+    public List<SecurityRule> getSecurityRules(Order majorOrder, CloudStackToken localUserAttributes) throws FogbowRasException, UnexpectedException {
         switch (majorOrder.getType()) {
         	case PUBLIC_IP:
         		return getFirewallRules(majorOrder.getInstanceId(), localUserAttributes);
@@ -42,7 +45,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin {
         }
     }
        
-    public List<SecurityGroupRule> getFirewallRules(String ipAddressId, Token localUserAttributes) throws FogbowRasException {
+    protected List<SecurityRule> getFirewallRules(String ipAddressId, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
     	ListFirewallRulesRequest request = new ListFirewallRulesRequest.Builder()
     			.ipAddressId(ipAddressId)
     			.build();
@@ -56,13 +59,28 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin {
         }
 
         ListFirewallRulesResponse response = ListFirewallRulesResponse.fromJson(jsonResponse);
-//        List<GetAllImagesResponse.Image> images = response.getImages();
-
-        return null;
+        List<SecurityRuleResponse> securityRulesResponse = response.getSecurityRulesResponse();                
+        return convertToFogbowSecurityRules(securityRulesResponse);
+    }    
+    
+    protected List<SecurityRule> convertToFogbowSecurityRules(List<SecurityRuleResponse> securityRulesResponse) throws UnexpectedException {
+    	List<SecurityRule> securityRules = new ArrayList<SecurityRule>();
+    	for (SecurityRuleResponse securityRuleResponse : securityRulesResponse) {
+			Direction direction = securityRuleResponse.getDirection();
+			int portFrom = securityRuleResponse.getPortFrom();
+			int portTo = securityRuleResponse.getPortTo();
+			String cidr = securityRuleResponse.getCidr();
+			// TODO check this
+			EtherType etherType = EtherType.IPv4;
+			
+			Protocol protocol = securityRuleResponse.getFogbowProtocol();
+			securityRules.add(new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol));
+		}
+    	return null;
     }
 
     @Override
-    public void deleteSecurityRule(String securityRuleId, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
+    public void deleteSecurityRule(String securityRuleId, CloudStackToken localUserAttributes) throws FogbowRasException, UnexpectedException {
         throw new UnsupportedOperationException();
     }
 }
