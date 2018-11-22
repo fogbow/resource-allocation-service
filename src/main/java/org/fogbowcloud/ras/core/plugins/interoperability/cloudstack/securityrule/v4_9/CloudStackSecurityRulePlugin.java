@@ -79,7 +79,8 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
     }
 
     @Override
-    public void deleteSecurityRule(String securityRuleId, CloudStackToken localUserAttributes) throws FogbowRasException, UnexpectedException {
+    public void deleteSecurityRule(String securityRuleId, CloudStackToken localUserAttributes)
+            throws FogbowRasException, UnexpectedException {
         DeleteFirewallRuleRequest request = new DeleteFirewallRuleRequest.Builder()
                 .ruleId(securityRuleId)
                 .build();
@@ -93,14 +94,29 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
 
-        DeleteFirewallRuleResponse firewallRuleResponse = DeleteFirewallRuleResponse.fromJson(jsonResponse);
+        DeleteFirewallRuleResponse response = DeleteFirewallRuleResponse.fromJson(jsonResponse);
 
-        boolean success = firewallRuleResponse.isSuccess();
+        waitForDeleteResult(this.client, response.getJobId(), localUserAttributes);
+    }
 
-        if (!success) {
-            String message = firewallRuleResponse.getDisplayText();
-            throw new UnexpectedException(message);
+    private void waitForDeleteResult(HttpRequestClientUtil client, String jobId, CloudStackToken token)
+            throws FogbowRasException, UnexpectedException {
+        CloudStackQueryAsyncJobResponse queryAsyncJobResult = getAsyncJobResponse(client, jobId, token);
 
+        if (queryAsyncJobResult.getJobStatus() == CloudStackQueryJobResult.PROCESSING) {
+            for (int i = 0; i < MAX_TRIES; i++) {
+                queryAsyncJobResult = getAsyncJobResponse(client, jobId, token);
+                if (queryAsyncJobResult.getJobStatus() != CloudStackQueryJobResult.PROCESSING) {
+                    processJobResult(queryAsyncJobResult, jobId);
+                    break;
+                }
+                try {
+                    Thread.sleep(ONE_SECOND_IN_MILIS);
+                } catch (InterruptedException e) {
+                    throw new FogbowRasException();
+                }
+            }
+            throw new FogbowRasException(String.format(JOB_TIMEOUT, jobId));
         }
     }
 
