@@ -16,12 +16,12 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.Cloud
  *     "count": 2,
  *     "zone": [
  *       {
- *         "id": "df33046e-ab2a-429c-8653-09d869a9d7aa",
- *         "name": "CDC-MAO01",
+ *         "id": "fake-id-1",
+ *         "name": "fake-name-1",
  *         "networktype": "Advanced",
  *         "securitygroupsenabled": false,
  *         "allocationstate": "Enabled",
- *         "zonetoken": "c1b1f76f-355f-36e7-9657-b160209b4fd1",
+ *         "zonetoken": "fake-token-1",
  *         "dhcpprovider": "VirtualRouter",
  *         "localstorageenabled": false,
  *         "tags": [],
@@ -30,12 +30,12 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.Cloud
  *         }
  *       },
  *       {
- *         "id": "0d89768b-bdf5-455e-b4fd-91881fa07375",
- *         "name": "CDC-REC01",
+ *         "id": "fake-id-2",
+ *         "name": "fake-name-2",
  *         "networktype": "Advanced",
  *         "securitygroupsenabled": false,
  *         "allocationstate": "Enabled",
- *         "zonetoken": "8bf4bcf8-217c-3243-ac36-fd570896ddfa",
+ *         "zonetoken": "fake-token-2",
  *         "dhcpprovider": "VirtualRouter",
  *         "localstorageenabled": false,
  *         "tags": []
