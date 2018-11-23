@@ -2,6 +2,8 @@ package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.securityrul
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
+import java.util.List;
+
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.orders.Order;
@@ -19,7 +21,6 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleRequest;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
-import java.util.List;
 
 import static org.fogbowcloud.ras.core.constants.Messages.Error.UNEXPECTED_JOB_STATUS;
 import static org.fogbowcloud.ras.core.constants.Messages.Exception.JOB_HAS_FAILED;
@@ -73,8 +74,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
     }
 
     @Override
-    public List<SecurityRule> getSecurityRules(Order majorOrder, CloudStackToken localUserAttributes)
-            throws FogbowRasException, UnexpectedException {
+    public List<SecurityRule> getSecurityRules(Order majorOrder, CloudStackToken localUserAttributes) throws FogbowRasException, UnexpectedException {
         throw new UnsupportedOperationException();
     }
 
