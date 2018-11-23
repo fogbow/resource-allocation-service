@@ -37,4 +37,5 @@ public class OpenNebulaTagNameConstants {
 		public static final String FILE_SYSTEM_TYPE = "FSTYPE";
 		public static final String DISK_TYPE = "DISK_TYPE";
 		public static final String DEVICE_PREFIX = "DEV_PREFIX";
+		public static final String DISK_ID = "DISK_ID";
 }
