@@ -157,6 +157,7 @@ public class Messages {
 		public static final String ERROR_WHILE_CREATING_NIC = "Error while creating a network interface connected from template: %s.";
 		public static final String ERROR_WHILE_CREATING_AR = "Error while creating a address range from template: %s.";
 		public static final String ERROR_WHILE_REMOVING_VI = "Error while removing volume image: %s, with response: %s.";
-		public static final String ERROR_WHILE_DETACH_VOLUME = "Error while detaching volume image: %s, with response: %s.";
+		public static final String ERROR_WHILE_DETACH_VOLUME = "Error while detaching volume image disk: %s, with response: %s.";
+		public static final String ERROR_WHILE_ATTACH_VOLUME = "Error while attaching volume image disk: %s, with response: %s.";
     }
 }
