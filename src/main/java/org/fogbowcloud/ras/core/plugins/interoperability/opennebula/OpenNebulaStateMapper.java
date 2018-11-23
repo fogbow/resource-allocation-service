@@ -9,6 +9,9 @@ public class OpenNebulaStateMapper {
 
     private static final Logger LOGGER = Logger.getLogger(OpenNebulaStateMapper.class);
 
+    private static final String ATTACHMENT_FAILURE_STATE = "Failure";
+    private static final String ATTACMENT_RUNNING_STATE = "Running";
+    
     private static final String COMPUTE_FAILURE_STATE = "Failure";
     private static final String COMPUTE_RUNNING_STATE = "Running";
     private static final String COMPUTE_SUSPENDED_STATE = "Suspended";
@@ -54,9 +57,20 @@ public class OpenNebulaStateMapper {
                         LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, oneState, VOLUME_PLUGIN));
                         return InstanceState.UNAVAILABLE;
                 }
+            case ATTACHMENT:
+                switch (oneState) {
+                    case ATTACMENT_RUNNING_STATE:
+                        return InstanceState.READY;
+                    case ATTACHMENT_FAILURE_STATE:
+                        return InstanceState.FAILED;
+                    default:
+                        LOGGER.error(String.format(Messages.Error.UNDEFINED_INSTANCE_STATE_MAPPING, oneState, VOLUME_PLUGIN));
+                        return InstanceState.UNAVAILABLE;
+                }
             default:
                 LOGGER.error(Messages.Error.INSTANCE_TYPE_NOT_DEFINED);
                 return InstanceState.INCONSISTENT;
+            
         }
     }
 
