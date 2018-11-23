@@ -3,7 +3,7 @@ package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.securityrul
 import org.junit.Assert;
 import org.junit.Test;
 
-public class CIRDUtilsTest {
+public class CidrUtilsTest {
 
 	// test case: is ipv4
 	@Test
@@ -11,7 +11,7 @@ public class CIRDUtilsTest {
 		// setup
 		String ipAddress = "0.0.0.0";
 		// exercise and verify		
-		Assert.assertTrue(CIRDUtils.isIpv4(ipAddress));
+		Assert.assertTrue(CidrUtils.isIpv4(ipAddress));
 	}
 	
 	// test case: is not ipv4
@@ -20,7 +20,7 @@ public class CIRDUtilsTest {
 		// setup		
 		String ipAddress = "0.0a";
 		// exercise and verify		
-		Assert.assertFalse(CIRDUtils.isIpv4(ipAddress));
+		Assert.assertFalse(CidrUtils.isIpv4(ipAddress));
 	}	
 	
 	// test case: is ipv6
@@ -29,7 +29,7 @@ public class CIRDUtilsTest {
 		// setup		
 		String ipAddress = "FE80:0000:0000:0000:0202:B3FF:FE1E:8329";
 		// exercise and verify		
-		Assert.assertTrue(CIRDUtils.isIpv6(ipAddress));
+		Assert.assertTrue(CidrUtils.isIpv6(ipAddress));
 	}	
 	
 	// test case: is not ipv6
@@ -38,7 +38,7 @@ public class CIRDUtilsTest {
 		// setup
 		String ipAddress = "FE801230:0000:0000:02653FF:FE1E:8329";
 		// exercise and verify		
-		Assert.assertFalse(CIRDUtils.isIpv6(ipAddress));
+		Assert.assertFalse(CidrUtils.isIpv6(ipAddress));
 	}		
-	
+
 }

@@ -4,7 +4,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-public class CIRDUtils {
+public class CidrUtils {
 	private static Pattern VALID_IPV4_PATTERN = null;
 	private static Pattern VALID_IPV6_PATTERN = null;
 	private static final String ipv4Pattern = "(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])";
@@ -19,7 +19,7 @@ public class CIRDUtils {
 	}
 
 	public static boolean isIpv6(String ipAddress) {
-		Matcher m1 = CIRDUtils.VALID_IPV6_PATTERN.matcher(ipAddress);
+		Matcher m1 = CidrUtils.VALID_IPV6_PATTERN.matcher(ipAddress);
 		if (m1.matches()) {
 			return true;
 		}
@@ -27,7 +27,7 @@ public class CIRDUtils {
 	}
 	
 	public static boolean isIpv4(String ipAddress) {
-		Matcher m1 = CIRDUtils.VALID_IPV4_PATTERN.matcher(ipAddress);
+		Matcher m1 = CidrUtils.VALID_IPV4_PATTERN.matcher(ipAddress);
 		if (m1.matches()) {
 			return true;
 		}

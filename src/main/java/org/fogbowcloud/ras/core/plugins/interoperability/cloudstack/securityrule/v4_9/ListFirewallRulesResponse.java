@@ -85,7 +85,7 @@ public class ListFirewallRulesResponse {
         @SerializedName(PROPOCOL_KEY_JSON)
 		private String protocol;
         @SerializedName(IP_ADDRESS_KEY_JSON)
-        private String ipaddress;
+        private String ipAddress;
         
 		public String getInstanceId() {
 			return instanceId;
@@ -110,33 +110,9 @@ public class ListFirewallRulesResponse {
 		public String getProtocol() {
 			return protocol;
 		}
-		
-		public EtherType getFogbowEtherType() throws UnexpectedException {
-			if (CIRDUtils.isIpv4(this.ipaddress)) {
-				return EtherType.IPv4;
-			} else if (CIRDUtils.isIpv6(this.ipaddress)) {
-				return EtherType.IPv6;
-			}
-			// TODO check if is necessary use the class Message
-			// TODO Is the UnexpectedException correct in this case ?
-			throw new UnexpectedException("Is not a ipv4 neither ipv6"); 
-		}
-		
-		public Protocol getFogbowProtocol() throws UnexpectedException {
-			switch (this.protocol) {
-			case TCP_VALUE_PROTOCOL:
-				return Protocol.TCP;
-			case UDP_VALUE_PROTOCOL:
-				return Protocol.UDP;
-			case ICMP_VALUE_PROTOCOL:
-				return Protocol.ICMP;
-			case ALL_VALUE_PROTOCOL:
-				return Protocol.ANY;
-			default:
-				// TODO check if is necessary use the class Message
-				// TODO Is the UnexpectedException correct in this case ?				
-				throw new UnexpectedException("Protocol not determined in the documentation");
-			}
+
+		public String getIpAddress() {
+			return ipAddress;
 		}
 
 		public void setProtocol(String protocol) {
