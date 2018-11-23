@@ -84,7 +84,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         throw new UnsupportedOperationException();
     }
 
-    private String waitForJobResult(HttpRequestClientUtil client, String jobId, CloudStackToken token)
+    protected String waitForJobResult(HttpRequestClientUtil client, String jobId, CloudStackToken token)
             throws FogbowRasException, UnexpectedException {
         CloudStackQueryAsyncJobResponse queryAsyncJobResult = getAsyncJobResponse(client, jobId, token);
 
@@ -106,7 +106,8 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         return processJobResult(queryAsyncJobResult, jobId);
     }
 
-    private String processJobResult(CloudStackQueryAsyncJobResponse queryAsyncJobResult, String jobId)
+    protected String processJobResult(CloudStackQueryAsyncJobResponse queryAsyncJobResult,
+                                      String jobId)
             throws FogbowRasException, UnexpectedException {
         switch (queryAsyncJobResult.getJobStatus()){
             case CloudStackQueryJobResult.SUCCESS:
@@ -118,9 +119,13 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         }
     }
 
-    private CloudStackQueryAsyncJobResponse getAsyncJobResponse(HttpRequestClientUtil client, String jobId, Token token)
+    protected CloudStackQueryAsyncJobResponse getAsyncJobResponse(HttpRequestClientUtil client, String jobId, Token token)
             throws FogbowRasException {
         String jsonResponse = CloudStackQueryJobResult.getQueryJobResult(client, jobId, token);
         return CloudStackQueryAsyncJobResponse.fromJson(jsonResponse);
+    }
+
+    protected void setClient(HttpRequestClientUtil client) {
+        this.client = client;
     }
 }
