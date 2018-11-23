@@ -21,6 +21,8 @@ public class Messages {
         public static final String INVALID_PROTOCOL = "Protocol <%s> is not one of %s.";
         public static final String INVALID_RESOURCE = "Invalid resource type.";
         public static final String INVALID_TOKEN_SIGNATURE = "Invalid token signature.";
+        public static final String JOB_HAS_FAILED = "Instance associated to job %s has failed.";
+        public static final String JOB_TIMEOUT = "Instance associated to job %s has failed, because it took too long to process.";
         public static final String LDAP_URL_MISSING = "No LDAP url in configuration file.";
         public static final String MISMATCHING_RESOURCE_TYPE = "Mismatching resource type.";
         public static final String NO_AVAILABLE_RESOURCES = "No available resources.";

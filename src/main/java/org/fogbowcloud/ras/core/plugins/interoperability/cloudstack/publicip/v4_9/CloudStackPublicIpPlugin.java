@@ -12,6 +12,7 @@ import org.fogbowcloud.ras.core.models.instances.PublicIpInstance;
 import org.fogbowcloud.ras.core.models.orders.PublicIpOrder;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.PublicIpPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackQueryJobResult;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackQueryAsyncJobResponse;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
@@ -32,10 +33,6 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
     public static final String DEFAULT_START_PORT = "22";
     public static final String DEFAULT_END_PORT = "60000";
     public static final String DEFAULT_PROTOCOL = "TCP";
-
-    public static final int PROCESSING = 0;
-    public static final int SUCCESS = 1;
-    public static final int FAILURE = 2;
 
     private final String defaultNetworkId;
 
@@ -115,15 +112,16 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 
     private PublicIpInstance getCurrentInstance(String orderId, CloudStackToken token) throws FogbowRasException, UnexpectedException {
         CurrentAsyncRequest currentAsyncRequest = publicIpSubState.get(orderId);
-        String jsonResponse = getQueryJobResult(currentAsyncRequest.getCurrentJobId(), token);
+        String jsonResponse = CloudStackQueryJobResult.getQueryJobResult(this.client,
+                currentAsyncRequest.getCurrentJobId(), token);
         CloudStackQueryAsyncJobResponse queryAsyncJobResult = CloudStackQueryAsyncJobResponse.fromJson(jsonResponse);
 
         PublicIpInstance result;
         switch (queryAsyncJobResult.getJobStatus()) {
-            case PROCESSING:
+            case CloudStackQueryJobResult.PROCESSING:
                 result = new PublicIpInstance(null, InstanceState.CREATING, null);
                 break;
-            case SUCCESS:
+            case CloudStackQueryJobResult.SUCCESS:
                 switch (currentAsyncRequest.getState()) {
                     case ASSOCIATING_IP_ADDRESS:
                         SuccessfulAssociateIpAddressResponse response = SuccessfulAssociateIpAddressResponse.fromJson(jsonResponse);
@@ -147,7 +145,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
                         break;
                 }
                 break;
-            case FAILURE:
+            case CloudStackQueryJobResult.FAILURE:
                 // any failure should lead to a disassociation of the ip address
                 deleteInstance(orderId, null, token);
                 result = new PublicIpInstance(null, InstanceState.FAILED, null);
@@ -228,27 +226,6 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 
         CreateFirewallRuleAsyncResponse response = CreateFirewallRuleAsyncResponse.fromJson(jsonResponse);
         return response.getJobId();
-    }
-
-    private String getQueryJobResult(String jobId, CloudStackToken cloudStackToken)
-            throws FogbowRasException {
-        QueryAsyncJobResultRequest queryAsyncJobResultRequest = new QueryAsyncJobResultRequest.Builder()
-                .jobId(jobId)
-                .build();
-
-        CloudStackUrlUtil
-                .sign(queryAsyncJobResultRequest.getUriBuilder(), cloudStackToken.getTokenValue());
-
-        String jsonResponse = null;
-        try {
-            jsonResponse = this.client
-                    .doGetRequest(queryAsyncJobResultRequest.getUriBuilder().toString(),
-                            cloudStackToken);
-        } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowRasExceptionMapper.map(e);
-        }
-
-        return jsonResponse;
     }
 
     private enum PublicIpSubState {
