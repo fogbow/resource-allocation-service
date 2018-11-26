@@ -18,7 +18,6 @@ import org.opennebula.client.OneResponse;
 import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 import org.opennebula.client.vm.VirtualMachine;
-import org.opennebula.client.vnet.VirtualNetwork;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -134,7 +133,7 @@ public class OpenNebulaAttachmentPluginTest {
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
-		String attachmentInstanceId = "1 1";
+		String attachmentInstanceId = "1 1 1";
 		int virtualMachineId, diskId;
 		virtualMachineId = diskId = 1;
 
@@ -166,7 +165,7 @@ public class OpenNebulaAttachmentPluginTest {
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
-		String attachmentInstanceId = "1 1";
+		String attachmentInstanceId = "1 1 1";
 		int virtualMachineId, diskId;
 		virtualMachineId = diskId = 1;
 
@@ -186,9 +185,11 @@ public class OpenNebulaAttachmentPluginTest {
 		Mockito.verify(response, Mockito.times(1)).isError();
 	}
 	
-	// test case: ...
+	// test case: When calling the getInstance method, with the instance ID and a
+	// valid token, a set of images will be loaded and the specific instance of the
+	// image must be loaded.
 	@Test
-	public void test() throws UnexpectedException, FogbowRasException {
+	public void testGetInstanceSuccessful() throws UnexpectedException, FogbowRasException {
 		// set up
 		OpenNebulaToken token = createOpenNebulaToken();
 		Client client = this.factory.createClient(token.getTokenValue());
@@ -205,13 +206,16 @@ public class OpenNebulaAttachmentPluginTest {
 		Mockito.when(imagePool.getById(diskId)).thenReturn(image);
 		Mockito.when(image.xpath(DEFAULT_DEVICE_PREFIX)).thenReturn(imageDevice);
 		Mockito.when(image.stateString()).thenReturn(""); // FIXME ...
-		
+
 		// exercise
 		this.plugin.getInstance(attachmentInstanceId, token);
-		
+
 		// verify
 		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
-		// TODO ...
+		Mockito.verify(this.factory, Mockito.times(1)).createImagePool(Mockito.eq(client));
+		Mockito.verify(imagePool, Mockito.times(1)).getById(Mockito.eq(diskId));
+		Mockito.verify(image, Mockito.times(1)).xpath(Mockito.eq(DEFAULT_DEVICE_PREFIX));
+		Mockito.verify(image, Mockito.times(1)).stateString();
 	}
 	
 	private String generateAttachmentTemplate() {

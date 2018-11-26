@@ -28,7 +28,7 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<OpenNebulaTo
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaAttachmentPlugin.class);
 	
 	private static final String DEFAULT_DEVICE_PREFIX = "vd";
-    private static final String INSTANCE_ID= "%s %s";
+    private static final String INSTANCE_ID= "%s %s %s";
 	private static final String SEPARATOR_ID = " ";
 
     private OpenNebulaClientFactory factory;
@@ -55,7 +55,8 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<OpenNebulaTo
 		VirtualMachine virtualMachine = attachVolumeImageDisk(client, virtualMachineId, imageId, template);
 		
 		String diskId = getDiskIdFromContenOf(virtualMachine);
-		String instanceId = String.format(INSTANCE_ID, virtualMachineId, diskId);
+		String instanceId = String.format(INSTANCE_ID, virtualMachineId, imageId, diskId);
+
 		return instanceId;
 	}
 
@@ -66,7 +67,7 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<OpenNebulaTo
 		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, attachmentInstanceId, localUserAttributes.getUserName()));
 		String[] instanceIds = attachmentInstanceId.split(SEPARATOR_ID);
 		int virtualMachineId = Integer.parseInt(instanceIds[0]);
-		int diskId = Integer.parseInt(instanceIds[1]);
+		int diskId = Integer.parseInt(instanceIds[2]);
 
 		Client client = factory.createClient(localUserAttributes.getTokenValue());
 		OneResponse response = VirtualMachine.diskDetach(client, virtualMachineId, diskId);
@@ -83,17 +84,24 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<OpenNebulaTo
 		
 		String[] instanceIds = attachmentInstanceId.split(SEPARATOR_ID);
 		String virtualMachineId = instanceIds[0];
-		String diskId = instanceIds[1];
+		String imageId = instanceIds[1];
 
 		Client client = factory.createClient(localUserAttributes.getTokenValue());
 
 		ImagePool imagePool = this.factory.createImagePool(client);
-		Image image = imagePool.getById(Integer.parseInt(diskId));
+		Image image = imagePool.getById(Integer.parseInt(imageId));
 		String imageDevice = image.xpath(DEFAULT_DEVICE_PREFIX);
 		String imageState = image.stateString();
 		InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.ATTACHMENT, imageState);
 
-		return new AttachmentInstance(attachmentInstanceId, instanceState, virtualMachineId, diskId, imageDevice);
+		AttachmentInstance attachmentInstance = new AttachmentInstance(
+				attachmentInstanceId, 
+				instanceState, 
+				virtualMachineId, 
+				imageId, 
+				imageDevice);
+		
+		return attachmentInstance;
 	}
 
     private String getDiskIdFromContenOf(VirtualMachine virtualMachine) {
