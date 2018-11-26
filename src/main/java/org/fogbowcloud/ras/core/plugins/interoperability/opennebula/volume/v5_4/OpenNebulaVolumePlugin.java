@@ -79,7 +79,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
 
 		int imageSize = Integer.parseInt(image.xpath(OpenNebulaTagNameConstants.SIZE));
 		String imageName = image.getName();
-		String imageState = image.shortStateStr();
+		String imageState = image.stateString();
 		InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.VOLUME, imageState);
 
 		return new VolumeInstance(volumeInstanceId, instanceState, imageName, imageSize);

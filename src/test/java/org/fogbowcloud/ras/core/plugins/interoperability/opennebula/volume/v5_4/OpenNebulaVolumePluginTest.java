@@ -27,7 +27,7 @@ public class OpenNebulaVolumePluginTest {
 	private static final String FAKE_USER_NAME = "fake-user-name";
 	private static final String FAKE_VOLUME_NAME = "fake-volume-name";
 	private static final String IMAGE_SIZE_PATH = "SIZE";
-	private static final String SHORT_STATE_READY = "rdy";
+	private static final String STATE_READY = "READY";
 	
 	private OpenNebulaClientFactory factory;
 	private OpenNebulaVolumePlugin plugin;
@@ -103,7 +103,7 @@ public class OpenNebulaVolumePluginTest {
 		Mockito.when(imagePool.getById(id)).thenReturn(image);
 		Mockito.when(image.xpath(IMAGE_SIZE_PATH)).thenReturn(size);
 		Mockito.when(image.getName()).thenReturn(FAKE_VOLUME_NAME);
-		Mockito.when(image.shortStateStr()).thenReturn(SHORT_STATE_READY);
+		Mockito.when(image.stateString()).thenReturn(STATE_READY);
 
 		// exercise
 		this.plugin.getInstance(instanceId, token);
@@ -114,7 +114,7 @@ public class OpenNebulaVolumePluginTest {
 		Mockito.verify(imagePool, Mockito.times(1)).getById(id);
 		Mockito.verify(image, Mockito.times(1)).xpath(IMAGE_SIZE_PATH);
 		Mockito.verify(image, Mockito.times(1)).getName();
-		Mockito.verify(image, Mockito.times(1)).shortStateStr();
+		Mockito.verify(image, Mockito.times(1)).stateString();
 	}
 	
 	// test case: When calling the deleteInstance method, with the instance ID and a
