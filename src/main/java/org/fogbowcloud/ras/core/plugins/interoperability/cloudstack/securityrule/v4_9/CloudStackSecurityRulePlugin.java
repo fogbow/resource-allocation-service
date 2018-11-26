@@ -111,7 +111,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         waitForDeleteResult(this.client, response.getJobId(), localUserAttributes);
     }
 
-    protected void waitForDeleteResult(HttpRequestClientUtil client, String jobId, CloudStackToken token)
+    protected String waitForDeleteResult(HttpRequestClientUtil client, String jobId, CloudStackToken token)
             throws FogbowRasException, UnexpectedException {
         CloudStackQueryAsyncJobResponse queryAsyncJobResult = getAsyncJobResponse(client, jobId, token);
 
@@ -119,8 +119,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
             for (int i = 0; i < MAX_TRIES; i++) {
                 queryAsyncJobResult = getAsyncJobResponse(client, jobId, token);
                 if (queryAsyncJobResult.getJobStatus() != CloudStackQueryJobResult.PROCESSING) {
-                    processJobResult(queryAsyncJobResult, jobId);
-                    break;
+                    return processJobResult(queryAsyncJobResult, jobId);
                 }
                 try {
                     Thread.sleep(ONE_SECOND_IN_MILIS);
@@ -129,8 +128,9 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
                 }
             }
             throw new FogbowRasException(String.format(JOB_TIMEOUT, jobId));
+        } else {
+            throw new UnexpectedException();
         }
-        throw new UnsupportedOperationException();
     }
 
 	protected List<SecurityRule> getFirewallRules(String ipAddressId, CloudStackToken localUserAttributes) throws FogbowRasException, UnexpectedException {

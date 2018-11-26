@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -39,6 +40,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.util.*;
+
+import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.compute.v4_9.CloudStackComputePluginTest.FAKE_ID;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*", "javax.crypto.*" })
@@ -313,14 +316,12 @@ public class CloudStackSecurityRulePluginTest {
         String processingJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.PROCESSING);
         String successJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.SUCCESS);
         BDDMockito.given(this.queryJobResult.getQueryJobResult(
-                Mockito.any(HttpRequestClientUtil.class), Mockito.anyString(), Mockito.any(Token.class))).
-                willReturn(processingJobResponse);
+                Mockito.any(HttpRequestClientUtil.class), Mockito.anyString(), Mockito.any(Token.class)))
+                .willReturn(processingJobResponse)
+                .willReturn(successJobResponse);
 
         String endpoint = getBaseEndpointFromCloudStackConf();
         String deleteRuleCommand = DeleteFirewallRuleRequest.DELETE_RULE_COMMAND;
-        String queryJobCommand = CloudStackRestApiConstants.PublicIp.QUERY_ASYNC_JOB_RESULT;
-        String expectedQueryAsyncJobCommand = generateExpectedUrl(endpoint, queryJobCommand,
-                JOB_ID_KEY, FAKE_JOB_ID);
         String expectedDeleteRuleRequestUrl = generateExpectedUrl(endpoint, deleteRuleCommand,
                 RESPONSE_KEY, JSON,
                 ID_KEY, FAKE_SECURITY_RULE_ID);
@@ -330,9 +331,6 @@ public class CloudStackSecurityRulePluginTest {
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
         Mockito.when(this.client.doGetRequest(Mockito.eq(expectedDeleteRuleRequestUrl), Mockito.eq(FAKE_TOKEN)))
                 .thenReturn(fakeResponse);
-        Mockito.when(this.client.doGetRequest(Mockito.contains(queryJobCommand), Mockito.eq(FAKE_TOKEN)))
-                .thenReturn(processingJobResponse)
-                .thenReturn(successJobResponse);
 
         // exercise
         this.plugin.deleteSecurityRule(FAKE_SECURITY_RULE_ID, FAKE_TOKEN);
@@ -340,8 +338,58 @@ public class CloudStackSecurityRulePluginTest {
         // verify
         Mockito.verify(this.client, Mockito.times(1))
                 .doGetRequest(expectedDeleteRuleRequestUrl, FAKE_TOKEN);
-        Mockito.verify(this.client, Mockito.times(2))
-                .doGetRequest(expectedQueryAsyncJobCommand, FAKE_TOKEN);
+    }
+
+    @Test(expected = FogbowRasException.class)
+    public void testDeleteSecurityRuleTimeoutFail() throws FogbowRasException, UnexpectedException, HttpResponseException {
+        // set up
+        String processingJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.PROCESSING);
+        BDDMockito.given(this.queryJobResult.getQueryJobResult(
+                Mockito.any(HttpRequestClientUtil.class), Mockito.anyString(), Mockito.any(Token.class)))
+                .willReturn(processingJobResponse);
+
+        String endpoint = getBaseEndpointFromCloudStackConf();
+        String deleteRuleCommand = DeleteFirewallRuleRequest.DELETE_RULE_COMMAND;
+        String expectedDeleteRuleRequestUrl = generateExpectedUrl(endpoint, deleteRuleCommand,
+                RESPONSE_KEY, JSON,
+                ID_KEY, FAKE_SECURITY_RULE_ID);
+        String fakeResponse = getDeleteFirewallRuleResponse(FAKE_JOB_ID);
+
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+        Mockito.when(this.client.doGetRequest(Mockito.eq(expectedDeleteRuleRequestUrl), Mockito.eq(FAKE_TOKEN)))
+                .thenReturn(fakeResponse);
+
+        // exercise
+        this.plugin.deleteSecurityRule(FAKE_SECURITY_RULE_ID, FAKE_TOKEN);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(1))
+                .doGetRequest(expectedDeleteRuleRequestUrl, FAKE_TOKEN);
+    }
+
+    // Test case: http request fail on deleting security rule
+    @Test(expected = FogbowRasException.class)
+    public void testDeleteSecurityRuleHttpFail() throws UnexpectedException, FogbowRasException, HttpResponseException {
+        // set up
+        String endpoint = getBaseEndpointFromCloudStackConf();
+        String deleteRuleCommand = DeleteFirewallRuleRequest.DELETE_RULE_COMMAND;
+        String expectedDeleteRuleRequestUrl = generateExpectedUrl(endpoint, deleteRuleCommand,
+                RESPONSE_KEY, JSON,
+                ID_KEY, FAKE_SECURITY_RULE_ID);
+
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+
+        // Delete response is unused
+        Mockito.when(this.client.doGetRequest(expectedDeleteRuleRequestUrl, FAKE_TOKEN)).thenThrow(
+                new HttpResponseException(503, "service unavailable"));
+
+        // exercise
+        this.plugin.deleteSecurityRule(FAKE_SECURITY_RULE_ID, FAKE_TOKEN);
+
+        Mockito.verify(this.client, Mockito.times(1))
+                .doGetRequest(expectedDeleteRuleRequestUrl, FAKE_TOKEN);
     }
 
     private String getProcessingJobResponse(int processing) {
