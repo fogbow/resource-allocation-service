@@ -70,6 +70,7 @@ public class CloudStackRestApiConstants {
         public static final String NETWORK_ID_KEY_JSON = "networkid";
         public static final String IP_ADDRESS_KEY_JSON = "ipaddress";
         public static final String IP_ADDRESS_ID_KEY_JSON = "ipaddressid";
+        public static final String CIDR_LIST_KEY_JSON = "cidrList";
 
         public static final String PROTOCOL_KEY_JSON = "protocol";
         public static final String STARTPORT_KEY_JSON = "startport";
@@ -129,7 +130,7 @@ public class CloudStackRestApiConstants {
     	public static final String LIST_FIREWALL_RULES_KEY_JSON = "listfirewallrulesresponse";
     	public static final String FIREWALL_RULE_KEY_JSON = "firewallrule";
     	public static final String ID_KEY_JSON = "id";
-    	public static final String CIDR_LIST_KEY_JSON = "cidrlist";
+    	public static final String CIDR_LIST_KEY_JSON = "cidrList";
     	public static final String START_PORT_KEY_JSON = "startport";
     	public static final String END_PORT_KEY_JSON = "endport";
     	public static final String PROPOCOL_KEY_JSON = "protocol";

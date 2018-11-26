@@ -164,22 +164,6 @@ public class CloudStackSecurityRulePluginTest {
         }
     }
 
-    // test case: Creating a security rule for an IPv6, should raise an UnsupportedOperationException.
-    @Test
-    public void testCreateIPv6SecurityRule() throws UnexpectedException, FogbowRasException {
-        // set up
-        SecurityRule securityRule = createSecurityRule();
-        securityRule.setEtherType(EtherType.IPv6);
-
-        // exercise
-        try {
-            plugin.requestSecurityRule(securityRule, Mockito.mock(Order.class), Mockito.mock(CloudStackToken.class));
-            Assert.fail();
-        } catch (UnsupportedOperationException e) {
-            // verify
-        }
-    }
-
     // test case: Test waitForJobResult method, when max tries is reached.
     @Test
     public void testWaitForJobResultUntilMaxTries() throws FogbowRasException, UnexpectedException {

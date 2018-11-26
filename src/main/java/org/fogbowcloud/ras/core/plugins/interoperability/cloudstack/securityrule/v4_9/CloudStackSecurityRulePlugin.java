@@ -6,10 +6,10 @@ import java.util.List;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.apache.http.client.HttpResponseException;
-import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.securityrules.Direction;
 import org.fogbowcloud.ras.core.models.securityrules.EtherType;
@@ -25,8 +25,6 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUr
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleAsyncResponse;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleRequest;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
-
-import java.util.List;
 
 import static org.fogbowcloud.ras.core.constants.Messages.Error.UNEXPECTED_JOB_STATUS;
 import static org.fogbowcloud.ras.core.constants.Messages.Exception.JOB_HAS_FAILED;
@@ -50,34 +48,35 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         if (securityRule.getDirection() == Direction.OUT) {
             throw new UnsupportedOperationException();
         }
-        if (securityRule.getEtherType() == EtherType.IPv6) {
-            throw new UnsupportedOperationException();
+        if (majorOrder.getType() == ResourceType.PUBLIC_IP) {
+            String cidr = securityRule.getCidr();
+            String portFrom = Integer.toString(securityRule.getPortFrom());
+            String portTo = Integer.toString(securityRule.getPortTo());
+            String protocol = securityRule.getProtocol().toString();
+
+            CreateFirewallRuleRequest createFirewallRuleRequest = new CreateFirewallRuleRequest.Builder()
+                    .protocol(protocol)
+                    .startPort(portFrom)
+                    .endPort(portTo)
+                    .ipAddressId(majorOrder.getInstanceId())
+                    .cidrList(cidr)
+                    .build();
+
+            CloudStackUrlUtil.sign(createFirewallRuleRequest.getUriBuilder(), localUserAttributes.getTokenValue());
+
+            String jsonResponse = null;
+            try {
+                jsonResponse = this.client.doGetRequest(createFirewallRuleRequest.getUriBuilder().toString(), localUserAttributes);
+            } catch (HttpResponseException e) {
+                CloudStackHttpToFogbowRasExceptionMapper.map(e);
+            }
+
+            CreateFirewallRuleAsyncResponse response = CreateFirewallRuleAsyncResponse.fromJson(jsonResponse);
+
+            return waitForJobResult(this.client, response.getJobId(), localUserAttributes);
+        } else {
+            throw new InvalidParameterException(Messages.Exception.INVALID_RESOURCE);
         }
-
-        String cidr = securityRule.getCidr();
-        String portFrom = Integer.toString(securityRule.getPortFrom());
-        String portTo = Integer.toString(securityRule.getPortTo());
-        String protocol = securityRule.getProtocol().toString();
-
-        CreateFirewallRuleRequest createFirewallRuleRequest = new CreateFirewallRuleRequest.Builder()
-                .protocol(protocol)
-                .startPort(portFrom)
-                .endPort(portTo)
-                .ipAddressId(cidr)
-                .build();
-
-        CloudStackUrlUtil.sign(createFirewallRuleRequest.getUriBuilder(), localUserAttributes.getTokenValue());
-
-        String jsonResponse = null;
-        try {
-            jsonResponse = this.client.doGetRequest(createFirewallRuleRequest.getUriBuilder().toString(), localUserAttributes);
-        } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowRasExceptionMapper.map(e);
-        }
-
-        CreateFirewallRuleAsyncResponse response = CreateFirewallRuleAsyncResponse.fromJson(jsonResponse);
-
-        return waitForJobResult(this.client, response.getJobId(), localUserAttributes);
     }
 
     @Override
