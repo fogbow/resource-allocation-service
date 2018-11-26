@@ -3,6 +3,8 @@ package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.securityrul
 import com.google.gson.Gson;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -21,6 +23,8 @@ import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStack
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackQueryJobResult;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
+import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.QueryAsyncJobResultRequest;
+import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -33,6 +37,7 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.File;
 import java.util.*;
 
 @RunWith(PowerMockRunner.class)
@@ -42,6 +47,19 @@ public class CloudStackSecurityRulePluginTest {
 
     private static String FAKE_JOB_ID = "fake-job-id";
     private static String FAKE_SECURITY_RULE_ID = "fake-rule-id";
+    private static final String JSON = "json";
+    private static final String JOB_ID_KEY = "json";
+    private static final String RESPONSE_KEY = "response";
+    private static final String ID_KEY = "id";
+    private static final String CLOUDSTACK_URL = "cloudstack_api_url";
+
+    private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
+    private static final String FAKE_USER_ID = "fake-user-id";
+    private static final String FAKE_USERNAME = "fake-username";
+    private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
+    private static final String FAKE_SIGNATURE = "fake-signature";
+    private static final CloudStackToken FAKE_TOKEN = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE,
+            FAKE_USER_ID, FAKE_USERNAME, FAKE_SIGNATURE);
 
     private CloudStackSecurityRulePlugin plugin;
     private HttpRequestClientUtil client;
@@ -287,6 +305,45 @@ public class CloudStackSecurityRulePluginTest {
         Assert.assertEquals(FAKE_SECURITY_RULE_ID, instanceId);
     }
 
+    // test case: Test delete security rule success operation should make at least three http get request: one for the
+    // delete operation itself; one to get the processing job status and the last one to get the success job status.
+    @Test
+    public void testDeleteSecurityRule() throws FogbowRasException, UnexpectedException, HttpResponseException {
+        // set up
+        String processingJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.PROCESSING);
+        String successJobResponse = getProcessingJobResponse(CloudStackQueryJobResult.SUCCESS);
+        BDDMockito.given(this.queryJobResult.getQueryJobResult(
+                Mockito.any(HttpRequestClientUtil.class), Mockito.anyString(), Mockito.any(Token.class))).
+                willReturn(processingJobResponse);
+
+        String endpoint = getBaseEndpointFromCloudStackConf();
+        String deleteRuleCommand = DeleteFirewallRuleRequest.DELETE_RULE_COMMAND;
+        String queryJobCommand = CloudStackRestApiConstants.PublicIp.QUERY_ASYNC_JOB_RESULT;
+        String expectedQueryAsyncJobCommand = generateExpectedUrl(endpoint, queryJobCommand,
+                JOB_ID_KEY, FAKE_JOB_ID);
+        String expectedDeleteRuleRequestUrl = generateExpectedUrl(endpoint, deleteRuleCommand,
+                RESPONSE_KEY, JSON,
+                ID_KEY, FAKE_SECURITY_RULE_ID);
+        String fakeResponse = getDeleteFirewallRuleResponse(FAKE_JOB_ID);
+
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+        Mockito.when(this.client.doGetRequest(Mockito.eq(expectedDeleteRuleRequestUrl), Mockito.eq(FAKE_TOKEN)))
+                .thenReturn(fakeResponse);
+        Mockito.when(this.client.doGetRequest(Mockito.contains(queryJobCommand), Mockito.eq(FAKE_TOKEN)))
+                .thenReturn(processingJobResponse)
+                .thenReturn(successJobResponse);
+
+        // exercise
+        this.plugin.deleteSecurityRule(FAKE_SECURITY_RULE_ID, FAKE_TOKEN);
+
+        // verify
+        Mockito.verify(this.client, Mockito.times(1))
+                .doGetRequest(expectedDeleteRuleRequestUrl, FAKE_TOKEN);
+        Mockito.verify(this.client, Mockito.times(2))
+                .doGetRequest(expectedQueryAsyncJobCommand, FAKE_TOKEN);
+    }
+
     private String getProcessingJobResponse(int processing) {
         return "{\n" +
                 "  \"queryasyncjobresultresponse\": {\n" +
@@ -349,5 +406,34 @@ public class CloudStackSecurityRulePluginTest {
 
         Gson gson = new Gson();
         return gson.toJson(floatingipJsonKey);
+    }
+
+    private String generateExpectedUrl(String endpoint, String command, String... keysAndValues) {
+        if (keysAndValues.length % 2 != 0) {
+            // there should be one value for each key
+            return null;
+        }
+
+        String url = String.format("%s?command=%s", endpoint, command);
+        for (int i = 0; i < keysAndValues.length; i += 2) {
+            String key = keysAndValues[i];
+            String value = keysAndValues[i + 1];
+            url += String.format("&%s=%s", key, value);
+        }
+
+        return url;
+    }
+
+    private String getBaseEndpointFromCloudStackConf() {
+        String filePath = HomeDir.getPath() + File.separator + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
+
+        Properties properties = PropertiesUtil.readProperties(filePath);
+        return properties.getProperty(CLOUDSTACK_URL);
+    }
+
+    private String getDeleteFirewallRuleResponse(String id) {
+        String response = "{\"deletefirewallruleresponse\":{\"jobid\":\"%s\"}}";
+
+        return String.format(response, id);
     }
 }

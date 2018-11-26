@@ -111,7 +111,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         waitForDeleteResult(this.client, response.getJobId(), localUserAttributes);
     }
 
-    private void waitForDeleteResult(HttpRequestClientUtil client, String jobId, CloudStackToken token)
+    protected void waitForDeleteResult(HttpRequestClientUtil client, String jobId, CloudStackToken token)
             throws FogbowRasException, UnexpectedException {
         CloudStackQueryAsyncJobResponse queryAsyncJobResult = getAsyncJobResponse(client, jobId, token);
 
