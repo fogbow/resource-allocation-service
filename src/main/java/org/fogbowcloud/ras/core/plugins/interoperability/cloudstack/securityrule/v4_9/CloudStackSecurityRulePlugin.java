@@ -158,4 +158,8 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         String jsonResponse = CloudStackQueryJobResult.getQueryJobResult(client, jobId, token);
         return CloudStackQueryAsyncJobResponse.fromJson(jsonResponse);
     }
+
+    protected void setClient(HttpRequestClientUtil client) {
+        this.client = client;
+    }
 }
