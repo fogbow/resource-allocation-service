@@ -107,6 +107,7 @@ public class Messages {
         public static final String SKIPPING_BECAUSE_PROVIDER_IS_REMOTE = "Member %s skipping monitoring of request %s provided by %s.";
         public static final String STARTING_THREADS = "Starting processor threads.";
         public static final String TEMPLATE_POOL_LENGTH = "Template pool length: %s.";
+        public static final String INSTANCE_WAS_NOT_FOUND = "Instance associated with request %s was not found.";
     }
 
     public static class Error {
