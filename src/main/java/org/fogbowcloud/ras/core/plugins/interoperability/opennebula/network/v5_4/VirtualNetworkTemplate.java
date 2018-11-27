@@ -3,9 +3,11 @@ package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.network.v5_
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.AR;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.BRIDGE;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.DESCRIPTION;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.IP;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NAME;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NETWORK_ADDRESS;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NETWORK_GATEWAY;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.SIZE;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TEMPLATE;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TYPE;
 
@@ -26,22 +28,21 @@ public class VirtualNetworkTemplate extends OpenNebulaMarshallerTemplate {
 	private String bridge;
 	private String networkAddress;
 	private String networkGateway;
-	private VirtualNetworkAddressRange addressRange;
+	private VirtualNetworkTemplate.AddressRange addressRange;
 	
-	public VirtualNetworkTemplate() {}
-
-	public VirtualNetworkTemplate(String name, String description, String type, String bridge,
-			String networkAddress, String networkGateway, VirtualNetworkAddressRange addressRange) {
-		
-		super();
-		this.name = name;
-		this.description = description;
-		this.type = type;
-		this.bridge = bridge;
-		this.networkAddress = networkAddress;
-		this.networkGateway = networkGateway;
-		this.addressRange = addressRange;
-	}
+//	public VirtualNetworkTemplate() {}
+//
+//	public VirtualNetworkTemplate(String name, String description, String type, String bridge,
+//			String networkAddress, String networkGateway, VirtualNetworkAddressRange addressRange) {
+//		
+//		this.name = name;
+//		this.description = description;
+//		this.type = type;
+//		this.bridge = bridge;
+//		this.networkAddress = networkAddress;
+//		this.networkGateway = networkGateway;
+//		this.addressRange = addressRange;
+//	}
 
 	@XmlElement(name = NAME)
 	public String getName() {
@@ -98,12 +99,46 @@ public class VirtualNetworkTemplate extends OpenNebulaMarshallerTemplate {
 	}
 	
 	@XmlElement(name = AR)
-	public VirtualNetworkAddressRange getAddressRange() {
+	public VirtualNetworkTemplate.AddressRange getAddressRange() {
 		return addressRange;
 	}
 	
-	public void setAddressRange(VirtualNetworkAddressRange addressRange) {
+	public void setAddressRange(VirtualNetworkTemplate.AddressRange addressRange) {
 		this.addressRange = addressRange;
 	}
 	
+	@XmlRootElement(name = AR)
+	public static class AddressRange {
+
+		private String type;
+		private String ipAddress;
+		private String rangeSize;
+		
+		@XmlElement(name = TYPE)
+		public String getType() {
+			return type;
+		}
+		
+		public void setType(String type) {
+			this.type = type;
+		}
+		
+		@XmlElement(name = IP)
+		public String getIpAddress() {
+			return ipAddress;
+		}
+		
+		public void setIpAddress(String ipAddress) {
+			this.ipAddress = ipAddress;
+		}
+		
+		@XmlElement(name = SIZE)
+		public String getRangeSize() {
+			return rangeSize;
+		}
+		
+		public void setRangeSize(String rangeSize) {
+			this.rangeSize = rangeSize;
+		}
+	}
 }
