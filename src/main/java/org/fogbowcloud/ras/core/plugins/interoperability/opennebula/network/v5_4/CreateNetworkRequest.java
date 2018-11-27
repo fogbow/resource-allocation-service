@@ -15,20 +15,20 @@ public class CreateNetworkRequest {
 		String bridge = builder.bridge;
 		String address = builder.address;
 		String gateway = builder.gateway;
-		VirtualNetworkAddressRange addressRange = buildAddressRange(builder);
+		VirtualNetworkTemplate.AddressRange addressRange = buildAddressRange(builder);
 		
-		this.virtualNetwork = new VirtualNetworkTemplate(
-				name, 
-				description, 
-				type, 
-				bridge, 
-				address, 
-				gateway, 
-				addressRange);
+		this.virtualNetwork = new VirtualNetworkTemplate();
+		this.virtualNetwork.setName(name);
+		this.virtualNetwork.setDescription(description);
+		this.virtualNetwork.setType(type);
+		this.virtualNetwork.setBridge(bridge);
+		this.virtualNetwork.setNetworkAddress(address);
+		this.virtualNetwork.setNetworkGateway(gateway);
+		this.virtualNetwork.setAddressRange(addressRange);
 	}
 	
-	private VirtualNetworkAddressRange buildAddressRange(Builder builder) {
-		VirtualNetworkAddressRange addressRange = new VirtualNetworkAddressRange();
+	private VirtualNetworkTemplate.AddressRange buildAddressRange(Builder builder) {
+		VirtualNetworkTemplate.AddressRange addressRange = new VirtualNetworkTemplate.AddressRange();
 		addressRange.setType(builder.rangeType);
 		addressRange.setIpAddress(builder.rangeIp);
 		addressRange.setRangeSize(builder.rangeSize);
