@@ -489,7 +489,6 @@ public class OrderControllerTest extends BaseUnitTests {
 
     private Order createLocalOrder() {
         FederationUserToken federationUserToken = Mockito.mock(FederationUserToken.class);
-        UserData userData = Mockito.mock(UserData.class);
         String imageName = "fake-image-name";
         String requestingMember = "";
         String providingMember = "";
@@ -506,7 +505,7 @@ public class OrderControllerTest extends BaseUnitTests {
                         1024,
                         30,
                         imageName,
-                        userData,
+                        null,
                         publicKey,
                         null);
 

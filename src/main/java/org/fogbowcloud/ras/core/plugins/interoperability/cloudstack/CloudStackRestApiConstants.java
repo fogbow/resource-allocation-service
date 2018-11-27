@@ -1,5 +1,10 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack;
 
+import org.fogbowcloud.ras.core.models.securityrules.Direction;
+import org.fogbowcloud.ras.core.models.securityrules.Protocol;
+
+import com.google.gson.annotations.SerializedName;
+
 public class CloudStackRestApiConstants {
 
     public static class Compute {
@@ -65,6 +70,7 @@ public class CloudStackRestApiConstants {
         public static final String NETWORK_ID_KEY_JSON = "networkid";
         public static final String IP_ADDRESS_KEY_JSON = "ipaddress";
         public static final String IP_ADDRESS_ID_KEY_JSON = "ipaddressid";
+        public static final String CIDR_LIST_KEY_JSON = "cidrList";
 
         public static final String PROTOCOL_KEY_JSON = "protocol";
         public static final String STARTPORT_KEY_JSON = "startport";
@@ -75,6 +81,7 @@ public class CloudStackRestApiConstants {
         public static final String JOB_ID_KEY_JSON = "jobid";
         public static final String JOB_RESULT_KEY_JSON = "jobresult";
         public static final String JOB_STATUS_KEY_JSON = "jobstatus";
+        public static final String JOB_INSTANCE_ID_KEY_JSON = "jobinstanceid";
 
     }
 
@@ -115,5 +122,23 @@ public class CloudStackRestApiConstants {
         public static final String TIMEOUT_KEY_JSON = "timeout";
         public static final String API_KEY_JSON = "apikey";
         public static final String SECRET_KEY_JSON = "secretkey";
+    }
+    
+    public static class SecurityGroupPlugin {
+    	public static final String LIST_FIREWALL_RULES_COMMAND = "listFirewallRules";
+    	public static final String IP_ADDRESS_ID_KEY_JSON = "ipaddressid";
+    	public static final String LIST_FIREWALL_RULES_KEY_JSON = "listfirewallrulesresponse";
+    	public static final String FIREWALL_RULE_KEY_JSON = "firewallrule";
+    	public static final String ID_KEY_JSON = "id";
+    	public static final String CIDR_LIST_KEY_JSON = "cidrlist";
+    	public static final String START_PORT_KEY_JSON = "startport";
+    	public static final String END_PORT_KEY_JSON = "endport";
+    	public static final String PROPOCOL_KEY_JSON = "protocol";
+    	public static final String IP_ADDRESS_KEY_JSON = "ipaddress";
+    	
+    	public static final String TCP_VALUE_PROTOCOL = "tcp";
+    	public static final String UDP_VALUE_PROTOCOL = "udp";
+    	public static final String ICMP_VALUE_PROTOCOL = "icmp";
+    	public static final String ALL_VALUE_PROTOCOL = "all";
     }
 }

@@ -14,12 +14,19 @@ public class UserData {
 
     private CloudInitUserDataBuilder.FileType extraUserDataFileType;
 
+    private String tag;
+
     public UserData() {
     }
 
     public UserData(String extraUserDataFile, CloudInitUserDataBuilder.FileType extraUserDataFileType) {
+        this(extraUserDataFile, extraUserDataFileType, "");
+    }
+
+    public UserData(String extraUserDataFile, CloudInitUserDataBuilder.FileType extraUserDataFileType, String tag) {
         this.extraUserDataFileContent = extraUserDataFile;
         this.extraUserDataFileType = extraUserDataFileType;
+        this.tag = tag;
     }
 
     public String getExtraUserDataFileContent() {
@@ -33,4 +40,9 @@ public class UserData {
     public CloudInitUserDataBuilder.FileType getExtraUserDataFileType() {
         return extraUserDataFileType;
     }
+
+    public String getTag() {
+        return tag;
+    }
+
 }

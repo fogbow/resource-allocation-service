@@ -3,13 +3,13 @@ package org.fogbowcloud.ras.core.constants;
 public class Messages {
 
     public static class Exception {
-        public static final String ATTEMPTING_TO_ADD_A_NULL_REQUEST = "Attempting to add allocationAllowableValues null request.";
-        public static final String ATTEMPTING_TO_REMOVE_A_NULL_REQUEST = "Attempting to remove allocationAllowableValues null request.";
+        public static final String ATTEMPTING_TO_ADD_A_NULL_REQUEST = "Attempting to add a null request.";
+        public static final String ATTEMPTING_TO_REMOVE_A_NULL_REQUEST = "Attempting to remove a null request.";
         public static final String AUTHENTICATION_ERROR = "Authentication error.";
         public static final String AUTHORIZATION_ERROR = "Authorization error.";
-        public static final String EXPIRED_TOKEN = "Token has expired at %s.";
         public static final String FATAL_ERROR = "Fatal error.";
         public static final String FOGBOW_RAS = "Fogbow RAS exception.";
+        public static final String GENERIC_EXCEPTION = "Operation returned error: %s";
         public static final String INCORRECT_PROVIDING_MEMBER = "Incorrect providing member.";
         public static final String INEXISTENT_REQUEST = "Request does not exist.";
         public static final String INSTANCE_ID_NOT_INFORMED = "No instance identification informed.";
@@ -18,8 +18,11 @@ public class Messages {
         public static final String INVALID_CREDENTIALS = "Invalid credentials.";
         public static final String INVALID_PARAMETER = "Invalid parameter.";
         public static final String INVALID_PORT_SIZE = "Invalid port size %s for virtual machine %s and default network %s.";
-        public static final String INVALID_TOKEN = "Invalid token %s.";
+        public static final String INVALID_PROTOCOL = "Protocol <%s> is not one of %s.";
+        public static final String INVALID_RESOURCE = "Invalid resource type.";
         public static final String INVALID_TOKEN_SIGNATURE = "Invalid token signature.";
+        public static final String JOB_HAS_FAILED = "Instance associated to job %s has failed.";
+        public static final String JOB_TIMEOUT = "Instance associated to job %s has failed, because it took too long to process.";
         public static final String LDAP_URL_MISSING = "No LDAP url in configuration file.";
         public static final String MISMATCHING_RESOURCE_TYPE = "Mismatching resource type.";
         public static final String NO_AVAILABLE_RESOURCES = "No available resources.";
@@ -27,7 +30,7 @@ public class Messages {
         public static final String NO_PACKET_SENDER = "PacketSender was not initialized";
         public static final String NO_PROJECT_ID = "No projectId in local token.";
         public static final String NO_USER_CREDENTIALS = "No user credentials given.";
-        public static final String NULL_VALUE_RETURNED = "Plugin returned allocationAllowableValues null value for the instanceId.";
+        public static final String NULL_VALUE_RETURNED = "Plugin returned a null value for the instanceId.";
         public static final String REQUEST_ALREADY_EXIST = "Request already exists.";
         public static final String REQUEST_ID_ALREADY_ACTIVATED = "Request %s has already been activated.";
         public static final String REQUEST_INSTANCE_NULL = "Request instance id for request %s is null.";
@@ -51,9 +54,10 @@ public class Messages {
         public static final String UNAVAILABLE_PROVIDER = "Provider is not available.";
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
-        public static final String UNABLE_TO_CREATE_AND_ASSOCIATE_SECURITY_GROUP = "Unable to create and associate security group";
         public static final String WRONG_URI_SYNTAX = "Wrong syntax for endpoint %s.";
         public static final String INVALID_SHIBBOLETH_TOKEN = "Is not possible create the Shibboleth token: %s";
+        public static final String MULTIPLE_SECURITY_GROUPS_EQUALLY_NAMED = "There should be exactly one security group with name <%s>";
+        public static final String INVALID_CLOUDSTACK_PROTOCOL = "Protocol <%s> couldn't be mapped to a valid protocol";
     }
 
     public static class Fatal {
@@ -88,13 +92,13 @@ public class Messages {
         public static final String ACTIVATING_NEW_REQUEST = "Activating new request.";
         public static final String DATABASE_URL = "Database URL: %s.";
         public static final String DELETING_INSTANCE = "Deleting instance %s with token %s.";
+        public static final String DELETING_ORDER_INSTANCE_NOT_FOUND = "Deleting order %s associated with nonexistent instance.";
         public static final String GETTING_INSTANCE = "Getting instance %s with token %s.";
-        public static final String GETTING_INSTANCE_FOR_REQUEST = "Trying to get an instance for request %s.";
         public static final String INSTANCE_HAS_FAILED = "Instance associated to request %s has failed.";
         public static final String MOUNTING_INSTANCE = "Mounting instance structure of id: %s.";
         public static final String RECEIVING_COMPUTE_QUOTA_REQUEST = "Get compute %s request for member %s received.";
         public static final String RECEIVING_CREATE_REQUEST = "Create request for %s received.";
-        public static final String RECEIVING_CREATE_TOKEN_REQUEST = "Create token request received with allocationAllowableValues credentials map of size %s.";
+        public static final String RECEIVING_CREATE_TOKEN_REQUEST = "Create token request received with a credentials map of size %s.";
         public static final String RECEIVING_DELETE_REQUEST = "Delete request for %s %s received.";
         public static final String RECEIVING_GET_ALL_IMAGES_REQUEST = "Get all images request received.";
         public static final String RECEIVING_GET_ALL_REQUEST = "Get status request for all %s received.";
@@ -117,13 +121,14 @@ public class Messages {
         public static final String ERROR_WHILE_CREATING_NETWORK = "Error while creating a network from template: %s.";
         public static final String ERROR_WHILE_CREATING_IMAGE = "Error while creating a image from template: %s.";
         public static final String ERROR_WHILE_CREATING_ROUTER = "Error while creating a router from template: %s.";
+        public static final String INVALID_LIST_SECURITY_RULE_TYPE = "Invalid list security rule type. Order irregular: %s.";
         public static final String ERROR_WHILE_CONSUMING_RESPONSE = "Error while consuming response %s.";
         public static final String ERROR_WHILE_CONVERTING_INSTANCE_ID = "Error while converting instanceid %s to integer.";
         public static final String ERROR_WHILE_INSTANTIATING_FROM_TEMPLATE = "Error while instatiating an instance from template: %s.";
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_REQUEST = "Error while trying to get an instance for request %s.";
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD = "Error while getting instance from the cloud.";
         public static final String ERROR_WHILE_GETTING_TEMPLATES = "Error while getting info about templates: %s.";
-        public static final String ERROR_WHILE_GETTING_NEW_CONNECTION = "Error while getting allocationAllowableValues new connection from the connection pool.";
+        public static final String ERROR_WHILE_GETTING_NEW_CONNECTION = "Error while getting a new connection from the connection pool.";
         public static final String ERROR_WHILE_GETTING_VOLUME_INSTANCE = "Error while getting volume instance.";
         public static final String ERROR_WHILE_REMOVING_VM = "Error while removing virtual machine: %s, with response: %s.";
         public static final String ERROR_WHILE_REMOVING_VN = "Error while removing virtual network: %s, with response: %s.";
@@ -145,10 +150,11 @@ public class Messages {
         public static final String UNABLE_TO_GENERATE_JSON = "Unable to generate json.";
         public static final String UNABLE_TO_GET_ATTACHMENT_INSTANCE = "Unable to get attachment instance from json.";
         public static final String UNABLE_TO_GET_NETWORK = "Unable to get network information from json %s.";
+        public static final String UNABLE_TO_GET_SECURITY_GROUP = "Unable to get security group information from json %s.";
         public static final String UNABLE_TO_GET_TOKEN_FROM_JSON = "Unable to get token from json.";
         public static final String UNABLE_TO_RETRIEVE_NETWORK_ID = "Unable to retrieve network id from json %s.";
         public static final String UNABLE_TO_ROLLBACK_TRANSACTION = "Unable to rollback transaction.";
-        public static final String UNDEFINED_INSTANCE_STATE_MAPPING = "State %s was not mapped to allocationAllowableValues Fogbow state by %s.";
+        public static final String UNDEFINED_INSTANCE_STATE_MAPPING = "State %s was not mapped to a Fogbow state by %s.";
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
         public static final String UNEXPECTED_ERROR_WITH_MESSAGE = "Unexpected exception error: %s.";
         public static final String UNEXPECTED_JOB_STATUS = "Job status must be one of {0, 1, 2}.";

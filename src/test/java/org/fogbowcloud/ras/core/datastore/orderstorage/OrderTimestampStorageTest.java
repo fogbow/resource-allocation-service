@@ -23,6 +23,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -53,10 +55,12 @@ public class OrderTimestampStorageTest {
         FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
                 "token-value", "fake-id", "fake-user");
 
+        UserData fakeUserData = new UserData("extraUserDataFile", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag");
+        ArrayList<UserData> userData = new ArrayList<UserData>(Arrays.asList(new UserData[] { fakeUserData }));
+
         orderTest = new ComputeOrder(federationUserToken,
                 "requestingMember", "providingMember", "fake-instance-name", 8, 1024,
-                30, "fake_image_name", new UserData("extraUserDataFile",
-                CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), "fake_public_key", null);
+                30, "fake_image_name", userData, "fake_public_key", null);
         orderTest.setOrderStateInTestMode(OrderState.OPEN);
         orderTest.setId(FAKE_USER_ID);
     }

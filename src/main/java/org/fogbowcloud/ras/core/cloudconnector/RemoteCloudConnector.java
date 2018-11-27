@@ -7,9 +7,11 @@ import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.instances.Instance;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
+import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class RemoteCloudConnector implements CloudConnector {
     private static final Logger LOGGER = Logger.getLogger(RemoteCloudConnector.class);
@@ -74,5 +76,29 @@ public class RemoteCloudConnector implements CloudConnector {
                 federationUserToken);
         Image image = remoteGetImageRequest.send();
         return image;
+    }
+
+    @Override
+    public List<SecurityRule> getAllSecurityRules(Order majorOrder, FederationUserToken federationUserToken)
+            throws Exception {
+        RemoteGetAllSecurityRuleRequest remoteGetAllSecurityRuleRequest =
+                new RemoteGetAllSecurityRuleRequest(this.destinationMember, majorOrder.getId(), federationUserToken);
+        return remoteGetAllSecurityRuleRequest.send();
+    }
+
+    @Override
+    public String requestSecurityRule(Order majorOrder, SecurityRule securityRule,
+                                      FederationUserToken federationUserToken) throws Exception {
+        RemoteCreateSecurityRuleRequest remoteCreateSecurityRuleRequest =
+                new RemoteCreateSecurityRuleRequest(securityRule, federationUserToken, this.destinationMember, majorOrder);
+        remoteCreateSecurityRuleRequest.send();
+        return null;
+    }
+
+    @Override
+    public void deleteSecurityRule(String securityRuleId, FederationUserToken federationUserToken) throws Exception {
+        RemoteDeleteSecurityRuleRequest remoteDeleteSecurityRuleRequest =
+                new RemoteDeleteSecurityRuleRequest(securityRuleId, this.destinationMember, federationUserToken);
+        remoteDeleteSecurityRuleRequest.send();
     }
 }

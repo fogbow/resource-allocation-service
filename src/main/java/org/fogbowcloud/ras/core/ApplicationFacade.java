@@ -14,10 +14,10 @@ import org.fogbowcloud.ras.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
 import org.fogbowcloud.ras.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
+import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 
-import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -28,6 +28,7 @@ public class ApplicationFacade {
     private static ApplicationFacade instance;
     private AaaController aaaController;
     private OrderController orderController;
+    private SecurityRuleController securityRuleController;
     private String memberId;
     private String buildNumber;
 
@@ -54,6 +55,10 @@ public class ApplicationFacade {
         this.orderController = orderController;
     }
 
+    public synchronized void setSecurityRuleController(SecurityRuleController securityRuleController) {
+        this.securityRuleController = securityRuleController;
+    }
+
     // Used for testing
     protected void setBuildNumber(String fileName) {
         Properties properties = PropertiesUtil.readProperties(fileName);
@@ -70,10 +75,16 @@ public class ApplicationFacade {
         if (order.getPublicKey() != null && order.getPublicKey().length() > ComputeOrder.MAX_PUBLIC_KEY_SIZE) {
             throw new InvalidParameterException(Messages.Exception.TOO_BIG_PUBLIC_KEY);
         }
-        if (order.getUserData() != null && order.getUserData().getExtraUserDataFileContent() != null &&
-                order.getUserData().getExtraUserDataFileContent().length() > UserData.MAX_EXTRA_USER_DATA_FILE_CONTENT) {
-            throw new InvalidParameterException(Messages.Exception.TOO_BIG_USER_DATA_FILE_CONTENT);
+
+        if (order.getUserData() != null) {
+            for (UserData userDataScript : order.getUserData()) {
+                if (userDataScript != null && userDataScript.getExtraUserDataFileContent() != null &&
+                    userDataScript.getExtraUserDataFileContent().length() > UserData.MAX_EXTRA_USER_DATA_FILE_CONTENT) {
+                    throw new InvalidParameterException(Messages.Exception.TOO_BIG_USER_DATA_FILE_CONTENT);
+                }
+            }
         }
+
         return activateOrder(order, federationTokenValue);
     }
 
@@ -164,6 +175,43 @@ public class ApplicationFacade {
     public String createTokenValue(Map<String, String> userCredentials) throws UnexpectedException, FogbowRasException {
         // There is no need to authenticate the user or authorize this operation
         return this.aaaController.createTokenValue(userCredentials);
+    }
+
+    public String createSecurityRule(String orderId, SecurityRule securityRule,
+                                     String federationTokenValue, ResourceType resourceTypeFromEndpoint)
+            throws Exception {
+        Order majorOrder = orderController.getOrder(orderId);
+        if (majorOrder.getType() != resourceTypeFromEndpoint) {
+            throw new InstanceNotFoundException();
+        }
+        FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.CREATE,
+                ResourceType.SECURITY_RULE);
+        return securityRuleController.createSecurityRule(majorOrder, securityRule, requester);
+    }
+
+    public List<SecurityRule> getAllSecurityRules(String orderId, String federationTokenValue,
+                                                  ResourceType resourceTypeFromEndpoint) throws Exception {
+        Order majorOrder = orderController.getOrder(orderId);
+        if (majorOrder.getType() != resourceTypeFromEndpoint) {
+            throw new InstanceNotFoundException();
+        }
+        FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.GET_ALL,
+                ResourceType.SECURITY_RULE);
+        return securityRuleController.getAllSecurityRules(majorOrder, requester);
+    }
+
+    public void deleteSecurityRule(String orderId, String securityRuleId, String federationTokenValue,
+                                   ResourceType resourceTypeFromEndpoint) throws Exception {
+        Order majorOrder = orderController.getOrder(orderId);
+        if (majorOrder.getType() != resourceTypeFromEndpoint) {
+            throw new InstanceNotFoundException();
+        }
+        FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.DELETE,
+                ResourceType.SECURITY_RULE);
+        securityRuleController.deleteSecurityRule(securityRuleId, majorOrder.getProvider(), requester);
     }
 
     private String activateOrder(Order order, String federationTokenValue) throws FogbowRasException,

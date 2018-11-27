@@ -3,7 +3,7 @@ package org.fogbowcloud.ras.core.plugins.interoperability.openstack.quota.v2;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -28,7 +28,7 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 
     public OpenStackComputeQuotaPlugin() throws FatalErrorException {
         this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
+                SystemConstants.OPENSTACK_CONF_FILE_NAME);
 
         this.client = new HttpRequestClientUtil();
     }

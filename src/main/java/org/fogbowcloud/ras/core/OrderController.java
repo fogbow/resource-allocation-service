@@ -61,7 +61,11 @@ public class OrderController {
             OrderState orderState = order.getOrderState();
             if (!orderState.equals(OrderState.CLOSED)) {
                 CloudConnector cloudConnector = getCloudConnector(order);
-                cloudConnector.deleteInstance(order);
+                try {
+                    cloudConnector.deleteInstance(order);
+                } catch (InstanceNotFoundException e) {
+                    LOGGER.info(String.format(Messages.Info.DELETING_ORDER_INSTANCE_NOT_FOUND, orderId));
+                }
                 OrderStateTransitioner.transition(order, OrderState.CLOSED);
             } else {
                 String message = String.format(Messages.Error.REQUEST_ALREADY_CLOSED, order.getId());

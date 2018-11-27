@@ -55,6 +55,13 @@ public class ApiDocumentation {
                 "the allocation mode of the network (dynamic or static), the gateway address of the\n" +
                 "network (gateway) and optionally, the provider (provider) where the network should\n" +
                 "be created, and a name (name) to be assigned to the network.";
+        public static final String CREATE_SECURITY_RULE_OPERATION = "Creates a security rule for the network.";
+        public static final String CREATE_SECURITY_RULE_REQUEST_BODY =
+                "The body of the request must specify the ID of the network\n" +
+                        "to which this security rule will be assigned.";
+        public static final String GET_SECURITY_RULE_OPERATION = "Lists all security rules attached to the network.";
+        public static final String DELETE_SECURITY_RULE_OPERATION = "Deletes a specific security rule.";
+        public static final String SECURITY_RULE_ID = "The ID of the specific security rule.";
     }
 
     public static class PublicIp {
@@ -67,6 +74,13 @@ public class ApiDocumentation {
         public static final String CREATE_REQUEST_BODY =
                 "The body of the request must specify the ID of the compute (computeId)\n" +
                 "to which this IP will be assigned.";
+        public static final String CREATE_SECURITY_RULE_OPERATION = "Creates a security rule for the public IP.";
+        public static final String CREATE_SECURITY_RULE_REQUEST_BODY =
+                "The body of the request must specify the ID of the public IP\n" +
+                        "to which this security rule will be assigned.";
+        public static final String GET_SECURITY_RULE_OPERATION = "Lists all security rules attached to the public IP.";
+        public static final String DELETE_SECURITY_RULE_OPERATION = "Deletes a specific security rule.";
+        public static final String SECURITY_RULE_ID = "The ID of the specific security rule.";
     }
 
     public static class Token {

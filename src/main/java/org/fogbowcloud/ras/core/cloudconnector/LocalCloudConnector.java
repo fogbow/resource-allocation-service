@@ -13,6 +13,7 @@ import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.instances.*;
 import org.fogbowcloud.ras.core.models.orders.*;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
+import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
@@ -34,6 +35,7 @@ public class LocalCloudConnector implements CloudConnector {
     private final NetworkPlugin<Token> networkPlugin;
     private final VolumePlugin<Token> volumePlugin;
     private final ImagePlugin<Token> imagePlugin;
+    private final SecurityRulePlugin<Token> securityRulePlugin;
 
     public LocalCloudConnector(FederationToLocalMapperPlugin mapperPlugin, InteroperabilityPluginsHolder interoperabilityPluginsHolder) {
         this.mapperPlugin = mapperPlugin;
@@ -44,6 +46,7 @@ public class LocalCloudConnector implements CloudConnector {
         this.volumePlugin = interoperabilityPluginsHolder.getVolumePlugin();
         this.imagePlugin = interoperabilityPluginsHolder.getImagePlugin();
         this.publicIpPlugin = interoperabilityPluginsHolder.getPublicIpPlugin();
+        this.securityRulePlugin = interoperabilityPluginsHolder.getSecurityRulePlugin();
     }
 
     @Override
@@ -262,6 +265,26 @@ public class LocalCloudConnector implements CloudConnector {
         return this.imagePlugin.getImage(imageId, token);
     }
 
+    @Override
+    public List<SecurityRule> getAllSecurityRules(Order majorOrder, FederationUserToken federationUserToken)
+            throws UnexpectedException, FogbowRasException {
+        Token token = this.mapperPlugin.map(federationUserToken);
+        return this.securityRulePlugin.getSecurityRules(majorOrder, token);
+    }
+
+    @Override
+    public String requestSecurityRule(Order majorOrder, SecurityRule securityRule,
+                                      FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException {
+        Token token = this.mapperPlugin.map(federationUserToken);
+        return this.securityRulePlugin.requestSecurityRule(securityRule, majorOrder, token);
+    }
+
+    @Override
+    public void deleteSecurityRule(String securityRuleId, FederationUserToken federationUserToken) throws Exception {
+        Token token = this.mapperPlugin.map(federationUserToken);
+        this.securityRulePlugin.deleteSecurityRule(securityRuleId, token);
+    }
+
     /**
      * protected visibility for tests
      */
@@ -327,8 +350,7 @@ public class LocalCloudConnector implements CloudConnector {
         String imageName = getAllImages(order.getFederationUserToken()).get(imageId);
         String publicKey = order.getPublicKey();
 
-        UserData userData = order.getUserData();
-        String userDataContent = userData != null ? userData.getExtraUserDataFileContent() : null;
+        List<UserData> userData = order.getUserData();
 
         // If no network ids were informed by the user, the default network is used and the compute is attached
         // to this network. The plugin has already added this information to the instance. Otherwise, the information
@@ -341,7 +363,7 @@ public class LocalCloudConnector implements CloudConnector {
 
         fullInstance.setImageId(imageId + " : " + imageName);
         fullInstance.setPublicKey(publicKey);
-        fullInstance.setUserDataContent(userDataContent);
+        fullInstance.setUserData(userData);
 
         return fullInstance;
     }

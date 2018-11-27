@@ -32,7 +32,7 @@ public class ComputeOrder extends Order {
     @Column
     private String imageId;
     @Embedded
-    private UserData userData;
+    private ArrayList<UserData> userData;
     @Column(length = MAX_PUBLIC_KEY_SIZE)
     private String publicKey;
     @Embedded
@@ -50,7 +50,7 @@ public class ComputeOrder extends Order {
     }
 
     public ComputeOrder(String id, FederationUserToken federationUserToken, String requestingMember, String providingMember,
-                        String name, int vCPU, int memory, int disk, String imageId, UserData userData, String publicKey,
+                        String name, int vCPU, int memory, int disk, String imageId, ArrayList<UserData> userData, String publicKey,
                         List<String> networkIds) {
         super(id, providingMember, federationUserToken, requestingMember);
         this.name = name;
@@ -65,13 +65,13 @@ public class ComputeOrder extends Order {
     }
 
     public ComputeOrder(String providingMember, String name, int vCPU, int memory, int disk, String imageId,
-                        UserData userData, String publicKey, List<String> networkIds) {
+                        ArrayList<UserData> userData, String publicKey, List<String> networkIds) {
         this(null, null, providingMember, name, vCPU, memory, disk, imageId,
-                        userData, publicKey, networkIds);
+                userData, publicKey, networkIds);
     }
 
     public ComputeOrder(FederationUserToken federationUserToken, String requestingMember, String providingMember,
-                        String name, int vCPU, int memory, int disk, String imageId, UserData userData, String publicKey,
+                        String name, int vCPU, int memory, int disk, String imageId, ArrayList<UserData> userData, String publicKey,
                         List<String> networkIds) {
         this(UUID.randomUUID().toString(), federationUserToken, requestingMember, providingMember, name, vCPU, memory,
                 disk, imageId, userData, publicKey, networkIds);
@@ -109,11 +109,11 @@ public class ComputeOrder extends Order {
         return imageId;
     }
 
-    public UserData getUserData() {
+    public ArrayList<UserData> getUserData() {
         return userData;
     }
 
-    public void setUserData(UserData userData) {
+    public void setUserData(ArrayList<UserData> userData) {
         this.userData = userData;
     }
 

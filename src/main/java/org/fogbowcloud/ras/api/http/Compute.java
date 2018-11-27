@@ -12,12 +12,14 @@ import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.InstanceStatus;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.ComputeInstance;
+import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 import org.fogbowcloud.ras.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @CrossOrigin
@@ -44,9 +46,23 @@ public class Compute {
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowRasException, UnexpectedException {
-        LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
-        String computeId = ApplicationFacade.getInstance().createCompute(compute.getOrder(), federationTokenValue);
-        return new ResponseEntity<String>(computeId, HttpStatus.CREATED);
+
+        try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, ORDER_CONTROLLER_TYPE));
+
+            ComputeOrder computeOrder = compute.getOrder();
+            // if userData is null we need to prevent a NullPointerException when trying to save the order
+            // in the database
+            if (computeOrder.getUserData() == null) {
+                computeOrder.setUserData(new ArrayList<>());
+            }
+
+            String computeId = ApplicationFacade.getInstance().createCompute(computeOrder, federationTokenValue);
+            return new ResponseEntity<String>(computeId, HttpStatus.CREATED);
+        } catch (Exception e) {
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            throw e;
+        }
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.GET_OPERATION)
@@ -55,10 +71,16 @@ public class Compute {
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
-        List<InstanceStatus> computeInstanceStatus =
+
+        try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
+            List<InstanceStatus> computeInstanceStatus =
                 ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.COMPUTE);
-        return new ResponseEntity<>(computeInstanceStatus, HttpStatus.OK);
+            return new ResponseEntity<>(computeInstanceStatus, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            throw e;
+        }
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.GET_BY_ID_OPERATION)
@@ -69,9 +91,15 @@ public class Compute {
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.RECEIVING_GET_REQUEST, ORDER_CONTROLLER_TYPE, computeId));
-        ComputeInstance compute = ApplicationFacade.getInstance().getCompute(computeId, federationTokenValue);
-        return new ResponseEntity<ComputeInstance>(compute, HttpStatus.OK);
+
+        try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_GET_REQUEST, ORDER_CONTROLLER_TYPE, computeId));
+            ComputeInstance compute = ApplicationFacade.getInstance().getCompute(computeId, federationTokenValue);
+            return new ResponseEntity<ComputeInstance>(compute, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            throw e;
+        }
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.DELETE_OPERATION)
@@ -82,9 +110,15 @@ public class Compute {
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, ORDER_CONTROLLER_TYPE, computeId));
-        ApplicationFacade.getInstance().deleteCompute(computeId, federationTokenValue);
-        return new ResponseEntity<>(HttpStatus.OK);
+
+        try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, ORDER_CONTROLLER_TYPE, computeId));
+            ApplicationFacade.getInstance().deleteCompute(computeId, federationTokenValue);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            throw e;
+        }
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.GET_QUOTA)
@@ -95,9 +129,15 @@ public class Compute {
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
-        LOGGER.info(String.format(Messages.Info.RECEIVING_COMPUTE_QUOTA_REQUEST, QUOTA_ENDPOINT, memberId));
-        ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(memberId, federationTokenValue);
-        return new ResponseEntity<>(quotaInstance, HttpStatus.OK);
+
+        try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_COMPUTE_QUOTA_REQUEST, QUOTA_ENDPOINT, memberId));
+            ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(memberId, federationTokenValue);
+            return new ResponseEntity<>(quotaInstance, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            throw e;
+        }
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.GET_ALLOCATION)
@@ -108,9 +148,15 @@ public class Compute {
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowRasException, UnexpectedException {
-        LOGGER.info(String.format(Messages.Info.RECEIVING_COMPUTE_QUOTA_REQUEST, ALLOCATION_ENDPOINT, memberId));
-        ComputeAllocation computeAllocation =
+
+        try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_COMPUTE_QUOTA_REQUEST, ALLOCATION_ENDPOINT, memberId));
+            ComputeAllocation computeAllocation =
                 ApplicationFacade.getInstance().getComputeAllocation(memberId, federationTokenValue);
-        return new ResponseEntity<>(computeAllocation, HttpStatus.OK);
+            return new ResponseEntity<>(computeAllocation, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            throw e;
+        }
     }
 }

@@ -4,7 +4,6 @@ import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 
 public class Network {
-    public static final String allocationAllowableValues = getAllocationAllowableValues();
     private String provider;
     private String name;
     private String gateway;
@@ -34,10 +33,5 @@ public class Network {
 
     public NetworkAllocationMode getAllocationMode() {
         return allocationMode;
-    }
-
-    private static String getAllocationAllowableValues() {
-        // TODO get these from NetworkAllocationMode.values()
-        return "dynamic,static";
     }
 }
