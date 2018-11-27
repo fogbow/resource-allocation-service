@@ -22,6 +22,7 @@ import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStack
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackQueryJobResult;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
+import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -89,6 +90,8 @@ public class CloudStackSecurityRulePluginTest {
 
         Assert.assertEquals(this.client.doGetRequest("", new CloudStackToken()), listFirewallRulesResponse);
 
+        CloudStackPublicIpPlugin.setOrderidToInstanceIdMapping(publicIpOrder.getId(), instanceId);
+
         // exercise
         List<SecurityRule> securityRules = this.plugin.getSecurityRules(publicIpOrder, localUserAttributes);
 
@@ -109,6 +112,8 @@ public class CloudStackSecurityRulePluginTest {
         HttpResponseException badRequestException = new HttpResponseException(HttpStatus.SC_BAD_REQUEST, "");
         Mockito.doThrow(badRequestException).when(this.client).doGetRequest(
                 Mockito.anyString(), Mockito.any(OpenStackV3Token.class));
+
+        CloudStackPublicIpPlugin.setOrderidToInstanceIdMapping(publicIpOrder.getId(), publicIpOrder.getId());
 
         // exercise
         List<SecurityRule> securityRules = null;
