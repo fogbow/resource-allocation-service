@@ -11,11 +11,11 @@ public class CreateComputeRequest {
 	public CreateComputeRequest(Builder builder) {
 		String cpu = builder.cpu;
 		String memory = builder.memory;
-		VirtualMachineContext context = buildContext(builder);
-		VirtualMachineGraphics graphics = buildGraphics(builder);
-		VirtualMachineImageDisk imageDisk = buildImage(builder);
-		VirtualMachineVolumeDisk volumeDisk = buildVolume(builder);
-		VirtualMachineNic nic = buildNetworkInterfaceConnected(builder);
+		VirtualMachineTemplate.Context context = buildContext(builder);
+		VirtualMachineTemplate.Graphics graphics = buildGraphics(builder);
+		VirtualMachineTemplate.ImageDisk imageDisk = buildImage(builder);
+		VirtualMachineTemplate.VolumeDisk volumeDisk = buildVolume(builder);
+		VirtualMachineTemplate.NetworkInterfaceConnected nic = buildNetworkInterfaceConnected(builder);
 		
 		this.virtualMachine = new VirtualMachineTemplate();
 		this.virtualMachine.setContext(context);
@@ -24,37 +24,37 @@ public class CreateComputeRequest {
 		this.virtualMachine.setImageDisk(imageDisk);
 		this.virtualMachine.setVolumeDisk(volumeDisk);
 		this.virtualMachine.setMemory(memory);
-		this.virtualMachine.setNetworkInterfaceConnected(nic);
+		this.virtualMachine.setNic(nic);
 	}
 
-	private VirtualMachineNic buildNetworkInterfaceConnected(Builder builder) {
-		VirtualMachineNic nic = new VirtualMachineNic();
+	private VirtualMachineTemplate.NetworkInterfaceConnected buildNetworkInterfaceConnected(Builder builder) {
+		VirtualMachineTemplate.NetworkInterfaceConnected nic = new VirtualMachineTemplate.NetworkInterfaceConnected();
 		nic.setNetworkId(builder.networkId);
 		return nic;
 	}
 
-	private VirtualMachineVolumeDisk buildVolume(Builder builder) {
-		VirtualMachineVolumeDisk volumeDisk = new VirtualMachineVolumeDisk();
+	private VirtualMachineTemplate.VolumeDisk buildVolume(Builder builder) {
+		VirtualMachineTemplate.VolumeDisk volumeDisk = new VirtualMachineTemplate.VolumeDisk();
 		volumeDisk.setSize(builder.volumeSize);
 		volumeDisk.setType(builder.volumeType);
 		return volumeDisk;
 	}
 
-	private VirtualMachineImageDisk buildImage(Builder builder) {
-		VirtualMachineImageDisk imageDisk = new VirtualMachineImageDisk();
+	private VirtualMachineTemplate.ImageDisk buildImage(Builder builder) {
+		VirtualMachineTemplate.ImageDisk imageDisk = new VirtualMachineTemplate.ImageDisk();
 		imageDisk.setImageId(builder.imageId);
 		return imageDisk;
 	}
 
-	private VirtualMachineGraphics buildGraphics(Builder builder) {
-		VirtualMachineGraphics graphics = new VirtualMachineGraphics();
+	private VirtualMachineTemplate.Graphics buildGraphics(Builder builder) {
+		VirtualMachineTemplate.Graphics graphics = new VirtualMachineTemplate.Graphics();
 		graphics.setListen(builder.graphicsListen);
 		graphics.setType(builder.graphicsType);
 		return graphics;
 	}
 
-	private VirtualMachineContext buildContext(Builder builder) {
-		VirtualMachineContext context = new VirtualMachineContext();
+	private VirtualMachineTemplate.Context buildContext(Builder builder) {
+		VirtualMachineTemplate.Context context = new VirtualMachineTemplate.Context();
 		context.setEncoding(builder.contextEncoding);
 		context.setUserdata(builder.contextUserdata);
 		context.setNetwork(builder.contextNetwork);

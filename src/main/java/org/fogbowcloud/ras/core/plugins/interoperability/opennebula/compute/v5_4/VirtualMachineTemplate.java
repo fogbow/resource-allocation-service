@@ -4,9 +4,17 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenN
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.CPU;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.DISK;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.GRAPHICS;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.IMAGE_ID;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.LISTEN;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.MEMORY;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NETWORK;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NETWORK_ID;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NETWORK_INTERFACE_CONNECTED;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.SIZE;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TEMPLATE;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TYPE;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.USERDATA;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.USERDATA_ENCODING;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -16,20 +24,20 @@ import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaMa
 @XmlRootElement(name = TEMPLATE)
 public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 
-	private VirtualMachineContext context;
+	private VirtualMachineTemplate.Context context;
 	private String cpu;
-	private VirtualMachineGraphics graphics;
-	private VirtualMachineImageDisk imageDisk;
-	private VirtualMachineVolumeDisk volumeDisk;
+	private VirtualMachineTemplate.Graphics graphics;
+	private VirtualMachineTemplate.ImageDisk imageDisk;
+	private VirtualMachineTemplate.VolumeDisk volumeDisk;
 	private String memory;
-	private VirtualMachineNic networkInterfaceConnected;
+	private VirtualMachineTemplate.NetworkInterfaceConnected nic;
 
 	@XmlElement(name = CONTEXT)
-	public VirtualMachineContext getContext() {
+	public VirtualMachineTemplate.Context getContext() {
 		return context;
 	}
 
-	public void setContext(VirtualMachineContext context) {
+	public void setContext(VirtualMachineTemplate.Context context) {
 		this.context = context;
 	}
 	
@@ -43,29 +51,29 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 	}
 
 	@XmlElement(name = GRAPHICS)
-	public VirtualMachineGraphics getGraphics() {
+	public VirtualMachineTemplate.Graphics getGraphics() {
 		return graphics;
 	}
 
-	public void setGraphics(VirtualMachineGraphics graphics) {
+	public void setGraphics(VirtualMachineTemplate.Graphics graphics) {
 		this.graphics = graphics;
 	}
 
 	@XmlElement(name = DISK)
-	public VirtualMachineImageDisk getImageDisk() {
+	public VirtualMachineTemplate.ImageDisk getImageDisk() {
 		return imageDisk;
 	}
 
-	public void setImageDisk(VirtualMachineImageDisk imageDisk) {
+	public void setImageDisk(VirtualMachineTemplate.ImageDisk imageDisk) {
 		this.imageDisk = imageDisk;
 	}
 
 	@XmlElement(name = DISK)
-	public VirtualMachineVolumeDisk getVolumeDisk() {
+	public VirtualMachineTemplate.VolumeDisk getVolumeDisk() {
 		return volumeDisk;
 	}
 
-	public void setVolumeDisk(VirtualMachineVolumeDisk volumeDisk) {
+	public void setVolumeDisk(VirtualMachineTemplate.VolumeDisk volumeDisk) {
 		this.volumeDisk = volumeDisk;
 	}
 
@@ -79,13 +87,127 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 	}
 
 	@XmlElement(name = NETWORK_INTERFACE_CONNECTED)
-	public VirtualMachineNic getNetworkInterfaceConnected() {
-		return networkInterfaceConnected;
+	public VirtualMachineTemplate.NetworkInterfaceConnected getNic() {
+		return nic;
 	}
 
-	public void setNetworkInterfaceConnected(VirtualMachineNic networkInterfaceConnected) {
-		this.networkInterfaceConnected = networkInterfaceConnected;
+	public void setNic(VirtualMachineTemplate.NetworkInterfaceConnected nic) {
+		this.nic = nic;
 	}
 
+	@XmlRootElement(name = CONTEXT)
+	public static class Context {
+
+		private String encoding;
+		private String userdata;
+		private String network;
+		
+		@XmlElement(name = USERDATA_ENCODING)
+		public String getEncoding() {
+			return encoding;
+		}
+		
+		public void setEncoding(String encoding) {
+			this.encoding = encoding;
+		}
+		
+		@XmlElement(name = USERDATA)
+		public String getUserdata() {
+			return userdata;
+		}
+		
+		public void setUserdata(String userdata) {
+			this.userdata = userdata;
+		}
+		
+		@XmlElement(name = NETWORK)
+		public String getNetwork() {
+			return network;
+		}
+		
+		public void setNetwork(String network) {
+			this.network = network;
+		}
+	}
+	
+	@XmlRootElement(name = GRAPHICS)
+	public static class Graphics {
+
+		private String listen;
+		private String type;
+		
+		@XmlElement(name = LISTEN)
+		public String getListen() {
+			return listen;
+		}
+		
+		public void setListen(String listen) {
+			this.listen = listen;
+		}
+		
+		@XmlElement(name = TYPE)
+		public String getType() {
+			return type;
+		}
+		
+		public void setType(String type) {
+			this.type = type;
+		}
+	}
+	
+	@XmlRootElement(name = DISK)
+	public static class ImageDisk {
+
+		private String imageId;
+
+		@XmlElement(name = IMAGE_ID)
+		public String getImageId() {
+			return imageId;
+		}
+
+		public void setImageId(String imageId) {
+			this.imageId = imageId;
+		}
+	}
+	
+	@XmlRootElement(name = DISK)
+	public static class VolumeDisk {
+
+		private String size;
+		private String type;
+		
+		@XmlElement(name = SIZE)
+		public String getSize() {
+			return size;
+		}
+		
+		public void setSize(String size) {
+			this.size = size;
+		}
+		
+		@XmlElement(name = TYPE)
+		public String getType() {
+			return type;
+		}
+		
+		public void setType(String type) {
+			this.type = type;
+		}
+	}
+	
+	@XmlRootElement(name = NETWORK_INTERFACE_CONNECTED)
+	public static class NetworkInterfaceConnected {
+
+		private String networkId;
+
+		@XmlElement(name = NETWORK_ID)
+		public String getNetworkId() {
+			return networkId;
+		}
+
+		public void setNetworkId(String networkId) {
+			this.networkId = networkId;
+		}
+	}
 }
  
