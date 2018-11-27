@@ -39,7 +39,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 
     // since the ip creation and association involves multiple synchronous and asynchronous requests,
     // we need to keep track of where we are in the process in order to fulfill the operation.
-    private static Map<String, CurrentAsyncRequest> publicIpSubState;
+    private static Map<String, CurrentAsyncRequest> publicIpSubState = new HashMap<>();
 
     public CloudStackPublicIpPlugin() {
         String cloudStackConfFilePath = HomeDir.getPath() + File.separator
@@ -49,7 +49,6 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
         this.defaultNetworkId = properties.getProperty(DEFAULT_NETWORK_ID_KEY);
 
         this.client = new HttpRequestClientUtil();
-        this.publicIpSubState = new HashMap<>();
     }
 
     @Override
@@ -111,6 +110,12 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 
     public static String getPublicIpId(String orderId) {
         return publicIpSubState.get(orderId).getIpInstanceId();
+    }
+
+    // testing purposes only
+    public static void setOrderidToInstanceIdMapping(String orderId, String instanceId) {
+        CurrentAsyncRequest currentAsyncRequest = new CurrentAsyncRequest(PublicIpSubState.READY, null, instanceId);
+        publicIpSubState.put(orderId, currentAsyncRequest);
     }
 
     private PublicIpInstance getCurrentInstance(String orderId, CloudStackToken token) throws FogbowRasException, UnexpectedException {
@@ -235,7 +240,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
         ASSOCIATING_IP_ADDRESS, CREATING_FIREWALL_RULE, READY
     }
 
-    private class CurrentAsyncRequest {
+    private static class CurrentAsyncRequest {
 
         private PublicIpSubState state;
 
