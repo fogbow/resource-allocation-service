@@ -1,11 +1,6 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
@@ -21,6 +16,7 @@ import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
+import org.fogbowcloud.ras.core.plugins.interoperability.util.CloudInitUserDataBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,7 +47,6 @@ public class OpenNebulaComputePluginTest {
 	private static final String FAKE_PRIVATE_NETWORK_ID = "fake-private-network-id";
 	private static final String FAKE_PRIVATE_IP = "0.0.0.0";
 	private static final String FAKE_PUBLIC_KEY = "fake-public-key";
-	private static final String FAKE_USER_DATA = "fake-user-data";
 	private static final String FAKE_USER_NAME = "fake-user-name";
 	private static final String FLAVOR_KIND_NAME = "smallest-flavor";
 	private static final String IMAGE_SIZE_PATH = "SIZE";
@@ -71,7 +66,10 @@ public class OpenNebulaComputePluginTest {
 	private static final String TEMPLATE_NAME_PATH = "TEMPLATE/NAME";
 	private static final String TEMPLATE_NIC_IP_PATH = "TEMPLATE/NIC/IP";
 	private static final String UNCHECKED_VALUE = "unchecked";
-	
+
+	private static final UserData[] fakeUserDataArray= new UserData[]{new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag")};
+	private static final ArrayList<UserData> FAKE_USER_DATA = (ArrayList<UserData>) Arrays.asList(fakeUserDataArray);
+
 	private static final int CPU_VALUE = 4;
 	private static final int MEMORY_VALUE = 2048;
 	private static final int DISK_VALUE = 8;
@@ -586,7 +584,7 @@ public class OpenNebulaComputePluginTest {
 		String hostName = FAKE_HOST_NAME;
 		String image = FAKE_IMAGE;
 		String publicKey = FAKE_PUBLIC_KEY;
-		String userData = FAKE_USER_DATA;
+		List<UserData> userData = FAKE_USER_DATA;
 		
 		InstanceState state = InstanceState.READY;
 		List<String> ipAddresses = null;
@@ -600,8 +598,9 @@ public class OpenNebulaComputePluginTest {
 				disk, 
 				ipAddresses, 
 				image, 
-				publicKey, 
+				publicKey,
 				userData);
+
 		
 		return computeInstance;
 	}
@@ -633,8 +632,8 @@ public class OpenNebulaComputePluginTest {
 		String name = null, providingMember = null, requestingMember = null;
 		String publicKey = FAKE_PUBLIC_KEY;
 		
-		FederationUserToken federationUserToken = null; 
-		UserData userData = new UserData();
+		FederationUserToken federationUserToken = null;
+		ArrayList<UserData> userData = FAKE_USER_DATA;
 		
 		ComputeOrder computeOrder = new ComputeOrder(
 				federationUserToken, 
@@ -644,8 +643,8 @@ public class OpenNebulaComputePluginTest {
 				cpu, 
 				memory, 
 				disk, 
-				imageId, 
-				userData, 
+				imageId,
+				userData,
 				publicKey, 
 				networksId);
 		

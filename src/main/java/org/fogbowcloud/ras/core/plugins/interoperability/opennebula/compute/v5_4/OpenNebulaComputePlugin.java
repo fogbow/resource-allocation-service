@@ -13,6 +13,7 @@ import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.NoAvailableResourcesException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.HardwareRequirements;
@@ -75,7 +76,12 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 
 		String encoding = USERDATA_ENCODING_CONTEXT;
-		String userData = computeOrder.getUserData().getExtraUserDataFileContent();
+
+		if(computeOrder.getUserData() == null || computeOrder.getUserData().size() != 1){
+			throw new InvalidParameterException();
+		}
+
+		String userData = computeOrder.getUserData().get(0).getExtraUserDataFileContent();
 		String hasNetwork = NETWORK_CONFIRMATION_CONTEXT;
 		String address = DEFAULT_GRAPHIC_ADDRESS;
 		String graphicsType = DEFAULT_GRAPHIC_TYPE;
