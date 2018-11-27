@@ -15,7 +15,6 @@ import org.fogbowcloud.ras.core.plugins.interoperability.ImagePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import org.opennebula.client.Client;
-import org.opennebula.client.OneResponse;
 import org.opennebula.client.image.ImagePool;
 
 public class OpenNebulaImagePlugin implements ImagePlugin<Token> {
@@ -27,7 +26,9 @@ public class OpenNebulaImagePlugin implements ImagePlugin<Token> {
 
 	@Override
 	public Map<String, String> getAllImages(Token localUserAttributes) throws FogbowRasException, UnexpectedException {
-		ImagePool imagePool = requestImages(localUserAttributes);
+		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+		ImagePool imagePool = this.factory.createImagePool(client);
+
 		Map<String, String> allImages = new HashMap<>();
 		for (org.opennebula.client.image.Image image : imagePool) {
 			allImages.put(image.getId(), image.getName());
@@ -37,21 +38,27 @@ public class OpenNebulaImagePlugin implements ImagePlugin<Token> {
 
 	@Override
 	public Image getImage(String imageId, Token localUserAttributes) throws FogbowRasException, UnexpectedException {
-		ImagePool imagePool = requestImages(localUserAttributes);
+		LOGGER.info(String.format(Messages.Info.GETTING_INSTANCE, imageId, localUserAttributes.getTokenValue()));
+		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+		ImagePool imagePool = this.factory.createImagePool(client);
+		
 		for (org.opennebula.client.image.Image image : imagePool) {
 			if (image.getId().equals(imageId)) {
 				return mountImage(image);
 			}
 		}
+		LOGGER.info(String.format(Messages.Info.INSTANCE_WAS_NOT_FOUND, imageId));
 		return null;
 	}
 
 	private Image mountImage(org.opennebula.client.image.Image image) {
 		String id = image.getId();
 		String name = image.getName();
-		long size = Long.parseLong(image.xpath(IMAGE_SIZE_PATH));
-		long minDisk = -1;
-		long minRam = -1;
+		String imageSize = image.xpath(IMAGE_SIZE_PATH);
+		
+		int size = Integer.parseInt(imageSize);
+		int minDisk = -1;
+		int minRam = -1;
 		int state = image.state();
 		
 		InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.IMAGE, state);
@@ -60,15 +67,8 @@ public class OpenNebulaImagePlugin implements ImagePlugin<Token> {
 		return new Image(id, name, size, minDisk, minRam, status);
 	}
 
-	private ImagePool requestImages(Token localUserAttributes) throws UnexpectedException {
-		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
-		ImagePool imagePool = this.factory.createImagePool(client);
-		OneResponse response = imagePool.info();
-		if (response.isError()) {
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, response.getErrorMessage()));
-			throw new UnexpectedException(response.getErrorMessage());
-		}
-		return imagePool;
+	public void setFactory(OpenNebulaClientFactory factory) {
+		this.factory = factory;
 	}
 
 }
