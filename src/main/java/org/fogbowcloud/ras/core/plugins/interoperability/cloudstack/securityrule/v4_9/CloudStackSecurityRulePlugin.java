@@ -7,7 +7,9 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.securityrules.Direction;
 import org.fogbowcloud.ras.core.models.securityrules.EtherType;
@@ -20,6 +22,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHt
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackQueryAsyncJobResponse;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackQueryJobResult;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
+import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleAsyncResponse;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleRequest;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
@@ -32,8 +35,10 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.Cloud
 public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudStackToken> {
 
     public static final int ONE_SECOND_IN_MILIS = 1000;
-    private static final Logger LOGGER = Logger.getLogger(CloudStackSecurityRulePlugin.class);
-    private static final int MAX_TRIES = 15;
+    public static final int MAX_TRIES = 15;
+
+    public static final Logger LOGGER = Logger.getLogger(CloudStackSecurityRulePlugin.class);
+
     private HttpRequestClientUtil client;
 
     public CloudStackSecurityRulePlugin() {
@@ -46,41 +51,42 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
         if (securityRule.getDirection() == Direction.OUT) {
             throw new UnsupportedOperationException();
         }
-        if (securityRule.getEtherType() == EtherType.IPv6) {
-            throw new UnsupportedOperationException();
+        if (majorOrder.getType() == ResourceType.PUBLIC_IP) {
+            String cidr = securityRule.getCidr();
+            String portFrom = Integer.toString(securityRule.getPortFrom());
+            String portTo = Integer.toString(securityRule.getPortTo());
+            String protocol = securityRule.getProtocol().toString();
+
+            CreateFirewallRuleRequest createFirewallRuleRequest = new CreateFirewallRuleRequest.Builder()
+                    .protocol(protocol)
+                    .startPort(portFrom)
+                    .endPort(portTo)
+                    .ipAddressId(CloudStackPublicIpPlugin.getPublicIpId(majorOrder.getId()))
+                    .cidrList(cidr)
+                    .build();
+
+            CloudStackUrlUtil.sign(createFirewallRuleRequest.getUriBuilder(), localUserAttributes.getTokenValue());
+
+            String jsonResponse = null;
+            try {
+                jsonResponse = this.client.doGetRequest(createFirewallRuleRequest.getUriBuilder().toString(), localUserAttributes);
+            } catch (HttpResponseException e) {
+                CloudStackHttpToFogbowRasExceptionMapper.map(e);
+            }
+
+            CreateFirewallRuleAsyncResponse response = CreateFirewallRuleAsyncResponse.fromJson(jsonResponse);
+
+            return waitForJobResult(this.client, response.getJobId(), localUserAttributes);
+        } else {
+            throw new InvalidParameterException(Messages.Exception.INVALID_RESOURCE);
         }
-
-        String cidr = securityRule.getCidr();
-        String portFrom = Integer.toString(securityRule.getPortFrom());
-        String portTo = Integer.toString(securityRule.getPortTo());
-        String protocol = securityRule.getProtocol().toString();
-
-        CreateFirewallRuleRequest createFirewallRuleRequest = new CreateFirewallRuleRequest.Builder()
-                .protocol(protocol)
-                .startPort(portFrom)
-                .endPort(portTo)
-                .ipAddressId(cidr)
-                .build();
-
-        CloudStackUrlUtil.sign(createFirewallRuleRequest.getUriBuilder(), localUserAttributes.getTokenValue());
-
-        String jsonResponse = null;
-        try {
-            jsonResponse = this.client.doGetRequest(createFirewallRuleRequest.getUriBuilder().toString(), localUserAttributes);
-        } catch (HttpResponseException e) {
-            CloudStackHttpToFogbowRasExceptionMapper.map(e);
-        }
-
-        CreateFirewallRuleAsyncResponse response = CreateFirewallRuleAsyncResponse.fromJson(jsonResponse);
-
-        return waitForJobResult(this.client, response.getJobId(), localUserAttributes);
     }
 
     @Override
     public List<SecurityRule> getSecurityRules(Order majorOrder, CloudStackToken localUserAttributes) throws FogbowRasException, UnexpectedException {
         switch (majorOrder.getType()) {
         	case PUBLIC_IP:
-        		return getFirewallRules(majorOrder.getInstanceId(), localUserAttributes);
+        		return getFirewallRules(CloudStackPublicIpPlugin.getPublicIpId(majorOrder.getId()), localUserAttributes);
         	case NETWORK:
         		throw new UnsupportedOperationException();
         	default:

@@ -37,7 +37,7 @@ import com.google.gson.annotations.SerializedName;
  *        "startport":23,
  *        "endport":24,
  *        "ipaddress" : "0.0.0.1",
- *        "cidrlist":"0.0.0.0/0",            
+ *        "cidrList":"0.0.0.0/0",
  *      },
  *      {  
  *        "id":"0bd00d5f-5550-4e06-880a-893de7a13082",
@@ -45,7 +45,7 @@ import com.google.gson.annotations.SerializedName;
  *        "startport":22,
  *        "endport":22,
  *        "ipaddress" : "0.0.0.2",
- *        "cidrlist":"0.0.0.0/0",
+ *        "cidrList":"0.0.0.0/0",
  *      }
  *    ]
  *   }
@@ -120,5 +120,5 @@ public class ListFirewallRulesResponse {
 		}        
         
     }
-    
+
 }

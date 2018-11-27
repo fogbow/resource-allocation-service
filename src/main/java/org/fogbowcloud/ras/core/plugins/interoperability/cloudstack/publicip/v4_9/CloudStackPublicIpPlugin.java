@@ -30,8 +30,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 
     public static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
 
-    public static final String DEFAULT_START_PORT = "22";
-    public static final String DEFAULT_END_PORT = "60000";
+    public static final String DEFAULT_SSH_PORT = "22";
     public static final String DEFAULT_PROTOCOL = "TCP";
 
     private final String defaultNetworkId;
@@ -40,7 +39,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 
     // since the ip creation and association involves multiple synchronous and asynchronous requests,
     // we need to keep track of where we are in the process in order to fulfill the operation.
-    Map<String, CurrentAsyncRequest> publicIpSubState;
+    private static Map<String, CurrentAsyncRequest> publicIpSubState;
 
     public CloudStackPublicIpPlugin() {
         String cloudStackConfFilePath = HomeDir.getPath() + File.separator
@@ -108,6 +107,10 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
+    }
+
+    public static String getPublicIpId(String orderId) {
+        return publicIpSubState.get(orderId).getIpInstanceId();
     }
 
     private PublicIpInstance getCurrentInstance(String orderId, CloudStackToken token) throws FogbowRasException, UnexpectedException {
@@ -210,8 +213,8 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
             throws FogbowRasException {
         CreateFirewallRuleRequest createFirewallRuleRequest = new CreateFirewallRuleRequest.Builder()
                 .protocol(DEFAULT_PROTOCOL)
-                .startPort(DEFAULT_START_PORT)
-                .endPort(DEFAULT_END_PORT)
+                .startPort(DEFAULT_SSH_PORT)
+                .endPort(DEFAULT_SSH_PORT)
                 .ipAddressId(ipAdressId)
                 .build();
 
