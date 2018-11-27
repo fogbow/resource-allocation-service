@@ -35,7 +35,7 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.Cloud
 public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudStackToken> {
 
     public static final int ONE_SECOND_IN_MILIS = 1000;
-    public static final int MAX_TRIES = 15;
+    public static final int MAX_TRIES = 30;
 
     public static final Logger LOGGER = Logger.getLogger(CloudStackSecurityRulePlugin.class);
 
@@ -169,7 +169,10 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
 			EtherType etherType = inferEtherType(ipAddress);
 			Protocol protocol = getFogbowProtocol(securityRuleResponse.getProtocol());
 
-			securityRules.add(new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol));
+			SecurityRule securityRule = new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol);
+			securityRule.setInstanceId(securityRuleResponse.getInstanceId());
+
+			securityRules.add(securityRule);
 		}
 		return securityRules;
 	}
