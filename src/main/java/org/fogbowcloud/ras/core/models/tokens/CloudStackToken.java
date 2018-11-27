@@ -1,5 +1,8 @@
 package org.fogbowcloud.ras.core.models.tokens;
 
+import javax.persistence.Entity;
+
+@Entity
 public class CloudStackToken extends SignedFederationUserToken {
 
     public CloudStackToken() {

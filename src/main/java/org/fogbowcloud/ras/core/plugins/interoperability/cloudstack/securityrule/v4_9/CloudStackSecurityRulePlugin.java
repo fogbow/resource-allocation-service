@@ -22,6 +22,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHt
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackQueryAsyncJobResponse;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackQueryJobResult;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
+import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleAsyncResponse;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleRequest;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
@@ -34,8 +35,10 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.Cloud
 public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudStackToken> {
 
     public static final int ONE_SECOND_IN_MILIS = 1000;
-    private static final Logger LOGGER = Logger.getLogger(CloudStackSecurityRulePlugin.class);
-    private static final int MAX_TRIES = 15;
+    public static final int MAX_TRIES = 15;
+
+    public static final Logger LOGGER = Logger.getLogger(CloudStackSecurityRulePlugin.class);
+
     private HttpRequestClientUtil client;
 
     public CloudStackSecurityRulePlugin() {
@@ -58,7 +61,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
                     .protocol(protocol)
                     .startPort(portFrom)
                     .endPort(portTo)
-                    .ipAddressId(majorOrder.getInstanceId())
+                    .ipAddressId(CloudStackPublicIpPlugin.getPublicIpId(majorOrder.getId()))
                     .cidrList(cidr)
                     .build();
 
@@ -83,7 +86,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
     public List<SecurityRule> getSecurityRules(Order majorOrder, CloudStackToken localUserAttributes) throws FogbowRasException, UnexpectedException {
         switch (majorOrder.getType()) {
         	case PUBLIC_IP:
-        		return getFirewallRules(majorOrder.getInstanceId(), localUserAttributes);
+        		return getFirewallRules(CloudStackPublicIpPlugin.getPublicIpId(majorOrder.getId()), localUserAttributes);
         	case NETWORK:
         		throw new UnsupportedOperationException();
         	default:
