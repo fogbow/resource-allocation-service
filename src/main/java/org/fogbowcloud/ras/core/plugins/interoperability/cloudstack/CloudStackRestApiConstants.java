@@ -64,6 +64,7 @@ public class CloudStackRestApiConstants {
         public static final String QUERY_ASYNC_JOB_RESULT_KEY_JSON = "queryasyncjobresultresponse";
 
         public static final String CREATE_FIREWALL_RULE_RESPONSE = "createfirewallruleresponse";
+        public static final String DELETE_FIREWALL_RULE_RESPOSNE = "deletefirewallruleresponse";
 
         // TODO confirm this values !
         public static final String VM_ID_KEY_JSON = "virtualmachineid";
@@ -83,6 +84,8 @@ public class CloudStackRestApiConstants {
         public static final String JOB_STATUS_KEY_JSON = "jobstatus";
         public static final String JOB_INSTANCE_ID_KEY_JSON = "jobinstanceid";
 
+        public static final String SUCCESS_KEY_JSON = "success";
+        public static final String DISPLAY_TEXT_KEY_JSON = "displaytext";
     }
 
     public static class Attachment {

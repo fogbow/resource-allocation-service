@@ -35,7 +35,7 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.Cloud
 public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudStackToken> {
 
     public static final int ONE_SECOND_IN_MILIS = 1000;
-    public static final int MAX_TRIES = 15;
+    public static final int MAX_TRIES = 30;
 
     public static final Logger LOGGER = Logger.getLogger(CloudStackSecurityRulePlugin.class);
 
@@ -99,7 +99,44 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
     @Override
     public void deleteSecurityRule(String securityRuleId, CloudStackToken localUserAttributes)
             throws FogbowRasException, UnexpectedException {
-        throw new UnsupportedOperationException();
+        DeleteFirewallRuleRequest request = new DeleteFirewallRuleRequest.Builder()
+                .ruleId(securityRuleId)
+                .build();
+
+        CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
+
+        String jsonResponse = null;
+        try {
+            jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), localUserAttributes);
+        } catch (HttpResponseException e) {
+            CloudStackHttpToFogbowRasExceptionMapper.map(e);
+        }
+
+        DeleteFirewallRuleResponse response = DeleteFirewallRuleResponse.fromJson(jsonResponse);
+
+        waitForDeleteResult(this.client, response.getJobId(), localUserAttributes);
+    }
+
+    protected String waitForDeleteResult(HttpRequestClientUtil client, String jobId, CloudStackToken token)
+            throws FogbowRasException, UnexpectedException {
+        CloudStackQueryAsyncJobResponse queryAsyncJobResult = getAsyncJobResponse(client, jobId, token);
+
+        if (queryAsyncJobResult.getJobStatus() == CloudStackQueryJobResult.PROCESSING) {
+            for (int i = 0; i < MAX_TRIES; i++) {
+                queryAsyncJobResult = getAsyncJobResponse(client, jobId, token);
+                if (queryAsyncJobResult.getJobStatus() != CloudStackQueryJobResult.PROCESSING) {
+                    return processJobResult(queryAsyncJobResult, jobId);
+                }
+                try {
+                    Thread.sleep(ONE_SECOND_IN_MILIS);
+                } catch (InterruptedException e) {
+                    throw new FogbowRasException();
+                }
+            }
+            throw new FogbowRasException(String.format(JOB_TIMEOUT, jobId));
+        } else {
+            throw new UnexpectedException();
+        }
     }
 
 	protected List<SecurityRule> getFirewallRules(String ipAddressId, CloudStackToken localUserAttributes) throws FogbowRasException, UnexpectedException {
@@ -132,7 +169,10 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
 			EtherType etherType = inferEtherType(ipAddress);
 			Protocol protocol = getFogbowProtocol(securityRuleResponse.getProtocol());
 
-			securityRules.add(new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol));
+			SecurityRule securityRule = new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol);
+			securityRule.setInstanceId(securityRuleResponse.getInstanceId());
+
+			securityRules.add(securityRule);
 		}
 		return securityRules;
 	}
@@ -206,5 +246,4 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
     protected void setClient(HttpRequestClientUtil client) {
         this.client = client;
     }
-
 }
