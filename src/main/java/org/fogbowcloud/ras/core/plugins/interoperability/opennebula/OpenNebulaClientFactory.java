@@ -155,13 +155,23 @@ public class OpenNebulaClientFactory {
 		return templatePool;
 	}
 
-    public User createUser(Client client, String username) throws UnauthorizedRequestException {
-    	UserPool userpool = new UserPool(client);
- 		userpool.info();
- 		String userId = findUserByName(userpool, username);
- 		int id = Integer.parseInt(userId);
- 		User user = userpool.getById(id);
- 		user.info();
+	public UserPool createUserPool(Client client) throws UnexpectedException {
+		UserPool userpool = new UserPool(client);
+ 		OneResponse response = userpool.info();
+ 		if (response.isError()) {
+ 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_USERS, response.getErrorMessage()));
+			throw new UnexpectedException(response.getErrorMessage());
+ 		}
+ 		LOGGER.info(String.format(Messages.Info.USER_POOL_LENGTH, userpool.getLength()));
+		return null;
+	}
+	
+    public User getUser(UserPool userPool, String userName) throws UnauthorizedRequestException {
+ 		User user = findUserByName(userPool, userName);
+ 		OneResponse response = user.info();
+ 		if (response.isError()) {
+ 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_USER, user.getId(), response.getErrorMessage()));
+ 		}
  		return user;
     }
 
@@ -222,10 +232,10 @@ public class OpenNebulaClientFactory {
 		return response.getMessage();
 	}
 
-	private String findUserByName(UserPool userpool, String username) throws UnauthorizedRequestException {
-		for (User user : userpool) {
-			if (username.equals(user.getName())){
-				return user.getId();
+	private User findUserByName(UserPool userPool, String userName) throws UnauthorizedRequestException {
+		for (User user : userPool) {
+			if (userName.equals(user.getName())){
+				return user;
 			}
 		}
 		throw new UnauthorizedRequestException();
