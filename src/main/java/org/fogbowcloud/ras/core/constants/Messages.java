@@ -112,6 +112,7 @@ public class Messages {
         public static final String STARTING_THREADS = "Starting processor threads.";
         public static final String TEMPLATE_POOL_LENGTH = "Template pool length: %s.";
         public static final String INSTANCE_WAS_NOT_FOUND = "Instance associated with request %s was not found.";
+		public static final String USER_POOL_LENGTH = "User pool length: %s.";
     }
 
     public static class Error {
@@ -166,5 +167,7 @@ public class Messages {
 		public static final String ERROR_WHILE_REMOVING_VI = "Error while removing volume image: %s, with response: %s.";
 		public static final String ERROR_WHILE_DETACH_VOLUME = "Error while detaching volume image disk: %s, with response: %s.";
 		public static final String ERROR_WHILE_ATTACH_VOLUME = "Error while attaching volume image disk: %s, with response: %s.";
+		public static final String ERROR_WHILE_GETTING_USERS = "Error while getting info about users: %s.";
+		public static final String ERROR_WHILE_GETTING_USER = "Error while getting info about user %s: %s.";
     }
 }
