@@ -10,6 +10,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaCl
 import org.opennebula.client.Client;
 import org.opennebula.client.group.Group;
 import org.opennebula.client.user.User;
+import org.opennebula.client.user.UserPool;
 
 public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<OpenNebulaToken> {
 
@@ -33,8 +34,9 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<OpenNebu
 	@Override
 	public ComputeQuota getUserQuota(OpenNebulaToken localUserAttributes) throws FogbowRasException, UnexpectedException {
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());				
+		UserPool userPool = this.factory.createUserPool(client);
 		
-		User user = this.factory.createUser(client, localUserAttributes.getUserName());
+		User user = this.factory.getUser(userPool, localUserAttributes.getUserName());
 		String maxCpuByUser = user.xpath(QUOTA_CPU_PATH);
 		String maxMemoryByUser = user.xpath(QUOTA_MEMORY_PATH);
 		String maxInstancesByUser = user.xpath(QUOTA_VMS_PATH);
@@ -44,6 +46,7 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<OpenNebu
 		
 		String groupId = user.xpath(GROUPS_ID_PATH);
 		int id = Integer.parseInt(groupId);
+		
 		Group group = this.factory.createGroup(client, id);
 		String maxCpuByGroup = group.xpath(QUOTA_CPU_PATH);
 		String maxMemoryByGroup = group.xpath(QUOTA_MEMORY_PATH);
@@ -53,21 +56,23 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<OpenNebu
 		String instancesInUseByGroup = group.xpath(QUOTA_VMS_USED_PATH);
 		
 		ResourceQuota resourceQuota = getQuota(maxCpuByUser, cpuInUseByUser, maxCpuByGroup, cpuInUseByGroup);
-		int maxCpu = resourceQuota.getMaxResource();
-		int cpuInUse = resourceQuota.getResourceInUse();
+		Integer maxCpu = resourceQuota.getMaxResource();
+		Integer cpuInUse = resourceQuota.getResourceInUse();
 		
 		resourceQuota = getQuota(maxMemoryByUser, memoryInUseByUser, maxMemoryByGroup, memoryInUseByGroup);
-		int maxMemory = resourceQuota.getMaxResource();
-		int memoryInUse = resourceQuota.getResourceInUse();
+		Integer maxMemory = resourceQuota.getMaxResource();
+		Integer memoryInUse = resourceQuota.getResourceInUse();
 		
 		resourceQuota = getQuota(maxInstancesByUser, instancesInUseByUser, maxInstancesByGroup, instancesInUseByGroup);
-		int maxNumberInstances = resourceQuota.getMaxResource();
-		int instancesInUse = resourceQuota.getResourceInUse();
+		Integer maxNumberInstances = resourceQuota.getMaxResource();
+		Integer instancesInUse = resourceQuota.getResourceInUse();
 		
 		ComputeAllocation totalAllocation = new ComputeAllocation(maxCpu, maxMemory, maxNumberInstances);
 		ComputeAllocation usedAllocation = new ComputeAllocation(cpuInUse, memoryInUse, instancesInUse);
 		
-		return new ComputeQuota(totalAllocation, usedAllocation);
+		ComputeQuota computeQuota = new ComputeQuota(totalAllocation, usedAllocation);
+		
+		return computeQuota;
 	}
 
 	private ResourceQuota getQuota(String maxUserResource, String resourceInUseByUser, String maxGroupResource, String resourceInUseByGroup) {
@@ -101,7 +106,9 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<OpenNebu
 	}
 
 	private int getBiggerValue(String userResource, String groupResource) {
-		int resourceValue = Math.max(Integer.parseInt(userResource), Integer.parseInt(groupResource));
+		int userValue = userResource == null ? 0 : Integer.parseInt(userResource);
+		int groupValue = groupResource == null ? 0 : Integer.parseInt(groupResource);
+		int resourceValue = Math.max(userValue, groupValue);
 		return resourceValue;
 	}
 
@@ -116,7 +123,8 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<OpenNebu
 
 	private boolean isUnlimitedOrDefaultQuota(String resource) {
 		int resourceValue = Integer.parseInt(resource);
-		return resourceValue == VALUE_DEFAULT_QUOTA_OPENNEBULA || resourceValue == VALUE_UNLIMITED_QUOTA_OPENNEBULA;
+		boolean result = resourceValue == VALUE_DEFAULT_QUOTA_OPENNEBULA || resourceValue == VALUE_UNLIMITED_QUOTA_OPENNEBULA;
+		return result;
 	}
 
 	private boolean isValidNumber(String number) {
@@ -130,21 +138,25 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<OpenNebu
 
 	private static class ResourceQuota {
 		
-		private int maxResource;
-		private int resourceInUse;
+		private Integer maxResource;
+		private Integer resourceInUse;
 		
 		public ResourceQuota(String maxResource, String resourceInUse) {
-			this.maxResource = Integer.parseInt(maxResource);
-			this.resourceInUse = Integer.parseInt(resourceInUse);
+			this.maxResource = maxResource == null ? 0 : Integer.parseInt(maxResource);
+			this.resourceInUse = resourceInUse == null ? 0 : Integer.parseInt(resourceInUse);
 		}
 		
-		public int getResourceInUse() {	
+		public Integer getResourceInUse() {	
 			return resourceInUse;
 		}
 		
-		public int getMaxResource() {
+		public Integer getMaxResource() {
 			return maxResource;
 		}
+	}
+
+	protected void setFactory(OpenNebulaClientFactory factory) {
+		this.factory = factory;		
 	}
 	
 }
