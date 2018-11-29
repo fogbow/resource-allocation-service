@@ -21,6 +21,7 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<OpenNebu
 	private static final String QUOTA_MEMORY_PATH = "VM_QUOTA/VM/MEMORY";
 	private static final String QUOTA_VMS_PATH = "VM_QUOTA/VM/VMS";
 	private static final String GROUPS_ID_PATH = "GROUPS/ID";
+	
 	private static final int DEFAULT_RESOURCE_MAX_VALUE = Integer.MAX_VALUE;
 	private static final int VALUE_DEFAULT_QUOTA_OPENNEBULA = -1;
 	private static final int VALUE_UNLIMITED_QUOTA_OPENNEBULA = -2;
@@ -123,8 +124,7 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<OpenNebu
 
 	private boolean isUnlimitedOrDefaultQuota(String resource) {
 		int resourceValue = Integer.parseInt(resource);
-		boolean result = resourceValue == VALUE_DEFAULT_QUOTA_OPENNEBULA || resourceValue == VALUE_UNLIMITED_QUOTA_OPENNEBULA;
-		return result;
+		return resourceValue == VALUE_DEFAULT_QUOTA_OPENNEBULA || resourceValue == VALUE_UNLIMITED_QUOTA_OPENNEBULA;
 	}
 
 	private boolean isValidNumber(String number) {
