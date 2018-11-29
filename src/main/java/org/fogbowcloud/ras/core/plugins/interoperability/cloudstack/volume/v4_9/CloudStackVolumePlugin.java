@@ -30,7 +30,7 @@ import java.util.UUID;
 public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackVolumePlugin.class);
 
-    private static final String CLOUDSTACK_ZONE_ID_KEY = "cloudstack_zone_id";
+    private static final String CLOUDSTACK_ZONE_ID_KEY = "zone_id";
     private static final int FIRST_ELEMENT_POSITION = 0;
     private static final String FOGBOW_INSTANCE_NAME = "ras-volume-";
     private HttpRequestClientUtil client;
