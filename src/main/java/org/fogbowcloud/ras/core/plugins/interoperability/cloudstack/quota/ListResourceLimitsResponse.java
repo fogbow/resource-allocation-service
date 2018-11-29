@@ -48,11 +48,18 @@ public class ListResourceLimitsResponse {
         @SerializedName(RESOURCE_TYPE_KEY_JSON)
         private String resourceType;
 
+        @SerializedName(DOMAIN_ID_KEY_JSON)
+        private String domainId;
+
         @SerializedName(MAX_KEY_JSON)
         private int max;
 
         public String getResourceType() {
             return resourceType;
+        }
+
+        public String getDomainId() {
+            return domainId;
         }
 
         public int getMax() {
