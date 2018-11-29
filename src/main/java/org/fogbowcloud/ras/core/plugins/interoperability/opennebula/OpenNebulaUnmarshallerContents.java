@@ -9,7 +9,6 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -33,11 +32,8 @@ public class OpenNebulaUnmarshallerContents {
 
 	public String unmarshalLastItemOf(String tag) {
 		NodeList list = this.document.getElementsByTagName(tag);
-		String value = null;
-		for (int i = 0; i < list.getLength(); i++) {
-			Node child = list.item(i);
-			value = child.getTextContent();
-		}
-		return value;
+		int lastIndex = list.getLength()-1;
+		String lastElement = list.item(lastIndex).getTextContent();
+		return lastElement;
 	}
 }
