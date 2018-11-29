@@ -12,6 +12,7 @@ public class OpenNebulaStateMapper {
     private static final String ATTACMENT_USED_PERSISTENT_STATE = "used_pers";
     
     private static final String COMPUTE_FAILURE_STATE = "failure";
+    private static final String COMPUTE_PENDING_STATE = "pending";
     private static final String COMPUTE_RUNNING_STATE = "running";
     private static final String COMPUTE_SUSPENDED_STATE = "suspended";
 
@@ -38,7 +39,9 @@ public class OpenNebulaStateMapper {
         switch (type){
             case COMPUTE:
                 switch (state) {
-                    case COMPUTE_RUNNING_STATE:
+                	case COMPUTE_PENDING_STATE:
+                		return InstanceState.CREATING;
+                	case COMPUTE_RUNNING_STATE:
                         return InstanceState.READY;
                     case COMPUTE_SUSPENDED_STATE:
                         return InstanceState.UNAVAILABLE;
