@@ -11,6 +11,7 @@ public class CloudStackStateMapper {
     private static final String CREATING_STATUS = "creating";
     private static final String STARTING_STATUS = "starting";
     private static final String READY_STATUS = "ready";
+    private static final String ALLOCATED_STATUS = "allocated";
     public static final String RUNNING_STATUS = "running";
     public static final String DOWN_STATUS = "shutdowned";
     public static final String STOPPED_STATUS = "stopped";
@@ -46,6 +47,7 @@ public class CloudStackStateMapper {
             case VOLUME:
                 switch(cloudStackState) {
                     case READY_STATUS:
+                    case ALLOCATED_STATUS:
                         return InstanceState.READY;
                     case CREATING_STATUS:
                         return InstanceState.CREATING;
