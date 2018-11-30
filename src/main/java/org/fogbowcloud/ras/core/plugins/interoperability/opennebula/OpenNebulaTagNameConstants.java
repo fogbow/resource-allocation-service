@@ -38,4 +38,5 @@ public class OpenNebulaTagNameConstants {
 		public static final String DISK_TYPE = "DISK_TYPE";
 		public static final String DEVICE_PREFIX = "DEV_PREFIX";
 		public static final String DISK_ID = "DISK_ID";
+		public static final String VIRTUAL_NETWORK_BRIDGED_DRIVE = "VN_MAD";
 }

@@ -10,6 +10,7 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenN
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.SIZE;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TEMPLATE;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TYPE;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.VIRTUAL_NETWORK_BRIDGED_DRIVE;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -26,24 +27,11 @@ public class VirtualNetworkTemplate extends OpenNebulaMarshallerTemplate {
 	private String description;
 	private String type;
 	private String bridge;
+	private String bridgedDrive;
 	private String networkAddress;
 	private String networkGateway;
 	private VirtualNetworkTemplate.AddressRange addressRange;
 	
-//	public VirtualNetworkTemplate() {}
-//
-//	public VirtualNetworkTemplate(String name, String description, String type, String bridge,
-//			String networkAddress, String networkGateway, VirtualNetworkAddressRange addressRange) {
-//		
-//		this.name = name;
-//		this.description = description;
-//		this.type = type;
-//		this.bridge = bridge;
-//		this.networkAddress = networkAddress;
-//		this.networkGateway = networkGateway;
-//		this.addressRange = addressRange;
-//	}
-
 	@XmlElement(name = NAME)
 	public String getName() {
 		return name;
@@ -78,6 +66,15 @@ public class VirtualNetworkTemplate extends OpenNebulaMarshallerTemplate {
 	
 	public void setBridge(String bridge) {
 		this.bridge = bridge;
+	}
+	
+	@XmlElement(name = VIRTUAL_NETWORK_BRIDGED_DRIVE)
+	public String getBridgedDrive() {
+		return bridgedDrive;
+	}
+
+	public void setBridgedDrive(String bridgedDrive) {
+		this.bridgedDrive = bridgedDrive;
 	}
 	
 	@XmlElement(name = NETWORK_ADDRESS)

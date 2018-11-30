@@ -13,6 +13,7 @@ public class CreateNetworkRequest {
 		String description = builder.description;
 		String type = builder.type;
 		String bridge = builder.bridge;
+		String bridgedDrive = builder.bridgedDrive;
 		String address = builder.address;
 		String gateway = builder.gateway;
 		VirtualNetworkTemplate.AddressRange addressRange = buildAddressRange(builder);
@@ -22,6 +23,7 @@ public class CreateNetworkRequest {
 		this.virtualNetwork.setDescription(description);
 		this.virtualNetwork.setType(type);
 		this.virtualNetwork.setBridge(bridge);
+		this.virtualNetwork.setBridgedDrive(bridgedDrive);
 		this.virtualNetwork.setNetworkAddress(address);
 		this.virtualNetwork.setNetworkGateway(gateway);
 		this.virtualNetwork.setAddressRange(addressRange);
@@ -40,6 +42,7 @@ public class CreateNetworkRequest {
 		private String description;
 		private String type;
 		private String bridge;
+		private String bridgedDrive;
 		private String address;
 		private String gateway;
 		private String rangeType;
@@ -63,6 +66,11 @@ public class CreateNetworkRequest {
 		
 		public Builder bridge(String bridge) {
 			this.bridge = bridge;
+			return this;
+		}
+		
+		public Builder bridgedDrive(String bridgedDrive) {
+			this.bridgedDrive = bridgedDrive;
 			return this;
 		}
 		
