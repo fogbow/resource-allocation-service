@@ -14,6 +14,7 @@ import org.fogbowcloud.ras.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
 import org.fogbowcloud.ras.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
+import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 
@@ -27,6 +28,7 @@ public class ApplicationFacade {
     private static ApplicationFacade instance;
     private AaaController aaaController;
     private OrderController orderController;
+    private SecurityRuleController securityRuleController;
     private String memberId;
     private String buildNumber;
 
@@ -51,6 +53,10 @@ public class ApplicationFacade {
 
     public synchronized void setOrderController(OrderController orderController) {
         this.orderController = orderController;
+    }
+
+    public synchronized void setSecurityRuleController(SecurityRuleController securityRuleController) {
+        this.securityRuleController = securityRuleController;
     }
 
     // Used for testing
@@ -169,6 +175,43 @@ public class ApplicationFacade {
     public String createTokenValue(Map<String, String> userCredentials) throws UnexpectedException, FogbowRasException {
         // There is no need to authenticate the user or authorize this operation
         return this.aaaController.createTokenValue(userCredentials);
+    }
+
+    public String createSecurityRule(String orderId, SecurityRule securityRule,
+                                     String federationTokenValue, ResourceType resourceTypeFromEndpoint)
+            throws Exception {
+        Order majorOrder = orderController.getOrder(orderId);
+        if (majorOrder.getType() != resourceTypeFromEndpoint) {
+            throw new InstanceNotFoundException();
+        }
+        FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.CREATE,
+                ResourceType.SECURITY_RULE);
+        return securityRuleController.createSecurityRule(majorOrder, securityRule, requester);
+    }
+
+    public List<SecurityRule> getAllSecurityRules(String orderId, String federationTokenValue,
+                                                  ResourceType resourceTypeFromEndpoint) throws Exception {
+        Order majorOrder = orderController.getOrder(orderId);
+        if (majorOrder.getType() != resourceTypeFromEndpoint) {
+            throw new InstanceNotFoundException();
+        }
+        FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.GET_ALL,
+                ResourceType.SECURITY_RULE);
+        return securityRuleController.getAllSecurityRules(majorOrder, requester);
+    }
+
+    public void deleteSecurityRule(String orderId, String securityRuleId, String federationTokenValue,
+                                   ResourceType resourceTypeFromEndpoint) throws Exception {
+        Order majorOrder = orderController.getOrder(orderId);
+        if (majorOrder.getType() != resourceTypeFromEndpoint) {
+            throw new InstanceNotFoundException();
+        }
+        FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.DELETE,
+                ResourceType.SECURITY_RULE);
+        securityRuleController.deleteSecurityRule(securityRuleId, majorOrder.getProvider(), requester);
     }
 
     private String activateOrder(Order order, String federationTokenValue) throws FogbowRasException,

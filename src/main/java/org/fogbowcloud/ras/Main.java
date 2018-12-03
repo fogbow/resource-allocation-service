@@ -40,12 +40,15 @@ public class Main implements ApplicationRunner {
             String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
             AaaController aaaController = new AaaController(aaaPluginsHolder);
             OrderController orderController = new OrderController();
+            SecurityRuleController securityRuleController = new SecurityRuleController();
             ApplicationFacade applicationFacade = ApplicationFacade.getInstance();
             RemoteFacade remoteFacade = RemoteFacade.getInstance();
             applicationFacade.setAaaController(aaaController);
             applicationFacade.setOrderController(orderController);
+            applicationFacade.setSecurityRuleController(securityRuleController);
             remoteFacade.setAaaController(aaaController);
             remoteFacade.setOrderController(orderController);
+            remoteFacade.setSecurityRuleController(securityRuleController);
 
             // Setting up xmpp packet sender and cloud connector's factory
             String xmppJid = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_JID_KEY);

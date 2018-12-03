@@ -8,6 +8,8 @@ import org.fogbowcloud.ras.core.models.tokens.Token;
 
 public interface PublicIpPlugin<T extends Token> {
 
+    public static final String SECURITY_GROUP_PREFIX = "ras-sg-pip-";
+
     String requestInstance(PublicIpOrder publicIpOrder, String computeInstanceId, T token) throws FogbowRasException, UnexpectedException;
 
     void deleteInstance(String publicIpInstanceId, String computeInstanceId, T token) throws FogbowRasException, UnexpectedException;

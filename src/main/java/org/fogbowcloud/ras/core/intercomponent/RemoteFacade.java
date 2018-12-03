@@ -4,11 +4,13 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.AaaController;
 import org.fogbowcloud.ras.core.OrderController;
 import org.fogbowcloud.ras.core.OrderStateTransitioner;
+import org.fogbowcloud.ras.core.SecurityRuleController;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.constants.Operation;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.Event;
 import org.fogbowcloud.ras.core.models.ResourceType;
@@ -18,8 +20,12 @@ import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.orders.OrderState;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
+import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.ras.core.plugins.interoperability.NetworkPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.PublicIpPlugin;
 
+import java.util.List;
 import java.util.Map;
 
 public class RemoteFacade {
@@ -28,6 +34,7 @@ public class RemoteFacade {
     private static RemoteFacade instance;
     private AaaController aaaController;
     private OrderController orderController;
+    private SecurityRuleController securityRuleController;
 
     private RemoteFacade() {
     }
@@ -133,5 +140,42 @@ public class RemoteFacade {
 
     public synchronized void setOrderController(OrderController orderController) {
         this.orderController = orderController;
+    }
+
+    public synchronized void setSecurityRuleController(SecurityRuleController securityRuleController) {
+        this.securityRuleController = securityRuleController;
+    }
+
+    public String createSecurityRule(String requestingMember, String orderId, SecurityRule securityRule,
+            FederationUserToken federationUserToken) throws Exception {
+        Order majorOrder = orderController.getOrder(orderId);
+        this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, Operation.CREATE,
+                ResourceType.SECURITY_RULE, majorOrder.getProvider());
+        return securityRuleController.createSecurityRule(majorOrder, securityRule, federationUserToken);
+    }
+
+    public List<SecurityRule> getAllSecurityRules(String requestingMember, String orderId,
+                                                  FederationUserToken federationUserToken) throws Exception {
+        Order majorOrder = orderController.getOrder(orderId);
+        this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, Operation.CREATE,
+                ResourceType.SECURITY_RULE, majorOrder.getProvider());
+        return securityRuleController.getAllSecurityRules(majorOrder, federationUserToken);
+    }
+
+    public void deleteSecurityRule(String requestingMember, String providerId, String ruleId,
+        FederationUserToken federationUserToken) throws Exception {
+        this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, Operation.CREATE,
+                ResourceType.SECURITY_RULE, providerId);
+        securityRuleController.deleteSecurityRule(ruleId, providerId, federationUserToken);
+    }
+
+    private String getOrderIdFromSecurityRuleName(String securityRuleName) throws InvalidParameterException {
+        String splitRegex = NetworkPlugin.SECURITY_GROUP_PREFIX + "|" + PublicIpPlugin.SECURITY_GROUP_PREFIX;
+        String[] securityRuleParts = securityRuleName.split(splitRegex);
+        if (securityRuleParts.length > 2) {
+            String orderId = securityRuleParts[1];
+            return orderId;
+        }
+        throw new InvalidParameterException();
     }
 }

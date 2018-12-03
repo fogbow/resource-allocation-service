@@ -18,7 +18,11 @@ public class Messages {
         public static final String INVALID_CREDENTIALS = "Invalid credentials.";
         public static final String INVALID_PARAMETER = "Invalid parameter.";
         public static final String INVALID_PORT_SIZE = "Invalid port size %s for virtual machine %s and default network %s.";
+        public static final String INVALID_PROTOCOL = "Protocol <%s> is not one of %s.";
+        public static final String INVALID_RESOURCE = "Invalid resource type.";
         public static final String INVALID_TOKEN_SIGNATURE = "Invalid token signature.";
+        public static final String JOB_HAS_FAILED = "Instance associated to job %s has failed.";
+        public static final String JOB_TIMEOUT = "Instance associated to job %s has failed, because it took too long to process.";
         public static final String LDAP_URL_MISSING = "No LDAP url in configuration file.";
         public static final String MISMATCHING_RESOURCE_TYPE = "Mismatching resource type.";
         public static final String NO_AVAILABLE_RESOURCES = "No available resources.";
@@ -52,6 +56,8 @@ public class Messages {
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
         public static final String WRONG_URI_SYNTAX = "Wrong syntax for endpoint %s.";
         public static final String INVALID_SHIBBOLETH_TOKEN = "Is not possible create the Shibboleth token: %s";
+        public static final String MULTIPLE_SECURITY_GROUPS_EQUALLY_NAMED = "There should be exactly one security group with name <%s>";
+        public static final String INVALID_CLOUDSTACK_PROTOCOL = "Protocol <%s> couldn't be mapped to a valid protocol";
     }
 
     public static class Fatal {
@@ -105,6 +111,7 @@ public class Messages {
 
     public static class Error {
         public static final String DELETE_INSTANCE_PLUGIN_NOT_IMPLEMENTED = "No deleteInstance plugin implemented for resource type %s.";
+        public static final String INVALID_LIST_SECURITY_RULE_TYPE = "Invalid list security rule type. Order irregular: %s.";
         public static final String ERROR_WHILE_CONSUMING_RESPONSE = "Error while consuming response %s.";
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_REQUEST = "Error while trying to get an instance for request %s.";
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD = "Error while getting instance from the cloud.";
@@ -127,6 +134,7 @@ public class Messages {
         public static final String UNABLE_TO_GENERATE_JSON = "Unable to generate json.";
         public static final String UNABLE_TO_GET_ATTACHMENT_INSTANCE = "Unable to get attachment instance from json.";
         public static final String UNABLE_TO_GET_NETWORK = "Unable to get network information from json %s.";
+        public static final String UNABLE_TO_GET_SECURITY_GROUP = "Unable to get security group information from json %s.";
         public static final String UNABLE_TO_GET_TOKEN_FROM_JSON = "Unable to get token from json.";
         public static final String UNABLE_TO_RETRIEVE_NETWORK_ID = "Unable to retrieve network id from json %s.";
         public static final String UNABLE_TO_ROLLBACK_TRANSACTION = "Unable to rollback transaction.";

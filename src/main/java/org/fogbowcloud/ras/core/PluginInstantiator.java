@@ -116,6 +116,11 @@ public class PluginInstantiator {
         return (FederationToLocalMapperPlugin) this.pluginFactory.createPluginInstance(className);
     }
 
+    public SecurityRulePlugin getSecurityRulePlugin() {
+        String className = this.properties.getProperty(ConfigurationConstants.SECURITY_GROUP_PLUGIN_CLASS_KEY);
+        return (SecurityRulePlugin) this.pluginFactory.createPluginInstance(className);
+    }
+
     /**
      * Used only for tests
      */
