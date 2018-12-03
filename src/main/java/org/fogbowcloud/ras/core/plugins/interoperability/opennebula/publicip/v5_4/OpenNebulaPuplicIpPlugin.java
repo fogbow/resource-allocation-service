@@ -21,40 +21,36 @@ import org.fogbowcloud.ras.core.plugins.interoperability.PublicIpPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaUnmarshallerContents;
+import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5_4.PublicNetwork.LeaseIp;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.vm.VirtualMachine;
-import org.opennebula.client.vnet.VirtualNetwork;
 
 public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaPuplicIpPlugin.class);
-	private static final String DEFAULT_NETWORK_ID_KEY = "default_network_id";
-	private static final String DEFAULT_ADDRESS_RANGE_IP_KEY = "default_start_public_ip_address_range";
-	private static final String DEFAULT_ADDRESS_RANGE_TYPE = "IP4";
-	private static final String DEFAULT_ADDRESS_RANGE_SIZE_KEY = "default_public_ip_address_range_size";
+
+	private static final String DEFAULT_PUBLIC_IP_ADDRESS_KEY = "default_public_ip_address";
+
 	private static final String ID_SEPARATOR = " ";
+	private static final String IP_SEPARATOR = ",";
 	private static final String INSTANCE_ID = "%s %s %s %s";
 	private static final String PUBLIC_IP_NAME = "Public_IP";
 	private static final String SECURITY_GROUP_INPUT_RULE_TYPE = "inbound";
 	private static final String SECURITY_GROUP_OUTPUT_RULE_TYPE = "outbound";
 	private static final String VIRTUAL_MACHINE_NIC_IP_PATH = "VM/NIC/IP";
 	private static final String SECURITY_GROUP_DEFAULT_PROTOCOL = "TCP";
-	private static final String SECURITY_GROUP_DEFAULT_RANGE_VALUE = "1000:2000";
+	private static final String SECURITY_GROUP_DEFAULT_RANGE_VALUE = "1:65536";
 
 	private OpenNebulaClientFactory factory;
-	private String networkId;
-	private String addressRangeIp;
-	private String addressRangeSize;
+	private String publicIpAddress;
 
 	public OpenNebulaPuplicIpPlugin() {
 		Properties properties = PropertiesUtil
 				.readProperties(HomeDir.getPath() + DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME);
 
-		this.networkId = properties.getProperty(DEFAULT_NETWORK_ID_KEY);
-		this.addressRangeIp = properties.getProperty(DEFAULT_ADDRESS_RANGE_IP_KEY);
-		this.addressRangeSize = properties.getProperty(DEFAULT_ADDRESS_RANGE_SIZE_KEY);
+		this.publicIpAddress = properties.getProperty(DEFAULT_PUBLIC_IP_ADDRESS_KEY);
 		this.factory = new OpenNebulaClientFactory();
 	}
 
@@ -66,18 +62,18 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 
 		String template;
-		template = createSecurityGroupsTemplate();
-		String securityGroupsId = this.factory.allocateSecurityGroup(client, template);
+		template = createPublicNetworkTemplate();
+		String virtualNetworkId = this.factory.allocateVirtualNetwork(client, template);
 		
-		template = createAddressRangeTemplate();
-		VirtualNetwork virtualNetwork = addAddressRange(client, template);
-		String addressRangeId = getAddressRangeIdFromContentOf(virtualNetwork);
+		template = createSecurityGroupsTemplate(virtualNetworkId);
+		System.out.println(template);
+		String securityGroupsId = this.factory.allocateSecurityGroup(client, template);
 
-		template = createNicTemplate(securityGroupsId);
+		template = createNicTemplate(virtualNetworkId, securityGroupsId);
 		VirtualMachine virtualMachine = attachNetworkInterfaceConnected(client, computeInstanceId, template);
 		String nicId = getNicIdFromContenOf(virtualMachine);
 
-		String instanceId = String.format(INSTANCE_ID, computeInstanceId, nicId, addressRangeId, securityGroupsId);
+		String instanceId = String.format(INSTANCE_ID, computeInstanceId, virtualNetworkId, securityGroupsId, nicId);
 		return instanceId;
 	}
 
@@ -90,11 +86,9 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 
 		String[] instanceIds = publicIpInstanceId.split(ID_SEPARATOR);
-		int nicId = Integer.parseInt(instanceIds[1]);
-		int addressRangeId = Integer.parseInt(instanceIds[2]);
+		int nicId = Integer.parseInt(instanceIds[2]);
 
 		detachNicFromVirtualMachine(client, computeInstanceId, nicId);
-		freeAddressRangeFromVirtualNetwork(client, addressRangeId);
 	}
 
 	@Override
@@ -115,17 +109,6 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		LOGGER.info(String.format(Messages.Info.MOUNTING_INSTANCE, publicIpInstanceId));
 		PublicIpInstance publicIpInstance = new PublicIpInstance(publicIpInstanceId, instanceState, publicIp);
 		return publicIpInstance;
-	}
-
-	private void freeAddressRangeFromVirtualNetwork(Client client, int arId)
-			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
-		
-		VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, this.networkId);
-		OneResponse response = virtualNetwork.free(arId);
-		if (response.isError()) {
-			String message = response.getErrorMessage();
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
-		}
 	}
 
 	private void detachNicFromVirtualMachine(Client client, String virtualMachineId, int nicId)
@@ -161,10 +144,10 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		return virtualMachine;
 	}
 	
-	private String createNicTemplate(String securityGroupsId) {
+	private String createNicTemplate(String virtualNetworkId, String securityGroupsId) {
 		String template;
 		CreateNicRequest request = new CreateNicRequest.Builder()
-				.networkId(this.networkId)
+				.networkId(virtualNetworkId)
 				.securityGroups(securityGroupsId)
 				.build();
 
@@ -172,52 +155,38 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		return template;
 	}
 
-	private String getAddressRangeIdFromContentOf(VirtualNetwork virtualNetwork) {
-		OneResponse response = virtualNetwork.info();
-		String xml = response.getMessage();
-		OpenNebulaUnmarshallerContents unmarshallerContents = new OpenNebulaUnmarshallerContents(xml);
-		String content = unmarshallerContents.unmarshalLastItemOf(OpenNebulaTagNameConstants.AR_ID);
-		return content;
-	}
-
-	private VirtualNetwork addAddressRange(Client client, String template)
-			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
+	private String createPublicNetworkTemplate() {
+		String name = "public-network";
+		String type = "FIXED";
+		String bridge = "vbr1";
+		String bridgedDrive = "fw";
+		String ipAddress = this.publicIpAddress;
 		
-		VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, this.networkId);
-		OneResponse response = virtualNetwork.addAr(template);
-		if (response.isError()) {
-			String message = response.getErrorMessage();
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CREATING_AR, template));
-			throw new InvalidParameterException(message);
+		List<LeaseIp> leases = new ArrayList<>();
+		String[] address = ipAddress.split(IP_SEPARATOR);
+		for (int i = 0; i < address.length; i++) {
+			leases.add(PublicNetwork.allocateIpAddress(address[i].trim()));
 		}
-		return virtualNetwork;
-	}
-	
-	private String createAddressRangeTemplate()
-			throws InvalidParameterException, UnauthorizedRequestException, InstanceNotFoundException {
 		
-		String type = DEFAULT_ADDRESS_RANGE_TYPE;
-		String ip = this.addressRangeIp;
-		String size = this.addressRangeSize;
-
-		CreateAddressRangeRequest request = new CreateAddressRangeRequest.Builder()
+		CreatePublicNetworkRequest request = new CreatePublicNetworkRequest.Builder()
+				.name(name)
 				.type(type)
-				.ip(ip)
-				.size(size)
+				.bridge(bridge)
+				.bridgedDrive(bridgedDrive)
+				.leases(leases)
 				.build();
-
-		String template = request.getAddressRange().marshalTemplate();
+				
+		String template = request.getPublicNetwork().marshalTemplate();
 		return template;
 	}
 	
-	private String createSecurityGroupsTemplate() throws InvalidParameterException {
+	private String createSecurityGroupsTemplate(String virtualNetworkId) throws InvalidParameterException {
 		String name = PUBLIC_IP_NAME;
 		String protocol = SECURITY_GROUP_DEFAULT_PROTOCOL;
 		String inputRuleType = SECURITY_GROUP_INPUT_RULE_TYPE;
 		String outputRuleType = SECURITY_GROUP_OUTPUT_RULE_TYPE;
 		String portRange = SECURITY_GROUP_DEFAULT_RANGE_VALUE;
-		int networkId = Integer.parseInt(this.networkId);
+		int networkId = Integer.parseInt(virtualNetworkId);
 
 		SecurityGroups.Rule defaultInputRule = SecurityGroups.allocateSafetyRule(
 				protocol, 
