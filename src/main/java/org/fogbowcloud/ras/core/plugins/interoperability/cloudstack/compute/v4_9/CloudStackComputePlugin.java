@@ -72,14 +72,14 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
 
         String networksId = resolveNetworksId(computeOrder);
 
-        String serviceOfferingId = getServiceOfferingId(computeOrder.getvCPU(), computeOrder.getMemory(), cloudStackToken);
+        String serviceOfferingId = getServiceOfferingId(computeOrder, cloudStackToken);
         if (serviceOfferingId == null) {
             throw new NoAvailableResourcesException();
         }
 
         int disk = computeOrder.getDisk();
-        // NOTE(pauloewerton): cloudstack allows creating allocationAllowableValues vm without explicitly choosing allocationAllowableValues disk size. in that case,
-        // allocationAllowableValues minimum root disk for the selected template is created. also zeroing disk param in case no minimum disk
+        // NOTE(pauloewerton): cloudstack allows creating a vm without explicitly choosing a disk size. in that case,
+        // a minimum root disk for the selected template is created. also zeroing disk param in case no minimum disk
         // offering is found.
         String diskOfferingId = disk > 0 ? getDiskOfferingId(disk, cloudStackToken) : null;
 
@@ -167,21 +167,40 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         return StringUtils.join(requestedNetworksId, ",");
     }
 
-    private String getServiceOfferingId(int vcpusRequirement, int memoryRequirement, CloudStackToken cloudStackToken)
+    private String getServiceOfferingId(ComputeOrder computeOrder, CloudStackToken cloudStackToken)
             throws FogbowRasException {
         GetAllServiceOfferingsResponse serviceOfferingsResponse = getServiceOfferings(cloudStackToken);
         List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings = serviceOfferingsResponse.
                 getServiceOfferings();
 
-        if (serviceOfferings != null) {
-            for (GetAllServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferings) {
-                if (serviceOffering.getCpuNumber() >= vcpusRequirement &&
-                        serviceOffering.getMemory() >= memoryRequirement) {
-                    return serviceOffering.getId();
+        if (serviceOfferings == null) throw new NoAvailableResourcesException();
+
+        List<GetAllServiceOfferingsResponse.ServiceOffering> toRemove = new ArrayList<>();
+        if (computeOrder.getRequirements() != null && computeOrder.getRequirements().size() > 0) {
+            for (Map.Entry<String, String> tag : computeOrder.getRequirements().entrySet()) {
+                String concatenatedTag = tag.getKey() + ":" + tag.getValue();
+
+                for (GetAllServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferings) {
+                    if (serviceOffering.getTags() == null) {
+                        toRemove.add(serviceOffering);
+                        continue;
+                    }
+
+                    List<String> tags = new ArrayList<>(Arrays.asList(serviceOffering.getTags().split(",")));
+                    if (!tags.contains(concatenatedTag)) {
+                        toRemove.add(serviceOffering);
+                    }
                 }
             }
-        } else {
-            throw new NoAvailableResourcesException();
+        }
+
+        serviceOfferings.removeAll(toRemove);
+
+        for (GetAllServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferings) {
+            if (serviceOffering.getCpuNumber() >= computeOrder.getvCPU() &&
+                    serviceOffering.getMemory() >= computeOrder.getMemory()) {
+                return serviceOffering.getId();
+            }
         }
 
         return null;
