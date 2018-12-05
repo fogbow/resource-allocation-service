@@ -18,23 +18,22 @@ public class VolumeOrder extends Order {
     private String name;
 
     public VolumeOrder() {
-        super(UUID.randomUUID().toString());
+        this(UUID.randomUUID().toString());
     }
 
-    /**
-     * Creating Order with predefined Id.
-     */
-    public VolumeOrder(String id, FederationUserToken federationUserToken, String requestingMember,
-                       String providingMember, int volumeSize, String name) {
-        super(id, federationUserToken, requestingMember, providingMember);
-        this.volumeSize = volumeSize;
-        this.name = name;
+    public VolumeOrder(String id) {
+        super(id);
+    }
+
+    public VolumeOrder(String providingMember, String name, int volumeSize) {
+        this(null, null, providingMember, name, volumeSize);
     }
 
     public VolumeOrder(FederationUserToken federationUserToken, String requestingMember, String providingMember,
-                       int volumeSize, String name) {
-        this(UUID.randomUUID().toString(), federationUserToken, requestingMember, providingMember,
-                volumeSize, name);
+                       String name, int volumeSize) {
+        super(UUID.randomUUID().toString(), providingMember, federationUserToken, requestingMember);
+        this.name = name;
+        this.volumeSize = volumeSize;
     }
 
     public int getVolumeSize() {

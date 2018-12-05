@@ -4,7 +4,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.fogbowcloud.ras.core.HomeDir;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -102,7 +102,7 @@ public class CloudStackImagePluginTest {
     }
 
     @Test
-    // test case: when getting a valid template, besides token being signed and an HTTP GET request being made
+    // test case: when getting allocationAllowableValues valid template, besides token being signed and an HTTP GET request being made
     // the returned image attributes should match with the ones provided by the cloud
     public void testGettingExistingTemplate() throws FogbowRasException, UnexpectedException, HttpResponseException {
         // set up
@@ -136,7 +136,7 @@ public class CloudStackImagePluginTest {
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(expectedRequestUrl, FAKE_TOKEN);
     }
 
-    // test case: getting a non-existing image should throw an InstanceNotFoundException
+    // test case: getting allocationAllowableValues non-existing image should throw an InstanceNotFoundException
     @Test(expected = InstanceNotFoundException.class)
     public void testGetNonExistingTemplate() throws FogbowRasException, HttpResponseException, UnexpectedException {
         // set up
@@ -195,7 +195,7 @@ public class CloudStackImagePluginTest {
 
     private String getBaseEndpointFromCloudStackConf() {
         String filePath = HomeDir.getPath() + File.separator
-                + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
+                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
 
         Properties properties = PropertiesUtil.readProperties(filePath);
         return properties.getProperty(CloudStackTokenGeneratorPlugin.CLOUDSTACK_URL);

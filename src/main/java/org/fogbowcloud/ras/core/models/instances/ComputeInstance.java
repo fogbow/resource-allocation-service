@@ -1,26 +1,51 @@
 package org.fogbowcloud.ras.core.models.instances;
 
+import org.fogbowcloud.ras.core.models.orders.UserData;
+
+import java.util.List;
+import java.util.Map;
+
 public class ComputeInstance extends Instance {
-    private String hostName;
+    private String name;
     private int vCPU;
     /**
      * Memory attribute, must be set in MB.
      */
-    private int ram;
+    private int memory;
     /**
      * Disk attribute, must be set in GB.
      */
     private int disk;
-    private String localIpAddress;
+    private List<String> ipAddresses;
+    /**
+     * Order-related properties
+     */
+    private Map<String, String> networks;
+    private String imageId;
+    private String publicKey;
+    private List<UserData> userData;
 
-    public ComputeInstance(String id, InstanceState state, String hostName, int vCPU, int ram, int disk,
-                           String localIpAddress) {
+    public ComputeInstance(String id, InstanceState state, String name, int vCPU, int memory, int disk,
+                           List<String> ipAddresses) {
         super(id, state);
-        this.hostName = hostName;
+        this.name = name;
         this.vCPU = vCPU;
-        this.ram = ram;
+        this.memory = memory;
         this.disk = disk;
-        this.localIpAddress = localIpAddress;
+        this.ipAddresses = ipAddresses;
+    }
+
+    public ComputeInstance(String id, InstanceState state, String name, int vCPU, int memory, int disk,
+                           List<String> ipAddresses, String imageId, String publicKey, List<UserData> userData) {
+        super(id, state);
+        this.name = name;
+        this.vCPU = vCPU;
+        this.memory = memory;
+        this.disk = disk;
+        this.ipAddresses = ipAddresses;
+        this.imageId = imageId;
+        this.publicKey = publicKey;
+        this.userData = userData;
     }
 
     public ComputeInstance(String id) {
@@ -31,20 +56,52 @@ public class ComputeInstance extends Instance {
         return this.disk;
     }
 
-    public String getHostName() {
-        return this.hostName;
+    public String getName() {
+        return this.name;
     }
 
-    public String getLocalIpAddress() {
-        return this.localIpAddress;
+    public List<String> getIpAddresses() {
+        return this.ipAddresses;
     }
 
-    public int getRam() {
-        return this.ram;
+    public int getMemory() {
+        return this.memory;
     }
 
     public int getvCPU() {
         return this.vCPU;
+    }
+
+    public Map<String, String> getNetworks() {
+        return networks;
+    }
+
+    public void setNetworks(Map<String, String> networks) {
+        this.networks = networks;
+    }
+
+    public String getImageId() {
+        return imageId;
+    }
+
+    public void setImageId(String imageId) {
+        this.imageId = imageId;
+    }
+
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
+    }
+
+    public List<UserData> getUserData() {
+        return userData;
+    }
+
+    public void setUserData(List<UserData> userData) {
+        this.userData = userData;
     }
 
     @Override
@@ -56,9 +113,9 @@ public class ComputeInstance extends Instance {
         ComputeInstance that = (ComputeInstance) o;
 
         if (vCPU != that.vCPU) return false;
-        if (ram != that.ram) return false;
+        if (memory != that.memory) return false;
         if (disk != that.disk) return false;
-        if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
-        return localIpAddress != null ? localIpAddress.equals(that.localIpAddress) : that.localIpAddress == null;
+        if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        return ipAddresses != null ? ipAddresses.equals(that.ipAddresses) : that.ipAddresses == null;
     }
 }

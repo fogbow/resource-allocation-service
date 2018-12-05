@@ -16,12 +16,12 @@ public class AttachmentOrder extends Order {
      * this attribute refers to the instance of the computer where the volume will be attached
      */
     @Column
-    private String source;
+    private String computeId;
     /**
-     * this attribute refers to the instanceId of the target volume of the attachment
+     * this attribute refers to the volumeId of the volume that will be attached attachment
      */
     @Column
-    private String target;
+    private String volumeId;
     /**
      * this attribute refers to the mount point of the volume device
      */
@@ -29,39 +29,39 @@ public class AttachmentOrder extends Order {
     private String device;
 
     public AttachmentOrder() {
-        super(UUID.randomUUID().toString());
+        this(UUID.randomUUID().toString());
     }
 
-    public AttachmentOrder(String id, FederationUserToken federationUserToken, String requestingMember,
-                           String providingMember, String source, String target, String device) {
-        super(id, federationUserToken, requestingMember, providingMember);
-        this.source = source;
-        this.target = target;
-        this.device = device;
+    public AttachmentOrder(String id) {
+        super(id);
+    }
+
+    public AttachmentOrder(String providingMember, String computeId, String volumeId, String device) {
+        this(null, null, providingMember, computeId, volumeId, device);
     }
 
     public AttachmentOrder(FederationUserToken federationUserToken, String requestingMember,
-                           String providingMember, String source, String target, String device) {
-        super(UUID.randomUUID().toString(), federationUserToken, requestingMember, providingMember);
-        this.source = source;
-        this.target = target;
+                           String providingMember, String computeId, String volumeId, String device) {
+        super(UUID.randomUUID().toString(), providingMember, federationUserToken, requestingMember);
+        this.computeId = computeId;
+        this.volumeId = volumeId;
         this.device = device;
     }
 
-    public String getSource() {
-        return this.source;
+    public String getComputeId() {
+        return this.computeId;
     }
 
-    public void setSource(String source) {
-        this.source = source;
+    public void setComputeId(String computeId) {
+        this.computeId = computeId;
     }
 
-    public String getTarget() {
-        return this.target;
+    public String getVolumeId() {
+        return this.volumeId;
     }
 
-    public void setTarget(String target) {
-        this.target = target;
+    public void setVolumeId(String volumeId) {
+        this.volumeId = volumeId;
     }
 
     public String getDevice() {

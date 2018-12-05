@@ -11,6 +11,8 @@ public class ConfigurationConstants {
     public static final String VOLUME_PLUGIN_CLASS_KEY = "volume_plugin_class";
     public static final String IMAGE_PLUGIN_CLASS_KEY = "image_plugin_class";
     public static final String GENERIC_PLUGIN_CLASS_KEY = "generic_plugin_class";
+    public static final String SECURITY_GROUP_PLUGIN_CLASS_KEY = "security_rule_plugin_class";
+
     // AAA
     public static final String TOKEN_GENERATOR_PLUGIN_CLASS = "token_generator_plugin_class";
     public static final String FEDERATION_IDENTITY_PLUGIN_CLASS_KEY = "federation_identity_plugin_class";
@@ -28,6 +30,7 @@ public class ConfigurationConstants {
     public static final String FULFILLED_ORDERS_SLEEP_TIME_KEY = "fulfilled_orders_sleep_time";
     public static final String CLOSED_ORDERS_SLEEP_TIME_KEY = "closed_orders_sleep_period";
     public static final String HTTP_REQUEST_TIMEOUT = "http_request_timeout";
+    public static final String BUILD_NUMBER = "build_number";
 
     // HISTORY & RECOVERY DATABASE CONF
     public static final String DATABASE_URL = "jdbc_database_url";
@@ -41,7 +44,7 @@ public class ConfigurationConstants {
     public static final String XMPP_JID_KEY = "xmpp_jid";
     public static final String XMPP_PASSWORD_KEY = "xmpp_password";
     public static final String XMPP_SERVER_IP_KEY = "xmpp_server_ip";
-    public static final String XMPP_C2S_PORT_KEY = "xmpp_c2s_port";
+    public static final String XMPP_C2C_PORT_KEY = "xmpp_c2c_port";
     public static final String XMPP_TIMEOUT_KEY = "xmpp_timeout";
 
     // Alias

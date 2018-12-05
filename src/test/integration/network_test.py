@@ -19,7 +19,7 @@ class NetworkTests:
     print('-Test %d: delete local network' % cls.which_test_case())
     cls.test_delete_network(data_for_local)
     if GeneralConfigurations.remote_member:
-      data_for_remote = {GeneralConfigurations.providingMember: GeneralConfigurations.remote_member}
+      data_for_remote = {GeneralConfigurations.provider: GeneralConfigurations.remote_member}
       print('-Test %d: post remote network' % cls.which_test_case())
       cls.test_post_networks(data_for_remote)
       print('-Test %d: get remote network by id' % cls.which_test_case())
@@ -63,7 +63,7 @@ class NetworkTests:
     if not order_id:
       print('  Failed when creating network, trying next test')
       return
-    if GeneralConfigurations.providingMember in extra_data:
+    if GeneralConfigurations.provider in extra_data:
       #if it is remote, we need to wait order request to be received
       time.sleep(10)
     response_get = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_network)
@@ -81,13 +81,13 @@ class NetworkTests:
     response_get = CommonMethods.get_all_order(GeneralConfigurations.type_network)
     time.sleep(10)
     if response_get.status_code != GeneralConfigurations.ok_status or response_get.text != '[]':
-      print('  Failed. Got http status %d and message: %s' % (response_get.status_code, response_get.text))
+      print('  Failed. There was a network created already. Received http status %d and message: %s' % (response_get.status_code, response_get.text))
       return
     orders_id = CommonMethods.post_multiple_orders(extra_data, GeneralConfigurations.max_networks, GeneralConfigurations.type_network)
     if not orders_id:
       print('  Failed. Could not create networks')
       return
-    if GeneralConfigurations.providingMember in extra_data:
+    if GeneralConfigurations.provider in extra_data:
       #if it is remote, we need to wait order request to be received
       time.sleep(10)
     response_get = CommonMethods.get_all_order(GeneralConfigurations.type_network)
@@ -97,7 +97,7 @@ class NetworkTests:
     else:
       print('  Failed. Removing networks')
     CommonMethods.delete_multiple_orders(orders_id, GeneralConfigurations.type_network)
-    if GeneralConfigurations.providingMember in extra_data:
+    if GeneralConfigurations.provider in extra_data:
       #if it is remote, we need to wait order request to be received
       time.sleep(40)
     else:
@@ -112,7 +112,7 @@ class NetworkTests:
     if not order_id:
       print('  Failed. Could not crete network')
       return
-    if GeneralConfigurations.providingMember in extra_data:
+    if GeneralConfigurations.provider in extra_data:
       #if it is remote, we need to wait order request to be received
       time.sleep(10)
     get_response = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_network)
@@ -121,7 +121,7 @@ class NetworkTests:
       CommonMethods.delete_order(order_id, GeneralConfigurations.type_network)
       return
     CommonMethods.delete_order(order_id, GeneralConfigurations.type_network)
-    if GeneralConfigurations.providingMember in extra_data:
+    if GeneralConfigurations.provider in extra_data:
       #if it is remote, we need to wait order request to be received
       time.sleep(30)
     get_response = CommonMethods.get_order_by_id(order_id, GeneralConfigurations.type_network)

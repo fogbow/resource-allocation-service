@@ -5,6 +5,7 @@ import org.fogbowcloud.ras.core.InteroperabilityPluginsHolder;
 import org.fogbowcloud.ras.core.SharedOrderHolders;
 import org.fogbowcloud.ras.core.datastore.DatabaseManager;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.images.Image;
@@ -39,11 +40,13 @@ import static org.mockito.Mockito.times;
 public class LocalCloudConnectorTest extends BaseUnitTests {
 
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
+    private static final String FAKE_VOLUME_ID = "fake-volume-id";
     private static final String FAKE_ORDER_ID = "fake-order-id";
     private static final String FAKE_IMAGE_ID = "fake-image-id";
     private static final String FAKE_IMAGE_NAME = "fake-image-name";
-    private static final String FAKE_SOURCE_ID = "fake-source-id";
-    private static final String FAKE_TARGET_ID = "fake-target-id";
+    private static final String FAKE_COMPUTE_ID = "fake-compute-id";
+    private static final String FAKE_USER_ID = "fake-user-id";
+    private static final String FAKE_PROVIDER = "fake-provider";
     private static final int VCPU_TOTAL = 2;
     private static final int RAM_TOTAL = 2048;
     private static final int INSTANCES_TOTAL = 2;
@@ -96,6 +99,9 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         this.imagePlugin = Mockito.mock(ImagePlugin.class);
         this.computeQuotaPlugin = Mockito.mock(ComputeQuotaPlugin.class);
 
+        // mocking federation user token calls
+        Mockito.when(federationUserToken.getUserId()).thenReturn(FAKE_USER_ID);
+
         // mocking instances/image and the return of getID method
         this.networkInstance = Mockito.mock(NetworkInstance.class);
         Mockito.when(networkInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
@@ -105,6 +111,8 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 
         this.attachmentInstance = Mockito.mock(AttachmentInstance.class);
         Mockito.when(attachmentInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
+        Mockito.when(attachmentInstance.getComputeId()).thenReturn(FAKE_COMPUTE_ID);
+        Mockito.when(attachmentInstance.getVolumeId()).thenReturn(FAKE_VOLUME_ID);
 
         this.computeInstance = Mockito.mock(ComputeInstance.class);
         Mockito.when(computeInstance.getId()).thenReturn(FAKE_INSTANCE_ID);
@@ -128,9 +136,12 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     // test case: When calling the method getNetworkInstanceIdsFromNetworkOrderIds(), it must return
     // the collection of NetworkInstancesIds corresponding to the list of NetworkOrderIds in the order received.
     @Test
-    public void testGetNetworkInstanceIdsFromNetworkOrderIds() {
+    public void testGetNetworkInstanceIdsFromNetworkOrderIds() throws InvalidParameterException {
         // set up
         NetworkOrder networkOrder = Mockito.mock(NetworkOrder.class);
+        FederationUserToken federationUser = new FederationUserToken(
+                "fake-tokenProvider", "fake-token-value", "fake-user-id", "fake-user-name");
+        Mockito.when(networkOrder.getFederationUserToken()).thenReturn(federationUser);
 
         Mockito.doReturn(FAKE_ORDER_ID).when(networkOrder).getId();
         Mockito.doReturn(FAKE_INSTANCE_ID).when(networkOrder).getInstanceId();
@@ -141,7 +152,8 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         networkOrderIdsList.add(FAKE_ORDER_ID);
 
         ComputeOrder computeOrder = new ComputeOrder();
-        computeOrder.setNetworksId(networkOrderIdsList);
+        computeOrder.setFederationUserToken(federationUser);
+        computeOrder.setNetworkIds(networkOrderIdsList);
 
         List<String> expectedList = new ArrayList<>();
         expectedList.add(FAKE_INSTANCE_ID);
@@ -154,12 +166,12 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     }
 
 
-    // test case: Request a compute instance when the plugin returns a correct id
+    // test case: Request allocationAllowableValues compute instance when the plugin returns allocationAllowableValues correct id
     @Test
     public void testRequestComputeInstance() throws FogbowRasException, UnexpectedException {
-
         // set up
         this.order = Mockito.mock(ComputeOrder.class);
+        Mockito.when(this.order.getFederationUserToken()).thenReturn(this.federationUserToken);
         Mockito.when(this.order.getType()).thenReturn(ResourceType.COMPUTE);
         Mockito.when(computePlugin.requestInstance(Mockito.any(ComputeOrder.class), Mockito.any(Token.class))).thenReturn(FAKE_INSTANCE_ID);
 
@@ -174,18 +186,24 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(networkPlugin, times(0)).requestInstance(Mockito.any(NetworkOrder.class), Mockito.any(Token.class));
     }
 
-    // test case: Request an attachment instance Mockito.when the plugin returns a correct id
+    // test case: Request an attachment instance Mockito.when the plugin returns allocationAllowableValues correct id
     @Test
     public void testRequestAttachmentInstance() throws FogbowRasException, UnexpectedException {
 
         // set up
         ComputeOrder source = Mockito.mock(ComputeOrder.class);
         VolumeOrder target = Mockito.mock(VolumeOrder.class);
-        SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_SOURCE_ID, source);
-        SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_TARGET_ID, target);
+        Mockito.when(source.getFederationUserToken()).thenReturn(this.federationUserToken);
+        Mockito.when(source.getProvider()).thenReturn(FAKE_PROVIDER);
+        Mockito.when(target.getFederationUserToken()).thenReturn(this.federationUserToken);
+        Mockito.when(target.getProvider()).thenReturn(FAKE_PROVIDER);
+        SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_COMPUTE_ID, source);
+        SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_VOLUME_ID, target);
         this.order = Mockito.mock(AttachmentOrder.class);
-        Mockito.when(((AttachmentOrder) this.order).getSource()).thenReturn(FAKE_SOURCE_ID);
-        Mockito.when(((AttachmentOrder) this.order).getTarget()).thenReturn(FAKE_TARGET_ID);
+        Mockito.when(this.order.getFederationUserToken()).thenReturn(this.federationUserToken);
+        Mockito.when(this.order.getProvider()).thenReturn(FAKE_PROVIDER);
+        Mockito.when(((AttachmentOrder) this.order).getComputeId()).thenReturn(FAKE_COMPUTE_ID);
+        Mockito.when(((AttachmentOrder) this.order).getVolumeId()).thenReturn(FAKE_VOLUME_ID);
         Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);
         Mockito.when(attachmentPlugin.requestInstance(Mockito.any(AttachmentOrder.class), Mockito.any(Token.class))).thenReturn(FAKE_INSTANCE_ID);
 
@@ -206,7 +224,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         SharedOrderHolders.getInstance().getActiveOrdersMap().clear();
     }
 
-    // test case: Request a volume instance Mockito.when the plugin returns a correct id
+    // test case: Request allocationAllowableValues volume instance Mockito.when the plugin returns allocationAllowableValues correct id
     @Test
     public void testRequestVolumeInstance() throws FogbowRasException, UnexpectedException {
 
@@ -227,7 +245,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(networkPlugin, times(0)).requestInstance(Mockito.any(NetworkOrder.class), Mockito.any(Token.class));
     }
 
-    // test case: Request a network instance Mockito.when the plugin returns a correct id
+    // test case: Request allocationAllowableValues network instance Mockito.when the plugin returns allocationAllowableValues correct id
     @Test
     public void testRequestNetworkInstance() throws FogbowRasException, UnexpectedException {
 
@@ -247,12 +265,13 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(networkPlugin, times(1)).requestInstance(Mockito.any(NetworkOrder.class), Mockito.any(Token.class));
     }
 
-    // test case: If plugin returns a null instance id, the method requestInstance() must throw an exception
+    // test case: If plugin returns allocationAllowableValues null instance id, the method requestInstance() must throw an exception
     @Test(expected = UnexpectedException.class)
     public void testExceptionNullComputeInstanceId() throws FogbowRasException, UnexpectedException {
 
         // set up
         this.order = Mockito.mock(ComputeOrder.class);
+        Mockito.when(this.order.getFederationUserToken()).thenReturn(this.federationUserToken);
         Mockito.when(this.order.getType()).thenReturn(ResourceType.COMPUTE);
         Mockito.when(computePlugin.requestInstance(Mockito.any(ComputeOrder.class), Mockito.any(Token.class))).thenReturn(null);
 
@@ -260,7 +279,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         this.localCloudConnector.requestInstance(order);
     }
 
-    // test case: If plugin returns a null instance id, the method requestInstance() must throw an exception
+    // test case: If plugin returns allocationAllowableValues null instance id, the method requestInstance() must throw an exception
     @Test(expected = UnexpectedException.class)
     public void testExceptionNullNetworkInstanceId() throws FogbowRasException, UnexpectedException {
 
@@ -273,17 +292,23 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         this.localCloudConnector.requestInstance(order);
     }
 
-    // test case: If plugin returns a null instance id, the method requestInstance() must throw an exception
+    // test case: If plugin returns allocationAllowableValues null instance id, the method requestInstance() must throw an exception
     @Test(expected = UnexpectedException.class)
     public void testExceptionNullAttachmentInstanceId() throws FogbowRasException, UnexpectedException {
         // set up
         ComputeOrder source = Mockito.mock(ComputeOrder.class);
         VolumeOrder target = Mockito.mock(VolumeOrder.class);
-        SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_SOURCE_ID, source);
-        SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_TARGET_ID, target);
+        Mockito.when(source.getFederationUserToken()).thenReturn(this.federationUserToken);
+        Mockito.when(source.getProvider()).thenReturn(FAKE_PROVIDER);
+        Mockito.when(target.getFederationUserToken()).thenReturn(this.federationUserToken);
+        Mockito.when(target.getProvider()).thenReturn(FAKE_PROVIDER);
+        SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_COMPUTE_ID, source);
+        SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_VOLUME_ID, target);
         this.order = Mockito.mock(AttachmentOrder.class);
-        Mockito.when(((AttachmentOrder) this.order).getSource()).thenReturn(FAKE_SOURCE_ID);
-        Mockito.when(((AttachmentOrder) this.order).getTarget()).thenReturn(FAKE_TARGET_ID);
+        Mockito.when(this.order.getFederationUserToken()).thenReturn(this.federationUserToken);
+        Mockito.when(this.order.getProvider()).thenReturn(FAKE_PROVIDER);
+        Mockito.when(((AttachmentOrder) this.order).getComputeId()).thenReturn(FAKE_COMPUTE_ID);
+        Mockito.when(((AttachmentOrder) this.order).getVolumeId()).thenReturn(FAKE_VOLUME_ID);
         Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);
         Mockito.when(attachmentPlugin.requestInstance(Mockito.any(AttachmentOrder.class), Mockito.any(Token.class))).thenReturn(null);
 
@@ -294,7 +319,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         SharedOrderHolders.getInstance().getActiveOrdersMap().clear();
     }
 
-    // test case: If plugin returns a null instance id, the method requestInstance() must throw an exception
+    // test case: If plugin returns allocationAllowableValues null instance id, the method requestInstance() must throw an exception
     @Test(expected = UnexpectedException.class)
     public void testExceptionNullVolumeInstanceId() throws FogbowRasException, UnexpectedException {
 
@@ -352,22 +377,35 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     // test case: The order has an InstanceID, so the method getResourceInstance() is called.
     @Test
     public void testGetAttachmentInstance() throws FogbowRasException, UnexpectedException {
-
         // set up
+        ComputeOrder compute = Mockito.mock(ComputeOrder.class);
+        VolumeOrder volume = Mockito.mock(VolumeOrder.class);
+        SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_COMPUTE_ID, compute);
+        SharedOrderHolders.getInstance().getActiveOrdersMap().put(FAKE_VOLUME_ID, volume);
         this.order = Mockito.mock(AttachmentOrder.class);
+        Mockito.when(((AttachmentOrder) this.order).getVolumeId()).thenReturn(FAKE_VOLUME_ID);
+        Mockito.when(((AttachmentOrder) this.order).getComputeId()).thenReturn(FAKE_COMPUTE_ID);
         Mockito.when(this.order.getType()).thenReturn(ResourceType.ATTACHMENT);
         Mockito.when(this.order.getInstanceId()).thenReturn(FAKE_INSTANCE_ID);
-        Mockito.when(attachmentPlugin.getInstance(Mockito.any(String.class), Mockito.any(Token.class))).thenReturn(this.attachmentInstance);
+        Mockito.when(attachmentPlugin.getInstance(Mockito.any(String.class), Mockito.any(Token.class)))
+                .thenReturn(this.attachmentInstance);
 
-        // exercise
+        //exercise
         String returnedInstanceId = this.localCloudConnector.getInstance(order).getId();
 
         // verify
         Assert.assertEquals(FAKE_INSTANCE_ID, returnedInstanceId);
-        Mockito.verify(computePlugin, times(0)).getInstance(Mockito.any(String.class), Mockito.any(Token.class));
-        Mockito.verify(volumePlugin, times(0)).getInstance(Mockito.any(String.class), Mockito.any(Token.class));
-        Mockito.verify(attachmentPlugin, times(1)).getInstance(Mockito.any(String.class), Mockito.any(Token.class));
-        Mockito.verify(networkPlugin, times(0)).getInstance(Mockito.any(String.class), Mockito.any(Token.class));
+        Mockito.verify(computePlugin, times(0)).getInstance(Mockito.any(String.class),
+                Mockito.any(Token.class));
+        Mockito.verify(volumePlugin, times(0)).getInstance(Mockito.any(String.class),
+                Mockito.any(Token.class));
+        Mockito.verify(attachmentPlugin, times(1)).getInstance(Mockito.any(String.class),
+                Mockito.any(Token.class));
+        Mockito.verify(networkPlugin, times(0)).getInstance(Mockito.any(String.class),
+                Mockito.any(Token.class));
+
+        // tear down
+        SharedOrderHolders.getInstance().getActiveOrdersMap().clear();
     }
 
     // test case: The order has an InstanceID, so the method getResourceInstance() is called.
@@ -726,7 +764,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(networkPlugin, times(0)).deleteInstance(Mockito.any(String.class), Mockito.any(Token.class));
     }
 
-    // test case: Deleting a compute instance with ID. Compute plugin must be called.
+    // test case: Deleting allocationAllowableValues compute instance with ID. Compute plugin must be called.
     @Test
     public void testDeleteComputeInstance() throws FogbowRasException, UnexpectedException {
 
@@ -745,7 +783,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(networkPlugin, times(0)).deleteInstance(Mockito.any(String.class), Mockito.any(Token.class));
     }
 
-    // test case: Deleting a volume instance with ID. Volume plugin must be called.
+    // test case: Deleting allocationAllowableValues volume instance with ID. Volume plugin must be called.
     @Test
     public void testDeleteVolumeInstance() throws FogbowRasException, UnexpectedException {
 
@@ -764,7 +802,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(networkPlugin, times(0)).deleteInstance(Mockito.any(String.class), Mockito.any(Token.class));
     }
 
-    // test case: Deleting a network instance with ID. Network plugin must be called.
+    // test case: Deleting allocationAllowableValues network instance with ID. Network plugin must be called.
     @Test
     public void testDeleteNetworkInstance() throws FogbowRasException, UnexpectedException {
 
@@ -783,7 +821,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(networkPlugin, times(1)).deleteInstance(Mockito.any(String.class), Mockito.any(Token.class));
     }
 
-    // test case: Deleting a attachment instance with ID. Attachment plugin must be called.
+    // test case: Deleting allocationAllowableValues attachment instance with ID. Attachment plugin must be called.
     @Test
     public void testDeleteAttachmentInstance() throws FogbowRasException, UnexpectedException {
 
@@ -817,7 +855,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(imagePlugin, times(1)).getImage(Mockito.any(String.class), Mockito.any(Token.class));
     }
 
-    // test case: Getting a null image. Image plugin must be called
+    // test case: Getting allocationAllowableValues null image. Image plugin must be called
     @Test
     public void testGetNullImage() throws FogbowRasException, UnexpectedException {
 

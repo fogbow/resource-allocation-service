@@ -1,6 +1,6 @@
 package org.fogbowcloud.ras.requests.api.local.http;
 
-import org.fogbowcloud.ras.api.http.ComputeOrdersController;
+import org.fogbowcloud.ras.api.http.Compute;
 import org.fogbowcloud.ras.core.ApplicationFacade;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,7 +22,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockRunnerDelegate(SpringRunner.class)
-@WebMvcTest(value = ComputeOrdersController.class, secure = false)
+@WebMvcTest(value = Compute.class, secure = false)
 @PrepareForTest(ApplicationFacade.class)
 public class HttpExceptionToErrorConditionTranslatorTest {
 
@@ -30,7 +30,7 @@ public class HttpExceptionToErrorConditionTranslatorTest {
     private MockMvc mockMvc;
     private ApplicationFacade facade;
 
-    private final String computeEndpoint = "/" + ComputeOrdersController.COMPUTE_ENDPOINT;
+    private final String computeEndpoint = "/" + Compute.COMPUTE_ENDPOINT;
 
     @Before
     public void setUp() {
@@ -60,7 +60,7 @@ public class HttpExceptionToErrorConditionTranslatorTest {
     private HttpHeaders getHttpHeaders() {
         HttpHeaders headers = new HttpHeaders();
         String fakeFederationTokenValue = "fake-access-id";
-        headers.set(ComputeOrdersController.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
+        headers.set(Compute.FEDERATION_TOKEN_VALUE_HEADER_KEY, fakeFederationTokenValue);
         return headers;
     }
 }

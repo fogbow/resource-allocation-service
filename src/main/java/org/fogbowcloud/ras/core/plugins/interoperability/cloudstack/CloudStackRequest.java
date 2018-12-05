@@ -2,7 +2,7 @@ package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.fogbowcloud.ras.core.HomeDir;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGeneratorPlugin;
 import org.fogbowcloud.ras.util.PropertiesUtil;
@@ -15,7 +15,7 @@ public abstract class CloudStackRequest {
 
     protected CloudStackRequest() throws InvalidParameterException {
         Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() + File.separator
-                + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME);
+                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME);
 
         String baseEndpoint = properties.getProperty(CloudStackTokenGeneratorPlugin.CLOUDSTACK_URL);
         this.uriBuilder = CloudStackUrlUtil.createURIBuilder(baseEndpoint, getCommand());

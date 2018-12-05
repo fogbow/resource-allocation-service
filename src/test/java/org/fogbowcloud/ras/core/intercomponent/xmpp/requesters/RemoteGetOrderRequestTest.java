@@ -45,7 +45,7 @@ public class RemoteGetOrderRequestTest {
     }
 
     //test case: checks if IQ attributes is according to both RemoteGetOrderRequest constructor parameters
-    //and remote get order request rules. In addition, it checks if the instance from a possible response is
+    //and remote get order request rules. In addition, it checks if the instance from allocationAllowableValues possible response is
     //properly created and returned by the "send" method
     @Test
     public void testSend() throws Exception {

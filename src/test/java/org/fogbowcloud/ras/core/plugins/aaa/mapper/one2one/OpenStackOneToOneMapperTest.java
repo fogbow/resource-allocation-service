@@ -75,7 +75,6 @@ public class OpenStackOneToOneMapperTest {
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse1);
 
         Map<String, String> userCredentials1 = new HashMap<String, String>();
-        userCredentials1.put(OpenStackTokenGeneratorPlugin.USER_ID, FAKE_USER_ID1);
         userCredentials1.put(OpenStackTokenGeneratorPlugin.PASSWORD, "any password");
         userCredentials1.put(OpenStackTokenGeneratorPlugin.PROJECT_NAME, FAKE_PROJECT_ID);
         String tokenValue1 = this.keystoneV3TokenGenerator.createTokenValue(userCredentials1);
@@ -98,7 +97,6 @@ public class OpenStackOneToOneMapperTest {
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse2);
 
         Map<String, String> userCredentials2 = new HashMap<String, String>();
-        userCredentials2.put(OpenStackTokenGeneratorPlugin.USER_ID, FAKE_USER_ID1);
         userCredentials2.put(OpenStackTokenGeneratorPlugin.PASSWORD, "any password");
         userCredentials2.put(OpenStackTokenGeneratorPlugin.PROJECT_NAME, FAKE_PROJECT_ID);
         String tokenValue2 = this.keystoneV3TokenGenerator.createTokenValue(userCredentials2);

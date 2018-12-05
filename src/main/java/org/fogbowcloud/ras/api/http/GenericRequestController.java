@@ -27,7 +27,7 @@ public class GenericRequestController {
     private final Logger LOGGER = Logger.getLogger(GenericRequestController.class);
 
     @RequestMapping("/**")
-    public ResponseEntity genericRequest(HttpServletRequest request,
+    public ResponseEntity<String> genericRequest(HttpServletRequest request,
                                          @RequestBody(required = false) String body,
                                          @RequestHeader(required = true, value = MEMBER_ID_HEADER_KEY) String memberId) {
         Map<String, String> headers = HttpRequestClientUtil.getHeaders(request);
@@ -35,7 +35,8 @@ public class GenericRequestController {
         String url = request.getRequestURL().toString();
         String method = request.getMethod();
 
-        return new ResponseEntity<>(response, )ApplicationFacade.getInstance().genericRequest(memberId, method, url, headers, body);
+        String response = ApplicationFacade.getInstance().genericRequest(memberId, method, url, headers, body);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @RequestMapping(method = RequestMethod.GET)

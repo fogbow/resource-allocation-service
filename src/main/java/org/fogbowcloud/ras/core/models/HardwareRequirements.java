@@ -15,16 +15,16 @@ public class HardwareRequirements implements Comparable<HardwareRequirements> {
     /**
      * RAM memory in MB.
      */
-    private int ram;
+    private int memory;
     /**
      * Disk in GB.
      */
     private int disk;
 
-    public HardwareRequirements(String name, String flavorId, int cpu, int ram, int disk) {
+    public HardwareRequirements(String name, String flavorId, int cpu, int memory, int disk) {
         this.setName(name);
         this.setCpu(cpu);
-        this.setRam(ram);
+        this.setMemory(memory);
         this.setDisk(disk);
         this.setFlavorId(flavorId);
     }
@@ -53,12 +53,12 @@ public class HardwareRequirements implements Comparable<HardwareRequirements> {
         this.cpu = cpu;
     }
 
-    public int getRam() {
-        return ram;
+    public int getMemory() {
+        return memory;
     }
 
-    public void setRam(int ram) {
-        this.ram = ram;
+    public void setMemory(int memory) {
+        this.memory = memory;
     }
 
     public int getDisk() {
@@ -86,7 +86,7 @@ public class HardwareRequirements implements Comparable<HardwareRequirements> {
 
     @Override
     public String toString() {
-        return "Name: " + getName() + ", cpu: " + cpu + ", mem: " + ram + ", disk: " + disk;
+        return "Name: " + getName() + ", cpu: " + cpu + ", mem: " + memory + ", disk: " + disk;
     }
 
     @Override
@@ -106,8 +106,8 @@ public class HardwareRequirements implements Comparable<HardwareRequirements> {
     private double calculateRelevance(HardwareRequirements req1, HardwareRequirements req2) {
         int cpu1 = req1.getCpu();
         int cpu2 = req2.getCpu();
-        int ram1 = req1.getRam();
-        int ram2 = req2.getRam();
+        int ram1 = req1.getMemory();
+        int ram2 = req2.getMemory();
 
         return ((cpu1 / cpu2) / VCPU_VALUE_RELEVANCE) + ((ram1 / ram2) / MEM_VALUE_RELEVANCE);
     }

@@ -49,7 +49,7 @@ public class OpenStackTokenGeneratorPluginTest {
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
     }
 
-    //test case: createTokenValue with valid credentials should generate a string with the appropriate values
+    //test case: createTokenValue with valid credentials should generate allocationAllowableValues string with the appropriate values
     @Test
     public void testCreateTokenValueValidCredentials() throws IOException, FogbowRasException,
             UnexpectedException, GeneralSecurityException {
@@ -71,7 +71,6 @@ public class OpenStackTokenGeneratorPluginTest {
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
 
         Map<String, String> userCredentials = new HashMap<String, String>();
-        userCredentials.put(OpenStackTokenGeneratorPlugin.USER_ID, FAKE_USER_ID);
         userCredentials.put(OpenStackTokenGeneratorPlugin.PASSWORD, "any password");
         userCredentials.put(OpenStackTokenGeneratorPlugin.PROJECT_NAME, FAKE_PROJECT_ID);
 
@@ -117,7 +116,6 @@ public class OpenStackTokenGeneratorPluginTest {
         Mockito.when(this.client.execute(Mockito.any(HttpPost.class))).thenReturn(httpResponse);
 
         Map<String, String> userCredentials = new HashMap<String, String>();
-        userCredentials.put(OpenStackTokenGeneratorPlugin.USER_ID, FAKE_USER_ID);
         userCredentials.put(OpenStackTokenGeneratorPlugin.PASSWORD, "any password");
         userCredentials.put(OpenStackTokenGeneratorPlugin.PROJECT_NAME, FAKE_PROJECT_ID);
 

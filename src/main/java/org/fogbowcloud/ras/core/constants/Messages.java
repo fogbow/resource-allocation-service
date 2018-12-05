@@ -7,9 +7,9 @@ public class Messages {
         public static final String ATTEMPTING_TO_REMOVE_A_NULL_REQUEST = "Attempting to remove a null request.";
         public static final String AUTHENTICATION_ERROR = "Authentication error.";
         public static final String AUTHORIZATION_ERROR = "Authorization error.";
-        public static final String EXPIRED_TOKEN = "Token has expired at %s.";
         public static final String FATAL_ERROR = "Fatal error.";
         public static final String FOGBOW_RAS = "Fogbow RAS exception.";
+        public static final String GENERIC_EXCEPTION = "Operation returned error: %s";
         public static final String INCORRECT_PROVIDING_MEMBER = "Incorrect providing member.";
         public static final String INEXISTENT_REQUEST = "Request does not exist.";
         public static final String INSTANCE_ID_NOT_INFORMED = "No instance identification informed.";
@@ -18,8 +18,11 @@ public class Messages {
         public static final String INVALID_CREDENTIALS = "Invalid credentials.";
         public static final String INVALID_PARAMETER = "Invalid parameter.";
         public static final String INVALID_PORT_SIZE = "Invalid port size %s for virtual machine %s and default network %s.";
-        public static final String INVALID_TOKEN = "Invalid token %s.";
+        public static final String INVALID_PROTOCOL = "Protocol <%s> is not one of %s.";
+        public static final String INVALID_RESOURCE = "Invalid resource type.";
         public static final String INVALID_TOKEN_SIGNATURE = "Invalid token signature.";
+        public static final String JOB_HAS_FAILED = "Instance associated to job %s has failed.";
+        public static final String JOB_TIMEOUT = "Instance associated to job %s has failed, because it took too long to process.";
         public static final String LDAP_URL_MISSING = "No LDAP url in configuration file.";
         public static final String MISMATCHING_RESOURCE_TYPE = "Mismatching resource type.";
         public static final String NO_AVAILABLE_RESOURCES = "No available resources.";
@@ -33,6 +36,7 @@ public class Messages {
         public static final String REQUEST_INSTANCE_NULL = "Request instance id for request %s is null.";
         public static final String PLUGIN_FOR_REQUEST_INSTANCE_NOT_IMPLEMENTED = "No requestInstance method implemented for request %s.";
         public static final String PORT_NOT_FOUND = "No port found connecting virtual machine %s to default network %s.";
+        public static final String PROVIDERS_DONT_MATCH = "The attachment provider does not match with the compute and/or volume providers.";
         public static final String QUOTA_ENDPOINT_NOT_IMPLEMENTED = "Quota endpoint for %s not yet implemented.";
         public static final String QUOTA_EXCEEDED = "Quota exceeded.";
         public static final String REQUESTER_DOES_NOT_OWN_REQUEST = "Requester does not own request.";
@@ -40,6 +44,7 @@ public class Messages {
         public static final String SIGNALING_MEMBER_DIFFERENT_OF_PROVIDER = "Signalling member %s is not the provider %s.";
         public static final String TOO_BIG_PUBLIC_KEY = "Too big public key.";
         public static final String TOO_BIG_USER_DATA_FILE_CONTENT = "Too big user data file.";
+        public static final String TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER = "Trying to use resources from another user.";
         public static final String UNABLE_TO_FIND_LIST_FOR_REQUESTS = "Unable to find list for requests in state %s.";
         public static final String UNABLE_TO_LOAD_LDAP_ACCOUNT = "Unable to load account summary from LDAP Network.";
         public static final String UNABLE_TO_PROCESS_EMPTY_REQUEST = "Unable to process request with null reference.";
@@ -50,6 +55,9 @@ public class Messages {
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
         public static final String WRONG_URI_SYNTAX = "Wrong syntax for endpoint %s.";
+        public static final String INVALID_SHIBBOLETH_TOKEN = "Is not possible create the Shibboleth token: %s";
+        public static final String MULTIPLE_SECURITY_GROUPS_EQUALLY_NAMED = "There should be exactly one security group with name <%s>";
+        public static final String INVALID_CLOUDSTACK_PROTOCOL = "Protocol <%s> couldn't be mapped to a valid protocol";
     }
 
     public static class Fatal {
@@ -84,8 +92,8 @@ public class Messages {
         public static final String ACTIVATING_NEW_REQUEST = "Activating new request.";
         public static final String DATABASE_URL = "Database URL: %s.";
         public static final String DELETING_INSTANCE = "Deleting instance %s with token %s.";
+        public static final String DELETING_ORDER_INSTANCE_NOT_FOUND = "Deleting order %s associated with nonexistent instance.";
         public static final String GETTING_INSTANCE = "Getting instance %s with token %s.";
-        public static final String GETTING_INSTANCE_FOR_REQUEST = "Trying to get an instance for request %s.";
         public static final String INSTANCE_HAS_FAILED = "Instance associated to request %s has failed.";
         public static final String RECEIVING_COMPUTE_QUOTA_REQUEST = "Get compute %s request for member %s received.";
         public static final String RECEIVING_CREATE_REQUEST = "Create request for %s received.";
@@ -99,11 +107,11 @@ public class Messages {
         public static final String RECEIVING_REMOTE_REQUEST = "Received remote request for request %s.";
         public static final String RECOVERING_LIST_OF_ORDERS = "Recovering requests in %s state: %d requests recovered so far.";
         public static final String STARTING_THREADS = "Starting processor threads.";
-        public static final String SKIPPING_BECAUSE_PROVIDER_IS_REMOTE = "Member %s skipping monitoring of request %s provided by %s.";
     }
 
     public static class Error {
         public static final String DELETE_INSTANCE_PLUGIN_NOT_IMPLEMENTED = "No deleteInstance plugin implemented for resource type %s.";
+        public static final String INVALID_LIST_SECURITY_RULE_TYPE = "Invalid list security rule type. Order irregular: %s.";
         public static final String ERROR_WHILE_CONSUMING_RESPONSE = "Error while consuming response %s.";
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_REQUEST = "Error while trying to get an instance for request %s.";
         public static final String ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD = "Error while getting instance from the cloud.";
@@ -126,6 +134,7 @@ public class Messages {
         public static final String UNABLE_TO_GENERATE_JSON = "Unable to generate json.";
         public static final String UNABLE_TO_GET_ATTACHMENT_INSTANCE = "Unable to get attachment instance from json.";
         public static final String UNABLE_TO_GET_NETWORK = "Unable to get network information from json %s.";
+        public static final String UNABLE_TO_GET_SECURITY_GROUP = "Unable to get security group information from json %s.";
         public static final String UNABLE_TO_GET_TOKEN_FROM_JSON = "Unable to get token from json.";
         public static final String UNABLE_TO_RETRIEVE_NETWORK_ID = "Unable to retrieve network id from json %s.";
         public static final String UNABLE_TO_ROLLBACK_TRANSACTION = "Unable to rollback transaction.";

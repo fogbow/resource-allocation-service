@@ -24,14 +24,14 @@ public class RemoteGetOrderRequest implements RemoteRequest<Instance> {
         IQ iq = marshal(this.order);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
-        XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getProvidingMember());
+        XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getProvider());
         Instance instance = unmarshalInstance(response);
         return instance;
     }
 
     public static IQ marshal(Order order) {
         IQ iq = new IQ(IQ.Type.get);
-        iq.setTo(order.getProvidingMember());
+        iq.setTo(order.getProvider());
 
         //user
         Element userElement = iq.getElement().addElement(IqElement.FEDERATION_USER.toString());

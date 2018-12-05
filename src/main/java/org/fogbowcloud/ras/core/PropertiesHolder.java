@@ -1,6 +1,6 @@
 package org.fogbowcloud.ras.core;
 
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 
@@ -15,8 +15,8 @@ public class PropertiesHolder {
     private PropertiesHolder() throws FatalErrorException {
         String path = HomeDir.getPath();
         List<String> configFilesNames = new ArrayList<>();
-        configFilesNames.add(path + DefaultConfigurationConstants.RAS_CONF_FILE_NAME);
-        configFilesNames.add(path + DefaultConfigurationConstants.INTERCOMPONENT_CONF_FILE_NAME);
+        configFilesNames.add(path + SystemConstants.RAS_CONF_FILE_NAME);
+        configFilesNames.add(path + SystemConstants.INTERCOMPONENT_CONF_FILE_NAME);
         this.properties = PropertiesUtil.readProperties(configFilesNames);
     }
 

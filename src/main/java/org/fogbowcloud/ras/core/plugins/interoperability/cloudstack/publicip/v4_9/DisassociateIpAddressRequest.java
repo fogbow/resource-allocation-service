@@ -13,13 +13,15 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.Cloud
  */	
 public class DisassociateIpAddressRequest extends CloudStackRequest {
 
+	public static final String DISASSOCIATE_IP_ADDRESS_COMMAND = "disassociateIpAddress";
+
 	protected DisassociateIpAddressRequest(Builder builder) throws InvalidParameterException {
 		addParameter(ID_KEY_JSON, builder.id);
 	}
 
 	@Override
 	public String getCommand() {
-		return null;
+		return DISASSOCIATE_IP_ADDRESS_COMMAND;
 	}
 	
     public static class Builder {

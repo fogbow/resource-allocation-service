@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
@@ -40,30 +41,33 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
             // Here, we need to instantiate the FileReader, because, once we read this file, the stream goes to the end
             // of the file, preventing to read the file again.
             cloudInitUserDataBuilder.addCloudConfig(new FileReader(this.CLOUD_CONFIG_FILE_PATH));
-            if (order.getNetworksId().size() > 1) {
+            if (order.getNetworkIds().size() > 1) {
                 cloudInitUserDataBuilder.addShellScript(new FileReader(this.BRING_UP_NETWORK_INTERFACE_SCRIPT_PATH));
             }
         } catch (IOException e) {
             throw new FatalErrorException(e.getMessage());
         }
 
-        UserData userData = order.getUserData();
+        List<UserData> userDataScripts = order.getUserData();
 
-        if (userData != null) {
-            String normalizedExtraUserData = null;
-            String extraUserDataFileContent = userData.getExtraUserDataFileContent();
-            if (extraUserDataFileContent != null) {
-                normalizedExtraUserData = new String(Base64.decodeBase64(extraUserDataFileContent));
+        if (userDataScripts != null) {
+            for (UserData userDataScript : userDataScripts) {
+                if (userDataScript != null) {
+                    String normalizedExtraUserData = null;
+                    String extraUserDataFileContent = userDataScript.getExtraUserDataFileContent();
+                    if (extraUserDataFileContent != null) {
+                        normalizedExtraUserData = new String(Base64.decodeBase64(extraUserDataFileContent));
+                    }
+
+                    CloudInitUserDataBuilder.FileType extraUserDataFileType = userDataScript.getExtraUserDataFileType();
+                    addExtraUserData(cloudInitUserDataBuilder, normalizedExtraUserData, extraUserDataFileType);
+                }
             }
-
-            CloudInitUserDataBuilder.FileType extraUserDataFileType = userData.getExtraUserDataFileType();
-            addExtraUserData(cloudInitUserDataBuilder, normalizedExtraUserData, extraUserDataFileType);
         }
 
+
         String mimeString = cloudInitUserDataBuilder.buildUserData();
-
         mimeString = applyTokensReplacements(order, mimeString);
-
         String base64String = new String(Base64.encodeBase64(mimeString.getBytes(StandardCharsets.UTF_8),
                 false, false), StandardCharsets.UTF_8);
         return base64String;

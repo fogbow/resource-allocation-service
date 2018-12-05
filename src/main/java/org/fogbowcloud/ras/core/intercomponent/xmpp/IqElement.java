@@ -17,7 +17,11 @@ public enum IqElement {
     IMAGE_ID("imageId"),
     IMAGE("image"),
     IMAGES_MAP("imagesMap"),
-    IMAGES_MAP_CLASS_NAME("imagesMapClassName");
+    IMAGES_MAP_CLASS_NAME("imagesMapClassName"),
+    RULE_ID("ruleId"),
+    SECURITY_RULE_LIST("securityRuleList"),
+    SECURITY_RULE_LIST_CLASS_NAME("imagesMapClassName"),
+    SECURITY_RULE("securityRule");
 
     private final String element;
 

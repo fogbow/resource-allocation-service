@@ -4,7 +4,7 @@ import org.apache.http.client.HttpResponseException;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
@@ -75,8 +75,8 @@ public class CloudStackTokenGeneratorPluginTest {
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
     }
 
-    // Test case: when creating a token, two requests should be made: one post request to login the user using their
-    // credentials and get a session key to perform the other get request to retrieve the user "token", i.e., info
+    // Test case: when creating allocationAllowableValues token, two requests should be made: one post request to login the user using their
+    // credentials and get allocationAllowableValues session key to perform the other get request to retrieve the user "token", i.e., info
     // needed to perform requests in cloudstack (namely api key and secret key)
     @Test
     public void testCreateToken() throws FogbowRasException, UnexpectedException, IOException {
@@ -225,7 +225,7 @@ public class CloudStackTokenGeneratorPluginTest {
 
     private String getBaseEndpointFromCloudStackConf() {
         String filePath = HomeDir.getPath() + File.separator
-                + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
+                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
         Properties properties = PropertiesUtil.readProperties(filePath);
         return properties.getProperty(CLOUDSTACK_URL);
     }

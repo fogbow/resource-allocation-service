@@ -16,6 +16,7 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 
+import java.util.ArrayList;
 import java.util.Map;
 
 @PrepareForTest(DatabaseManager.class)
@@ -73,7 +74,9 @@ public class BaseUnitTests {
 
     protected Order createOrder(String requestingMember, String providingMember) {
         FederationUserToken federationUserToken = Mockito.mock(FederationUserToken.class);
-        UserData userData = Mockito.mock(UserData.class);
+
+        ArrayList<UserData> userDataScripts = mockUserData();
+
         String imageName = "fake-image-name";
         String publicKey = "fake-public-key";
         String instanceName = "fake-instance-name";
@@ -88,10 +91,17 @@ public class BaseUnitTests {
                         1024,
                         30,
                         imageName,
-                        userData,
+                        userDataScripts,
                         publicKey,
                         null);
         return localOrder;
+    }
+
+    protected ArrayList<UserData> mockUserData() {
+        ArrayList<UserData> userDataScripts = new ArrayList<>();
+        UserData userDataScript = Mockito.mock(UserData.class);
+        userDataScripts.add(userDataScript);
+        return userDataScripts;
     }
 
     /**

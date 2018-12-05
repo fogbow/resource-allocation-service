@@ -46,6 +46,8 @@ public class CreateSecurityGroupRuleRequest {
         private Integer minPort;
         @SerializedName(MAX_PORT_KEY_JSON)
         private Integer maxPort;
+        @SerializedName(ETHER_TYPE_KEY_JSON)
+        private final String etherType;
 
         public SecurityGroupRule(Builder builder) {
             this.direction = builder.direction;
@@ -54,6 +56,7 @@ public class CreateSecurityGroupRuleRequest {
             this.protocol = builder.protocol;
             this.minPort = builder.minPort;
             this.maxPort = builder.maxPort;
+            this.etherType = builder.etherType;
         }
     }
 
@@ -64,6 +67,7 @@ public class CreateSecurityGroupRuleRequest {
         private String protocol;
         private Integer minPort;
         private Integer maxPort;
+        private String etherType;
 
         public Builder direction(String direction) {
             this.direction = direction;
@@ -92,6 +96,11 @@ public class CreateSecurityGroupRuleRequest {
 
         public Builder maxPort(int maxPort) {
             this.maxPort = maxPort;
+            return this;
+        }
+
+        public Builder etherType(String etherType) {
+            this.etherType = etherType;
             return this;
         }
 

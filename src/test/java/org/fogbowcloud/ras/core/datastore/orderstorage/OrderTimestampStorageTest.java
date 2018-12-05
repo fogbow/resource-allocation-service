@@ -23,6 +23,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -53,10 +55,12 @@ public class OrderTimestampStorageTest {
         FederationUserToken federationUserToken = new FederationUserToken("fake-token-provider",
                 "token-value", "fake-id", "fake-user");
 
+        UserData fakeUserData = new UserData("extraUserDataFile", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag");
+        ArrayList<UserData> userData = new ArrayList<UserData>(Arrays.asList(new UserData[] { fakeUserData }));
+
         orderTest = new ComputeOrder(federationUserToken,
                 "requestingMember", "providingMember", "fake-instance-name", 8, 1024,
-                30, "fake_image_name", new UserData("extraUserDataFile",
-                CloudInitUserDataBuilder.FileType.CLOUD_CONFIG), "fake_public_key", null);
+                30, "fake_image_name", userData, "fake_public_key", null);
         orderTest.setOrderStateInTestMode(OrderState.OPEN);
         orderTest.setId(FAKE_USER_ID);
     }
@@ -86,20 +90,23 @@ public class OrderTimestampStorageTest {
 
         // set up
         ComputeOrder computeOrder = new ComputeOrder();
+        computeOrder.setFederationUserToken(new FederationUserToken());
         computeOrder.setActualAllocation(new ComputeAllocation(2, 4, 1));
         computeOrder.setOrderStateInTestMode(OrderState.FULFILLED);
         computeOrder.setId("fake-id-1");
 
         NetworkOrder networkOrder = new NetworkOrder();
+        networkOrder.setFederationUserToken(new FederationUserToken());
         networkOrder.setOrderStateInTestMode(OrderState.OPEN);
         networkOrder.setId("fake-id-2");
 
         AttachmentOrder attachmentOrder = new AttachmentOrder();
+        attachmentOrder.setFederationUserToken(new FederationUserToken());
         attachmentOrder.setOrderStateInTestMode(OrderState.SPAWNING);
         attachmentOrder.setId("fake-id-3");
 
         VolumeOrder volumeOrder = new VolumeOrder(new FederationUserToken(),
-                "reqMem", "provMember", 50, "volume-test");
+                "reqMem", "provMember", "volume-test", 50);
         volumeOrder.setOrderStateInTestMode(OrderState.CLOSED);
         volumeOrder.setId("fake-id-4");
 

@@ -2,7 +2,6 @@ package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.security.interfaces.RSAPrivateKey;
 import java.util.Map;
 import java.util.Properties;
 
@@ -14,13 +13,15 @@ import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.openstack.OpenStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.fogbowcloud.ras.util.RSAUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
 public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
@@ -30,35 +31,29 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     public static final String V3_TOKENS_ENDPOINT_PATH = "/auth/tokens";
     public static final String X_SUBJECT_TOKEN = "X-Subject-Token";
     public static final String OPENSTACK_TOKEN_STRING_SEPARATOR = "!#!";
-    public static final String PROJECT_NAME = "projectName";
+    public static final String PROJECT_NAME = "projectname";
     public static final String PASSWORD = "password";
-    public static final String USER_ID = "userId";
-    public static final String USER_NAME = "userName";
+    public static final String USER_NAME = "username";
     public static final Object DOMAIN = "domain";
     public static final int OPENSTACK_TOKEN_NUMBER_OF_FIELDS = 6;
-
 
     private String v3TokensEndpoint;
     private HttpRequestClientUtil client;
     private String tokenProviderId;
-	private RSAPrivateKey privateKey;
+	private RASAuthenticationHolder rasAuthenticationHolder;
 
     public OpenStackTokenGeneratorPlugin() throws FatalErrorException {
         this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
         Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
+                SystemConstants.OPENSTACK_CONF_FILE_NAME);
 
         String identityUrl = properties.getProperty(OPENSTACK_KEYSTONE_V3_URL);
         if (isUrlValid(identityUrl)) {
             this.v3TokensEndpoint = identityUrl + V3_TOKENS_ENDPOINT_PATH;
         }
         
-        try {
-            this.privateKey = RSAUtil.getPrivateKey();
-        } catch (IOException | GeneralSecurityException e) {
-            throw new FatalErrorException(String.format(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE, e.getMessage()));
-        }        
+        this.rasAuthenticationHolder = RASAuthenticationHolder.getInstance();
         
         this.client = new HttpRequestClientUtil();
     }
@@ -116,8 +111,8 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
         }
     }
 
-    protected String createSignature(String message) throws IOException, GeneralSecurityException {
-        return RSAUtil.sign(this.privateKey, message);
+    protected String createSignature(String message) throws IOException, GeneralSecurityException, FogbowRasException {
+        return this.rasAuthenticationHolder.createSignature(message);
     }
     
     private String mountJsonBody(Map<String, String> credentials) {

@@ -1,9 +1,10 @@
+
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9;
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -24,18 +25,20 @@ import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import java.io.File;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 
 public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackVolumePlugin.class);
 
-    private static final String CLOUDSTACK_ZONE_ID_KEY = "cloudstack_zone_id";
+    private static final String CLOUDSTACK_ZONE_ID_KEY = "zone_id";
     private static final int FIRST_ELEMENT_POSITION = 0;
+    private static final String FOGBOW_INSTANCE_NAME = "ras-volume-";
     private HttpRequestClientUtil client;
     private boolean diskOfferingCompatible;
     private String zoneId;
 
     public CloudStackVolumePlugin() {
-        String filePath = HomeDir.getPath() + File.separator + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
+        String filePath = HomeDir.getPath() + File.separator + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
 
         Properties properties = PropertiesUtil.readProperties(filePath);
         this.zoneId = properties.getProperty(CLOUDSTACK_ZONE_ID_KEY);
@@ -174,7 +177,8 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
     private CreateVolumeRequest createVolumeCustomized(VolumeOrder volumeOrder, String diskOfferingId)
             throws InvalidParameterException {
 
-        String name = volumeOrder.getName();
+        String instanceName = volumeOrder.getName();
+        String name = instanceName == null ? FOGBOW_INSTANCE_NAME + getRandomUUID() : instanceName;
         String size = String.valueOf(volumeOrder.getVolumeSize());
         return new CreateVolumeRequest.Builder()
                 .zoneId(this.zoneId)
@@ -187,7 +191,8 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
     private CreateVolumeRequest createVolumeCompatible(VolumeOrder volumeOrder, String diskOfferingId)
             throws InvalidParameterException {
 
-        String name = volumeOrder.getName();
+        String instanceName = volumeOrder.getName();
+        String name = instanceName == null ? FOGBOW_INSTANCE_NAME + getRandomUUID() : instanceName;
         return new CreateVolumeRequest.Builder()
                 .zoneId(this.zoneId)
                 .name(name)
@@ -218,5 +223,9 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
 
     public String getZoneId() {
         return this.zoneId;
+    }
+
+    protected String getRandomUUID() {
+        return UUID.randomUUID().toString();
     }
 }

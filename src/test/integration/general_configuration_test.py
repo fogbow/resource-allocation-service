@@ -8,6 +8,12 @@ class GeneralConfigurations:
   local_member = 'fake-localidentity-member'
   remote_member = 'fake-localidentity-member2'
 
+  #login properties
+  username = ''
+  password = ''
+  projectname = ''
+  domain = ''
+
   #time to wait
   max_tries = 6
   sleep_time_secs = 15
@@ -22,8 +28,8 @@ class GeneralConfigurations:
   imageId = '9b672abd-67f7-463e-b926-a87adbc80860'
   #network confs
   max_networks = 3
-  address = "10.15.20.1/28"
-  allocation = "dynamic"
+  cidr = "10.15.20.1/28"
+  allocationMode = "dynamic"
   #volume confs
   max_volumes = 1
   volume_size = 1
@@ -36,7 +42,7 @@ class GeneralConfigurations:
   #general attributes
   json_header = {"Content-Type": "application/json"}
   status_endpoint = 'status'
-  providingMember = 'providingMember'
+  provider = 'provider'
 
   #http status
   ok_status = 200
@@ -48,15 +54,16 @@ class GeneralConfigurations:
   type_network = 'network'
   type_volume = 'volume'
   type_attachment = 'attachment'
-  type_image = 'image'
+  type_image = 'imageId'
 
   #compute attributes
   computes_endpoint = 'computes/'
   quota_endpoint = 'quota/'
-  allocation_endpoint = 'allocation/'
+  allocation_endpoint = 'allocationMode/'
+  tokens_endpoint = 'tokens/'
   available_quota = 'availableQuota'
   instances_quota = 'instances'
-  networksId_key = 'networksId'
+  networksId_key = 'networkIds'
 
   #network attributes
   networks_endpoint = 'networks/'

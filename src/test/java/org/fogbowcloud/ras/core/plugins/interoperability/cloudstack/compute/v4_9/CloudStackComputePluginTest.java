@@ -1,10 +1,9 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.compute.v4_9;
 
-import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.fogbowcloud.ras.core.HomeDir;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
@@ -90,7 +89,7 @@ public class CloudStackComputePluginTest {
 
     private void initializeProperties() {
         String cloudStackConfFilePath = HomeDir.getPath() + File.separator
-               + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
+               + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
         Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
 
         this.fakeZoneId = properties.getProperty(CloudStackComputePlugin.ZONE_ID_KEY);
@@ -110,7 +109,7 @@ public class CloudStackComputePluginTest {
         this.plugin.setLaunchCommandGenerator(this.launchCommandGeneratorMock);
     }
 
-    // Test case: when deploying a virtual machine, the token should be signed and five HTTP GET requests should be made:
+    // Test case: when deploying allocationAllowableValues virtual machine, the token should be signed and five HTTP GET requests should be made:
     // 1) retrieve the service offerings from the cloudstack compute service; 2) retrieve disk offerings
     // from the cloudstack volume service; 3) register ssh keypair using public key passed in the order; // 4) request
     // to the compute service to actually create the vm; 5) delete keypair used to created the vm.
@@ -127,9 +126,11 @@ public class CloudStackComputePluginTest {
 
         String fakeImageId = "fake-image-id";
 
-        UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
+        UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag");
         String fakeUserDataString = Base64.getEncoder().encodeToString(
                 fakeUserData.getExtraUserDataFileContent().getBytes("UTF-8"));
+        ArrayList<UserData> userData = new ArrayList<>();
+        userData.add(fakeUserData);
 
         List<String> fakeNetworkdIds = new ArrayList<>();
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
@@ -169,7 +170,7 @@ public class CloudStackComputePluginTest {
         // exercise
         ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
-                Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+                Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
         // verify
@@ -189,7 +190,8 @@ public class CloudStackComputePluginTest {
         // set up
         String fakeImageId = null;
 
-        UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
+        UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag");
+        ArrayList<UserData> userData = new ArrayList<UserData>(Arrays.asList(new UserData[] { fakeUserData }));
 
         List<String> fakeNetworkdIds = new ArrayList<>();
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
@@ -197,7 +199,7 @@ public class CloudStackComputePluginTest {
         // exercise
         ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
-                Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+                Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
@@ -215,7 +217,9 @@ public class CloudStackComputePluginTest {
         String serviceOfferingsCommand = GetAllServiceOfferingsRequest.LIST_SERVICE_OFFERINGS_COMMAND;
 
         String fakeImageId = "fake-image-id";
-        UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
+        UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag");
+        ArrayList<UserData> userData = new ArrayList<UserData>(Arrays.asList(new UserData[] { fakeUserData }));
+
         List<String> fakeNetworkdIds = new ArrayList<>();
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
 
@@ -228,7 +232,7 @@ public class CloudStackComputePluginTest {
         // exercise
         ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
-                Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+                Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
@@ -247,7 +251,9 @@ public class CloudStackComputePluginTest {
         String serviceOfferingsCommand = GetAllServiceOfferingsRequest.LIST_SERVICE_OFFERINGS_COMMAND;
 
         String fakeImageId = "fake-image-id";
-        UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
+        UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag");
+        ArrayList<UserData> userData = new ArrayList<UserData>(Arrays.asList(new UserData[] { fakeUserData }));
+
         List<String> fakeNetworkdIds = new ArrayList<>();
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
 
@@ -266,7 +272,7 @@ public class CloudStackComputePluginTest {
         // exercise
         ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
-                Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+                Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
@@ -286,7 +292,9 @@ public class CloudStackComputePluginTest {
         String diskOfferingsCommand = GetAllDiskOfferingsRequest.LIST_DISK_OFFERINGS_COMMAND;
 
         String fakeImageId = "fake-image-id";
-        UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
+        UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag");
+        ArrayList<UserData> userData = new ArrayList<UserData>(Arrays.asList(new UserData[] { fakeUserData }));
+
         List<String> fakeNetworkdIds = new ArrayList<>();
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
 
@@ -308,7 +316,7 @@ public class CloudStackComputePluginTest {
         // exercise
         ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
-                Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+                Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
@@ -330,7 +338,9 @@ public class CloudStackComputePluginTest {
         String computeCommand = DeployVirtualMachineRequest.DEPLOY_VM_COMMAND;
 
         String fakeImageId = "fake-image-id";
-        UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
+        UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag");
+        ArrayList<UserData> userData = new ArrayList<UserData>(Arrays.asList(new UserData[] { fakeUserData }));
+
         List<String> fakeNetworkdIds = new ArrayList<>();
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
 
@@ -373,7 +383,7 @@ public class CloudStackComputePluginTest {
         // exercise
         ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
-                Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+                Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
@@ -385,7 +395,7 @@ public class CloudStackComputePluginTest {
                 .doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN));
     }
 
-    // Test case: http request fails on attempting to deploy a new virtual machine
+    // Test case: http request fails on attempting to deploy allocationAllowableValues new virtual machine
     @Test(expected = FogbowRasException.class)
     public void testRequestInstanceFail() throws FogbowRasException, HttpResponseException, UnexpectedException, UnsupportedEncodingException {
         // set up
@@ -399,7 +409,9 @@ public class CloudStackComputePluginTest {
 
         String fakeImageId = "fake-image-id";
 
-        UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG);
+        UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag");
+        ArrayList<UserData> userData = new ArrayList<UserData>(Arrays.asList(new UserData[] { fakeUserData }));
+
         String fakeUserDataString = Base64.getEncoder().encodeToString(
                 fakeUserData.getExtraUserDataFileContent().getBytes("UTF-8"));
 
@@ -441,7 +453,7 @@ public class CloudStackComputePluginTest {
         // exercise
         ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
-                Integer.parseInt(FAKE_DISK), fakeImageId, fakeUserData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+                Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
         // verify
@@ -452,9 +464,9 @@ public class CloudStackComputePluginTest {
                 Mockito.eq(FAKE_TOKEN));
     }
 
-    // Test case: when getting a virtual machine, the token should be signed and two HTTP GET requests should be made:
+    // Test case: when getting allocationAllowableValues virtual machine, the token should be signed and two HTTP GET requests should be made:
     // one to retrieve the virtual machine from the cloudstack compute service and another to retrieve that vm disk
-    // size from the cloudstack volume service. Finally, a valid compute instance should be returned from those
+    // size from the cloudstack volume service. Finally, allocationAllowableValues valid compute instance should be returned from those
     // requests results.
     @Test
     public void testGetInstance() throws UnexpectedException, FogbowRasException, HttpResponseException {
@@ -462,6 +474,8 @@ public class CloudStackComputePluginTest {
         String endpoint = getBaseEndpointFromCloudStackConf();
         String computeCommand = GetVirtualMachineRequest.LIST_VMS_COMMAND;
         String volumeCommand = GetVolumeRequest.LIST_VOLUMES_COMMAND;
+        List<String> ipAddresses =  new ArrayList<>();
+        ipAddresses.add(FAKE_ADDRESS);
 
         String expectedComputeRequestUrl = generateExpectedUrl(endpoint, computeCommand,
                 RESPONSE_KEY, JSON,
@@ -491,12 +505,12 @@ public class CloudStackComputePluginTest {
 
         // verify
         Assert.assertEquals(FAKE_ID, retrievedInstance.getId());
-        Assert.assertEquals(FAKE_INSTANCE_NAME, retrievedInstance.getHostName());
+        Assert.assertEquals(FAKE_INSTANCE_NAME, retrievedInstance.getName());
         Assert.assertEquals("READY", retrievedInstance.getState().name());
         Assert.assertEquals(FAKE_CPU_NUMBER, String.valueOf(retrievedInstance.getvCPU()));
-        Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance.getRam()));
+        Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance.getMemory()));
         Assert.assertEquals(FAKE_DISK, String.valueOf(retrievedInstance.getDisk()));
-        Assert.assertEquals(FAKE_ADDRESS, retrievedInstance.getLocalIpAddress());
+        Assert.assertEquals(ipAddresses, retrievedInstance.getIpAddresses());
 
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(2));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
@@ -505,7 +519,7 @@ public class CloudStackComputePluginTest {
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(expectedVolumeRequestUrl, FAKE_TOKEN);
     }
 
-    // Test case: when getting a virtual machine which root disk size could not be retrieved, default volume size to -1
+    // Test case: when getting allocationAllowableValues virtual machine which root disk size could not be retrieved, default volume size to -1
     @Test
     public void testGetInstanceNoVolume() throws FogbowRasException, HttpResponseException {
         // set up
@@ -513,6 +527,8 @@ public class CloudStackComputePluginTest {
         String computeCommand = GetVirtualMachineRequest.LIST_VMS_COMMAND;
         String volumeCommand = GetVolumeRequest.LIST_VOLUMES_COMMAND;
         String errorDiskSize = "-1";
+        List<String> ipAddresses =  new ArrayList<>();
+        ipAddresses.add(FAKE_ADDRESS);
 
         String expectedComputeRequestUrl = generateExpectedUrl(endpoint, computeCommand,
                 RESPONSE_KEY, JSON,
@@ -539,23 +555,23 @@ public class CloudStackComputePluginTest {
         ComputeInstance retrievedInstance = this.plugin.getInstance(FAKE_ID, FAKE_TOKEN);
 
         Assert.assertEquals(FAKE_ID, retrievedInstance.getId());
-        Assert.assertEquals(FAKE_INSTANCE_NAME, retrievedInstance.getHostName());
+        Assert.assertEquals(FAKE_INSTANCE_NAME, retrievedInstance.getName());
         Assert.assertEquals("READY", retrievedInstance.getState().name());
         Assert.assertEquals(FAKE_CPU_NUMBER, String.valueOf(retrievedInstance.getvCPU()));
-        Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance.getRam()));
+        Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance.getMemory()));
         Assert.assertEquals(errorDiskSize, String.valueOf(retrievedInstance.getDisk()));
-        Assert.assertEquals(FAKE_ADDRESS, retrievedInstance.getLocalIpAddress());
+        Assert.assertEquals(ipAddresses, retrievedInstance.getIpAddresses());
 
         // exercise empty response from volume request
         ComputeInstance retrievedInstance2 = this.plugin.getInstance(FAKE_ID, FAKE_TOKEN);
 
         Assert.assertEquals(FAKE_ID, retrievedInstance2.getId());
-        Assert.assertEquals(FAKE_INSTANCE_NAME, retrievedInstance2.getHostName());
+        Assert.assertEquals(FAKE_INSTANCE_NAME, retrievedInstance2.getName());
         Assert.assertEquals("READY", retrievedInstance2.getState().name());
         Assert.assertEquals(FAKE_CPU_NUMBER, String.valueOf(retrievedInstance2.getvCPU()));
-        Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance2.getRam()));
+        Assert.assertEquals(FAKE_MEMORY, String.valueOf(retrievedInstance2.getMemory()));
         Assert.assertEquals(errorDiskSize, String.valueOf(retrievedInstance2.getDisk()));
-        Assert.assertEquals(FAKE_ADDRESS, retrievedInstance2.getLocalIpAddress());
+        Assert.assertEquals(ipAddresses, retrievedInstance2.getIpAddresses());
 
         PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(4));
         CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
@@ -635,10 +651,9 @@ public class CloudStackComputePluginTest {
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(expectedComputeRequestUrl, FAKE_TOKEN);
     }
 
-
     private String getBaseEndpointFromCloudStackConf() {
         String filePath = HomeDir.getPath() + File.separator
-                + DefaultConfigurationConstants.CLOUDSTACK_CONF_FILE_NAME;
+                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
 
         Properties properties = PropertiesUtil.readProperties(filePath);
         return properties.getProperty(CLOUDSTACK_URL);

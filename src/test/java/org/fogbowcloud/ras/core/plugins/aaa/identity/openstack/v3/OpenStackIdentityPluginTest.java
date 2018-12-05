@@ -28,7 +28,7 @@ public class OpenStackIdentityPluginTest {
     }
 
     // TODO check this test !!!
-    //test case: check if the token value information is correct when creating a token with the correct user credentials.
+    //test case: check if the token value information is correct when creating allocationAllowableValues token with the correct user credentials.
     @Test
     public void testCreateToken() throws Exception {
         //set up
@@ -40,7 +40,6 @@ public class OpenStackIdentityPluginTest {
         Mockito.doReturn(fakeTokenValue).when(this.tokenGenerator).createTokenValue(Mockito.anyMap());
         Map<String, String> userCredentials = new HashMap<String, String>();
         userCredentials = new HashMap<String, String>();
-        userCredentials.put(OpenStackTokenGeneratorPlugin.USER_ID, "userId");
         userCredentials.put(OpenStackTokenGeneratorPlugin.PASSWORD, "userPass");
         userCredentials.put(OpenStackTokenGeneratorPlugin.PROJECT_NAME, "projectId");
 

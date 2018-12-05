@@ -3,8 +3,8 @@ package org.fogbowcloud.ras.core.plugins.interoperability.openstack.volume.v2;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
@@ -19,19 +19,21 @@ import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONException;
 
 import java.util.Properties;
+import java.util.UUID;
 
 public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3Token> {
     private static final Logger LOGGER = Logger.getLogger(OpenStackVolumePlugin.class);
 
     private final String V2_API_ENDPOINT = "/v2/";
     protected static final String SUFIX_ENDPOINT_VOLUMES = "/volumes";
+    protected static final String FOGBOW_INSTANCE_NAME = "ras-volume-";
     public static final String VOLUME_NOVAV2_URL_KEY = "openstack_cinder_url";
     private HttpRequestClientUtil client;
     private String volumeV2APIEndpoint;
 
     public OpenStackVolumePlugin() throws FatalErrorException {
         Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                DefaultConfigurationConstants.OPENSTACK_CONF_FILE_NAME);
+                SystemConstants.OPENSTACK_CONF_FILE_NAME);
         this.volumeV2APIEndpoint = properties.getProperty(VOLUME_NOVAV2_URL_KEY) + V2_API_ENDPOINT;
         initClient();
     }
@@ -49,7 +51,8 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3Token> {
         String jsonRequest = null;
         try {
             String size = String.valueOf(order.getVolumeSize());
-            String name = order.getName();
+            String instanceName = order.getName();
+            String name = instanceName == null ? FOGBOW_INSTANCE_NAME + getRandomUUID() : instanceName;
             jsonRequest = generateJsonEntityToCreateInstance(size, name);
         } catch (JSONException e) {
             String message = Messages.Error.UNABLE_TO_GENERATE_JSON;
@@ -106,6 +109,10 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3Token> {
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }
+    }
+
+    protected String getRandomUUID() {
+        return UUID.randomUUID().toString();
     }
 
     protected VolumeInstance getInstanceFromJson(String json) throws UnexpectedException {

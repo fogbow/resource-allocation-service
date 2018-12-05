@@ -108,7 +108,7 @@ public class OpenStackComputePluginTest {
         Mockito.when(propertiesHolderMock.getProperties()).thenReturn(propertiesMock);
     }
 
-    // test case: If a RequestInstance method works as expected
+    // test case: If allocationAllowableValues RequestInstance method works as expected
     @Test
     public void testRequestInstance() throws IOException, FogbowRasException, UnexpectedException {
 
@@ -140,14 +140,17 @@ public class OpenStackComputePluginTest {
         Assert.assertEquals(expectedInstanceId, instanceId);
     }
 
-    // test case: Check if a getInstance builds a compute instance from http response properly
+    // test case: Check if allocationAllowableValues getInstance builds allocationAllowableValues compute instance from http response properly
     @Test
     public void testGetInstance() throws FogbowRasException, UnexpectedException, HttpResponseException {
         // set up
         InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.COMPUTE, openstackStateActive);
         String newComputeEndpoint = this.computeEndpoint + "/" + instanceId;
         String computeInstanceJson = generateComputeInstanceJson(instanceId, hostName, localIpAddress, flavorId, openstackStateActive);
-        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, fogbowState, hostName, vCPU, ram, disk, localIpAddress);
+        List<String> ipAddresses = new ArrayList<>();
+        ipAddresses.add(localIpAddress);
+
+        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, fogbowState, hostName, vCPU, ram, disk, ipAddresses);
 
         Mockito.when(this.httpRequestClientUtilMock.doGetRequest(newComputeEndpoint, this.openStackV3Token)).thenReturn(computeInstanceJson);
         mockGetFlavorsRequest(flavorId, vCPU, ram, disk);
@@ -156,16 +159,16 @@ public class OpenStackComputePluginTest {
         ComputeInstance pluginComputeInstance = this.computePlugin.getInstance(instanceId, this.openStackV3Token);
 
         // verify
-        Assert.assertEquals(expectedComputeInstance.getHostName(), pluginComputeInstance.getHostName());
+        Assert.assertEquals(expectedComputeInstance.getName(), pluginComputeInstance.getName());
         Assert.assertEquals(expectedComputeInstance.getId(), pluginComputeInstance.getId());
-        Assert.assertEquals(expectedComputeInstance.getLocalIpAddress(), pluginComputeInstance.getLocalIpAddress());
+        Assert.assertEquals(expectedComputeInstance.getIpAddresses(), pluginComputeInstance.getIpAddresses());
         Assert.assertEquals(expectedComputeInstance.getDisk(), pluginComputeInstance.getDisk());
-        Assert.assertEquals(expectedComputeInstance.getRam(), pluginComputeInstance.getRam());
+        Assert.assertEquals(expectedComputeInstance.getMemory(), pluginComputeInstance.getMemory());
         Assert.assertEquals(expectedComputeInstance.getState(), pluginComputeInstance.getState());
         Assert.assertEquals(expectedComputeInstance.getvCPU(), pluginComputeInstance.getvCPU());
     }
 
-    // test case: If a DeleteInstance method works as expected
+    // test case: If allocationAllowableValues DeleteInstance method works as expected
     @Test
     public void testDeleteInstance() throws HttpResponseException, FogbowRasException, UnexpectedException {
         // set up
@@ -181,7 +184,7 @@ public class OpenStackComputePluginTest {
         Assert.assertEquals(this.argToken.getValue(), this.openStackV3Token);
     }
 
-    // test case: GetInstance should throw Unauthorized if a http request is Forbidden
+    // test case: GetInstance should throw Unauthorized if allocationAllowableValues http request is Forbidden
     @Test(expected = UnauthorizedRequestException.class)
     public void testGetInstanceOnForbidden() throws FogbowRasException, UnexpectedException, HttpResponseException {
         // set up
@@ -193,7 +196,7 @@ public class OpenStackComputePluginTest {
         this.computePlugin.getInstance(instanceId, this.openStackV3Token);
     }
 
-    // test case: DeleteInstance should return Unauthorized is a http request is Forbidden
+    // test case: DeleteInstance should return Unauthorized is allocationAllowableValues http request is Forbidden
     @Test(expected = UnauthorizedRequestException.class)
     public void testDeleteInstanceTestOnForbidden() throws HttpResponseException, FogbowRasException, UnexpectedException {
         // set up
@@ -205,7 +208,7 @@ public class OpenStackComputePluginTest {
         this.computePlugin.deleteInstance(instanceId, this.openStackV3Token);
     }
 
-    // test case: Request Instance should throw Unauthenticated if a http request is Anauthorized
+    // test case: Request Instance should throw Unauthenticated if allocationAllowableValues http request is Anauthorized
     @Test(expected = UnauthenticatedUserException.class)
     public void testRequestInstanceOnAnauthorizedComputePost() throws IOException, FogbowRasException, UnexpectedException {
         // set up
@@ -244,9 +247,9 @@ public class OpenStackComputePluginTest {
         String instanceId = this.computePlugin.requestInstance(computeOrder, this.openStackV3Token);
 
         // verify
-        Assert.assertEquals(this.argString.getValue(), computeEndpoint);
-        Assert.assertEquals(this.argToken.getValue(), this.openStackV3Token);
-        JSONAssert.assertEquals(this.argBodyString.getValue(), computeJson.toString(), false);
+        Assert.assertEquals(computeEndpoint, this.argString.getValue());
+        Assert.assertEquals(this.openStackV3Token, this.argToken.getValue());
+        JSONAssert.assertEquals(computeJson.toString(), this.argBodyString.getValue(), false);
         Assert.assertEquals(expectedInstanceId, instanceId);
     }
 
@@ -357,7 +360,7 @@ public class OpenStackComputePluginTest {
         InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.COMPUTE, openstackStateActive);
         String localIpAddress = null;
         String newComputeEndpoint = this.computeEndpoint + "/" + instanceId;
-        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, fogbowState, hostName, vCPU, ram, disk, "");
+        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, fogbowState, hostName, vCPU, ram, disk, new ArrayList());
         String computeInstanceJson = generateComputeInstanceJsonWithoutAddressField(instanceId, hostName, localIpAddress, flavorId, openstackStateActive);
         Mockito.when(this.httpRequestClientUtilMock.doGetRequest(newComputeEndpoint, this.openStackV3Token)).thenReturn(computeInstanceJson);
         mockGetFlavorsRequest(flavorId, vCPU, ram, disk);
@@ -366,11 +369,11 @@ public class OpenStackComputePluginTest {
         ComputeInstance pluginComputeInstance = this.computePlugin.getInstance(instanceId, this.openStackV3Token);
 
         // verify
-        Assert.assertEquals(expectedComputeInstance.getHostName(), pluginComputeInstance.getHostName());
+        Assert.assertEquals(expectedComputeInstance.getName(), pluginComputeInstance.getName());
         Assert.assertEquals(expectedComputeInstance.getId(), pluginComputeInstance.getId());
-        Assert.assertEquals(expectedComputeInstance.getLocalIpAddress(), pluginComputeInstance.getLocalIpAddress());
+        Assert.assertEquals(expectedComputeInstance.getIpAddresses(), pluginComputeInstance.getIpAddresses());
         Assert.assertEquals(expectedComputeInstance.getDisk(), pluginComputeInstance.getDisk());
-        Assert.assertEquals(expectedComputeInstance.getRam(), pluginComputeInstance.getRam());
+        Assert.assertEquals(expectedComputeInstance.getMemory(), pluginComputeInstance.getMemory());
         Assert.assertEquals(expectedComputeInstance.getState(), pluginComputeInstance.getState());
         Assert.assertEquals(expectedComputeInstance.getvCPU(), pluginComputeInstance.getvCPU());
     }
@@ -382,7 +385,7 @@ public class OpenStackComputePluginTest {
         InstanceState fogbowState = OpenStackStateMapper.map(ResourceType.COMPUTE, openstackStateActive);
         String newComputeEndpoint = this.computeEndpoint + "/" + instanceId;
         String computeInstanceJson = generateComputeInstanceJsonWithoutProviderNetworkField(instanceId, hostName, localIpAddress, flavorId, openstackStateActive);
-        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, fogbowState, hostName, vCPU, ram, disk, "");
+        ComputeInstance expectedComputeInstance = new ComputeInstance(instanceId, fogbowState, hostName, vCPU, ram, disk, new ArrayList());
 
         Mockito.when(this.httpRequestClientUtilMock.doGetRequest(newComputeEndpoint, this.openStackV3Token)).thenReturn(computeInstanceJson);
         mockGetFlavorsRequest(flavorId, vCPU, ram, disk);
@@ -391,11 +394,11 @@ public class OpenStackComputePluginTest {
         ComputeInstance pluginComputeInstance = this.computePlugin.getInstance(instanceId, this.openStackV3Token);
 
         // verify
-        Assert.assertEquals(expectedComputeInstance.getHostName(), pluginComputeInstance.getHostName());
+        Assert.assertEquals(expectedComputeInstance.getName(), pluginComputeInstance.getName());
         Assert.assertEquals(expectedComputeInstance.getId(), pluginComputeInstance.getId());
-        Assert.assertEquals(expectedComputeInstance.getLocalIpAddress(), pluginComputeInstance.getLocalIpAddress());
+        Assert.assertEquals(expectedComputeInstance.getIpAddresses(), pluginComputeInstance.getIpAddresses());
         Assert.assertEquals(expectedComputeInstance.getDisk(), pluginComputeInstance.getDisk());
-        Assert.assertEquals(expectedComputeInstance.getRam(), pluginComputeInstance.getRam());
+        Assert.assertEquals(expectedComputeInstance.getMemory(), pluginComputeInstance.getMemory());
         Assert.assertEquals(expectedComputeInstance.getState(), pluginComputeInstance.getState());
         Assert.assertEquals(expectedComputeInstance.getvCPU(), pluginComputeInstance.getvCPU());
     }
@@ -480,18 +483,18 @@ public class OpenStackComputePluginTest {
         String instanceId = this.computePlugin.requestInstance(computeOrder, this.openStackV3Token);
 
         // verify
-        Assert.assertEquals(this.argString.getAllValues().get(0), this.osKeyPairEndpoint);
-        Assert.assertEquals(this.argToken.getAllValues().get(0), this.openStackV3Token);
-        JSONAssert.assertEquals(this.argBodyString.getAllValues().get(0).toString(), rootKeypairJson.toString(), false);
+        Assert.assertEquals(this.osKeyPairEndpoint, this.argString.getAllValues().get(0));
+        Assert.assertEquals(this.openStackV3Token, this.argToken.getAllValues().get(0));
+        JSONAssert.assertEquals(rootKeypairJson.toString(), this.argBodyString.getAllValues().get(0).toString(), false);
 
-        Assert.assertEquals(this.argString.getAllValues().get(1), computeEndpoint);
-        Assert.assertEquals(this.argToken.getAllValues().get(1), this.openStackV3Token);
-        JSONAssert.assertEquals(this.argBodyString.getAllValues().get(1).toString(), computeJson.toString(), false);
+        Assert.assertEquals(computeEndpoint, this.argString.getAllValues().get(1));
+        Assert.assertEquals(this.openStackV3Token, this.argToken.getAllValues().get(1));
+        JSONAssert.assertEquals(computeJson.toString(), this.argBodyString.getAllValues().get(1).toString(), false);
 
         Assert.assertEquals(expectedInstanceId, instanceId);
     }
 
-    // test case: Compute networksId should always contain a default network id even if there is no network id in a compute order
+    // test case: Compute networksId should always contain allocationAllowableValues default network id even if there is no network id in allocationAllowableValues compute order
     @Test
     public void testRequestInstanceWhenThereIsNoNetworkId() throws IOException, FogbowRasException, UnexpectedException {
         // set up
@@ -515,13 +518,13 @@ public class OpenStackComputePluginTest {
         String instanceId = this.computePlugin.requestInstance(computeOrder, this.openStackV3Token);
 
         // verify
-        Assert.assertEquals(this.argString.getAllValues().get(0), this.osKeyPairEndpoint);
-        Assert.assertEquals(this.argToken.getAllValues().get(0), this.openStackV3Token);
-        JSONAssert.assertEquals(this.argBodyString.getAllValues().get(0).toString(), rootKeypairJson.toString(), false);
+        Assert.assertEquals(this.osKeyPairEndpoint, this.argString.getAllValues().get(0));
+        Assert.assertEquals(this.openStackV3Token, this.argToken.getAllValues().get(0));
+        JSONAssert.assertEquals(rootKeypairJson.toString(), this.argBodyString.getAllValues().get(0).toString(), false);
 
-        Assert.assertEquals(this.argString.getAllValues().get(1), computeEndpoint);
-        Assert.assertEquals(this.argToken.getAllValues().get(1), this.openStackV3Token);
-        JSONAssert.assertEquals(this.argBodyString.getAllValues().get(1).toString(), computeJson.toString(), false);
+        Assert.assertEquals(computeEndpoint, this.argString.getAllValues().get(1));
+        Assert.assertEquals(this.openStackV3Token, this.argToken.getAllValues().get(1));
+        JSONAssert.assertEquals(computeJson.toString(), this.argBodyString.getAllValues().get(1).toString(), false);
 
         Assert.assertEquals(expectedInstanceId, instanceId);
     }
@@ -570,8 +573,8 @@ public class OpenStackComputePluginTest {
     }
 
     /*
-     * This method mocks the behavior of a http flavor request by mocking GET"/flavors" and GET"/flavors/id" and adds
-     * bestFlavorId as a flavor from this response in addition to other flavors. Besides that, bestFlavorId will be
+     * This method mocks the behavior of allocationAllowableValues http flavor request by mocking GET"/flavors" and GET"/flavors/id" and adds
+     * bestFlavorId as allocationAllowableValues flavor from this response in addition to other flavors. Besides that, bestFlavorId will be
      * the flavor with best Vcpu, memory and disk from this response. 
      */
     private void mockGetFlavorsRequest(String bestFlavorId, int bestVcpu, int bestMemory, int bestDisk) throws HttpResponseException, UnavailableProviderException {
@@ -654,8 +657,14 @@ public class OpenStackComputePluginTest {
         return root;
     }
 
-    private JSONObject generateJsonRequest(String imageId, String flavorId, String userData, String keyName, List<String> networksId, String randomUUID) {
+    private JSONObject generateJsonRequest(String imageId, String flavorId, String userData, String keyName, List<String> networkIds, String randomUUID) {
         JSONObject server = new JSONObject();
+
+        // when the user doesn't provide a network, the default network should be added in the request
+        if (networkIds.isEmpty()) {
+            networkIds.add(defaultNetworkId);
+        }
+
         server.put(OpenStackComputePlugin.NAME_JSON_FIELD, OpenStackComputePlugin.FOGBOW_INSTANCE_NAME + randomUUID);
         server.put(OpenStackComputePlugin.IMAGE_JSON_FIELD, imageId);
         server.put(OpenStackComputePlugin.FLAVOR_REF_JSON_FIELD, flavorId);
@@ -663,20 +672,24 @@ public class OpenStackComputePluginTest {
 
         JSONArray networks = new JSONArray();
 
-        for (String id : networksId) {
+        for (String id : networkIds) {
             JSONObject netId = new JSONObject();
             netId.put(OpenStackComputePlugin.UUID_JSON_FIELD, id);
             networks.put(netId);
         }
         server.put(OpenStackComputePlugin.NETWORK_JSON_FIELD, networks);
 
-        if (networksId.size() > 1) {
-            JSONArray securityGroups = new JSONArray();
-            JSONObject securityGroup = new JSONObject();
-            String securityGroupName = OpenStackNetworkPlugin.SECURITY_GROUP_PREFIX + "-" + this.privateNetworkId;
-            securityGroup.put(OpenStackComputePlugin.NAME_JSON_FIELD, securityGroupName);
-            securityGroups.put(securityGroup);
-            server.put(OpenStackComputePlugin.SECURITY_JSON_FIELD, securityGroups);
+        if (networkIds.size() > 0) {
+            for (String networkId : networkIds) {
+                if (!networkId.equals(defaultNetworkId)) {
+                    JSONArray securityGroups = new JSONArray();
+                    JSONObject securityGroup = new JSONObject();
+                    String securityGroupName = OpenStackNetworkPlugin.getSGNameForPrivateNetwork(networkId);
+                    securityGroup.put(OpenStackComputePlugin.NAME_JSON_FIELD, securityGroupName);
+                    securityGroups.put(securityGroup);
+                    server.put(OpenStackComputePlugin.SECURITY_JSON_FIELD, securityGroups);
+                }
+            }
         }
 
         if (keyName != null) {

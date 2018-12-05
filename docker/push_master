@@ -1,0 +1,7 @@
+#!/bin/bash
+
+./push fogbow/resource-allocation-service:latest
+
+sudo docker tag fogbow/resource-allocation-service:latest fogbow/resource-allocation-service:angra
+./push fogbow/resource-allocation-service:angra
+

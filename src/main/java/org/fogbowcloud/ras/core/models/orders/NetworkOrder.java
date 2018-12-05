@@ -15,32 +15,31 @@ public class NetworkOrder extends Order {
     @Column
     private String gateway;
     @Column
-    private String address;
+    private String cidr;
     @Column
     @Enumerated(EnumType.STRING)
-    private NetworkAllocationMode allocation;
+    private NetworkAllocationMode allocationMode;
 
     public NetworkOrder() {
-        super(UUID.randomUUID().toString());
+        this(UUID.randomUUID().toString());
     }
 
-    /**
-     * Creating Order with predefined Id.
-     */
-    public NetworkOrder(String id, FederationUserToken federationUserToken, String requestingMember,
-                        String providingMember, String name, String gateway, String address,
-                        NetworkAllocationMode allocation) {
-        super(id, federationUserToken, requestingMember, providingMember);
-        this.name = name;
-        this.gateway = gateway;
-        this.address = address;
-        this.allocation = allocation;
+    public NetworkOrder(String id) {
+        super(id);
+    }
+
+    public NetworkOrder(String providingMember, String name, String gateway, String cidr,
+                        NetworkAllocationMode allocationMode) {
+        this(null, null, providingMember, name, gateway, cidr, allocationMode);
     }
 
     public NetworkOrder(FederationUserToken federationUserToken, String requestingMember, String providingMember,
-                        String name, String gateway, String address, NetworkAllocationMode allocation) {
-        this(UUID.randomUUID().toString(), federationUserToken, requestingMember, providingMember,
-                name, gateway, address, allocation);
+                        String name, String gateway, String cidr, NetworkAllocationMode allocationMode) {
+        super(UUID.randomUUID().toString(), providingMember, federationUserToken, requestingMember);
+        this.name = name;
+        this.gateway = gateway;
+        this.cidr = cidr;
+        this.allocationMode = allocationMode;
     }
 
     public String getName() {
@@ -51,12 +50,12 @@ public class NetworkOrder extends Order {
         return gateway;
     }
 
-    public String getAddress() {
-        return address;
+    public String getCidr() {
+        return cidr;
     }
 
-    public NetworkAllocationMode getAllocation() {
-        return allocation;
+    public NetworkAllocationMode getAllocationMode() {
+        return allocationMode;
     }
 
     @Override

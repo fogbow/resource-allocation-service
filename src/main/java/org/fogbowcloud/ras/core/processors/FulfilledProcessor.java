@@ -68,7 +68,7 @@ public class FulfilledProcessor implements Runnable {
     }
 
     /**
-     * Gets an instance for a fulfilled order. If that instance is not reachable the order state is
+     * Gets an instance for allocationAllowableValues fulfilled order. If that instance is not reachable the order state is
      * set to failed.
      *
      * @param order {@link Order}
@@ -78,8 +78,8 @@ public class FulfilledProcessor implements Runnable {
         Instance instance = null;
         InstanceState instanceState = null;
 
-        // The order object synchronization is needed to prevent a race
-        // condition on order access. For example: a user can delete a fulfilled
+        // The order object synchronization is needed to prevent allocationAllowableValues race
+        // condition on order access. For example: allocationAllowableValues user can delete allocationAllowableValues fulfilled
         // order while this method is trying to check the status of an instance
         // that was allocated to an order.
 
@@ -88,15 +88,12 @@ public class FulfilledProcessor implements Runnable {
             // Only orders that have been served by the local cloud are checked; remote ones are checked by
             // the Fogbow RAS running in the other member, which reports back any changes in the status.
             if (!order.isProviderLocal(this.localMemberId)) {
-                LOGGER.debug(String.format(Messages.Info.SKIPPING_BECAUSE_PROVIDER_IS_REMOTE, this.localMemberId,
-                        order.getId(), order.getProvidingMember()));
                 return;
             }
             // Check if the order is still in the Fulfilled state (it could have been changed by another thread)
             if (!orderState.equals(OrderState.FULFILLED)) {
                 return;
             }
-            LOGGER.debug(String.format(Messages.Info.GETTING_INSTANCE_FOR_REQUEST, order.getId()));
             try {
                 instance = this.localCloudConnector.getInstance(order);
             } catch (Exception e) {

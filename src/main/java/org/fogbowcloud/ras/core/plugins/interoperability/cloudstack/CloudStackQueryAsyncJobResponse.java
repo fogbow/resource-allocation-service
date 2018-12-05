@@ -3,6 +3,7 @@ package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack;
 import com.google.gson.annotations.SerializedName;
 import org.fogbowcloud.ras.util.GsonHolder;
 
+import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.PublicIp.JOB_INSTANCE_ID_KEY_JSON;
 import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.PublicIp.JOB_STATUS_KEY_JSON;
 import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackRestApiConstants.PublicIp.QUERY_ASYNC_JOB_RESULT_KEY_JSON;
 
@@ -38,11 +39,17 @@ public class CloudStackQueryAsyncJobResponse {
 
         @SerializedName(JOB_STATUS_KEY_JSON)
         private int jobStatus;
+        @SerializedName(JOB_INSTANCE_ID_KEY_JSON)
+        private String jobInstanceId;
 
     }
 
     public int getJobStatus() {
         return response.jobStatus;
+    }
+
+    public String getJobInstanceId() {
+        return response.jobInstanceId;
     }
 
 }

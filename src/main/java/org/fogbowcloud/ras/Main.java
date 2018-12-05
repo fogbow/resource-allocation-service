@@ -40,22 +40,26 @@ public class Main implements ApplicationRunner {
             String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
             AaaController aaaController = new AaaController(aaaPluginsHolder);
             OrderController orderController = new OrderController();
+            SecurityRuleController securityRuleController = new SecurityRuleController();
             ApplicationFacade applicationFacade = ApplicationFacade.getInstance();
             RemoteFacade remoteFacade = RemoteFacade.getInstance();
             applicationFacade.setAaaController(aaaController);
             applicationFacade.setOrderController(orderController);
+            applicationFacade.setSecurityRuleController(securityRuleController);
             remoteFacade.setAaaController(aaaController);
             remoteFacade.setOrderController(orderController);
+            remoteFacade.setSecurityRuleController(securityRuleController);
 
             // Setting up xmpp packet sender and cloud connector's factory
             String xmppJid = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_JID_KEY);
             String xmppPassword = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_PASSWORD_KEY);
             String xmppServerIp = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_SERVER_IP_KEY);
             int xmppServerPort = Integer.parseInt(PropertiesHolder.getInstance().
-                    getProperty(ConfigurationConstants.XMPP_C2S_PORT_KEY));
+                    getProperty(ConfigurationConstants.XMPP_C2C_PORT_KEY, DefaultConfigurationConstants.XMPP_CSC_PORT));
             long xmppTimeout =
                     Long.parseLong(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_TIMEOUT_KEY,
                             DefaultConfigurationConstants.XMPP_TIMEOUT));
+            LOGGER.info("XMPP c2c port: " + xmppServerPort);
             XmppComponentManager xmppComponentManager = new XmppComponentManager(xmppJid, xmppPassword, xmppServerIp,
                     xmppServerPort, xmppTimeout);
             xmppComponentManager.connect();

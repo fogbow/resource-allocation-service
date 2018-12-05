@@ -28,7 +28,7 @@ public class SharedOrderHoldersTest extends BaseUnitTests {
         this.instanceTwo = SharedOrderHolders.getInstance();
     }
 
-    // test case: As SynchronizedDoublyLinkedList is a sigleton object, when getting the
+    // test case: As SynchronizedDoublyLinkedList is allocationAllowableValues sigleton object, when getting the
     // list twice (or more) it must point to the same reference, in other words,
     // they are the same object.
     @Test

@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core;
 
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
 
 public class InteroperabilityPluginsHolder {
     private final PublicIpPlugin publicIpPlugin;
@@ -10,7 +11,8 @@ public class InteroperabilityPluginsHolder {
     private final NetworkPlugin networkPlugin;
     private final VolumePlugin volumePlugin;
     private final ImagePlugin imagePlugin;
-    private final GenericPlugin genericPlugin;
+    private final GenericRequestPlugin genericRequestPlugin;
+    private final SecurityRulePlugin securityRulePlugin;
 
     public InteroperabilityPluginsHolder(PluginInstantiator instantiationInitService) {
         this.publicIpPlugin = instantiationInitService.getPublicIpPlugin();
@@ -20,7 +22,8 @@ public class InteroperabilityPluginsHolder {
         this.networkPlugin = instantiationInitService.getNetworkPlugin();
         this.volumePlugin = instantiationInitService.getVolumePlugin();
         this.imagePlugin = instantiationInitService.getImagePlugin();
-        this.genericPlugin = instantiationInitService.getGenericPlugin();
+        this.genericRequestPlugin = instantiationInitService.getGenericPlugin();
+        this.securityRulePlugin = instantiationInitService.getSecurityRulePlugin();
     }
 
     public PublicIpPlugin getPublicIpPlugin() {
@@ -51,7 +54,11 @@ public class InteroperabilityPluginsHolder {
         return this.imagePlugin;
     }
 
-    public GenericPlugin getGenericPlugin() {
-        return this.genericPlugin;
+    public GenericRequestPlugin getGenericRequestPlugin() {
+        return this.genericRequestPlugin;
+    }
+
+    public SecurityRulePlugin getSecurityRulePlugin() {
+        return this.securityRulePlugin;
     }
 }

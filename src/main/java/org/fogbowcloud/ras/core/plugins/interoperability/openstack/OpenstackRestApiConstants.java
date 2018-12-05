@@ -39,6 +39,8 @@ public class OpenstackRestApiConstants {
         public static final String UUID_KEY_JSON = "uuid";
         public static final String KEY_PAIR_KEY_JSON = "keypair";
         public static final String PUBLIC_KEY_KEY_JSON = "public_key";
+        public static final String ADD_SECURITY_GROUP_KEY_JSON = "addSecurityGroup";
+        public static final String REMOVE_SECURITY_GROUP_KEY_JSON = "removeSecurityGroup";
     }
 
     public static class Network {
@@ -53,7 +55,9 @@ public class OpenstackRestApiConstants {
         public static final String ENABLE_DHCP_KEY_JSON = "enable_dhcp";
         public static final String DNS_NAMESERVERS_KEY_JSON = "dns_nameservers";
         public static final String SECURITY_GROUP_KEY_JSON = "security_group";
+        public static final String SECURITY_GROUPS_KEY_JSON = "security_groups";
         public static final String SECURITY_GROUP_RULE_KEY_JSON = "security_group_rule";
+        public static final String SECURITY_GROUP_RULES_KEY_JSON = "security_group_rules";
         public static final String DIRECTION_KEY_JSON = "direction";
         public static final String SECURITY_GROUP_ID_KEY_JSON = "security_group_id";
         public static final String REMOTE_IP_PREFIX_KEY_JSON = "remote_ip_prefix";
@@ -64,6 +68,7 @@ public class OpenstackRestApiConstants {
         public static final String SUBNET_KEY_JSON = "subnet";
         public static final String SUBNETS_KEY_JSON = "subnets";
         public static final String STATUS_KEY_JSON = "status";
+        public static final String ETHER_TYPE_KEY_JSON = "ethertype";
     }
 
     public static class Image {

@@ -25,13 +25,13 @@ public class RemoteCreateOrderRequest implements RemoteRequest<Void> {
         IQ iq = RemoteCreateOrderRequest.marshal(this.order);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
-        XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getProvidingMember());
+        XmppErrorConditionToExceptionTranslator.handleError(response, this.order.getProvider());
         return null;
     }
 
     public static IQ marshal(Order order) {
         IQ iq = new IQ(IQ.Type.set);
-        iq.setTo(order.getProvidingMember());
+        iq.setTo(order.getProvider());
         iq.setID(order.getId());
 
         //marshalling the order parcel of the IQ. It seems ok to not have another method to do so

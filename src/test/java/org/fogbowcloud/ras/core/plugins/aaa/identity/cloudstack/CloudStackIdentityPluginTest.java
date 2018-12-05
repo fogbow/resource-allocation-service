@@ -27,7 +27,7 @@ public class CloudStackIdentityPluginTest {
         this.tokenGenerator = Mockito.spy(new CloudStackTokenGeneratorPlugin());
     }
 
-    //test case: check if the token value information is correct when creating a token with the correct user credentials.
+    //test case: check if the token value information is correct when creating allocationAllowableValues token with the correct user credentials.
     @Test
     public void testCreateToken() throws Exception {
         //set up

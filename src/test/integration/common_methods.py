@@ -10,8 +10,8 @@ class CommonMethods:
   url_attachments= GeneralConfigurations.base_url + GeneralConfigurations.attachments_endpoint
   url_images= GeneralConfigurations.base_url + GeneralConfigurations.images_endpoint
 
-  data_compute = {'vCPU': GeneralConfigurations.vCPU, 'memory': GeneralConfigurations.memory, 'disk': GeneralConfigurations.disk, 'providingMember': GeneralConfigurations.local_member, 'imageId': GeneralConfigurations.imageId, 'publicKey': GeneralConfigurations.publicKey}
-  data_network = {'address': GeneralConfigurations.address, 'allocation': GeneralConfigurations.allocation}
+  data_compute = {'vCPU': GeneralConfigurations.vCPU, 'memory': GeneralConfigurations.memory, 'disk': GeneralConfigurations.disk, 'provider': GeneralConfigurations.local_member, 'imageId': GeneralConfigurations.imageId, 'publicKey': GeneralConfigurations.publicKey}
+  data_network = {'cidr': GeneralConfigurations.cidr, 'allocationMode': GeneralConfigurations.allocationMode}
   data_volume = {'volumeSize': GeneralConfigurations.volume_size}
   data_attachment = {'device':'/dev/sdd'}
 
@@ -38,10 +38,10 @@ class CommonMethods:
     return True
 
   @classmethod
-  def wait_compute_available(cls, size, member):
+  def wait_compute_available(cls, volumeSize, member):
     for x in range(GeneralConfigurations.max_tries + 1):
       instances_available = cls.get_available_instances(member)
-      if instances_available < size:
+      if instances_available < volumeSize:
         print('  No instances available, waiting for resources')
         if(x < GeneralConfigurations.max_tries):
           time.sleep(GeneralConfigurations.sleep_time_secs)
@@ -132,41 +132,41 @@ class CommonMethods:
   @classmethod
   def get_order_by_id(cls, order_id, order_type):
     if order_type == GeneralConfigurations.type_compute:
-      return requests.get(cls.url_computes + order_id)
+      return requests.get(cls.url_computes + order_id, headers= GeneralConfigurations.json_header)
     elif order_type == GeneralConfigurations.type_network:
-      return requests.get(cls.url_networks + order_id)
+      return requests.get(cls.url_networks + order_id, headers= GeneralConfigurations.json_header)
     elif order_type == GeneralConfigurations.type_volume:
-      return requests.get(cls.url_volumes + order_id)
+      return requests.get(cls.url_volumes + order_id, headers= GeneralConfigurations.json_header)
     elif order_type == GeneralConfigurations.type_attachment:
-      return requests.get(cls.url_attachments + order_id)
+      return requests.get(cls.url_attachments + order_id, headers= GeneralConfigurations.json_header)
     elif order_type == GeneralConfigurations.type_image:
-      return requests.get(cls.url_images + order_id)
+      return requests.get(cls.url_images + order_id, headers= GeneralConfigurations.json_header)
 
   @classmethod
   def get_all_order(cls, order_type):
     if order_type == GeneralConfigurations.type_compute:
-      return requests.get(cls.url_computes + GeneralConfigurations.status_endpoint)
+      return requests.get(cls.url_computes + GeneralConfigurations.status_endpoint, headers= GeneralConfigurations.json_header)
     elif order_type == GeneralConfigurations.type_network:
-      return requests.get(cls.url_networks + GeneralConfigurations.status_endpoint)
+      return requests.get(cls.url_networks + GeneralConfigurations.status_endpoint, headers= GeneralConfigurations.json_header)
     elif order_type == GeneralConfigurations.type_volume:
-      return requests.get(cls.url_volumes + GeneralConfigurations.status_endpoint)
+      return requests.get(cls.url_volumes + GeneralConfigurations.status_endpoint, headers= GeneralConfigurations.json_header)
     elif order_type == GeneralConfigurations.type_attachment:
-      return requests.get(cls.url_attachments + GeneralConfigurations.status_endpoint)
+      return requests.get(cls.url_attachments + GeneralConfigurations.status_endpoint, headers= GeneralConfigurations.json_header)
     elif order_type == GeneralConfigurations.type_image:
-      return requests.get(cls.url_images)
+      return requests.get(cls.url_images, headers= GeneralConfigurations.json_header)
 
   #Delete functions
 
   @classmethod
   def delete_order(cls, order_id, order_type):
     if order_type == GeneralConfigurations.type_compute:
-      return requests.delete(cls.url_computes + order_id)
+      return requests.delete(cls.url_computes + order_id, headers= GeneralConfigurations.json_header)
     elif order_type == GeneralConfigurations.type_network:
-      return requests.delete(cls.url_networks + order_id)
+      return requests.delete(cls.url_networks + order_id, headers= GeneralConfigurations.json_header)
     elif order_type == GeneralConfigurations.type_volume:
-      return requests.delete(cls.url_volumes + order_id)
+      return requests.delete(cls.url_volumes + order_id, headers= GeneralConfigurations.json_header)
     elif order_type == GeneralConfigurations.type_attachment:
-      return requests.delete(cls.url_attachments + order_id)
+      return requests.delete(cls.url_attachments + order_id, headers= GeneralConfigurations.json_header)
 
   @classmethod
   def delete_multiple_orders(cls, orders_id, order_type):
