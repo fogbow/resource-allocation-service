@@ -16,6 +16,7 @@ public class CloudStackRestApiConstants {
         public static final String STATE_KEY_JSON = "state";
         public static final String CPU_NUMBER_KEY_JSON = "cpunumber";
         public static final String MEMORY_KEY_JSON = "memory";
+        public static final String TAGS_KEY_JSON = "tags";
         public static final String NIC_KEY_JSON = "nic";
         public static final String IP_ADDRESS_KEY_JSON = "ipaddress";
         public static final String LIST_SERVICE_OFFERINGS_KEY_JSON = "listserviceofferingsresponse";
@@ -38,6 +39,7 @@ public class CloudStackRestApiConstants {
         public static final String DISK_OFFERING_KEY_JSON = "diskoffering";
         public static final String DISK_OFFERINGS_KEY_JSON = "listdiskofferingsresponse";
         public static final String DISPLAY_TEXT_KEY_JSON = "displaytext";
+        public static final String TAGS_KEY_JSON = "tags";
         public static final String ID_KEY_JSON = "id";
         public static final String JOB_ID_KEY_JSON = "jobid";
         public static final String NAME_KEY_JSON = "name";
@@ -52,6 +54,7 @@ public class CloudStackRestApiConstants {
         public static final String CREATE_NETWORK_RESPONSE_KEY_JSON = "createnetworkresponse";
         public static final String NETWORK_KEY_JSON = "network";
         public static final String ID_KEY = "id";
+        public static final String TAGS_KEY_JSON = "tags";
     }
 
     public static class PublicIp {

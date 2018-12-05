@@ -38,6 +38,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     public static final String DEFAULT_VOLUME_TYPE = "ROOT";
     public static final String FOGBOW_INSTANCE_NAME = "fogbow-compute-instance-";
     public static final String DEFAULT_NETWORK_NAME = "default";
+    public static final String FOGBOW_TAG_SEPARATOR = ":";
 
     private String zoneId;
     private String expungeOnDestroy;
@@ -74,6 +75,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
 
         String serviceOfferingId = getServiceOfferingId(computeOrder, cloudStackToken);
         if (serviceOfferingId == null) {
+            LOGGER.error(Messages.Error.UNABLE_TO_COMPLETE_REQUEST);
             throw new NoAvailableResourcesException();
         }
 
@@ -178,7 +180,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         List<GetAllServiceOfferingsResponse.ServiceOffering> toRemove = new ArrayList<>();
         if (computeOrder.getRequirements() != null && computeOrder.getRequirements().size() > 0) {
             for (Map.Entry<String, String> tag : computeOrder.getRequirements().entrySet()) {
-                String concatenatedTag = tag.getKey() + ":" + tag.getValue();
+                String concatenatedTag = tag.getKey() + FOGBOW_TAG_SEPARATOR + tag.getValue();
 
                 for (GetAllServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferings) {
                     if (serviceOffering.getTags() == null) {

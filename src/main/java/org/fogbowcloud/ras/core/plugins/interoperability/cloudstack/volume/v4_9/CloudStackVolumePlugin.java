@@ -23,9 +23,7 @@ import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
 import java.io.File;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackVolumePlugin.class);
@@ -33,6 +31,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
     private static final String CLOUDSTACK_ZONE_ID_KEY = "zone_id";
     private static final int FIRST_ELEMENT_POSITION = 0;
     private static final String FOGBOW_INSTANCE_NAME = "ras-volume-";
+    private static final String FOGBOW_TAG_SEPARATOR = ":";
     private HttpRequestClientUtil client;
     private boolean diskOfferingCompatible;
     private String zoneId;
@@ -137,40 +136,69 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
 
-        String diskOfferingId = getDiskOfferingIdCompatible(volumeSize, jsonResponse);
+        GetAllDiskOfferingsResponse response = GetAllDiskOfferingsResponse.fromJson(jsonResponse);
+        List<DiskOffering> diskOfferings = response.getDiskOfferings();
+        List<DiskOffering> toRemove = new ArrayList<>();
+
+        if (volumeOrder.getRequirements() != null && volumeOrder.getRequirements().size() > 0) {
+            for (Map.Entry<String, String> tag : volumeOrder.getRequirements().entrySet()) {
+                String concatenatedTag = tag.getKey() + FOGBOW_TAG_SEPARATOR + tag.getValue();
+
+                for (DiskOffering diskOffering : diskOfferings) {
+                    if (diskOffering.getTags() == null) {
+                        toRemove.add(diskOffering);
+                        continue;
+                    }
+
+                    List<String> tags = new ArrayList<>(Arrays.asList(diskOffering.getTags().split(",")));
+                    if (!tags.contains(concatenatedTag)) {
+                        toRemove.add(diskOffering);
+                    }
+                }
+            }
+        }
+
+        diskOfferings.removeAll(toRemove);
+
+        String diskOfferingId = getDiskOfferingIdCompatible(volumeOrder.getVolumeSize(), diskOfferings);
 
         if (!isDiskOfferingCompatible()) {
-            diskOfferingId = getDiskOfferingIdCustomized(volumeSize, jsonResponse);
+            diskOfferingId = getDiskOfferingIdCustomized(diskOfferings);
         }
 
         return diskOfferingId;
     }
 
-    private String getDiskOfferingIdCustomized(int volumeSize, String jsonResponse) {
-        GetAllDiskOfferingsResponse response = GetAllDiskOfferingsResponse.fromJson(jsonResponse);
+    private String getDiskOfferingIdCustomized(List<DiskOffering> diskOfferings) {
         boolean customized;
         int size;
-        for (DiskOffering diskOffering : response.getDiskOfferings()) {
+
+        for (DiskOffering diskOffering : diskOfferings) {
             customized = diskOffering.isCustomized();
             size = diskOffering.getDiskSize();
+
             if (customized && size == 0) {
                 return diskOffering.getId();
             }
         }
+
         return null;
     }
 
-    private String getDiskOfferingIdCompatible(int volumeSize, String jsonResponse) {
-        GetAllDiskOfferingsResponse response = GetAllDiskOfferingsResponse.fromJson(jsonResponse);
+    private String getDiskOfferingIdCompatible(int volumeSize, List<DiskOffering> diskOfferings) {
         int size;
-        for (DiskOffering diskOffering : response.getDiskOfferings()) {
+
+        for (DiskOffering diskOffering : diskOfferings) {
             size = diskOffering.getDiskSize();
+
             if (size == volumeSize) {
                 this.diskOfferingCompatible = true;
                 return diskOffering.getId();
             }
         }
+
         this.diskOfferingCompatible = false;
+
         return null;
     }
 
