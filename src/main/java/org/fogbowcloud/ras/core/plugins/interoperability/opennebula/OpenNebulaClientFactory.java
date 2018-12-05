@@ -173,7 +173,32 @@ public class OpenNebulaClientFactory {
  			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_USER, user.getId(), response.getErrorMessage()));
  		}
  		return user;
-    }
+    }   
+    
+    public SecurityGroup getSecurityGroup(Client client, String securityGroupId) 
+    			throws UnauthorizedRequestException, InvalidParameterException, InstanceNotFoundException {
+		int id = 0;
+		try {
+			id = Integer.parseInt(securityGroupId);
+		} catch (Exception e) {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_INSTANCE_ID, securityGroupId));
+			throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
+		}    	
+    	
+    	SecurityGroup securityGroup = new SecurityGroup(id, client);
+ 		OneResponse response = securityGroup.info();
+ 		if (response.isError()) {
+			String message = response.getErrorMessage();
+			LOGGER.error(message);
+			// Not authorized to perform
+			if (message.contains(RESPONSE_NOT_AUTORIZED)) {
+				throw new UnauthorizedRequestException();
+			}
+			// Error getting virtual network
+			throw new InstanceNotFoundException(message);
+ 		}
+ 		return securityGroup;
+    }    
 
 	public String allocateImage(Client client, String template, Integer datastoreId) throws InvalidParameterException {
 		OneResponse response = Image.allocate(client, template, datastoreId);
@@ -240,5 +265,5 @@ public class OpenNebulaClientFactory {
 		}
 		throw new UnauthorizedRequestException();
 	}
-
+	
 }
