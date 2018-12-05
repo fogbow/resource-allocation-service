@@ -182,6 +182,7 @@ public class CloudStackComputePluginTest {
                 Mockito.eq(FAKE_TOKEN));
     }
 
+    // test case: when order has requirements, filter out non-matching service offerings
     @Test
     public void testRequestInstanceWithRequirements() throws FogbowRasException, HttpResponseException, UnsupportedEncodingException {
         // set up
@@ -313,6 +314,7 @@ public class CloudStackComputePluginTest {
                 .doGetRequest(expectedServiceOfferingsRequestUrl, FAKE_TOKEN);
     }
 
+    // test case: if no service offering is found for order with requirements, raise exception
     @Test(expected = FogbowRasException.class)
     public void testRequestInstanceNoMatchingRequirements() throws FogbowRasException, HttpResponseException {
         // set up
