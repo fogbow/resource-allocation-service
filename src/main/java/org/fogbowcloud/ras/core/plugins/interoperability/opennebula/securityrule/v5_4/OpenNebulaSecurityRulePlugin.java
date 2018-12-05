@@ -9,10 +9,13 @@ import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.orders.Order;
+import org.fogbowcloud.ras.core.models.securityrules.Direction;
 import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.SecurityRulePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
+import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5_4.CreateSecurityGroupsRequest;
+import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5_4.SecurityGroups;
 import org.opennebula.client.Client;
 import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vnet.VirtualNetwork;
@@ -35,10 +38,72 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
     @Override
     public String requestSecurityRule(SecurityRule securityRule, Order majorOrder, OpenNebulaToken localUserAttributes)
             throws FogbowRasException, UnexpectedException {
-        throw new UnsupportedOperationException();
+        
+    	Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+    	
+    	String virtualNetworkId = majorOrder.getInstanceId();
+    	VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, virtualNetworkId);
+
+		String securityGroupId = getSecurityGroupBy(virtualNetwork);		
+		SecurityGroup securityGroup = this.factory.getSecurityGroup(client, securityGroupId);
+		String securityGroupXml = securityGroup.info().getMessage();
+		
+		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(securityGroupXml);
+		
+		String template = createSecurityGroupsTemplate(securityGroupInfo, securityRule);
+		
+		// TODO finish this implementaion.
+    	
+    	throw new UnsupportedOperationException();
     }
 
-    @Override
+	private String createSecurityGroupsTemplate(SecurityGroupInfo securityGroupInfo, SecurityRule securityRule) {
+
+		String name = securityGroupInfo.getName();
+		List<Rule> rules = securityGroupInfo.getTemplate().getRules();
+		
+		String protocol = securityRule.getProtocol().toString();
+		String cidrSlice[] = securityRule.getCidr().split("[/]");
+		String ip = cidrSlice[0];
+		int size = cidrSlice[1].equals("24") ? 256 : 0; // FIXME!
+		String range = securityRule.getPortFrom() + ":" + securityRule.getPortTo();
+		String type = mapRuleType(securityRule.getDirection());
+
+		Rule rule = new Rule();
+		rule.setProtocol(protocol);
+		rule.setIp(ip);
+		rule.setSize(size);
+		rule.setRange(range);
+		rule.setType(type);
+		
+		rules.add(rule);
+		
+		CreateSecurityGroupRequest request = new CreateSecurityGroupRequest.Builder()
+				.name(name)
+				.rules(rules)
+				.build();
+		
+		String template = request.getSecurityGroup().marshalTemplate();
+		return template;
+	}
+
+	private String mapRuleType(Direction direction) {
+		String type = null;
+		switch (direction) {
+		case IN:
+			type = "inbound";
+			break;
+		case OUT:
+			type = "outbound";
+			break;
+		default:
+			// TODO Fix error message...
+			break;
+		}
+		return type;
+	}
+
+	@Override
     public List<SecurityRule> getSecurityRules(Order majorOrder, OpenNebulaToken localUserAttributes)
             throws FogbowRasException, UnexpectedException {    	
     	Client client = this.factory.createClient(localUserAttributes.getTokenValue());
@@ -76,7 +141,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
      */
 	protected String getSecurityGroupBy(VirtualNetwork virtualNetwork) {
 		String securityGroupXMLContent = virtualNetwork.xpath(TEMPLATE_VNET_SECURITY_GROUPS_PATH);
-		if (securityGroupXMLContent == null || securityGroupXMLContent.isBlank()) {
+		if (securityGroupXMLContent == null || securityGroupXMLContent.isEmpty()) {
 			return null;
 		}
 		String[] securityGroupXMLContentSlices = securityGroupXMLContent.split(OPENNEBULA_XML_ARRAY_SEPARETOR);
