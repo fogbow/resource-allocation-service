@@ -7,6 +7,7 @@ import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.exceptions.NoAvailableResourcesException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
@@ -48,6 +49,8 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
     public String requestInstance(VolumeOrder volumeOrder, CloudStackToken localUserAttributes)
             throws FogbowRasException {
         String diskOfferingId = getDiskOfferingId(volumeOrder, localUserAttributes);
+
+        if (diskOfferingId == null) throw new NoAvailableResourcesException();
 
         CreateVolumeRequest request;
         if (isDiskOfferingCompatible()) {

@@ -76,7 +76,6 @@ public class CloudStackComputePluginTest {
     public static final String TEMPLATE_ID_KEY = "templateid";
     public static final String DISK_OFFERING_ID_KEY = "diskofferingid";
     public static final String NETWORK_IDS_KEY = "networkids";
-    public static final String TAGS_KEY = "networkids";
     public static final String USER_DATA_KEY = "userdata";
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
 
