@@ -18,6 +18,7 @@ import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -36,6 +37,7 @@ public class LocalCloudConnector implements CloudConnector {
     private final VolumePlugin<Token> volumePlugin;
     private final ImagePlugin<Token> imagePlugin;
     private final SecurityRulePlugin<Token> securityRulePlugin;
+    private final GenericRequestPlugin<Token> genericRequestPlugin;
 
     public LocalCloudConnector(FederationToLocalMapperPlugin mapperPlugin, InteroperabilityPluginsHolder interoperabilityPluginsHolder) {
         this.mapperPlugin = mapperPlugin;
@@ -47,6 +49,7 @@ public class LocalCloudConnector implements CloudConnector {
         this.imagePlugin = interoperabilityPluginsHolder.getImagePlugin();
         this.publicIpPlugin = interoperabilityPluginsHolder.getPublicIpPlugin();
         this.securityRulePlugin = interoperabilityPluginsHolder.getSecurityRulePlugin();
+        this.genericRequestPlugin = interoperabilityPluginsHolder.getGenericRequestPlugin();
     }
 
     @Override
@@ -266,13 +269,10 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public String genericRequest(String method, String url, Map<String, String> headers, String body) {
-//        HttpClient a = new DefaultHttpClient();
-//        a.
-//        BasicHttpRequest request = new BasicHttpRequest(method, url);
-//        request.
-//        HttpRequest.
-        throw new UnsupportedOperationException();
+    public String genericRequest(String method, String url, Map<String, String> headers,String body,
+                                 FederationUserToken federationTokenUser) throws UnexpectedException, FogbowRasException {
+        Token token = this.mapperPlugin.map(federationTokenUser);
+        return this.genericRequestPlugin.redirectGenericRequest(method, url, headers, body, token);
     }
 
     public List<SecurityRule> getAllSecurityRules(Order majorOrder, FederationUserToken federationUserToken)

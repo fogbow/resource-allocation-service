@@ -1,5 +1,7 @@
 package org.fogbowcloud.ras.core.cloudconnector;
 
+import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.instances.Instance;
@@ -74,9 +76,10 @@ public interface CloudConnector {
      * @param url
      * @param headers
      * @param body
+     * @param federationUserToken
      * @return
      */
-    String genericRequest(String method, String url, Map<String, String> headers, String body);
+    String genericRequest(String method, String url, Map<String, String> headers, String body, FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException;
 
     /**
      * Gets all security group rules from a specific orderId (must be a publicIp or a network)
