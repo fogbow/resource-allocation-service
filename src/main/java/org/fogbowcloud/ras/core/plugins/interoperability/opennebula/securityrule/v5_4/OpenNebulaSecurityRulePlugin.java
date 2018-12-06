@@ -10,10 +10,13 @@ import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.securityrules.Direction;
+import org.fogbowcloud.ras.core.models.securityrules.EtherType;
+import org.fogbowcloud.ras.core.models.securityrules.Protocol;
 import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.SecurityRulePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
+import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.SecurityGroupInfo.Template;
 import org.opennebula.client.Client;
 import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vnet.VirtualNetwork;
@@ -106,7 +109,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
             throws FogbowRasException, UnexpectedException {    	
     	Client client = this.factory.createClient(localUserAttributes.getTokenValue());
     	
-    	// Both NetworkOrder's instanceId and PublicIdOrder's instanceId are network id in the opennebula context 
+    	// Both NetworkOrder's instanceId and PublicIdOrder's instanceId are network ids in the opennebula context 
     	String virtualNetworkId = majorOrder.getInstanceId();
     	VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, virtualNetworkId);
 
@@ -115,14 +118,21 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 		String securityGroupXml = securityGroup.info().getMessage();
 		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(securityGroupXml);
 		
-    	return convertToSecurityRules(securityGroupInfo.getTemplate().getRules());
+    	Template template = securityGroupInfo.getTemplate();
+		return convertToSecurityRules(template.getRules());
     }
 
-    // TODO finish this implementaion. Waiting for others commits with rule's object and methods 
-    private List<SecurityRule> convertToSecurityRules(List<Rule> rules) {
+    private List<SecurityRule> convertToSecurityRules(List<Rule> rules) throws FogbowRasException {
     	List<SecurityRule> securityRules = new ArrayList<SecurityRule>();
     	for (Rule rule : rules) {
-			securityRules.add(new SecurityRule());
+			Direction direction = rule.getDirection();
+			int portFrom = rule.getPortFrom();
+			int portTo = rule.getPortTo();
+			String cidr = rule.getCIDR();
+			EtherType etherType = rule.getEtherType();
+			Protocol protocol = rule.getSRProtocol();
+			
+			securityRules.add(new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol));
 		}
 		return securityRules;
 	}
@@ -139,14 +149,15 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 	protected String getSecurityGroupBy(VirtualNetwork virtualNetwork) {
 		String securityGroupXMLContent = virtualNetwork.xpath(TEMPLATE_VNET_SECURITY_GROUPS_PATH);
 		if (securityGroupXMLContent == null || securityGroupXMLContent.isEmpty()) {
+			LOGGER.warn("Security Groups int the XML Template of the VirtualNetwork is null");
 			return null;
 		}
 		String[] securityGroupXMLContentSlices = securityGroupXMLContent.split(OPENNEBULA_XML_ARRAY_SEPARETOR);
 		if (securityGroupXMLContentSlices.length < 2) {
+			LOGGER.warn("Security Groups int the XML Template of the VirtualNetwork is with wrong format");
 			return null;
 		}
-		String securityGroupId = securityGroupXMLContentSlices[SLICE_POSITION_SECURITY_GROUP];
-		return securityGroupId;
+		return securityGroupXMLContentSlices[SLICE_POSITION_SECURITY_GROUP];
 	}
 
 	// TODO fix this implementation. This one is deleting the whole security group and 
@@ -165,6 +176,6 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
             throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
         }
         SecurityGroup.delete(client, id);
-    }
+    }       
    
 }

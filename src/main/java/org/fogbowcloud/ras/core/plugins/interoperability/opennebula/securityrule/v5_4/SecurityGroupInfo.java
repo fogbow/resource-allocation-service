@@ -16,9 +16,13 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.apache.log4j.Logger;
+
 @XmlRootElement(name = SECURITY_GROUP)
 public class SecurityGroupInfo {
 
+	public static final Logger LOGGER = Logger.getLogger(SecurityGroupInfo.class);
+	
 	private String id;
 	private String name;
 	private Template template;
@@ -58,7 +62,7 @@ public class SecurityGroupInfo {
 	    	Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 	    	securityGroupInfo = (SecurityGroupInfo) unmarshaller.unmarshal(inputStream);
 	    } catch (JAXBException e) {
-	    	// TODO Fix error message...
+	    	LOGGER.error("", e);
 	    }
 	    return securityGroupInfo;
 	}
