@@ -126,7 +126,7 @@ public class OpenStackNetworkPluginTest {
         Mockito.verify(this.httpRequestClientUtil, Mockito.times(1)).doPostRequest(
                 Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP), Mockito.eq(this.defaultLocalUserAttributes),
                 Mockito.anyString());
-        Mockito.verify(this.httpRequestClientUtil, Mockito.times(2)).doPostRequest(
+        Mockito.verify(this.httpRequestClientUtil, Mockito.times(3)).doPostRequest(
                 Mockito.endsWith(OpenStackNetworkPlugin.SUFFIX_ENDPOINT_SECURITY_GROUP_RULES), Mockito.eq(this.defaultLocalUserAttributes),
                 Mockito.anyString());
     }
