@@ -2,13 +2,17 @@ package org.fogbowcloud.ras.api.parameters;
 
 import org.fogbowcloud.ras.core.models.orders.VolumeOrder;
 
+import java.util.Map;
+
 public class Volume {
     private String provider;
     private String name;
     private int volumeSize;
+    private Map<String, String> requirements;
 
     public VolumeOrder getOrder() {
         VolumeOrder order = new VolumeOrder(provider, name, volumeSize);
+        order.setRequirements(requirements);
         return order;
     }
 
@@ -22,5 +26,9 @@ public class Volume {
 
     public int getVolumeSize() {
         return volumeSize;
+    }
+
+    public Map<String, String> getRequirements() {
+        return requirements;
     }
 }
