@@ -55,6 +55,10 @@ public class Compute {
         return userData;
     }
 
+    public Map<String, String> getRequirements() {
+        return requirements;
+    }
+
     public ComputeOrder getOrder() {
         ComputeOrder order = new ComputeOrder(provider, name, vCPU, memory, disk, imageId, userData,
                 publicKey, networkIds

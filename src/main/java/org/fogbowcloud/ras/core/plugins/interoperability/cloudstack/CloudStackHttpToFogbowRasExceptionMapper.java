@@ -17,7 +17,7 @@ public class CloudStackHttpToFogbowRasExceptionMapper {
                 throw new InstanceNotFoundException(e.getMessage(), e);
             default:
                 if (e.getStatusCode() > 204) {
-                    throw new InvalidParameterException();
+                    throw new FogbowRasException(e.getMessage(), e);
                 }
         }
     }
