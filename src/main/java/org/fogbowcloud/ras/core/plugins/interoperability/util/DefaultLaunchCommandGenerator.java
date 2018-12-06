@@ -27,7 +27,6 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
     public static final String USER_DATA_LINE_BREAKER = "[[\\n]]";
     private final String BRING_UP_NETWORK_INTERFACE_SCRIPT_PATH = "bin/bring-up-network-interface";
     private final String CLOUD_CONFIG_FILE_PATH = "bin/cloud-config.cfg";
-    private final String ALLOW_ACCESS_FILE_PATH = "bin/allow-access";
     private final String sshCommonUser;
 
     public DefaultLaunchCommandGenerator() {
@@ -42,7 +41,6 @@ public class DefaultLaunchCommandGenerator implements LaunchCommandGenerator {
             // Here, we need to instantiate the FileReader, because, once we read this file, the stream goes to the end
             // of the file, preventing to read the file again.
             cloudInitUserDataBuilder.addCloudConfig(new FileReader(this.CLOUD_CONFIG_FILE_PATH));
-            cloudInitUserDataBuilder.addShellScript(new FileReader(this.ALLOW_ACCESS_FILE_PATH));
             if (order.getNetworkIds().size() > 1) {
                 cloudInitUserDataBuilder.addShellScript(new FileReader(this.BRING_UP_NETWORK_INTERFACE_SCRIPT_PATH));
             }
