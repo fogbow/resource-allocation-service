@@ -14,8 +14,6 @@ import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.SecurityRulePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
-import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5_4.CreateSecurityGroupsRequest;
-import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5_4.SecurityGroups;
 import org.opennebula.client.Client;
 import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vnet.VirtualNetwork;
@@ -115,16 +113,15 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 		String securityGroupId = getSecurityGroupBy(virtualNetwork);		
 		SecurityGroup securityGroup = this.factory.getSecurityGroup(client, securityGroupId);
 		String securityGroupXml = securityGroup.info().getMessage();
-		// TODO unmarshal. Waiting for others commits with rule's object and methods
-		List<Object> rules = new ArrayList<Object>();
+		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(securityGroupXml);
 		
-    	return convertToSecurityRules(rules);
+    	return convertToSecurityRules(securityGroupInfo.getTemplate().getRules());
     }
 
     // TODO finish this implementaion. Waiting for others commits with rule's object and methods 
-    private List<SecurityRule> convertToSecurityRules(List<Object> rules) {
+    private List<SecurityRule> convertToSecurityRules(List<Rule> rules) {
     	List<SecurityRule> securityRules = new ArrayList<SecurityRule>();
-    	for (Object rule : rules) {
+    	for (Rule rule : rules) {
 			securityRules.add(new SecurityRule());
 		}
 		return securityRules;
