@@ -35,7 +35,7 @@ public class CreateAllTypesRequest implements JsonSerializable {
             return this;
         }
 
-        public CreateAllTypesRequest build() {
+        public CreateAllTypesRequest  build() {
             return new CreateAllTypesRequest(this.projectId);
         }
     }
