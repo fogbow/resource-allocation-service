@@ -56,11 +56,11 @@ public class SpawningProcessorTest extends BaseUnitTests {
         BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
 
         LocalCloudConnector localCloudConnector = Mockito.mock(LocalCloudConnector.class);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString()))
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(localCloudConnector);
 
         this.cloudConnector = CloudConnectorFactory.getInstance()
-                .getCloudConnector(BaseUnitTests.LOCAL_MEMBER_ID);
+                .getCloudConnector(BaseUnitTests.LOCAL_MEMBER_ID, "default");
 
         this.spawningProcessor = Mockito.spy(new SpawningProcessor(BaseUnitTests.LOCAL_MEMBER_ID,
                 DefaultConfigurationConstants.SPAWNING_ORDERS_SLEEP_TIME));
@@ -303,7 +303,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         String providingMember = BaseUnitTests.LOCAL_MEMBER_ID;
 
         Order order = new ComputeOrder(federationUserToken, requestingMember,
-                providingMember, FAKE_INSTANCE_NAME, 8, 1024, 30, FAKE_IMAGE_NAME, mockUserData(), FAKE_PUBLIC_KEY, null);
+                providingMember, "default", FAKE_INSTANCE_NAME, 8, 1024, 30, FAKE_IMAGE_NAME, mockUserData(), FAKE_PUBLIC_KEY, null);
 
         return order;
     }

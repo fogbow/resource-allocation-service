@@ -22,6 +22,7 @@ public class Image {
     public static final String IMAGE_ENDPOINT = "images";
     public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
     public static final String MEMBER_ID_HEADER_KEY = "memberId";
+    public static final String CLOUD_NAME_HEADER_KEY = "cloudName";
 
     private final Logger LOGGER = Logger.getLogger(Image.class);
 
@@ -31,12 +32,14 @@ public class Image {
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
             @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
-            @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId)
+            @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId,
+            @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
+            @RequestHeader(required = false, value = CLOUD_NAME_HEADER_KEY) String cloudName)
             throws Exception {
 
         try {
             LOGGER.info(Messages.Info.RECEIVING_GET_ALL_IMAGES_REQUEST);
-            Map<String, String> imagesMap = ApplicationFacade.getInstance().getAllImages(memberId, federationTokenValue);
+            Map<String, String> imagesMap = ApplicationFacade.getInstance().getAllImages(memberId, cloudName, federationTokenValue);
             return new ResponseEntity<>(imagesMap, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
@@ -52,12 +55,14 @@ public class Image {
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
             @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
-            @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId)
+            @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId,
+            @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
+            @RequestHeader(required = false, value = CLOUD_NAME_HEADER_KEY) String cloudName)
             throws Exception {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_IMAGE_REQUEST, imageId));
-            org.fogbowcloud.ras.core.models.images.Image image = ApplicationFacade.getInstance().getImage(memberId, imageId, federationTokenValue);
+            org.fogbowcloud.ras.core.models.images.Image image = ApplicationFacade.getInstance().getImage(memberId, cloudName, imageId, federationTokenValue);
             return new ResponseEntity<>(image, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));

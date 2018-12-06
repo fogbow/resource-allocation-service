@@ -1,7 +1,9 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.openstack.volume.v2;
 
 import org.apache.http.client.HttpResponseException;
+import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.VolumeInstance;
@@ -17,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.io.File;
 import java.util.Properties;
 
 public class OpenStackVolumePluginTest {
@@ -44,8 +47,9 @@ public class OpenStackVolumePluginTest {
         PropertiesHolder propertiesHolder = PropertiesHolder.getInstance();
         Properties properties = propertiesHolder.getProperties();
         properties.put(OpenStackVolumePlugin.VOLUME_NOVAV2_URL_KEY, FAKE_STORAGE_URL);
-
-        this.openStackVolumePlugin = Mockito.spy(new OpenStackVolumePlugin());
+        String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
+                + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.openStackVolumePlugin = Mockito.spy(new OpenStackVolumePlugin(cloudConfPath));
         this.httpRequestClientUtil = Mockito.mock(HttpRequestClientUtil.class);
         this.openStackVolumePlugin.setClient(this.httpRequestClientUtil);
         this.openStackV3Token = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, 

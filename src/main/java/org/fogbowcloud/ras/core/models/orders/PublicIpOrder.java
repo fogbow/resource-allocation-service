@@ -23,13 +23,13 @@ public class PublicIpOrder extends Order {
         super(id);
     }
 
-    public PublicIpOrder(String providingMember, String computeOrderId) {
-        this(null, null, providingMember, computeOrderId);
+    public PublicIpOrder(String providingMember, String cloudName, String computeOrderId) {
+        this(null, null, providingMember, cloudName, computeOrderId);
     }
 
     public PublicIpOrder(FederationUserToken federationUserToken, String requestingMember,
-                         String providingMember, String computeOrderId) {
-        super(UUID.randomUUID().toString(), providingMember, federationUserToken, requestingMember);
+                         String providingMember, String cloudName, String computeOrderId) {
+        super(UUID.randomUUID().toString(), providingMember, cloudName, federationUserToken, requestingMember);
         this.computeOrderId = computeOrderId;
     }
 

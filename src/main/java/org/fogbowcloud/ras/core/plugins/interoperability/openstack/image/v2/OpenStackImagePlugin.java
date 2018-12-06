@@ -31,9 +31,8 @@ public class OpenStackImagePlugin implements ImagePlugin<OpenStackV3Token> {
     private Properties properties;
     private HttpRequestClientUtil client;
 
-    public OpenStackImagePlugin() throws FatalErrorException {
-        this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                SystemConstants.OPENSTACK_CONF_FILE_NAME);
+    public OpenStackImagePlugin(String confFilePath) throws FatalErrorException {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
         this.client = new HttpRequestClientUtil();
     }
 

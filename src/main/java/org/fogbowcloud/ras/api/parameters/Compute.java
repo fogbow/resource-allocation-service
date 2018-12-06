@@ -7,6 +7,7 @@ import org.fogbowcloud.ras.core.models.orders.UserData;
 
 public class Compute {
     private String provider;
+    private String cloudName;
     private String name;
     private int vCPU;
     private int memory;
@@ -18,6 +19,10 @@ public class Compute {
 
     public String getProvider() {
         return provider;
+    }
+
+    public String getCloudName() {
+        return cloudName;
     }
 
     public String getName() {
@@ -53,7 +58,7 @@ public class Compute {
     }
 
     public ComputeOrder getOrder() {
-        ComputeOrder order = new ComputeOrder(provider, name, vCPU, memory, disk, imageId, userData,
+        ComputeOrder order = new ComputeOrder(provider, cloudName, name, vCPU, memory, disk, imageId, userData,
                 publicKey, networkIds
         );
         return order;

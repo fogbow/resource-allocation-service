@@ -69,9 +69,8 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
     private String networkV2APIEndpoint;
     private String[] dnsList;
 
-    public OpenStackNetworkPlugin() throws FatalErrorException {
-        Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                SystemConstants.OPENSTACK_CONF_FILE_NAME);
+    public OpenStackNetworkPlugin(String confFilePath) throws FatalErrorException {
+        Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.networkV2APIEndpoint = properties.getProperty(NETWORK_NEUTRONV2_URL_KEY) + V2_API_ENDPOINT;
         setDNSList(properties);
         initClient();

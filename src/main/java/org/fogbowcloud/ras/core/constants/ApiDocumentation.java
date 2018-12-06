@@ -84,6 +84,11 @@ public class ApiDocumentation {
         public static final String GET_OPERATION = "Returns the version of the API.";
     }
 
+    public static class Cloud {
+        public static final String API = "Queries the names of the clouds managed by the RAS.";
+        public static final String GET_OPERATION = "Returns the names of the clouds managed by the RAS.";
+    }
+
     public static class Volume {
         public static final String API = "Manages volumes.";
         public static final String CREATE_OPERATION = "Creates a volume.";
@@ -100,7 +105,8 @@ public class ApiDocumentation {
     public static class CommonParameters {
         public static final String FEDERATION_TOKEN = "This is the token that identifies a federation user.\n" +
                                                       "It is typically created via a call to the /tokens endpoint.";
-        public static final String MEMBER_ID = "The ID of the specific provider.";
+        public static final String MEMBER_ID = "The ID of the specific target provider.";
+        public static final String CLOUD_NAME = "The name of the specific target cloud.";
     }
 
 }

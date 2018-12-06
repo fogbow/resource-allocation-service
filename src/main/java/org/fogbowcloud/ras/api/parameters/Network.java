@@ -5,18 +5,23 @@ import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 
 public class Network {
     private String provider;
+    private String cloudName;
     private String name;
     private String gateway;
     private String cidr;
     private NetworkAllocationMode allocationMode;
 
     public NetworkOrder getOrder() {
-        NetworkOrder order = new NetworkOrder(provider, name, gateway, cidr, allocationMode);
+        NetworkOrder order = new NetworkOrder(provider, cloudName, name, gateway, cidr, allocationMode);
         return order;
     }
 
     public String getProvider() {
         return provider;
+    }
+
+    public String getCloudName() {
+        return cloudName;
     }
 
     public String getName() {

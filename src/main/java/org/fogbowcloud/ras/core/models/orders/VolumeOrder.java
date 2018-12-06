@@ -25,13 +25,13 @@ public class VolumeOrder extends Order {
         super(id);
     }
 
-    public VolumeOrder(String providingMember, String name, int volumeSize) {
-        this(null, null, providingMember, name, volumeSize);
+    public VolumeOrder(String providingMember, String cloudName, String name, int volumeSize) {
+        this(null, null, providingMember, cloudName, name, volumeSize);
     }
 
     public VolumeOrder(FederationUserToken federationUserToken, String requestingMember, String providingMember,
-                       String name, int volumeSize) {
-        super(UUID.randomUUID().toString(), providingMember, federationUserToken, requestingMember);
+                       String cloudName, String name, int volumeSize) {
+        super(UUID.randomUUID().toString(), providingMember, cloudName, federationUserToken, requestingMember);
         this.name = name;
         this.volumeSize = volumeSize;
     }

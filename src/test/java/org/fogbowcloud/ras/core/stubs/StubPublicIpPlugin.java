@@ -12,6 +12,9 @@ import org.fogbowcloud.ras.core.plugins.interoperability.PublicIpPlugin;
  * Should not have a proper implementation.
  */
 public class StubPublicIpPlugin implements PublicIpPlugin {
+    public StubPublicIpPlugin(String confFilePath) {
+    }
+
     @Override
     public String requestInstance(PublicIpOrder publicIpOrder, String computeInstanceId, Token token) throws FogbowRasException, UnexpectedException {
         return null;

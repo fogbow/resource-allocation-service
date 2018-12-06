@@ -32,22 +32,24 @@ public class Main implements ApplicationRunner {
             DatabaseManager.getInstance().setRecoveryService(recoveryService);
 
             // Setting up plugins
-            PluginInstantiator instantiationInitService = PluginInstantiator.getInstance();
-            InteroperabilityPluginsHolder interoperabilityPluginsHolder = new InteroperabilityPluginsHolder(instantiationInitService);
+            AaaPluginInstantiator instantiationInitService = AaaPluginInstantiator.getInstance();
             AaaPluginsHolder aaaPluginsHolder = new AaaPluginsHolder(instantiationInitService);
 
             // Setting up controllers, application and remote facades
             String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
             AaaController aaaController = new AaaController(aaaPluginsHolder);
             OrderController orderController = new OrderController();
+            CloudListController cloudListController = new CloudListController();
             ApplicationFacade applicationFacade = ApplicationFacade.getInstance();
             RemoteFacade remoteFacade = RemoteFacade.getInstance();
             applicationFacade.setAaaController(aaaController);
             applicationFacade.setOrderController(orderController);
+            applicationFacade.setCloudListController(cloudListController);
             remoteFacade.setAaaController(aaaController);
             remoteFacade.setOrderController(orderController);
+            remoteFacade.setCloudListController(cloudListController);
 
-            // Setting up xmpp packet sender and cloud connector's factory
+            // Setting up xmpp packet sender
             String xmppJid = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_JID_KEY);
             String xmppPassword = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_PASSWORD_KEY);
             String xmppServerIp = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_SERVER_IP_KEY);
@@ -56,15 +58,10 @@ public class Main implements ApplicationRunner {
             long xmppTimeout =
                     Long.parseLong(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_TIMEOUT_KEY,
                             DefaultConfigurationConstants.XMPP_TIMEOUT));
-            LOGGER.info("XMPP c2c port: " + xmppServerPort);
             XmppComponentManager xmppComponentManager = new XmppComponentManager(xmppJid, xmppPassword, xmppServerIp,
                     xmppServerPort, xmppTimeout);
             xmppComponentManager.connect();
             PacketSenderHolder.init(xmppComponentManager);
-            CloudConnectorFactory cloudConnectorFactory = CloudConnectorFactory.getInstance();
-            cloudConnectorFactory.setLocalMemberId(localMemberId);
-            cloudConnectorFactory.setMapperPlugin(aaaPluginsHolder.getFederationToLocalMapperPlugin());
-            cloudConnectorFactory.setInteroperabilityPluginsHolder(interoperabilityPluginsHolder);
 
             // Setting up order processors
             ProcessorsThreadController processorsThreadController = new ProcessorsThreadController(localMemberId);

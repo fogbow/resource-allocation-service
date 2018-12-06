@@ -1,7 +1,9 @@
-package org.fogbowcloud.ras.core.plugins.aaa.mapper.all2one;
+package org.fogbowcloud.ras.core.plugins.interoperability.mapper.all2one;
 
+import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
@@ -15,6 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,13 +41,18 @@ public class CloudStackAllToOneMapperTest {
     @Before
     public void setUp() {
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
-        this.ldapTokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
+        String path = HomeDir.getPath();
+        this.ldapTokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin(path + "ldap-token-generator-plugin.conf"));
         this.ldapIdentityPlugin = new LdapIdentityPlugin();
         this.cloudStackTokenGenerator = Mockito.spy(new CloudStackTokenGeneratorPlugin());
-        GenericAllToOneFederationToLocalMapper genericMapper = new
-                GenericAllToOneFederationToLocalMapper(cloudStackTokenGenerator, new CloudStackIdentityPlugin(),
-                "cloudstack-mapper.conf");
-        this.mapper = new CloudStackAllToOneMapper();
+        String cloudConfPath = path + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
+                + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        String mapperConfPath = path + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
+                + "default" + File.separator + SystemConstants.MAPPER_CONF_FILE_NAME;
+        GenericAllToOneFederationToLocalMapper genericMapper =
+                new GenericAllToOneFederationToLocalMapper(cloudStackTokenGenerator,
+                        new CloudStackIdentityPlugin(), mapperConfPath);
+        this.mapper = new CloudStackAllToOneMapper(cloudConfPath, mapperConfPath);
         this.mapper.setGenericMapper(genericMapper);
     }
 

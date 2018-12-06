@@ -11,7 +11,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.AttachmentPlugin;
  */
 public class StubAttachmentPlugin implements AttachmentPlugin<Token> {
 
-    public StubAttachmentPlugin() {
+    public StubAttachmentPlugin(String confFilePath) {
     }
 
     @Override

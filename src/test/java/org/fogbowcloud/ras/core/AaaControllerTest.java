@@ -7,7 +7,7 @@ import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.authorization.AuthorizationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
-import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.mapper.FederationToLocalMapperPlugin;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -33,7 +33,6 @@ public class AaaControllerTest {
 
         Mockito.when(this.aaaPluginsHolderMock.getAuthorizationPlugin()).thenReturn(this.authorizationPluginMock);
         Mockito.when(this.aaaPluginsHolderMock.getAuthenticationPlugin()).thenReturn(this.authenticationPluginMock);
-        Mockito.when(this.aaaPluginsHolderMock.getFederationToLocalMapperPlugin()).thenReturn(this.federationToLocalMapperPluginMock);
         Mockito.when(this.aaaPluginsHolderMock.getFederationIdentityPlugin()).thenReturn(this.federationIdentityPluginMock);
         this.aaaController = new AaaController(this.aaaPluginsHolderMock);
     }
@@ -73,12 +72,12 @@ public class AaaControllerTest {
     public void testAuthorizeOnInstanceType() throws UnauthorizedRequestException {
         //set up
         Mockito.when(this.authorizationPluginMock.isAuthorized(
-                Mockito.any(FederationUserToken.class),
+                Mockito.any(FederationUserToken.class), Mockito.anyString(),
                 Mockito.any(Operation.class),
                 Mockito.any(ResourceType.class))).thenReturn(true);
 
         //exercise/verify
-        this.aaaController.authorize(Mockito.any(FederationUserToken.class),
+        this.aaaController.authorize(Mockito.anyString(), Mockito.any(FederationUserToken.class),
                 Mockito.any(Operation.class), Mockito.any(ResourceType.class));
     }
 
@@ -87,12 +86,12 @@ public class AaaControllerTest {
     public void testAuthorize() throws FogbowRasException {
         //set up
         Mockito.when(this.authorizationPluginMock.isAuthorized(
-                Mockito.any(FederationUserToken.class),
+                Mockito.any(FederationUserToken.class), Mockito.anyString(),
                 Mockito.any(Operation.class),
                 Mockito.any(ResourceType.class))).thenReturn(true);
 
         //exercise/verify
-        this.aaaController.authorize(Mockito.any(FederationUserToken.class),
+        this.aaaController.authorize(Mockito.anyString(), Mockito.any(FederationUserToken.class),
                 Mockito.any(Operation.class), Mockito.any(ResourceType.class));
     }
 

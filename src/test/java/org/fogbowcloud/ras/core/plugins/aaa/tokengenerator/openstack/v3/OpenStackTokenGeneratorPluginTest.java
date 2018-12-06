@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
@@ -17,8 +18,10 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicStatusLine;
+import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
@@ -44,7 +47,9 @@ public class OpenStackTokenGeneratorPluginTest {
     public void setUp() {
         this.client = Mockito.spy(HttpClient.class);
         this.httpRequestClientUtil = Mockito.spy(new HttpRequestClientUtil(this.client));
-        this.keystoneV3TokenGenerator = Mockito.spy(new OpenStackTokenGeneratorPlugin());
+        String confFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
+                + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.keystoneV3TokenGenerator = Mockito.spy(new OpenStackTokenGeneratorPlugin(confFilePath));
         this.keystoneV3TokenGenerator.setClient(this.httpRequestClientUtil);
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
     }

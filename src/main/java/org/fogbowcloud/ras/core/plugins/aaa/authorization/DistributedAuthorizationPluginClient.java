@@ -3,7 +3,6 @@ package org.fogbowcloud.ras.core.plugins.aaa.authorization;
 import org.fogbowcloud.ras.core.constants.Operation;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.ras.core.plugins.aaa.authorization.AuthorizationPlugin;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -19,8 +18,8 @@ public abstract class DistributedAuthorizationPluginClient implements Authorizat
     }
 
     @Override
-    public boolean isAuthorized(FederationUserToken federationUserToken, Operation operation, ResourceType type) {
-        String endpoint = this.serverUrl + AUTH_ENDPOINT + "/" + federationUserToken.getTokenProvider() + "/" +
+    public boolean isAuthorized(FederationUserToken federationUserToken, String cloudName, Operation operation, ResourceType type) {
+        String endpoint = this.serverUrl + AUTH_ENDPOINT + "/" + cloudName + "/" + federationUserToken.getTokenProvider() + "/" +
                 federationUserToken.getUserId() + "/" + type + "/" + operation;
         StringBuffer content = null;
 

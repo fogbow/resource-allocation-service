@@ -1,7 +1,7 @@
 package org.fogbowcloud.ras.core.cloudconnector;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.InteroperabilityPluginsHolder;
+import org.fogbowcloud.ras.core.InteroperabilityPluginInstantiator;
 import org.fogbowcloud.ras.core.SharedOrderHolders;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
@@ -15,7 +15,7 @@ import org.fogbowcloud.ras.core.models.orders.*;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
-import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
 
 import java.util.HashMap;
@@ -26,24 +26,25 @@ import java.util.Map;
 public class LocalCloudConnector implements CloudConnector {
     private static final Logger LOGGER = Logger.getLogger(LocalCloudConnector.class);
 
-    private final FederationToLocalMapperPlugin mapperPlugin;
-    private final PublicIpPlugin<Token> publicIpPlugin;
-    private final AttachmentPlugin<Token> attachmentPlugin;
-    private final ComputePlugin<Token> computePlugin;
-    private final ComputeQuotaPlugin computeQuotaPlugin;
-    private final NetworkPlugin<Token> networkPlugin;
-    private final VolumePlugin<Token> volumePlugin;
-    private final ImagePlugin<Token> imagePlugin;
+    private FederationToLocalMapperPlugin mapperPlugin;
+    private PublicIpPlugin publicIpPlugin;
+    private AttachmentPlugin attachmentPlugin;
+    private ComputePlugin computePlugin;
+    private ComputeQuotaPlugin computeQuotaPlugin;
+    private NetworkPlugin networkPlugin;
+    private VolumePlugin volumePlugin;
+    private ImagePlugin imagePlugin;
 
-    public LocalCloudConnector(FederationToLocalMapperPlugin mapperPlugin, InteroperabilityPluginsHolder interoperabilityPluginsHolder) {
-        this.mapperPlugin = mapperPlugin;
-        this.attachmentPlugin = interoperabilityPluginsHolder.getAttachmentPlugin();
-        this.computePlugin = interoperabilityPluginsHolder.getComputePlugin();
-        this.computeQuotaPlugin = interoperabilityPluginsHolder.getComputeQuotaPlugin();
-        this.networkPlugin = interoperabilityPluginsHolder.getNetworkPlugin();
-        this.volumePlugin = interoperabilityPluginsHolder.getVolumePlugin();
-        this.imagePlugin = interoperabilityPluginsHolder.getImagePlugin();
-        this.publicIpPlugin = interoperabilityPluginsHolder.getPublicIpPlugin();
+    public LocalCloudConnector(String cloudName) {
+        InteroperabilityPluginInstantiator instantiator = new InteroperabilityPluginInstantiator(cloudName);
+        this.mapperPlugin = instantiator.getLocalUserCredentialsMapperPlugin();
+        this.attachmentPlugin = instantiator.getAttachmentPlugin();
+        this.computePlugin = instantiator.getComputePlugin();
+        this.computeQuotaPlugin = instantiator.getComputeQuotaPlugin();
+        this.networkPlugin = instantiator.getNetworkPlugin();
+        this.volumePlugin = instantiator.getVolumePlugin();
+        this.imagePlugin = instantiator.getImagePlugin();
+        this.publicIpPlugin = instantiator.getPublicIpPlugin();
     }
 
     @Override
@@ -401,5 +402,38 @@ public class LocalCloudConnector implements CloudConnector {
             instanceState = InstanceState.FAILED;
         }
         return instanceState;
+    }
+
+    // Used only in tests
+    protected void setMapperPlugin(FederationToLocalMapperPlugin mapperPlugin) {
+        this.mapperPlugin = mapperPlugin;
+    }
+
+    protected void setPublicIpPlugin(PublicIpPlugin publicIpPlugin) {
+        this.publicIpPlugin = publicIpPlugin;
+    }
+
+    protected void setAttachmentPlugin(AttachmentPlugin attachmentPlugin) {
+        this.attachmentPlugin = attachmentPlugin;
+    }
+
+    protected void setComputePlugin(ComputePlugin computePlugin) {
+        this.computePlugin = computePlugin;
+    }
+
+    protected void setComputeQuotaPlugin(ComputeQuotaPlugin computeQuotaPlugin) {
+        this.computeQuotaPlugin = computeQuotaPlugin;
+    }
+
+    protected void setNetworkPlugin(NetworkPlugin networkPlugin) {
+        this.networkPlugin = networkPlugin;
+    }
+
+    protected void setVolumePlugin(VolumePlugin volumePlugin) {
+        this.volumePlugin = volumePlugin;
+    }
+
+    protected void setImagePlugin(ImagePlugin imagePlugin) {
+        this.imagePlugin = imagePlugin;
     }
 }

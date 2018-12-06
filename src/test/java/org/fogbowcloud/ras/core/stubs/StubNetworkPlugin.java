@@ -11,7 +11,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.NetworkPlugin;
  */
 public class StubNetworkPlugin implements NetworkPlugin<Token> {
 
-    public StubNetworkPlugin() {
+    public StubNetworkPlugin(String confFilePath) {
     }
 
     @Override

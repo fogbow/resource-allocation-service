@@ -17,19 +17,21 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
     private static final Logger LOGGER = Logger.getLogger(RemoteGetUserQuotaRequest.class);
 
     private String provider;
+    private String cloudName;
     private FederationUserToken federationUserToken;
     private ResourceType resourceType;
 
-    public RemoteGetUserQuotaRequest(String provider, FederationUserToken federationUserToken,
+    public RemoteGetUserQuotaRequest(String provider, String cloudName, FederationUserToken federationUserToken,
                                      ResourceType resourceType) {
         this.provider = provider;
+        this.cloudName = cloudName;
         this.federationUserToken = federationUserToken;
         this.resourceType = resourceType;
     }
 
     @Override
     public Quota send() throws Exception {
-        IQ iq = marshal(this.provider, this.federationUserToken, this.resourceType);
+        IQ iq = marshal(this.provider, this.cloudName, this.federationUserToken, this.resourceType);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
@@ -37,7 +39,7 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
         return quota;
     }
 
-    public static IQ marshal(String provider, FederationUserToken federationUserToken, ResourceType resourceType) {
+    public static IQ marshal(String provider, String cloudName, FederationUserToken federationUserToken, ResourceType resourceType) {
         IQ iq = new IQ(IQ.Type.get);
         iq.setTo(provider);
 
@@ -46,6 +48,9 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
 
         Element memberIdElement = queryElement.addElement(IqElement.MEMBER_ID.toString());
         memberIdElement.setText(new Gson().toJson(provider));
+
+        Element cloudNameElement = queryElement.addElement(IqElement.CLOUD_NAME.toString());
+        cloudNameElement.setText(cloudName);
 
         Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
         userElement.setText(new Gson().toJson(federationUserToken));

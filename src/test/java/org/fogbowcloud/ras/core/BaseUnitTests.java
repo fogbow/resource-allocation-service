@@ -86,7 +86,7 @@ public class BaseUnitTests {
                         federationUserToken,
                         requestingMember,
                         providingMember,
-                        instanceName,
+                        "default", instanceName,
                         8,
                         1024,
                         30,

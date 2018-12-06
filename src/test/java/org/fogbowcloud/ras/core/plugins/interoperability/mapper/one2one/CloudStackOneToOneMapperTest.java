@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.plugins.aaa.mapper.one2one;
+package org.fogbowcloud.ras.core.plugins.interoperability.mapper.one2one;
 
 import org.apache.http.client.HttpResponseException;
 import org.fogbowcloud.ras.core.HomeDir;
@@ -66,7 +66,7 @@ public class CloudStackOneToOneMapperTest {
     public void setUp() {
         PowerMockito.mockStatic(HttpRequestUtil.class);
 
-        this.mapper = new CloudStackOneToOneMapper();
+        this.mapper = new CloudStackOneToOneMapper("", "");
         this.httpRequestClientUtil = Mockito.mock(HttpRequestClientUtil.class);
         this.cloudStackTokenGeneratorPlugin = Mockito.spy(new CloudStackTokenGeneratorPlugin());
         this.cloudStackTokenGeneratorPlugin.setClient(this.httpRequestClientUtil);

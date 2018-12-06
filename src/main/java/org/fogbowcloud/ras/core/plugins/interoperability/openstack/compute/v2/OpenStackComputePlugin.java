@@ -66,9 +66,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     private HttpRequestClientUtil client;
     private LaunchCommandGenerator launchCommandGenerator;
 
-    public OpenStackComputePlugin() throws FatalErrorException {
-        this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                SystemConstants.OPENSTACK_CONF_FILE_NAME);
+    public OpenStackComputePlugin(String confFilePath) throws FatalErrorException {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
         instantiateOtherAttributes();
     }
@@ -180,7 +179,6 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     }
 
     private void initClient() {
-        HttpRequestUtil.init();
         this.client = new HttpRequestClientUtil();
     }
 

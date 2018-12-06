@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.plugins.aaa.mapper.one2one;
+package org.fogbowcloud.ras.core.plugins.interoperability.mapper.one2one;
 
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
@@ -6,7 +6,7 @@ import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
-import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.mapper.FederationToLocalMapperPlugin;
 
 public class GenericOneToOneFederationToLocalMapper implements FederationToLocalMapperPlugin {
     private FederationToLocalMapperPlugin remoteMapper;

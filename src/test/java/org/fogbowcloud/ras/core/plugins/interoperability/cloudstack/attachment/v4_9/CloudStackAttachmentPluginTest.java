@@ -104,7 +104,7 @@ public class CloudStackAttachmentPluginTest {
         Mockito.when(this.client.doGetRequest(request, this.token)).thenReturn(response);
 
         // exercise
-        AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER, FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
+        AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER, "default", FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
 
         String volumeId = this.plugin.requestInstance(order, this.token);
 
@@ -137,7 +137,7 @@ public class CloudStackAttachmentPluginTest {
 
         try {
             // exercise
-            AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER, FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
+            AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER, "default", FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
 
             this.plugin.requestInstance(order, this.token);
         } finally {
@@ -168,7 +168,7 @@ public class CloudStackAttachmentPluginTest {
 
         try {
             // exercise
-            AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER, FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
+            AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER, "default", FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
 
             this.plugin.requestInstance(order, this.token);
         } finally {
@@ -199,7 +199,7 @@ public class CloudStackAttachmentPluginTest {
 
         try {
             // exercise
-            AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER, FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
+            AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER, "default", FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
 
             this.plugin.requestInstance(order, this.token);
         } finally {
@@ -230,7 +230,7 @@ public class CloudStackAttachmentPluginTest {
 
         try {
             // exercise
-            AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER, FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
+            AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER, "default", FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
 
             this.plugin.requestInstance(order, this.token);
         } finally {
@@ -269,7 +269,7 @@ public class CloudStackAttachmentPluginTest {
         Mockito.when(this.client.doGetRequest(request, this.token)).thenReturn(response);
 
         // exercise
-        AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER, FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
+        AttachmentOrder order = new AttachmentOrder(FAKE_MEMBER, "default", FAKE_VIRTUAL_MACHINE_ID, FAKE_VOLUME_ID, null);
 
         this.plugin.requestInstance(order, this.token);
 

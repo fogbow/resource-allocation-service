@@ -1,8 +1,11 @@
 package org.fogbowcloud.ras.core.plugins.aaa.identity.openstack.v3;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.OpenStackTokenGeneratorPlugin;
 import org.junit.Assert;
@@ -24,7 +27,9 @@ public class OpenStackIdentityPluginTest {
     @Before
     public void setUp() {
         this.identityPlugin = new OpenStackIdentityPlugin();
-        this.tokenGenerator = Mockito.spy(new OpenStackTokenGeneratorPlugin());
+        String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
+                + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.tokenGenerator = Mockito.spy(new OpenStackTokenGeneratorPlugin(cloudConfPath));
     }
 
     // TODO check this test !!!

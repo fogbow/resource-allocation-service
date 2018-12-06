@@ -3,6 +3,8 @@ package org.fogbowcloud.ras.core.plugins.interoperability.openstack.image.v2;
 import com.google.gson.Gson;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.http.client.HttpResponseException;
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnauthorizedRequestException;
@@ -16,6 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.io.File;
 import java.util.*;
 
 public class OpenStackImagePluginTest {
@@ -39,7 +42,9 @@ public class OpenStackImagePluginTest {
 
     @Before
     public void setUp() throws InvalidParameterException {
-        this.plugin = new OpenStackImagePlugin();
+        String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
+                + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.plugin = new OpenStackImagePlugin(cloudConfPath);
         this.client = Mockito.mock(HttpRequestClientUtil.class);
         this.properties = Mockito.mock(Properties.class);
         this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, null);

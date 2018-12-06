@@ -28,6 +28,8 @@ public abstract class Order implements Serializable {
     @Column
     private String provider;
     @Column
+    private String cloudName;
+    @Column
     private String instanceId;
     @Column
     private InstanceState cachedInstanceState;
@@ -39,13 +41,14 @@ public abstract class Order implements Serializable {
         this.id = id;
     }
 
-    public Order(String id, String provider) {
+    public Order(String id, String provider, String cloudName) {
         this(id);
         this.provider = provider;
+        this.cloudName = cloudName;
     }
 
-    public Order(String id, String provider, FederationUserToken federationUserToken, String requester) {
-        this(id, provider);
+    public Order(String id, String provider, String cloudName, FederationUserToken federationUserToken, String requester) {
+        this(id, provider, cloudName);
         this.federationUserToken = federationUserToken;
         this.requester = requester;
     }
@@ -94,12 +97,21 @@ public abstract class Order implements Serializable {
         this.requester = requester;
     }
 
+    // When the provider is not set, then the request is assumed to be local, i.e. provider and request are the same.
     public String getProvider() {
         return this.provider;
     }
 
     public void setProvider(String provider) {
         this.provider = provider;
+    }
+
+    public String getCloudName() {
+        return this.cloudName;
+    }
+
+    public void setCloudName(String cloudName) {
+        this.cloudName = cloudName;
     }
 
     public String getInstanceId() {

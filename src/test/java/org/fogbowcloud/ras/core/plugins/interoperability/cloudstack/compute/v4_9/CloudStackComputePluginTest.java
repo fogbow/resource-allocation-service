@@ -168,7 +168,7 @@ public class CloudStackComputePluginTest {
         Mockito.when(this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN))).thenReturn(computeResponse);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
@@ -197,7 +197,7 @@ public class CloudStackComputePluginTest {
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
@@ -230,7 +230,7 @@ public class CloudStackComputePluginTest {
                 .thenThrow(FogbowRasException.class);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
@@ -270,7 +270,7 @@ public class CloudStackComputePluginTest {
                 .thenReturn(serviceOfferingResponse);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
@@ -314,7 +314,7 @@ public class CloudStackComputePluginTest {
                 .thenThrow(FogbowRasException.class);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
@@ -381,7 +381,7 @@ public class CloudStackComputePluginTest {
         Mockito.when(this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN))).thenReturn(computeResponse);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
@@ -451,7 +451,7 @@ public class CloudStackComputePluginTest {
                 .thenThrow(new HttpResponseException(503, "service unavailable"));
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);

@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.core.plugins.aaa.identity.ldap;
 
+import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
@@ -61,7 +62,8 @@ public class LdapIdentityPluginTest {
     @Test
     public void testCreateToken() throws Exception {
         //set up
-        LdapTokenGeneratorPlugin tokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
+        String path = HomeDir.getPath();
+        LdapTokenGeneratorPlugin tokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin(path + "ldap-token-generator-plugin.conf"));
         Mockito.doReturn(FAKE_NAME).when(tokenGenerator).ldapAuthenticate(Mockito.anyString(), Mockito.anyString());       
 
 		PowerMockito.mockStatic(RSAUtil.class);

@@ -1,5 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.openstack.quota.v2;
 
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -10,6 +12,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import java.io.File;
 
 public class OpenStackComputeQuotaPluginTest {
 
@@ -33,7 +37,9 @@ public class OpenStackComputeQuotaPluginTest {
 
     @Before
     public void setUp() throws InvalidParameterException {
-        this.plugin = Mockito.spy(new OpenStackComputeQuotaPlugin());
+        String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
+                + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.plugin = Mockito.spy(new OpenStackComputeQuotaPlugin(cloudConfPath));
 
         this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, null);
     }

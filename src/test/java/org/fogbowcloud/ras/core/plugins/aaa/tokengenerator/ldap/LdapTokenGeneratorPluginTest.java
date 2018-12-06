@@ -3,6 +3,7 @@ package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
@@ -44,8 +45,8 @@ public class LdapTokenGeneratorPluginTest {
     	PowerMockito.mockStatic(RASAuthenticationHolder.class);
     	this.genericSignatureAuthenticationHolder = Mockito.spy(new RASAuthenticationHolder());
     	BDDMockito.given(RASAuthenticationHolder.getInstance()).willReturn(this.genericSignatureAuthenticationHolder);
-    	
-        this.ldapTokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
+    	String path = HomeDir.getPath();
+        this.ldapTokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin(path + "ldap-token-generator-plugin.conf"));
         this.ldapAuthenticationPlugin = new LdapAuthenticationPlugin();
         this.ldapIdentityPlugin = new LdapIdentityPlugin();
         this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);        

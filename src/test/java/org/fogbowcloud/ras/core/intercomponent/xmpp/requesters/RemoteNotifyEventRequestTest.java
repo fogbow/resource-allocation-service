@@ -33,7 +33,7 @@ public class RemoteNotifyEventRequestTest {
 
     @Before
     public void setUp() {
-        this.order = new ComputeOrder(null, this.requestingMember, this.providingMember, "hostName", 10, 20, 30, "imageid", null,
+        this.order = new ComputeOrder(null, this.requestingMember, this.providingMember, "default", "hostName", 10, 20, 30, "imageid", null,
                 "publicKey", null);
         this.remoteNotifyEventRequest = new RemoteNotifyEventRequest(this.order, this.event);
         this.packetSender = Mockito.mock(PacketSender.class);

@@ -36,13 +36,13 @@ public class AttachmentOrder extends Order {
         super(id);
     }
 
-    public AttachmentOrder(String providingMember, String computeId, String volumeId, String device) {
-        this(null, null, providingMember, computeId, volumeId, device);
+    public AttachmentOrder(String providingMember, String cloudName, String computeId, String volumeId, String device) {
+        this(null, null, providingMember, cloudName, computeId, volumeId, device);
     }
 
     public AttachmentOrder(FederationUserToken federationUserToken, String requestingMember,
-                           String providingMember, String computeId, String volumeId, String device) {
-        super(UUID.randomUUID().toString(), providingMember, federationUserToken, requestingMember);
+                           String providingMember, String cloudName, String computeId, String volumeId, String device) {
+        super(UUID.randomUUID().toString(), providingMember, cloudName, federationUserToken, requestingMember);
         this.computeId = computeId;
         this.volumeId = volumeId;
         this.device = device;

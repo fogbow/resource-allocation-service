@@ -11,7 +11,6 @@ import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationHolder;
@@ -53,7 +52,7 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
         HttpRequestClientUtil.Response jsonResponse = null;
         try {
             // NOTE(pauloewerton): since all cloudstack requests params are passed via url args, we do not need to
-            // send allocationAllowableValues valid json body in the post request
+            // send a valid json body in the post request
             jsonResponse = this.client.doPostRequest(request.getUriBuilder().toString(), "data");
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
@@ -86,7 +85,7 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
         String jsonResponse = null;
         try {
-            // NOTE(pauloewerton): passing allocationAllowableValues placeholder as there is no need to pass allocationAllowableValues valid token in this request
+            // NOTE(pauloewerton): passing a placeholder as there is no need to pass a valid token in this request
             jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), new Token("CloudStackTokenValue"));
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
@@ -98,7 +97,7 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
             // NOTE(pauloewerton): considering only one account/user per request
             ListAccountsResponse.User user = response.getAccounts().get(0).getUsers().get(0);
 
-            // NOTE(pauloewerton): keeping allocationAllowableValues colon as separator as expected by the other cloudstack plugins
+            // NOTE(pauloewerton): keeping a colon as separator as expected by the other cloudstack plugins
             String tokenValue = user.getApiKey() + CLOUDSTACK_TOKEN_VALUE_SEPARATOR + user.getSecretKey();
             String userId = user.getId();
             String firstName = user.getFirstName();

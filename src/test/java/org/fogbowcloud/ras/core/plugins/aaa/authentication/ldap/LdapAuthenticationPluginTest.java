@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.models.tokens.LdapToken;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.ldap.LdapIdentityPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap.LdapTokenGeneratorPlugin;
@@ -42,7 +43,8 @@ public class LdapAuthenticationPluginTest {
     public void testGetTokenExpiredTokenValue() throws Exception {
         //set up
         LdapIdentityPlugin identityPlugin = Mockito.spy(new LdapIdentityPlugin());
-        LdapTokenGeneratorPlugin tokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
+        String path = HomeDir.getPath();
+        LdapTokenGeneratorPlugin tokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin(path + "ldap-token-generator-plugin.conf"));
         Mockito.doReturn(this.name).when(tokenGenerator).ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
 
         //exercise
@@ -63,7 +65,8 @@ public class LdapAuthenticationPluginTest {
     public void testGetTokenInvalidTokenValue() throws Exception {
         //set up
         LdapIdentityPlugin identityPlugin = Mockito.spy(new LdapIdentityPlugin());
-        LdapTokenGeneratorPlugin tokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
+        String path = HomeDir.getPath();
+        LdapTokenGeneratorPlugin tokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin(path + "ldap-token-generator-plugin.conf"));
         Mockito.doReturn(this.name).when(tokenGenerator).ldapAuthenticate(Mockito.anyString(), Mockito.anyString());
 
         //exercise
