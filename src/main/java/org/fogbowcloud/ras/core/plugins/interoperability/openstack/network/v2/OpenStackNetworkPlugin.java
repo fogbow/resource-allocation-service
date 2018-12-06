@@ -60,8 +60,8 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
     // security group properties
     protected static final String INGRESS_DIRECTION = "ingress";
     protected static final String TCP_PROTOCOL = "tcp";
+    protected static final String UDP_PROTOCOL = "udp";
     protected static final String ICMP_PROTOCOL = "icmp";
-    protected static final int SSH_PORT = 22;
 
     protected static final String SECURITY_GROUP_PREFIX = "ras-sg-pn-";
 
@@ -202,25 +202,26 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
                 .build();
     }
 
-    private CreateSecurityGroupRuleRequest createSshRuleRequest(String remoteIpPrefix, String securityGroupId) {
+    private CreateSecurityGroupRuleRequest createAllTcpRuleRequest(String remoteIpPrefix, String securityGroupId,
+                                                                   String protocol) {
         return new CreateSecurityGroupRuleRequest.Builder()
                 .direction(INGRESS_DIRECTION)
                 .securityGroupId(securityGroupId)
                 .remoteIpPrefix(remoteIpPrefix)
-                .protocol(TCP_PROTOCOL)
-                .minPort(SSH_PORT)
-                .maxPort(SSH_PORT)
+                .protocol(protocol)
                 .build();
     }
 
     private void createSecurityGroupRules(NetworkOrder order, OpenStackV3Token openStackV3Token, String networkId, String securityGroupId)
             throws UnexpectedException, FogbowRasException {
         try {
-            CreateSecurityGroupRuleRequest sshRuleRequest = createSshRuleRequest(order.getCidr(), securityGroupId);
+            CreateSecurityGroupRuleRequest allTcp = createAllTcpRuleRequest(order.getCidr(), securityGroupId, TCP_PROTOCOL);
+            CreateSecurityGroupRuleRequest allUdp = createAllTcpRuleRequest(order.getCidr(), securityGroupId, UDP_PROTOCOL);
             CreateSecurityGroupRuleRequest icmpRuleRequest = createIcmpRuleRequest(order.getCidr(), securityGroupId);
 
             String endpoint = this.networkV2APIEndpoint + SUFFIX_ENDPOINT_SECURITY_GROUP_RULES;
-            this.client.doPostRequest(endpoint, openStackV3Token, sshRuleRequest.toJson());
+            this.client.doPostRequest(endpoint, openStackV3Token, allTcp.toJson());
+            this.client.doPostRequest(endpoint, openStackV3Token, allUdp.toJson());
             this.client.doPostRequest(endpoint, openStackV3Token, icmpRuleRequest.toJson());
         } catch (HttpResponseException e) {
             removeNetwork(openStackV3Token, networkId);
