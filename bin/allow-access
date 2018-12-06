@@ -1,0 +1,3 @@
+#!/bin/bash
+
+echo #TOKEN_USER_SSH_PUBLIC_KEY# >> /home/#TOKEN_SSH_USER#/.ssh/authorized_keys
