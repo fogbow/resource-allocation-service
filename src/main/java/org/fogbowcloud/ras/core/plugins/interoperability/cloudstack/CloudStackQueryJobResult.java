@@ -22,10 +22,10 @@ public class CloudStackQueryJobResult {
                 .sign(queryAsyncJobResultRequest.getUriBuilder(), cloudStackToken.getTokenValue());
 
         String jsonResponse = null;
+        String requestUrl = queryAsyncJobResultRequest.getUriBuilder().toString();
+
         try {
-            jsonResponse = client
-                    .doGetRequest(queryAsyncJobResultRequest.getUriBuilder().toString(),
-                            cloudStackToken);
+            jsonResponse = client.doGetRequest(requestUrl, cloudStackToken);
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }

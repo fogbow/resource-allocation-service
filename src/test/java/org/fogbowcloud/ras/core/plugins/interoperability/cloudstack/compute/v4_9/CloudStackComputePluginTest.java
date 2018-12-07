@@ -651,7 +651,6 @@ public class CloudStackComputePluginTest {
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(expectedComputeRequestUrl, FAKE_TOKEN);
     }
 
-
     private String getBaseEndpointFromCloudStackConf() {
         String filePath = HomeDir.getPath() + File.separator
                 + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;

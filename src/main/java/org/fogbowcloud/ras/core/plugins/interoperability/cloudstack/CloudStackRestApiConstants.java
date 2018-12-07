@@ -51,7 +51,11 @@ public class CloudStackRestApiConstants {
         public static final String NETWORKS_KEY_JSON = "listnetworksresponse";
         public static final String CREATE_NETWORK_RESPONSE_KEY_JSON = "createnetworkresponse";
         public static final String NETWORK_KEY_JSON = "network";
-        public static final String ID_KEY = "id";
+        public static final String ID_KEY_JSON = "id";
+        public static final String SECURITY_GROUPS_ENABLED_KEY_JSON = "securitygroupsenabled";
+        public static final String NETWORK_TYPE_KEY_JSON = "networktype";
+        public static final String LIST_ZONES_RESPONSE_KEY_JSON = "listzonesresponse";
+
     }
 
     public static class PublicIp {
@@ -64,6 +68,7 @@ public class CloudStackRestApiConstants {
         public static final String QUERY_ASYNC_JOB_RESULT_KEY_JSON = "queryasyncjobresultresponse";
 
         public static final String CREATE_FIREWALL_RULE_RESPONSE = "createfirewallruleresponse";
+        public static final String DELETE_FIREWALL_RULE_RESPOSNE = "deletefirewallruleresponse";
 
         // TODO confirm this values !
         public static final String VM_ID_KEY_JSON = "virtualmachineid";
@@ -83,6 +88,8 @@ public class CloudStackRestApiConstants {
         public static final String JOB_STATUS_KEY_JSON = "jobstatus";
         public static final String JOB_INSTANCE_ID_KEY_JSON = "jobinstanceid";
 
+        public static final String SUCCESS_KEY_JSON = "success";
+        public static final String DISPLAY_TEXT_KEY_JSON = "displaytext";
     }
 
     public static class Attachment {
@@ -106,6 +113,7 @@ public class CloudStackRestApiConstants {
         public static final String RESOURCE_LIMIT_KEY_JSON = "resourcelimit";
         public static final String RESOURCE_TYPE_KEY_JSON = "resourcetype";
         public static final String MAX_KEY_JSON = "max";
+        public static final String DOMAIN_ID_KEY_JSON = "domainid";
 
     }
 

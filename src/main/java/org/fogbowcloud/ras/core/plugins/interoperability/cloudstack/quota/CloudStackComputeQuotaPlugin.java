@@ -1,8 +1,8 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.quota;
 
 import org.apache.http.client.HttpResponseException;
-import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
-import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.ras.core.models.tokens.Token;
@@ -17,6 +17,7 @@ import java.util.List;
 
 
 public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin {
+    private static final Logger LOGGER = Logger.getLogger(CloudStackComputeQuotaPlugin.class);
 
     private HttpRequestClientUtil client = new HttpRequestClientUtil();
 
@@ -26,7 +27,8 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin {
 
     @Override
     public ComputeQuota getUserQuota(Token token) throws FogbowRasException, UnexpectedException {
-        ListResourceLimitsRequest limitsRequest = new ListResourceLimitsRequest();
+        ListResourceLimitsRequest limitsRequest = new ListResourceLimitsRequest.Builder()
+                .build();
         CloudStackUrlUtil.sign(limitsRequest.getUriBuilder(), token.getTokenValue());
 
         String limitsResponse = null;
@@ -54,7 +56,7 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin {
         GetVirtualMachineResponse computeResponse = GetVirtualMachineResponse.fromJson(listMachinesResponse);
         List<GetVirtualMachineResponse.VirtualMachine> vms = computeResponse.getVirtualMachines();
 
-        ComputeAllocation totalAllocation = getTotalAllocation(resourceLimits);
+        ComputeAllocation totalAllocation = getTotalAllocation(resourceLimits, token);
         ComputeAllocation usedQuota = getUsedAllocation(vms);
         return new ComputeQuota(totalAllocation, usedQuota);
     }
@@ -70,12 +72,23 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin {
         return new ComputeAllocation(vCpu, ram, instances);
     }
 
-    private ComputeAllocation getTotalAllocation(List<ListResourceLimitsResponse.ResourceLimit> resourceLimits) {
+    private ComputeAllocation getTotalAllocation(List<ListResourceLimitsResponse.ResourceLimit> resourceLimits, Token token) {
         int vCpu = Integer.MAX_VALUE;
         int ram = Integer.MAX_VALUE;
         int instances = Integer.MAX_VALUE;
-        for (ListResourceLimitsResponse.ResourceLimit limit :
-                resourceLimits) {
+
+        for (ListResourceLimitsResponse.ResourceLimit limit : resourceLimits) {
+            // NOTE(pauloewerton): a -1 resource value means the account has unlimited quota. retrieve the domain
+            // limit for this resource instead.
+            if (limit.getMax() == -1) {
+                try {
+                    limit = getDomainResourceLimit(limit.getResourceType(), limit.getDomainId(), token);
+                } catch (Exception ex) {
+                    LOGGER.error(ex.getMessage());
+                    continue;
+                }
+            }
+
             switch (limit.getResourceType()) {
                 case LIMIT_TYPE_INSTANCES:
                     instances = Integer.valueOf(limit.getMax());
@@ -88,7 +101,31 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin {
                     break;
             }
         }
+
         return new ComputeAllocation(vCpu, ram, instances);
+    }
+
+    private ListResourceLimitsResponse.ResourceLimit getDomainResourceLimit(String resourceType, String domainId, Token token)
+            throws FogbowRasException {
+        ListResourceLimitsRequest limitsRequest = new ListResourceLimitsRequest.Builder()
+                .domainId(domainId)
+                .resourceType(resourceType)
+                .build();
+
+        CloudStackUrlUtil.sign(limitsRequest.getUriBuilder(), token.getTokenValue());
+
+        String limitsResponse = null;
+        try {
+            limitsResponse = this.client.doGetRequest(limitsRequest.getUriBuilder().toString(), token);
+        } catch (HttpResponseException e) {
+            CloudStackHttpToFogbowRasExceptionMapper.map(e);
+        }
+
+        ListResourceLimitsResponse response = ListResourceLimitsResponse.fromJson(limitsResponse);
+        // NOTE(pauloewerton): we're limiting result count by resource type, so request should only return one value
+        ListResourceLimitsResponse.ResourceLimit resourceLimit = response.getResourceLimits().get(0);
+
+        return resourceLimit;
     }
 
     protected void setClient(HttpRequestClientUtil client) {
