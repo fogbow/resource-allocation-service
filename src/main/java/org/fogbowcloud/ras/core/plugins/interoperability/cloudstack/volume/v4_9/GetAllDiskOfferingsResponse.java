@@ -17,6 +17,7 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.Cloud
  * "id": "e9c2a08d-6ca4-4b81-8e21-5ff2a103b7cb",
  * "disksize": 10,
  * "iscustomized": false,
+ * "tags": "tag1:value1,tag2:value2"
  * }]
  * }
  * }
@@ -47,6 +48,8 @@ public class GetAllDiskOfferingsResponse {
         private int diskSize;
         @SerializedName(CUSTOMIZED_KEY_JSON)
         private boolean customized;
+        @SerializedName(TAGS_KEY_JSON)
+        private String tags;
 
         public String getId() {
             return id;
@@ -58,6 +61,10 @@ public class GetAllDiskOfferingsResponse {
 
         public boolean isCustomized() {
             return customized;
+        }
+
+        public String getTags() {
+            return tags;
         }
     }
 }

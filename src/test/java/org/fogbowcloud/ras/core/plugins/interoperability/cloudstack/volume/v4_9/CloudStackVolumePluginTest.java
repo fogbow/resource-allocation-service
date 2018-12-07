@@ -45,7 +45,6 @@ public class CloudStackVolumePluginTest {
     private static final int MEGABYTE = 1024 * KILOBYTE;
     private static final int GIGABYTE = 1024 * MEGABYTE;
 
-//    private static final String ONE_GIGABYTE = "1";
     private static final String DEFAULT_STATE = "Ready";
     private static final String DEFAULT_DISPLAY_TEXT =
             "A description of the error will be shown if the success field is equal to false.";
@@ -54,6 +53,7 @@ public class CloudStackVolumePluginTest {
     private static final String FAKE_ID = "fake-id";
     private static final String FAKE_JOB_ID = "fake-job-id";
     private static final String FAKE_NAME = "fake-name";
+    private static final String FAKE_TAGS = "tag1:value1,tag2:value2";
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USERNAME = "fake-username";
@@ -109,7 +109,7 @@ public class CloudStackVolumePluginTest {
         String id = FAKE_DISK_OFFERING_ID;
         int diskSize = COMPATIBLE_SIZE;
         boolean customized = false;
-        String diskOfferings = getListDiskOfferrings(id, diskSize, customized);
+        String diskOfferings = getListDiskOfferrings(id, diskSize, customized, FAKE_TAGS);
 
         Mockito.when(this.client.doGetRequest(request, this.token)).thenReturn(diskOfferings);
 
@@ -169,7 +169,7 @@ public class CloudStackVolumePluginTest {
         String id = FAKE_DISK_OFFERING_ID;
         int diskSize = STANDARD_SIZE;
         boolean customized = true;
-        String diskOfferings = getListDiskOfferrings(id, diskSize, customized);
+        String diskOfferings = getListDiskOfferrings(id, diskSize, customized, FAKE_TAGS);
 
         Mockito.when(this.client.doGetRequest(request, this.token)).thenReturn(diskOfferings);
 
@@ -205,6 +205,116 @@ public class CloudStackVolumePluginTest {
 
         String expectedId = FAKE_ID;
         Assert.assertEquals(expectedId, volumeId);
+    }
+
+    @Test
+    public void testCreateRequestInstanceSuccessfulWithRequirements() throws HttpResponseException, FogbowRasException {
+        // set up
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito
+                .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
+                .thenCallRealMethod();
+
+        String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
+        String baseEndpoint = getBaseEndpointFromCloudStackConf();
+        String command = GetAllDiskOfferingsRequest.LIST_DISK_OFFERINGS_COMMAND;
+        String jsonFormat = JSON_FORMAT;
+        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat);
+
+        String id = FAKE_DISK_OFFERING_ID;
+        int diskSize = COMPATIBLE_SIZE;
+        boolean customized = false;
+        String diskOfferings = getListDiskOfferrings(id, diskSize, customized, FAKE_TAGS);
+        Map<String, String> fakeRequirements = new HashMap<>();
+        fakeRequirements.put("tag1", "value1");
+
+        Mockito.when(this.client.doGetRequest(request, this.token)).thenReturn(diskOfferings);
+
+        Map<String, String> expectedParams = new HashMap<>();
+        expectedParams.put(COMMAND_KEY, CreateVolumeRequest.CREATE_VOLUME_COMMAND);
+        expectedParams.put(RESPONSE_KEY, JSON_FORMAT);
+        expectedParams.put(ZONE_ID_KEY, this.plugin.getZoneId());
+        expectedParams.put(NAME_KEY, FAKE_NAME);
+        expectedParams.put(DISK_OFFERING_ID_KEY, FAKE_DISK_OFFERING_ID);
+        expectedParams.put(SIZE_KEY, new Long(diskSize * GIGABYTE).toString());
+
+        CloudStackUrlMatcher urlMatcher = new CloudStackUrlMatcher(expectedParams, SIZE_KEY);
+
+        String response = getCreateVolumeResponse(FAKE_ID, FAKE_JOB_ID);
+        Mockito.when(
+                this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(this.token)))
+                .thenReturn(response);
+
+        // exercise
+        VolumeOrder order =
+                new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, COMPATIBLE_SIZE);
+        order.setRequirements(fakeRequirements);
+        String volumeId = this.plugin.requestInstance(order, this.token);
+
+        // verify
+        PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(2));
+        CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
+
+        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(request),
+                Mockito.eq(this.token));
+
+        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.argThat(urlMatcher),
+                Mockito.eq(this.token));
+
+        String expectedId = FAKE_ID;
+        Assert.assertEquals(expectedId, volumeId);
+    }
+
+    @Test(expected = FogbowRasException.class)
+    public void testCreateRequestInstanceFailNoRequirements() throws HttpResponseException, FogbowRasException {
+        // set up
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito
+                .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
+                .thenCallRealMethod();
+
+        String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
+        String baseEndpoint = getBaseEndpointFromCloudStackConf();
+        String command = GetAllDiskOfferingsRequest.LIST_DISK_OFFERINGS_COMMAND;
+        String jsonFormat = JSON_FORMAT;
+        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat);
+
+        String id = FAKE_DISK_OFFERING_ID;
+        int diskSize = COMPATIBLE_SIZE;
+        boolean customized = false;
+        String diskOfferings = getListDiskOfferrings(id, diskSize, customized, FAKE_TAGS);
+        Map<String, String> fakeRequirements = new HashMap<>();
+        fakeRequirements.put("tag3", "value3");
+
+        Mockito.when(this.client.doGetRequest(request, this.token)).thenReturn(diskOfferings);
+
+        Map<String, String> expectedParams = new HashMap<>();
+        expectedParams.put(COMMAND_KEY, CreateVolumeRequest.CREATE_VOLUME_COMMAND);
+        expectedParams.put(RESPONSE_KEY, JSON_FORMAT);
+        expectedParams.put(ZONE_ID_KEY, this.plugin.getZoneId());
+        expectedParams.put(NAME_KEY, FAKE_NAME);
+        expectedParams.put(DISK_OFFERING_ID_KEY, FAKE_DISK_OFFERING_ID);
+        expectedParams.put(SIZE_KEY, new Long(diskSize * GIGABYTE).toString());
+
+        CloudStackUrlMatcher urlMatcher = new CloudStackUrlMatcher(expectedParams, SIZE_KEY);
+
+        String response = getCreateVolumeResponse(FAKE_ID, FAKE_JOB_ID);
+        Mockito.when(
+                this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(this.token)))
+                .thenReturn(response);
+
+        // exercise
+        VolumeOrder order =
+                new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, COMPATIBLE_SIZE);
+        order.setRequirements(fakeRequirements);
+        String volumeId = this.plugin.requestInstance(order, this.token);
+
+        // verify
+        PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(2));
+        CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
+
+        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(request),
+                Mockito.eq(this.token));
     }
 
     // test case: When calling the requestInstance method with allocationAllowableValues user without permission, an
@@ -733,14 +843,15 @@ public class CloudStackVolumePluginTest {
         return properties.getProperty(BASE_ENDPOINT_KEY);
     }
 
-    private String getListDiskOfferrings(String id, int diskSize, boolean customized) {
+    private String getListDiskOfferrings(String id, int diskSize, boolean customized, String tags) {
         String response = "{\"listdiskofferingsresponse\":{" + "\"diskoffering\":[{"
                 + "\"id\": \"%s\","
                 + "\"disksize\": %s,"
-                + "\"iscustomized\": %s"
+                + "\"iscustomized\": %s,"
+                + "\"tags\": \"%s\""
                 + "}]}}";
 
-        return String.format(response, id, diskSize, customized);
+        return String.format(response, id, diskSize, customized, tags);
     }
 
     private String getCreateVolumeResponse(String id, String jobId) {

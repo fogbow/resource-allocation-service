@@ -5,9 +5,12 @@ import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+//import org.hibernate.annotations.CollectionOfElements;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -31,6 +34,10 @@ public abstract class Order implements Serializable {
     private String instanceId;
     @Column
     private InstanceState cachedInstanceState;
+    @ElementCollection
+    @MapKeyColumn
+    @Column
+    private Map<String, String> requirements = new HashMap<>();
 
     public Order() {
     }
@@ -116,6 +123,14 @@ public abstract class Order implements Serializable {
 
     public void setCachedInstanceState(InstanceState cachedInstanceState) {
         this.cachedInstanceState = cachedInstanceState;
+    }
+
+    public Map<String, String> getRequirements() {
+        return requirements;
+    }
+
+    public void setRequirements(Map<String, String> requirements) {
+        this.requirements = requirements;
     }
 
     public boolean isProviderLocal(String localMemberId) {
