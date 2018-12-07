@@ -68,7 +68,7 @@ public class OpenNebulaComputePluginTest {
 	private static final String UNCHECKED_VALUE = "unchecked";
 
 	private static final UserData[] fakeUserDataArray= new UserData[]{new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag")};
-	private static final ArrayList<UserData> FAKE_USER_DATA = (ArrayList<UserData>) Arrays.asList(fakeUserDataArray);
+	private static final ArrayList<UserData> FAKE_USER_DATA = new ArrayList<>(Arrays.asList(fakeUserDataArray));
 
 	private static final int CPU_VALUE = 4;
 	private static final int MEMORY_VALUE = 2048;
