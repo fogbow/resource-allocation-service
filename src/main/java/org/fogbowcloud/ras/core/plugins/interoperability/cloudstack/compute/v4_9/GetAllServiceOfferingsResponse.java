@@ -20,6 +20,7 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.Cloud
  * "name": "offering-name",
  * "cpunumber": 4,
  * "memory": 6144,
+ * "tags": "tag1:value1,tag2:value2",
  * }]
  * }
  * }
@@ -51,6 +52,8 @@ public class GetAllServiceOfferingsResponse {
         private int cpuNumber;
         @SerializedName(MEMORY_KEY_JSON)
         private int memory;
+        @SerializedName(TAGS_KEY_JSON)
+        private String tags;
 
         public String getId() {
             return id;
@@ -69,6 +72,10 @@ public class GetAllServiceOfferingsResponse {
          */
         public int getMemory() {
             return memory;
+        }
+
+        public String getTags() {
+            return tags;
         }
     }
 }

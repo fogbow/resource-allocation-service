@@ -34,15 +34,6 @@ public abstract class Order implements Serializable {
     private String instanceId;
     @Column
     private InstanceState cachedInstanceState;
-
-    public Map<String, String> getRequirements() {
-        return requirements;
-    }
-
-    public void setRequirements(Map<String, String> requirements) {
-        this.requirements = requirements;
-    }
-
     @ElementCollection
     @MapKeyColumn
     @Column
@@ -132,6 +123,14 @@ public abstract class Order implements Serializable {
 
     public void setCachedInstanceState(InstanceState cachedInstanceState) {
         this.cachedInstanceState = cachedInstanceState;
+    }
+
+    public Map<String, String> getRequirements() {
+        return requirements;
+    }
+
+    public void setRequirements(Map<String, String> requirements) {
+        this.requirements = requirements;
     }
 
     public boolean isProviderLocal(String localMemberId) {
