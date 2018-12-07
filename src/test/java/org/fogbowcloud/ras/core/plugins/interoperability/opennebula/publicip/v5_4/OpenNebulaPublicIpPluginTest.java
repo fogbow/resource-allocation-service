@@ -24,14 +24,13 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({SecurityGroup.class})
+@PrepareForTest({VirtualNetwork.class, SecurityGroup.class})
 public class OpenNebulaPublicIpPluginTest {
 
 	private static final String LOCAL_TOKEN_VALUE = "user:password";
 	private static final String FAKE_USER_NAME = "fake-user-name";
 	private static final String FAKE_INSTANCE_ID = "1 1 1 1";
 	private static final String VIRTUAL_MACHINE_NIC_IP_PATH = "VM/NIC/IP";
-	private static final String VIRTUAL_NETWORK_CONTENT = "<AR_ID>1</AR_ID>";
 	private static final String VIRTUAL_MACHINE_CONTENT = "<NIC_ID>1</NIC_ID>";
 
 	private OpenNebulaClientFactory factory;
@@ -74,29 +73,24 @@ public class OpenNebulaPublicIpPluginTest {
 		String computeInstanceId = "1";
 		PublicIpOrder publicIpOrder = createPublicIpOrder();
 
-		String sgTemplate = generateSecurityGroupsTemplate();
-		String securityGroupsId = "1";
-		Mockito.doReturn(securityGroupsId).when(this.factory).allocateSecurityGroup(client, sgTemplate);
+		String virtualNetworkId = "1";
+		String vnTemplate = generatePublicNetworkTemplate();
+		OneResponse vnResponse = Mockito.mock(OneResponse.class);
+		PowerMockito.mockStatic(VirtualNetwork.class);
+		BDDMockito.given(VirtualNetwork.allocate(Mockito.any(Client.class), Mockito.contains(vnTemplate)))
+				.willReturn(vnResponse);
+		Mockito.when(vnResponse.isError()).thenReturn(false);
+		Mockito.when(vnResponse.getMessage()).thenReturn(virtualNetworkId);
 
+		String securityGroupsId = "1";
+		String sgTemplate = generateSecurityGroupsTemplate();
 		OneResponse sgResponse = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(SecurityGroup.class);
 		BDDMockito.given(SecurityGroup.allocate(Mockito.any(Client.class), Mockito.contains(sgTemplate)))
 				.willReturn(sgResponse);
 		Mockito.when(sgResponse.isError()).thenReturn(false);
 		Mockito.when(sgResponse.getMessage()).thenReturn(securityGroupsId);
-
-		String networkId = "0";
-		String arTemplate = generateAddressRange();
-		OneResponse arResponse = Mockito.mock(OneResponse.class);
-		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
-		Mockito.doReturn(virtualNetwork).when(this.factory).createVirtualNetwork(client, networkId);
-		Mockito.when(virtualNetwork.addAr(Mockito.contains(arTemplate))).thenReturn(arResponse);
-		Mockito.when(arResponse.isError()).thenReturn(false);
-
-		OneResponse vnResponse = Mockito.mock(OneResponse.class);
-		Mockito.when(virtualNetwork.info()).thenReturn(vnResponse);
-		Mockito.when(vnResponse.getMessage()).thenReturn(VIRTUAL_NETWORK_CONTENT);
-
+		
 		String nicTemplate = generateNicTemplate();
 		OneResponse nicResponse = Mockito.mock(OneResponse.class);
 		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
@@ -115,9 +109,9 @@ public class OpenNebulaPublicIpPluginTest {
 		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
 		Mockito.verify(this.factory, Mockito.times(1)).allocateSecurityGroup(Mockito.eq(client),
 				Mockito.eq(sgTemplate));
-		Mockito.verify(this.factory, Mockito.times(1)).createVirtualNetwork(client, networkId);
+		Mockito.verify(this.factory, Mockito.times(1)).allocateVirtualNetwork(Mockito.eq(client),
+				Mockito.eq(vnTemplate));
 		Mockito.verify(this.factory, Mockito.times(1)).createVirtualMachine(client, computeInstanceId);
-		Mockito.verify(virtualNetwork, Mockito.times(1)).addAr(Mockito.eq(arTemplate));
 		Mockito.verify(virtualMachine, Mockito.times(1)).nicAttach(Mockito.eq(nicTemplate));
 	}
 	
@@ -171,9 +165,7 @@ public class OpenNebulaPublicIpPluginTest {
 		// verify
 		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
 		Mockito.verify(this.factory, Mockito.times(1)).createVirtualMachine(Mockito.any(Client.class), Mockito.anyString());
-		Mockito.verify(this.factory, Mockito.times(1)).createVirtualNetwork(Mockito.any(Client.class), Mockito.anyString());
 		Mockito.verify(virtualMachine, Mockito.times(1)).nicDetach(id);
-		Mockito.verify(virtualNetwork, Mockito.times(1)).free(id);
 	}
 	
 	// test case: When calling the getInstance method, if the OpenNebulaClientFactory class 
@@ -257,7 +249,7 @@ public class OpenNebulaPublicIpPluginTest {
 		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
 				"<TEMPLATE>\n" + 
 				"    <NIC>\n" + 
-				"        <NETWORK_ID>0</NETWORK_ID>\n" + 
+				"        <NETWORK_ID>1</NETWORK_ID>\n" + 
 				"        <SECURITY_GROUPS>1</SECURITY_GROUPS>\n" + 
 				"    </NIC>\n" + 
 				"</TEMPLATE>\n";
@@ -265,14 +257,25 @@ public class OpenNebulaPublicIpPluginTest {
 		return template;
 	}
 	
-	private String generateAddressRange() {
+	private String generatePublicNetworkTemplate() {
 		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
 				"<TEMPLATE>\n" + 
-				"    <AR>\n" + 
-				"        <IP>10.0.0.150</IP>\n" + 
-				"        <SIZE>51</SIZE>\n" + 
-				"        <TYPE>IP4</TYPE>\n" + 
-				"    </AR>\n" + 
+				"    <BRIDGE>vbr1</BRIDGE>\n" + 
+				"    <VN_MAD>fw</VN_MAD>\n" + 
+				"    <LEASES>\n" + 
+				"        <IP>0.0.0.0</IP>\n" + 
+				"    </LEASES>\n" + 
+				"    <LEASES>\n" + 
+				"        <IP>1.1.1.1</IP>\n" + 
+				"    </LEASES>\n" + 
+				"    <LEASES>\n" + 
+				"        <IP>2.2.2.2</IP>\n" + 
+				"    </LEASES>\n" + 
+				"    <LEASES>\n" + 
+				"        <IP>3.3.3.3</IP>\n" + 
+				"    </LEASES>\n" + 
+				"    <NAME>public-network</NAME>\n" + 
+				"    <TYPE>FIXED</TYPE>\n" + 
 				"</TEMPLATE>\n";
 		
 		return template;
@@ -283,15 +286,15 @@ public class OpenNebulaPublicIpPluginTest {
 				"<TEMPLATE>\n" + 
 				"    <NAME>Public_IP</NAME>\n" + 
 				"    <RULE>\n" + 
-				"        <NETWORK_ID>0</NETWORK_ID>\n" + 
+				"        <NETWORK_ID>1</NETWORK_ID>\n" + 
 				"        <PROTOCOL>TCP</PROTOCOL>\n" + 
-				"        <RANGE>1000:2000</RANGE>\n" + 
+				"        <RANGE>1:65536</RANGE>\n" + 
 				"        <RULE_TYPE>inbound</RULE_TYPE>\n" + 
 				"    </RULE>\n" + 
 				"    <RULE>\n" + 
-				"        <NETWORK_ID>0</NETWORK_ID>\n" + 
+				"        <NETWORK_ID>1</NETWORK_ID>\n" + 
 				"        <PROTOCOL>TCP</PROTOCOL>\n" + 
-				"        <RANGE>1000:2000</RANGE>\n" + 
+				"        <RANGE>1:65536</RANGE>\n" + 
 				"        <RULE_TYPE>outbound</RULE_TYPE>\n" + 
 				"    </RULE>\n" + 
 				"</TEMPLATE>\n";
