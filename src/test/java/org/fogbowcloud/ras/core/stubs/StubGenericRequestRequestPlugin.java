@@ -7,6 +7,9 @@ import java.util.Map;
 
 public class StubGenericRequestRequestPlugin implements GenericRequestPlugin<Token> {
 
+    public StubGenericRequestRequestPlugin(String confFilePath) {
+    }
+
     @Override
     public String redirectGenericRequest(String method, String url, Map<String, String> headers, String body, Token token) {
         return null;

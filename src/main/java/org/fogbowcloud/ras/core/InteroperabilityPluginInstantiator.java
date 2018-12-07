@@ -65,12 +65,12 @@ public class InteroperabilityPluginInstantiator {
 
     public GenericRequestPlugin getGenericRequestPlugin() {
         String className = this.properties.getProperty(ConfigurationConstants.GENERIC_PLUGIN_CLASS_KEY);
-        return (GenericRequestPlugin) this.pluginFactory.createPluginInstance(ConfigurationConstants.GENERIC_PLUGIN_CLASS_KEY, this.cloudConfPath);
+        return (GenericRequestPlugin) this.pluginFactory.createPluginInstance(className, this.cloudConfPath);
     }
 
     public SecurityRulePlugin getSecurityRulePlugin() {
         String className = this.properties.getProperty(ConfigurationConstants.SECURITY_GROUP_PLUGIN_CLASS_KEY);
-        return (SecurityRulePlugin) this.pluginFactory.createPluginInstance(ConfigurationConstants.SECURITY_GROUP_PLUGIN_CLASS_KEY, this.cloudConfPath);
+        return (SecurityRulePlugin) this.pluginFactory.createPluginInstance(className, this.cloudConfPath);
     }
 
     public FederationToLocalMapperPlugin getLocalUserCredentialsMapperPlugin() {

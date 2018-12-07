@@ -14,6 +14,10 @@ import java.util.List;
  * Should not have a proper implementation.
  */
 public class StubSecurityRulePlugin implements SecurityRulePlugin {
+
+    public StubSecurityRulePlugin(String confFilePath) {
+    }
+
     @Override
     public String requestSecurityRule(SecurityRule securityRule, Order majorOrder,
                                       Token localUserAttributes) throws FogbowRasException, UnexpectedException {
