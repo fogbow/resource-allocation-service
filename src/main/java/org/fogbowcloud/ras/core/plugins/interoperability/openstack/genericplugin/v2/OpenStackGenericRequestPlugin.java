@@ -48,7 +48,7 @@ public class OpenStackGenericRequestPlugin extends HttpBasedGenericRequestPlugin
                 // FIXME Retrieve more info about this error
                 throw new FogbowRasException(String.format("Response code was <%d>", responseCode));
             }
-        } catch (ProtocolException | MalformedURLException | IOException e) {
+        } catch (ProtocolException e) {
             throw new FogbowRasException("", e);
         } catch (MalformedURLException e) {
             throw new FogbowRasException("", e);

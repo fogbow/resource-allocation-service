@@ -3,6 +3,8 @@ package org.fogbowcloud.ras.api.http;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.ApplicationFacade;
 import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.springframework.http.HttpStatus;
@@ -29,13 +31,15 @@ public class GenericRequestController {
     @RequestMapping("/**")
     public ResponseEntity<String> genericRequest(HttpServletRequest request,
                                          @RequestBody(required = false) String body,
-                                         @RequestHeader(required = true, value = MEMBER_ID_HEADER_KEY) String memberId) {
+                                         @RequestHeader(required = true, value = MEMBER_ID_HEADER_KEY) String memberId)
+            throws UnexpectedException, FogbowRasException {
         Map<String, String> headers = HttpRequestClientUtil.getHeaders(request);
 
         String url = request.getRequestURL().toString();
         String method = request.getMethod();
 
-        String response = ApplicationFacade.getInstance().genericRequest(memberId, method, url, headers, body);
+        String response = ApplicationFacade.getInstance().genericRequest(memberId, method, url, headers, body,
+                null);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
