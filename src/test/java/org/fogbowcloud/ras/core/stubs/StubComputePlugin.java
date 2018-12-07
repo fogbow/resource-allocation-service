@@ -11,7 +11,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.ComputePlugin;
  */
 public class StubComputePlugin implements ComputePlugin<Token> {
 
-    public StubComputePlugin() {
+    public StubComputePlugin(String confFilePath) {
     }
 
     @Override

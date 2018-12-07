@@ -60,6 +60,7 @@ public class CloudStackVolumePluginTest {
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
     private static final String FAKE_SIGNATURE = "fake-signature";
     private static final String FAKE_MEMBER = "fake-member";
+    private static final String FAKE_CLOUD_NAME = "cloud-name";
 
     private static final String JSON_FORMAT = "json";
     private static final String RESPONSE_KEY = "response";
@@ -130,7 +131,7 @@ public class CloudStackVolumePluginTest {
 
         // exercise
         VolumeOrder order =
-                new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, COMPATIBLE_SIZE);
+                new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, COMPATIBLE_SIZE);
         String volumeId = this.plugin.requestInstance(order, this.token);
 
         // verify
@@ -190,7 +191,7 @@ public class CloudStackVolumePluginTest {
 
         // exercise
         VolumeOrder order =
-                new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, CUSTOMIZED_SIZE);
+                new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, CUSTOMIZED_SIZE);
         String volumeId = this.plugin.requestInstance(order, this.token);
 
         // verify
@@ -247,7 +248,7 @@ public class CloudStackVolumePluginTest {
 
         // exercise
         VolumeOrder order =
-                new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, COMPATIBLE_SIZE);
+                new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_CLOUD_NAME, FAKE_NAME, COMPATIBLE_SIZE);
         order.setRequirements(fakeRequirements);
         String volumeId = this.plugin.requestInstance(order, this.token);
 
@@ -305,7 +306,7 @@ public class CloudStackVolumePluginTest {
 
         // exercise
         VolumeOrder order =
-                new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, COMPATIBLE_SIZE);
+                new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_CLOUD_NAME, FAKE_NAME, COMPATIBLE_SIZE);
         order.setRequirements(fakeRequirements);
         String volumeId = this.plugin.requestInstance(order, this.token);
 
@@ -336,7 +337,7 @@ public class CloudStackVolumePluginTest {
         try {
             // exercise
             VolumeOrder order =
-                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, CUSTOMIZED_SIZE);
+                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, CUSTOMIZED_SIZE);
             this.plugin.requestInstance(order, this.token);
         } finally {
             // verify
@@ -366,7 +367,7 @@ public class CloudStackVolumePluginTest {
         try {
             // exercise
             VolumeOrder order =
-                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, CUSTOMIZED_SIZE);
+                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, CUSTOMIZED_SIZE);
             this.plugin.requestInstance(order, this.token);
         } finally {
             // verify
@@ -396,7 +397,7 @@ public class CloudStackVolumePluginTest {
         try {
             // exercise
             VolumeOrder order =
-                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, CUSTOMIZED_SIZE);
+                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, CUSTOMIZED_SIZE);
             this.plugin.requestInstance(order, this.token);
         } finally {
             // verify
@@ -427,7 +428,7 @@ public class CloudStackVolumePluginTest {
         try {
             // exercise
             VolumeOrder order =
-                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, CUSTOMIZED_SIZE);
+                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, CUSTOMIZED_SIZE);
             this.plugin.requestInstance(order, this.token);
         } finally {
             // verify

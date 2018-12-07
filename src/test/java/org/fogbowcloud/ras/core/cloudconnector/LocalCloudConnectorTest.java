@@ -1,7 +1,6 @@
 package org.fogbowcloud.ras.core.cloudconnector;
 
 import org.fogbowcloud.ras.core.BaseUnitTests;
-import org.fogbowcloud.ras.core.InteroperabilityPluginsHolder;
 import org.fogbowcloud.ras.core.SharedOrderHolders;
 import org.fogbowcloud.ras.core.datastore.DatabaseManager;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
@@ -16,7 +15,7 @@ import org.fogbowcloud.ras.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
-import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
 import org.junit.Assert;
 import org.junit.Before;
@@ -62,6 +61,8 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     private VolumePlugin volumePlugin;
     private ImagePlugin imagePlugin;
     private ComputeQuotaPlugin computeQuotaPlugin;
+    private PublicIpPlugin publicIpPlugin;
+    private FederationToLocalMapperPlugin federationToLocalMapperPlugin;
 
     private Order order;
     private Image image;
@@ -89,7 +90,6 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
 
         // mocking class attributes
         FederationToLocalMapperPlugin mapperPlugin = Mockito.mock(FederationToLocalMapperPlugin.class);
-        InteroperabilityPluginsHolder interoperabilityPluginsHolder = Mockito.mock(InteroperabilityPluginsHolder.class);
 
         this.federationUserToken = Mockito.mock(FederationUserToken.class);
         this.computePlugin = Mockito.mock(ComputePlugin.class);
@@ -98,6 +98,8 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         this.volumePlugin = Mockito.mock(VolumePlugin.class);
         this.imagePlugin = Mockito.mock(ImagePlugin.class);
         this.computeQuotaPlugin = Mockito.mock(ComputeQuotaPlugin.class);
+        this.publicIpPlugin = Mockito.mock(PublicIpPlugin.class);
+        this.federationToLocalMapperPlugin = Mockito.mock(FederationToLocalMapperPlugin.class);
 
         // mocking federation user token calls
         Mockito.when(federationUserToken.getUserId()).thenReturn(FAKE_USER_ID);
@@ -121,16 +123,18 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.when(image.getId()).thenReturn(FAKE_IMAGE_ID);
 
         // mocking interoperabilityPluginsHolder to return the correct plugin for each call
-        Mockito.when(interoperabilityPluginsHolder.getComputePlugin()).thenReturn(computePlugin);
-        Mockito.when(interoperabilityPluginsHolder.getAttachmentPlugin()).thenReturn(attachmentPlugin);
-        Mockito.when(interoperabilityPluginsHolder.getNetworkPlugin()).thenReturn(networkPlugin);
-        Mockito.when(interoperabilityPluginsHolder.getVolumePlugin()).thenReturn(volumePlugin);
-        Mockito.when(interoperabilityPluginsHolder.getImagePlugin()).thenReturn(imagePlugin);
-        Mockito.when(interoperabilityPluginsHolder.getComputeQuotaPlugin()).thenReturn(computeQuotaPlugin);
         Mockito.when(mapperPlugin.map(Mockito.any(FederationUserToken.class))).thenReturn(new Token());
 
         // starting the object we want to test
-        this.localCloudConnector = new LocalCloudConnector(mapperPlugin, interoperabilityPluginsHolder);
+        this.localCloudConnector = new LocalCloudConnector("default");
+        this.localCloudConnector.setAttachmentPlugin(this.attachmentPlugin);
+        this.localCloudConnector.setComputePlugin(this.computePlugin);
+        this.localCloudConnector.setComputeQuotaPlugin(this.computeQuotaPlugin);
+        this.localCloudConnector.setImagePlugin(this.imagePlugin);
+        this.localCloudConnector.setMapperPlugin(this.federationToLocalMapperPlugin);
+        this.localCloudConnector.setNetworkPlugin(this.networkPlugin);
+        this.localCloudConnector.setPublicIpPlugin(this.publicIpPlugin);
+        this.localCloudConnector.setVolumePlugin(this.volumePlugin);
     }
 
     // test case: When calling the method getNetworkInstanceIdsFromNetworkOrderIds(), it must return

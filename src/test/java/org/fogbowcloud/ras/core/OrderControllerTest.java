@@ -57,6 +57,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
     @Before
     public void setUp() throws UnexpectedException {
+        PowerMockito.mockStatic(CloudConnectorFactory.class);
         // mocking database to return empty instances of SynchronizedDoublyLinkedList.
         super.mockReadOrdersFromDataBase();
 
@@ -64,13 +65,8 @@ public class OrderControllerTest extends BaseUnitTests {
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 
-        PluginInstantiator instantiationInitService = PluginInstantiator.getInstance();
-        InteroperabilityPluginsHolder interoperabilityPluginsHolder = new InteroperabilityPluginsHolder(instantiationInitService);
+        AaaPluginInstantiator instantiationInitService = AaaPluginInstantiator.getInstance();
         AaaPluginsHolder aaaPluginsHolder = new AaaPluginsHolder(instantiationInitService);
-        CloudConnectorFactory cloudConnectorFactory = CloudConnectorFactory.getInstance();
-        cloudConnectorFactory.setLocalMemberId(getLocalMemberId());
-        cloudConnectorFactory.setMapperPlugin(aaaPluginsHolder.getFederationToLocalMapperPlugin());
-        cloudConnectorFactory.setInteroperabilityPluginsHolder(interoperabilityPluginsHolder);
 
         this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
 
@@ -203,7 +199,7 @@ public class OrderControllerTest extends BaseUnitTests {
         LocalCloudConnector localCloudConnector = Mockito.mock(LocalCloudConnector.class);
 
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString()))
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(localCloudConnector);
 
         Order order = createOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
@@ -289,6 +285,10 @@ public class OrderControllerTest extends BaseUnitTests {
         String orderId = getComputeOrderCreationId(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString())).thenReturn(localCloudConnector);
+
         // verify
         Assert.assertNotNull(this.failedAfterSuccessfulRequestOrdersList.getNext());
         Assert.assertNull(this.closedOrdersList.getNext());
@@ -315,6 +315,10 @@ public class OrderControllerTest extends BaseUnitTests {
         String orderId = getComputeOrderCreationId(OrderState.FULFILLED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString())).thenReturn(localCloudConnector);
+
         // verify
         Assert.assertNotNull(this.fulfilledOrdersList.getNext());
         Assert.assertNull(this.closedOrdersList.getNext());
@@ -339,6 +343,10 @@ public class OrderControllerTest extends BaseUnitTests {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.SPAWNING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
+
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString())).thenReturn(localCloudConnector);
 
         // verify
         Assert.assertNotNull(this.spawningOrdersList.getNext());
@@ -365,6 +373,10 @@ public class OrderControllerTest extends BaseUnitTests {
         String orderId = getComputeOrderCreationId(OrderState.PENDING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
 
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString())).thenReturn(localCloudConnector);
+
         // verify
         Assert.assertNotNull(this.pendingOrdersList.getNext());
         Assert.assertNull(this.closedOrdersList.getNext());
@@ -388,6 +400,10 @@ public class OrderControllerTest extends BaseUnitTests {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.OPEN);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
+
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString())).thenReturn(localCloudConnector);
 
         // verify
         Assert.assertNotNull(this.openOrdersList.getNext());
@@ -500,7 +516,7 @@ public class OrderControllerTest extends BaseUnitTests {
                         federationUserToken,
                         requestingMember,
                         providingMember,
-                        instanceName,
+                        "default", instanceName,
                         8,
                         1024,
                         30,

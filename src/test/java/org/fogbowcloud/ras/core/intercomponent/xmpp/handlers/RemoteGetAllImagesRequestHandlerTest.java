@@ -79,10 +79,10 @@ public class RemoteGetAllImagesRequestHandlerTest {
         images.put("image-id1", IMAGE_NAME.concat("1"));
         images.put("image-id2", IMAGE_NAME.concat("2"));
 
-        Mockito.doReturn(images).when(this.remoteFacade).getAllImages(Mockito.anyString(), Mockito.anyString(),
+        Mockito.doReturn(images).when(this.remoteFacade).getAllImages(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(),
                 Mockito.any(FederationUserToken.class));
 
-        IQ iq = RemoteGetAllImagesRequest.marshal(this.provider, this.federationUserToken);
+        IQ iq = RemoteGetAllImagesRequest.marshal(this.provider, "default", this.federationUserToken);
         iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
@@ -101,9 +101,9 @@ public class RemoteGetAllImagesRequestHandlerTest {
     public void testHandleWhenThrowsException() throws Exception {
         // set up
         Mockito.doThrow(new FogbowRasException()).when(this.remoteFacade).getAllImages(Mockito.anyString(),
-                Mockito.anyString(), Mockito.any(FederationUserToken.class));
+                Mockito.anyString(), Mockito.anyString(), Mockito.any(FederationUserToken.class));
 
-        IQ iq = RemoteGetAllImagesRequest.marshal(this.provider, this.federationUserToken);
+        IQ iq = RemoteGetAllImagesRequest.marshal(this.provider, "default", this.federationUserToken);
         iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
@@ -111,7 +111,7 @@ public class RemoteGetAllImagesRequestHandlerTest {
 
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1)).
-                getAllImages(Mockito.anyString(), Mockito.anyString(), Mockito.any(FederationUserToken.class));
+                getAllImages(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(FederationUserToken.class));
 
         String iqId = iq.getID();
         String expected = String.format(IQ_ERROR_RESULT_FORMAT, iqId, this.provider, REQUESTING_MEMBER);

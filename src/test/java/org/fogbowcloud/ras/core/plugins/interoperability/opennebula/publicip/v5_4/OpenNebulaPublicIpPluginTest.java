@@ -218,11 +218,13 @@ public class OpenNebulaPublicIpPluginTest {
 		String requestingMember = null;
 		String providingMember = null;
 		String computeOrderId = "fake-order-id";
-		
+		String cloudName = null;
+
 		PublicIpOrder publicIpOrder = new PublicIpOrder(
 				federationUserToken, 
 				requestingMember, 
-				providingMember, 
+				providingMember,
+				cloudName,
 				computeOrderId);
 		
 		return publicIpOrder;

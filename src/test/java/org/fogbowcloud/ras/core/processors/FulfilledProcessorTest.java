@@ -345,7 +345,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         String providingMember =
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
 
-        Order order = new ComputeOrder(federationUserToken, requestingMember, providingMember, FAKE_INSTANCE_NAME, 8, 1024,
+        Order order = new ComputeOrder(federationUserToken, requestingMember, providingMember, "default", FAKE_INSTANCE_NAME, 8, 1024,
                 30, FAKE_IMAGE_NAME, mockUserData(), FAKE_PUBLIC_KEY, null);
 
         return order;
@@ -355,7 +355,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
             throws FogbowRasException, UnexpectedException {
 
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString()))
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(localCloudConnector);
 
         Mockito.doReturn(orderInstance).when(this.localCloudConnector)

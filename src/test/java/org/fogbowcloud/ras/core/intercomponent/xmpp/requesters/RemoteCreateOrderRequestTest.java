@@ -25,7 +25,7 @@ public class RemoteCreateOrderRequestTest {
 
     @Before
     public void setUp() throws InvalidParameterException {
-        this.order = new ComputeOrder(null, "requesting-member", this.providingMember, "hostName", 10, 20, 30,
+        this.order = new ComputeOrder(null, "requesting-member", this.providingMember, "default", "hostName", 10, 20, 30,
                 "imageid", null,
                 "publicKey", null);
         this.remoteCreateOrderRequest = new RemoteCreateOrderRequest(this.order);

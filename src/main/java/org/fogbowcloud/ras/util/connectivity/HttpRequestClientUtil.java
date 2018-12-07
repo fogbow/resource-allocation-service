@@ -31,7 +31,6 @@ public class HttpRequestClientUtil {
     private HttpClient client;
 
     public HttpRequestClientUtil() throws FatalErrorException {
-        HttpRequestUtil.init();
         this.client = HttpRequestUtil.createHttpClient();
     }
 

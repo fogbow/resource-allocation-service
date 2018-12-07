@@ -74,7 +74,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
 
 
         this.order = new ComputeOrder(federationUser, REQUESTING_MEMBER, "providingmember",
-                "fake-instance-name", 1, 2, 3, "imageId", null, "publicKey", new ArrayList<>());
+                "default", "fake-instance-name", 1, 2, 3, "imageId", null, "publicKey", new ArrayList<>());
 
         IQ iq = RemoteDeleteOrderRequest.marshal(this.order);
         iq.setFrom(REQUESTING_MEMBER);
@@ -94,7 +94,7 @@ public class RemoteDeleteOrderRequestHandlerTest {
     public void testHandleWhenExceptionIsThrown() throws Exception {
         //set up
         this.order = new ComputeOrder(null, REQUESTING_MEMBER, "providingmember",
-                "hostName", 1, 2, 3, "imageId", null, "publicKey", new ArrayList<>());
+                "default", "hostName", 1, 2, 3, "imageId", null, "publicKey", new ArrayList<>());
 
         Mockito.doThrow(new FogbowRasException()).when(this.remoteFacade).deleteOrder(this.order.getRequester(),
                 this.order.getId(), this.order.getFederationUserToken(), this.order.getType());

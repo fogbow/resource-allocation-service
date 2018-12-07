@@ -110,7 +110,7 @@ public class RemoteCreateOrderRequestHandlerTest {
     }
 
     private Order createOrder(FederationUserToken federationUserToken) {
-        return new ComputeOrder(federationUserToken, REQUESTING_MEMBER, "providingmember", "hostName", 1, 2,
+        return new ComputeOrder(federationUserToken, REQUESTING_MEMBER, "providingmember", "default", "hostName", 1, 2,
                 3, "imageId", null, "publicKey", new ArrayList<>());
     }
 

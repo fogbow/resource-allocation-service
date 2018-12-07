@@ -8,5 +8,6 @@ public enum Operation {
     GET_USER_QUOTA,
     GET_USER_ALLOCATION,
     GET_ALL_IMAGES,
-    GET_IMAGE
+    GET_IMAGE,
+    GET_CLOUD_NAMES
 }

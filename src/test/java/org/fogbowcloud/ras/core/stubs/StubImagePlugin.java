@@ -12,7 +12,7 @@ import java.util.Map;
  */
 public class StubImagePlugin implements ImagePlugin<Token> {
 
-    public StubImagePlugin() {
+    public StubImagePlugin(String confFilePath) {
     }
 
     @Override

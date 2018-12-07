@@ -40,7 +40,7 @@ public class RemoteGetAllImagesRequestTest {
                 "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
 
-        this.remoteGetAllImagesRequest = new RemoteGetAllImagesRequest(PROVIDER, federationUserToken);
+        this.remoteGetAllImagesRequest = new RemoteGetAllImagesRequest(PROVIDER, "default", federationUserToken);
         this.packetSender = Mockito.mock(PacketSender.class);
         PacketSenderHolder.init(packetSender);
 
@@ -64,7 +64,7 @@ public class RemoteGetAllImagesRequestTest {
 
         // verify
         // as IQ does not implement equals we need allocationAllowableValues matcher
-        IQ expectedIQ = RemoteGetAllImagesRequest.marshal(PROVIDER, federationUserToken);
+        IQ expectedIQ = RemoteGetAllImagesRequest.marshal(PROVIDER, "default", federationUserToken);
         IQMatcher matcher = new IQMatcher(expectedIQ);
         Mockito.verify(this.packetSender).syncSendPacket(Mockito.argThat(matcher));
     }

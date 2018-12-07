@@ -118,7 +118,7 @@ public class Rule {
 	
 	protected int getPortInRange(int portType) {
 		try {
-			if (this.range == null || this.range.isBlank()) {
+			if (this.range == null || this.range.isEmpty()) {
 				throw new Exception("The range is null");
 			}
 			String[] rangeSplited = this.range.split(OPENNEBULA_RANGE_SEPARETOR);
@@ -133,7 +133,7 @@ public class Rule {
 	}
 
 	public Direction getDirection() throws FogbowRasException {
-		if (this.type == null || this.type.isBlank()) {
+		if (this.type == null || this.type.isEmpty()) {
 			LOGGER.warn("The type is null");
 			return null;
 		}
@@ -149,7 +149,7 @@ public class Rule {
 	}
 	
 	public Protocol getSRProtocol() throws FogbowRasException {
-		if (this.protocol == null || this.protocol.isBlank()) {
+		if (this.protocol == null || this.protocol.isEmpty()) {
 			LOGGER.warn("The protocol is null");
 		}
 		switch (this.protocol) {

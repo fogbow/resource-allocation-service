@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.plugins.aaa.mapper.one2one;
+package org.fogbowcloud.ras.core.plugins.interoperability.mapper.one2one;
 
 import org.apache.http.*;
 import org.apache.http.client.HttpClient;
@@ -6,8 +6,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicStatusLine;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
@@ -20,6 +22,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -45,10 +48,14 @@ public class OpenStackOneToOneMapperTest {
 
     @Before
     public void setUp() {
-        this.mapper = new OpenStackOneToOneMapper();
+        String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
+                + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        String mapperConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
+                + "default" + File.separator + SystemConstants.MAPPER_CONF_FILE_NAME;
+        this.mapper = new OpenStackOneToOneMapper(cloudConfPath, mapperConfPath);
         this.client = Mockito.spy(HttpClient.class);
         this.httpRequestClientUtil = Mockito.spy(new HttpRequestClientUtil(this.client));
-        this.keystoneV3TokenGenerator = Mockito.spy(new OpenStackTokenGeneratorPlugin());
+        this.keystoneV3TokenGenerator = Mockito.spy(new OpenStackTokenGeneratorPlugin(cloudConfPath));
         this.keystoneV3TokenGenerator.setClient(this.httpRequestClientUtil);
         this.openStackIdentityPlugin = new OpenStackIdentityPlugin();
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);

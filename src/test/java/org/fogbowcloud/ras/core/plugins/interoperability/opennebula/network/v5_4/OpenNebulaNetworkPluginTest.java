@@ -230,6 +230,7 @@ public class OpenNebulaNetworkPluginTest {
 		FederationUserToken federationUserToken = null;
 		String requestingMember = null;
 		String providingMember = null;
+		String cloudName = null;
 		String name = FAKE_NETWORK_NAME;
 		String gateway = FAKE_GATEWAY;
 		String address = FAKE_ADDRESS;
@@ -238,7 +239,8 @@ public class OpenNebulaNetworkPluginTest {
 		NetworkOrder networkOrder = new NetworkOrder(
 				federationUserToken, 
 				requestingMember, 
-				providingMember, 
+				providingMember,
+				cloudName,
 				name, 
 				gateway, 
 				address, 

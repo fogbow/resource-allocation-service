@@ -18,9 +18,15 @@ public class RemoteCloudConnector implements CloudConnector {
     private static final Logger LOGGER = Logger.getLogger(RemoteCloudConnector.class);
 
     private String destinationMember;
+    private String cloudName;
+
+    public RemoteCloudConnector(String memberId, String cloudName) {
+        this.destinationMember = memberId;
+        this.cloudName = cloudName;
+    }
 
     public RemoteCloudConnector(String memberId) {
-        this.destinationMember = memberId;
+        this(memberId, "");
     }
 
     @Override
@@ -56,7 +62,7 @@ public class RemoteCloudConnector implements CloudConnector {
     public Quota getUserQuota(FederationUserToken federationUserToken, ResourceType resourceType) throws Exception {
 
         RemoteGetUserQuotaRequest remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.destinationMember,
-                federationUserToken, resourceType);
+                this.cloudName, federationUserToken, resourceType);
         Quota quota = remoteGetUserQuotaRequest.send();
         return quota;
     }
@@ -65,7 +71,7 @@ public class RemoteCloudConnector implements CloudConnector {
     public HashMap<String, String> getAllImages(FederationUserToken federationUserToken) throws Exception {
 
         RemoteGetAllImagesRequest remoteGetAllImagesRequest = new RemoteGetAllImagesRequest(this.destinationMember,
-                federationUserToken);
+                this.cloudName, federationUserToken);
         HashMap<String, String> imagesMap = remoteGetAllImagesRequest.send();
         return imagesMap;
     }
@@ -73,8 +79,8 @@ public class RemoteCloudConnector implements CloudConnector {
     @Override
     public Image getImage(String imageId, FederationUserToken federationUserToken) throws Exception {
 
-        RemoteGetImageRequest remoteGetImageRequest = new RemoteGetImageRequest(this.destinationMember, imageId,
-                federationUserToken);
+        RemoteGetImageRequest remoteGetImageRequest = new RemoteGetImageRequest(this.destinationMember, this.cloudName,
+                imageId, federationUserToken);
         Image image = remoteGetImageRequest.send();
         return image;
     }
@@ -106,5 +112,11 @@ public class RemoteCloudConnector implements CloudConnector {
         RemoteDeleteSecurityRuleRequest remoteDeleteSecurityRuleRequest =
                 new RemoteDeleteSecurityRuleRequest(securityRuleId, this.destinationMember, federationUserToken);
         remoteDeleteSecurityRuleRequest.send();
+    }
+
+    public List<String> getCloudNames(FederationUserToken federationUserToken) throws Exception {
+        RemoteGetCloudNamesRequest remoteGetCloudNames = new RemoteGetCloudNamesRequest(this.destinationMember, federationUserToken);
+        List<String> cloudNames = remoteGetCloudNames.send();
+        return cloudNames;
     }
 }

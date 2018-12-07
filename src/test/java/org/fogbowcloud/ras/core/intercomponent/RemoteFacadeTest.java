@@ -3,9 +3,7 @@ package org.fogbowcloud.ras.core.intercomponent;
 import org.fogbowcloud.ras.core.*;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
-import org.fogbowcloud.ras.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.RemoteCloudConnector;
-import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Operation;
 import org.fogbowcloud.ras.core.datastore.DatabaseManager;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
@@ -59,15 +57,10 @@ public class RemoteFacadeTest extends BaseUnitTests {
         this.remoteFacade.setOrderController(this.orderController);
         this.remoteFacade.setAaaController(this.aaaController);
 
-        PluginInstantiator instantiationInitService = PluginInstantiator.getInstance();
-        InteroperabilityPluginsHolder interoperabilityPluginsHolder = new InteroperabilityPluginsHolder(instantiationInitService);
+        AaaPluginInstantiator instantiationInitService = AaaPluginInstantiator.getInstance();
         AaaPluginsHolder aaaPluginsHolder = new AaaPluginsHolder(instantiationInitService);
-        CloudConnectorFactory cloudConnectorFactory = CloudConnectorFactory.getInstance();
-        cloudConnectorFactory.setLocalMemberId(getLocalMemberId());
-        cloudConnectorFactory.setMapperPlugin(aaaPluginsHolder.getFederationToLocalMapperPlugin());
-        cloudConnectorFactory.setInteroperabilityPluginsHolder(interoperabilityPluginsHolder);
 
-        this.cloudConnector = Mockito.spy(new RemoteCloudConnector(REMOTE_MEMBER_ID));
+        this.cloudConnector = Mockito.spy(new RemoteCloudConnector(REMOTE_MEMBER_ID, "default"));
     }
 
     // test case: When calling the activateOrder method a new Order without state passed by
@@ -79,7 +72,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
         Order order = createOrder(federationUser);
         Assert.assertNull(order.getOrderState());
 
-        Mockito.doNothing().when(this.aaaController).authorize(Mockito.eq(federationUser),
+        Mockito.doNothing().when(this.aaaController).authorize(Mockito.anyString(), Mockito.eq(federationUser),
                 Mockito.eq(Operation.CREATE), Mockito.eq(ResourceType.COMPUTE));
 
         // exercise
@@ -98,7 +91,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
         FederationUserToken federationUser = createFederationUser();
         Order order = createOrder(federationUser);
 
-        Mockito.doNothing().when(this.aaaController).authorize(Mockito.eq(federationUser),
+        Mockito.doNothing().when(this.aaaController).authorize("default", Mockito.eq(federationUser),
                 Mockito.eq(Operation.CREATE), Mockito.eq(ResourceType.COMPUTE));
 
         Instance excepted = new ComputeInstance(FAKE_INSTANCE_ID);
@@ -128,18 +121,18 @@ public class RemoteFacadeTest extends BaseUnitTests {
         OrderStateTransitioner.activateOrder(order);
 
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString()))
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), "default"))
                 .thenReturn(this.cloudConnector);
         IQ response = new IQ();
 
-        Mockito.doNothing().when(this.aaaController).authorize(Mockito.eq(federationUser),
+        Mockito.doNothing().when(this.aaaController).authorize("default", Mockito.eq(federationUser),
                 Mockito.eq(Operation.CREATE), Mockito.eq(ResourceType.COMPUTE));
 
         // exercise
         this.remoteFacade.deleteOrder(REQUESTING_MEMBER_ID, order.getId(), federationUser, ResourceType.COMPUTE);
 
         // verify
-        Mockito.verify(this.aaaController, Mockito.times(1)).authorize(
+        Mockito.verify(this.aaaController, Mockito.times(1)).authorize("default",
                 Mockito.any(FederationUserToken.class), Mockito.any(Operation.class),
                 Mockito.any(ResourceType.class));
 
@@ -154,7 +147,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
         // set up
         FederationUserToken federationUser = createFederationUser();
 
-        Mockito.doNothing().when(this.aaaController).authorize(Mockito.eq(federationUser),
+        Mockito.doNothing().when(this.aaaController).authorize("default", Mockito.eq(federationUser),
                 Mockito.eq(Operation.CREATE), Mockito.eq(ResourceType.COMPUTE));
 
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
@@ -162,7 +155,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
         PowerMockito.mockStatic(CloudConnectorFactory.class);
         BDDMockito.given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
 
-        Mockito.when(cloudConnectorFactory.getCloudConnector(REMOTE_MEMBER_ID))
+        Mockito.when(cloudConnectorFactory.getCloudConnector(REMOTE_MEMBER_ID, "default"))
                 .thenReturn(this.cloudConnector);
 
         ComputeAllocation totalQuota = new ComputeAllocation(8, 2048, 2);
@@ -174,11 +167,11 @@ public class RemoteFacadeTest extends BaseUnitTests {
                 Mockito.eq(ResourceType.COMPUTE));
 
         // exercise
-        Quota expected = this.remoteFacade.getUserQuota(REQUESTING_MEMBER_ID, REMOTE_MEMBER_ID, federationUser,
+        Quota expected = this.remoteFacade.getUserQuota(REQUESTING_MEMBER_ID, REMOTE_MEMBER_ID, "default", federationUser,
                 ResourceType.COMPUTE);
 
         // verify
-        Mockito.verify(this.aaaController, Mockito.times(1)).authorize(
+        Mockito.verify(this.aaaController, Mockito.times(1)).authorize("default",
                 Mockito.any(FederationUserToken.class), Mockito.any(Operation.class),
                 Mockito.any(ResourceType.class));
 
@@ -206,7 +199,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
     }
 
     private Order createOrder(FederationUserToken token) {
-        return new ComputeOrder(token, REQUESTING_MEMBER_ID, "fake-providing-member", "fake-instance-name",
+        return new ComputeOrder(token, REQUESTING_MEMBER_ID, "fake-providing-member", "default", "fake-instance-name",
                 -1, -1, -1, "fake-image-id", null, "fake-public-key", new ArrayList<String>());
     }
 

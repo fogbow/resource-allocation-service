@@ -9,7 +9,7 @@ import java.util.Map;
  * Should not have allocationAllowableValues proper implementation.
  */
 public class StubTokenGeneratorPlugin implements TokenGeneratorPlugin {
-    public StubTokenGeneratorPlugin() {
+    public StubTokenGeneratorPlugin(String confFilePath) {
     }
 
     @Override

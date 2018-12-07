@@ -9,7 +9,6 @@ import org.fogbowcloud.ras.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 
@@ -26,12 +25,13 @@ public class RemoteGetImageRequestHandler extends AbstractQueryHandler {
     public IQ handle(IQ iq) {
         String imageId = unmarshalImageId(iq);
         String memberId = unmarshalMemberId(iq);
+        String cloudName = unmarshalCloudName(iq);
         FederationUserToken federationUserToken = unmarshalFederationUser(iq);
 
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            Image image = RemoteFacade.getInstance().getImage(iq.getFrom().toBareJID(), memberId, imageId,
+            Image image = RemoteFacade.getInstance().getImage(iq.getFrom().toBareJID(), memberId, cloudName, imageId,
                     federationUserToken);
             updateResponse(response, image);
         } catch (Exception e) {
@@ -65,6 +65,14 @@ public class RemoteGetImageRequestHandler extends AbstractQueryHandler {
 
         Element memberIdElement = queryElement.element(IqElement.MEMBER_ID.toString());
         return memberIdElement.getText();
+    }
+
+    private String unmarshalCloudName(IQ iq) {
+        Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
+
+        Element cloudNameElement = queryElement.element(IqElement.CLOUD_NAME.toString());
+        String cloudName = new Gson().fromJson(cloudNameElement.getText(), String.class);
+        return cloudName;
     }
 
     private FederationUserToken unmarshalFederationUser(IQ iq) {

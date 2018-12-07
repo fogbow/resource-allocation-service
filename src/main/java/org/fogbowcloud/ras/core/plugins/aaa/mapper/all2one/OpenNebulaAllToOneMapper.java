@@ -4,9 +4,10 @@ import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
-import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.opennebula.OpenNebulaTokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.opennebula.OpenNebulaIdentityPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.mapper.all2one.GenericAllToOneFederationToLocalMapper;
 
 public class OpenNebulaAllToOneMapper implements FederationToLocalMapperPlugin {
     private GenericAllToOneFederationToLocalMapper genericMapper;

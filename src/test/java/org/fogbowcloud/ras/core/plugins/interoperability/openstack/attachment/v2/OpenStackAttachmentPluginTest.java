@@ -3,7 +3,9 @@ package org.fogbowcloud.ras.core.plugins.interoperability.openstack.attachment.v
 import org.apache.http.HttpStatus;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpResponseException;
+import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -22,6 +24,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -60,9 +63,11 @@ public class OpenStackAttachmentPluginTest {
         properties.put(COMPUTE_NOVAV2_NETWORK_KEY, FAKE_NET_ID);
 
         this.localUserAttributes = new OpenStackV3Token(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_NAME, FAKE_PROJECT_ID, null);
-        this.attachmentOrder = new AttachmentOrder(null, FAKE_SERVER_ID, FAKE_VOLUME_ID, MOUNT_POINT);
+        this.attachmentOrder = new AttachmentOrder(null, "default", FAKE_SERVER_ID, FAKE_VOLUME_ID, MOUNT_POINT);
 
-        this.openStackAttachmentPlugin = new OpenStackAttachmentPlugin();
+        String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
+                + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.openStackAttachmentPlugin = new OpenStackAttachmentPlugin(cloudConfPath);
         this.openStackAttachmentPlugin.setProperties(properties);
         this.client = Mockito.mock(HttpRequestClientUtil.class);
         this.openStackAttachmentPlugin.setClient(this.client);

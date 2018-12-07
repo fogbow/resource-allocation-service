@@ -70,8 +70,8 @@ public class OpenProcessor implements Runnable {
             // Check if the order is still in the Open state (it could have been changed by another thread)
             if (orderState.equals(OrderState.OPEN)) {
                 try {
-                    CloudConnector cloudConnector =
-                            CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider());
+                    CloudConnector cloudConnector = CloudConnectorFactory.getInstance().
+                            getCloudConnector(order.getProvider(), order.getCloudName());
                     String orderInstanceId = cloudConnector.requestInstance(order);
                     order.setInstanceId(orderInstanceId);
                     updateOrderStateAfterProcessing(order);

@@ -42,12 +42,12 @@ public class OpenProcessorTest extends BaseUnitTests {
         LocalCloudConnector localCloudConnector = Mockito.mock(LocalCloudConnector.class);
 
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-        when(cloudConnectorFactory.getCloudConnector(anyString())).thenReturn(localCloudConnector);
+        when(cloudConnectorFactory.getCloudConnector(anyString(), anyString())).thenReturn(localCloudConnector);
 
         PowerMockito.mockStatic(CloudConnectorFactory.class);
         given(CloudConnectorFactory.getInstance()).willReturn(cloudConnectorFactory);
 
-        this.cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(BaseUnitTests.LOCAL_MEMBER_ID);
+        this.cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(BaseUnitTests.LOCAL_MEMBER_ID, "default");
 
         this.thread = null;
         this.openProcessor = Mockito.spy(new OpenProcessor(BaseUnitTests.LOCAL_MEMBER_ID,

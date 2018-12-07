@@ -31,9 +31,8 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3Token> {
     private HttpRequestClientUtil client;
     private String volumeV2APIEndpoint;
 
-    public OpenStackVolumePlugin() throws FatalErrorException {
-        Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                SystemConstants.OPENSTACK_CONF_FILE_NAME);
+    public OpenStackVolumePlugin(String confFilePath) throws FatalErrorException {
+        Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.volumeV2APIEndpoint = properties.getProperty(VOLUME_NOVAV2_URL_KEY) + V2_API_ENDPOINT;
         initClient();
     }

@@ -71,6 +71,7 @@ public class Messages {
         public static final String EXTERNAL_NETWORK_NOT_FOUND = "External network not found.";
         public static final String INVALID_SERVICE_URL = "Invalid service URL: %s.";
         public static final String NEUTRON_ENDPOINT_NOT_FOUND = "Neutron endpoint not found.";
+        public static final String NO_CLOUD_SPECIFIED = "No cloud names specified in clouds.conf file";
         public static final String PROPERTY_FILE_NOT_FOUND = "Property file %s not found.";
         public static final String UNABLE_TO_CONNECT_TO_XMPP_SERVER = "Unable to connect to XMPP server.";
         public static final String UNABLE_TO_FIND_CLASS = "Unable to find class %s.";
@@ -103,6 +104,8 @@ public class Messages {
         public static final String RECEIVING_DELETE_REQUEST = "Delete request for %s %s received.";
         public static final String RECEIVING_GET_ALL_IMAGES_REQUEST = "Get all images request received.";
         public static final String RECEIVING_GET_ALL_REQUEST = "Get status request for all %s received.";
+        public static final String RECEIVING_GET_CLOUDS_REQUEST = "Get request for cloud names received.";
+        public static final String RECEIVING_GET_DEFAULT_CLOUD_REQUEST = "Get request for default cloud name received.";
         public static final String RECEIVING_GET_IMAGE_REQUEST = "Get request for image %s received.";
         public static final String RECEIVING_GET_REQUEST = "Get request for %s %s received.";
         public static final String RECEIVING_GET_VERSION_REQUEST = "Get request for version received.";

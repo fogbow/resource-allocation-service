@@ -125,7 +125,7 @@ public class CloudStackNetworkPluginTest {
 
         // exercise
         NetworkOrder order = new NetworkOrder(null, FAKE_MEMBER, FAKE_MEMBER,
-                FAKE_NAME, FAKE_GATEWAY, FAKE_ADDRESS, NetworkAllocationMode.DYNAMIC);
+                "default", FAKE_NAME, FAKE_GATEWAY, FAKE_ADDRESS, NetworkAllocationMode.DYNAMIC);
         String createdNetworkId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
         // verify

@@ -200,13 +200,15 @@ public class OpenNebulaVolumePluginTest {
 		FederationUserToken federationUserToken = null;
 		String requestingMember = null;
 		String providingMember = null;
+		String cloudName = null;
 		String name = FAKE_VOLUME_NAME;
 		int volumeSize = 1;
 				
 		VolumeOrder volumeOrder = new VolumeOrder(
 				federationUserToken, 
 				requestingMember, 
-				providingMember, 
+				providingMember,
+				cloudName,
 				name, 
 				volumeSize);
 		

@@ -22,10 +22,10 @@ public class ComposedAuthorizationPlugin implements AuthorizationPlugin<Federati
     }
 
     @Override
-    public boolean isAuthorized(FederationUserToken federationUserToken, Operation operation, ResourceType type) {
+    public boolean isAuthorized(FederationUserToken federationUserToken, String cloudName, Operation operation, ResourceType type) {
 
         for (AuthorizationPlugin plugin : this.authorizationPlugins) {
-            if (!plugin.isAuthorized(federationUserToken, operation, type)) {
+            if (!plugin.isAuthorized(federationUserToken, cloudName, operation, type)) {
                 return false;
             }
         }

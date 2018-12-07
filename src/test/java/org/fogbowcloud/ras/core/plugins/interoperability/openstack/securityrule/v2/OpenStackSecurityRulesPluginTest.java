@@ -44,6 +44,7 @@ public class OpenStackSecurityRulesPluginTest {
     private static final String FAKE_TOKEN_VALUE = "fake-token-value";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_NAME = "fake-name";
+    private static final String FAKE_CLOUD_NAME = "fake-cloud-name";
     private static final String FAKE_PROJECT_ID = "fake-project-id";
     private static final String FAKE_FEDERATION_TOKEN_VALUE = "federation-token-value";
     private static final String FAKE_USER_NAME = "fake-user-name";
@@ -214,7 +215,7 @@ public class OpenStackSecurityRulesPluginTest {
         FederationUserToken federationUserToken = new FederationUserToken(FAKE_TOKEN_PROVIDER,
                 FAKE_FEDERATION_TOKEN_VALUE,
                 FAKE_USER_ID, FAKE_USER_NAME);
-        NetworkOrder order = new NetworkOrder(federationUserToken, FAKE_MEMBER_ID, FAKE_MEMBER_ID,
+        NetworkOrder order = new NetworkOrder(federationUserToken, FAKE_MEMBER_ID, FAKE_MEMBER_ID, FAKE_CLOUD_NAME,
                 FAKE_NAME, FAKE_GATEWAY, FAKE_ADDRESS, NetworkAllocationMode.STATIC);
 
         NetworkInstance networtkInstanceExcepted = new NetworkInstance(order.getId());

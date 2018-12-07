@@ -59,7 +59,7 @@ public class OrderTimestampStorageTest {
         ArrayList<UserData> userData = new ArrayList<UserData>(Arrays.asList(new UserData[] { fakeUserData }));
 
         orderTest = new ComputeOrder(federationUserToken,
-                "requestingMember", "providingMember", "fake-instance-name", 8, 1024,
+                "requestingMember", "providingMember", "default", "fake-instance-name", 8, 1024,
                 30, "fake_image_name", userData, "fake_public_key", null);
         orderTest.setOrderStateInTestMode(OrderState.OPEN);
         orderTest.setId(FAKE_USER_ID);
@@ -106,7 +106,7 @@ public class OrderTimestampStorageTest {
         attachmentOrder.setId("fake-id-3");
 
         VolumeOrder volumeOrder = new VolumeOrder(new FederationUserToken(),
-                "reqMem", "provMember", "volume-test", 50);
+                "reqMem", "provMember", "default", "volume-test", 50);
         volumeOrder.setOrderStateInTestMode(OrderState.CLOSED);
         volumeOrder.setId("fake-id-4");
 

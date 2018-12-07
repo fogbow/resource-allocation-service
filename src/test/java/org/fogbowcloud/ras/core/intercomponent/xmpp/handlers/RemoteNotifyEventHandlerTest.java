@@ -110,7 +110,7 @@ public class RemoteNotifyEventHandlerTest {
 
     private String createOrder() throws InvalidParameterException {
         this.order = new ComputeOrder(null, REQUESTING_MEMBER, "providingmember",
-                "hostName", 1, 2, 3, "imageId", null,
+                "default", "hostName", 1, 2, 3, "imageId", null,
                 "publicKey", new ArrayList<>());
         return this.order.getId();
     }

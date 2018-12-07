@@ -55,7 +55,7 @@ public class ImageTest {
     public void testGetAllImagesWhenHasNoData() throws Exception {
         // set up
         Map<String, String> imagesMap = new HashMap<>();
-        Mockito.doReturn(imagesMap).when(this.facade).getAllImages(Mockito.anyString(), Mockito.anyString());
+        Mockito.doReturn(imagesMap).when(this.facade).getAllImages(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         RequestBuilder requestBuilder = createRequestBuilder(IMAGE_ENDPOINT, getHttpHeaders(), "");
 
@@ -77,7 +77,7 @@ public class ImageTest {
         imagesMap.put("image-id2", "image-name2");
         imagesMap.put("image-id3", "image-name3");
 
-        Mockito.doReturn(imagesMap).when(this.facade).getAllImages(Mockito.anyString(), Mockito.anyString());
+        Mockito.doReturn(imagesMap).when(this.facade).getAllImages(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         RequestBuilder requestBuilder = createRequestBuilder(IMAGE_ENDPOINT, getHttpHeaders(), "");
 
@@ -103,7 +103,7 @@ public class ImageTest {
 
         org.fogbowcloud.ras.core.models.images.Image image = new org.fogbowcloud.ras.core.models.images.Image(fakeId, "fake-name", 1, 1, 1, "READY");
 
-        Mockito.doReturn(image).when(this.facade).getImage(Mockito.anyString(),
+        Mockito.doReturn(image).when(this.facade).getImage(Mockito.anyString(), Mockito.anyString(),
                 Mockito.anyString(), Mockito.anyString());
 
         RequestBuilder requestBuilder = createRequestBuilder(imageEndpoint, getHttpHeaders(), "");
@@ -131,7 +131,7 @@ public class ImageTest {
         String fakeId = "fake-Id-1";
         String imageEndpoint = IMAGE_ENDPOINT + "/" + fakeId;
 
-        Mockito.doThrow(new InstanceNotFoundException()).when(this.facade).getImage(
+        Mockito.doThrow(new InstanceNotFoundException()).when(this.facade).getImage(Mockito.anyString(),
                 Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         RequestBuilder requestBuilder = createRequestBuilder(imageEndpoint, getHttpHeaders(), "");

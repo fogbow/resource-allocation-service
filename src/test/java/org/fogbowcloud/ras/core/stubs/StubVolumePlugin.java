@@ -11,7 +11,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.VolumePlugin;
  */
 public class StubVolumePlugin implements VolumePlugin<Token> {
 
-    public StubVolumePlugin() {
+    public StubVolumePlugin(String confFilePath) {
     }
 
     @Override

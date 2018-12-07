@@ -10,7 +10,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.ComputeQuotaPlugin;
  */
 public class StubComputeQuotaPlugin implements ComputeQuotaPlugin {
 
-    public StubComputeQuotaPlugin() {
+    public StubComputeQuotaPlugin(String confFilePath) {
     }
 
     @Override

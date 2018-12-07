@@ -233,6 +233,7 @@ public class OpenNebulaAttachmentPluginTest {
 		FederationUserToken federationUserToken = null;
 		String requestingMember = null;
 		String providingMember = null;
+		String cloudName = null;
 		String computeId = "1";
 		String volumeId = "1";
 		String device = null;
@@ -240,7 +241,8 @@ public class OpenNebulaAttachmentPluginTest {
 		AttachmentOrder attachmentOrder = new AttachmentOrder(
 				federationUserToken, 
 				requestingMember, 
-				providingMember, 
+				providingMember,
+				cloudName,
 				computeId, 
 				volumeId, 
 				device);

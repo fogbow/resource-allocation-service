@@ -7,7 +7,8 @@ public enum ResourceType {
     ATTACHMENT("attachment"),
     IMAGE("image"),
     PUBLIC_IP("publicIp"),
-    SECURITY_RULE("securityRule");
+    SECURITY_RULE("securityRule"),
+    CLOUD_NAMES("cloudNames");
 
     private String value;
 

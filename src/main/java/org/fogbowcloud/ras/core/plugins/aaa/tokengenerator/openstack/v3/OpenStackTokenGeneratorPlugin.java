@@ -8,15 +8,11 @@ import java.util.Properties;
 import org.apache.http.Header;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
-import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
@@ -27,7 +23,6 @@ import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     private static final Logger LOGGER = Logger.getLogger(OpenStackTokenGeneratorPlugin.class);
 
-    public static final String OPENSTACK_KEYSTONE_V3_URL = "openstack_keystone_v3_url";
     public static final String V3_TOKENS_ENDPOINT_PATH = "/auth/tokens";
     public static final String X_SUBJECT_TOKEN = "X-Subject-Token";
     public static final String OPENSTACK_TOKEN_STRING_SEPARATOR = "!#!";
@@ -35,6 +30,7 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     public static final String PASSWORD = "password";
     public static final String USER_NAME = "username";
     public static final Object DOMAIN = "domain";
+    public static final String KEYSTONE_V3_URL_KEY = "openstack_keystone_v3_url";
     public static final int OPENSTACK_TOKEN_NUMBER_OF_FIELDS = 6;
 
     private String v3TokensEndpoint;
@@ -42,13 +38,12 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     private String tokenProviderId;
 	private RASAuthenticationHolder rasAuthenticationHolder;
 
-    public OpenStackTokenGeneratorPlugin() throws FatalErrorException {
+    public OpenStackTokenGeneratorPlugin(String confFilePath) throws FatalErrorException {
         this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
-        Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                SystemConstants.OPENSTACK_CONF_FILE_NAME);
+        Properties properties = PropertiesUtil.readProperties(confFilePath);
 
-        String identityUrl = properties.getProperty(OPENSTACK_KEYSTONE_V3_URL);
+        String identityUrl = properties.getProperty(KEYSTONE_V3_URL_KEY);
         if (isUrlValid(identityUrl)) {
             this.v3TokensEndpoint = identityUrl + V3_TOKENS_ENDPOINT_PATH;
         }
@@ -60,7 +55,7 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
     private boolean isUrlValid(String url) throws FatalErrorException {
         if (url == null || url.trim().isEmpty()) {
-            throw new FatalErrorException(String.format(Messages.Fatal.INVALID_SERVICE_URL, OPENSTACK_KEYSTONE_V3_URL));
+            throw new FatalErrorException(String.format(Messages.Fatal.INVALID_SERVICE_URL, (url == null ? "null" : "")));
         }
         return true;
     }
@@ -100,7 +95,8 @@ public class OpenStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
             CreateTokenResponse.Project projectTokenResponse = createTokenResponse.getProject();
             String projectId = projectTokenResponse.getId();
 
-            String tokenString = this.tokenProviderId + OPENSTACK_TOKEN_STRING_SEPARATOR + tokenValue + OPENSTACK_TOKEN_STRING_SEPARATOR +
+            String tokenString = this.tokenProviderId + OPENSTACK_TOKEN_STRING_SEPARATOR + tokenValue +
+                    OPENSTACK_TOKEN_STRING_SEPARATOR +
                     userId + OPENSTACK_TOKEN_STRING_SEPARATOR + userName + OPENSTACK_TOKEN_STRING_SEPARATOR + projectId;
             
             String signature = createSignature(tokenString);

@@ -8,82 +8,43 @@ import org.fogbowcloud.ras.core.plugins.aaa.authorization.AuthorizationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.authorization.ComposedAuthorizationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPluginProtectionWrapper;
-import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPluginProtectionWrapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
-public class PluginInstantiator {
+public class AaaPluginInstantiator {
     private PluginFactory pluginFactory;
     private Properties properties;
-    private static PluginInstantiator instance;
+    private static AaaPluginInstantiator instance;
 
     /**
      * THERE ARE ONLY TWO CALLEES ALLOWED TO CALL THIS METHOD:
      * i) test code; and
      * ii) this.getInstance method.
      */
-    protected PluginInstantiator() {
-        String path = HomeDir.getPath();
-        List<String> configFilesNames = new ArrayList<>();
-        configFilesNames.add(path + SystemConstants.INTEROPERABILITY_CONF_FILE_NAME);
-        configFilesNames.add(path + SystemConstants.AAA_CONF_FILE_NAME);
-        this.properties = PropertiesUtil.readProperties(configFilesNames);
+    protected AaaPluginInstantiator() {
+        String aaaConfFilePath = HomeDir.getPath() + SystemConstants.AAA_CONF_FILE_NAME;
+        this.properties = PropertiesUtil.readProperties(aaaConfFilePath);
         this.pluginFactory = new PluginFactory();
     }
 
-    public static synchronized PluginInstantiator getInstance() throws FatalErrorException {
+    public static synchronized AaaPluginInstantiator getInstance() throws FatalErrorException {
         if (instance == null) {
-            instance = new PluginInstantiator();
+            instance = new AaaPluginInstantiator();
         }
         return instance;
     }
 
-    public AttachmentPlugin getAttachmentPlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.ATTACHMENT_PLUGIN_CLASS_KEY);
-        return (AttachmentPlugin) this.pluginFactory.createPluginInstance(className);
-    }
-
-    public ComputePlugin getComputePlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.COMPUTE_PLUGIN_CLASS_KEY);
-        return (ComputePlugin) this.pluginFactory.createPluginInstance(className);
-    }
-
-    public ComputeQuotaPlugin getComputeQuotaPlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.COMPUTE_QUOTA_PLUGIN_CLASS_KEY);
-        return (ComputeQuotaPlugin) this.pluginFactory.createPluginInstance(className);
-    }
-
-    public NetworkPlugin getNetworkPlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.NETWORK_PLUGIN_CLASS_KEY);
-        return (NetworkPlugin) this.pluginFactory.createPluginInstance(className);
-    }
-
-    public VolumePlugin getVolumePlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.VOLUME_PLUGIN_CLASS_KEY);
-        return (VolumePlugin) this.pluginFactory.createPluginInstance(className);
-    }
-
-    public ImagePlugin getImagePlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.IMAGE_PLUGIN_CLASS_KEY);
-        return (ImagePlugin) this.pluginFactory.createPluginInstance(className);
-    }
-
-    public PublicIpPlugin getPublicIpPlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.PUBLIC_IP_PLUGIN_CLASS_KEY);
-        return (PublicIpPlugin) this.pluginFactory.createPluginInstance(className);
-    }
-
     public TokenGeneratorPlugin getTokenGeneratorPlugin() {
         String className = this.properties.getProperty(ConfigurationConstants.TOKEN_GENERATOR_PLUGIN_CLASS);
+        String pluginConfFile = this.properties.getProperty(ConfigurationConstants.TOKEN_GENERATOR_CONF_FILE);
         return new TokenGeneratorPluginProtectionWrapper((TokenGeneratorPlugin)
-                this.pluginFactory.createPluginInstance(className));
+                this.pluginFactory.createPluginInstance(className, (HomeDir.getPath() + pluginConfFile)));
     }
 
     public FederationIdentityPlugin getFederationIdentityPlugin() {

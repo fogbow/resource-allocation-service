@@ -629,7 +629,7 @@ public class OpenNebulaComputePluginTest {
 		int disk = values[2];
 		
 		String imageId = FAKE_IMAGE_ID;
-		String name = null, providingMember = null, requestingMember = null;
+		String name = null, providingMember = null, requestingMember = null, cloudName = null;
 		String publicKey = FAKE_PUBLIC_KEY;
 		
 		FederationUserToken federationUserToken = null;
@@ -638,7 +638,8 @@ public class OpenNebulaComputePluginTest {
 		ComputeOrder computeOrder = new ComputeOrder(
 				federationUserToken, 
 				requestingMember, 
-				providingMember, 
+				providingMember,
+				cloudName,
 				name, 
 				cpu, 
 				memory, 

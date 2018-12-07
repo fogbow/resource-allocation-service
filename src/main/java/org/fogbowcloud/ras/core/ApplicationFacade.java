@@ -3,6 +3,7 @@ package org.fogbowcloud.ras.core;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
+import org.fogbowcloud.ras.core.cloudconnector.RemoteCloudConnector;
 import org.fogbowcloud.ras.core.constants.*;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.InstanceStatus;
@@ -26,9 +27,11 @@ public class ApplicationFacade {
     private final Logger LOGGER = Logger.getLogger(ApplicationFacade.class);
 
     private static ApplicationFacade instance;
+
     private AaaController aaaController;
     private OrderController orderController;
     private SecurityRuleController securityRuleController;
+    private CloudListController cloudListController;
     private String memberId;
     private String buildNumber;
 
@@ -59,6 +62,10 @@ public class ApplicationFacade {
         this.securityRuleController = securityRuleController;
     }
 
+    public void setCloudListController(CloudListController cloudListController) {
+        this.cloudListController = cloudListController;
+    }
+
     // Used for testing
     protected void setBuildNumber(String fileName) {
         Properties properties = PropertiesUtil.readProperties(fileName);
@@ -68,6 +75,18 @@ public class ApplicationFacade {
 
     public String getVersionNumber() {
         return SystemConstants.API_VERSION_NUMBER + "-" + this.buildNumber;
+    }
+
+    public List<String> getCloudNames(String memberId, String federationTokenValue) throws Exception {
+        FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, "all",
+                Operation.GET_CLOUD_NAMES, ResourceType.CLOUD_NAMES);
+        if (memberId == null || memberId.isEmpty() || memberId.equals(this.memberId)) {
+            return this.cloudListController.getCloudNames();
+        } else {
+            RemoteCloudConnector cloudConnector = new RemoteCloudConnector(memberId);
+            return cloudConnector.getCloudNames(requester);
+        }
     }
 
     public String createCompute(ComputeOrder order, String federationTokenValue) throws FogbowRasException,
@@ -96,13 +115,14 @@ public class ApplicationFacade {
         deleteOrder(computeId, federationTokenValue, ResourceType.COMPUTE);
     }
 
-    public ComputeAllocation getComputeAllocation(String memberId, String federationTokenValue)
+    public ComputeAllocation getComputeAllocation(String memberId, String cloudName, String federationTokenValue)
             throws FogbowRasException, UnexpectedException {
-        return (ComputeAllocation) getUserAllocation(memberId, federationTokenValue, ResourceType.COMPUTE);
+        return (ComputeAllocation) getUserAllocation(memberId, cloudName, federationTokenValue, ResourceType.COMPUTE);
     }
 
-    public ComputeQuota getComputeQuota(String memberId, String federationTokenValue) throws Exception {
-        return (ComputeQuota) getUserQuota(memberId, federationTokenValue, ResourceType.COMPUTE);
+    public ComputeQuota getComputeQuota(String memberId, String cloudName, String federationTokenValue)
+            throws Exception {
+        return (ComputeQuota) getUserQuota(memberId, cloudName, federationTokenValue, ResourceType.COMPUTE);
     }
 
     public String createVolume(VolumeOrder volumeOrder, String federationTokenValue) throws FogbowRasException,
@@ -144,31 +164,52 @@ public class ApplicationFacade {
         deleteOrder(orderId, federationTokenValue, ResourceType.ATTACHMENT);
     }
 
+    public String createPublicIp(PublicIpOrder publicIpOrder, String federationTokenValue) throws UnexpectedException,
+            FogbowRasException {
+        return activateOrder(publicIpOrder, federationTokenValue);
+    }
+
+    public PublicIpInstance getPublicIp(String publicIpOrderId, String federationTokenValue)
+            throws Exception {
+        return (PublicIpInstance) getResourceInstance(publicIpOrderId, federationTokenValue, ResourceType.PUBLIC_IP);
+    }
+
+    public void deletePublicIp(String publicIpOrderId, String federationTokenValue) throws Exception {
+        deleteOrder(publicIpOrderId, federationTokenValue, ResourceType.PUBLIC_IP);
+    }
+
     public List<InstanceStatus> getAllInstancesStatus(String federationTokenValue, ResourceType resourceType) throws
             UnauthenticatedUserException, UnauthorizedRequestException, UnavailableProviderException,
             InvalidParameterException {
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
-        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.GET_ALL, resourceType);
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, "all", Operation.GET_ALL,
+                resourceType);
         return this.orderController.getInstancesStatus(requester, resourceType);
     }
 
-    public Map<String, String> getAllImages(String memberId, String federationTokenValue) throws Exception {
+    public Map<String, String> getAllImages(String memberId, String cloudName, String federationTokenValue)
+            throws Exception {
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
-        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.GET_ALL_IMAGES, ResourceType.IMAGE);
+        if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, cloudName, Operation.GET_ALL_IMAGES,
+                ResourceType.IMAGE);
         if (memberId == null) {
             memberId = this.memberId;
         }
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
         return cloudConnector.getAllImages(requester);
     }
 
-    public Image getImage(String memberId, String imageId, String federationTokenValue) throws Exception {
+    public Image getImage(String memberId, String cloudName, String imageId, String federationTokenValue)
+            throws Exception {
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
-        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.GET_IMAGE, ResourceType.IMAGE);
+        if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, cloudName, Operation.GET_IMAGE,
+                ResourceType.IMAGE);
         if (memberId == null) {
             memberId = this.memberId;
         }
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
         return cloudConnector.getImage(imageId, requester);
     }
 
@@ -185,7 +226,7 @@ public class ApplicationFacade {
             throw new InstanceNotFoundException();
         }
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
-        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.CREATE,
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, majorOrder.getCloudName(), Operation.CREATE,
                 ResourceType.SECURITY_RULE);
         return securityRuleController.createSecurityRule(majorOrder, securityRule, requester);
     }
@@ -197,7 +238,7 @@ public class ApplicationFacade {
             throw new InstanceNotFoundException();
         }
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
-        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.GET_ALL,
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, majorOrder.getCloudName(), Operation.GET_ALL,
                 ResourceType.SECURITY_RULE);
         return securityRuleController.getAllSecurityRules(majorOrder, requester);
     }
@@ -209,16 +250,27 @@ public class ApplicationFacade {
             throw new InstanceNotFoundException();
         }
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
-        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.DELETE,
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, majorOrder.getCloudName(), Operation.DELETE,
                 ResourceType.SECURITY_RULE);
         securityRuleController.deleteSecurityRule(securityRuleId, majorOrder.getProvider(), requester);
     }
 
     private String activateOrder(Order order, String federationTokenValue) throws FogbowRasException,
             UnexpectedException {
+        // Set order fields that have not been provided by the requester in the body of the HTTP request
+        order.setRequester(this.memberId);
+        if (order.getProvider() == null || order.getProvider().isEmpty()) order.setProvider(this.memberId);
+        if (order.getCloudName() == null || order.getCloudName().isEmpty())
+            order.setCloudName(this.cloudListController.getDefaultCloudName());
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
-        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.CREATE, order.getType());
-        this.orderController.setEmptyFieldsAndActivateOrder(order, requester);
+        order.setFederationUserToken(requester);
+        // Check if the user is authentic and authorized to perform the requested operation
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, order.getCloudName(), Operation.CREATE,
+                order.getType());
+        // Set an initial state for the resource instance that is yet to be created in the cloud
+        order.setCachedInstanceState(InstanceState.DISPATCHED);
+        // Add order to the poll of active orders and to the OPEN linked list
+        OrderStateTransitioner.activateOrder(order);
         return order.getId();
     }
 
@@ -226,52 +278,44 @@ public class ApplicationFacade {
             throws Exception {
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
         Order order = this.orderController.getOrder(orderId);
-        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.GET, resourceType, order);
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, order.getCloudName(), Operation.GET,
+                resourceType, order);
         return this.orderController.getResourceInstance(orderId);
     }
 
     private void deleteOrder(String orderId, String federationTokenValue, ResourceType resourceType) throws Exception {
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
         Order order = this.orderController.getOrder(orderId);
-        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.DELETE, resourceType, order);
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, order.getCloudName(), Operation.DELETE,
+                resourceType, order);
         this.orderController.deleteOrder(orderId);
     }
 
-    private Allocation getUserAllocation(String memberId, String federationTokenValue, ResourceType resourceType)
+    private Allocation getUserAllocation(String memberId, String cloudName, String federationTokenValue,
+                                         ResourceType resourceType)
             throws FogbowRasException, UnexpectedException {
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
-        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.GET_USER_ALLOCATION,
+        if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, cloudName, Operation.GET_USER_ALLOCATION,
                 resourceType);
         return this.orderController.getUserAllocation(memberId, requester, resourceType);
     }
 
-    private Quota getUserQuota(String memberId, String federationTokenValue, ResourceType resourceType)
+    private Quota getUserQuota(String memberId, String cloudName, String federationTokenValue,
+                               ResourceType resourceType)
             throws Exception {
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
-        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.GET_USER_QUOTA, resourceType);
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
+        if (cloudName == null || cloudName.isEmpty()) cloudName = this.cloudListController.getDefaultCloudName();
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, cloudName, Operation.GET_USER_QUOTA,
+                resourceType);
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
         return cloudConnector.getUserQuota(requester, resourceType);
     }
 
-    public String createPublicIp(PublicIpOrder publicIpOrder, String federationTokenValue) throws UnexpectedException,
-            FogbowRasException {
-        return activateOrder(publicIpOrder, federationTokenValue);
-    }
-
-    public PublicIpInstance getPublicIp(String publicIpOrderId, String federationTokenValue)
-            throws Exception {
-        return (PublicIpInstance) getResourceInstance(publicIpOrderId, federationTokenValue, ResourceType.PUBLIC_IP);
-    }
-
-
-    public void deletePublicIp(String publicIpOrderId, String federationTokenValue) throws Exception {
-        deleteOrder(publicIpOrderId, federationTokenValue, ResourceType.PUBLIC_IP);
-    }
-
-    public String genericRequest(String memberId, String method, String url, Map<String, String> headers, String body,
+    public String genericRequest(String cloudName, String memberId, String method, String url, Map<String, String> headers, String body,
                                  String federationTokenValue) throws FogbowRasException, UnexpectedException {
         FederationUserToken federationUserToken = this.aaaController.getFederationUser(federationTokenValue);
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
         return cloudConnector.genericRequest(method, url, headers, body, federationUserToken);
     }
 

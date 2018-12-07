@@ -5,7 +5,9 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.message.BasicStatusLine;
+import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -69,7 +71,9 @@ public class OpenStackNetworkPluginTest {
         this.properties = propertiesHolder.getProperties();
         this.properties.put(OpenStackNetworkPlugin.KEY_EXTERNAL_GATEWAY_INFO, DEFAULT_GATEWAY_INFO);
         this.properties.put(NETWORK_NEUTRONV2_URL_KEY, DEFAULT_NETWORK_URL);
-        this.openStackNetworkPlugin = Mockito.spy(new OpenStackNetworkPlugin());
+        String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
+                + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.openStackNetworkPlugin = Mockito.spy(new OpenStackNetworkPlugin(cloudConfPath));
 
         this.client = Mockito.mock(HttpClient.class);
         this.httpRequestClientUtil = Mockito.spy(new HttpRequestClientUtil(this.client));
@@ -637,12 +641,12 @@ public class OpenStackNetworkPluginTest {
         String providingMember = "fake-providing-member";
         String name = "name";
         NetworkOrder order = new NetworkOrder(providingMember,
-                name, gateway, address, allocation);
+                "default", name, gateway, address, allocation);
         return order;
     }
 
     private NetworkOrder createEmptyOrder() {
-        return new NetworkOrder(null, null, null, null, null, null, null);
+        return new NetworkOrder(null, null, null, "default", null, null, null, null);
     }
 
     private HttpResponse createHttpResponse(String content, int httpStatus) throws IOException {
