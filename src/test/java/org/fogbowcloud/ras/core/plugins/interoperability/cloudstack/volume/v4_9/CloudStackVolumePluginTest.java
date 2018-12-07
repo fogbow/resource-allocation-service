@@ -380,9 +380,9 @@ public class CloudStackVolumePluginTest {
     }
     
     // test case: When calling the requestInstance method passing some invalid argument, an
-    // InvalidParameterException must be thrown.
-    @Test(expected = InvalidParameterException.class)
-    public void testCreateRequestInstanceThrowInvalidParameterException()
+    // FogbowRasException must be thrown.
+    @Test(expected = FogbowRasException.class)
+    public void testCreateRequestInstanceThrowFogbowRasException()
             throws HttpResponseException, FogbowRasException, UnexpectedException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
@@ -569,9 +569,9 @@ public class CloudStackVolumePluginTest {
     }
     
     // test case: When calling the getInstance method passing some invalid argument, an
-    // InvalidParameterException must be thrown.
-    @Test(expected = InvalidParameterException.class)
-    public void testGetInstanceThrowInvalidParameterException()
+    // FogbowRasException must be thrown.
+    @Test(expected = FogbowRasException.class)
+    public void testGetInstanceThrowFogbowRasException()
             throws UnexpectedException, FogbowRasException, HttpResponseException {
 
         // set up
@@ -766,9 +766,9 @@ public class CloudStackVolumePluginTest {
     }
     
     // test case: When calling the deleteInstance method passing some invalid argument, an
-    // InvalidParameterException must be thrown.
-    @Test(expected = InvalidParameterException.class)
-    public void testDeleteInstanceThrowInvalidParameterException()
+    // FogbowRasException must be thrown.
+    @Test(expected = FogbowRasException.class)
+    public void testDeleteInstanceThrowFogbowRasException()
             throws UnexpectedException, FogbowRasException, HttpResponseException {
 
         // set up

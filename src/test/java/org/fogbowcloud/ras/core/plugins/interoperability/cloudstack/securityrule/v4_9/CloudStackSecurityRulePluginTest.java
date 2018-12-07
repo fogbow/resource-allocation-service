@@ -136,7 +136,7 @@ public class CloudStackSecurityRulePluginTest {
         try {
             this.plugin.getSecurityRules(publicIpOrder, localUserAttributes);
             Assert.fail();
-        } catch (InvalidParameterException e) {
+        } catch (FogbowRasException e) {
         }
 
 

@@ -213,9 +213,9 @@ public class CloudStackAttachmentPluginTest {
     }
     
     // test case: When calling the requestInstance method passing some invalid argument, an
-    // InvalidParameterException must be thrown.
-    @Test(expected = InvalidParameterException.class)
-    public void testAttachRequestInstanceThrowInvalidParameterException()
+    // FogbowRasException must be thrown.
+    @Test(expected = FogbowRasException.class)
+    public void testAttachRequestInstanceThrowFogbowRasException()
             throws HttpResponseException, FogbowRasException, UnexpectedException {
         
         // set up
@@ -523,9 +523,9 @@ public class CloudStackAttachmentPluginTest {
     }
     
     // test case: When calling the getInstance method passing some invalid argument, an
-    // InvalidParameterException must be thrown.
-    @Test(expected = InvalidParameterException.class)
-    public void testGetInstanceThrowInvalidParameterException()
+    // FogbowRasException must be thrown.
+    @Test(expected = FogbowRasException.class)
+    public void testGetInstanceThrowFogbowRasException()
             throws HttpResponseException, FogbowRasException, UnexpectedException {
         
         // set up
@@ -722,9 +722,9 @@ public class CloudStackAttachmentPluginTest {
     }
     
     // test case: When calling the deleteInstance method passing some invalid argument, an
-    // InvalidParameterException must be thrown.
-    @Test(expected = InvalidParameterException.class)
-    public void testDeleteInstanceThrowInvalidParameterException()
+    // FogbowRasException must be thrown.
+    @Test(expected = FogbowRasException.class)
+    public void testDeleteInstanceThrowFogbowRasException()
             throws HttpResponseException, FogbowRasException, UnexpectedException {
 
         // set up

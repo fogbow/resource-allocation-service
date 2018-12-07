@@ -65,8 +65,13 @@ public class CloudStackOneToOneMapperTest {
     @Before
     public void setUp() {
         PowerMockito.mockStatic(HttpRequestUtil.class);
+        String cloudStackConfFilePath = HomeDir.getPath() + File.separator
+                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
+        String cloudStackMapperFilePath = HomeDir.getPath() + File.separator
+                + SystemConstants.MAPPER_CONF_FILE_NAME;
+        Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
 
-        this.mapper = new CloudStackOneToOneMapper("", "");
+        this.mapper = new CloudStackOneToOneMapper(cloudStackConfFilePath, cloudStackMapperFilePath);
         this.httpRequestClientUtil = Mockito.mock(HttpRequestClientUtil.class);
         this.cloudStackTokenGeneratorPlugin = Mockito.spy(new CloudStackTokenGeneratorPlugin());
         this.cloudStackTokenGeneratorPlugin.setClient(this.httpRequestClientUtil);
