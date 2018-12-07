@@ -12,6 +12,7 @@ import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPluginProtectionWrapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 
 import java.util.ArrayList;
@@ -108,6 +109,11 @@ public class PluginInstantiator {
         } else {
             return (AuthorizationPlugin) this.pluginFactory.createPluginInstance(className);
         }
+    }
+
+    public GenericRequestPlugin getGenericPlugin() {
+        String className = this.properties.getProperty(ConfigurationConstants.GENERIC_PLUGIN_CLASS_KEY);
+        return (GenericRequestPlugin) this.pluginFactory.createPluginInstance(className);
     }
 
     public FederationToLocalMapperPlugin getLocalUserCredentialsMapperPlugin() {

@@ -268,4 +268,11 @@ public class ApplicationFacade {
         deleteOrder(publicIpOrderId, federationTokenValue, ResourceType.PUBLIC_IP);
     }
 
+    public String genericRequest(String memberId, String method, String url, Map<String, String> headers, String body,
+                                 String federationTokenValue) throws FogbowRasException, UnexpectedException {
+        FederationUserToken federationUserToken = this.aaaController.getFederationUser(federationTokenValue);
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
+        return cloudConnector.genericRequest(method, url, headers, body, federationUserToken);
+    }
+
 }
