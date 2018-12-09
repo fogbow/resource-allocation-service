@@ -2,10 +2,8 @@ package org.fogbowcloud.ras.api.http;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.ApplicationFacade;
-import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
-import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,19 +12,19 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
-import static org.fogbowcloud.ras.api.http.GenericRequestController.GENERIC_REQUEST_ENDPOINT;
+import static org.fogbowcloud.ras.api.http.GenericRequest.GENERIC_REQUEST_ENDPOINT;
 
 @CrossOrigin
 @RestController
 @RequestMapping(value = GENERIC_REQUEST_ENDPOINT)
-public class GenericRequestController {
+public class GenericRequest {
 
     public static final String GENERIC_REQUEST_ENDPOINT = "genericRequest";
 
     public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
     public static final String MEMBER_ID_HEADER_KEY = "memberId";
 
-    private final Logger LOGGER = Logger.getLogger(GenericRequestController.class);
+    private final Logger LOGGER = Logger.getLogger(GenericRequest.class);
 
     @RequestMapping("/**")
     public ResponseEntity<String> genericRequest(HttpServletRequest request,

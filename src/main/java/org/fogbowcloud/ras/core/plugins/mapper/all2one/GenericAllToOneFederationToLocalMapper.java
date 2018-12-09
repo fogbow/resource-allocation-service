@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.plugins.interoperability.mapper.all2one;
+package org.fogbowcloud.ras.core.plugins.mapper.all2one;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
@@ -9,7 +9,7 @@ import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
-import org.fogbowcloud.ras.core.plugins.interoperability.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 
 import java.util.HashMap;

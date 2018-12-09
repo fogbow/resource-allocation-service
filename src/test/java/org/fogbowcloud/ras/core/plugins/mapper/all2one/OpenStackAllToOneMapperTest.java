@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.plugins.interoperability.mapper.all2one;
+package org.fogbowcloud.ras.core.plugins.mapper.all2one;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.HomeDir;

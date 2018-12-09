@@ -3,7 +3,7 @@ package org.fogbowcloud.ras.core;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
-import org.fogbowcloud.ras.core.plugins.interoperability.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 
@@ -65,11 +65,13 @@ public class InteroperabilityPluginInstantiator {
 
     public GenericRequestPlugin getGenericRequestPlugin() {
         String className = this.properties.getProperty(ConfigurationConstants.GENERIC_PLUGIN_CLASS_KEY);
-        return (GenericRequestPlugin) this.pluginFactory.createPluginInstance(className, this.cloudConfPath);
+        // This plugin does not require a configuration file, since all required information to interact with the
+        // cloud will come in the request itself.
+        return (GenericRequestPlugin) this.pluginFactory.createPluginInstance(className);
     }
 
     public SecurityRulePlugin getSecurityRulePlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.SECURITY_GROUP_PLUGIN_CLASS_KEY);
+        String className = this.properties.getProperty(ConfigurationConstants.SECURITY_RULE_PLUGIN_CLASS_KEY);
         return (SecurityRulePlugin) this.pluginFactory.createPluginInstance(className, this.cloudConfPath);
     }
 

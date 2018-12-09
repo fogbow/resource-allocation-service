@@ -16,6 +16,9 @@ import java.util.Map;
 
 public class OpenStackGenericRequestPlugin extends HttpBasedGenericRequestPlugin<OpenStackV3Token> {
 
+    public OpenStackGenericRequestPlugin() {
+    }
+
     @Override
     public String redirectGenericRequest(String method, String url, Map<String, String> headers, String body, OpenStackV3Token token) throws FogbowRasException {
         try {

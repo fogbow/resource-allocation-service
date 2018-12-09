@@ -44,9 +44,8 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
     private String networkV2APIEndpoint;
     private HttpRequestClientUtil client;
 
-    public OpenStackSecurityRulePlugin() throws FatalErrorException {
-        Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                SystemConstants.OPENSTACK_CONF_FILE_NAME);
+    public OpenStackSecurityRulePlugin(String confFilePath) throws FatalErrorException {
+        Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.networkV2APIEndpoint = properties.getProperty(NETWORK_NEUTRON_V2_URL_KEY) + V2_API_ENDPOINT;
         initClient();
     }

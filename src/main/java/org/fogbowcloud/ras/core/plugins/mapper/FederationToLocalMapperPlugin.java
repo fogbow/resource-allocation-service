@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.plugins.interoperability.mapper;
+package org.fogbowcloud.ras.core.plugins.mapper;
 
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;

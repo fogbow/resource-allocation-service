@@ -11,7 +11,7 @@ public class ConfigurationConstants {
     public static final String VOLUME_PLUGIN_CLASS_KEY = "volume_plugin_class";
     public static final String IMAGE_PLUGIN_CLASS_KEY = "image_plugin_class";
     public static final String GENERIC_PLUGIN_CLASS_KEY = "generic_plugin_class";
-    public static final String SECURITY_GROUP_PLUGIN_CLASS_KEY = "security_group_plugin_class";
+    public static final String SECURITY_RULE_PLUGIN_CLASS_KEY = "security_rule_plugin_class";
     public static final String LOCAL_USER_CREDENTIALS_MAPPER_PLUGIN_CLASS_KEY =
             "local_user_credentials_mapper_plugin_class";
 

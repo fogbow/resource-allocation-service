@@ -12,7 +12,7 @@ import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPluginProtectionWrapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
-import org.fogbowcloud.ras.core.plugins.interoperability.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 
 import java.util.Properties;
@@ -84,7 +84,7 @@ public class AaaPluginInstantiator {
     }
 
     public SecurityRulePlugin getSecurityRulePlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.SECURITY_GROUP_PLUGIN_CLASS_KEY);
+        String className = this.properties.getProperty(ConfigurationConstants.SECURITY_RULE_PLUGIN_CLASS_KEY);
         return (SecurityRulePlugin) this.pluginFactory.createPluginInstance(className);
     }
 

@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.plugins.interoperability.mapper.one2one;
+package org.fogbowcloud.ras.core.plugins.mapper.one2one;
 
 import org.apache.http.*;
 import org.apache.http.client.HttpClient;

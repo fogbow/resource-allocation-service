@@ -1,6 +1,6 @@
 package org.fogbowcloud.ras.core.cloudconnector;
 
-import org.fogbowcloud.ras.core.plugins.interoperability.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

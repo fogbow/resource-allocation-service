@@ -1,11 +1,11 @@
-package org.fogbowcloud.ras.core.plugins.interoperability.mapper.one2one;
+package org.fogbowcloud.ras.core.plugins.mapper.one2one;
 
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.ras.core.plugins.interoperability.mapper.FederationToLocalMapperPlugin;
-import org.fogbowcloud.ras.core.plugins.interoperability.mapper.all2one.CloudStackAllToOneMapper;
+import org.fogbowcloud.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.plugins.mapper.all2one.CloudStackAllToOneMapper;
 
 public class CloudStackOneToOneMapper implements FederationToLocalMapperPlugin<CloudStackToken> {
     private GenericOneToOneFederationToLocalMapper genericMapper;

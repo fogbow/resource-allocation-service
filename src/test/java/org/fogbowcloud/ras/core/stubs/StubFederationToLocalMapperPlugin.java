@@ -2,7 +2,7 @@ package org.fogbowcloud.ras.core.stubs;
 
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
-import org.fogbowcloud.ras.core.plugins.interoperability.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 
 /**
  * This class is allocationAllowableValues stub for the FederationToLocalMapperPlugin interface used for tests only.
