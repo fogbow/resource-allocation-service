@@ -347,6 +347,7 @@ public class OpenStackPublicIpPluginTest {
 	public void testCheckPropertiesWithoutDefaultNetworkProperties() {
 		try {
 			// exercise
+			this.openStackPublicIpPlugin.setProperties(new Properties());
 			this.openStackPublicIpPlugin.checkProperties(true);
 			Assert.fail();
 		} catch (FatalErrorException e) {
