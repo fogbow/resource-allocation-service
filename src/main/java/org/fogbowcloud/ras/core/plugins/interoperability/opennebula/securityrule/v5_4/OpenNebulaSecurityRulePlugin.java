@@ -15,12 +15,14 @@ import org.fogbowcloud.ras.core.plugins.interoperability.SecurityRulePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.SecurityGroupInfo.Template;
 import org.opennebula.client.Client;
+import org.opennebula.client.OneResponse;
 import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vnet.VirtualNetwork;
 
 import java.util.ArrayList;
 import java.util.List;
 
+// TODO use the class Message to its messages
 public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebulaToken> {
 
 	public static final Logger LOGGER = Logger.getLogger(OpenNebulaSecurityRulePlugin.class);
@@ -169,24 +171,36 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 		return securityGroupXMLContentSlices[SLICE_POSITION_SECURITY_GROUP];
 	}
 
-	/*
-	* TODO fix this implementation. This one is deleting the whole security group and
-	* this is not according to specification
-	*/
+	// TODO implementing the structure only
     @Override
     public void deleteSecurityRule(String securityRuleId, OpenNebulaToken localUserAttributes)
             throws FogbowRasException, UnexpectedException {
-        LOGGER.info(
-                String.format(Messages.Info.DELETING_INSTANCE, securityRuleId, localUserAttributes.getTokenValue()));
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, securityRuleId, localUserAttributes.getTokenValue()));
         Client client = this.factory.createClient(localUserAttributes.getTokenValue());
-        int id;
-        try {
-            id = Integer.parseInt(securityRuleId);
-        } catch (Exception e) {
-            LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_INSTANCE_ID, securityRuleId));
-            throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
-        }
-        SecurityGroup.delete(client, id);
+
+		String virtualNetworkId = "";
+		VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, virtualNetworkId);
+
+		String securityGroupId = getSecurityGroupBy(virtualNetwork);
+		SecurityGroup securityGroup = this.factory.getSecurityGroup(client, securityGroupId);
+		String securityGroupXml = securityGroup.info().getMessage();
+		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(securityGroupXml);
+		List<Rule> rules = securityGroupInfo.getTemplate().getRules();
+		// TODO use the rule
+		Object ruleToRemove = new Object();
+		for (Rule rule: new ArrayList<>(rules)) {
+			if (rule.equals(ruleToRemove)) {
+				rules.remove(ruleToRemove);
+			}
+		}
+
+		// TODO implement the marshall methods
+		// to xml
+		String xml = "";
+		OneResponse response = securityGroup.update(xml);
+		if (response.isError()) {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_SECURITY_RULE, securityGroupId, response.getMessage()));
+		}
     }
 
 	protected void setFactory(OpenNebulaClientFactory factory) {
