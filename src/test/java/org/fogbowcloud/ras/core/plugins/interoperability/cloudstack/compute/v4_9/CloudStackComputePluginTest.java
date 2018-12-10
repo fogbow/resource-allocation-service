@@ -79,33 +79,30 @@ public class CloudStackComputePluginTest {
     public static final String NETWORK_IDS_KEY = "networkids";
     public static final String USER_DATA_KEY = "userdata";
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
+    public static final String CLOUD_NAME = "cloudstack";
 
     private String fakeZoneId;
 
     private CloudStackComputePlugin plugin;
     private HttpRequestClientUtil client;
     private LaunchCommandGenerator launchCommandGeneratorMock;
-
-    private void initializeProperties() {
-        String cloudStackConfFilePath = HomeDir.getPath() + File.separator
-               + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
-        Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
-
-        this.fakeZoneId = properties.getProperty(CloudStackComputePlugin.ZONE_ID_KEY);
-    }
+    private Properties properties;
 
     @Before
     public void setUp() {
-        initializeProperties();
+        String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+                File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
+
         // we dont want HttpRequestUtil code to be executed in this test
         PowerMockito.mockStatic(HttpRequestUtil.class);
 
         this.launchCommandGeneratorMock = Mockito.mock(LaunchCommandGenerator.class);
-        this.plugin = new CloudStackComputePlugin();
-
         this.client = Mockito.mock(HttpRequestClientUtil.class);
+        this.plugin = new CloudStackComputePlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
         this.plugin.setLaunchCommandGenerator(this.launchCommandGeneratorMock);
+        this.fakeZoneId = this.properties.getProperty(CloudStackComputePlugin.ZONE_ID_KEY);
     }
 
     // Test case: when deploying virtual machine, the token should be signed and five HTTP GET requests should be made:
@@ -167,7 +164,7 @@ public class CloudStackComputePluginTest {
         Mockito.when(this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN))).thenReturn(computeResponse);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, CLOUD_NAME, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
@@ -768,11 +765,7 @@ public class CloudStackComputePluginTest {
     }
 
     private String getBaseEndpointFromCloudStackConf() {
-        String filePath = HomeDir.getPath() + File.separator
-                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
-
-        Properties properties = PropertiesUtil.readProperties(filePath);
-        return properties.getProperty(CLOUDSTACK_URL);
+        return this.properties.getProperty(CLOUDSTACK_URL);
     }
 
     private String generateExpectedUrl(String endpoint, String command, String... keysAndValues) {

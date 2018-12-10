@@ -34,6 +34,15 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackTo
         this.client = new HttpRequestClientUtil();
     }
 
+    /**
+     * This constructor is used by the plugin instatiator. Configuration file path used only to comply with the
+     * instatiator constructor signature.
+     * @param confFilePath
+     */
+    public CloudStackAttachmentPlugin(String confFilePath) {
+        this.client = new HttpRequestClientUtil();
+    }
+
     @Override
     public String requestInstance(AttachmentOrder attachmentOrder,
             CloudStackToken localUserAttributes) throws FogbowRasException, UnexpectedException {

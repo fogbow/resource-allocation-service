@@ -29,6 +29,7 @@ import java.util.*;
 public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackVolumePlugin.class);
 
+    private static final String CLOUDSTACK_URL = "cloudstack_api_url";
     private static final String CLOUDSTACK_ZONE_ID_KEY = "zone_id";
     private static final int FIRST_ELEMENT_POSITION = 0;
     private static final String FOGBOW_INSTANCE_NAME = "ras-volume-";
@@ -36,6 +37,15 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
     private HttpRequestClientUtil client;
     private boolean diskOfferingCompatible;
     private String zoneId;
+    private Properties properties;
+    private String cloudStackUrl;
+
+    public CloudStackVolumePlugin(String confFilePath) {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
+        this.cloudStackUrl = properties.getProperty(CLOUDSTACK_URL);
+        this.zoneId = properties.getProperty(CLOUDSTACK_ZONE_ID_KEY);
+        this.client = new HttpRequestClientUtil();
+    }
 
     public CloudStackVolumePlugin() {
         String filePath = HomeDir.getPath() + File.separator + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
@@ -77,7 +87,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
             throws FogbowRasException, UnexpectedException {
         GetVolumeRequest request = new GetVolumeRequest.Builder()
                 .id(volumeInstanceId)
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
 
@@ -129,7 +139,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
             throws FogbowRasException {
 
         int volumeSize = volumeOrder.getVolumeSize();
-        GetAllDiskOfferingsRequest request = new GetAllDiskOfferingsRequest.Builder().build();
+        GetAllDiskOfferingsRequest request = new GetAllDiskOfferingsRequest.Builder().build(this.cloudStackUrl);
         CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
 
         String jsonResponse = null;

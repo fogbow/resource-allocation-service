@@ -31,6 +31,8 @@ import java.util.Properties;
 @PrepareForTest({CloudStackUrlUtil.class, HttpRequestUtil.class})
 public class CloudStackComputeQuotaPluginTest {
 
+    private static final String CLOUD_NAME = "cloudstack";
+    private static final String CLOUDSTACK_URL = "cloudstack_api_url";
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USERNAME = "fake-username";
@@ -64,13 +66,17 @@ public class CloudStackComputeQuotaPluginTest {
     private CloudStackComputeQuotaPlugin plugin;
     private HttpRequestClientUtil client;
     private CloudStackToken token;
+    private Properties properties;
 
     @Before
     public void setUp() {
         PowerMockito.mockStatic(HttpRequestUtil.class);
+        String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+                File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
 
         this.client = Mockito.mock(HttpRequestClientUtil.class);
-        this.plugin = new CloudStackComputeQuotaPlugin();
+        this.plugin = new CloudStackComputeQuotaPlugin(this.properties.getProperty(CLOUDSTACK_URL));
         this.plugin.setClient(this.client);
         this.token = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_USERNAME, FAKE_SIGNATURE);
     }

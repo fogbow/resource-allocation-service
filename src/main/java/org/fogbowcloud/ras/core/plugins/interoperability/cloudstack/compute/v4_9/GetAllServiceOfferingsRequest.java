@@ -7,7 +7,7 @@ public class GetAllServiceOfferingsRequest extends CloudStackRequest {
     protected static final String LIST_SERVICE_OFFERINGS_COMMAND = "listServiceOfferings";
 
     protected GetAllServiceOfferingsRequest(Builder builder) throws InvalidParameterException {
-        super();
+        super(builder.cloudStackUrl);
     }
 
     @Override
@@ -21,8 +21,10 @@ public class GetAllServiceOfferingsRequest extends CloudStackRequest {
     }
 
     public static class Builder {
+        private String cloudStackUrl;
 
-        public GetAllServiceOfferingsRequest build() throws InvalidParameterException {
+        public GetAllServiceOfferingsRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new GetAllServiceOfferingsRequest(this);
         }
 
