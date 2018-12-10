@@ -28,7 +28,7 @@ public class OpenNebulaAttachmentPluginTest {
 
 	private static final String LOCAL_TOKEN_VALUE = "user:password";
 	private static final String FAKE_USER_NAME = "fake-user-name";
-	private static final String VIRTUAL_MACHINE_CONTENT = "<DISK>1</DISK>";
+	private static final String VIRTUAL_MACHINE_CONTENT = "<DISK_ID>1</DISK_ID>";
 	private static final String DEFAULT_DEVICE_PREFIX = "vd";
 	
 	private OpenNebulaClientFactory factory;
