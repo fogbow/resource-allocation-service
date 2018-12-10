@@ -26,7 +26,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 	public static final Logger LOGGER = Logger.getLogger(OpenNebulaSecurityRulePlugin.class);
 	
 	private static final int SLICE_POSITION_SECURITY_GROUP = 1;
-    private static final String OPENNEBULA_XML_ARRAY_SEPARATOR = ",";
+    protected static final String OPENNEBULA_XML_ARRAY_SEPARATOR = ",";
     
 	protected static final String TEMPLATE_VNET_SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
 
@@ -169,8 +169,10 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 		return securityGroupXMLContentSlices[SLICE_POSITION_SECURITY_GROUP];
 	}
 
-	// TODO fix this implementation. This one is deleting the whole security group and 
-	// this is not according to specification
+	/*
+	* TODO fix this implementation. This one is deleting the whole security group and
+	* this is not according to specification
+	*/
     @Override
     public void deleteSecurityRule(String securityRuleId, OpenNebulaToken localUserAttributes)
             throws FogbowRasException, UnexpectedException {

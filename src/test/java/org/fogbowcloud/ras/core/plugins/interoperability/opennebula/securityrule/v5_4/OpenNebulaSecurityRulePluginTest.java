@@ -50,7 +50,7 @@ public class OpenNebulaSecurityRulePluginTest {
         String defaultIpOpennebula = "0";
         // created by Fogbow (RAS)
         String securityGroupId = "10";
-        String securityGroupXMLContent = String.format("%s,%s", defaultIpOpennebula, securityGroupId);
+        String securityGroupXMLContent = String.format("%s%s%s", defaultIpOpennebula, OpenNebulaSecurityRulePlugin.OPENNEBULA_XML_ARRAY_SEPARATOR,securityGroupId);
         Mockito.when(virtualNetwork.xpath(Mockito.eq(OpenNebulaSecurityRulePlugin.TEMPLATE_VNET_SECURITY_GROUPS_PATH)))
                 .thenReturn(securityGroupXMLContent);
         Mockito.when(this.openNebulaClientFactory.createVirtualNetwork(Mockito.any(), Mockito.eq(instanceId)))
@@ -87,4 +87,47 @@ public class OpenNebulaSecurityRulePluginTest {
         Assert.assertEquals(Direction.IN, securityRule.getDirection());
         Assert.assertEquals(EtherType.IPv4, securityRule.getEtherType());
     }
+
+    // test case: error while trying to get rules
+    @Test(expected = FogbowRasException.class)
+    public void testGetSecurityRulesErrorWhileGetRules() throws UnexpectedException, FogbowRasException {
+        // setup
+        SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
+        Mockito.doThrow(Exception.class).when(this.openNebulaSecurityRulePlugin).getRules(Mockito.eq(securityGroup));
+
+        // exercise
+        this.openNebulaSecurityRulePlugin.getSecurityRules(securityGroup);
+    }
+
+    // test case: there is not security group in the opennebula response(xml)
+    @Test
+    public void testGetSecurityGroupByEmptyContent() {
+        // setup
+        VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
+        Mockito.when(virtualNetwork.xpath(Mockito.eq(OpenNebulaSecurityRulePlugin.TEMPLATE_VNET_SECURITY_GROUPS_PATH)))
+                .thenReturn(null);
+
+        // exercise
+        String securityGroupXMLContent = this.openNebulaSecurityRulePlugin.getSecurityGroupBy(virtualNetwork);
+
+        // verify
+        Assert.assertNull(securityGroupXMLContent);
+    }
+
+    // test case: there is security group with unknown format in the opennebula response(xml)
+    @Test
+    public void testGetSecurityGroupBy() {
+        // setup
+        VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
+        String securityGroupXMLContent = "unknown";
+        Mockito.when(virtualNetwork.xpath(Mockito.eq(OpenNebulaSecurityRulePlugin.TEMPLATE_VNET_SECURITY_GROUPS_PATH)))
+                .thenReturn(securityGroupXMLContent);
+
+        // exercise
+        String securityGroupContent = this.openNebulaSecurityRulePlugin.getSecurityGroupBy(virtualNetwork);
+
+        // verify
+        Assert.assertNull(securityGroupContent);
+    }
+
 }
