@@ -276,7 +276,7 @@ public class OpenNebulaNetworkPluginTest {
 				"    </AR>\n" + 
 				"    <BRIDGE>br0</BRIDGE>\n" + 
 				"    <VN_MAD>fw</VN_MAD>\n" +
-				"    <DESCRIPTION>Virtual network created by fake-user-name.</DESCRIPTION>\n" + 
+				"    <DESCRIPTION>Virtual network created by fake-user-name</DESCRIPTION>\n" + 
 				"    <NAME>fake-network-name</NAME>\n" + 
 				"    <NETWORK_ADDRESS>fake-address</NETWORK_ADDRESS>\n" + 
 				"    <NETWORK_GATEWAY>fake-gateway</NETWORK_GATEWAY>\n" + 

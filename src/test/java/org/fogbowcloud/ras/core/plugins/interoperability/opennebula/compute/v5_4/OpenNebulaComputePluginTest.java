@@ -678,7 +678,8 @@ public class OpenNebulaComputePluginTest {
 				"<TEMPLATE>\n" + 
 				"    <CONTEXT>\n" + 
 				"        <USERDATA_ENCODING>base64</USERDATA_ENCODING>\n" + 
-				"        <NETWORK>YES</NETWORK>\n" + 
+				"        <NETWORK>YES</NETWORK>\n" +
+				"        <USERDATA>fakeuserdata</USERDATA>\n" +
 				"    </CONTEXT>\n" + 
 				"    <CPU>%s</CPU>\n" + 
 				"    <GRAPHICS>\n" + 

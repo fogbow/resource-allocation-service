@@ -123,11 +123,17 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         // set up
         Order order = this.createOrder();
         order.setOrderStateInTestMode(OrderState.FULFILLED);
+
+        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+        orderInstance.setState(InstanceState.FAILED);
+        order.setInstanceId(FAKE_INSTANCE_ID);
+
+        mockCloudConnectorFactory(orderInstance);
+
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
         // exercise
-        Mockito.doReturn(null).when(this.localCloudConnector).getInstance(Mockito.any(Order.class));
         spyFulfiledProcessor();
 
         this.thread = new Thread(this.fulfilledProcessor);
