@@ -39,7 +39,9 @@ public class ApiDocumentation {
     public static class Image {
         public static final String API = "Queries images.";
         public static final String GET_OPERATION = "Lists all images available to the user.";
+        public static final String GET_OPERATION_DEPRECATED = "Lists all images available to the user (deprecated).";
         public static final String GET_BY_ID_OPERATION = "Lists a specific image available to the user.";
+        public static final String GET_BY_ID_OPERATION_DEPRECATED = "Lists a specific image available to the user (deprecated).";
         public static final String ID = "The ID of the specific image.";
     }
 
@@ -100,7 +102,8 @@ public class ApiDocumentation {
 
     public static class Cloud {
         public static final String API = "Queries the names of the clouds managed by the RAS.";
-        public static final String GET_OPERATION = "Returns the names of the clouds managed by the RAS.";
+        public static final String GET_OPERATION = "Returns the names of the clouds managed by the local RAS.";
+        public static final String GET_OPERATION_FOR_MEMBER = "Returns the names of the clouds managed by the indicated RAS.";
     }
 
     public static class Volume {

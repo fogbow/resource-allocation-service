@@ -81,7 +81,7 @@ public class ApplicationFacade {
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
         this.aaaController.authenticateAndAuthorize(this.memberId, requester, "all",
                 Operation.GET_CLOUD_NAMES, ResourceType.CLOUD_NAMES);
-        if (memberId == null || memberId.isEmpty() || memberId.equals(this.memberId)) {
+        if (memberId.equals(this.memberId)) {
             return this.cloudListController.getCloudNames();
         } else {
             RemoteCloudConnector cloudConnector = new RemoteCloudConnector(memberId);
@@ -197,6 +197,7 @@ public class ApplicationFacade {
             memberId = this.memberId;
         }
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
+        System.out.println("getAllImages(" + memberId + ", " + cloudName + ")");
         return cloudConnector.getAllImages(requester);
     }
 
@@ -210,6 +211,7 @@ public class ApplicationFacade {
             memberId = this.memberId;
         }
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
+        System.out.println("getImage(" + memberId + ", " + cloudName + ", " + imageId + ")");
         return cloudConnector.getImage(imageId, requester);
     }
 

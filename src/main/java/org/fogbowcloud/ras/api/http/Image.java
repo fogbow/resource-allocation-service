@@ -27,8 +27,52 @@ public class Image {
     private final Logger LOGGER = Logger.getLogger(Image.class);
 
     @ApiOperation(value = ApiDocumentation.Image.GET_OPERATION)
-    @RequestMapping(method = RequestMethod.GET)
+    @RequestMapping(value = "/{memberId:.+}" + "/{cloudName}", method = RequestMethod.GET)
     public ResponseEntity<Map<String, String>> getAllImages(
+            @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
+            @PathVariable String memberId,
+            @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
+            @PathVariable String cloudName,
+            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            throws Exception {
+
+        try {
+            LOGGER.info(Messages.Info.RECEIVING_GET_ALL_IMAGES_REQUEST);
+            Map<String, String> imagesMap = ApplicationFacade.getInstance().getAllImages(memberId, cloudName, federationTokenValue);
+            return new ResponseEntity<>(imagesMap, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            throw e;
+        }
+    }
+
+    @ApiOperation(value = ApiDocumentation.Image.GET_BY_ID_OPERATION)
+    @RequestMapping(value = "/{memberId:.+}" + "/{cloudName}" + "/{imageId}", method = RequestMethod.GET)
+    public ResponseEntity<org.fogbowcloud.ras.core.models.images.Image> getImage(
+            @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
+            @PathVariable String memberId,
+            @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
+            @PathVariable String cloudName,
+            @ApiParam(value = ApiDocumentation.Image.ID)
+            @PathVariable String imageId,
+            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            throws Exception {
+
+        try {
+            LOGGER.info(String.format(Messages.Info.RECEIVING_GET_IMAGE_REQUEST, imageId));
+            org.fogbowcloud.ras.core.models.images.Image image = ApplicationFacade.getInstance().getImage(memberId, cloudName, imageId, federationTokenValue);
+            return new ResponseEntity<>(image, HttpStatus.OK);
+        } catch (Exception e) {
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            throw e;
+        }
+    }
+
+    @ApiOperation(value = ApiDocumentation.Image.GET_OPERATION_DEPRECATED)
+    @RequestMapping(method = RequestMethod.GET)
+    public ResponseEntity<Map<String, String>> getAllImagesDeprecated(
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
             @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
@@ -47,9 +91,9 @@ public class Image {
         }
     }
 
-    @ApiOperation(value = ApiDocumentation.Image.GET_BY_ID_OPERATION)
+    @ApiOperation(value = ApiDocumentation.Image.GET_BY_ID_OPERATION_DEPRECATED)
     @RequestMapping(value = "/{imageId}", method = RequestMethod.GET)
-    public ResponseEntity<org.fogbowcloud.ras.core.models.images.Image> getImage(
+    public ResponseEntity<org.fogbowcloud.ras.core.models.images.Image> getImageDeprecated(
             @ApiParam(value = ApiDocumentation.Image.ID)
             @PathVariable String imageId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)

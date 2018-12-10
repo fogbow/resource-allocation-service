@@ -123,12 +123,12 @@ public class Compute {
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.GET_QUOTA)
-    @RequestMapping(value = "/" + QUOTA_ENDPOINT + "/{memberId:.+}", method = RequestMethod.GET)
+    @RequestMapping(value = "/" + QUOTA_ENDPOINT + "/{memberId:.+}" + "/{cloudName}", method = RequestMethod.GET)
     public ResponseEntity<ComputeQuota> getUserQuota(
             @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
             @PathVariable String memberId,
             @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
-            @RequestHeader(required = false, value = CLOUD_NAME_HEADER_KEY) String cloudName,
+            @PathVariable String cloudName,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
@@ -144,12 +144,12 @@ public class Compute {
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.GET_ALLOCATION)
-    @RequestMapping(value = "/" + ALLOCATION_ENDPOINT + "/{memberId:.+}", method = RequestMethod.GET)
+    @RequestMapping(value = "/" + ALLOCATION_ENDPOINT + "/{memberId:.+}" + "/{cloudName}", method = RequestMethod.GET)
     public ResponseEntity<ComputeAllocation> getUserAllocation(
             @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
             @PathVariable String memberId,
             @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
-            @RequestHeader(required = false, value = CLOUD_NAME_HEADER_KEY) String cloudName,
+            @PathVariable String cloudName,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowRasException, UnexpectedException {

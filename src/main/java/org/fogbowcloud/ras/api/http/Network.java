@@ -110,10 +110,10 @@ public class Network {
     }
 
     @ApiOperation(value = ApiDocumentation.Network.CREATE_SECURITY_RULE_OPERATION)
-    @RequestMapping(value = "/{orderId}/" + SECURITY_RULES_ENDPOINT, method = RequestMethod.POST)
+    @RequestMapping(value = "/{networkId}/" + SECURITY_RULES_ENDPOINT, method = RequestMethod.POST)
     public ResponseEntity<String> createSecurityRule(
             @ApiParam(value = ApiDocumentation.Network.ID)
-            @PathVariable String orderId,
+            @PathVariable String networkId,
             @ApiParam(value = ApiDocumentation.Network.CREATE_SECURITY_RULE_REQUEST_BODY)
             @RequestBody SecurityRule securityRule,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
@@ -122,7 +122,7 @@ public class Network {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, SECURITY_RULE_NAME));
-            String ruleId = ApplicationFacade.getInstance().createSecurityRule(orderId, securityRule,
+            String ruleId = ApplicationFacade.getInstance().createSecurityRule(networkId, securityRule,
                     federationTokenValue, ResourceType.NETWORK);
             return new ResponseEntity<String>(ruleId, HttpStatus.CREATED);
         } catch (Exception e) {
@@ -131,10 +131,10 @@ public class Network {
         }
     }
 
-    @RequestMapping(value = "/{orderId}/" + SECURITY_RULES_ENDPOINT, method = RequestMethod.GET)
+    @RequestMapping(value = "/{networkId}/" + SECURITY_RULES_ENDPOINT, method = RequestMethod.GET)
     public ResponseEntity<List<SecurityRule>> getAllSecurityRules(
             @ApiParam(value = ApiDocumentation.Network.ID)
-            @PathVariable String orderId,
+            @PathVariable String networkId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws Exception {
@@ -142,7 +142,7 @@ public class Network {
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, SECURITY_RULE_NAME));
             List<SecurityRule> securityRules = ApplicationFacade.getInstance().
-                    getAllSecurityRules(orderId, federationTokenValue, ResourceType.NETWORK);
+                    getAllSecurityRules(networkId, federationTokenValue, ResourceType.NETWORK);
             return new ResponseEntity<>(securityRules, HttpStatus.OK);
         } catch (Exception e) {
             LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
@@ -150,10 +150,10 @@ public class Network {
         }
     }
 
-    @RequestMapping(value = "/{orderId}/" + SECURITY_RULES_ENDPOINT + "/{ruleId}", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/{networkId}/" + SECURITY_RULES_ENDPOINT + "/{ruleId}", method = RequestMethod.DELETE)
     public ResponseEntity<Boolean> deleteSecurityRule(
             @ApiParam(value = ApiDocumentation.Network.ID)
-            @PathVariable String orderId,
+            @PathVariable String networkId,
             @ApiParam(value = ApiDocumentation.Network.SECURITY_RULE_ID)
             @PathVariable String ruleId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
@@ -162,7 +162,7 @@ public class Network {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, SECURITY_RULE_NAME, ruleId));
-            ApplicationFacade.getInstance().deleteSecurityRule(orderId, ruleId, federationTokenValue,
+            ApplicationFacade.getInstance().deleteSecurityRule(networkId, ruleId, federationTokenValue,
                     ResourceType.NETWORK);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
