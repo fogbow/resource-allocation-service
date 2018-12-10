@@ -88,6 +88,7 @@ public class Messages {
         public static final String UNABLE_TO_GENERATE_SIGNATURE = "Unable to generate signature.";
         public static final String UNABLE_TO_NOTIFY_REQUESTING_MEMBER = "Unable to notify requesting member %s for request %s.";
         public static final String UNABLE_TO_RETRIEVE_ROOT_VOLUME = "Unable to retrieve root volume for virtual machine %s; assigning -1 to disk size.";
+        public static final String INCONSISTENT_DIRECTION = "The direction(%s) is inconsistent";
     }
 
     public static class Info {
