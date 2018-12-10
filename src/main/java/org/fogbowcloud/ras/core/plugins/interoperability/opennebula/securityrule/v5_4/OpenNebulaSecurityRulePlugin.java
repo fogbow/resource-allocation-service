@@ -18,6 +18,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.SecurityRulePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.SecurityGroupInfo.Template;
 import org.opennebula.client.Client;
+import org.opennebula.client.OneResponse;
 import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vnet.VirtualNetwork;
 
@@ -47,15 +48,20 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 
 		String securityGroupId = getSecurityGroupBy(virtualNetwork);		
 		SecurityGroup securityGroup = this.factory.getSecurityGroup(client, securityGroupId);
-		String securityGroupXml = securityGroup.info().getMessage();
 		
+		String securityGroupXml = securityGroup.info().getMessage();
 		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(securityGroupXml);
 		
 		String template = createSecurityGroupsTemplate(securityGroupInfo, securityRule);
-		
-		// TODO finish this implementaion.
-    	
-    	throw new UnsupportedOperationException();
+		OneResponse response = securityGroup.update(template);
+		if (response.isError()) {
+			String message = response.getErrorMessage();
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_UPDATING_SECURITY_GROUPS, template));
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
+			throw new InvalidParameterException();
+		}
+		String instanceId = response.getMessage();
+		return instanceId;
     }
 
 	private String createSecurityGroupsTemplate(SecurityGroupInfo securityGroupInfo, SecurityRule securityRule) {
