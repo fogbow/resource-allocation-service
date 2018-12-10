@@ -1,8 +1,5 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
@@ -21,14 +18,17 @@ import org.opennebula.client.Client;
 import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vnet.VirtualNetwork;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebulaToken> {
 
 	public static final Logger LOGGER = Logger.getLogger(OpenNebulaSecurityRulePlugin.class);
 	
 	private static final int SLICE_POSITION_SECURITY_GROUP = 1;
-    private static final String OPENNEBULA_XML_ARRAY_SEPARETOR = ",";
+    private static final String OPENNEBULA_XML_ARRAY_SEPARATOR = ",";
     
-	private static final String TEMPLATE_VNET_SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
+	protected static final String TEMPLATE_VNET_SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
 
     private OpenNebulaClientFactory factory;
     
@@ -115,36 +115,45 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 
 		String securityGroupId = getSecurityGroupBy(virtualNetwork);		
 		SecurityGroup securityGroup = this.factory.getSecurityGroup(client, securityGroupId);
-		String securityGroupXml = securityGroup.info().getMessage();
-		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(securityGroupXml);
-		
-    	Template template = securityGroupInfo.getTemplate();
-		return convertToSecurityRules(template.getRules());
+
+		return getSecurityRules(securityGroup);
     }
 
-    private List<SecurityRule> convertToSecurityRules(List<Rule> rules) throws FogbowRasException {
-    	List<SecurityRule> securityRules = new ArrayList<SecurityRule>();
-    	for (Rule rule : rules) {
-			Direction direction = rule.getDirection();
-			int portFrom = rule.getPortFrom();
-			int portTo = rule.getPortTo();
-			String cidr = rule.getCIDR();
-			EtherType etherType = rule.getEtherType();
-			Protocol protocol = rule.getSRProtocol();
-			
-			securityRules.add(new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol));
+	protected List<SecurityRule> getSecurityRules(SecurityGroup securityGroup) throws FogbowRasException {
+		List<SecurityRule> securityRules = new ArrayList<SecurityRule>();
+		try {
+			List<Rule> rules = getRules(securityGroup);
+
+			for (Rule rule : rules) {
+				Direction direction = rule.getDirection();
+				int portFrom = rule.getPortFrom();
+				int portTo = rule.getPortTo();
+				String cidr = rule.getCIDR();
+				EtherType etherType = rule.getEtherType();
+				Protocol protocol = rule.getSRProtocol();
+
+				securityRules.add(new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol));
+			}
+		} catch (Exception e) {
+			throw new FogbowRasException(e.getMessage(), e);
 		}
 		return securityRules;
 	}
-    
+
+	protected List<Rule> getRules(SecurityGroup securityGroup) {
+		String securityGroupXml = securityGroup.info().getMessage();
+		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(securityGroupXml);
+		Template template = securityGroupInfo.getTemplate();
+		return template.getRules();
+	}
+
 	/**
      * Note: In the Fogbow context, everytime the Virtual Network(VN) will have 
      * two security groups; The first is the default contained in every VN and
      * the second is the security group used by Fogbow because is created by own
      * 
-     * @param  Opennebula client object regarding to Virtual Network 
-     * @return the correct security group associated with the Virtual Network 
-     * 
+     * @param  virtualNetwork : Opennebula client object regarding to Virtual Network
+     * @return the correct security group associated with the Virtual Network
      */
 	protected String getSecurityGroupBy(VirtualNetwork virtualNetwork) {
 		String securityGroupXMLContent = virtualNetwork.xpath(TEMPLATE_VNET_SECURITY_GROUPS_PATH);
@@ -152,7 +161,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 			LOGGER.warn("Security Groups int the XML Template of the VirtualNetwork is null");
 			return null;
 		}
-		String[] securityGroupXMLContentSlices = securityGroupXMLContent.split(OPENNEBULA_XML_ARRAY_SEPARETOR);
+		String[] securityGroupXMLContentSlices = securityGroupXMLContent.split(OPENNEBULA_XML_ARRAY_SEPARATOR);
 		if (securityGroupXMLContentSlices.length < 2) {
 			LOGGER.warn("Security Groups int the XML Template of the VirtualNetwork is with wrong format");
 			return null;
@@ -176,6 +185,9 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
             throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
         }
         SecurityGroup.delete(client, id);
-    }       
-   
+    }
+
+	protected void setFactory(OpenNebulaClientFactory factory) {
+		this.factory = factory;
+	}
 }

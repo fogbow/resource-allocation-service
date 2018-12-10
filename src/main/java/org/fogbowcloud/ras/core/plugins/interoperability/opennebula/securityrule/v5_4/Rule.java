@@ -1,18 +1,5 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.IP;
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NETWORK_ID;
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.PROTOCOL;
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.RANGE;
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.RULE;
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.RULE_TYPE;
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.SIZE;
-
-import java.io.File;
-
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.models.securityrules.Direction;
@@ -20,33 +7,51 @@ import org.fogbowcloud.ras.core.models.securityrules.EtherType;
 import org.fogbowcloud.ras.core.models.securityrules.Protocol;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9.CidrUtils;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.*;
+
 @XmlRootElement(name = RULE)
 public class Rule {
-	
 
 	public static final Logger LOGGER = Logger.getLogger(Rule.class);
 
-	private static final String IPSEC_XML_TEMPLATE_VALUE = "IPSEC";
-	private static final String ALL_XML_TEMPLATE_VALUE = "ALL";
-	private static final String ICMPV6_XML_TEMPLATE_VALUE = "ICMPV6";
-	private static final String ICMP_XML_TEMPLATE_VALUE = "ICMP";
-	private static final String UDP_XML_TEMPLATE_VALUE = "UDP";
-	private static final String TCP_XML_TEMPLATE_VALUE = "TCP";
-	private static final String INBOUND_XML_TEMPLATE_VALUE = "inbound";
-	private static final String OUTBOUND_XML_TEMPLATE_VALUE = "outbound";
-	
-	private static final String OPENNEBULA_RANGE_SEPARETOR = ":";
-	private static final int POSITION_PORT_FROM_IN_RANGE = 0;
-	private static final int POSITION_PORT_TO_IN_RANGE = 1;
-	private static final int INT_ERROR_CODE = -1;
-	private static final int LOG_BASE = 2;
-	
+	protected static final String IPSEC_XML_TEMPLATE_VALUE = "IPSEC";
+	protected static final String ALL_XML_TEMPLATE_VALUE = "ALL";
+	protected static final String ICMPV6_XML_TEMPLATE_VALUE = "ICMPV6";
+	protected static final String ICMP_XML_TEMPLATE_VALUE = "ICMP";
+	protected static final String UDP_XML_TEMPLATE_VALUE = "UDP";
+	protected static final String TCP_XML_TEMPLATE_VALUE = "TCP";
+	protected static final String INBOUND_XML_TEMPLATE_VALUE = "inbound";
+	protected static final String OUTBOUND_XML_TEMPLATE_VALUE = "outbound";
+
+	protected static final String CIRD_SEPARATOR = "/";
+	protected static final String OPENNEBULA_RANGE_SEPARATOR = ":";
+	protected static final int POSITION_PORT_FROM_IN_RANGE = 0;
+	protected static final int POSITION_PORT_TO_IN_RANGE = 1;
+	protected static final int INT_ERROR_CODE = -1;
+	private static final int LOG_BASE_2 = 2;
+	public static final int IPV4_AMOUNT_BITS = 32;
+
+
 	private String protocol;
 	private String ip;
 	private int size;
 	private String range;
 	private String type;
 	private int networkId;
+
+	public Rule() {};
+
+	public Rule(String protocol, String ip, int size, String range, String type, int networkId) {
+		this.protocol = protocol;
+		this.ip = ip;
+		this.size = size;
+		this.range = range;
+		this.type = type;
+		this.networkId = networkId;
+	}
 
 	public String getProtocol() {
 		return protocol;
@@ -103,7 +108,6 @@ public class Rule {
 	}
 	
 	/*
-	* TODO refactor this methods above
 	* TODO implement tests 	
 	* TODO check if is necessary put this messages in another class	
 	*/
@@ -121,7 +125,7 @@ public class Rule {
 			if (this.range == null || this.range.isEmpty()) {
 				throw new Exception("The range is null");
 			}
-			String[] rangeSplited = this.range.split(OPENNEBULA_RANGE_SEPARETOR);
+			String[] rangeSplited = this.range.split(OPENNEBULA_RANGE_SEPARATOR);
 			if (rangeSplited.length != 2) {
 				throw new Exception("The range is with wrong format");
 			}
@@ -132,7 +136,7 @@ public class Rule {
 		}
 	}
 
-	public Direction getDirection() throws FogbowRasException {
+	public Direction getDirection() {
 		if (this.type == null || this.type.isEmpty()) {
 			LOGGER.warn("The type is null");
 			return null;
@@ -148,7 +152,7 @@ public class Rule {
 		}
 	}
 	
-	public Protocol getSRProtocol() throws FogbowRasException {
+	public Protocol getSRProtocol() {
 		if (this.protocol == null || this.protocol.isEmpty()) {
 			LOGGER.warn("The protocol is null");
 		}
@@ -156,7 +160,7 @@ public class Rule {
 		case TCP_XML_TEMPLATE_VALUE:
 			return Protocol.TCP;
 		case UDP_XML_TEMPLATE_VALUE:
-			return Protocol.TCP;
+			return Protocol.UDP;
 		case ICMP_XML_TEMPLATE_VALUE:
 		case ICMPV6_XML_TEMPLATE_VALUE:
 			return Protocol.ICMP;
@@ -188,15 +192,29 @@ public class Rule {
 		if (this.ip == null) {
 			return ALL_XML_TEMPLATE_VALUE;
 		}
-		return this.ip + File.separator + calculateSubnetMask();
+		return this.ip + CIRD_SEPARATOR + calculateSubnetMask();
 	}
 
+	// TODO implement for ipv6
 	protected String calculateSubnetMask() {
 		try {
-			return String.valueOf(32 - (int) (Math.log(this.size) / Math.log(LOG_BASE)));			
+			if (CidrUtils.isIpv4(this.ip)) {
+				return getSubnetIPV4(this.size);
+			} else if (CidrUtils.isIpv6(this.ip)) {
+				// TODO implement
+				// return String.valueOf(32 - (int) (Math.log(this.size) / Math.log(LOG_BASE_2)));
+				throw new Exception("Not implemented");
+			} else {
+				LOGGER.warn(String.format("The IP is inconsistent"));
+				return null;
+			}
 		} catch (Exception e) {
 			LOGGER.warn("There is a problem when it is trying to calculate the subnet mask", e);
-			return String.valueOf(INT_ERROR_CODE);			
+			return String.valueOf(INT_ERROR_CODE);
 		}
+	}
+
+	protected static String getSubnetIPV4(int size) {
+		return String.valueOf(IPV4_AMOUNT_BITS - (int) (Math.log(size) / Math.log(LOG_BASE_2)));
 	}
 }
