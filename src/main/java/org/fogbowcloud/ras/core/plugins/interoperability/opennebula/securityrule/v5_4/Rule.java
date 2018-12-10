@@ -32,7 +32,8 @@ public class Rule {
 	protected static final int POSITION_PORT_TO_IN_RANGE = 1;
 	protected static final int INT_ERROR_CODE = -1;
 	private static final int LOG_BASE_2 = 2;
-	public static final int IPV4_AMOUNT_BITS = 32;
+	protected static final int IPV4_AMOUNT_BITS = 32;
+	protected static int IPV6_AMOUNT_BITS = 128;
 
 
 	private String protocol;
@@ -108,8 +109,7 @@ public class Rule {
 	}
 	
 	/*
-	* TODO implement tests 	
-	* TODO check if is necessary put this messages in another class	
+	* TODO check if is necessary put this messages in another class
 	*/
 	
 	public int getPortFrom() {
@@ -195,15 +195,13 @@ public class Rule {
 		return this.ip + CIRD_SEPARATOR + calculateSubnetMask();
 	}
 
-	// TODO implement for ipv6
+	// TODO the size must be a BigInteger because the ipv6 amount
 	protected String calculateSubnetMask() {
 		try {
 			if (CidrUtils.isIpv4(this.ip)) {
 				return getSubnetIPV4(this.size);
 			} else if (CidrUtils.isIpv6(this.ip)) {
-				// TODO implement
-				// return String.valueOf(32 - (int) (Math.log(this.size) / Math.log(LOG_BASE_2)));
-				throw new Exception("Not implemented");
+				return getSubnetIPV6(this.size);
 			} else {
 				LOGGER.warn(String.format("The IP is inconsistent"));
 				return null;
@@ -216,5 +214,9 @@ public class Rule {
 
 	protected static String getSubnetIPV4(int size) {
 		return String.valueOf(IPV4_AMOUNT_BITS - (int) (Math.log(size) / Math.log(LOG_BASE_2)));
+	}
+
+	protected static String getSubnetIPV6(int size) {
+		return String.valueOf(IPV6_AMOUNT_BITS - (int) (Math.log(size) / Math.log(LOG_BASE_2)));
 	}
 }

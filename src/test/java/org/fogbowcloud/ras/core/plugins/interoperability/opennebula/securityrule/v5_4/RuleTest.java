@@ -4,7 +4,6 @@ import org.fogbowcloud.ras.core.models.securityrules.Direction;
 import org.fogbowcloud.ras.core.models.securityrules.EtherType;
 import org.fogbowcloud.ras.core.models.securityrules.Protocol;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class RuleTest {
@@ -155,11 +154,31 @@ public class RuleTest {
         Assert.assertEquals(Rule.ALL_XML_TEMPLATE_VALUE, rule.getCIDR());
     }
 
-    @Ignore
     @Test
     public void testGetCIDRIPV6() {
         // setup
-        String ipUnique = "";
+        String ipUnique = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
+
+        Rule rule = new Rule();
+        int size = 256;
+        int subnetBySize = 120;
+        rule.setIp(ipUnique);
+        rule.setSize(size);
+
+        // exercise and verify
+        String cirdExpected = String.format("%s%s%s", ipUnique, Rule.CIRD_SEPARATOR, subnetBySize);
+        Assert.assertEquals(cirdExpected, rule.getCIDR());
+
+        // setup two
+        Rule ruleTwo = new Rule();
+        int sizeTwo = 268435456;
+        int subnetBySizeTwo = 100;
+        ruleTwo.setIp(ipUnique);
+        ruleTwo.setSize(sizeTwo);
+
+        // exercise and verify two
+        String cirdExpectedTwo = String.format("%s%s%s", ipUnique, Rule.CIRD_SEPARATOR, subnetBySizeTwo);
+        Assert.assertEquals(cirdExpectedTwo, ruleTwo.getCIDR());
     }
 
     // test case: get TCP protocol
