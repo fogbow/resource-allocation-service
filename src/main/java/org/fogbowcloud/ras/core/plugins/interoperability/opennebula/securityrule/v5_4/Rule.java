@@ -48,7 +48,7 @@ public class Rule {
 	private static final int LOG_BASE_2 = 2;
 	protected static final int IPV4_AMOUNT_BITS = 32;
 
-	private static final String INSTANCE_ID_SEPARATOR = "||";
+	private static final String INSTANCE_ID_SEPARATOR = "@@";
 	
 	protected static int IPV6_AMOUNT_BITS = 128;
 
@@ -247,7 +247,7 @@ public class Rule {
 	}
 	
 	public String serialize() {
-		String[] attributes = new String[6];
+		String[] attributes = new String[7];
 		attributes[PROTOCOL_INDEX] = this.protocol;
 		attributes[IP_INDEX] = this.ip;
 		attributes[SIZE_INDEX] = String.valueOf(this.size);

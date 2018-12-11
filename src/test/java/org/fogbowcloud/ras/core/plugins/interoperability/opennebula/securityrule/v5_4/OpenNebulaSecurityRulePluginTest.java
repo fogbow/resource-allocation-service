@@ -15,6 +15,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.opennebula.client.OneResponse;
 import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vnet.VirtualNetwork;
 
@@ -34,6 +35,120 @@ public class OpenNebulaSecurityRulePluginTest {
 
         this.openNebulaClientFactory = Mockito.mock(OpenNebulaClientFactory.class);
         this.openNebulaSecurityRulePlugin.setFactory(this.openNebulaClientFactory);
+    }
+
+    // test case: success case
+    @Test
+    public void testDeleteSecurityRule() throws UnexpectedException, FogbowRasException {
+        // setup
+        OpenNebulaToken localUserAttributes = new OpenNebulaToken("provider", "tokenValue", "userId", "userName", "signature");
+        String securityGroupId = "0";
+        String securityGroupName = "securityGroupName";
+        String ipOne = "10.10.0.0";
+        String ipTwo = "20.20.0.0";
+        String ipTree = "30.30.0.0";
+
+        List<Rule> rules = new ArrayList<>();
+        Rule ruleOneToRemove = createSecurityRuleId(ipOne, securityGroupId);
+        rules.add(ruleOneToRemove);
+        rules.add(createSecurityRuleId(ipTwo, securityGroupId));
+        rules.add(createSecurityRuleId(ipTree, securityGroupId));
+
+        List<Rule> rulesExpected = new ArrayList<>(rules);
+        rulesExpected.remove(ruleOneToRemove);
+        SecurityGroupTemplate securityGroupTemplate = createSecurityGroupTemplate(securityGroupId, securityGroupName, rulesExpected);
+        String securityGroupTemplateXml = securityGroupTemplate.marshalTemplate();
+
+        String securityRuleId = ruleOneToRemove.serialize();
+
+        SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
+        OneResponse oneResponseExpected = Mockito.mock(OneResponse.class);
+        Mockito.doReturn(false).when(oneResponseExpected).isError();
+        Mockito.doReturn(oneResponseExpected).when(securityGroup).update(Mockito.any());
+
+        Mockito.when(securityGroup.getId()).thenReturn(securityGroupId);
+        Mockito.when(this.openNebulaClientFactory.createSecurityGroup(Mockito.any(), Mockito.eq(securityGroupId)))
+                .thenReturn(securityGroup);
+
+        SecurityGroupInfo securityGroupInfo = Mockito.mock(SecurityGroupInfo.class);
+        Mockito.when(securityGroupInfo.getId()).thenReturn(securityGroupId);
+        Mockito.when(securityGroupInfo.getName()).thenReturn(securityGroupName);
+
+        Mockito.doReturn(securityGroupInfo).when(this.openNebulaSecurityRulePlugin).getSecurityGroupInfo(Mockito.eq(securityGroup));
+
+        Mockito.doReturn(rules).when(this.openNebulaSecurityRulePlugin).getRules(Mockito.eq(securityGroup));
+
+        // exercise
+        this.openNebulaSecurityRulePlugin.deleteSecurityRule(securityRuleId, localUserAttributes);
+
+        // verify
+        Mockito.verify(securityGroup, Mockito.times(1)).update(Mockito.eq(securityGroupTemplateXml));
+    }
+
+    // test case: Occur an error when updating the security group in the cloud
+    @Test(expected = FogbowRasException.class)
+    public void testDeleteSecurityRuleErrorWhileUpdatingSecurity() throws UnexpectedException, FogbowRasException {
+        // setup
+        OpenNebulaToken localUserAttributes = new OpenNebulaToken("provider", "tokenValue", "userId", "userName", "signature");
+        String securityGroupId = "0";
+        String securityGroupName = "securityGroupName";
+        String ipOne = "10.10.0.0";
+        String ipTwo = "20.20.0.0";
+        String ipTree = "30.30.0.0";
+
+        List<Rule> rules = new ArrayList<>();
+        Rule ruleOneToRemove = createSecurityRuleId(ipOne, securityGroupId);
+        rules.add(ruleOneToRemove);
+
+        List<Rule> rulesExpected = new ArrayList<>(rules);
+        rulesExpected.remove(ruleOneToRemove);
+        SecurityGroupTemplate securityGroupTemplate = createSecurityGroupTemplate(securityGroupId, securityGroupName, rulesExpected);
+        String securityGroupTemplateXml = securityGroupTemplate.marshalTemplate();
+
+        String securityRuleId = ruleOneToRemove.serialize();
+
+        SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
+        OneResponse oneResponseExpected = Mockito.mock(OneResponse.class);
+        boolean isError = true;
+        Mockito.doReturn(isError).when(oneResponseExpected).isError();
+        Mockito.doReturn(oneResponseExpected).when(securityGroup).update(Mockito.any());
+
+        Mockito.when(securityGroup.getId()).thenReturn(securityGroupId);
+        Mockito.when(this.openNebulaClientFactory.createSecurityGroup(Mockito.any(), Mockito.eq(securityGroupId)))
+                .thenReturn(securityGroup);
+
+        SecurityGroupInfo securityGroupInfo = Mockito.mock(SecurityGroupInfo.class);
+        Mockito.when(securityGroupInfo.getId()).thenReturn(securityGroupId);
+        Mockito.when(securityGroupInfo.getName()).thenReturn(securityGroupName);
+
+        Mockito.doReturn(securityGroupInfo).when(this.openNebulaSecurityRulePlugin).getSecurityGroupInfo(Mockito.eq(securityGroup));
+
+        Mockito.doReturn(rules).when(this.openNebulaSecurityRulePlugin).getRules(Mockito.eq(securityGroup));
+
+        // exercise
+        this.openNebulaSecurityRulePlugin.deleteSecurityRule(securityRuleId, localUserAttributes);
+
+        // verify
+        Mockito.verify(securityGroup, Mockito.times(1)).update(Mockito.eq(securityGroupTemplateXml));
+    }
+
+    private SecurityGroupTemplate createSecurityGroupTemplate(String id, String name, List<Rule> rules) {
+        SecurityGroupTemplate securityGroupTemplate = new SecurityGroupTemplate();
+        securityGroupTemplate.setId(id);
+        securityGroupTemplate.setName(name);
+        securityGroupTemplate.setRules(rules);
+        return  securityGroupTemplate;
+    }
+
+    private Rule createSecurityRuleId(String ip, String securityGruopId) {
+        Rule rule = new Rule();
+        rule.setIp(ip);
+        rule.setSecurityGroupId(securityGruopId);
+        rule.setType("");
+        rule.setRange("");
+        rule.setProtocol("");
+        rule.setSize(0);
+        return rule;
     }
 
     // test case: success case

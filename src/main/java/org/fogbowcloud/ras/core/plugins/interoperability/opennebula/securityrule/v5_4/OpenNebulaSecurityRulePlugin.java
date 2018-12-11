@@ -3,6 +3,7 @@ package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.securityrul
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.orders.Order;
@@ -22,7 +23,7 @@ import org.opennebula.client.vnet.VirtualNetwork;
 import java.util.ArrayList;
 import java.util.List;
 
-// TODO use the class Message to its messages
+// TODO think more about this exception
 public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebulaToken> {
 
 	public static final Logger LOGGER = Logger.getLogger(OpenNebulaSecurityRulePlugin.class);
@@ -30,7 +31,6 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 	private static final int SLICE_POSITION_SECURITY_GROUP = 1;
     protected static final String OPENNEBULA_XML_ARRAY_SEPARATOR = ",";
 	protected static final String TEMPLATE_VNET_SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
-    private static final String OPENNEBULA_XML_ARRAY_SEPARETOR = ",";
 	private static final String INBOUND_TEMPLATE_VALUE = "inbound";
 	private static final String OUTBOUND_TEMPLATE_VALUE = "outbound";
 	private static final String CIDR_SLICE = "[/]";
@@ -152,6 +152,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 				String cidr = rule.getCIDR();
 				EtherType etherType = rule.getEtherType();
 				Protocol protocol = rule.getSRProtocol();
+				rule.setSecurityGroupId(securityGroup.getId());
 
 				SecurityRule securityRule = new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol);
 				securityRule.setInstanceId(rule.serialize());
@@ -165,11 +166,14 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 		return securityRules;
 	}
 
-	protected List<Rule> getRules(SecurityGroup securityGroup) {
-		String securityGroupXml = securityGroup.info().getMessage();
-		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(securityGroupXml);
-		Template template = securityGroupInfo.getTemplate();
-		return template.getRules();
+	protected List<Rule> getRules(SecurityGroup securityGroup) throws FogbowRasException {
+    	try {
+			SecurityGroupInfo securityGroupInfo = getSecurityGroupInfo(securityGroup);
+			Template template = securityGroupInfo.getTemplate();
+			return template.getRules();
+		} catch (Exception e) {
+			throw new FogbowRasException(e.getMessage(), e);
+		}
 	}
 
 	/**
@@ -201,29 +205,46 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
         Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 
 		Rule ruleToRemove = Rule.deserialize(securityRuleId);
-		String virtualNetworkId = "";
-		VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, virtualNetworkId);
-		String securityGroupId = getSecurityGroupBy(virtualNetwork);
-
+		String securityGroupId = ruleToRemove.getSecurityGroupId();
 		SecurityGroup securityGroup = this.factory.createSecurityGroup(client, securityGroupId);
-		String securityGroupXml = securityGroup.info().getMessage();
-		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(securityGroupXml);
-		List<Rule> rules = securityGroupInfo.getTemplate().getRules();
+		SecurityGroupInfo securityGroupInfo = getSecurityGroupInfo(securityGroup);
+
+		List<Rule> rules = getRules(securityGroup);
 		removeRule(ruleToRemove, rules);
 
+		SecurityGroupTemplate securityGroupTemplate = createSecurityGroupTemplate(securityGroupInfo, rules);
+		String xml = securityGroupTemplate.marshalTemplate();
+		OneResponse response = securityGroup.update(xml);
+		if (response.isError()) {
+			String errorMsg = String.format(Messages.Error.ERROR_WHILE_REMOVING_SECURITY_RULE, securityGroupId, response.getMessage());
+			LOGGER.error(errorMsg);
+			throw new FogbowRasException(errorMsg);
+		}
+    }
+
+	protected SecurityGroupTemplate createSecurityGroupTemplate(SecurityGroupInfo securityGroupInfo, List<Rule> rules) {
 		SecurityGroupTemplate securityGroupTemplate = new SecurityGroupTemplate();
 		securityGroupTemplate.setId(securityGroupInfo.getId());
 		securityGroupTemplate.setName(securityGroupInfo.getName());
 		securityGroupTemplate.setRules(rules);
+		return securityGroupTemplate;
+	}
 
-		String xml = securityGroupTemplate.marshalTemplate();
-		OneResponse response = securityGroup.update(xml);
-		if (response.isError()) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_SECURITY_RULE, securityGroupId, response.getMessage()));
+	protected SecurityGroupInfo getSecurityGroupInfo(SecurityGroup securityGroup) throws InstanceNotFoundException {
+		String securityGroupXml = securityGroup.info().getMessage();
+		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(securityGroupXml);
+		if (securityGroupInfo == null) {
+			String errorMsg = Messages.Exception.INSTANCE_NOT_FOUND;
+
+			throw new InstanceNotFoundException(errorMsg);
 		}
-    }
+		return securityGroupInfo;
+	}
 
 	private void removeRule(Rule ruleToRemove, List<Rule> rules) {
+		if (rules == null) {
+			return;
+		}
 		for (Rule rule: new ArrayList<>(rules)) {
 			if (rule.equals(ruleToRemove)) {
 				rules.remove(ruleToRemove);
