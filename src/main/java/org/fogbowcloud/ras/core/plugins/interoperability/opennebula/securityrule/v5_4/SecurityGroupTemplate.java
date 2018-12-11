@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.ID;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NAME;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.RULE;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TEMPLATE;
@@ -16,14 +17,21 @@ public class SecurityGroupTemplate extends OpenNebulaMarshallerTemplate {
 
 	public static final String RANGE_FORMAT = "%s:s%";
 	
+	private String id;
 	private String name;
 	private List<Rule> rules;
 
 	public SecurityGroupTemplate() {}
 
-	public SecurityGroupTemplate(String name, List<Rule> rules) {
+	public SecurityGroupTemplate(String id, String name, List<Rule> rules) {
+		this.id = id;
 		this.name = name;
 		this.rules = rules;
+	}
+	
+	@XmlElement(name = ID)
+	public String getId() {
+		return id;
 	}
 	
 	@XmlElement(name = NAME)
