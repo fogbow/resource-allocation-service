@@ -1,22 +1,32 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.IP;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NETWORK_ID;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.PROTOCOL;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.RANGE;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.RULE;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.RULE_TYPE;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.SIZE;
+
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.models.securityrules.Direction;
 import org.fogbowcloud.ras.core.models.securityrules.EtherType;
 import org.fogbowcloud.ras.core.models.securityrules.Protocol;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.securityrule.v4_9.CidrUtils;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.*;
-
 @XmlRootElement(name = RULE)
 public class Rule {
 
 	private static final int PROTOCOL_INDEX = 0;
+	private static final int IP_INDEX = 1;
+	private static final int SIZE_INDEX = 2;
+	private static final int RANGE_INDEX = 3;
+	private static final int TYPE_INDEX = 4;
+	private static final int NETWORK_ID_INDEX = 5;
 
 	public static final Logger LOGGER = Logger.getLogger(Rule.class);
 
@@ -227,14 +237,15 @@ public class Rule {
 	}
 	
 	public String serialize() {
-		String[] attrs = {this.protocol,
-				this.ip,
-				String.valueOf(this.size), 
-				this.range, 
-				this.type, 
-				String.valueOf(this.networkId)};
+		String[] attributes = new String[6];
+		attributes[PROTOCOL_INDEX] = this.protocol;
+		attributes[IP_INDEX] = this.ip;
+		attributes[SIZE_INDEX] = String.valueOf(this.size);
+		attributes[RANGE_INDEX] = this.range;
+		attributes[TYPE_INDEX] = this.type;
+		attributes[NETWORK_ID_INDEX] = String.valueOf(this.networkId);
 		
-		String instanceId = StringUtils.join(attrs, INSTANCE_ID_SEPARATOR);
+		String instanceId = StringUtils.join(attributes, INSTANCE_ID_SEPARATOR);
 		return instanceId;
 	}
 	
@@ -242,11 +253,11 @@ public class Rule {
 		Rule rule = new Rule();
 		String[] instanceIdSplit = instanceId.split(INSTANCE_ID_SEPARATOR);
 		rule.setProtocol(instanceIdSplit[PROTOCOL_INDEX]);
-		rule.setIp(instanceIdSplit[1]);
-		rule.setSize(Integer.parseInt(instanceIdSplit[2]));
-		rule.setRange(instanceIdSplit[3]);
-		rule.setType(instanceIdSplit[4]);
-		rule.setNetworkId(Integer.parseInt(instanceIdSplit[5]));
+		rule.setIp(instanceIdSplit[IP_INDEX]);
+		rule.setSize(Integer.parseInt(instanceIdSplit[SIZE_INDEX]));
+		rule.setRange(instanceIdSplit[RANGE_INDEX]);
+		rule.setType(instanceIdSplit[TYPE_INDEX]);
+		rule.setNetworkId(Integer.parseInt(instanceIdSplit[NETWORK_ID_INDEX]));
 		return rule;
 	}
 
