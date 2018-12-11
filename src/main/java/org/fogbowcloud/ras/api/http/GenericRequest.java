@@ -1,7 +1,9 @@
 package org.fogbowcloud.ras.api.http;
 
+import io.swagger.annotations.ApiParam;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.ApplicationFacade;
+import org.fogbowcloud.ras.core.constants.ApiDocumentation;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
@@ -20,26 +22,51 @@ import static org.fogbowcloud.ras.api.http.GenericRequest.GENERIC_REQUEST_ENDPOI
 public class GenericRequest {
 
     public static final String GENERIC_REQUEST_ENDPOINT = "genericRequest";
-
     public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
-    public static final String MEMBER_ID_HEADER_KEY = "memberId";
 
     private final Logger LOGGER = Logger.getLogger(GenericRequest.class);
 
-    @RequestMapping("/**")
-    public ResponseEntity<String> genericRequest(HttpServletRequest request,
-                                                 @RequestHeader(required = true, value = MEMBER_ID_HEADER_KEY) String memberId,
-                                                 @RequestBody(required = false) String body,
-                                                 @RequestBody(required = false) String cloudName)
+    @RequestMapping(method = RequestMethod.POST, value = "/{memberId}" + "/{cloudName}")
+    public ResponseEntity<String> genericRequest(@ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
+                                                 @PathVariable
+                                                         String cloudName,
+
+                                                 @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
+                                                 @PathVariable
+                                                         String memberId,
+
+                                                 @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
+                                                 @RequestHeader(required = true, value = FEDERATION_TOKEN_VALUE_HEADER_KEY)
+                                                         String federationTokenValue,
+
+                                                 @RequestBody GenericRequestBean genericRequest)
             throws UnexpectedException, FogbowRasException {
-        Map<String, String> headers = HttpRequestClientUtil.getHeaders(request);
 
-        String url = request.getRequestURL().toString();
-        String method = request.getMethod();
+//        FIXME these can be used if we want to get these from the request itself
+//        Map<String, String> headers = HttpRequestClientUtil.getHeaders(request);
+//        String url = request.getRequestURL().toString();
+//        String method = request.getMethod();
 
-        String response = ApplicationFacade.getInstance().genericRequest(cloudName, memberId, method, url, headers, body,
-                null);
+        String response = ApplicationFacade.getInstance().genericRequest(
+                cloudName, memberId, genericRequest.method, genericRequest.url, genericRequest.headers, genericRequest.body,
+                federationTokenValue);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
+    public static class GenericRequestBean {
+        private String method;
+        private String url;
+        private Map<String, String> headers;
+        private String body;
+
+        public GenericRequestBean() {
+        }
+
+        public GenericRequestBean(String method, String url, Map<String, String> headers, String body) {
+            this.method = method;
+            this.url = url;
+            this.headers = headers;
+            this.body = body;
+        }
+    }
 }
