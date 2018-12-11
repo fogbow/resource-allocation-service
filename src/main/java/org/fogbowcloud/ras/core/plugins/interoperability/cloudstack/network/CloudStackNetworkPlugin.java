@@ -33,17 +33,18 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
 
     public static final String NETWORK_OFFERING_ID = "network_offering_id";
     public static final String ZONE_ID = "zone_id";
+    public static final String CLOUDSTACK_URL = "cloudstack_api_url";
 
     protected String networkOfferingId = null;
     protected String zoneId = null;
+    protected String cloudStackUrl;
 
     private HttpRequestClientUtil client;
+    private Properties properties;
 
-    public CloudStackNetworkPlugin() {
-        String cloudStackConfFilePath = HomeDir.getPath() + File.separator
-                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
-
-        Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
+    public CloudStackNetworkPlugin(String confFilePath) {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
+        this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
 
         this.networkOfferingId = properties.getProperty(NETWORK_OFFERING_ID);
         this.zoneId = properties.getProperty(ZONE_ID);
@@ -73,7 +74,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
                 .endingIp(endingIp)
                 .gateway(gateway)
                 .netmask(subnetInfo.getNetmask())
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
 
@@ -93,7 +94,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
             throws FogbowRasException {
         GetNetworkRequest request = new GetNetworkRequest.Builder()
                 .id(networkInstanceId)
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
 
@@ -120,7 +121,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
             throws FogbowRasException {
         DeleteNetworkRequest request = new DeleteNetworkRequest.Builder()
                 .id(networkInstanceId)
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
 

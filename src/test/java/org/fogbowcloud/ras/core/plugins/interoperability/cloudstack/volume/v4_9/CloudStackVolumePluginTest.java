@@ -34,6 +34,7 @@ import java.util.Properties;
         GetVolumeResponse.class})
 public class CloudStackVolumePluginTest {
 
+    private static final String CLOUD_NAME = "cloudstack";
     private static final String BASE_ENDPOINT_KEY = "cloudstack_api_url";
     private static final String REQUEST_FORMAT = "%s?command=%s";
     private static final String RESPONSE_FORMAT = "&response=%s";
@@ -77,13 +78,19 @@ public class CloudStackVolumePluginTest {
     private CloudStackVolumePlugin plugin;
     private HttpRequestClientUtil client;
     private CloudStackToken token;
+    private Properties properties;
 
     @Before
     public void setUp() {
         PowerMockito.mockStatic(HttpRequestUtil.class);
+        String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+                File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
+
+        PowerMockito.mockStatic(HttpRequestUtil.class);
 
         this.client = Mockito.mock(HttpRequestClientUtil.class);
-        this.plugin = new CloudStackVolumePlugin();
+        this.plugin = new CloudStackVolumePlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
         this.token = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_USERNAME, FAKE_SIGNATURE);
     }
@@ -837,11 +844,7 @@ public class CloudStackVolumePluginTest {
     }
     
     private String getBaseEndpointFromCloudStackConf() {
-        String filePath = HomeDir.getPath() + File.separator
-                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
-
-        Properties properties = PropertiesUtil.readProperties(filePath);
-        return properties.getProperty(BASE_ENDPOINT_KEY);
+        return this.properties.getProperty(BASE_ENDPOINT_KEY);
     }
 
     private String getListDiskOfferrings(String id, int diskSize, boolean customized, String tags) {

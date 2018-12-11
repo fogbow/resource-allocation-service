@@ -15,6 +15,8 @@ public class CreateFirewallRuleRequest extends CloudStackRequest {
     public static final String CREATE_FIREWALL_RULE_COMMAND = "createFirewallRule";
 
     protected CreateFirewallRuleRequest(Builder builder) throws InvalidParameterException {
+        super(builder.cloudStackUrl);
+
         addParameter(PROTOCOL_KEY_JSON, builder.protocol);
         addParameter(STARTPORT_KEY_JSON, builder.startPort);
         addParameter(ENDPORT_KEY_JSON, builder.endPort);
@@ -33,6 +35,7 @@ public class CreateFirewallRuleRequest extends CloudStackRequest {
     }
 
     public static class Builder {
+        private String cloudStackUrl;
         private String protocol;
         private String startPort;
         private String endPort;
@@ -64,7 +67,8 @@ public class CreateFirewallRuleRequest extends CloudStackRequest {
             return this;
         }
 
-        public CreateFirewallRuleRequest build() throws InvalidParameterException {
+        public CreateFirewallRuleRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new CreateFirewallRuleRequest(this);
         }
     }

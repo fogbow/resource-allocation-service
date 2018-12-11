@@ -9,7 +9,7 @@ public class DetachVolumeRequest extends CloudStackRequest {
     protected static final String ATTACH_VOLUME_ID = "id";
     
     protected DetachVolumeRequest(Builder builder) throws InvalidParameterException {
-        super();
+        super(builder.cloudStackUrl);
         addParameter(ATTACH_VOLUME_ID, builder.id);
     }
 
@@ -24,6 +24,7 @@ public class DetachVolumeRequest extends CloudStackRequest {
     }
     
     public static class Builder {
+        private String cloudStackUrl;
         private String id;
 
         public Builder id(String id) {
@@ -31,7 +32,8 @@ public class DetachVolumeRequest extends CloudStackRequest {
             return this;
         }
 
-        public DetachVolumeRequest build() throws InvalidParameterException {
+        public DetachVolumeRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new DetachVolumeRequest(this);
         }
         

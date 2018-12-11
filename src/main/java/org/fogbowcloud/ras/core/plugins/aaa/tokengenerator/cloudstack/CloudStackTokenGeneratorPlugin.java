@@ -3,6 +3,7 @@ package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -16,6 +17,7 @@ import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowRasExceptionMapper;
+import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
 public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
@@ -31,10 +33,14 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     public static final int CLOUDSTACK_TOKEN_NUMBER_OF_FIELDS = 5;
 
     private String tokenProviderId;
+    private String cloudStackUrl;
     private HttpRequestClientUtil client;
 	private RASAuthenticationHolder rasAuthenticationHolder;
+    private Properties properties;
 
-    public CloudStackTokenGeneratorPlugin() {
+    public CloudStackTokenGeneratorPlugin(String confFilePath) {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
+        this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
         this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         this.client = new HttpRequestClientUtil();
         
@@ -73,7 +79,7 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
                 .username(userId)
                 .password(password)
                 .domain(domain)
-                .build();
+                .build(this.cloudStackUrl);
 
         return loginRequest;
     }
@@ -81,7 +87,7 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     private String getTokenValue(String sessionKey) throws FogbowRasException, UnexpectedException {
         ListAccountsRequest request = new ListAccountsRequest.Builder()
                 .sessionKey(sessionKey)
-                .build();
+                .build(this.cloudStackUrl);
 
         String jsonResponse = null;
         try {

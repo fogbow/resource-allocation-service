@@ -115,7 +115,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
 
         DeleteVolumeRequest request = new DeleteVolumeRequest.Builder()
                 .id(volumeInstanceId)
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
 
@@ -226,7 +226,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
                 .name(name)
                 .diskOfferingId(diskOfferingId)
                 .size(size)
-                .build();
+                .build(this.cloudStackUrl);
     }
 
     private CreateVolumeRequest createVolumeCompatible(VolumeOrder volumeOrder, String diskOfferingId)
@@ -238,7 +238,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
                 .zoneId(this.zoneId)
                 .name(name)
                 .diskOfferingId(diskOfferingId)
-                .build();
+                .build(this.cloudStackUrl);
     }
 
     private VolumeInstance loadInstance(GetVolumeResponse.Volume volume) {

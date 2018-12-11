@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CloudStackAllToOneMapperTest {
+    private static final String CLOUD_NAME = "cloudstack";
     private static final String FAKE_NAME1 = "fake-name1";
     private static final String FAKE_LOGIN1 = "fake-login1";
     private static final String FAKE_NAME2 = "fake-name2";
@@ -40,11 +41,13 @@ public class CloudStackAllToOneMapperTest {
 
     @Before
     public void setUp() {
-        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         String path = HomeDir.getPath();
+        String cloudStackConfFilePath = path + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+                File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         this.ldapTokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin(path + "ldap-token-generator-plugin.conf"));
         this.ldapIdentityPlugin = new LdapIdentityPlugin();
-        this.cloudStackTokenGenerator = Mockito.spy(new CloudStackTokenGeneratorPlugin());
+        this.cloudStackTokenGenerator = Mockito.spy(new CloudStackTokenGeneratorPlugin(cloudStackConfFilePath));
         String cloudConfPath = path + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
                 + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
         String mapperConfPath = path + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator

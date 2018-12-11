@@ -15,7 +15,10 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackSt
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.attachment.v4_9.AttachmentJobStatusResponse.Volume;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.volume.v4_9.CloudStackVolumePlugin;
+import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
+
+import java.util.Properties;
 
 public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackToken>{
     private static final Logger LOGGER = Logger.getLogger(CloudStackVolumePlugin.class);
@@ -27,19 +30,19 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackTo
     protected static final int JOB_STATUS_FAILURE = 2;
     private static final String PENDING_STATE = "pending";
     private static final String FAILURE_STATE = "failure";
-    
+    private static final String CLOUDSTACK_URL = "cloudstack_api_url";
+
     private HttpRequestClientUtil client;
+    private Properties properties;
+    private String cloudStackUrl;
     
     public CloudStackAttachmentPlugin() {
         this.client = new HttpRequestClientUtil();
     }
 
-    /**
-     * This constructor is used by the plugin instatiator. Configuration file path used only to comply with the
-     * instatiator constructor signature.
-     * @param confFilePath
-     */
     public CloudStackAttachmentPlugin(String confFilePath) {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
+        this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
         this.client = new HttpRequestClientUtil();
     }
 
@@ -53,7 +56,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackTo
         AttachVolumeRequest request = new AttachVolumeRequest.Builder()
                 .id(volumeId)
                 .virtualMachineId(virtualMachineId)
-                .build();
+                .build(this.cloudStackUrl);
         
         CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
         
@@ -84,7 +87,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackTo
         
         DetachVolumeRequest request = new DetachVolumeRequest.Builder()
                 .id(volumeId)
-                .build();
+                .build(this.cloudStackUrl);
         
         CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
         
@@ -111,7 +114,7 @@ public class CloudStackAttachmentPlugin implements AttachmentPlugin<CloudStackTo
 
         AttachmentJobStatusRequest request = new AttachmentJobStatusRequest.Builder()
                 .jobId(jobId)
-                .build();
+                .build(this.cloudStackUrl);
         
         CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
 
