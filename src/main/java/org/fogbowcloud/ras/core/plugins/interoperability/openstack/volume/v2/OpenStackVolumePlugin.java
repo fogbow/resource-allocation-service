@@ -18,6 +18,7 @@ import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONException;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -142,6 +143,17 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3Token> {
         }
     }
 
+    protected List<GetAllTypesResponse.Type> getRequirementsFromJson(String json) throws UnexpectedException {
+        try {
+            GetAllTypesResponse getAllTypesResponse = GetAllTypesResponse.fromJson(json);
+            return getAllTypesResponse.getTypes();
+        } catch (Exception e) {
+            String message = Messages.Error.ERROR_WHILE_PROCESSING_VOLUME_REQUIREMENTS;
+            LOGGER.error(message, e);
+            throw new UnexpectedException(message, e);
+        }
+    }
+
     protected String generateJsonEntityToCreateInstance(String size, String name, String volmeTypeId) throws JSONException {
         CreateVolumeRequest createVolumeRequest =
                 new CreateVolumeRequest.Builder()
@@ -153,7 +165,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3Token> {
         return createVolumeRequest.toJson();
     }
 
-    private String getValidVolumeTypeId(Map<String, String> requirements, String tenantId, OpenStackV3Token openStackV3Token) throws InvalidParameterException {
+    private String getValidVolumeTypeId(Map<String, String> requirements, String tenantId, OpenStackV3Token openStackV3Token) throws FogbowRasException, UnexpectedException {
 
         String endpoint = this.volumeV2APIEndpoint + tenantId + SUFIX_ENDPOINT_VOLUME_TYPES;
         String responseStr = null;
@@ -163,13 +175,36 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3Token> {
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }
 
-        return "";
+        List<GetAllTypesResponse.Type> instanceFromJson = getRequirementsFromJson(responseStr);
+
+        for(GetAllTypesResponse.Type type : instanceFromJson){
+
+            boolean match = true;
+
+            Map<String, String> specs = type.getExtraSpecs();
+
+            for(Map.Entry<String, String> pair : requirements.entrySet()){
+                String key = pair.getKey();
+                String value = pair.getValue();
+                if(!specs.containsKey(key) || !value.equals(specs.get(key))){
+                    match = false;
+                    break;
+                }
+            }
+
+            if(!match) continue;
+
+            return type.getId();
+        }
+
+        String message = Messages.Exception.UNABLE_TO_MATCH_REQUIREMENTS;
+        throw new FogbowRasException(message);
     }
 
     private void initClient() {
         this.client = new HttpRequestClientUtil();
-    }
 
+    }
     public void setClient(HttpRequestClientUtil client) {
         this.client = client;
     }

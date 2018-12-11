@@ -51,6 +51,7 @@ public class Messages {
         public static final String UNABLE_TO_REMOVE_INACTIVE_REQUEST = "Unable to remove inactive request %s.";
         public static final String UNABLE_TO_RETRIEVE_RESPONSE_FROM_PROVIDING_MEMBER = "Unable to retrieve response from providing member: %s.";
         public static final String UNABLE_TO_SIGN_LDAP_TOKEN = "Unable to sign LDAP token.";
+        public static final String UNABLE_TO_MATCH_REQUIREMENTS = "Unable to match requirements.";
         public static final String UNAVAILABLE_PROVIDER = "Provider is not available.";
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
@@ -173,5 +174,6 @@ public class Messages {
 		public static final String ERROR_WHILE_ATTACH_VOLUME = "Error while attaching volume image disk: %s, with response: %s.";
 		public static final String ERROR_WHILE_GETTING_USERS = "Error while getting info about users: %s.";
 		public static final String ERROR_WHILE_GETTING_USER = "Error while getting info about user %s: %s.";
+        public static final String ERROR_WHILE_PROCESSING_VOLUME_REQUIREMENTS = "Error while processing volume requirements";
     }
 }
