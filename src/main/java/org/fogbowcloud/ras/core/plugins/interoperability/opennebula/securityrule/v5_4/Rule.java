@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.models.securityrules.Direction;
@@ -14,6 +15,8 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenN
 
 @XmlRootElement(name = RULE)
 public class Rule {
+
+	private static final int PROTOCOL_INDEX = 0;
 
 	public static final Logger LOGGER = Logger.getLogger(Rule.class);
 
@@ -33,6 +36,9 @@ public class Rule {
 	protected static final int INT_ERROR_CODE = -1;
 	private static final int LOG_BASE_2 = 2;
 	protected static final int IPV4_AMOUNT_BITS = 32;
+
+	private static final String INSTANCE_ID_SEPARATOR = ":";
+	
 	protected static int IPV6_AMOUNT_BITS = 128;
 
 
@@ -219,4 +225,65 @@ public class Rule {
 	protected static String getSubnetIPV6(int size) {
 		return String.valueOf(IPV6_AMOUNT_BITS - (int) (Math.log(size) / Math.log(LOG_BASE_2)));
 	}
+	
+	public String serialize() {
+		String[] attrs = {this.protocol,
+				this.ip,
+				String.valueOf(this.size), 
+				this.range, 
+				this.type, 
+				String.valueOf(this.networkId)};
+		
+		String instanceId = StringUtils.join(attrs, INSTANCE_ID_SEPARATOR);
+		return instanceId;
+	}
+	
+	public static Rule deserialize(String instanceId) {
+		Rule rule = new Rule();
+		String[] instanceIdSplit = instanceId.split(INSTANCE_ID_SEPARATOR);
+		rule.setProtocol(instanceIdSplit[PROTOCOL_INDEX]);
+		rule.setIp(instanceIdSplit[1]);
+		rule.setSize(Integer.parseInt(instanceIdSplit[2]));
+		rule.setRange(instanceIdSplit[3]);
+		rule.setType(instanceIdSplit[4]);
+		rule.setNetworkId(Integer.parseInt(instanceIdSplit[5]));
+		return rule;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Rule other = (Rule) obj;
+		if (ip == null) {
+			if (other.ip != null)
+				return false;
+		} else if (!ip.equals(other.ip))
+			return false;
+		if (networkId != other.networkId)
+			return false;
+		if (protocol == null) {
+			if (other.protocol != null)
+				return false;
+		} else if (!protocol.equals(other.protocol))
+			return false;
+		if (range == null) {
+			if (other.range != null)
+				return false;
+		} else if (!range.equals(other.range))
+			return false;
+		if (size != other.size)
+			return false;
+		if (type == null) {
+			if (other.type != null)
+				return false;
+		} else if (!type.equals(other.type))
+			return false;
+		return true;
+	}
+	
 }
