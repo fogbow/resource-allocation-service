@@ -34,8 +34,8 @@ public class GetAllTypesResponse {
     @SerializedName(VOLUME_TYPES_KEY_JSON)
     private List<Type> types;
 
-    public static GetVolumeResponse fromJson(String json) {
-        return GsonHolder.getInstance().fromJson(json, GetVolumeResponse.class);
+    public static GetAllTypesResponse fromJson(String json) {
+        return GsonHolder.getInstance().fromJson(json, GetAllTypesResponse.class);
     }
 
     public class Type {
@@ -47,6 +47,14 @@ public class GetAllTypesResponse {
 
         @SerializedName(NAME_KEY_JSON)
         private String name;
+
+        public Map<String, String> getExtraSpecs() {
+            return extraSpecs;
+        }
+
+        public String getId() {
+            return id;
+        }
     }
 
     public List<Type> getTypes() {
