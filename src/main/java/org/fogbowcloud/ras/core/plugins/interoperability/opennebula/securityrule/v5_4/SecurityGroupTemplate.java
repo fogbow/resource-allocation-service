@@ -31,13 +31,21 @@ public class SecurityGroupTemplate extends OpenNebulaMarshallerTemplate {
 		return name;
 	}
 
+	public void setName(String name) {
+		this.name = name;
+	}
+
 	@XmlElement(name = RULE)
 	public List<Rule> getRules() {
 		return rules;
 	}
 
-	public static Rule allocateSafetyRule(String protocol, String type, String ip, 
-			int size, int portFrom, int portTo, int networkId) {
+	public void setRules(List<Rule> rules) {
+		this.rules = rules;
+	}
+
+	public static Rule allocateSafetyRule(String protocol, String type, String ip,
+										  int size, int portFrom, int portTo, int networkId) {
 
 		String range = String.format(RANGE_FORMAT, String.valueOf(portFrom), String.valueOf(portTo));
 

@@ -204,9 +204,10 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 			}
 		}
 
-		// TODO implement the marshall methods
-		// to xml
-		String xml = "";
+		SecurityGroupTemplate securityGroupTemplate = new SecurityGroupTemplate();
+		securityGroupTemplate.setRules(rules);
+
+		String xml = securityGroupTemplate.marshalTemplate();
 		OneResponse response = securityGroup.update(xml);
 		if (response.isError()) {
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_SECURITY_RULE, securityGroupId, response.getMessage()));
