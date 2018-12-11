@@ -42,6 +42,31 @@ public abstract class DistributedAuthorizationPluginClient implements Authorizat
         return Boolean.valueOf(content.toString());
     }
 
+    @Override
+    public boolean isAuthorized(FederationUserToken federationUserToken, Operation operation, ResourceType type) {
+        String endpoint = this.serverUrl + AUTH_ENDPOINT + "/" + federationUserToken.getTokenProvider() + "/" +
+                federationUserToken.getUserId() + "/" + type + "/" + operation;
+        StringBuffer content = null;
+
+        try {
+            URL url = new URL(endpoint);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            content = new StringBuffer();
+            while ((inputLine = in.readLine()) != null) {
+                content.append(inputLine);
+            }
+            con.disconnect();
+            in.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Boolean.valueOf(content.toString());
+    }
+
     public void setServerUrl(String serverUrl) {
         this.serverUrl = serverUrl;
     }
