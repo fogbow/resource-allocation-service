@@ -136,6 +136,7 @@ public class Messages {
         public static final String ERROR_WHILE_GETTING_TEMPLATES = "Error while getting info about templates: %s.";
         public static final String ERROR_WHILE_GETTING_NEW_CONNECTION = "Error while getting a new connection from the connection pool.";
         public static final String ERROR_WHILE_GETTING_VOLUME_INSTANCE = "Error while getting volume instance.";
+        public static final String ERROR_WHILE_GETTING_SECURITY_RULES_INSTANCE = "Error while getting security rules instance.";
         public static final String ERROR_WHILE_REMOVING_VM = "Error while removing virtual machine: %s, with response: %s.";
         public static final String ERROR_WHILE_REMOVING_VN = "Error while removing virtual network: %s, with response: %s.";
         public static final String ERROR_WHILE_REMOVING_SECURITY_RULE = "Error while removing security group: %s, with response: %s.";

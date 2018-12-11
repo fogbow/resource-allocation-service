@@ -41,8 +41,8 @@ public class OpenNebulaSecurityRulePluginTest {
     public void testGetSecurityRules() throws UnexpectedException, FogbowRasException {
         // setup
         Order majorOrder = new NetworkOrder();
-        String instanceId = "instanceId";
-        majorOrder.setInstanceId(instanceId);
+        String networkId = "instanceId";
+        majorOrder.setInstanceId(networkId);
         OpenNebulaToken localUserAttributes = new OpenNebulaToken("provider", "tokenValue", "userId", "userName", "signature");
 
         VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
@@ -53,13 +53,13 @@ public class OpenNebulaSecurityRulePluginTest {
         String securityGroupXMLContent = String.format("%s%s%s", defaultIpOpennebula, OpenNebulaSecurityRulePlugin.OPENNEBULA_XML_ARRAY_SEPARATOR,securityGroupId);
         Mockito.when(virtualNetwork.xpath(Mockito.eq(OpenNebulaSecurityRulePlugin.TEMPLATE_VNET_SECURITY_GROUPS_PATH)))
                 .thenReturn(securityGroupXMLContent);
-        Mockito.when(this.openNebulaClientFactory.createVirtualNetwork(Mockito.any(), Mockito.eq(instanceId)))
+        Mockito.when(this.openNebulaClientFactory.createVirtualNetwork(Mockito.any(), Mockito.eq(networkId)))
                 .thenReturn(virtualNetwork);
 
         SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
 
         Mockito.when(securityGroup.getId()).thenReturn(securityGroupId);
-        Mockito.when(this.openNebulaClientFactory.getSecurityGroup(Mockito.any(), Mockito.eq(securityGroupId)))
+        Mockito.when(this.openNebulaClientFactory.createSecurityGroup(Mockito.any(), Mockito.eq(securityGroupId)))
                 .thenReturn(securityGroup);
 
         List<Rule> rules = new ArrayList<Rule>();
@@ -67,12 +67,13 @@ public class OpenNebulaSecurityRulePluginTest {
         int portTo = 3000;
         String ip = "10.10.0.1"; // ipv4
         int sizeRangeIp = 256; // subnet is 24
-        rules.add(new Rule(Rule.TCP_XML_TEMPLATE_VALUE,
+        Rule rule = new Rule(Rule.TCP_XML_TEMPLATE_VALUE,
                 ip,
                 sizeRangeIp,
-                String.format("%s%s%s", portFrom, Rule.OPENNEBULA_RANGE_SEPARATOR, portTo ),
+                String.format("%s%s%s", portFrom, Rule.OPENNEBULA_RANGE_SEPARATOR, portTo),
                 Rule.INBOUND_XML_TEMPLATE_VALUE,
-                Integer.valueOf(securityGroupId)));
+                Integer.valueOf(securityGroupId));
+        rules.add(rule);
         Mockito.doReturn(rules).when(this.openNebulaSecurityRulePlugin).getRules(Mockito.eq(securityGroup));
 
         // exercise
@@ -86,6 +87,7 @@ public class OpenNebulaSecurityRulePluginTest {
         Assert.assertEquals(String.format("%s%s%S", ip, Rule.CIRD_SEPARATOR, 24) , securityRule.getCidr());
         Assert.assertEquals(Direction.IN, securityRule.getDirection());
         Assert.assertEquals(EtherType.IPv4, securityRule.getEtherType());
+        Assert.assertEquals(rule.serialize(), securityRule.getInstanceId());
     }
 
     // test case: error while trying to get rules

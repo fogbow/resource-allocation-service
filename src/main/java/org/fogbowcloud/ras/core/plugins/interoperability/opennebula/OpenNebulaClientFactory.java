@@ -175,7 +175,7 @@ public class OpenNebulaClientFactory {
  		return user;
     }   
     
-    public SecurityGroup getSecurityGroup(Client client, String securityGroupId) 
+    public SecurityGroup createSecurityGroup(Client client, String securityGroupId)
     			throws UnauthorizedRequestException, InvalidParameterException, InstanceNotFoundException {
 		int id = 0;
 		try {

@@ -52,7 +52,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
     	VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, virtualNetworkId);
 
 		String securityGroupId = getSecurityGroupBy(virtualNetwork);		
-		SecurityGroup securityGroup = this.factory.getSecurityGroup(client, securityGroupId);
+		SecurityGroup securityGroup = this.factory.createSecurityGroup(client, securityGroupId);
 		
 		String securityGroupXml = securityGroup.info().getMessage();
 		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(securityGroupXml);
@@ -126,7 +126,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
     	VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, virtualNetworkId);
 
 		String securityGroupId = getSecurityGroupBy(virtualNetwork);		
-		SecurityGroup securityGroup = this.factory.getSecurityGroup(client, securityGroupId);
+		SecurityGroup securityGroup = this.factory.createSecurityGroup(client, securityGroupId);
 
 		return getSecurityRules(securityGroup);
     }
@@ -144,9 +144,13 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 				EtherType etherType = rule.getEtherType();
 				Protocol protocol = rule.getSRProtocol();
 
-				securityRules.add(new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol));
+				SecurityRule securityRule = new SecurityRule(direction, portFrom, portTo, cidr, etherType, protocol);
+				securityRule.setInstanceId(rule.serialize());
+
+				securityRules.add(securityRule);
 			}
 		} catch (Exception e) {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_GETTING_SECURITY_RULES_INSTANCE), e);
 			throw new FogbowRasException(e.getMessage(), e);
 		}
 		return securityRules;
@@ -181,30 +185,26 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 		return securityGroupXMLContentSlices[SLICE_POSITION_SECURITY_GROUP];
 	}
 
-	// TODO implementing the structure only
     @Override
     public void deleteSecurityRule(String securityRuleId, OpenNebulaToken localUserAttributes)
             throws FogbowRasException, UnexpectedException {
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, securityRuleId, localUserAttributes.getTokenValue()));
         Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 
+		Rule ruleToRemove = Rule.deserialize(securityRuleId);
 		String virtualNetworkId = "";
 		VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, virtualNetworkId);
-
 		String securityGroupId = getSecurityGroupBy(virtualNetwork);
-		SecurityGroup securityGroup = this.factory.getSecurityGroup(client, securityGroupId);
+
+		SecurityGroup securityGroup = this.factory.createSecurityGroup(client, securityGroupId);
 		String securityGroupXml = securityGroup.info().getMessage();
 		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(securityGroupXml);
 		List<Rule> rules = securityGroupInfo.getTemplate().getRules();
-		// TODO use the rule
-		Object ruleToRemove = new Object();
-		for (Rule rule: new ArrayList<>(rules)) {
-			if (rule.equals(ruleToRemove)) {
-				rules.remove(ruleToRemove);
-			}
-		}
+		removeRule(ruleToRemove, rules);
 
 		SecurityGroupTemplate securityGroupTemplate = new SecurityGroupTemplate();
+		securityGroupTemplate.setId(securityGroupInfo.getId());
+		securityGroupTemplate.setName(securityGroupInfo.getName());
 		securityGroupTemplate.setRules(rules);
 
 		String xml = securityGroupTemplate.marshalTemplate();
@@ -213,6 +213,14 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_SECURITY_RULE, securityGroupId, response.getMessage()));
 		}
     }
+
+	private void removeRule(Rule ruleToRemove, List<Rule> rules) {
+		for (Rule rule: new ArrayList<>(rules)) {
+			if (rule.equals(ruleToRemove)) {
+				rules.remove(ruleToRemove);
+			}
+		}
+	}
 
 	protected void setFactory(OpenNebulaClientFactory factory) {
 		this.factory = factory;
