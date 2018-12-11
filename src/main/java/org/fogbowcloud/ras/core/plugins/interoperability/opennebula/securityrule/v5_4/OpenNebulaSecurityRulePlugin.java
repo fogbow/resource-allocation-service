@@ -36,6 +36,9 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 	private static final String CIDR_SLICE = "[/]";
 	private static final String RANGE_PORT_SEPARATOR = ":";
 
+	private static final int BASE_VALUE = 2;
+	private static final int IPV4_AMOUNT_BITS = 32;
+	
     private OpenNebulaClientFactory factory;
     
     public OpenNebulaSecurityRulePlugin() {
@@ -57,7 +60,10 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 		String securityGroupXml = securityGroup.info().getMessage();
 		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(securityGroupXml);
 		
-		String template = createSecurityGroupsTemplate(securityGroupInfo, securityRule);
+		Rule rule = createRuleBy(securityRule);
+		rule.setSecurityGroupId(securityGroupId);
+		
+		String template = createSecurityGroupsTemplate(securityGroupInfo, rule);
 		OneResponse response = securityGroup.update(template);
 		if (response.isError()) {
 			String message = response.getErrorMessage();
@@ -65,20 +71,16 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
 			throw new InvalidParameterException();
 		}
-		String instanceId = response.getMessage();
+		String instanceId = rule.serialize();
 		return instanceId;
     }
 
-	private String createSecurityGroupsTemplate(SecurityGroupInfo securityGroupInfo, SecurityRule securityRule) {
-
-		String name = securityGroupInfo.getName();
-		List<Rule> rules = securityGroupInfo.getTemplate().getRules();
-		
+	private Rule createRuleBy(SecurityRule securityRule) {
 		String protocol = securityRule.getProtocol().toString();
 		String slice[] = securityRule.getCidr().split(CIDR_SLICE);
 		String ip = slice[0];
 		int value = Integer.parseInt(slice[1]);
-		int size = (int) Math.pow(2, 32 - value);
+		int size = (int) Math.pow(BASE_VALUE, IPV4_AMOUNT_BITS - value);
 		String range = securityRule.getPortFrom() + RANGE_PORT_SEPARATOR + securityRule.getPortTo();
 		String type = mapRuleType(securityRule.getDirection());
 
@@ -88,14 +90,21 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 		rule.setSize(size);
 		rule.setRange(range);
 		rule.setType(type);
-		
+		return rule;
+	}
+
+	private String createSecurityGroupsTemplate(SecurityGroupInfo securityGroupInfo, Rule rule) {
+		String id = securityGroupInfo.getId();
+		String name = securityGroupInfo.getName();
+		List<Rule> rules = securityGroupInfo.getTemplate().getRules();
 		rules.add(rule);
-		
+
 		CreateSecurityGroupRequest request = new CreateSecurityGroupRequest.Builder()
+				.id(id)
 				.name(name)
 				.rules(rules)
 				.build();
-		
+
 		String template = request.getSecurityGroup().marshalTemplate();
 		return template;
 	}

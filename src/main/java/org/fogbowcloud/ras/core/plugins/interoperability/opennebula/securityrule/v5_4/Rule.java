@@ -27,6 +27,7 @@ public class Rule {
 	private static final int RANGE_INDEX = 3;
 	private static final int TYPE_INDEX = 4;
 	private static final int NETWORK_ID_INDEX = 5;
+	private static final int SECURITY_GROUP_INDEX = 6;
 
 	public static final Logger LOGGER = Logger.getLogger(Rule.class);
 
@@ -47,7 +48,7 @@ public class Rule {
 	private static final int LOG_BASE_2 = 2;
 	protected static final int IPV4_AMOUNT_BITS = 32;
 
-	private static final String INSTANCE_ID_SEPARATOR = ":";
+	private static final String INSTANCE_ID_SEPARATOR = "||";
 	
 	protected static int IPV6_AMOUNT_BITS = 128;
 
@@ -58,6 +59,7 @@ public class Rule {
 	private String range;
 	private String type;
 	private int networkId;
+	private String securityGroupId;
 
 	public Rule() {};
 
@@ -122,6 +124,14 @@ public class Rule {
 	@XmlElement(name = NETWORK_ID)
 	public void setNetworkId(int networkId) {
 		this.networkId = networkId;
+	}
+	
+	public String getSecurityGroupId() {
+		return securityGroupId;
+	}
+
+	public void setSecurityGroupId(String securityGroupId) {
+		this.securityGroupId = securityGroupId;
 	}
 	
 	/*
@@ -244,6 +254,7 @@ public class Rule {
 		attributes[RANGE_INDEX] = this.range;
 		attributes[TYPE_INDEX] = this.type;
 		attributes[NETWORK_ID_INDEX] = String.valueOf(this.networkId);
+		attributes[SECURITY_GROUP_INDEX] = this.securityGroupId;
 		
 		String instanceId = StringUtils.join(attributes, INSTANCE_ID_SEPARATOR);
 		return instanceId;
@@ -258,6 +269,7 @@ public class Rule {
 		rule.setRange(instanceIdSplit[RANGE_INDEX]);
 		rule.setType(instanceIdSplit[TYPE_INDEX]);
 		rule.setNetworkId(Integer.parseInt(instanceIdSplit[NETWORK_ID_INDEX]));
+		rule.setSecurityGroupId(instanceIdSplit[SECURITY_GROUP_INDEX]);
 		return rule;
 	}
 
@@ -296,5 +308,5 @@ public class Rule {
 			return false;
 		return true;
 	}
-	
+
 }
