@@ -29,8 +29,12 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 	
 	private static final int SLICE_POSITION_SECURITY_GROUP = 1;
     protected static final String OPENNEBULA_XML_ARRAY_SEPARATOR = ",";
-    
 	protected static final String TEMPLATE_VNET_SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
+    private static final String OPENNEBULA_XML_ARRAY_SEPARETOR = ",";
+	private static final String INBOUND_TEMPLATE_VALUE = "inbound";
+	private static final String OUTBOUND_TEMPLATE_VALUE = "outbound";
+	private static final String CIDR_SLICE = "[/]";
+	private static final String RANGE_PORT_SEPARATOR = ":";
 
     private OpenNebulaClientFactory factory;
     
@@ -49,15 +53,20 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 
 		String securityGroupId = getSecurityGroupBy(virtualNetwork);		
 		SecurityGroup securityGroup = this.factory.getSecurityGroup(client, securityGroupId);
-		String securityGroupXml = securityGroup.info().getMessage();
 		
+		String securityGroupXml = securityGroup.info().getMessage();
 		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(securityGroupXml);
 		
 		String template = createSecurityGroupsTemplate(securityGroupInfo, securityRule);
-		
-		// TODO finish this implementaion.
-    	
-    	throw new UnsupportedOperationException();
+		OneResponse response = securityGroup.update(template);
+		if (response.isError()) {
+			String message = response.getErrorMessage();
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_UPDATING_SECURITY_GROUPS, template));
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
+			throw new InvalidParameterException();
+		}
+		String instanceId = response.getMessage();
+		return instanceId;
     }
 
 	private String createSecurityGroupsTemplate(SecurityGroupInfo securityGroupInfo, SecurityRule securityRule) {
@@ -66,10 +75,11 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 		List<Rule> rules = securityGroupInfo.getTemplate().getRules();
 		
 		String protocol = securityRule.getProtocol().toString();
-		String cidrSlice[] = securityRule.getCidr().split("[/]");
-		String ip = cidrSlice[0];
-		int size = cidrSlice[1].equals("24") ? 256 : 0; // FIXME!
-		String range = securityRule.getPortFrom() + ":" + securityRule.getPortTo();
+		String slice[] = securityRule.getCidr().split(CIDR_SLICE);
+		String ip = slice[0];
+		int value = Integer.parseInt(slice[1]);
+		int size = (int) Math.pow(2, 32 - value);
+		String range = securityRule.getPortFrom() + RANGE_PORT_SEPARATOR + securityRule.getPortTo();
 		String type = mapRuleType(securityRule.getDirection());
 
 		Rule rule = new Rule();
@@ -94,13 +104,13 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 		String type = null;
 		switch (direction) {
 		case IN:
-			type = "inbound";
+			type = INBOUND_TEMPLATE_VALUE;
 			break;
 		case OUT:
-			type = "outbound";
+			type = OUTBOUND_TEMPLATE_VALUE;
 			break;
 		default:
-			// TODO Fix error message...
+			LOGGER.warn(String.format(Messages.Warn.INCONSISTENT_DIRECTION, direction));
 			break;
 		}
 		return type;
