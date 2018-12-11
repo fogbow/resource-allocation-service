@@ -32,6 +32,17 @@ public class ComposedAuthorizationPlugin implements AuthorizationPlugin<Federati
         return true;
     }
 
+    @Override
+    public boolean isAuthorized(FederationUserToken federationUserToken, Operation operation, ResourceType type) {
+
+        for (AuthorizationPlugin plugin : this.authorizationPlugins) {
+            if (!plugin.isAuthorized(federationUserToken, operation, type)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private List<String> getPluginNames(String confPath) {
         ArrayList<String> authorizationPluginNames = new ArrayList<>();
 

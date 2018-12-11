@@ -79,8 +79,8 @@ public class ApplicationFacade {
 
     public List<String> getCloudNames(String memberId, String federationTokenValue) throws Exception {
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
-        this.aaaController.authenticateAndAuthorize(this.memberId, requester, "all",
-                Operation.GET_CLOUD_NAMES, ResourceType.CLOUD_NAMES);
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.GET_CLOUD_NAMES,
+                ResourceType.CLOUD_NAMES);
         if (memberId.equals(this.memberId)) {
             return this.cloudListController.getCloudNames();
         } else {
@@ -182,8 +182,7 @@ public class ApplicationFacade {
             UnauthenticatedUserException, UnauthorizedRequestException, UnavailableProviderException,
             InvalidParameterException {
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
-        this.aaaController.authenticateAndAuthorize(this.memberId, requester, "all", Operation.GET_ALL,
-                resourceType);
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, Operation.GET_ALL, resourceType);
         return this.orderController.getInstancesStatus(requester, resourceType);
     }
 
@@ -197,7 +196,6 @@ public class ApplicationFacade {
             memberId = this.memberId;
         }
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
-        System.out.println("getAllImages(" + memberId + ", " + cloudName + ")");
         return cloudConnector.getAllImages(requester);
     }
 
@@ -211,7 +209,6 @@ public class ApplicationFacade {
             memberId = this.memberId;
         }
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
-        System.out.println("getImage(" + memberId + ", " + cloudName + ", " + imageId + ")");
         return cloudConnector.getImage(imageId, requester);
     }
 
