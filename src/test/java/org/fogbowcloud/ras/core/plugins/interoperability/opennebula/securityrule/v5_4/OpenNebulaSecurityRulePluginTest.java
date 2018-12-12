@@ -1,6 +1,10 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 import org.fogbowcloud.ras.core.models.orders.Order;
@@ -17,6 +21,7 @@ import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
+//import org.omg.CORBA.DynAnyPackage.Invalid;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.secgroup.SecurityGroup;
@@ -24,9 +29,6 @@ import org.opennebula.client.vnet.VirtualNetwork;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({SecurityGroupInfo.class, Integer.class})
@@ -99,8 +101,6 @@ public class OpenNebulaSecurityRulePluginTest {
         String securityGroupId = "0";
         String securityGroupName = "securityGroupName";
         String ipOne = "10.10.0.0";
-        String ipTwo = "20.20.0.0";
-        String ipTree = "30.30.0.0";
 
         List<Rule> rules = new ArrayList<>();
         Rule ruleOneToRemove = createSecurityRuleId(ipOne, securityGroupId);
@@ -240,19 +240,6 @@ public class OpenNebulaSecurityRulePluginTest {
         int portFrom = 22;
         int portTo = 3000;
         String ip = "10.10.0.1"; // ipv4
-//<<<<<<< HEAD
-//        int sizeRangeIp = 256; // subnet is 24
-//        Rule rule = new Rule(Rule.TCP_XML_TEMPLATE_VALUE,
-//                ip,
-//                sizeRangeIp,
-//                String.format("%s%s%s", portFrom, Rule.OPENNEBULA_RANGE_SEPARATOR, portTo),
-//                Rule.INBOUND_XML_TEMPLATE_VALUE,
-//                Integer.valueOf(securityGroupId));
-//        rules.add(rule);
-//        SecurityGroupInfo securityGroupInfo = Mockito.mock(SecurityGroupInfo.class);
-//        Mockito.doReturn(securityGroupInfo).when(this.openNebulaSecurityRulePlugin).getSecurityGroupInfo(Mockito.eq(securityGroup));
-//        Mockito.doReturn(rules).when(this.openNebulaSecurityRulePlugin).getRules(Mockito.eq(securityGroupInfo));
-//=======
         String sizeRangeIp = "256"; // subnet is 24
         
         Rule rule = new Rule(Rule.TCP_XML_TEMPLATE_VALUE, 
@@ -327,65 +314,120 @@ public class OpenNebulaSecurityRulePluginTest {
         Assert.assertNull(securityGroupContent);
     }
     
-    // test case: Success case...
-    @Test
-    public void testRequestSecurityRule() throws FogbowRasException, UnexpectedException {
-    	// set up
-    	OpenNebulaToken token = createOpenNebulaToken();
-    	Client client = this.openNebulaClientFactory.createClient(token.getTokenValue());
-    	Mockito.doReturn(client).when(this.openNebulaClientFactory).createClient(token.getTokenValue());
-    	this.openNebulaSecurityRulePlugin.setFactory(this.openNebulaClientFactory);
-    	
-    	Order majorOrder = new NetworkOrder();
-        String instanceId = "fake-instance-id";
-        majorOrder.setInstanceId(instanceId);
-        
-        SecurityRule securityRule = createSecurityRule();
-        
-        VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
+	// test case: When calling the requestInstance method with a valid client, a
+	// virtual network instance will be loaded to obtain a security group through
+	// its ID, a new rule will be created and added to the template so that it can
+	// update the instance of the security group.
+	@Test
+	public void testRequestSecurityRuleSuccessful() throws FogbowRasException, UnexpectedException {
+		// set up
+		OpenNebulaToken token = createOpenNebulaToken();
+		Client client = this.openNebulaClientFactory.createClient(token.getTokenValue());
+		Mockito.doReturn(client).when(this.openNebulaClientFactory).createClient(token.getTokenValue());
+		this.openNebulaSecurityRulePlugin.setFactory(this.openNebulaClientFactory);
+
+		Order majorOrder = new NetworkOrder();
+		String instanceId = "fake-instance-id";
+		majorOrder.setInstanceId(instanceId);
+
+		SecurityRule securityRule = createSecurityRule();
+
+		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
 		Mockito.when(this.openNebulaClientFactory.createVirtualNetwork(Mockito.eq(client), Mockito.eq(instanceId)))
 				.thenReturn(virtualNetwork);
-		
+
 		String securityGroupContent = "0,100";
 		Mockito.when(virtualNetwork.xpath(Mockito.eq(OpenNebulaSecurityRulePlugin.TEMPLATE_VNET_SECURITY_GROUPS_PATH)))
 				.thenReturn(securityGroupContent);
-        
-        String securityGroupId = "100";
+
+		String securityGroupId = "100";
 		SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
 		Mockito.when(securityGroup.getId()).thenReturn(securityGroupId);
 		Mockito.when(this.openNebulaClientFactory.createSecurityGroup(Mockito.eq(client), Mockito.eq(securityGroupId)))
 				.thenReturn(securityGroup);
-		
+
 		String xml = getSecurityGroupInfo();
-		
+
 		OneResponse sgiResponse = Mockito.mock(OneResponse.class);
 		Mockito.when(sgiResponse.getMessage()).thenReturn(xml);
 		Mockito.when(securityGroup.info()).thenReturn(sgiResponse);
-        
+
 		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(xml);
 		PowerMockito.mockStatic(SecurityGroupInfo.class);
 		BDDMockito.given(SecurityGroupInfo.unmarshal(Mockito.eq(xml))).willReturn(securityGroupInfo);
-		
+
 		String template = generateSecurityGroupTemplate();
 		OneResponse sgtResponse = Mockito.mock(OneResponse.class);
 		Mockito.when(securityGroup.update(Mockito.eq(template))).thenReturn(sgtResponse);
 		Mockito.when(sgtResponse.isError()).thenReturn(false);
-		
-    	// exercise
-        this.openNebulaSecurityRulePlugin.requestSecurityRule(securityRule, majorOrder, token);
-    	
-    	// verify
-        Mockito.verify(this.openNebulaClientFactory, Mockito.times(2)).createClient(Mockito.eq(token.getTokenValue()));
-        Mockito.verify(this.openNebulaClientFactory, Mockito.times(1)).createVirtualNetwork(Mockito.eq(client), Mockito.eq(instanceId));
-        Mockito.verify(this.openNebulaClientFactory, Mockito.times(1)).createSecurityGroup(Mockito.eq(client), Mockito.eq(securityGroupId));
-        Mockito.verify(virtualNetwork, Mockito.times(1)).xpath(Mockito.eq(OpenNebulaSecurityRulePlugin.TEMPLATE_VNET_SECURITY_GROUPS_PATH));
-        Mockito.verify(sgiResponse, Mockito.times(1)).getMessage();
-        Mockito.verify(securityGroup, Mockito.times(1)).info();
-        Mockito.verify(securityGroup, Mockito.times(1)).update(Mockito.eq(template));
-        Mockito.verify(sgtResponse, Mockito.times(1)).isError();
-        PowerMockito.verifyStatic(SecurityGroupInfo.class, VerificationModeFactory.times(1));
-        SecurityGroupInfo.unmarshal(Mockito.eq(xml));
-    }
+
+		// exercise
+		this.openNebulaSecurityRulePlugin.requestSecurityRule(securityRule, majorOrder, token);
+
+		// verify
+		Mockito.verify(this.openNebulaClientFactory, Mockito.times(2)).createClient(Mockito.eq(token.getTokenValue()));
+		Mockito.verify(this.openNebulaClientFactory, Mockito.times(1)).createVirtualNetwork(Mockito.eq(client),
+				Mockito.eq(instanceId));
+		Mockito.verify(this.openNebulaClientFactory, Mockito.times(1)).createSecurityGroup(Mockito.eq(client),
+				Mockito.eq(securityGroupId));
+		Mockito.verify(virtualNetwork, Mockito.times(1))
+				.xpath(Mockito.eq(OpenNebulaSecurityRulePlugin.TEMPLATE_VNET_SECURITY_GROUPS_PATH));
+		Mockito.verify(sgiResponse, Mockito.times(1)).getMessage();
+		Mockito.verify(securityGroup, Mockito.times(1)).info();
+		Mockito.verify(securityGroup, Mockito.times(1)).update(Mockito.eq(template));
+		Mockito.verify(sgtResponse, Mockito.times(1)).isError();
+		PowerMockito.verifyStatic(SecurityGroupInfo.class, VerificationModeFactory.times(1));
+		SecurityGroupInfo.unmarshal(Mockito.eq(xml));
+	}
+    
+	// test case: When calling the requestInstance method with a valid client, and a malformed
+	// security rule template, its must be throw an InvalidParameterException.
+	@Test(expected = InvalidParameterException.class) // verify
+	public void testRequestSecurityRuleThrowInvalidParameterException() throws FogbowRasException, UnexpectedException {
+		// set up
+		OpenNebulaToken token = createOpenNebulaToken();
+		Client client = this.openNebulaClientFactory.createClient(token.getTokenValue());
+		Mockito.doReturn(client).when(this.openNebulaClientFactory).createClient(token.getTokenValue());
+		this.openNebulaSecurityRulePlugin.setFactory(this.openNebulaClientFactory);
+
+		Order majorOrder = new NetworkOrder();
+		String instanceId = "fake-instance-id";
+		majorOrder.setInstanceId(instanceId);
+
+		SecurityRule securityRule = createSecurityRule();
+
+		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
+		Mockito.when(this.openNebulaClientFactory.createVirtualNetwork(Mockito.eq(client), Mockito.eq(instanceId)))
+				.thenReturn(virtualNetwork);
+
+		String securityGroupContent = "0,100";
+		Mockito.when(virtualNetwork.xpath(Mockito.eq(OpenNebulaSecurityRulePlugin.TEMPLATE_VNET_SECURITY_GROUPS_PATH)))
+				.thenReturn(securityGroupContent);
+
+		String securityGroupId = "100";
+		SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
+		Mockito.when(securityGroup.getId()).thenReturn(securityGroupId);
+		Mockito.when(this.openNebulaClientFactory.createSecurityGroup(Mockito.eq(client), Mockito.eq(securityGroupId)))
+				.thenReturn(securityGroup);
+
+		String xml = getSecurityGroupInfo();
+
+		OneResponse sgiResponse = Mockito.mock(OneResponse.class);
+		Mockito.when(sgiResponse.getMessage()).thenReturn(xml);
+		Mockito.when(securityGroup.info()).thenReturn(sgiResponse);
+
+		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(xml);
+		PowerMockito.mockStatic(SecurityGroupInfo.class);
+		BDDMockito.given(SecurityGroupInfo.unmarshal(Mockito.eq(xml))).willReturn(securityGroupInfo);
+
+		String template = generateSecurityGroupTemplate();
+		OneResponse sgtResponse = Mockito.mock(OneResponse.class);
+		Mockito.when(securityGroup.update(Mockito.eq(template))).thenReturn(sgtResponse);
+		Mockito.when(sgtResponse.isError()).thenReturn(true);
+
+		// exercise
+		this.openNebulaSecurityRulePlugin.requestSecurityRule(securityRule, majorOrder, token);
+	}
     
     private String generateSecurityGroupTemplate() {
     	String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
