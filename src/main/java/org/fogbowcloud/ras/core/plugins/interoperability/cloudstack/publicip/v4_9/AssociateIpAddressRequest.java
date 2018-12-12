@@ -14,6 +14,7 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.Cloud
 public class AssociateIpAddressRequest extends CloudStackRequest {
 
     protected AssociateIpAddressRequest(Builder builder) throws InvalidParameterException {
+        super(builder.cloudStackUrl);
         addParameter(NETWORK_ID_KEY_JSON, builder.networkId);
     }
 
@@ -28,7 +29,7 @@ public class AssociateIpAddressRequest extends CloudStackRequest {
     }
 
     public static class Builder {
-
+        private String cloudStackUrl;
         private String networkId;
 
         public Builder networkId(String networkId) {
@@ -36,7 +37,8 @@ public class AssociateIpAddressRequest extends CloudStackRequest {
             return this;
         }
 
-        public AssociateIpAddressRequest build() throws InvalidParameterException {
+        public AssociateIpAddressRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new AssociateIpAddressRequest(this);
         }
     }

@@ -13,6 +13,7 @@ public class GetAllImagesRequest extends CloudStackRequest {
     public static final String EXECUTABLE_TEMPLATES_VALUE = "executable";
 
     protected GetAllImagesRequest(Builder builder) throws InvalidParameterException {
+        super(builder.cloudStackUrl);
         addParameter(TEMPLATE_FILTER_KEY, EXECUTABLE_TEMPLATES_VALUE);
         addParameter(ID_KEY, builder.id);
     }
@@ -23,7 +24,7 @@ public class GetAllImagesRequest extends CloudStackRequest {
     }
 
     public static class Builder {
-
+        private String cloudStackUrl;
         private String id;
 
         public Builder id(String id) {
@@ -31,7 +32,8 @@ public class GetAllImagesRequest extends CloudStackRequest {
             return this;
         }
 
-        public GetAllImagesRequest build() throws InvalidParameterException {
+        public GetAllImagesRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new GetAllImagesRequest(this);
         }
     }

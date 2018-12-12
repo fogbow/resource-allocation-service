@@ -9,23 +9,31 @@ import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.ImagePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
+import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 public class CloudStackImagePlugin implements ImagePlugin<CloudStackToken> {
 
-    private HttpRequestClientUtil client;
+    public static final String CLOUDSTACK_URL = "cloudstack_api_url";
 
-    public CloudStackImagePlugin() {
+    private String cloudStackUrl;
+    private HttpRequestClientUtil client;
+    private Properties properties;
+
+    public CloudStackImagePlugin(String confFilePath) {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
+        this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
         this.client = new HttpRequestClientUtil();
     }
 
     @Override
     public Map<String, String> getAllImages(CloudStackToken cloudStackToken) throws FogbowRasException, UnexpectedException {
-        GetAllImagesRequest request = new GetAllImagesRequest.Builder().build();
+        GetAllImagesRequest request = new GetAllImagesRequest.Builder().build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
 
@@ -51,7 +59,7 @@ public class CloudStackImagePlugin implements ImagePlugin<CloudStackToken> {
     public Image getImage(String imageId, CloudStackToken cloudStackToken) throws FogbowRasException, UnexpectedException {
         GetAllImagesRequest request = new GetAllImagesRequest.Builder()
                 .id(imageId)
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
 

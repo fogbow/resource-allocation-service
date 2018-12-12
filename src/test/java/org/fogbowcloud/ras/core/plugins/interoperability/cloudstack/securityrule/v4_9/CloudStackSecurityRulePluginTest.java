@@ -52,6 +52,7 @@ public class CloudStackSecurityRulePluginTest {
     private static final String JOB_ID_KEY = "json";
     private static final String RESPONSE_KEY = "response";
     private static final String ID_KEY = "id";
+    private static final String CLOUD_NAME = "cloudstack";
     private static final String CLOUDSTACK_URL = "cloudstack_api_url";
 
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
@@ -64,6 +65,7 @@ public class CloudStackSecurityRulePluginTest {
 
     private CloudStackSecurityRulePlugin plugin;
     private HttpRequestClientUtil client;
+    private Properties properties;
 
     private CloudStackQueryJobResult queryJobResult;
 
@@ -73,9 +75,13 @@ public class CloudStackSecurityRulePluginTest {
         PowerMockito.mockStatic(HttpRequestClientUtil.class);
         PowerMockito.mockStatic(CloudStackQueryJobResult.class);
 
+        String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+                File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
+
         this.queryJobResult = Mockito.mock(CloudStackQueryJobResult.class);
         this.client = Mockito.mock(HttpRequestClientUtil.class);
-        this.plugin = Mockito.spy(new CloudStackSecurityRulePlugin());
+        this.plugin = Mockito.spy(new CloudStackSecurityRulePlugin(cloudStackConfFilePath));
         this.plugin.setClient(this.client);
     }
 
@@ -459,10 +465,7 @@ public class CloudStackSecurityRulePluginTest {
     }
 
     private String getBaseEndpointFromCloudStackConf() {
-        String filePath = HomeDir.getPath() + File.separator + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
-
-        Properties properties = PropertiesUtil.readProperties(filePath);
-        return properties.getProperty(CLOUDSTACK_URL);
+        return this.properties.getProperty(CLOUDSTACK_URL);
     }
 
     private String getDeleteFirewallRuleResponse(String id) {
