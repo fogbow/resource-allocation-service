@@ -10,6 +10,7 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenN
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -21,14 +22,6 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.securityrule
 @XmlRootElement(name = RULE)
 public class Rule {
 
-	private static final int PROTOCOL_INDEX = 0;
-	private static final int IP_INDEX = 1;
-	private static final int SIZE_INDEX = 2;
-	private static final int RANGE_INDEX = 3;
-	private static final int TYPE_INDEX = 4;
-	private static final int NETWORK_ID_INDEX = 5;
-	private static final int SECURITY_GROUP_INDEX = 6;
-
 	public static final Logger LOGGER = Logger.getLogger(Rule.class);
 
 	protected static final String IPSEC_XML_TEMPLATE_VALUE = "IPSEC";
@@ -39,37 +32,43 @@ public class Rule {
 	protected static final String TCP_XML_TEMPLATE_VALUE = "TCP";
 	protected static final String INBOUND_XML_TEMPLATE_VALUE = "inbound";
 	protected static final String OUTBOUND_XML_TEMPLATE_VALUE = "outbound";
-
+	protected static final String INSTANCE_ID_SEPARATOR = "||";
 	protected static final String CIRD_SEPARATOR = "/";
 	protected static final String OPENNEBULA_RANGE_SEPARATOR = ":";
+	
 	protected static final int POSITION_PORT_FROM_IN_RANGE = 0;
 	protected static final int POSITION_PORT_TO_IN_RANGE = 1;
 	protected static final int INT_ERROR_CODE = -1;
-	private static final int LOG_BASE_2 = 2;
+	protected static final int LOG_BASE_2 = 2;
 	protected static final int IPV4_AMOUNT_BITS = 32;
-
-	private static final String INSTANCE_ID_SEPARATOR = "||";
+	protected static final int IPV6_AMOUNT_BITS = 128;
 	
-	protected static int IPV6_AMOUNT_BITS = 128;
-
+	private static final int PROTOCOL_INDEX = 0;
+	private static final int IP_INDEX = 1;
+	private static final int SIZE_INDEX = 2;
+	private static final int RANGE_INDEX = 3;
+	private static final int TYPE_INDEX = 4;
+	private static final int NETWORK_ID_INDEX = 5;
+	private static final int SECURITY_GROUP_INDEX = 6;
 
 	private String protocol;
 	private String ip;
-	private int size;
+	private String size;
 	private String range;
 	private String type;
-	private int networkId;
+	private String networkId;
 	private String securityGroupId;
 
 	public Rule() {};
 
-	public Rule(String protocol, String ip, int size, String range, String type, int networkId) {
+	public Rule(String protocol, String ip, String size, String range, String type, String networkId, String securityGroupId) {
 		this.protocol = protocol;
 		this.ip = ip;
 		this.size = size;
 		this.range = range;
 		this.type = type;
 		this.networkId = networkId;
+		this.securityGroupId = securityGroupId;
 	}
 
 	public String getProtocol() {
@@ -90,12 +89,12 @@ public class Rule {
 		this.ip = ip;
 	}
 
-	public int getSize() {
+	public String getSize() {
 		return size;
 	}
 
 	@XmlElement(name = SIZE)
-	public void setSize(int size) {
+	public void setSize(String size) {
 		this.size = size;
 	}
 
@@ -117,12 +116,12 @@ public class Rule {
 		this.range = range;
 	}
 
-	public int getNetworkId() {
+	public String getNetworkId() {
 		return networkId;
 	}
 
 	@XmlElement(name = NETWORK_ID)
-	public void setNetworkId(int networkId) {
+	public void setNetworkId(String networkId) {
 		this.networkId = networkId;
 	}
 	
@@ -130,13 +129,14 @@ public class Rule {
 		return securityGroupId;
 	}
 
+	@XmlTransient
 	public void setSecurityGroupId(String securityGroupId) {
 		this.securityGroupId = securityGroupId;
 	}
 	
 	/*
-	* TODO check if is necessary put this messages in another class
-	*/
+	 * TODO check if is necessary put this messages in another class
+	 */
 	
 	public int getPortFrom() {
 		return getPortInRange(POSITION_PORT_FROM_IN_RANGE);
@@ -238,16 +238,28 @@ public class Rule {
 		}
 	}
 
-	protected static String getSubnetIPV4(int size) {
-		return String.valueOf(IPV4_AMOUNT_BITS - (int) (Math.log(size) / Math.log(LOG_BASE_2)));
+	protected static String getSubnetIPV4(String arg) {
+		try {
+			int size = Integer.parseInt(arg);
+			return String.valueOf(IPV4_AMOUNT_BITS - (int) (Math.log(size) / Math.log(LOG_BASE_2)));
+		} catch (Exception e) {
+			LOGGER.warn(String.format("The parameter is inconsistent"));
+			return null;
+		}		
 	}
 
-	protected static String getSubnetIPV6(int size) {
-		return String.valueOf(IPV6_AMOUNT_BITS - (int) (Math.log(size) / Math.log(LOG_BASE_2)));
+	protected static String getSubnetIPV6(String arg) {
+		try {
+			int size = Integer.parseInt(arg);
+			return String.valueOf(IPV6_AMOUNT_BITS - (int) (Math.log(size) / Math.log(LOG_BASE_2)));
+		} catch (Exception e) {
+			LOGGER.warn(String.format("The parameter is inconsistent"));
+			return null;
+		}
 	}
 	
 	public String serialize() {
-		String[] attributes = new String[6];
+		String[] attributes = new String[7];
 		attributes[PROTOCOL_INDEX] = this.protocol;
 		attributes[IP_INDEX] = this.ip;
 		attributes[SIZE_INDEX] = String.valueOf(this.size);
@@ -265,10 +277,10 @@ public class Rule {
 		String[] instanceIdSplit = instanceId.split(INSTANCE_ID_SEPARATOR);
 		rule.setProtocol(instanceIdSplit[PROTOCOL_INDEX]);
 		rule.setIp(instanceIdSplit[IP_INDEX]);
-		rule.setSize(Integer.parseInt(instanceIdSplit[SIZE_INDEX]));
+		rule.setSize(instanceIdSplit[SIZE_INDEX]);
 		rule.setRange(instanceIdSplit[RANGE_INDEX]);
 		rule.setType(instanceIdSplit[TYPE_INDEX]);
-		rule.setNetworkId(Integer.parseInt(instanceIdSplit[NETWORK_ID_INDEX]));
+		rule.setNetworkId(instanceIdSplit[NETWORK_ID_INDEX]);
 		rule.setSecurityGroupId(instanceIdSplit[SECURITY_GROUP_INDEX]);
 		return rule;
 	}
@@ -287,7 +299,10 @@ public class Rule {
 				return false;
 		} else if (!ip.equals(other.ip))
 			return false;
-		if (networkId != other.networkId)
+		if (networkId == null) {
+			if (other.networkId != null)
+				return false;
+		} else if (!networkId.equals(other.networkId))
 			return false;
 		if (protocol == null) {
 			if (other.protocol != null)
@@ -299,7 +314,15 @@ public class Rule {
 				return false;
 		} else if (!range.equals(other.range))
 			return false;
-		if (size != other.size)
+		if (securityGroupId == null) {
+			if (other.securityGroupId != null)
+				return false;
+		} else if (!securityGroupId.equals(other.securityGroupId))
+			return false;
+		if (size == null) {
+			if (other.size != null)
+				return false;
+		} else if (!size.equals(other.size))
 			return false;
 		if (type == null) {
 			if (other.type != null)

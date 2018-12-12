@@ -30,12 +30,10 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 	private static final int SLICE_POSITION_SECURITY_GROUP = 1;
     protected static final String OPENNEBULA_XML_ARRAY_SEPARATOR = ",";
 	protected static final String TEMPLATE_VNET_SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
-    private static final String OPENNEBULA_XML_ARRAY_SEPARETOR = ",";
 	private static final String INBOUND_TEMPLATE_VALUE = "inbound";
 	private static final String OUTBOUND_TEMPLATE_VALUE = "outbound";
 	private static final String CIDR_SLICE = "[/]";
 	private static final String RANGE_PORT_SEPARATOR = ":";
-
 	private static final int BASE_VALUE = 2;
 	private static final int IPV4_AMOUNT_BITS = 32;
 	
@@ -57,13 +55,13 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 		String securityGroupId = getSecurityGroupBy(virtualNetwork);		
 		SecurityGroup securityGroup = this.factory.getSecurityGroup(client, securityGroupId);
 		
-		String securityGroupXml = securityGroup.info().getMessage();
-		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(securityGroupXml);
+		String xml = securityGroup.info().getMessage();
+		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(xml);
 		
 		Rule rule = createRuleBy(securityRule);
 		rule.setSecurityGroupId(securityGroupId);
 		
-		String template = createSecurityGroupsTemplate(securityGroupInfo, rule);
+		String template = createSecurityGroupTemplate(securityGroupInfo, rule);
 		OneResponse response = securityGroup.update(template);
 		if (response.isError()) {
 			String message = response.getErrorMessage();
@@ -75,12 +73,12 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 		return instanceId;
     }
 
-	private Rule createRuleBy(SecurityRule securityRule) {
-		String protocol = securityRule.getProtocol().toString();
+	protected Rule createRuleBy(SecurityRule securityRule) {
+		String protocol = securityRule.getProtocol().toString().toUpperCase();
 		String slice[] = securityRule.getCidr().split(CIDR_SLICE);
 		String ip = slice[0];
 		int value = Integer.parseInt(slice[1]);
-		int size = (int) Math.pow(BASE_VALUE, IPV4_AMOUNT_BITS - value);
+		String size = String.valueOf((int) Math.pow(BASE_VALUE, IPV4_AMOUNT_BITS - value));
 		String range = securityRule.getPortFrom() + RANGE_PORT_SEPARATOR + securityRule.getPortTo();
 		String type = mapRuleType(securityRule.getDirection());
 
@@ -93,7 +91,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 		return rule;
 	}
 
-	private String createSecurityGroupsTemplate(SecurityGroupInfo securityGroupInfo, Rule rule) {
+	private String createSecurityGroupTemplate(SecurityGroupInfo securityGroupInfo, Rule rule) {
 		String id = securityGroupInfo.getId();
 		String name = securityGroupInfo.getName();
 		List<Rule> rules = securityGroupInfo.getTemplate().getRules();
