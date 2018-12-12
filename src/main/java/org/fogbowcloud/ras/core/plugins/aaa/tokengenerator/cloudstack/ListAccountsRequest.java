@@ -8,7 +8,7 @@ public class ListAccountsRequest extends CloudStackRequest {
     public static final String SESSION_KEY = "sessionkey";
 
     private ListAccountsRequest(Builder builder) throws InvalidParameterException {
-        super();
+        super(builder.cloudStackUrl);
         addParameter(SESSION_KEY, builder.sessionKey);
     }
 
@@ -23,6 +23,7 @@ public class ListAccountsRequest extends CloudStackRequest {
     }
 
     public static class Builder {
+        private String cloudStackUrl;
         private String sessionKey;
 
         public Builder sessionKey(String sessionKey) {
@@ -30,7 +31,8 @@ public class ListAccountsRequest extends CloudStackRequest {
             return this;
         }
 
-        public ListAccountsRequest build() throws InvalidParameterException {
+        public ListAccountsRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new ListAccountsRequest(this);
         }
 

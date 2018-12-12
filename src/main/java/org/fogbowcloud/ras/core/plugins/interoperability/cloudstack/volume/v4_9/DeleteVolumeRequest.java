@@ -8,7 +8,7 @@ public class DeleteVolumeRequest extends CloudStackRequest {
     private static final String VOLUME_ID_KEY = "id";
 
     protected DeleteVolumeRequest(Builder builder) throws InvalidParameterException {
-        super();
+        super(builder.cloudStackUrl);
         addParameter(VOLUME_ID_KEY, builder.id);
     }
 
@@ -23,6 +23,7 @@ public class DeleteVolumeRequest extends CloudStackRequest {
     }
 
     public static class Builder {
+        private String cloudStackUrl;
         private String id;
 
         public Builder id(String id) {
@@ -30,7 +31,8 @@ public class DeleteVolumeRequest extends CloudStackRequest {
             return this;
         }
 
-        public DeleteVolumeRequest build() throws InvalidParameterException {
+        public DeleteVolumeRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new DeleteVolumeRequest(this);
         }
     }

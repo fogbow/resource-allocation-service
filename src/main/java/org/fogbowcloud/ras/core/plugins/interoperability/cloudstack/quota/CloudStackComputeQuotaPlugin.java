@@ -11,9 +11,11 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHt
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineRequest;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.compute.v4_9.GetVirtualMachineResponse;
+import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
 import java.util.List;
+import java.util.Properties;
 
 
 public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin {
@@ -24,11 +26,20 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin {
     private static final String LIMIT_TYPE_INSTANCES = "0";
     private static final String LIMIT_TYPE_MEMORY = "9";
     private static final String LIMIT_TYPE_CPU = "8";
+    private static final String CLOUDSTACK_URL = "cloudstack_api_url";
+
+    private String cloudStackUrl;
+    private Properties properties;
+
+    public CloudStackComputeQuotaPlugin(String confFilePath) {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
+        this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
+    }
 
     @Override
     public ComputeQuota getUserQuota(Token token) throws FogbowRasException, UnexpectedException {
         ListResourceLimitsRequest limitsRequest = new ListResourceLimitsRequest.Builder()
-                .build();
+                .build(this.cloudStackUrl);
         CloudStackUrlUtil.sign(limitsRequest.getUriBuilder(), token.getTokenValue());
 
         String limitsResponse = null;
@@ -42,7 +53,7 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin {
         List<ListResourceLimitsResponse.ResourceLimit> resourceLimits = response.getResourceLimits();
 
         GetVirtualMachineRequest request = new GetVirtualMachineRequest.Builder()
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), token.getTokenValue());
 
@@ -110,7 +121,7 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin {
         ListResourceLimitsRequest limitsRequest = new ListResourceLimitsRequest.Builder()
                 .domainId(domainId)
                 .resourceType(resourceType)
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(limitsRequest.getUriBuilder(), token.getTokenValue());
 

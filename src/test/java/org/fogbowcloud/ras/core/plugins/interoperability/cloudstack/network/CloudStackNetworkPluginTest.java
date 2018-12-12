@@ -57,6 +57,8 @@ public class CloudStackNetworkPluginTest {
 
     public static final CloudStackToken FAKE_TOKEN = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE,
             FAKE_USER_ID, FAKE_USERNAME, FAKE_SIGNATURE);
+    public static final String CLOUDSTACK_URL = "cloudstack_api_url";
+    public static final String CLOUD_NAME = "cloudstack";
 
     public static final String JSON = "json";
     public static final String RESPONSE_KEY = "response";
@@ -76,23 +78,21 @@ public class CloudStackNetworkPluginTest {
 
     private CloudStackNetworkPlugin plugin;
     private HttpRequestClientUtil client;
-
-    private void initializeProperties() {
-        String cloudStackConfFilePath = HomeDir.getPath() + File.separator
-                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
-
-        Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
-        this.fakeOfferingId = properties.getProperty(CloudStackNetworkPlugin.NETWORK_OFFERING_ID);
-        this.fakeZoneId = properties.getProperty(CloudStackNetworkPlugin.ZONE_ID);
-    }
+    private Properties properties;
 
     @Before
     public void setUp() {
-        initializeProperties();
+        String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+                File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
+
+        this.fakeOfferingId = this.properties.getProperty(CloudStackNetworkPlugin.NETWORK_OFFERING_ID);
+        this.fakeZoneId = this.properties.getProperty(CloudStackNetworkPlugin.ZONE_ID);
+
         // we dont want HttpRequestUtil code to be executed in this test
         PowerMockito.mockStatic(HttpRequestUtil.class);
 
-        this.plugin = new CloudStackNetworkPlugin();
+        this.plugin = new CloudStackNetworkPlugin(cloudStackConfFilePath);
 
         this.client = Mockito.mock(HttpRequestClientUtil.class);
         this.plugin.setClient(this.client);
@@ -285,11 +285,7 @@ public class CloudStackNetworkPluginTest {
     }
 
     private String getBaseEndpointFromCloudStackConf() {
-        String filePath = HomeDir.getPath() + File.separator
-                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
-
-        Properties properties = PropertiesUtil.readProperties(filePath);
-        return properties.getProperty(CloudStackTokenGeneratorPlugin.CLOUDSTACK_URL);
+        return this.properties.getProperty(CLOUDSTACK_URL);
     }
 
 }

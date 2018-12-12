@@ -10,7 +10,7 @@ public class GetVolumeRequest extends CloudStackRequest {
     private static final String TYPE_KEY = "type";
 
     protected GetVolumeRequest(Builder builder) throws InvalidParameterException {
-        super();
+        super(builder.cloudStackUrl);
         addParameter(VOLUME_ID_KEY, builder.id);
         addParameter(VIRTUAL_MACHINE_ID_KEY, builder.virtualMachineId);
         addParameter(TYPE_KEY, builder.type);
@@ -27,6 +27,7 @@ public class GetVolumeRequest extends CloudStackRequest {
     }
 
     public static class Builder {
+        private String cloudStackUrl;
         private String id;
         private String virtualMachineId;
         private String type;
@@ -46,7 +47,8 @@ public class GetVolumeRequest extends CloudStackRequest {
             return this;
         }
 
-        public GetVolumeRequest build() throws InvalidParameterException {
+        public GetVolumeRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new GetVolumeRequest(this);
         }
     }

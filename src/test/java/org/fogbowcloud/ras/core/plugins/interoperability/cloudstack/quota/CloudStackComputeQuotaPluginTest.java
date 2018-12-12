@@ -31,13 +31,14 @@ import java.util.Properties;
 @PrepareForTest({CloudStackUrlUtil.class, HttpRequestUtil.class})
 public class CloudStackComputeQuotaPluginTest {
 
+    private static final String CLOUD_NAME = "cloudstack";
+    private static final String CLOUDSTACK_URL = "cloudstack_api_url";
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USERNAME = "fake-username";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
     private static final String FAKE_SIGNATURE = "fake-signature";
     private static final String FAKE_DOMAIN_ID = "fake-domain-id";
-    private static final String BASE_ENDPOINT_KEY = "cloudstack_api_url";
     private static final String REQUEST_FORMAT = "%s?command=%s";
     private static final String RESPONSE_FORMAT = "&response=%s";
     private static final String DOMAIN_ID_PARAM_FORMAT = "&domainid=%s";
@@ -64,13 +65,17 @@ public class CloudStackComputeQuotaPluginTest {
     private CloudStackComputeQuotaPlugin plugin;
     private HttpRequestClientUtil client;
     private CloudStackToken token;
+    private Properties properties;
 
     @Before
     public void setUp() {
         PowerMockito.mockStatic(HttpRequestUtil.class);
+        String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+                File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
 
         this.client = Mockito.mock(HttpRequestClientUtil.class);
-        this.plugin = new CloudStackComputeQuotaPlugin();
+        this.plugin = new CloudStackComputeQuotaPlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
         this.token = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_USERNAME, FAKE_SIGNATURE);
     }
@@ -378,10 +383,7 @@ public class CloudStackComputeQuotaPluginTest {
     }
 
     private String getBaseEndpointFromCloudStackConf() {
-        String filePath = HomeDir.getPath() + File.separator + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
-
-        Properties properties = PropertiesUtil.readProperties(filePath);
-        return properties.getProperty(BASE_ENDPOINT_KEY);
+        return this.properties.getProperty(CLOUDSTACK_URL);
     }
 
 }

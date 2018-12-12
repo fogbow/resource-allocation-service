@@ -9,7 +9,7 @@ public class AttachmentJobStatusRequest extends CloudStackRequest {
     protected static final String JOB_ID = "jobid";
     
     protected AttachmentJobStatusRequest(Builder builder) throws InvalidParameterException {
-        super();
+        super(builder.cloudStackUrl);
         addParameter(JOB_ID, builder.jobId);
     }
     
@@ -24,6 +24,7 @@ public class AttachmentJobStatusRequest extends CloudStackRequest {
     }
     
     public static class Builder {
+        private String cloudStackUrl;
         private String jobId;
 
         public Builder jobId(String jobId) {
@@ -31,7 +32,8 @@ public class AttachmentJobStatusRequest extends CloudStackRequest {
             return this;
         }
         
-        public AttachmentJobStatusRequest build() throws InvalidParameterException {
+        public AttachmentJobStatusRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new AttachmentJobStatusRequest(this);
         }
         

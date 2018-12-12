@@ -32,20 +32,22 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 
     public static final String DEFAULT_SSH_PORT = "22";
     public static final String DEFAULT_PROTOCOL = "TCP";
+    public static final String CLOUDSTACK_URL = "cloudstack_api_url";
 
+    private String cloudStackUrl;
     private final String defaultNetworkId;
 
     private HttpRequestClientUtil client;
+    private Properties properties;
 
     // since the ip creation and association involves multiple synchronous and asynchronous requests,
     // we need to keep track of where we are in the process in order to fulfill the operation.
     private static Map<String, CurrentAsyncRequest> publicIpSubState = new HashMap<>();
 
-    public CloudStackPublicIpPlugin() {
-        String cloudStackConfFilePath = HomeDir.getPath() + File.separator
-                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
+    public CloudStackPublicIpPlugin(String confFilePath) {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
+        this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
 
-        Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
         this.defaultNetworkId = properties.getProperty(DEFAULT_NETWORK_ID_KEY);
 
         this.client = new HttpRequestClientUtil();
@@ -96,7 +98,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
 
         DisassociateIpAddressRequest disassociateIpAddressRequest = new DisassociateIpAddressRequest.Builder()
                 .id(ipAddressId)
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(disassociateIpAddressRequest.getUriBuilder(), cloudStackToken.getTokenValue());
 
@@ -176,7 +178,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
             throws FogbowRasException {
         AssociateIpAddressRequest associateIpAddressRequest = new AssociateIpAddressRequest.Builder()
                 .networkId(networkId)
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(associateIpAddressRequest.getUriBuilder(), cloudStackToken.getTokenValue());
 
@@ -202,7 +204,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
         EnableStaticNatRequest enableStaticNatRequest = new EnableStaticNatRequest.Builder()
                 .ipAddressId(ipAdressId)
                 .virtualMachineId(computeInstanceId)
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil
                 .sign(enableStaticNatRequest.getUriBuilder(), cloudStackToken.getTokenValue());
@@ -221,7 +223,7 @@ public class CloudStackPublicIpPlugin implements PublicIpPlugin<CloudStackToken>
                 .startPort(DEFAULT_SSH_PORT)
                 .endPort(DEFAULT_SSH_PORT)
                 .ipAddressId(ipAdressId)
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(createFirewallRuleRequest.getUriBuilder(), cloudStackToken.getTokenValue());
 

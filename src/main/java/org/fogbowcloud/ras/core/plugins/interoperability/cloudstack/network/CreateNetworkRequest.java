@@ -15,6 +15,8 @@ public class CreateNetworkRequest extends CloudStackRequest {
     public static final String DISPLAY_TEXT_KEY = "displaytext";
 
     private CreateNetworkRequest(Builder builder) throws InvalidParameterException {
+        super(builder.cloudStackUrl);
+
         addParameter(NAME_KEY, builder.name);
         addParameter(DISPLAY_TEXT_KEY, builder.displayText);
         addParameter(NETWORK_OFFERING_ID_KEY, builder.networkOfferingId);
@@ -31,6 +33,7 @@ public class CreateNetworkRequest extends CloudStackRequest {
     }
 
     public static class Builder {
+        private String cloudStackUrl;
         private String name;
         private String displayText;
         private String networkOfferingId;
@@ -80,7 +83,8 @@ public class CreateNetworkRequest extends CloudStackRequest {
             return this;
         }
 
-        public CreateNetworkRequest build() throws InvalidParameterException {
+        public CreateNetworkRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new CreateNetworkRequest(this);
         }
     }

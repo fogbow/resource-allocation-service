@@ -2,6 +2,7 @@ package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.securityrul
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -25,6 +26,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUr
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CloudStackPublicIpPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleAsyncResponse;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.publicip.v4_9.CreateFirewallRuleRequest;
+import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
 import static org.fogbowcloud.ras.core.constants.Messages.Error.UNEXPECTED_JOB_STATUS;
@@ -36,12 +38,17 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
 
     public static final int ONE_SECOND_IN_MILIS = 1000;
     public static final int MAX_TRIES = 30;
+    public static final String CLOUDSTACK_URL = "cloudstack_api_url";
 
     public static final Logger LOGGER = Logger.getLogger(CloudStackSecurityRulePlugin.class);
 
+    private String cloudStackUrl;
     private HttpRequestClientUtil client;
+    private Properties properties;
 
-    public CloudStackSecurityRulePlugin() {
+    public CloudStackSecurityRulePlugin(String confFilePath) {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
+        this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
         this.client = new HttpRequestClientUtil();
     }
 
@@ -63,7 +70,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
                     .endPort(portTo)
                     .ipAddressId(CloudStackPublicIpPlugin.getPublicIpId(majorOrder.getId()))
                     .cidrList(cidr)
-                    .build();
+                    .build(this.cloudStackUrl);
 
             CloudStackUrlUtil.sign(createFirewallRuleRequest.getUriBuilder(), localUserAttributes.getTokenValue());
 
@@ -101,7 +108,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
             throws FogbowRasException, UnexpectedException {
         DeleteFirewallRuleRequest request = new DeleteFirewallRuleRequest.Builder()
                 .ruleId(securityRuleId)
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
 
@@ -142,7 +149,7 @@ public class CloudStackSecurityRulePlugin implements SecurityRulePlugin<CloudSta
 	protected List<SecurityRule> getFirewallRules(String ipAddressId, CloudStackToken localUserAttributes) throws FogbowRasException, UnexpectedException {
 		ListFirewallRulesRequest request = new ListFirewallRulesRequest.Builder()
 				.ipAddressId(ipAddressId)
-				.build();
+				.build(this.cloudStackUrl);
 
 		CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
 
