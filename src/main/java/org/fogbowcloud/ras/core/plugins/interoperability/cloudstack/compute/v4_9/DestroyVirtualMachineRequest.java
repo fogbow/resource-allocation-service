@@ -9,7 +9,8 @@ public class DestroyVirtualMachineRequest extends CloudStackRequest {
     private static final String EXPUNGE_KEY = "expunge";
 
     protected DestroyVirtualMachineRequest(Builder builder) throws InvalidParameterException {
-        super();
+        super(builder.cloudStackUrl);
+
         addParameter(VIRTUAL_MACHINE_ID_KEY, builder.id);
         addParameter(EXPUNGE_KEY, builder.expunge);
     }
@@ -26,6 +27,7 @@ public class DestroyVirtualMachineRequest extends CloudStackRequest {
 
     public static class Builder {
 
+        private String cloudStackUrl;
         private String id;
         private String expunge;
 
@@ -39,7 +41,8 @@ public class DestroyVirtualMachineRequest extends CloudStackRequest {
             return this;
         }
 
-        public DestroyVirtualMachineRequest build() throws InvalidParameterException {
+        public DestroyVirtualMachineRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new DestroyVirtualMachineRequest(this);
         }
     }

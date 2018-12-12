@@ -43,6 +43,16 @@ public class AaaController {
         authorize(cloudName, requester, operation, type);
     }
 
+    public void authenticateAndAuthorize(String requestingMember, FederationUserToken requester,
+                                         Operation operation, ResourceType type)
+            throws UnauthenticatedUserException, UnauthorizedRequestException, UnavailableProviderException {
+        // Authenticate user based on the token received
+        authenticate(requestingMember, requester);
+        // Authorize the user based on user's attributes, requested operation and resource type
+        authorize(requester, operation, type);
+    }
+
+
     public void authenticateAndAuthorize(String requestingMember, FederationUserToken requester, String cloudName,
                                      Operation operation, ResourceType type, Order order) throws FogbowRasException {
         // Check if requested type matches order type
@@ -90,6 +100,13 @@ public class AaaController {
                           ResourceType type)
             throws UnauthorizedRequestException {
         if (!this.authorizationPlugin.isAuthorized(federationUserToken, cloudName, operation, type)) {
+            throw new UnauthorizedRequestException();
+        }
+    }
+
+    public void authorize(FederationUserToken federationUserToken, Operation operation, ResourceType type)
+            throws UnauthorizedRequestException {
+        if (!this.authorizationPlugin.isAuthorized(federationUserToken, operation, type)) {
             throw new UnauthorizedRequestException();
         }
     }

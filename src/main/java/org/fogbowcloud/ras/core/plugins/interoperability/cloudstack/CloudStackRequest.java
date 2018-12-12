@@ -8,27 +8,26 @@ import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStack
 import org.fogbowcloud.ras.util.PropertiesUtil;
 
 import java.io.File;
+import java.net.URI;
 import java.util.Properties;
 
 public abstract class CloudStackRequest {
     private URIBuilder uriBuilder;
 
-    protected CloudStackRequest() throws InvalidParameterException {
-        Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() + File.separator
-                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME);
+    protected CloudStackRequest() {}
 
-        String baseEndpoint = properties.getProperty(CloudStackTokenGeneratorPlugin.CLOUDSTACK_URL);
+    protected CloudStackRequest(String baseEndpoint) throws InvalidParameterException {
         this.uriBuilder = CloudStackUrlUtil.createURIBuilder(baseEndpoint, getCommand());
     }
 
     protected void addParameter(String parameter, String value) {
         if (value != null) {
-            uriBuilder.addParameter(parameter, value);
+            this.uriBuilder.addParameter(parameter, value);
         }
     }
 
-    public URIBuilder getUriBuilder() {
-        return uriBuilder;
+    public URIBuilder getUriBuilder() throws InvalidParameterException {
+        return this.uriBuilder;
     }
 
     public abstract String getCommand();

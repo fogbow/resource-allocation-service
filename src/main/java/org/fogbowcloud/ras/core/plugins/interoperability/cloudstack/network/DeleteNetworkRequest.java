@@ -9,6 +9,7 @@ public class DeleteNetworkRequest extends CloudStackRequest {
     public static final String NETWORK_ID_KEY = "id";
 
     protected DeleteNetworkRequest(Builder builder) throws InvalidParameterException {
+        super(builder.cloudStackUrl);
         addParameter(NETWORK_ID_KEY, builder.id);
     }
 
@@ -18,6 +19,7 @@ public class DeleteNetworkRequest extends CloudStackRequest {
     }
 
     public static class Builder {
+        private String cloudStackUrl;
         private String id;
 
         public Builder id(String id) {
@@ -25,7 +27,8 @@ public class DeleteNetworkRequest extends CloudStackRequest {
             return this;
         }
 
-        public DeleteNetworkRequest build() throws InvalidParameterException {
+        public DeleteNetworkRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new DeleteNetworkRequest(this);
         }
     }

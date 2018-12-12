@@ -11,7 +11,7 @@ public class CreateVolumeRequest extends CloudStackRequest {
     protected static final String VOLUME_SIZE = "size";
 
     protected CreateVolumeRequest(Builder builder) throws InvalidParameterException {
-        super();
+        super(builder.cloudStackUrl);
         addParameter(ZONE_ID, builder.zoneId);
         addParameter(VOLUME_NAME, builder.name);
         addParameter(DISK_OFFERING_ID, builder.diskOfferingId);
@@ -29,6 +29,7 @@ public class CreateVolumeRequest extends CloudStackRequest {
     }
 
     public static class Builder {
+        private String cloudStackUrl;
         private String zoneId;
         private String name;
         private String diskOfferingId;
@@ -54,7 +55,8 @@ public class CreateVolumeRequest extends CloudStackRequest {
             return this;
         }
 
-        public CreateVolumeRequest build() throws InvalidParameterException {
+        public CreateVolumeRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new CreateVolumeRequest(this);
         }
     }

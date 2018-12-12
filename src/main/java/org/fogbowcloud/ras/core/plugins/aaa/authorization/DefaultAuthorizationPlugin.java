@@ -13,4 +13,9 @@ public class DefaultAuthorizationPlugin implements AuthorizationPlugin<Federatio
     public boolean isAuthorized(FederationUserToken federationUserToken, String cloudName, Operation operation, ResourceType type) {
         return true;
     }
+
+    @Override
+    public boolean isAuthorized(FederationUserToken federationUserToken, Operation operation, ResourceType type) {
+        return true;
+    }
 }

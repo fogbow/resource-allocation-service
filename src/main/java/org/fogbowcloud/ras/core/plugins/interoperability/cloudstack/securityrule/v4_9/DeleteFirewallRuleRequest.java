@@ -13,7 +13,7 @@ public class DeleteFirewallRuleRequest extends CloudStackRequest {
     public static final String RULE_ID = "id";
 
     protected DeleteFirewallRuleRequest(Builder builder) throws InvalidParameterException {
-        super();
+        super(builder.cloudStackUrl);
         addParameter(RULE_ID, builder.ruleId);
     }
 
@@ -23,6 +23,7 @@ public class DeleteFirewallRuleRequest extends CloudStackRequest {
     }
 
     public static class Builder {
+        private String cloudStackUrl;
         private String ruleId;
 
         public Builder ruleId(String ruleId){
@@ -30,7 +31,8 @@ public class DeleteFirewallRuleRequest extends CloudStackRequest {
             return this;
         }
 
-        DeleteFirewallRuleRequest build() throws InvalidParameterException {
+        DeleteFirewallRuleRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new DeleteFirewallRuleRequest(this);
         }
     }

@@ -12,7 +12,8 @@ public class CloudStackAllToOneMapper implements FederationToLocalMapperPlugin<C
     private GenericAllToOneFederationToLocalMapper genericMapper;
 
     public CloudStackAllToOneMapper(String interoperabilityConfFilePath, String mapperConfFilePath) {
-        this.genericMapper = new GenericAllToOneFederationToLocalMapper(new CloudStackTokenGeneratorPlugin(),
+        this.genericMapper = new GenericAllToOneFederationToLocalMapper(
+                new CloudStackTokenGeneratorPlugin(interoperabilityConfFilePath),
                 new CloudStackIdentityPlugin(), mapperConfFilePath);
     }
 

@@ -8,7 +8,7 @@ public class GetNetworkRequest extends CloudStackRequest {
     public static final String NETWORK_ID_KEY = "id";
 
     private GetNetworkRequest(Builder builder) throws InvalidParameterException {
-        super();
+        super(builder.cloudStackUrl);
         addParameter(NETWORK_ID_KEY, builder.id);
     }
 
@@ -23,6 +23,7 @@ public class GetNetworkRequest extends CloudStackRequest {
     }
 
     public static class Builder {
+        private String cloudStackUrl;
         private String id;
 
         public Builder id(String id) {
@@ -30,7 +31,8 @@ public class GetNetworkRequest extends CloudStackRequest {
             return this;
         }
 
-        public GetNetworkRequest build() throws InvalidParameterException {
+        public GetNetworkRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new GetNetworkRequest(this);
         }
     }
