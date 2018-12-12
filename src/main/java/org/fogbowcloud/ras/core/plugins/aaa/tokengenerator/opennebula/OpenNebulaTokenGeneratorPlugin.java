@@ -26,8 +26,10 @@ import sun.security.provider.PolicySpiFile;
 
 public class OpenNebulaTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
+    private final OpenNebulaClientFactory factory;
     private RSAPrivateKey privateKey;
     private Properties properties;
+    
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
     public static final String OPENNEBULA_TOKEN_VALUE_SEPARTOR = ":";
@@ -35,12 +37,12 @@ public class OpenNebulaTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
     private String provider;
 
-    public OpenNebulaTokenGeneratorPlugin() throws FatalErrorException {
-        String openNebulaConfFilePath = HomeDir.getPath() + File.separator
-                + DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME;
-        this.properties = PropertiesUtil.readProperties(openNebulaConfFilePath );
+    public OpenNebulaTokenGeneratorPlugin(String confFilePath) throws FatalErrorException {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
         this.provider = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
+        this.factory = new OpenNebulaClientFactory(confFilePath);
+        
         try {
 
             this.privateKey = RSAUtil.getPrivateKey();
@@ -54,8 +56,6 @@ public class OpenNebulaTokenGeneratorPlugin implements TokenGeneratorPlugin {
         if ((userCredentials == null) || (userCredentials.get(USERNAME) == null) || (userCredentials.get(PASSWORD) == null)) {
             throw new InvalidParameterException(Messages.Exception.NO_USER_CREDENTIALS);
         }
-
-        OpenNebulaClientFactory factory = new OpenNebulaClientFactory();
 
         String userName = properties.getProperty(USERNAME);
         String password = properties.getProperty(PASSWORD);

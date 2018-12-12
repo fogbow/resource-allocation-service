@@ -1,7 +1,9 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
@@ -20,6 +22,7 @@ import org.opennebula.client.OneResponse;
 import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vnet.VirtualNetwork;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,11 +40,14 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 	private static final String RANGE_PORT_SEPARATOR = ":";
 	private static final int BASE_VALUE = 2;
 	private static final int IPV4_AMOUNT_BITS = 32;
-	
-    private OpenNebulaClientFactory factory;
+	private static final String CLOUD_NAME = "opennebula";
+
+	private OpenNebulaClientFactory factory;
     
     public OpenNebulaSecurityRulePlugin() {
-        this.factory = new OpenNebulaClientFactory();
+		String openenbulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+				File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.factory = new OpenNebulaClientFactory(openenbulaConfFilePath);
     }
 
     @Override

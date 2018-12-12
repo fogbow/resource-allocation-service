@@ -1,5 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
@@ -23,6 +25,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.File;
+
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({VirtualNetwork.class, SecurityGroup.class})
 public class OpenNebulaPublicIpPluginTest {
@@ -32,14 +36,17 @@ public class OpenNebulaPublicIpPluginTest {
 	private static final String FAKE_INSTANCE_ID = "1 1 1 1";
 	private static final String VIRTUAL_MACHINE_NIC_IP_PATH = "VM/NIC/IP";
 	private static final String VIRTUAL_MACHINE_CONTENT = "<NIC_ID>1</NIC_ID>";
+	private static final String CLOUD_NAME = "opennebula";
 
 	private OpenNebulaClientFactory factory;
 	private OpenNebulaPuplicIpPlugin plugin;
 	
 	@Before
 	public void setUp() {
-		this.factory = Mockito.spy(new OpenNebulaClientFactory());
-		this.plugin = Mockito.spy(new OpenNebulaPuplicIpPlugin());
+		String openenbulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+				File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+		this.factory = Mockito.spy(new OpenNebulaClientFactory(openenbulaConfFilePath));
+		this.plugin = Mockito.spy(new OpenNebulaPuplicIpPlugin(openenbulaConfFilePath));
 	}
 	
 	// test case: When calling the requestInstance method, if the OpenNebulaClientFactory class

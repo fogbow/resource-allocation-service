@@ -1,10 +1,6 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 
-import java.util.Properties;
-
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -23,6 +19,8 @@ import org.opennebula.client.OneResponse;
 import org.opennebula.client.image.Image;
 import org.opennebula.client.image.ImagePool;
 
+import java.util.Properties;
+
 public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
 
     private static final Logger LOGGER = Logger.getLogger(OpenNebulaVolumePlugin.class);
@@ -38,12 +36,11 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
     
     private Integer dataStoreId;
 
-	public OpenNebulaVolumePlugin() {
-		String filePath = HomeDir.getPath() + DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME;
-		Properties properties = PropertiesUtil.readProperties(filePath);
+	public OpenNebulaVolumePlugin(String confFilePath) {
+		Properties properties = PropertiesUtil.readProperties(confFilePath);
 		String dataStoreValue = properties.getProperty(DEFAULT_DATASTORE_ID);
 		this.dataStoreId = dataStoreValue == null ? null : Integer.valueOf(dataStoreValue);
-		this.factory = new OpenNebulaClientFactory();
+		this.factory = new OpenNebulaClientFactory(confFilePath);
 	}
 
 	@Override
@@ -53,7 +50,7 @@ public class OpenNebulaVolumePlugin implements VolumePlugin<Token> {
 		String volumeName = volumeOrder.getName();
 		int volumeSize = volumeOrder.getVolumeSize();
 
-		Client client = factory.createClient(localUserAttributes.getTokenValue());
+		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 
 		CreateVolumeRequest request = new CreateVolumeRequest.Builder()
 				.name(volumeName)

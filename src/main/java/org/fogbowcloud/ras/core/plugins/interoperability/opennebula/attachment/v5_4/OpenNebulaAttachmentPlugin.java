@@ -33,8 +33,8 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<OpenNebulaTo
 
     private OpenNebulaClientFactory factory;
 
-    public OpenNebulaAttachmentPlugin() {
-        this.factory = new OpenNebulaClientFactory();
+    public OpenNebulaAttachmentPlugin(String confFilePath) {
+        this.factory = new OpenNebulaClientFactory(confFilePath);
     }
 
 	@Override

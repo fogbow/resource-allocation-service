@@ -10,8 +10,10 @@ public class OpenNebulaIdentityPlugin implements FederationIdentityPlugin<OpenNe
     
     private static final String OPENNEBULA_FIELD_SEPARATOR = "#&#";
     private static final String EMPTY_SPACE = "";
+    private final OpenNebulaClientFactory factory;
 
-    public OpenNebulaIdentityPlugin() {
+    public OpenNebulaIdentityPlugin(String confFilePath) {
+        this.factory = new OpenNebulaClientFactory(confFilePath);
     }
 
     @Override
@@ -29,10 +31,8 @@ public class OpenNebulaIdentityPlugin implements FederationIdentityPlugin<OpenNe
         String signature = split[4];
 
         try {
-            OpenNebulaClientFactory factory = new OpenNebulaClientFactory();
-
             // Test if oneTokenValue is valid for any authentication.
-            factory.createClient(oneTokenValue);
+            this.factory.createClient(oneTokenValue);
         } catch (Exception e){
             throw new InvalidParameterException(e.getMessage());
         }

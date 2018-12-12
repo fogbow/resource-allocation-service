@@ -1,5 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.volume.v5_4;
 
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.orders.VolumeOrder;
@@ -19,6 +21,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.File;
+
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({Image.class})
 public class OpenNebulaVolumePluginTest {
@@ -28,14 +32,17 @@ public class OpenNebulaVolumePluginTest {
 	private static final String FAKE_VOLUME_NAME = "fake-volume-name";
 	private static final String IMAGE_SIZE_PATH = "SIZE";
 	private static final String STATE_READY = "READY";
-	
+	private static final String CLOUD_NAME = "opennebula";
+
 	private OpenNebulaClientFactory factory;
 	private OpenNebulaVolumePlugin plugin;
 
 	@Before
 	public void setUp() {
-		this.factory = Mockito.spy(new OpenNebulaClientFactory());
-		this.plugin = Mockito.spy(new OpenNebulaVolumePlugin());
+		String openenbulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+				File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+		this.factory = Mockito.spy(new OpenNebulaClientFactory(openenbulaConfFilePath));
+		this.plugin = Mockito.spy(new OpenNebulaVolumePlugin(openenbulaConfFilePath));
 	}
 	
 	// test case: When calling the requestInstance method, if the OpenNebulaClientFactory class
