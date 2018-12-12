@@ -65,9 +65,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 		String template = createSecurityGroupTemplate(securityGroupInfo, rule);
 		OneResponse response = securityGroup.update(template);
 		if (response.isError()) {
-			String message = response.getErrorMessage();
 			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_UPDATING_SECURITY_GROUPS, template));
-			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
 			throw new InvalidParameterException();
 		}
 		String instanceId = rule.serialize();
