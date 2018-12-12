@@ -143,7 +143,8 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 	protected List<SecurityRule> getSecurityRules(SecurityGroup securityGroup) throws FogbowRasException {
 		List<SecurityRule> securityRules = new ArrayList<SecurityRule>();
 		try {
-			List<Rule> rules = getRules(securityGroup);
+			SecurityGroupInfo securityGroupInfo = getSecurityGroupInfo(securityGroup);
+			List<Rule> rules = getRules(securityGroupInfo);
 
 			for (Rule rule : rules) {
 				Direction direction = rule.getDirection();
@@ -166,9 +167,8 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 		return securityRules;
 	}
 
-	protected List<Rule> getRules(SecurityGroup securityGroup) throws FogbowRasException {
+	protected List<Rule> getRules(SecurityGroupInfo securityGroupInfo) throws FogbowRasException {
     	try {
-			SecurityGroupInfo securityGroupInfo = getSecurityGroupInfo(securityGroup);
 			Template template = securityGroupInfo.getTemplate();
 			return template.getRules();
 		} catch (Exception e) {
@@ -204,12 +204,12 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
         LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, securityRuleId, localUserAttributes.getTokenValue()));
         Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 
-		Rule ruleToRemove = Rule.deserialize(securityRuleId);
+		Rule ruleToRemove = createRule(securityRuleId);
 		String securityGroupId = ruleToRemove.getSecurityGroupId();
 		SecurityGroup securityGroup = this.factory.createSecurityGroup(client, securityGroupId);
 		SecurityGroupInfo securityGroupInfo = getSecurityGroupInfo(securityGroup);
 
-		List<Rule> rules = getRules(securityGroup);
+		List<Rule> rules = getRules(securityGroupInfo);
 		removeRule(ruleToRemove, rules);
 
 		SecurityGroupTemplate securityGroupTemplate = createSecurityGroupTemplate(securityGroupInfo, rules);
@@ -222,12 +222,25 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 		}
     }
 
-	protected SecurityGroupTemplate createSecurityGroupTemplate(SecurityGroupInfo securityGroupInfo, List<Rule> rules) {
-		SecurityGroupTemplate securityGroupTemplate = new SecurityGroupTemplate();
-		securityGroupTemplate.setId(securityGroupInfo.getId());
-		securityGroupTemplate.setName(securityGroupInfo.getName());
-		securityGroupTemplate.setRules(rules);
-		return securityGroupTemplate;
+	protected Rule createRule(String securityRuleId) throws FogbowRasException {
+		try {
+			return Rule.deserialize(securityRuleId);
+		} catch (Exception e) {
+			String errorMessage = String.format("Is not possible deserialize the security rule id: %s", securityRuleId );
+			throw new FogbowRasException(String.format(Messages.Error.ERROR_WHILE_REMOVING_SECURITY_RULE, securityRuleId, errorMessage));
+		}
+	}
+
+	protected SecurityGroupTemplate createSecurityGroupTemplate(SecurityGroupInfo securityGroupInfo, List<Rule> rules) throws FogbowRasException {
+		try {
+			SecurityGroupTemplate securityGroupTemplate = new SecurityGroupTemplate();
+			securityGroupTemplate.setId(securityGroupInfo.getId());
+			securityGroupTemplate.setName(securityGroupInfo.getName());
+			securityGroupTemplate.setRules(rules);
+			return securityGroupTemplate;
+		} catch (Exception e) {
+			throw new FogbowRasException(e.getMessage(), e);
+		}
 	}
 
 	protected SecurityGroupInfo getSecurityGroupInfo(SecurityGroup securityGroup) throws InstanceNotFoundException {
@@ -235,13 +248,12 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 		SecurityGroupInfo securityGroupInfo = SecurityGroupInfo.unmarshal(securityGroupXml);
 		if (securityGroupInfo == null) {
 			String errorMsg = Messages.Exception.INSTANCE_NOT_FOUND;
-
 			throw new InstanceNotFoundException(errorMsg);
 		}
 		return securityGroupInfo;
 	}
 
-	private void removeRule(Rule ruleToRemove, List<Rule> rules) {
+	protected void removeRule(Rule ruleToRemove, List<Rule> rules) {
 		if (rules == null) {
 			return;
 		}

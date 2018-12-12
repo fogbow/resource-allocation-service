@@ -76,7 +76,7 @@ public class OpenNebulaSecurityRulePluginTest {
 
         Mockito.doReturn(securityGroupInfo).when(this.openNebulaSecurityRulePlugin).getSecurityGroupInfo(Mockito.eq(securityGroup));
 
-        Mockito.doReturn(rules).when(this.openNebulaSecurityRulePlugin).getRules(Mockito.eq(securityGroup));
+        Mockito.doReturn(rules).when(this.openNebulaSecurityRulePlugin).getRules(Mockito.eq(securityGroupInfo));
 
         // exercise
         this.openNebulaSecurityRulePlugin.deleteSecurityRule(securityRuleId, localUserAttributes);
@@ -123,13 +123,65 @@ public class OpenNebulaSecurityRulePluginTest {
 
         Mockito.doReturn(securityGroupInfo).when(this.openNebulaSecurityRulePlugin).getSecurityGroupInfo(Mockito.eq(securityGroup));
 
-        Mockito.doReturn(rules).when(this.openNebulaSecurityRulePlugin).getRules(Mockito.eq(securityGroup));
+        Mockito.doReturn(rules).when(this.openNebulaSecurityRulePlugin).getRules(Mockito.eq(securityGroupInfo));
 
         // exercise
         this.openNebulaSecurityRulePlugin.deleteSecurityRule(securityRuleId, localUserAttributes);
 
         // verify
         Mockito.verify(securityGroup, Mockito.times(1)).update(Mockito.eq(securityGroupTemplateXml));
+    }
+
+    // test case: the security rule id came in a unknown format
+    @Test(expected = FogbowRasException.class)
+    public void testCreateRuleException() throws FogbowRasException {
+        // setup
+        String securityRuleId = "wrong";
+        // exercise
+        this.openNebulaSecurityRulePlugin.createRule(securityRuleId);
+    }
+
+    // test case: trying to remove a rule that there is not in the rules
+    @Test
+    public void testRemoveUnknownRule() {
+        // setup
+        List<Rule> rules = new ArrayList<>();
+        Rule ruleToRemove = new Rule();
+        ruleToRemove.setIp("10.10.10.10");
+        rules.add(new Rule());
+        rules.add(new Rule());
+        rules.add(new Rule());
+        int ruleSizeExpected = 3 ;
+
+        // verify before
+        Assert.assertEquals(ruleSizeExpected, rules.size());
+
+        // exercise
+        this.openNebulaSecurityRulePlugin.removeRule(ruleToRemove, rules);
+
+        // verify after
+        Assert.assertEquals(ruleSizeExpected, rules.size());
+    }
+
+    // test case: the rules is null and this will not throw exception
+    @Test
+    public void testRemoveRuleNullRules() {
+        // exercise and verify
+        try {
+            this.openNebulaSecurityRulePlugin.removeRule(null, null);
+        } catch (Exception e) {
+            Assert.fail();
+        }
+    }
+
+    // test case: throw exception when security group is null
+    @Test(expected = FogbowRasException.class)
+    public void testCreateSecurityGroupTemplate() throws FogbowRasException {
+        // set up
+        List<Rule> rules = new ArrayList<>();
+        SecurityGroupInfo securityGroupInfo = null;
+        // exercise
+        this.openNebulaSecurityRulePlugin.createSecurityGroupTemplate(securityGroupInfo, rules);
     }
 
     private SecurityGroupTemplate createSecurityGroupTemplate(String id, String name, List<Rule> rules) {
@@ -189,7 +241,9 @@ public class OpenNebulaSecurityRulePluginTest {
                 Rule.INBOUND_XML_TEMPLATE_VALUE,
                 Integer.valueOf(securityGroupId));
         rules.add(rule);
-        Mockito.doReturn(rules).when(this.openNebulaSecurityRulePlugin).getRules(Mockito.eq(securityGroup));
+        SecurityGroupInfo securityGroupInfo = Mockito.mock(SecurityGroupInfo.class);
+        Mockito.doReturn(securityGroupInfo).when(this.openNebulaSecurityRulePlugin).getSecurityGroupInfo(Mockito.eq(securityGroup));
+        Mockito.doReturn(rules).when(this.openNebulaSecurityRulePlugin).getRules(Mockito.eq(securityGroupInfo));
 
         // exercise
         List<SecurityRule> securityRules = this.openNebulaSecurityRulePlugin.getSecurityRules(majorOrder, localUserAttributes);
@@ -210,7 +264,9 @@ public class OpenNebulaSecurityRulePluginTest {
     public void testGetSecurityRulesErrorWhileGetRules() throws UnexpectedException, FogbowRasException {
         // setup
         SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
-        Mockito.doThrow(Exception.class).when(this.openNebulaSecurityRulePlugin).getRules(Mockito.eq(securityGroup));
+        SecurityGroupInfo securityGroupInfo = Mockito.mock(SecurityGroupInfo.class);
+        Mockito.doReturn(securityGroupInfo).when(this.openNebulaSecurityRulePlugin).getSecurityGroupInfo(Mockito.eq(securityGroup));
+        Mockito.doThrow(Exception.class).when(this.openNebulaSecurityRulePlugin).getRules(Mockito.eq(securityGroupInfo));
 
         // exercise
         this.openNebulaSecurityRulePlugin.getSecurityRules(securityGroup);
