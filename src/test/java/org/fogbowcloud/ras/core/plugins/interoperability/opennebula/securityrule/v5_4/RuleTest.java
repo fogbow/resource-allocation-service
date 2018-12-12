@@ -124,7 +124,7 @@ public class RuleTest {
         String ipUnique = "10.10.0.0";
 
         Rule rule = new Rule();
-        int size = 256;
+        String size = "256";
         int subnetBySize = 24;
         rule.setIp(ipUnique);
         rule.setSize(size);
@@ -135,7 +135,7 @@ public class RuleTest {
 
         // setup two
         Rule ruleTwo = new Rule();
-        int sizeTwo = 65536;
+        String sizeTwo = "65536";
         int subnetBySizeTwo = 16;
         ruleTwo.setIp(ipUnique);
         ruleTwo.setSize(sizeTwo);
@@ -160,7 +160,7 @@ public class RuleTest {
         String ipUnique = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
 
         Rule rule = new Rule();
-        int size = 256;
+        String size = "256";
         int subnetBySize = 120;
         rule.setIp(ipUnique);
         rule.setSize(size);
@@ -171,7 +171,7 @@ public class RuleTest {
 
         // setup two
         Rule ruleTwo = new Rule();
-        int sizeTwo = 268435456;
+        String sizeTwo = "268435456";
         int subnetBySizeTwo = 100;
         ruleTwo.setIp(ipUnique);
         ruleTwo.setSize(sizeTwo);

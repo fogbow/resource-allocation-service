@@ -57,7 +57,7 @@ public class SecurityGroupTemplate extends OpenNebulaMarshallerTemplate {
 	}
 
 	public static Rule allocateSafetyRule(String protocol, String type, String ip,
-										  int size, int portFrom, int portTo, int networkId) {
+			String size, int portFrom, int portTo, String networkId) {
 
 		String range = String.format(RANGE_FORMAT, String.valueOf(portFrom), String.valueOf(portTo));
 
