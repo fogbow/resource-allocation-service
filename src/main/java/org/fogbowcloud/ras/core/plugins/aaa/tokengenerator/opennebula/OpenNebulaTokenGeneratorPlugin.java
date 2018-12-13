@@ -29,7 +29,7 @@ public class OpenNebulaTokenGeneratorPlugin implements TokenGeneratorPlugin {
     private final OpenNebulaClientFactory factory;
     private RSAPrivateKey privateKey;
     private Properties properties;
-    
+
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
     public static final String OPENNEBULA_TOKEN_VALUE_SEPARTOR = ":";
@@ -62,8 +62,8 @@ public class OpenNebulaTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
         String openNebulaTokenValue = userName + OPENNEBULA_TOKEN_VALUE_SEPARTOR + password;
 
-        // Trying to create a new client fo checking if login data from conf file is correct
-        Client oneClient = factory.createClient(openNebulaTokenValue);
+        // Trying to create a new client to checking if login data from conf file is correct
+        this.factory.createClient(openNebulaTokenValue);
 
         String rawTokenValue = this.provider + OPENNEBULA_FIELD_SEPARATOR + openNebulaTokenValue + OPENNEBULA_FIELD_SEPARATOR
                 + userName;

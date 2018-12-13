@@ -40,14 +40,11 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 	private static final String RANGE_PORT_SEPARATOR = ":";
 	private static final int BASE_VALUE = 2;
 	private static final int IPV4_AMOUNT_BITS = 32;
-	private static final String CLOUD_NAME = "opennebula";
 
 	private OpenNebulaClientFactory factory;
     
-    public OpenNebulaSecurityRulePlugin() {
-		String openenbulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
-				File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
-        this.factory = new OpenNebulaClientFactory(openenbulaConfFilePath);
+    public OpenNebulaSecurityRulePlugin(String confFilePath) {
+        this.factory = new OpenNebulaClientFactory(confFilePath);
     }
 
     @Override
