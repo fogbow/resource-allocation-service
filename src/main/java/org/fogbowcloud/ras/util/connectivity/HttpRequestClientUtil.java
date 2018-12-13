@@ -13,13 +13,22 @@ import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
+import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.ras.core.models.tokens.Token;
+import org.fogbowcloud.ras.util.GsonHolder;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -200,6 +209,54 @@ public class HttpRequestClientUtil {
         return responseStr;
     }
 
+    public String doGenericRequest(String method, String urlString, Map<String, String> headers, Map<String, String> body) throws FogbowRasException {
+        try {
+            URL url = new URL(urlString);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod(method.toUpperCase());
+
+            addHeadersIntoConnection(connection, headers);
+
+            if (!body.isEmpty()) {
+                connection.setDoOutput(true);
+                OutputStream os = connection.getOutputStream();
+                os.write(toByteArray(body));
+                os.flush();
+                os.close();
+            }
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == HttpURLConnection.HTTP_OK) {
+                BufferedReader in = new BufferedReader(new InputStreamReader(
+                        connection.getInputStream()));
+                StringBuffer response = new StringBuffer();
+
+                String inputLine;
+                while ((inputLine = in.readLine()) != null) {
+                    response.append(inputLine);
+                }
+                in.close();
+
+                return response.toString();
+            } else {
+                // FIXME Retrieve more info about this error
+                throw new FogbowRasException(String.format("Response code was <%d>", responseCode));
+            }
+        } catch (ProtocolException e) {
+            throw new FogbowRasException("", e);
+        } catch (MalformedURLException e) {
+            throw new FogbowRasException("", e);
+        } catch (IOException e) {
+            throw new FogbowRasException("", e);
+        }
+    }
+
+    private void addHeadersIntoConnection(HttpURLConnection connection, Map<String, String> headers) {
+        for (String key : headers.keySet()) {
+            connection.setRequestProperty(key, headers.get(key));
+        }
+    }
+
     public static Map<String, String> getHeaders(HttpServletRequest request) {
         Enumeration<String> headerNames = request.getHeaderNames();
 
@@ -210,6 +267,11 @@ public class HttpRequestClientUtil {
         }
 
         return headers;
+    }
+
+    private byte[] toByteArray(Map<String, String> body) {
+        String json = GsonHolder.getInstance().toJson(body, Map.class);
+        return json.getBytes();
     }
 
     public class Response {

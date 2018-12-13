@@ -57,15 +57,21 @@ public class GenericRequest {
         private String method;
         private String url;
         private Map<String, String> headers;
-        private String body;
+        private Map<String, String> body;
 
-        public GenericRequestBean() {
+        public void setMethod(String method) {
+            this.method = method;
         }
 
-        public GenericRequestBean(String method, String url, Map<String, String> headers, String body) {
-            this.method = method;
+        public void setUrl(String url) {
             this.url = url;
+        }
+
+        public void setHeaders(Map<String, String> headers) {
             this.headers = headers;
+        }
+
+        public void setBody(Map<String, String> body) {
             this.body = body;
         }
     }

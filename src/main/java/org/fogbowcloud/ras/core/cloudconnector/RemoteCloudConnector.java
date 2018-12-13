@@ -86,7 +86,7 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public String genericRequest(String method, String url, Map<String, String> headers, String body, FederationUserToken federationUserToken) {
+    public String genericRequest(String method, String url, Map<String, String> headers, Map<String, String> body, FederationUserToken federationUserToken) {
         throw new UnsupportedOperationException();
     }
 

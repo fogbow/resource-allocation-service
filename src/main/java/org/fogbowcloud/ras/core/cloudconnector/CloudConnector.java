@@ -79,7 +79,7 @@ public interface CloudConnector {
      * @param federationUserToken
      * @return
      */
-    String genericRequest(String method, String url, Map<String, String> headers, String body, FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException;
+    String genericRequest(String method, String url, Map<String, String> headers, Map<String, String> body, FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException;
 
     /**
      * Gets all security group rules from a specific orderId (must be a publicIp or a network)

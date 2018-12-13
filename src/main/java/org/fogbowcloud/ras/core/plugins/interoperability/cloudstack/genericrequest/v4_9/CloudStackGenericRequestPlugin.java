@@ -16,7 +16,7 @@ import java.util.Map;
 public class CloudStackGenericRequestPlugin extends HttpBasedGenericRequestPlugin<CloudStackToken> {
 
     @Override
-    public String redirectGenericRequest(String method, String url, Map<String, String> headers, String body, CloudStackToken token) throws FogbowRasException {
+    public String redirectGenericRequest(String method, String url, Map<String, String> headers, Map<String, String> body, CloudStackToken token) throws FogbowRasException {
         BasicHttpRequest request = new BasicHttpRequest(method, url);
         for (String headerKey : headers.keySet()) {
             request.setHeader(headerKey, headers.get(headerKey));

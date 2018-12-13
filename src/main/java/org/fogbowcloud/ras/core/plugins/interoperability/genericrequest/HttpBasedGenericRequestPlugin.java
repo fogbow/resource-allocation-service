@@ -10,7 +10,7 @@ public abstract class HttpBasedGenericRequestPlugin<T> implements GenericRequest
     private final HttpRequestClientUtil client = new HttpRequestClientUtil();
 
     @Override
-    public abstract String redirectGenericRequest(String method, String url, Map<String, String> headers, String body, T token) throws FogbowRasException;
+    public abstract String redirectGenericRequest(String method, String url, Map<String, String> headers, Map<String, String> body, T token) throws FogbowRasException;
 
     protected HttpRequestClientUtil getClient() {
         return client;

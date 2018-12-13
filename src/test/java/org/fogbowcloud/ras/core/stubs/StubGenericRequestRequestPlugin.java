@@ -11,7 +11,7 @@ public class StubGenericRequestRequestPlugin implements GenericRequestPlugin<Tok
     }
 
     @Override
-    public String redirectGenericRequest(String method, String url, Map<String, String> headers, String body, Token token) {
+    public String redirectGenericRequest(String method, String url, Map<String, String> headers, Map<String, String> body, Token token) {
         return null;
     }
 
