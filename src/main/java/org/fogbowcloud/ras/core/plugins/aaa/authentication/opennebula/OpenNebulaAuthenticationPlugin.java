@@ -15,17 +15,22 @@ import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPublicKey;
 
 public class OpenNebulaAuthenticationPlugin extends RASAuthenticationPlugin {
+
+    private OpenNebulaClientFactory factory;
+
+    public OpenNebulaAuthenticationPlugin(String confFilePath) {
+        this.factory = new OpenNebulaClientFactory(confFilePath);
+    }
+
     @Override
     protected String getTokenMessage(FederationUserToken federationUserToken) {
         OpenNebulaToken oneToken = (OpenNebulaToken) federationUserToken;
 
-        OpenNebulaClientFactory factory = new OpenNebulaClientFactory();
-
         // One more time, test if oneTokenValue is valid for any authentication.
         try {
-            Client client = factory.createClient(oneToken.getTokenValue());
+            Client client = this.factory.createClient(oneToken.getTokenValue());
         } catch (UnexpectedException e) {
-            System.out.println(e.getMessage());
+            //TODO check how will it works
         }
 
 

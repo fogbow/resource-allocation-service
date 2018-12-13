@@ -1,10 +1,6 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.network.v5_4;
 
-import java.util.Properties;
-
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -21,6 +17,8 @@ import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.vnet.VirtualNetwork;
+
+import java.util.Properties;
 
 public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 
@@ -40,11 +38,10 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 
 	private String bridge;
 	
-	public OpenNebulaNetworkPlugin() {
-		Properties properties = PropertiesUtil
-				.readProperties(HomeDir.getPath() + DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME);
+	public OpenNebulaNetworkPlugin(String confFilePath) {
+		Properties properties = PropertiesUtil.readProperties(confFilePath);
 		this.bridge = properties.getProperty(DEFAULT_NETWORK_BRIDGE_KEY);
-		this.factory = new OpenNebulaClientFactory();
+		this.factory = new OpenNebulaClientFactory(confFilePath);
 	}
 
 	@Override

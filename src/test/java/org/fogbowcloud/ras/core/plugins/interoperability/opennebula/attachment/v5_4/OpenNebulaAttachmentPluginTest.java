@@ -1,5 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.attachment.v5_4;
 
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -22,6 +24,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.File;
+
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({VirtualMachine.class})
 public class OpenNebulaAttachmentPluginTest {
@@ -30,14 +34,17 @@ public class OpenNebulaAttachmentPluginTest {
 	private static final String FAKE_USER_NAME = "fake-user-name";
 	private static final String VIRTUAL_MACHINE_CONTENT = "<DISK_ID>1</DISK_ID>";
 	private static final String DEFAULT_DEVICE_PREFIX = "vd";
-	
+	private static final String CLOUD_NAME = "opennebula";
+
 	private OpenNebulaClientFactory factory;
 	private OpenNebulaAttachmentPlugin plugin;
 
 	@Before
 	public void setUp() {
-		this.factory = Mockito.spy(new OpenNebulaClientFactory());
-		this.plugin = Mockito.spy(new OpenNebulaAttachmentPlugin());
+		String openenbulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+				File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+		this.factory = Mockito.spy(new OpenNebulaClientFactory(openenbulaConfFilePath));
+		this.plugin = Mockito.spy(new OpenNebulaAttachmentPlugin(openenbulaConfFilePath));
 	}
 	
 	// test case: When calling the requestInstance method, if the OpenNebulaClientFactory class

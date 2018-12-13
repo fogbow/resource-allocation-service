@@ -1,17 +1,8 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula;
 
-import java.util.Properties;
-
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.ras.core.exceptions.NoAvailableResourcesException;
-import org.fogbowcloud.ras.core.exceptions.QuotaExceededException;
-import org.fogbowcloud.ras.core.exceptions.UnauthorizedRequestException;
-import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.opennebula.client.Client;
 import org.opennebula.client.ClientConfigurationException;
@@ -28,6 +19,8 @@ import org.opennebula.client.vm.VirtualMachine;
 import org.opennebula.client.vm.VirtualMachinePool;
 import org.opennebula.client.vnet.VirtualNetwork;
 
+import java.util.Properties;
+
 public class OpenNebulaClientFactory {
 
     private final static Logger LOGGER = Logger.getLogger(OpenNebulaClientFactory.class);
@@ -42,9 +35,8 @@ public class OpenNebulaClientFactory {
     
     private String endpoint;
 
-	public OpenNebulaClientFactory() {
-		Properties properties = PropertiesUtil
-				.readProperties(HomeDir.getPath() + DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME);
+	public OpenNebulaClientFactory(String confFilePath) {
+		Properties properties = PropertiesUtil.readProperties(confFilePath);
 		this.endpoint = properties.getProperty(OPENNEBULA_RPC_ENDPOINT_URL);
 	}
 

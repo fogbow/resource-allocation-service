@@ -1,5 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.network.v5_4;
 
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -20,6 +22,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.File;
+
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({VirtualNetwork.class})
 public class OpenNebulaNetworkPluginTest {
@@ -31,14 +35,17 @@ public class OpenNebulaNetworkPluginTest {
 	private static final String FAKE_GATEWAY = "fake-gateway";
 	private static final String FAKE_VLAN_ID = "fake-vlan-id";
 	private static final String FAKE_USER_NAME = "fake-user-name";
+	private static final String CLOUD_NAME = "opennebula";
 
 	private OpenNebulaClientFactory factory;
 	private OpenNebulaNetworkPlugin plugin;
 
 	@Before
 	public void setUp() {
-		this.factory = Mockito.spy(new OpenNebulaClientFactory());
-		this.plugin = Mockito.spy(new OpenNebulaNetworkPlugin());
+		String openenbulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+				File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+		this.factory = Mockito.spy(new OpenNebulaClientFactory(openenbulaConfFilePath));
+		this.plugin = Mockito.spy(new OpenNebulaNetworkPlugin(openenbulaConfFilePath));
 	}
 
 	// test case: When calling the requestInstance method, if the OpenNebulaClientFactory class

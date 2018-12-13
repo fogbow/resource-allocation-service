@@ -37,11 +37,11 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 	private static final String RANGE_PORT_SEPARATOR = ":";
 	private static final int BASE_VALUE = 2;
 	private static final int IPV4_AMOUNT_BITS = 32;
-	
-    private OpenNebulaClientFactory factory;
+
+	private OpenNebulaClientFactory factory;
     
-    public OpenNebulaSecurityRulePlugin() {
-        this.factory = new OpenNebulaClientFactory();
+    public OpenNebulaSecurityRulePlugin(String confFilePath) {
+        this.factory = new OpenNebulaClientFactory(confFilePath);
     }
 
     @Override

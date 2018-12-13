@@ -1,18 +1,8 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
-import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.ras.core.exceptions.UnauthorizedRequestException;
-import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.instances.PublicIpInstance;
 import org.fogbowcloud.ras.core.models.orders.PublicIpOrder;
@@ -26,6 +16,10 @@ import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.vm.VirtualMachine;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken> {
 
@@ -46,12 +40,11 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 	private OpenNebulaClientFactory factory;
 	private String publicIpAddress;
 
-	public OpenNebulaPuplicIpPlugin() {
-		Properties properties = PropertiesUtil
-				.readProperties(HomeDir.getPath() + DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME);
+	public OpenNebulaPuplicIpPlugin(String confFilePath) {
+		Properties properties = PropertiesUtil.readProperties(confFilePath);
 
 		this.publicIpAddress = properties.getProperty(DEFAULT_PUBLIC_IP_ADDRESS_KEY);
-		this.factory = new OpenNebulaClientFactory();
+		this.factory = new OpenNebulaClientFactory(confFilePath);
 	}
 
 	@Override

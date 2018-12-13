@@ -1,8 +1,11 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -21,7 +24,6 @@ import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.mockito.internal.verification.VerificationModeFactory;
-//import org.omg.CORBA.DynAnyPackage.Invalid;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.secgroup.SecurityGroup;
@@ -34,12 +36,15 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @PrepareForTest({SecurityGroupInfo.class, Integer.class})
 public class OpenNebulaSecurityRulePluginTest {
 
+    private static final String CLOUD_NAME = "opennebula";
     private OpenNebulaSecurityRulePlugin openNebulaSecurityRulePlugin;
     private OpenNebulaClientFactory openNebulaClientFactory;
 
     @Before
     public void setUp() {
-        this.openNebulaSecurityRulePlugin = Mockito.spy(new OpenNebulaSecurityRulePlugin());
+        String openenbulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+                File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.openNebulaSecurityRulePlugin = Mockito.spy(new OpenNebulaSecurityRulePlugin(openenbulaConfFilePath));
 
         this.openNebulaClientFactory = Mockito.mock(OpenNebulaClientFactory.class);
         this.openNebulaSecurityRulePlugin.setFactory(this.openNebulaClientFactory);
