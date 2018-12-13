@@ -14,6 +14,8 @@ import javax.xml.bind.annotation.XmlTransient;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.securityrules.Direction;
 import org.fogbowcloud.ras.core.models.securityrules.EtherType;
 import org.fogbowcloud.ras.core.models.securityrules.Protocol;
@@ -34,6 +36,8 @@ public class Rule {
 	protected static final String OUTBOUND_XML_TEMPLATE_VALUE = "outbound";
 	protected static final String CIRD_SEPARATOR = "/";
 	protected static final String OPENNEBULA_RANGE_SEPARATOR = ":";
+	protected static final int MINIMUM_RANGE_PORT_NETWORK = 1;
+	protected static final int MAXIMUM_RANGE_PORT_NETWORK = 65536;
 	
 	protected static final int POSITION_PORT_FROM_IN_RANGE = 0;
 	protected static final int POSITION_PORT_TO_IN_RANGE = 1;
@@ -135,10 +139,6 @@ public class Rule {
 		this.securityGroupId = securityGroupId;
 	}
 	
-	/*
-	 * TODO check if is necessary put this messages in another class
-	 */
-	
 	public int getPortFrom() {
 		return getPortInRange(POSITION_PORT_FROM_IN_RANGE);
 	}
@@ -150,7 +150,14 @@ public class Rule {
 	protected int getPortInRange(int portType) {
 		try {
 			if (this.range == null || this.range.isEmpty()) {
-				throw new Exception("The range is null");
+				switch (portType) {
+				case POSITION_PORT_FROM_IN_RANGE:
+					return MINIMUM_RANGE_PORT_NETWORK;
+				case POSITION_PORT_TO_IN_RANGE:
+					return MAXIMUM_RANGE_PORT_NETWORK;					
+				default:
+		            throw new UnexpectedException(Messages.Exception.FATAL_ERROR);
+				}
 			}
 			String[] rangeSplited = this.range.split(OPENNEBULA_RANGE_SEPARATOR);
 			if (rangeSplited.length != 2) {
@@ -266,7 +273,7 @@ public class Rule {
 		attributes[SIZE_INDEX] = String.valueOf(this.size);
 		attributes[RANGE_INDEX] = this.range;
 		attributes[TYPE_INDEX] = this.type;
-		attributes[NETWORK_ID_INDEX] = String.valueOf(this.networkId);
+		attributes[NETWORK_ID_INDEX] = this.networkId != null ? String.valueOf(this.networkId): "";
 		attributes[SECURITY_GROUP_INDEX] = this.securityGroupId;
 		
 		String instanceId = StringUtils.join(attributes, INSTANCE_ID_SEPARATOR);
@@ -276,14 +283,18 @@ public class Rule {
 	public static Rule deserialize(String instanceId) {
 		Rule rule = new Rule();
 		String[] instanceIdSplit = instanceId.split(INSTANCE_ID_SEPARATOR);
-		rule.setProtocol(instanceIdSplit[PROTOCOL_INDEX]);
-		rule.setIp(instanceIdSplit[IP_INDEX]);
-		rule.setSize(instanceIdSplit[SIZE_INDEX]);
-		rule.setRange(instanceIdSplit[RANGE_INDEX]);
-		rule.setType(instanceIdSplit[TYPE_INDEX]);
-		rule.setNetworkId(instanceIdSplit[NETWORK_ID_INDEX]);
-		rule.setSecurityGroupId(instanceIdSplit[SECURITY_GROUP_INDEX]);
+		rule.setProtocol(getValueInInstanceId(instanceIdSplit[PROTOCOL_INDEX]));
+		rule.setIp(getValueInInstanceId(instanceIdSplit[IP_INDEX]));
+		rule.setSize(getValueInInstanceId(instanceIdSplit[SIZE_INDEX]));
+		rule.setRange(getValueInInstanceId(instanceIdSplit[RANGE_INDEX]));
+		rule.setType(getValueInInstanceId(instanceIdSplit[TYPE_INDEX]));
+		rule.setNetworkId(getValueInInstanceId(instanceIdSplit[NETWORK_ID_INDEX]));
+		rule.setSecurityGroupId(getValueInInstanceId(instanceIdSplit[SECURITY_GROUP_INDEX]));
 		return rule;
+	}
+	
+	protected static String getValueInInstanceId(String value) {
+		return !value.isEmpty() ? value : null;
 	}
 
 	@Override
@@ -314,11 +325,6 @@ public class Rule {
 			if (other.range != null)
 				return false;
 		} else if (!range.equals(other.range))
-			return false;
-		if (securityGroupId == null) {
-			if (other.securityGroupId != null)
-				return false;
-		} else if (!securityGroupId.equals(other.securityGroupId))
 			return false;
 		if (size == null) {
 			if (other.size != null)

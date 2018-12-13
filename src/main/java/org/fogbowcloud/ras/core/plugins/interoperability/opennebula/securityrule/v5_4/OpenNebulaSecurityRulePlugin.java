@@ -1,5 +1,8 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.securityrule.v5_4;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
@@ -19,9 +22,6 @@ import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vnet.VirtualNetwork;
-
-import java.util.ArrayList;
-import java.util.List;
 
 // TODO think more about this exception
 public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebulaToken> {
@@ -256,7 +256,7 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 		}
 		for (Rule rule: new ArrayList<>(rules)) {
 			if (rule.equals(ruleToRemove)) {
-				rules.remove(ruleToRemove);
+				rules.remove(ruleToRemove); 
 			}
 		}
 	}
