@@ -28,6 +28,7 @@ public class OpenStackVolumePluginTest {
     private final String FAKE_SIZE = "2";
     private final String FAKE_VOLUME_ID = "fake-id";
     private final String FAKE_NAME = "fake-name";
+    private final String FAKE_VOLUME_TYPE = "fake-type";
     private final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private final String FAKE_TOKEN_VALUE = "fake-token-value";
     private final String FAKE_USER_ID = "fake-user-id";
@@ -78,7 +79,7 @@ public class OpenStackVolumePluginTest {
     @Test
     public void testGenerateJsonEntityToCreateInstance() {
         // exercise
-        String entity = this.openStackVolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE, FAKE_NAME);
+        String entity = this.openStackVolumePlugin.generateJsonEntityToCreateInstance(FAKE_SIZE, FAKE_NAME, FAKE_VOLUME_TYPE);
         JSONObject jsonEntity = new JSONObject(entity);
 
         // verify

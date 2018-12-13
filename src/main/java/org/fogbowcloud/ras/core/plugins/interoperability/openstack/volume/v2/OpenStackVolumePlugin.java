@@ -165,7 +165,8 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3Token> {
         return createVolumeRequest.toJson();
     }
 
-    private String getValidVolumeTypeId(Map<String, String> requirements, String tenantId, OpenStackV3Token openStackV3Token) throws FogbowRasException, UnexpectedException {
+    private String getValidVolumeTypeId(Map<String, String> requirements, String tenantId, OpenStackV3Token openStackV3Token)
+            throws FogbowRasException, UnexpectedException {
 
         String endpoint = this.volumeV2APIEndpoint + tenantId + SUFIX_ENDPOINT_VOLUME_TYPES;
         String responseStr = null;
