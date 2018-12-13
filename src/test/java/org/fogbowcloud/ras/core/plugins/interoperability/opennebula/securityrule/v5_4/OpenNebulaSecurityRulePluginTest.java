@@ -202,11 +202,11 @@ public class OpenNebulaSecurityRulePluginTest {
         Rule rule = new Rule();
         rule.setIp(ip);
         rule.setSecurityGroupId(securityGruopId);
-        rule.setType("");
-        rule.setRange("");
-        rule.setNetworkId("");
-        rule.setProtocol("");
-        rule.setSize("");
+        rule.setType(null);
+        rule.setRange(null);
+        rule.setNetworkId(null);
+        rule.setProtocol(null);
+        rule.setSize("1");
         return rule;
     }
 

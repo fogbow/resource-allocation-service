@@ -114,7 +114,7 @@ public class RuleTest {
         Rule rule = new Rule();
         // verify
         int portFrom = rule.getPortInRange(Rule.POSITION_PORT_FROM_IN_RANGE);
-        Assert.assertEquals(Rule.INT_ERROR_CODE, portFrom);
+        Assert.assertEquals(Rule.MINIMUM_RANGE_PORT_NETWORK, portFrom);
     }
 
     // test case: success case with ipv4
