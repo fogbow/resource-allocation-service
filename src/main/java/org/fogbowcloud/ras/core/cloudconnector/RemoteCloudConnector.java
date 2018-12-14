@@ -9,6 +9,7 @@ import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
 import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
 
 import java.util.HashMap;
 import java.util.List;
@@ -86,7 +87,7 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public String genericRequest(String method, String url, Map<String, String> headers, Map<String, String> body, FederationUserToken federationUserToken) {
+    public GenericRequestResponse genericRequest(String method, String url, Map<String, String> headers, Map<String, String> body, FederationUserToken federationUserToken) {
         throw new UnsupportedOperationException();
     }
 
