@@ -1,12 +1,14 @@
 package org.fogbowcloud.ras.core.intercomponent.xmpp.requesters;
 
 import org.dom4j.Element;
+import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequest;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestHttpResponse;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
 import org.fogbowcloud.ras.util.GsonHolder;
 import org.xmpp.packet.IQ;
@@ -34,10 +36,20 @@ public class RemoteGenericRequest implements RemoteRequest<GenericRequestRespons
         return unmarshal(response);
     }
 
-    private GenericRequestResponse unmarshal(IQ response) {
+    private GenericRequestResponse unmarshal(IQ response) throws UnexpectedException {
         Element queryElement = response.getElement().element(IqElement.QUERY.toString());
         String genericRequestResponseStr = queryElement.element(IqElement.GENERIC_REQUEST_RESPONSE.toString()).getText();
-        return GsonHolder.getInstance().fromJson(genericRequestResponseStr, GenericRequestResponse.class);
+
+        String instanceClassName = queryElement.element(IqElement.GENERIC_REQUEST_RESPONSE_CLASS_NAME.toString()).getText();
+
+        GenericRequestResponse genericRequestResponse;
+        try {
+            genericRequestResponse = (GenericRequestResponse) GsonHolder.getInstance().
+                    fromJson(genericRequestResponseStr, Class.forName(instanceClassName));
+        } catch (Exception e) {
+            throw new UnexpectedException(e.getMessage());
+        }
+        return genericRequestResponse;
     }
 
     private IQ marshal(String provider, String cloudName, GenericRequest genericRequest, FederationUserToken federationUserToken) {

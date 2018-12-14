@@ -65,8 +65,10 @@ public class RemoteGenericRequestHandler extends AbstractQueryHandler {
 
     private void updateResponse(IQ response, GenericRequestResponse genericRequestResponse) {
         Element queryEl = response.getElement().addElement(IqElement.QUERY.toString(), REMOTE_GENERIC_REQUEST);
-        Element imagesMapElement = queryEl.addElement(IqElement.GENERIC_REQUEST_RESPONSE.toString());
+        Element genericRequestElement = queryEl.addElement(IqElement.GENERIC_REQUEST_RESPONSE.toString());
+        Element genericRequestElementClassname = queryEl.addElement(IqElement.GENERIC_REQUEST_RESPONSE_CLASS_NAME.toString());
 
-        imagesMapElement.setText(GsonHolder.getInstance().toJson(genericRequestResponse));
+        genericRequestElement.setText(GsonHolder.getInstance().toJson(genericRequestResponse));
+        genericRequestElementClassname.setText(genericRequestResponse.getClass().getName());
     }
 }
