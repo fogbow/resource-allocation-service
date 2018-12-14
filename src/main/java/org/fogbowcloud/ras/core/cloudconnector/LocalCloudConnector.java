@@ -16,6 +16,7 @@ import org.fogbowcloud.ras.core.models.quotas.Quota;
 import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
 import org.fogbowcloud.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
@@ -270,8 +271,8 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public String genericRequest(String method, String url, Map<String, String> headers, Map<String, String> body,
-                                 FederationUserToken federationTokenUser) throws UnexpectedException, FogbowRasException {
+    public GenericRequestResponse genericRequest(String method, String url, Map<String, String> headers, Map<String, String> body,
+                                                 FederationUserToken federationTokenUser) throws UnexpectedException, FogbowRasException {
         Token token = this.mapperPlugin.map(federationTokenUser);
         return this.genericRequestPlugin.redirectGenericRequest(method, url, headers, body, token);
     }

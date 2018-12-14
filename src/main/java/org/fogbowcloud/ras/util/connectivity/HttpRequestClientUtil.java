@@ -16,6 +16,7 @@ import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.ras.core.models.tokens.Token;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestHttpResponse;
 import org.fogbowcloud.ras.util.GsonHolder;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
@@ -209,7 +210,7 @@ public class HttpRequestClientUtil {
         return responseStr;
     }
 
-    public String doGenericRequest(String method, String urlString, Map<String, String> headers, Map<String, String> body) throws FogbowRasException {
+    public GenericRequestHttpResponse doGenericRequest(String method, String urlString, Map<String, String> headers, Map<String, String> body) throws FogbowRasException {
         try {
             URL url = new URL(urlString);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -226,22 +227,18 @@ public class HttpRequestClientUtil {
             }
 
             int responseCode = connection.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                BufferedReader in = new BufferedReader(new InputStreamReader(
-                        connection.getInputStream()));
-                StringBuffer response = new StringBuffer();
 
-                String inputLine;
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
+            BufferedReader in = new BufferedReader(new InputStreamReader(
+                    connection.getInputStream()));
 
-                return response.toString();
-            } else {
-                // FIXME Retrieve more info about this error
-                throw new FogbowRasException(String.format("Response code was <%d>", responseCode));
+            StringBuffer responseBuffer = new StringBuffer();
+            String inputLine;
+            while ((inputLine = in.readLine()) != null) {
+                responseBuffer.append(inputLine);
             }
+            in.close();
+
+            return new GenericRequestHttpResponse(responseBuffer.toString(), responseCode);
         } catch (ProtocolException e) {
             throw new FogbowRasException("", e);
         } catch (MalformedURLException e) {

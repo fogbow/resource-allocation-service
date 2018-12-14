@@ -6,6 +6,7 @@ import org.fogbowcloud.ras.core.ApplicationFacade;
 import org.fogbowcloud.ras.core.constants.ApiDocumentation;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ public class GenericRequest {
     private final Logger LOGGER = Logger.getLogger(GenericRequest.class);
 
     @RequestMapping(method = RequestMethod.POST, value = "/{memberId}" + "/{cloudName}")
-    public ResponseEntity<String> genericRequest(@ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
+    public ResponseEntity<GenericRequestResponse> genericRequest(@ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
                                                  @PathVariable
                                                          String cloudName,
 
@@ -47,10 +48,10 @@ public class GenericRequest {
 //        String url = request.getRequestURL().toString();
 //        String method = request.getMethod();
 
-        String response = ApplicationFacade.getInstance().genericRequest(
+        GenericRequestResponse genericRequestResponse = ApplicationFacade.getInstance().genericRequest(
                 cloudName, memberId, genericRequest.method, genericRequest.url, genericRequest.headers, genericRequest.body,
                 federationTokenValue);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>(genericRequestResponse, HttpStatus.OK);
     }
 
     public static class GenericRequestBean {

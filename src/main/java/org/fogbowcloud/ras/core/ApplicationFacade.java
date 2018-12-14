@@ -17,6 +17,7 @@ import org.fogbowcloud.ras.core.models.quotas.allocation.Allocation;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 
 import java.util.List;
@@ -311,8 +312,8 @@ public class ApplicationFacade {
         return cloudConnector.getUserQuota(requester, resourceType);
     }
 
-    public String genericRequest(String cloudName, String memberId, String method, String url, Map<String, String> headers, Map<String, String> body,
-                                 String federationTokenValue) throws FogbowRasException, UnexpectedException {
+    public GenericRequestResponse genericRequest(String cloudName, String memberId, String method, String url, Map<String, String> headers, Map<String, String> body,
+                                                 String federationTokenValue) throws FogbowRasException, UnexpectedException {
         FederationUserToken federationUserToken = this.aaaController.getFederationUser(federationTokenValue);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
         return cloudConnector.genericRequest(method, url, headers, body, federationUserToken);

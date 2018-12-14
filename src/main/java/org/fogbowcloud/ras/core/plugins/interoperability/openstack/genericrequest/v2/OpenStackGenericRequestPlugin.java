@@ -1,7 +1,8 @@
-package org.fogbowcloud.ras.core.plugins.interoperability.openstack.genericplugin.v2;
+package org.fogbowcloud.ras.core.plugins.interoperability.openstack.genericrequest.v2;
 
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestHttpResponse;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.HttpBasedGenericRequestPlugin;
 import org.fogbowcloud.ras.util.GsonHolder;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestUtil;
@@ -22,7 +23,7 @@ public class OpenStackGenericRequestPlugin extends HttpBasedGenericRequestPlugin
     }
 
     @Override
-    public String redirectGenericRequest(String method, String url, Map<String, String> headers, Map<String, String> body, OpenStackV3Token token) throws FogbowRasException {
+    public GenericRequestHttpResponse redirectGenericRequest(String method, String url, Map<String, String> headers, Map<String, String> body, OpenStackV3Token token) throws FogbowRasException {
         headers.put(HttpRequestUtil.X_AUTH_TOKEN_KEY, token.getTokenValue());
         return getClient().doGenericRequest(method, url, headers, body);
     }

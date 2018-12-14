@@ -6,6 +6,6 @@ import java.util.Map;
 
 public interface GenericRequestPlugin<Token> {
 
-    String redirectGenericRequest(String method, String url, Map<String, String> headers, Map<String, String> body, Token token) throws FogbowRasException;
+    GenericRequestResponse redirectGenericRequest(String method, String url, Map<String, String> headers, Map<String, String> body, Token token) throws FogbowRasException;
 
 }
