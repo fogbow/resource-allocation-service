@@ -23,7 +23,6 @@ import org.opennebula.client.OneResponse;
 import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vnet.VirtualNetwork;
 
-// TODO think more about this exception
 public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebulaToken> {
 
 	public static final Logger LOGGER = Logger.getLogger(OpenNebulaSecurityRulePlugin.class);
@@ -70,6 +69,45 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 		}
 		String instanceId = rule.serialize();
 		return instanceId;
+    }
+
+	@Override
+    public List<SecurityRule> getSecurityRules(Order majorOrder, OpenNebulaToken localUserAttributes)
+            throws FogbowRasException, UnexpectedException {    	
+    	Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+    	
+    	// Both NetworkOrder's instanceId and PublicIdOrder's instanceId are network ids in the opennebula context 
+    	String virtualNetworkId = majorOrder.getInstanceId();
+    	VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, virtualNetworkId);
+
+		String securityGroupId = getSecurityGroupBy(virtualNetwork);		
+		SecurityGroup securityGroup = this.factory.createSecurityGroup(client, securityGroupId);
+
+		return getSecurityRules(securityGroup);
+    }
+
+    @Override
+    public void deleteSecurityRule(String securityRuleId, OpenNebulaToken localUserAttributes)
+            throws FogbowRasException, UnexpectedException {
+        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, securityRuleId, localUserAttributes.getTokenValue()));
+        Client client = this.factory.createClient(localUserAttributes.getTokenValue());
+
+		Rule ruleToRemove = createRule(securityRuleId);
+		String securityGroupId = ruleToRemove.getSecurityGroupId();
+		SecurityGroup securityGroup = this.factory.createSecurityGroup(client, securityGroupId);
+		SecurityGroupInfo securityGroupInfo = getSecurityGroupInfo(securityGroup);
+
+		List<Rule> rules = getRules(securityGroupInfo);
+		removeRule(ruleToRemove, rules);
+
+		SecurityGroupTemplate securityGroupTemplate = createSecurityGroupTemplate(securityGroupInfo, rules);
+		String xml = securityGroupTemplate.marshalTemplate();
+		OneResponse response = securityGroup.update(xml);
+		if (response.isError()) {
+			String errorMsg = String.format(Messages.Error.ERROR_WHILE_REMOVING_SECURITY_RULE, securityGroupId, response.getMessage());
+			LOGGER.error(errorMsg);
+			throw new FogbowRasException(errorMsg);
+		}
     }
 
 	protected Rule createRuleBy(SecurityRule securityRule) {
@@ -120,23 +158,8 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 			break;
 		}
 		return type;
-	}
-
-	@Override
-    public List<SecurityRule> getSecurityRules(Order majorOrder, OpenNebulaToken localUserAttributes)
-            throws FogbowRasException, UnexpectedException {    	
-    	Client client = this.factory.createClient(localUserAttributes.getTokenValue());
-    	
-    	// Both NetworkOrder's instanceId and PublicIdOrder's instanceId are network ids in the opennebula context 
-    	String virtualNetworkId = majorOrder.getInstanceId();
-    	VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, virtualNetworkId);
-
-		String securityGroupId = getSecurityGroupBy(virtualNetwork);		
-		SecurityGroup securityGroup = this.factory.createSecurityGroup(client, securityGroupId);
-
-		return getSecurityRules(securityGroup);
-    }
-
+	}    
+    
 	protected List<SecurityRule> getSecurityRules(SecurityGroup securityGroup) throws FogbowRasException {
 		List<SecurityRule> securityRules = new ArrayList<SecurityRule>();
 		try {
@@ -171,9 +194,9 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
 		} catch (Exception e) {
 			throw new FogbowRasException(e.getMessage(), e);
 		}
-	}
-
-	/**
+	}    
+    
+    /**
      * Note: In the Fogbow context, everytime the Virtual Network(VN) will have 
      * two security groups; The first is the default contained in every VN and
      * the second is the security group used by Fogbow because is created by own
@@ -181,44 +204,20 @@ public class OpenNebulaSecurityRulePlugin implements SecurityRulePlugin<OpenNebu
      * @param  virtualNetwork : Opennebula client object regarding to Virtual Network
      * @return the correct security group associated with the Virtual Network
      */
-	protected String getSecurityGroupBy(VirtualNetwork virtualNetwork) {
-		String securityGroupXMLContent = virtualNetwork.xpath(TEMPLATE_VNET_SECURITY_GROUPS_PATH);
-		if (securityGroupXMLContent == null || securityGroupXMLContent.isEmpty()) {
-			LOGGER.warn("Security Groups int the XML Template of the VirtualNetwork is null");
-			return null;
-		}
-		String[] securityGroupXMLContentSlices = securityGroupXMLContent.split(OPENNEBULA_XML_ARRAY_SEPARATOR);
-		if (securityGroupXMLContentSlices.length < 2) {
-			LOGGER.warn("Security Groups int the XML Template of the VirtualNetwork is with wrong format");
-			return null;
-		}
-		return securityGroupXMLContentSlices[SLICE_POSITION_SECURITY_GROUP];
-	}
-
-    @Override
-    public void deleteSecurityRule(String securityRuleId, OpenNebulaToken localUserAttributes)
-            throws FogbowRasException, UnexpectedException {
-        LOGGER.info(String.format(Messages.Info.DELETING_INSTANCE, securityRuleId, localUserAttributes.getTokenValue()));
-        Client client = this.factory.createClient(localUserAttributes.getTokenValue());
-
-		Rule ruleToRemove = createRule(securityRuleId);
-		String securityGroupId = ruleToRemove.getSecurityGroupId();
-		SecurityGroup securityGroup = this.factory.createSecurityGroup(client, securityGroupId);
-		SecurityGroupInfo securityGroupInfo = getSecurityGroupInfo(securityGroup);
-
-		List<Rule> rules = getRules(securityGroupInfo);
-		removeRule(ruleToRemove, rules);
-
-		SecurityGroupTemplate securityGroupTemplate = createSecurityGroupTemplate(securityGroupInfo, rules);
-		String xml = securityGroupTemplate.marshalTemplate();
-		OneResponse response = securityGroup.update(xml);
-		if (response.isError()) {
-			String errorMsg = String.format(Messages.Error.ERROR_WHILE_REMOVING_SECURITY_RULE, securityGroupId, response.getMessage());
-			LOGGER.error(errorMsg);
-			throw new FogbowRasException(errorMsg);
-		}
+    protected String getSecurityGroupBy(VirtualNetwork virtualNetwork) {
+    	String securityGroupXMLContent = virtualNetwork.xpath(TEMPLATE_VNET_SECURITY_GROUPS_PATH);
+    	if (securityGroupXMLContent == null || securityGroupXMLContent.isEmpty()) {
+    		LOGGER.warn("Security Groups int the XML Template of the VirtualNetwork is null");
+    		return null;
+    	}
+    	String[] securityGroupXMLContentSlices = securityGroupXMLContent.split(OPENNEBULA_XML_ARRAY_SEPARATOR);
+    	if (securityGroupXMLContentSlices.length < 2) {
+    		LOGGER.warn("Security Groups int the XML Template of the VirtualNetwork is with wrong format");
+    		return null;
+    	}
+    	return securityGroupXMLContentSlices[SLICE_POSITION_SECURITY_GROUP];
     }
-
+    
 	protected Rule createRule(String securityRuleId) throws FogbowRasException {
 		try {
 			return Rule.deserialize(securityRuleId);

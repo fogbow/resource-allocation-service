@@ -270,7 +270,7 @@ public class Rule {
 		String[] attributes = new String[7];
 		attributes[PROTOCOL_INDEX] = this.protocol;
 		attributes[IP_INDEX] = this.ip;
-		attributes[SIZE_INDEX] = String.valueOf(this.size);
+		attributes[SIZE_INDEX] = this.size;
 		attributes[RANGE_INDEX] = this.range;
 		attributes[TYPE_INDEX] = this.type;
 		attributes[NETWORK_ID_INDEX] = this.networkId != null ? String.valueOf(this.networkId): "";

@@ -211,7 +211,7 @@ public class OpenNebulaSecurityRulePluginTest {
         rule.setRange(null);
         rule.setNetworkId(null);
         rule.setProtocol(null);
-        rule.setSize("1");
+        rule.setSize(null);
         return rule;
     }
 
