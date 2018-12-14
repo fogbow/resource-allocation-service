@@ -14,7 +14,7 @@ public class OpenNebulaAllToOneMapper implements FederationToLocalMapperPlugin {
     public OpenNebulaAllToOneMapper(String interoperabilityConfFilePath, String mapperConfFilePath) {
         this.genericMapper = new GenericAllToOneFederationToLocalMapper(
                 new OpenNebulaTokenGeneratorPlugin(interoperabilityConfFilePath),
-                new OpenNebulaIdentityPlugin(interoperabilityConfFilePath), mapperConfFilePath);
+                new OpenNebulaIdentityPlugin(), mapperConfFilePath);
     }
 
     @Override
