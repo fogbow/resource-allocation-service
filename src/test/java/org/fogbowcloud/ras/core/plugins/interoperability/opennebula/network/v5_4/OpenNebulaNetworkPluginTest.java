@@ -1,5 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.network.v5_4;
 
+import java.io.File;
+
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
@@ -7,7 +9,6 @@ import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
-import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.junit.Before;
@@ -17,15 +18,14 @@ import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
+import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vnet.VirtualNetwork;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.File;
-
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({VirtualNetwork.class})
+@PrepareForTest({SecurityGroup.class, VirtualNetwork.class})
 public class OpenNebulaNetworkPluginTest {
 
 	private static final String LOCAL_TOKEN_VALUE = "user:password";
@@ -73,9 +73,17 @@ public class OpenNebulaNetworkPluginTest {
 		this.plugin.setFactory(this.factory);
 
 		NetworkOrder networkOrder = createNetworkOrder();
-		String template = generateNetworkTemplate();
-
+		String template = generateSecurityGroupTemplate();
+		
 		OneResponse response = Mockito.mock(OneResponse.class);
+		PowerMockito.mockStatic(SecurityGroup.class);
+		BDDMockito.given(SecurityGroup.allocate(Mockito.any(), Mockito.any())).willReturn(response);
+		Mockito.when(response.isError()).thenReturn(false);
+		Mockito.when(response.getMessage()).thenReturn("100");
+		
+		template = generateNetworkTemplate();
+
+		response = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(VirtualNetwork.class);
 		BDDMockito.given(VirtualNetwork.allocate(Mockito.any(), Mockito.any())).willReturn(response);
 		Mockito.when(response.isError()).thenReturn(false);
@@ -234,23 +242,19 @@ public class OpenNebulaNetworkPluginTest {
 	}
 
 	private NetworkOrder createNetworkOrder() {
-		FederationUserToken federationUserToken = null;
-		String requestingMember = null;
 		String providingMember = null;
 		String cloudName = null;
 		String name = FAKE_NETWORK_NAME;
 		String gateway = FAKE_GATEWAY;
-		String address = FAKE_ADDRESS;
+		String cidr = "10.10.10.0/24";
 		NetworkAllocationMode allocation = null;
 				
 		NetworkOrder networkOrder = new NetworkOrder(
-				federationUserToken, 
-				requestingMember, 
-				providingMember,
-				cloudName,
+				providingMember, 
+				cloudName, 
 				name, 
 				gateway, 
-				address, 
+				cidr, 
 				allocation);
 		
 		return networkOrder;
@@ -274,21 +278,43 @@ public class OpenNebulaNetworkPluginTest {
 	}
 	
 	private String generateNetworkTemplate() {
-		return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
+		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
 				"<TEMPLATE>\n" + 
 				"    <AR>\n" + 
-				"        <IP>fake-address</IP>\n" + 
+				"        <IP>10.10.10.0</IP>\n" + 
 				"        <SIZE>256</SIZE>\n" + 
 				"        <TYPE>IP4</TYPE>\n" + 
 				"    </AR>\n" + 
 				"    <BRIDGE>br0</BRIDGE>\n" + 
-				"    <VN_MAD>fw</VN_MAD>\n" +
+				"    <VN_MAD>fw</VN_MAD>\n" + 
 				"    <DESCRIPTION>Virtual network created by fake-user-name</DESCRIPTION>\n" + 
 				"    <NAME>fake-network-name</NAME>\n" + 
-				"    <NETWORK_ADDRESS>fake-address</NETWORK_ADDRESS>\n" + 
+				"    <NETWORK_ADDRESS>10.10.10.0/24</NETWORK_ADDRESS>\n" + 
 				"    <NETWORK_GATEWAY>fake-gateway</NETWORK_GATEWAY>\n" + 
+				"    <SECURITY_GROUP>100</SECURITY_GROUP>\n" + 
 				"    <TYPE>RANGED</TYPE>\n" + 
 				"</TEMPLATE>\n";
+		
+		return template;
+	}
+	
+	private String generateSecurityGroupTemplate() {
+		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
+				"<TEMPLATE>\n" + 
+				"    <NAME>ras-sg-pn-391ba2b9-1946-420e-8dc7-3b6c47bca11f</NAME>\n" + 
+				"    <RULE>\n" + 
+				"        <IP>10.10.10.0</IP>\n" + 
+				"        <PROTOCOL>ALL</PROTOCOL>\n" + 
+				"        <SIZE>256</SIZE>\n" + 
+				"        <RULE_TYPE>inbound</RULE_TYPE>\n" + 
+				"    </RULE>\n" + 
+				"    <RULE>\n" + 
+				"        <PROTOCOL>ALL</PROTOCOL>\n" + 
+				"        <RULE_TYPE>outbound</RULE_TYPE>\n" + 
+				"    </RULE>\n" + 
+				"</TEMPLATE>\n";
+		
+		return template;
 	}
 	
 }
