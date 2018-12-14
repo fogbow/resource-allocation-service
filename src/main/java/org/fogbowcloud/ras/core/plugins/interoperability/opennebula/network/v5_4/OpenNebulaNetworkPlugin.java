@@ -1,8 +1,13 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.network.v5_4;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
@@ -13,12 +18,12 @@ import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.NetworkPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
+import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.CreateSecurityGroupRequest;
+import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.Rule;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
 import org.opennebula.client.vnet.VirtualNetwork;
-
-import java.util.Properties;
 
 public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 
@@ -28,11 +33,14 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 	private static final String DEFAULT_NETWORK_DESCRIPTION = "Virtual network created by %s";
 	private static final String DEFAULT_NETWORK_TYPE = "RANGED";
 	private static final String DEFAULT_VIRTUAL_NETWORK_BRIDGED_DRIVE = "fw";
-	private static final String NETWORK_ADDRESS_RANGE_SYZE = "256";
 	private static final String NETWORK_ADDRESS_RANGE_TYPE = "IP4";
 	private static final String TEMPLATE_NETWORK_ADDRESS_PATH = "TEMPLATE/NETWORK_ADDRESS";
 	private static final String TEMPLATE_NETWORK_GATEWAY_PATH = "TEMPLATE/NETWORK_GATEWAY";
 	private static final String TEMPLATE_VLAN_ID_PATH = "TEMPLATE/VLAN_ID";
+	private static final String CIDR_SEPARATOR = "[/]";
+	private static final String ALL_PROTOCOLS = "ALL";
+	private static final String ENTRY_RULE_TYPE = "inbound";
+	private static final String EXIT_RULE_TYPE = "outbound";
 	
 	private OpenNebulaClientFactory factory;
 
@@ -58,9 +66,13 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 		String bridgedDrive = DEFAULT_VIRTUAL_NETWORK_BRIDGED_DRIVE;
 		String address = networkOrder.getCidr();
 		String gateway = networkOrder.getGateway();
+		String securityGroupId = createSecurityGroup(client, networkOrder);
+		
+		String[] slice = sliceCIDR(networkOrder.getCidr());
+		String rangeIp = slice[0];
+		String rangeSize = slice[1];
 		String rangeType = NETWORK_ADDRESS_RANGE_TYPE;
-		String rangeIp = networkOrder.getCidr();
-		String rangeSize = NETWORK_ADDRESS_RANGE_SYZE;
+		
 		
 		CreateNetworkRequest request = new CreateNetworkRequest.Builder()
 				.name(name)
@@ -70,6 +82,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 				.bridgedDrive(bridgedDrive)
 				.address(address)
 				.gateway(gateway)
+				.securityGroupId(securityGroupId)
 				.rangeType(rangeType)
 				.rangeIp(rangeIp)
 				.rangeSize(rangeSize)
@@ -107,6 +120,43 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 		}
 	}
 
+	private String[] sliceCIDR(String cidr) throws InvalidParameterException {
+		String[] slice = null;
+		try {
+			slice = cidr.split(CIDR_SEPARATOR);
+			int value = Integer.parseInt(slice[1]);
+			slice[1] = String.valueOf((int) Math.pow(2, 32 - value));
+		} catch (Exception e) {
+			throw new InvalidParameterException();
+		}
+		return slice;
+	}
+
+	protected String createSecurityGroup(Client client, NetworkOrder networkOrder) throws InvalidParameterException {
+		String name = SECURITY_GROUP_PREFIX + networkOrder.getId();
+		String protocol = ALL_PROTOCOLS;
+		String inbound = ENTRY_RULE_TYPE;
+		String outbound = EXIT_RULE_TYPE;
+		
+		String[] slice = sliceCIDR(networkOrder.getCidr());
+		String ip = slice[0];
+		String size = slice[1];
+		
+		List<Rule> rules = new ArrayList<>();
+		Rule entryRule = new Rule(protocol, ip, size, null, inbound, null, null);
+		Rule exitRule = new Rule(protocol, null, null, null, outbound, null, null);
+		rules.add(entryRule);
+		rules.add(exitRule);
+		
+		CreateSecurityGroupRequest request = new CreateSecurityGroupRequest.Builder()
+				.name(name)
+				.rules(rules)
+				.build();
+		
+		String template = request.getSecurityGroup().marshalTemplate();
+		return this.factory.allocateSecurityGroup(client, template);
+	}
+	
 	protected NetworkInstance createInstance(VirtualNetwork virtualNetwork) {
 		String id = virtualNetwork.getId();
 		String name = virtualNetwork.getName();
