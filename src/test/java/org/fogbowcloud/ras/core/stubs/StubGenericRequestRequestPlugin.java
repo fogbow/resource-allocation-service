@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core.stubs;
 
 import org.fogbowcloud.ras.api.http.Token;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
 
@@ -12,7 +13,7 @@ public class StubGenericRequestRequestPlugin implements GenericRequestPlugin<Tok
     }
 
     @Override
-    public GenericRequestResponse redirectGenericRequest(String method, String url, Map<String, String> headers, Map<String, String> body, Token token) {
+    public GenericRequestResponse redirectGenericRequest(GenericRequest genericRequest, Token token) {
         return null;
     }
 

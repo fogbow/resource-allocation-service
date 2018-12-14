@@ -9,6 +9,7 @@ import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowRasExceptionMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestHttpResponse;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.HttpBasedGenericRequestPlugin;
 import org.springframework.http.HttpStatus;
@@ -19,10 +20,11 @@ import java.util.Map;
 public class CloudStackGenericRequestPlugin extends HttpBasedGenericRequestPlugin<CloudStackToken> {
 
     @Override
-    public GenericRequestHttpResponse redirectGenericRequest(String method, String url, Map<String, String> headers, Map<String, String> body, CloudStackToken token) throws FogbowRasException {
-        BasicHttpRequest request = new BasicHttpRequest(method, url);
-        for (String headerKey : headers.keySet()) {
-            request.setHeader(headerKey, headers.get(headerKey));
+    public GenericRequestHttpResponse redirectGenericRequest(GenericRequest genericRequest, CloudStackToken token) throws FogbowRasException {
+        String url = genericRequest.getUrl();
+        BasicHttpRequest request = new BasicHttpRequest(genericRequest.getMethod(), url);
+        for (String headerKey : genericRequest.getHeaders().keySet()) {
+            request.setHeader(headerKey, genericRequest.getHeaders().get(headerKey));
         }
 
         try {

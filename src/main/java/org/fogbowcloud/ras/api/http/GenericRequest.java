@@ -40,40 +40,17 @@ public class GenericRequest {
                                                  @RequestHeader(required = true, value = FEDERATION_TOKEN_VALUE_HEADER_KEY)
                                                          String federationTokenValue,
 
-                                                 @RequestBody GenericRequestBean genericRequest)
-            throws UnexpectedException, FogbowRasException {
+                                                 @RequestBody org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequest genericRequest)
+            throws Exception {
 
+//        TODO decide which API were gonna use
 //        FIXME these can be used if we want to get these from the request itself
 //        Map<String, String> headers = HttpRequestClientUtil.getHeaders(request);
 //        String url = request.getRequestURL().toString();
 //        String method = request.getMethod();
 
-        GenericRequestResponse genericRequestResponse = ApplicationFacade.getInstance().genericRequest(
-                cloudName, memberId, genericRequest.method, genericRequest.url, genericRequest.headers, genericRequest.body,
-                federationTokenValue);
+        GenericRequestResponse genericRequestResponse = ApplicationFacade.getInstance().genericRequest(cloudName,
+                memberId, genericRequest, federationTokenValue);
         return new ResponseEntity<>(genericRequestResponse, HttpStatus.OK);
-    }
-
-    public static class GenericRequestBean {
-        private String method;
-        private String url;
-        private Map<String, String> headers;
-        private Map<String, String> body;
-
-        public void setMethod(String method) {
-            this.method = method;
-        }
-
-        public void setUrl(String url) {
-            this.url = url;
-        }
-
-        public void setHeaders(Map<String, String> headers) {
-            this.headers = headers;
-        }
-
-        public void setBody(Map<String, String> body) {
-            this.body = body;
-        }
     }
 }
