@@ -1,9 +1,5 @@
 package org.fogbowcloud.ras.core.plugins.aaa.authentication.openstack.v3;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.interfaces.RSAPrivateKey;
-
 import org.apache.commons.lang.StringUtils;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
@@ -17,6 +13,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.interfaces.RSAPrivateKey;
 
 public class OpenStackAuthenticationPluginTest {
 	

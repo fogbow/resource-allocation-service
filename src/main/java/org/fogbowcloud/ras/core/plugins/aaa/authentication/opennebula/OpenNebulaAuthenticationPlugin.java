@@ -12,11 +12,11 @@ public class OpenNebulaAuthenticationPlugin extends RASAuthenticationPlugin {
     protected String getTokenMessage(FederationUserToken federationUserToken) {
         OpenNebulaToken oneToken = (OpenNebulaToken) federationUserToken;
 
-        String[] parameters = new String[]{
+        String[] parameters = new String[] {
             oneToken.getTokenProvider(),
             oneToken.getTokenValue(),
-            oneToken.getUserName(),
-            oneToken.getSignature()
+            oneToken.getUserId(),
+            oneToken.getUserName()
         };
         return StringUtils.join(parameters, OpenNebulaTokenGeneratorPlugin.OPENNEBULA_FIELD_SEPARATOR);
     }
