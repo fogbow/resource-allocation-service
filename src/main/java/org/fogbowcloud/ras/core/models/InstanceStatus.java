@@ -24,6 +24,9 @@ public class InstanceStatus {
         this.state = state;
     }
 
+    public String getCloudName() {
+        return cloudName;
+    }
 
     public String getInstanceId() {
         return instanceId;
