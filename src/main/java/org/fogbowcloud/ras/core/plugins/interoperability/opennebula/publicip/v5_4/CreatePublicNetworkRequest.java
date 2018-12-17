@@ -2,13 +2,13 @@ package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5
 
 import java.util.List;
 
-import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5_4.PublicNetwork.LeaseIp;
+import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5_4.PublicNetworkTemplate.LeaseIp;
 
 public class CreatePublicNetworkRequest {
 
-	private PublicNetwork publicNetwork;
+	private PublicNetworkTemplate publicNetwork;
 
-	public PublicNetwork getPublicNetwork() {
+	public PublicNetworkTemplate getPublicNetwork() {
 		return publicNetwork;
 	}
 
@@ -19,7 +19,7 @@ public class CreatePublicNetworkRequest {
 		String bridgedDrive = builder.bridgedDrive;
 		List<LeaseIp> leases = builder.leases;
 		
-		this.publicNetwork = new PublicNetwork();
+		this.publicNetwork = new PublicNetworkTemplate();
 		this.publicNetwork.setName(name);
 		this.publicNetwork.setType(type);
 		this.publicNetwork.setBridge(bridge);
