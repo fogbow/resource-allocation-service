@@ -16,7 +16,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshallerTemplate;
 
 @XmlRootElement(name = TEMPLATE)
-public class PublicNetwork extends OpenNebulaMarshallerTemplate{
+public class PublicNetworkTemplate extends OpenNebulaMarshallerTemplate{
 
 	private String name;
 	private String type;
