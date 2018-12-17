@@ -39,8 +39,8 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 	private static final String TEMPLATE_VLAN_ID_PATH = "TEMPLATE/VLAN_ID";
 	private static final String CIDR_SEPARATOR = "[/]";
 	private static final String ALL_PROTOCOLS = "ALL";
-	private static final String ENTRY_RULE_TYPE = "inbound";
-	private static final String EXIT_RULE_TYPE = "outbound";
+	private static final String INPUT_RULE_TYPE = "inbound";
+	private static final String OUTPUT_RULE_TYPE = "outbound";
 	
 	private OpenNebulaClientFactory factory;
 
@@ -135,18 +135,17 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 	protected String createSecurityGroup(Client client, NetworkOrder networkOrder) throws InvalidParameterException {
 		String name = SECURITY_GROUP_PREFIX + networkOrder.getId();
 		String protocol = ALL_PROTOCOLS;
-		String inbound = ENTRY_RULE_TYPE;
-		String outbound = EXIT_RULE_TYPE;
 		
 		String[] slice = sliceCIDR(networkOrder.getCidr());
 		String ip = slice[0];
 		String size = slice[1];
 		
+		Rule inputRule = new Rule(protocol, ip, size, null, INPUT_RULE_TYPE, null, null);
+		Rule outputRule = new Rule(protocol, null, null, null, OUTPUT_RULE_TYPE, null, null);
+		
 		List<Rule> rules = new ArrayList<>();
-		Rule entryRule = new Rule(protocol, ip, size, null, inbound, null, null);
-		Rule exitRule = new Rule(protocol, null, null, null, outbound, null, null);
-		rules.add(entryRule);
-		rules.add(exitRule);
+		rules.add(inputRule);
+		rules.add(outputRule);
 		
 		CreateSecurityGroupRequest request = new CreateSecurityGroupRequest.Builder()
 				.name(name)
