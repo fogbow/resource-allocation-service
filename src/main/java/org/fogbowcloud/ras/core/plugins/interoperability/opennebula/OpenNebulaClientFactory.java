@@ -155,7 +155,7 @@ public class OpenNebulaClientFactory {
 			throw new UnexpectedException(response.getErrorMessage());
  		}
  		LOGGER.info(String.format(Messages.Info.USER_POOL_LENGTH, userpool.getLength()));
-		return null;
+		return userpool;
 	}
 	
     public User getUser(UserPool userPool, String userName) throws UnauthorizedRequestException {
