@@ -9,10 +9,11 @@ import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
 import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequest;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class RemoteCloudConnector implements CloudConnector {
     private static final Logger LOGGER = Logger.getLogger(RemoteCloudConnector.class);
@@ -60,7 +61,6 @@ public class RemoteCloudConnector implements CloudConnector {
 
     @Override
     public Quota getUserQuota(FederationUserToken federationUserToken, ResourceType resourceType) throws Exception {
-
         RemoteGetUserQuotaRequest remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.destinationMember,
                 this.cloudName, federationUserToken, resourceType);
         Quota quota = remoteGetUserQuotaRequest.send();
@@ -69,7 +69,6 @@ public class RemoteCloudConnector implements CloudConnector {
 
     @Override
     public HashMap<String, String> getAllImages(FederationUserToken federationUserToken) throws Exception {
-
         RemoteGetAllImagesRequest remoteGetAllImagesRequest = new RemoteGetAllImagesRequest(this.destinationMember,
                 this.cloudName, federationUserToken);
         HashMap<String, String> imagesMap = remoteGetAllImagesRequest.send();
@@ -78,7 +77,6 @@ public class RemoteCloudConnector implements CloudConnector {
 
     @Override
     public Image getImage(String imageId, FederationUserToken federationUserToken) throws Exception {
-
         RemoteGetImageRequest remoteGetImageRequest = new RemoteGetImageRequest(this.destinationMember, this.cloudName,
                 imageId, federationUserToken);
         Image image = remoteGetImageRequest.send();
@@ -86,8 +84,10 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public String genericRequest(String method, String url, Map<String, String> headers, String body, FederationUserToken federationUserToken) {
-        throw new UnsupportedOperationException();
+    public GenericRequestResponse genericRequest(GenericRequest genericRequest, FederationUserToken federationUserToken) throws Exception {
+        RemoteGenericRequest remoteGenericRequest = new RemoteGenericRequest(this.destinationMember, this.cloudName, genericRequest, federationUserToken);
+        GenericRequestResponse genericRequestResponse = remoteGenericRequest.send();
+        return genericRequestResponse;
     }
 
     @Override
