@@ -15,10 +15,13 @@ public class OpenNebulaIdentityPlugin implements FederationIdentityPlugin<OpenNe
         }
 
         String split[] = tokenValue.split(OpenNebulaTokenGeneratorPlugin.OPENNEBULA_FIELD_SEPARATOR);
+        if (split.length != OpenNebulaTokenGeneratorPlugin.FEDERATION_TOKEN_PARAMETER_SIZE) {
+            throw new InvalidParameterException(String.format(Messages.Error.INVALID_TOKEN_VALUE, Messages.Error.INVALID_FORMAT_TOKEN));
+        }
         String provider = split[OpenNebulaTokenGeneratorPlugin.PROVIDER_ID_TOKEN_VALUE_PARAMETER];
         String oneTokenValue = split[OpenNebulaTokenGeneratorPlugin.ONE_TOKEN_VALUE_PARAMETER];
-        String userId = split[OpenNebulaTokenGeneratorPlugin.USERNAME_TOKEN_VALUE_PARAMETER];
-        String userName = split[OpenNebulaTokenGeneratorPlugin.USER_ID_TOKEN_VALUE_PARAMETER];
+        String userId = split[OpenNebulaTokenGeneratorPlugin.USER_ID_TOKEN_VALUE_PARAMETER];
+        String userName = split[OpenNebulaTokenGeneratorPlugin.USERNAME_TOKEN_VALUE_PARAMETER];
         String signature = split[OpenNebulaTokenGeneratorPlugin.SIGNATURE_TOKEN_VALUE_PARAMETER];
 
         return new OpenNebulaToken(provider, oneTokenValue, userId, userName, signature);

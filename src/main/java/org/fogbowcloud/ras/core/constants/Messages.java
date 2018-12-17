@@ -168,6 +168,7 @@ public class Messages {
         public static final String UNEXPECTED_JOB_STATUS = "Job status must be one of {0, 1, 2}.";
         public static final String UNSPECIFIED_PROJECT_ID = "Unspecified projectId.";
         public static final String EMPTY_OR_NULL_TOKEN = "A null or empty token was received";
+        public static final String INVALID_FORMAT_TOKEN = "Invalid format token was received";
 		public static final String ERROR_WHILE_CREATING_SECURITY_GROUPS = "Error while creating a security groups from template: %s.";
 		public static final String ERROR_WHILE_CREATING_NIC = "Error while creating a network interface connected from template: %s.";
 		public static final String ERROR_WHILE_CREATING_AR = "Error while creating a address range from template: %s.";
