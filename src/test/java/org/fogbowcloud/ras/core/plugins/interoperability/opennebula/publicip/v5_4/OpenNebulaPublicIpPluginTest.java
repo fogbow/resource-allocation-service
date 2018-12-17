@@ -82,6 +82,7 @@ public class OpenNebulaPublicIpPluginTest {
 
 		String virtualNetworkId = "1";
 		String vnTemplate = generatePublicNetworkTemplate();
+		
 		OneResponse vnResponse = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(VirtualNetwork.class);
 		BDDMockito.given(VirtualNetwork.allocate(Mockito.any(Client.class), Mockito.contains(vnTemplate)))
@@ -90,7 +91,8 @@ public class OpenNebulaPublicIpPluginTest {
 		Mockito.when(vnResponse.getMessage()).thenReturn(virtualNetworkId);
 
 		String securityGroupsId = "1";
-		String sgTemplate = generateSecurityGroupsTemplate();
+		String sgTemplate = generateSecurityGroupsTemplate(publicIpOrder.getId());
+		
 		OneResponse sgResponse = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(SecurityGroup.class);
 		BDDMockito.given(SecurityGroup.allocate(Mockito.any(Client.class), Mockito.contains(sgTemplate)))
@@ -99,13 +101,14 @@ public class OpenNebulaPublicIpPluginTest {
 		Mockito.when(sgResponse.getMessage()).thenReturn(securityGroupsId);
 		
 		String nicTemplate = generateNicTemplate();
-		OneResponse nicResponse = Mockito.mock(OneResponse.class);
+		
 		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
 		Mockito.doReturn(virtualMachine).when(this.factory).createVirtualMachine(client, computeInstanceId);
-		Mockito.when(virtualMachine.nicAttach(Mockito.contains(nicTemplate))).thenReturn(nicResponse);
-		Mockito.when(nicResponse.isError()).thenReturn(false);
-
+		
 		OneResponse vmResponse = Mockito.mock(OneResponse.class);
+		Mockito.when(virtualMachine.nicAttach(Mockito.contains(nicTemplate))).thenReturn(vmResponse);
+		Mockito.when(vmResponse.isError()).thenReturn(false);
+
 		Mockito.when(virtualMachine.info()).thenReturn(vmResponse);
 		Mockito.when(vmResponse.getMessage()).thenReturn(VIRTUAL_MACHINE_CONTENT);
 
@@ -148,7 +151,8 @@ public class OpenNebulaPublicIpPluginTest {
 
 		String instanceId = FAKE_INSTANCE_ID;
 		String computeInstanceId = "1";
-		String networkId = "0";
+		String virtualNetworkId = "1";
+		String securityGroupId = "1";
 		int id = 1;
 		
 		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
@@ -161,18 +165,29 @@ public class OpenNebulaPublicIpPluginTest {
 		Mockito.doReturn(false).when(response).isError();
 		
 		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
-		Mockito.doReturn(virtualNetwork).when(this.factory).createVirtualNetwork(client, networkId);
+		Mockito.doReturn(virtualNetwork).when(this.factory).createVirtualNetwork(client, virtualNetworkId);
 		
-		Mockito.when(virtualNetwork.free(id)).thenReturn(response);
+		Mockito.when(virtualNetwork.delete()).thenReturn(response);
 		Mockito.doReturn(false).when(response).isError();
 
+		SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
+		Mockito.doReturn(securityGroup).when(this.factory).createSecurityGroup(client, securityGroupId);
+		
+		Mockito.when(securityGroup.delete()).thenReturn(response);
+		Mockito.doReturn(false).when(response).isError();
+		
 		// exercise
 		this.plugin.deleteInstance(instanceId, computeInstanceId, token);
 
 		// verify
 		Mockito.verify(this.factory, Mockito.times(2)).createClient(Mockito.anyString());
 		Mockito.verify(this.factory, Mockito.times(1)).createVirtualMachine(Mockito.any(Client.class), Mockito.anyString());
+		Mockito.verify(this.factory, Mockito.times(1)).createVirtualNetwork(Mockito.any(Client.class), Mockito.anyString());
+		Mockito.verify(this.factory, Mockito.times(1)).createSecurityGroup(Mockito.any(Client.class), Mockito.anyString());
 		Mockito.verify(virtualMachine, Mockito.times(1)).nicDetach(id);
+		Mockito.verify(virtualNetwork, Mockito.times(1)).delete();
+		Mockito.verify(securityGroup, Mockito.times(1)).delete();
+		Mockito.verify(response, Mockito.times(3)).isError();
 	}
 	
 	// test case: When calling the getInstance method, if the OpenNebulaClientFactory class 
@@ -290,24 +305,22 @@ public class OpenNebulaPublicIpPluginTest {
 		return template;
 	}
 	
-	private String generateSecurityGroupsTemplate() {
+	private String generateSecurityGroupsTemplate(String publicipOrderId) {
 		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
 				"<TEMPLATE>\n" + 
-				"    <NAME>Public_IP</NAME>\n" + 
+				"    <NAME>ras-sg-pip-%s</NAME>\n" + 
 				"    <RULE>\n" + 
 				"        <NETWORK_ID>1</NETWORK_ID>\n" + 
-				"        <PROTOCOL>TCP</PROTOCOL>\n" + 
-				"        <RANGE>1:65536</RANGE>\n" + 
+				"        <PROTOCOL>ALL</PROTOCOL>\n" + 
 				"        <RULE_TYPE>inbound</RULE_TYPE>\n" + 
 				"    </RULE>\n" + 
 				"    <RULE>\n" + 
 				"        <NETWORK_ID>1</NETWORK_ID>\n" + 
-				"        <PROTOCOL>TCP</PROTOCOL>\n" + 
-				"        <RANGE>1:65536</RANGE>\n" + 
+				"        <PROTOCOL>ALL</PROTOCOL>\n" + 
 				"        <RULE_TYPE>outbound</RULE_TYPE>\n" + 
 				"    </RULE>\n" + 
 				"</TEMPLATE>\n";
 		
-		return template;
+		return String.format(template,publicipOrderId);
 	}	
 }
