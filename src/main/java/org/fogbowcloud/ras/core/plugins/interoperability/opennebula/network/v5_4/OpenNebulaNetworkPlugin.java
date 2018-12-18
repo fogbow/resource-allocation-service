@@ -41,6 +41,9 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 	private static final String ALL_PROTOCOLS = "ALL";
 	private static final String INPUT_RULE_TYPE = "inbound";
 	private static final String OUTPUT_RULE_TYPE = "outbound";
+
+	private static final int BASE_VALUE = 2;
+	private static final int IPV4_AMOUNT_BITS = 32;
 	
 	private OpenNebulaClientFactory factory;
 
@@ -64,12 +67,12 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 		String type = DEFAULT_NETWORK_TYPE;
 		String bridge = this.bridge;
 		String bridgedDrive = DEFAULT_VIRTUAL_NETWORK_BRIDGED_DRIVE;
-		String address = networkOrder.getCidr();
 		String gateway = networkOrder.getGateway();
 		String securityGroupId = createSecurityGroup(client, networkOrder);
 		
 		String[] slice = sliceCIDR(networkOrder.getCidr());
-		String rangeIp = slice[0];
+		String address = slice[0];
+		String rangeIp = address;
 		String rangeSize = slice[1];
 		String rangeType = NETWORK_ADDRESS_RANGE_TYPE;
 		
@@ -125,7 +128,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 		try {
 			slice = cidr.split(CIDR_SEPARATOR);
 			int value = Integer.parseInt(slice[1]);
-			slice[1] = String.valueOf((int) Math.pow(2, 32 - value));
+			slice[1] = String.valueOf((int) Math.pow(BASE_VALUE, IPV4_AMOUNT_BITS - value));
 		} catch (Exception e) {
 			throw new InvalidParameterException();
 		}
@@ -134,14 +137,27 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 
 	protected String createSecurityGroup(Client client, NetworkOrder networkOrder) throws InvalidParameterException {
 		String name = SECURITY_GROUP_PREFIX + networkOrder.getId();
+		
+		// "ALL" setting applies to all protocols if a port range is not defined
 		String protocol = ALL_PROTOCOLS;
 		
 		String[] slice = sliceCIDR(networkOrder.getCidr());
 		String ip = slice[0];
 		String size = slice[1];
 		
-		Rule inputRule = new Rule(protocol, ip, size, null, INPUT_RULE_TYPE, null, null);
-		Rule outputRule = new Rule(protocol, null, null, null, OUTPUT_RULE_TYPE, null, null);
+		// An undefined port range is interpreted by opennebula as all open
+		String rangeAll = null;
+		
+		// An undefined ip and size is interpreted by opennebula as any network
+		String ipAny = null;
+		String sizeAny = null;
+		
+		// The networkId and securityGroupId parameters are not used in this context.
+		String networkId = null;
+		String securityGroupId = null;
+		
+		Rule inputRule = new Rule(protocol, ip, size, rangeAll , INPUT_RULE_TYPE, networkId, securityGroupId);
+		Rule outputRule = new Rule(protocol, ipAny, sizeAny, rangeAll, OUTPUT_RULE_TYPE, networkId, securityGroupId);
 		
 		List<Rule> rules = new ArrayList<>();
 		rules.add(inputRule);

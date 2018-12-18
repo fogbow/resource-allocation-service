@@ -245,7 +245,7 @@ public class OpenNebulaNetworkPluginTest {
 		String providingMember = null;
 		String cloudName = null;
 		String name = FAKE_NETWORK_NAME;
-		String gateway = FAKE_GATEWAY;
+		String gateway = "10.10.10.1";
 		String cidr = "10.10.10.0/24";
 		NetworkAllocationMode allocation = null;
 				
@@ -289,8 +289,8 @@ public class OpenNebulaNetworkPluginTest {
 				"    <VN_MAD>fw</VN_MAD>\n" + 
 				"    <DESCRIPTION>Virtual network created by fake-user-name</DESCRIPTION>\n" + 
 				"    <NAME>fake-network-name</NAME>\n" + 
-				"    <NETWORK_ADDRESS>10.10.10.0/24</NETWORK_ADDRESS>\n" + 
-				"    <NETWORK_GATEWAY>fake-gateway</NETWORK_GATEWAY>\n" + 
+				"    <NETWORK_ADDRESS>10.10.10.0</NETWORK_ADDRESS>\n" + 
+				"    <NETWORK_GATEWAY>10.10.10.1</NETWORK_GATEWAY>\n" + 
 				"    <SECURITY_GROUP>100</SECURITY_GROUP>\n" + 
 				"    <TYPE>RANGED</TYPE>\n" + 
 				"</TEMPLATE>\n";
