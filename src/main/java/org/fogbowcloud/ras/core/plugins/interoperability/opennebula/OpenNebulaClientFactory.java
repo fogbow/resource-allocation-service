@@ -4,9 +4,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.util.PropertiesUtil;
-import org.opennebula.client.Client;
-import org.opennebula.client.ClientConfigurationException;
-import org.opennebula.client.OneResponse;
+import org.opennebula.client.*;
 import org.opennebula.client.group.Group;
 import org.opennebula.client.group.GroupPool;
 import org.opennebula.client.image.Image;
@@ -16,7 +14,6 @@ import org.opennebula.client.template.TemplatePool;
 import org.opennebula.client.user.User;
 import org.opennebula.client.user.UserPool;
 import org.opennebula.client.vm.VirtualMachine;
-import org.opennebula.client.vm.VirtualMachinePool;
 import org.opennebula.client.vnet.VirtualNetwork;
 
 import java.util.Properties;
@@ -25,14 +22,15 @@ public class OpenNebulaClientFactory {
 
     private final static Logger LOGGER = Logger.getLogger(OpenNebulaClientFactory.class);
 
-    private static final String RESPONSE_NOT_AUTORIZED = "Not authorized";
+    protected static final String RESPONSE_NOT_AUTHORIZED = "Not authorized";
     private static final String RESPONSE_DONE = "DONE";
     private static final String FIELD_RESPONSE_LIMIT = "limit";
     private static final String FIELD_RESPONSE_QUOTA = "quota";
     private static final String RESPONSE_NOT_ENOUGH_FREE_MEMORY = "Not enough free memory";
     private static final String RESPONSE_NO_SPACE_LEFT_ON_DEVICE = "No space left on device";
     private static final String OPENNEBULA_RPC_ENDPOINT_URL = "opennebula_rpc_endpoint";
-    
+    protected static final int CHMOD_PERMISSION_744 = 744;
+
     private String endpoint;
 
 	public OpenNebulaClientFactory(String confFilePath) {
@@ -49,8 +47,13 @@ public class OpenNebulaClientFactory {
 		}
 	}
 
+	/*
+	 * TODO check this:
+	 * - When group is null. Should not this method return NotFound exception ?
+	 * - In the GroupPool's response, in this case we can throws UnauthorizedRequestException when happen error
+	 */
     public Group createGroup(Client client, int groupId) throws UnauthorizedRequestException {
-    	GroupPool groupPool = new GroupPool(client);
+		GroupPool groupPool = (GroupPool) generateOnePool(client, GroupPool.class);
     	groupPool.info();
     	Group group = groupPool.getById(groupId);
     	if (group == null){
@@ -60,6 +63,7 @@ public class OpenNebulaClientFactory {
 		return group;
     }
 
+    // TODO implement tests
 	public ImagePool createImagePool(Client client) throws UnexpectedException {
 		ImagePool imagePool = new ImagePool(client);
 		OneResponse response = imagePool.infoAll();
@@ -71,6 +75,7 @@ public class OpenNebulaClientFactory {
 		return imagePool;
 	}
 
+    // TODO implement tests
 	public VirtualMachine createVirtualMachine(Client client, String instanceId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 
@@ -88,7 +93,7 @@ public class OpenNebulaClientFactory {
 			String message = response.getErrorMessage();
 			LOGGER.error(message);
 			// Not authorized to perform
-			if (message.contains(RESPONSE_NOT_AUTORIZED)) {
+			if (message.contains(RESPONSE_NOT_AUTHORIZED)) {
 				throw new UnauthorizedRequestException();
 			}
 			// Error getting virtual machine
@@ -100,16 +105,7 @@ public class OpenNebulaClientFactory {
 		return virtualMachine;
 	}
 
-	public VirtualMachinePool createVirtualMachinePool(Client client) throws UnexpectedException {
-		VirtualMachinePool virtualMachinePool = new VirtualMachinePool(client);
-		OneResponse response = virtualMachinePool.info();
-		if (response.isError()) {
-			LOGGER.error(response.getErrorMessage());
-			throw new UnexpectedException();
-		}
-		return virtualMachinePool;
-	}
-
+    // TODO implement tests
 	public VirtualNetwork createVirtualNetwork(Client client, String instanceId)
 			throws UnauthorizedRequestException, InstanceNotFoundException, InvalidParameterException {
 
@@ -127,7 +123,7 @@ public class OpenNebulaClientFactory {
 			String message = response.getErrorMessage();
 			LOGGER.error(message);
 			// Not authorized to perform
-			if (message.contains(RESPONSE_NOT_AUTORIZED)) {
+			if (message.contains(RESPONSE_NOT_AUTHORIZED)) {
 				throw new UnauthorizedRequestException();
 			}
 			// Error getting virtual network
@@ -136,6 +132,7 @@ public class OpenNebulaClientFactory {
 		return virtualNetwork;
 	}
 
+    // TODO implement tests
 	public TemplatePool createTemplatePool(Client client) throws UnexpectedException {
 		TemplatePool templatePool = new TemplatePool(client);
 		OneResponse response = templatePool.infoAll();
@@ -147,6 +144,7 @@ public class OpenNebulaClientFactory {
 		return templatePool;
 	}
 
+    // TODO implement tests
 	public UserPool createUserPool(Client client) throws UnexpectedException {
 		UserPool userpool = new UserPool(client);
  		OneResponse response = userpool.info();
@@ -157,7 +155,8 @@ public class OpenNebulaClientFactory {
  		LOGGER.info(String.format(Messages.Info.USER_POOL_LENGTH, userpool.getLength()));
 		return userpool;
 	}
-	
+
+    // TODO implement tests
     public User getUser(UserPool userPool, String userName) throws UnauthorizedRequestException {
  		User user = findUserByName(userPool, userName);
  		OneResponse response = user.info();
@@ -169,28 +168,21 @@ public class OpenNebulaClientFactory {
     
     public SecurityGroup createSecurityGroup(Client client, String securityGroupId)
     			throws UnauthorizedRequestException, InvalidParameterException, InstanceNotFoundException {
-		int id = 0;
-		try {
-			id = Integer.parseInt(securityGroupId);
-		} catch (Exception e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_INSTANCE_ID, securityGroupId));
-			throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
-		}    	
-    	
-    	SecurityGroup securityGroup = new SecurityGroup(id, client);
+
+    	SecurityGroup securityGroup = (SecurityGroup) generateOnePoolElement(client, securityGroupId, SecurityGroup.class);
  		OneResponse response = securityGroup.info();
  		if (response.isError()) {
 			String message = response.getErrorMessage();
 			LOGGER.error(message);
 			// Not authorized to perform
-			if (message.contains(RESPONSE_NOT_AUTORIZED)) {
+			if (message.contains(RESPONSE_NOT_AUTHORIZED)) {
 				throw new UnauthorizedRequestException();
 			}
 			// Error getting virtual network
 			throw new InstanceNotFoundException(message);
  		}
  		return securityGroup;
-    }    
+    }
 
 	public String allocateImage(Client client, String template, Integer datastoreId) throws InvalidParameterException {
 		OneResponse response = Image.allocate(client, template, datastoreId);
@@ -200,7 +192,7 @@ public class OpenNebulaClientFactory {
 			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
 			throw new InvalidParameterException(message);
 		}
-		Image.chmod(client, response.getIntMessage(), 744);
+		Image.chmod(client, response.getIntMessage(), CHMOD_PERMISSION_744);
 		return response.getMessage();
 	}
 
@@ -212,10 +204,12 @@ public class OpenNebulaClientFactory {
 			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
 			throw new InvalidParameterException();
 		}
-		SecurityGroup.chmod(client, response.getIntMessage(), 744);
+		SecurityGroup.chmod(client, response.getIntMessage(), CHMOD_PERMISSION_744);
 		return response.getMessage();
 	}
-	
+
+
+	// TODO implement tests
 	public String allocateVirtualMachine(Client client, String template)
 			throws QuotaExceededException, NoAvailableResourcesException, InvalidParameterException {
 		
@@ -233,10 +227,10 @@ public class OpenNebulaClientFactory {
 			}
 			throw new InvalidParameterException(message);
 		}
-		VirtualMachine.chmod(client, response.getIntMessage(), 744);
+		VirtualMachine.chmod(client, response.getIntMessage(), CHMOD_PERMISSION_744);
 		return response.getMessage();
 	}
-	
+
 	public String allocateVirtualNetwork(Client client, String template) throws InvalidParameterException {
 		OneResponse response = VirtualNetwork.allocate(client, template);
 		if (response.isError()) {
@@ -245,7 +239,7 @@ public class OpenNebulaClientFactory {
 			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, message));
 			throw new InvalidParameterException();
 		}
-		VirtualNetwork.chmod(client, response.getIntMessage(), 744);
+		VirtualNetwork.chmod(client, response.getIntMessage(), CHMOD_PERMISSION_744);
 		return response.getMessage();
 	}
 
@@ -257,5 +251,32 @@ public class OpenNebulaClientFactory {
 		}
 		throw new UnauthorizedRequestException();
 	}
-	
+
+
+	protected PoolElement generateOnePoolElement(Client client, String poolElementId, Class classType) throws InvalidParameterException {
+		int id;
+		try {
+			id = Integer.parseInt(poolElementId);
+		} catch (Exception e) {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_INSTANCE_ID, poolElementId));
+			throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
+		}
+
+		if (classType.isAssignableFrom(SecurityGroup.class)) {
+			return new SecurityGroup(id , client);
+		}
+
+		return null;
+	}
+
+	protected Pool generateOnePool(Client client, Class classType) {
+		if (classType.isAssignableFrom(TemplatePool.class)) {
+			return new GroupPool(client);
+		} else if (classType.isAssignableFrom(GroupPool.class)) {
+			return new GroupPool(client);
+		}
+
+		return null;
+	}
+
 }
