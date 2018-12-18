@@ -136,9 +136,9 @@ public class OrderControllerTest extends BaseUnitTests {
         this.failedAfterSuccessfulRequestOrdersList.addItem(computeOrder2);
 
         InstanceStatus statusOrder = new InstanceStatus(computeOrder.getId(),
-                computeOrder.getProvider(), computeOrder.getCachedInstanceState());
+                computeOrder.getProvider(), computeOrder.getCloudName(), computeOrder.getCachedInstanceState());
         InstanceStatus statusOrder2 = new InstanceStatus(computeOrder2.getId(),
-                computeOrder2.getProvider(), computeOrder2.getCachedInstanceState());
+                computeOrder2.getProvider(), computeOrder.getCloudName(), computeOrder2.getCachedInstanceState());
 
         // exercise
         List<InstanceStatus> instances = this.ordersController.getInstancesStatus(federationUserToken,

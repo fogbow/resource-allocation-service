@@ -182,10 +182,11 @@ public class ComputeTest {
         final String FAKE_ID_2 = "fake-Id-2";
         final String FAKE_ID_3 = "fake-Id-3";
         final String FAKE_PROVIDER = "fake-provider";
+        final String FAKE_CLOUD_NAME = "fake-cloud-name";
 
-        InstanceStatus instanceStatus1 = new InstanceStatus(FAKE_ID_1, FAKE_PROVIDER, InstanceState.READY);
-        InstanceStatus instanceStatus2 = new InstanceStatus(FAKE_ID_2, FAKE_PROVIDER, InstanceState.READY);
-        InstanceStatus instanceStatus3 = new InstanceStatus(FAKE_ID_3, FAKE_PROVIDER, InstanceState.READY);
+        InstanceStatus instanceStatus1 = new InstanceStatus(FAKE_ID_1, FAKE_PROVIDER, FAKE_CLOUD_NAME, InstanceState.READY);
+        InstanceStatus instanceStatus2 = new InstanceStatus(FAKE_ID_2, FAKE_PROVIDER, FAKE_CLOUD_NAME, InstanceState.READY);
+        InstanceStatus instanceStatus3 = new InstanceStatus(FAKE_ID_3, FAKE_PROVIDER, FAKE_CLOUD_NAME, InstanceState.READY);
 
         List<InstanceStatus> computeStatusList = Arrays.asList(new InstanceStatus[]{instanceStatus1, instanceStatus2, instanceStatus3});
         Mockito.doReturn(computeStatusList).when(this.facade).getAllInstancesStatus(Mockito.anyString(), Mockito.any(ResourceType.class));
@@ -583,3 +584,4 @@ public class ComputeTest {
         return headers;
     }
 }
+
