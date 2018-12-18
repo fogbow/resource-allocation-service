@@ -8,6 +8,13 @@ public class GenericRequest {
     private Map<String, String> headers;
     private Map<String, String> body;
 
+    public GenericRequest(String method, String url, Map<String, String> headers, Map<String, String> body) {
+        this.method = method;
+        this.url = url;
+        this.headers = headers;
+        this.body = body;
+    }
+
     public String getMethod() {
         return method;
     }
