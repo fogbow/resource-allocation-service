@@ -210,22 +210,35 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		return template;
 	}
 	
-	private String createSecurityGroupsTemplate(PublicIpOrder publicIpOrder, String virtualNetworkId) throws InvalidParameterException {
+	private String createSecurityGroupsTemplate(PublicIpOrder publicIpOrder, String virtualNetworkId)
+			throws InvalidParameterException {
+		
 		String name = SECURITY_GROUP_PREFIX + publicIpOrder.getId();
+
+		// "ALL" setting applies to all protocols if a port range is not defined
 		String protocol = ALL_PROTOCOLS;
 
-		Rule inputRule = new Rule(protocol, null, null, null, INPUT_RULE_TYPE, virtualNetworkId, null);
-		Rule outputRule = new Rule(protocol, null, null, null, OUTPUT_RULE_TYPE, virtualNetworkId, null);
-		
+		// An undefined port range is interpreted by opennebula as all open
+		String rangeAll = null;
+
+		// An undefined ip and size is interpreted by opennebula as any network
+		String ipAny = null;
+		String sizeAny = null;
+
+		// The securityGroupId parameters are not used in this context.
+		String securityGroupId = null;
+
+		Rule inputRule = new Rule(protocol, ipAny, sizeAny, rangeAll, INPUT_RULE_TYPE, virtualNetworkId,
+				securityGroupId);
+		Rule outputRule = new Rule(protocol, ipAny, sizeAny, rangeAll, OUTPUT_RULE_TYPE, virtualNetworkId,
+				securityGroupId);
+
 		List<Rule> rules = new ArrayList<>();
 		rules.add(inputRule);
 		rules.add(outputRule);
-		
-		CreateSecurityGroupRequest request = new CreateSecurityGroupRequest.Builder()
-				.name(name)
-				.rules(rules)
-				.build();
-		
+
+		CreateSecurityGroupRequest request = new CreateSecurityGroupRequest.Builder().name(name).rules(rules).build();
+
 		String template = request.getSecurityGroup().marshalTemplate();
 		return template;
 	}
