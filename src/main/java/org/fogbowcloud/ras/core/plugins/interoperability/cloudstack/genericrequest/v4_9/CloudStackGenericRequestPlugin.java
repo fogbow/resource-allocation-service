@@ -12,6 +12,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUr
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequest;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestHttpResponse;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.HttpBasedGenericRequestPlugin;
+import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.springframework.http.HttpStatus;
 
 import java.net.URISyntaxException;
@@ -40,4 +41,8 @@ public class CloudStackGenericRequestPlugin extends HttpBasedGenericRequestPlugi
         }
     }
 
+    @Override
+    protected void setClient(HttpRequestClientUtil httpRequestClientUtil) {
+        super.setClient(httpRequestClientUtil);
+    }
 }

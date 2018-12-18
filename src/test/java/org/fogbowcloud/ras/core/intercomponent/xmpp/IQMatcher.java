@@ -22,7 +22,8 @@ public class IQMatcher extends ArgumentMatcher<IQ> {
         IQ comparedIq = (IQ) argument;
 
         // jamppa generates random iq ids by default, our matcher ignores ids
-        return removeIdAttribute(expectedIQ.toString()).equals(removeIdAttribute(comparedIq.toString()));
+        String expectedIqWithoutId = removeIdAttribute(expectedIQ.toString());
+        return expectedIqWithoutId.equals(removeIdAttribute(comparedIq.toString()));
     }
 
     private String removeIdAttribute(String s) {

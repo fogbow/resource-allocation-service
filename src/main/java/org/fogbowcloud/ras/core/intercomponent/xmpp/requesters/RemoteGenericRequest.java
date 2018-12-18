@@ -52,7 +52,7 @@ public class RemoteGenericRequest implements RemoteRequest<GenericRequestRespons
         return genericRequestResponse;
     }
 
-    private IQ marshal(String provider, String cloudName, GenericRequest genericRequest, FederationUserToken federationUserToken) {
+    public static IQ marshal(String provider, String cloudName, GenericRequest genericRequest, FederationUserToken federationUserToken) {
         IQ iq = new IQ(IQ.Type.set);
         iq.setTo(provider);
 

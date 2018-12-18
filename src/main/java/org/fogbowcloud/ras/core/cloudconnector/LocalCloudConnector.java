@@ -470,4 +470,8 @@ public class LocalCloudConnector implements CloudConnector {
     protected void setImagePlugin(ImagePlugin imagePlugin) {
         this.imagePlugin = imagePlugin;
     }
+
+    protected void setGenericRequestPlugin(GenericRequestPlugin genericRequestPlugin) {
+        this.genericRequestPlugin = genericRequestPlugin;
+    }
 }
