@@ -7,7 +7,7 @@ import java.util.Map;
 
 public abstract class HttpBasedGenericRequestPlugin<T> implements GenericRequestPlugin<T> {
 
-    private final HttpRequestClientUtil client = new HttpRequestClientUtil();
+    private HttpRequestClientUtil client = new HttpRequestClientUtil();
 
     @Override
     public abstract GenericRequestResponse redirectGenericRequest(GenericRequest genericRequest, T token) throws FogbowRasException;
@@ -16,4 +16,7 @@ public abstract class HttpBasedGenericRequestPlugin<T> implements GenericRequest
         return client;
     }
 
+    protected void setClient(HttpRequestClientUtil httpRequestClientUtil) {
+        this.client = httpRequestClientUtil;
+    }
 }
