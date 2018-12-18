@@ -7,7 +7,7 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenN
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NAME;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NETWORK_ADDRESS;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NETWORK_GATEWAY;
-import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.SECURITY_GROUP;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.SECURITY_GROUPS;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.SIZE;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TEMPLATE;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TYPE;
@@ -17,9 +17,6 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaMarshallerTemplate;
-
-
-
 
 @XmlRootElement(name = TEMPLATE)
 public class VirtualNetworkTemplate extends OpenNebulaMarshallerTemplate {
@@ -31,7 +28,7 @@ public class VirtualNetworkTemplate extends OpenNebulaMarshallerTemplate {
 	private String bridgedDrive;
 	private String networkAddress;
 	private String networkGateway;
-	private String securityGroupId;
+	private String securityGroups;
 	private VirtualNetworkTemplate.AddressRange addressRange;
 	
 	@XmlElement(name = NAME)
@@ -97,13 +94,13 @@ public class VirtualNetworkTemplate extends OpenNebulaMarshallerTemplate {
 		this.networkGateway = networkGateway;
 	}
 	
-	@XmlElement(name = SECURITY_GROUP)
-	public String getSecurityGroupId() {
-		return securityGroupId;
+	@XmlElement(name = SECURITY_GROUPS)
+	public String getSecurityGroups() {
+		return securityGroups;
 	}
 
-	public void setSecurityGroupId(String securityGroupId) {
-		this.securityGroupId = securityGroupId;
+	public void setSecurityGroups(String securityGroups) {
+		this.securityGroups = securityGroups;
 	}
 	
 	@XmlElement(name = AR)

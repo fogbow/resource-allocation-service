@@ -16,7 +16,7 @@ public class CreateNetworkRequest {
 		String bridgedDrive = builder.bridgedDrive;
 		String address = builder.address;
 		String gateway = builder.gateway;
-		String securityGroupId = builder.securityGroupId;
+		String securityGroupId = builder.securityGroups;
 		VirtualNetworkTemplate.AddressRange addressRange = buildAddressRange(builder);
 		
 		this.virtualNetwork = new VirtualNetworkTemplate();
@@ -28,7 +28,7 @@ public class CreateNetworkRequest {
 		this.virtualNetwork.setNetworkAddress(address);
 		this.virtualNetwork.setNetworkGateway(gateway);
 		this.virtualNetwork.setAddressRange(addressRange);
-		this.virtualNetwork.setSecurityGroupId(securityGroupId);
+		this.virtualNetwork.setSecurityGroups(securityGroupId);
 	}
 	
 	private VirtualNetworkTemplate.AddressRange buildAddressRange(Builder builder) {
@@ -50,7 +50,7 @@ public class CreateNetworkRequest {
 		private String rangeType;
 		private String rangeIp;
 		private String rangeSize;
-		private String securityGroupId;
+		private String securityGroups;
 		
 		public Builder name(String name) {
 			this.name = name;
@@ -102,8 +102,8 @@ public class CreateNetworkRequest {
 			return this;
 		}
 		
-		public Builder securityGroupId(String securityGroupId) {
-			this.securityGroupId = securityGroupId;
+		public Builder securityGroups(String securityGroups) {
+			this.securityGroups = securityGroups;
 			return this;
 		}
 		

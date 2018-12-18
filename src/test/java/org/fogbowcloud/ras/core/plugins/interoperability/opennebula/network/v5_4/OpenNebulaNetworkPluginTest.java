@@ -238,7 +238,6 @@ public class OpenNebulaNetworkPluginTest {
 		Mockito.verify(virtualNetwork, Mockito.times(1)).getId();
 		Mockito.verify(virtualNetwork, Mockito.times(1)).getName();
 		Mockito.verify(virtualNetwork, Mockito.times(3)).xpath(Mockito.anyString());
-		Mockito.verify(virtualNetwork, Mockito.times(1)).state();
 	}
 
 	private NetworkOrder createNetworkOrder() {
@@ -291,7 +290,7 @@ public class OpenNebulaNetworkPluginTest {
 				"    <NAME>fake-network-name</NAME>\n" + 
 				"    <NETWORK_ADDRESS>10.10.10.0</NETWORK_ADDRESS>\n" + 
 				"    <NETWORK_GATEWAY>10.10.10.1</NETWORK_GATEWAY>\n" + 
-				"    <SECURITY_GROUP>100</SECURITY_GROUP>\n" + 
+				"    <SECURITY_GROUPS>0,100</SECURITY_GROUPS>\n" + 
 				"    <TYPE>RANGED</TYPE>\n" + 
 				"</TEMPLATE>\n";
 		

@@ -9,7 +9,6 @@ import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
-import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
 import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
@@ -17,7 +16,6 @@ import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.NetworkPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
-import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.CreateSecurityGroupRequest;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.securityrule.v5_4.Rule;
 import org.fogbowcloud.ras.util.PropertiesUtil;
@@ -41,6 +39,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 	private static final String ALL_PROTOCOLS = "ALL";
 	private static final String INPUT_RULE_TYPE = "inbound";
 	private static final String OUTPUT_RULE_TYPE = "outbound";
+	private static final String DEFAULT_SECURITY_GROUPS_BASE_FORMAT = "0,%s";
 
 	private static final int BASE_VALUE = 2;
 	private static final int IPV4_AMOUNT_BITS = 32;
@@ -69,6 +68,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 		String bridgedDrive = DEFAULT_VIRTUAL_NETWORK_BRIDGED_DRIVE;
 		String gateway = networkOrder.getGateway();
 		String securityGroupId = createSecurityGroup(client, networkOrder);
+		String securityGroups = String.format(DEFAULT_SECURITY_GROUPS_BASE_FORMAT, securityGroupId);
 		
 		String[] slice = sliceCIDR(networkOrder.getCidr());
 		String address = slice[0];
@@ -85,7 +85,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 				.bridgedDrive(bridgedDrive)
 				.address(address)
 				.gateway(gateway)
-				.securityGroupId(securityGroupId)
+				.securityGroups(securityGroups)
 				.rangeType(rangeType)
 				.rangeIp(rangeIp)
 				.rangeSize(rangeSize)
@@ -181,8 +181,7 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 		String networkInterface = null;
 		String macInterface = null;
 		String interfaceState = null;
-		int state = virtualNetwork.state();
-		InstanceState instanceState = OpenNebulaStateMapper.map(ResourceType.NETWORK, state);
+		InstanceState instanceState = InstanceState.READY;
 		NetworkAllocationMode allocationMode = NetworkAllocationMode.DYNAMIC;
 		
 		NetworkInstance networkInstance = new NetworkInstance(
