@@ -68,21 +68,15 @@ public class OpenStackGenericRequestPluginTest {
     }
 
     private GenericRequest createGenericRequest() {
-        GenericRequest genericRequest = new GenericRequest();
-
         Map<String, String> headers = new HashMap<>();
         headers.put(FAKE_KEY, FAKE_VALUE);
-        genericRequest.setHeaders(headers);
 
         Map<String, String> body = new HashMap<>();
         body.put(FAKE_KEY, FAKE_VALUE);
-        genericRequest.setBody(body);
 
         String method = "GET";
-        genericRequest.setMethod(method);
 
-        genericRequest.setUrl(FAKE_URL);
-
+        GenericRequest genericRequest = new GenericRequest(method, FAKE_URL, headers, body);
         return genericRequest;
     }
 }
