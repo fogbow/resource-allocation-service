@@ -88,13 +88,13 @@ public class OpenNebulaTokenGeneratorPlugin implements TokenGeneratorPlugin {
             client = this.factory.createClient(openNebulaTokenValue);
             userPool = this.factory.createUserPool(client);
         } catch (UnexpectedException e) {
-            LOGGER.warn("There are a problem in the client creation", e);
+            LOGGER.error(Messages.Exception.UNEXPECTED_ERROR, e);
             return false;
         }
 
         OneResponse info = userPool.info();
         if (info.isError()) {
-            LOGGER.warn(String.format("There are a problem in the client creation: %s", info.getMessage()));
+            LOGGER.error(String.format(Messages.Exception.GENERIC_EXCEPTION, info.getMessage()));
             return false;
         }
         return true;
