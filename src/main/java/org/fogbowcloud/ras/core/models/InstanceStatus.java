@@ -6,19 +6,26 @@ public class InstanceStatus {
     private String instanceId;
     private String instanceName;
     private String provider;
+    private String cloudName;
     private InstanceState state;
 
-    public InstanceStatus(String instanceId, String provider, InstanceState state) {
+    public InstanceStatus(String instanceId, String provider, String cloudName, InstanceState state) {
         this.instanceId = instanceId;
         this.provider = provider;
+        this.cloudName = cloudName;
         this.state = state;
     }
 
-    public InstanceStatus(String instanceId, String instanceName, String provider, InstanceState state) {
+    public InstanceStatus(String instanceId, String instanceName, String provider, String cloudName, InstanceState state) {
         this.instanceId = instanceId;
         this.instanceName = instanceName;
         this.provider = provider;
+        this.cloudName = cloudName;
         this.state = state;
+    }
+
+    public String getCloudName() {
+        return cloudName;
     }
 
     public String getInstanceId() {
