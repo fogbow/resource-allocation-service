@@ -177,5 +177,8 @@ public class Messages {
 		public static final String ERROR_WHILE_GETTING_USERS = "Error while getting info about users: %s.";
 		public static final String ERROR_WHILE_GETTING_USER = "Error while getting info about user %s: %s.";
 		public static final String ERROR_WHILE_UPDATING_SECURITY_GROUPS = "Error while updating a security groups from template: %s.";
+		public static final String ERROR_WHILE_REMOVING_RESOURCE = "An error occurred while removing %s: %s.";
+		public static final String CONTENT_SECURITY_GROUP_NOT_DEFINED = "The content of SecuriryGroups in the VirtualNetwork template is not defined.";
+		public static final String CONTENT_SECURITY_GROUP_WRONG_FORMAT = "The contents of the security groups in the Virtual Network template may be in the wrong format.";
     }
 }
