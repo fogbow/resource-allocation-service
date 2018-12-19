@@ -178,5 +178,6 @@ public class Messages {
 		public static final String ERROR_WHILE_GETTING_USERS = "Error while getting info about users: %s.";
 		public static final String ERROR_WHILE_GETTING_USER = "Error while getting info about user %s: %s.";
 		public static final String ERROR_WHILE_UPDATING_SECURITY_GROUPS = "Error while updating a security groups from template: %s.";
+        public static final String ERROR_WHILE_GETTING_GROUP = "Error while getting info about group %s: %s.";;
     }
 }
