@@ -75,11 +75,12 @@ public class OpenNebulaNetworkPluginTest {
 		NetworkOrder networkOrder = createNetworkOrder();
 		String template = generateSecurityGroupTemplate();
 		
+		String securityGroupId = "100";
 		OneResponse response = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(SecurityGroup.class);
 		BDDMockito.given(SecurityGroup.allocate(Mockito.any(), Mockito.any())).willReturn(response);
 		Mockito.when(response.isError()).thenReturn(false);
-		Mockito.when(response.getMessage()).thenReturn("100");
+		Mockito.when(response.getMessage()).thenReturn(securityGroupId);
 		
 		template = generateNetworkTemplate();
 
@@ -147,12 +148,23 @@ public class OpenNebulaNetworkPluginTest {
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
-		String instanceId = FAKE_INSTANCE_ID;
+		String instanceId = "1";
 		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
 		Mockito.doReturn(virtualNetwork).when(this.factory).createVirtualNetwork(client, instanceId);
+		
+		String securityGroups = "0,100";
+		Mockito.when(virtualNetwork.xpath("/VNET/TEMPLATE/SECURITY_GROUPS")).thenReturn(securityGroups);
+		
+		String securityGroupId = "100";
+		SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
+		Mockito.doReturn(securityGroup).when(this.factory).createSecurityGroup(Mockito.eq(client), Mockito.eq(securityGroupId));
+		
 		OneResponse response = Mockito.mock(OneResponse.class);
-		Mockito.doReturn(response).when(virtualNetwork).delete();
-		Mockito.doReturn(true).when(response).isError();
+		Mockito.when(securityGroup.delete()).thenReturn(response);
+		Mockito.when(response.isError()).thenReturn(true);
+		
+		Mockito.when(virtualNetwork.delete()).thenReturn(response);
+		Mockito.when(response.isError()).thenReturn(true);
 
 		// exercise
 		this.plugin.deleteInstance(instanceId, token);
@@ -162,7 +174,7 @@ public class OpenNebulaNetworkPluginTest {
 		Mockito.verify(this.factory, Mockito.times(1)).createVirtualNetwork(Mockito.any(Client.class),
 				Mockito.anyString());
 		Mockito.verify(virtualNetwork, Mockito.times(1)).delete();
-		Mockito.verify(response, Mockito.times(1)).isError();
+		Mockito.verify(response, Mockito.times(2)).isError();
 	}
 
 	// test case: When calling the deleteInstance method, with the instance ID and
@@ -175,13 +187,24 @@ public class OpenNebulaNetworkPluginTest {
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
-		String instanceId = FAKE_INSTANCE_ID;
+		String instanceId = "1";
 		VirtualNetwork virtualNetwork = Mockito.mock(VirtualNetwork.class);
 		Mockito.doReturn(virtualNetwork).when(this.factory).createVirtualNetwork(client, instanceId);
+		
+		String securityGroups = "0,100";
+		Mockito.when(virtualNetwork.xpath("/VNET/TEMPLATE/SECURITY_GROUPS")).thenReturn(securityGroups);
+		
+		String securityGroupId = "100";
+		SecurityGroup securityGroup = Mockito.mock(SecurityGroup.class);
+		Mockito.doReturn(securityGroup).when(this.factory).createSecurityGroup(Mockito.eq(client), Mockito.eq(securityGroupId));
+		
 		OneResponse response = Mockito.mock(OneResponse.class);
-		Mockito.doReturn(response).when(virtualNetwork).delete();
-		Mockito.doReturn(false).when(response).isError();
-
+		Mockito.when(securityGroup.delete()).thenReturn(response);
+		Mockito.when(response.isError()).thenReturn(false);
+		
+		Mockito.when(virtualNetwork.delete()).thenReturn(response);
+		Mockito.when(response.isError()).thenReturn(false);
+		
 		// exercise
 		this.plugin.deleteInstance(instanceId, token);
 
@@ -190,7 +213,7 @@ public class OpenNebulaNetworkPluginTest {
 		Mockito.verify(this.factory, Mockito.times(1)).createVirtualNetwork(Mockito.any(Client.class),
 				Mockito.anyString());
 		Mockito.verify(virtualNetwork, Mockito.times(1)).delete();
-		Mockito.verify(response, Mockito.times(1)).isError();
+		Mockito.verify(response, Mockito.times(2)).isError();
 	}
 
 	// test case: When calling the getInstance method, if the OpenNebulaClientFactory class
