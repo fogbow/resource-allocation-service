@@ -21,6 +21,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.securityrule
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
+import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vnet.VirtualNetwork;
 
 public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
@@ -40,10 +41,15 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 	private static final String INPUT_RULE_TYPE = "inbound";
 	private static final String OUTPUT_RULE_TYPE = "outbound";
 	private static final String DEFAULT_SECURITY_GROUPS_BASE_FORMAT = "0,%s";
+	private static final String TEMPLATE_VNET_SECURITY_GROUPS_PATH = "/VNET/TEMPLATE/SECURITY_GROUPS";
+	private static final String SECURITY_GROUPS_SEPARATOR = ",";
+	private static final String SECURITY_GROUP_RESOURCE = "SecurityGroup";
+	private static final String VIRTUAL_NETWORK_RESOURCE = "VirtualNetwork";
 
 	private static final int BASE_VALUE = 2;
 	private static final int IPV4_AMOUNT_BITS = 32;
-	
+	private static final int SECURITY_GROUP_VALID_POSITION = 1;
+
 	private OpenNebulaClientFactory factory;
 
 	private String bridge;
@@ -116,13 +122,42 @@ public class OpenNebulaNetworkPlugin implements NetworkPlugin<OpenNebulaToken> {
 		
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 		VirtualNetwork virtualNetwork = this.factory.createVirtualNetwork(client, networkInstanceId);
-		OneResponse response = virtualNetwork.delete();
+		
+		String securityGroupId = getSecurityGroupBy(virtualNetwork);
+		SecurityGroup securityGroup = this.factory.createSecurityGroup(client, securityGroupId);
+		
+		deleteVirtualNetwork(virtualNetwork);
+		deleteSecurityGroup(securityGroup);
+	}
+
+	private void deleteSecurityGroup(SecurityGroup securityGroup) {
+		OneResponse response = securityGroup.delete();
 		if (response.isError()) {
-			LOGGER.error(
-					String.format(Messages.Error.ERROR_WHILE_REMOVING_VN, networkInstanceId, response.getMessage()));
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, SECURITY_GROUP_RESOURCE, response.getMessage()));
 		}
 	}
 
+	private void deleteVirtualNetwork(VirtualNetwork virtualNetwork) {
+		OneResponse response = virtualNetwork.delete();
+		if (response.isError()) {
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_REMOVING_RESOURCE, VIRTUAL_NETWORK_RESOURCE, response.getMessage()));
+		}
+	}
+
+	private String getSecurityGroupBy(VirtualNetwork virtualNetwork) {
+		String content = virtualNetwork.xpath(TEMPLATE_VNET_SECURITY_GROUPS_PATH);
+		if (content == null || content.isEmpty()) {
+			LOGGER.warn(Messages.Error.CONTENT_SECURITY_GROUP_NOT_DEFINED);
+			return null;
+		}
+		String[] contentSlices = content.split(SECURITY_GROUPS_SEPARATOR);
+		if (contentSlices.length < 2) {
+			LOGGER.warn(Messages.Error.CONTENT_SECURITY_GROUP_WRONG_FORMAT);
+			return null;
+		}
+		return contentSlices[SECURITY_GROUP_VALID_POSITION];
+	}
+	
 	private String[] sliceCIDR(String cidr) throws InvalidParameterException {
 		String[] slice = null;
 		try {
