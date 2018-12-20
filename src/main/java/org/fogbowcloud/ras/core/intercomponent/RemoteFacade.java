@@ -21,6 +21,8 @@ import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.NetworkPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.PublicIpPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequest;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -92,6 +94,14 @@ public class RemoteFacade {
                 Operation.GET_ALL_IMAGES, ResourceType.IMAGE, memberId);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
         return cloudConnector.getAllImages(federationUserToken);
+    }
+
+    public GenericRequestResponse genericRequest(String requestingMember, String cloudName, String memberId, GenericRequest genericRequest,
+                                                 FederationUserToken federationTokenValue) throws Exception {
+        this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationTokenValue, cloudName,
+                Operation.GENERIC_REQUEST, ResourceType.GENERIC_REQUEST, memberId);
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
+        return cloudConnector.genericRequest(genericRequest, federationTokenValue);
     }
 
     public List<String> getCloudNames(FederationUserToken requester) throws InvalidParameterException,

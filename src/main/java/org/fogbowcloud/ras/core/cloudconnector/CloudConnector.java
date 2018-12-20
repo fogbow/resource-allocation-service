@@ -9,6 +9,8 @@ import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.quotas.Quota;
 import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequest;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -72,14 +74,11 @@ public interface CloudConnector {
     /**
      * Redirects a generic request to the cloud then answer the response.
      *
-     * @param method
-     * @param url
-     * @param headers
-     * @param body
+     * @param genericRequest
      * @param federationUserToken
      * @return
      */
-    String genericRequest(String method, String url, Map<String, String> headers, String body, FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException;
+    GenericRequestResponse genericRequest(GenericRequest genericRequest, FederationUserToken federationUserToken) throws Exception;
 
     /**
      * Gets all security group rules from a specific orderId (must be a publicIp or a network)

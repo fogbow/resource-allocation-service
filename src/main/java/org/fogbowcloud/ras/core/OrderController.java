@@ -115,7 +115,7 @@ public class OrderController {
 
             // The state of the instance can be inferred from the state of the order
             InstanceStatus instanceStatus = new InstanceStatus(order.getId(), name, order.getProvider(),
-                    order.getCachedInstanceState());
+                    order.getCloudName(), order.getCachedInstanceState());
             instanceStatusList.add(instanceStatus);
         }
 

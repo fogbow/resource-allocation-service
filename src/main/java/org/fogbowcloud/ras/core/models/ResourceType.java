@@ -8,7 +8,8 @@ public enum ResourceType {
     IMAGE("image"),
     PUBLIC_IP("publicIp"),
     SECURITY_RULE("securityRule"),
-    CLOUD_NAMES("cloudNames");
+    CLOUD_NAMES("cloudNames"),
+    GENERIC_REQUEST("genericRequest");
 
     private String value;
 

@@ -1,8 +1,9 @@
 package org.fogbowcloud.ras.api.parameters;
 
 import org.fogbowcloud.ras.core.models.orders.AttachmentOrder;
+import org.fogbowcloud.ras.core.models.orders.Order;
 
-public class Attachment {
+public class Attachment implements OrderApiParameter {
     private String provider;
     private String cloudName;
     private String computeId;
@@ -29,6 +30,7 @@ public class Attachment {
         return device;
     }
 
+    @Override
     public AttachmentOrder getOrder() {
         AttachmentOrder order = new AttachmentOrder(provider, cloudName, computeId, volumeId, device);
         return order;
