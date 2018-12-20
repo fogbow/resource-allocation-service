@@ -6,6 +6,10 @@ import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
@@ -30,10 +34,25 @@ public class OpenNebulaUnmarshallerContents {
 		}
 	}
 
-	public String unmarshalLastItemOf(String tag) {
+	public String getContentOfLastElement(String tag) {
 		NodeList list = this.document.getElementsByTagName(tag);
 		int lastIndex = list.getLength()-1;
 		String lastElement = list.item(lastIndex).getTextContent();
 		return lastElement;
+	}
+
+	public boolean containsExpressionContext(String expression, String content) {
+		NodeList nodes;
+		try {
+			XPath xPath = XPathFactory.newInstance().newXPath();
+			nodes = (NodeList) xPath.compile(expression).evaluate(document, XPathConstants.NODESET);
+			String itemContent = nodes.item(0).getFirstChild().getNextSibling().getTextContent();
+			if (content.equals(itemContent)) {
+				return true;
+			}
+		} catch (XPathExpressionException e) {
+			LOGGER.error(e); // TODO Fix error message...
+		}
+		return false;
 	}
 }
