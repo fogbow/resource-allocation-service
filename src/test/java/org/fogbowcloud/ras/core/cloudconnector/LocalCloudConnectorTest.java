@@ -15,6 +15,9 @@ import org.fogbowcloud.ras.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequest;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
 import org.fogbowcloud.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
 import org.junit.Assert;
@@ -62,6 +65,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     private ImagePlugin imagePlugin;
     private ComputeQuotaPlugin computeQuotaPlugin;
     private PublicIpPlugin publicIpPlugin;
+    private GenericRequestPlugin genericRequestPlugin;
     private FederationToLocalMapperPlugin federationToLocalMapperPlugin;
 
     private Order order;
@@ -99,6 +103,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         this.imagePlugin = Mockito.mock(ImagePlugin.class);
         this.computeQuotaPlugin = Mockito.mock(ComputeQuotaPlugin.class);
         this.publicIpPlugin = Mockito.mock(PublicIpPlugin.class);
+        this.genericRequestPlugin = Mockito.mock(GenericRequestPlugin.class);
         this.federationToLocalMapperPlugin = Mockito.mock(FederationToLocalMapperPlugin.class);
 
         // mocking federation user token calls
@@ -135,6 +140,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         this.localCloudConnector.setNetworkPlugin(this.networkPlugin);
         this.localCloudConnector.setPublicIpPlugin(this.publicIpPlugin);
         this.localCloudConnector.setVolumePlugin(this.volumePlugin);
+        this.localCloudConnector.setGenericRequestPlugin(this.genericRequestPlugin);
     }
 
     // test case: When calling the method getNetworkInstanceIdsFromNetworkOrderIds(), it must return
@@ -953,6 +959,25 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         // verify
         Assert.assertNull(returnedImages);
         Mockito.verify(imagePlugin, times(1)).getAllImages(Mockito.any(Token.class));
+    }
+
+    // test case: Generic requests should map the federationTokenUser and redirect the request to GenericRequestPlugin.
+    @Test
+    public void testGenericRequest() throws UnexpectedException, FogbowRasException {
+        // set up
+        Token tokenMock = Mockito.mock(Token.class);
+        Mockito.doReturn(tokenMock).when(federationToLocalMapperPlugin).map(Mockito.eq(federationUserToken));
+        Mockito.doReturn(Mockito.mock(GenericRequestResponse.class)).when(genericRequestPlugin).
+                redirectGenericRequest(Mockito.any(GenericRequest.class), Mockito.eq(tokenMock));
+
+        // exercise
+        localCloudConnector.genericRequest(Mockito.mock(GenericRequest.class), federationUserToken);
+
+        // verify
+        Mockito.verify(federationToLocalMapperPlugin,
+                Mockito.times(1)).map(Mockito.any(FederationUserToken.class));
+        Mockito.verify(genericRequestPlugin, Mockito.times(1)).
+                redirectGenericRequest(Mockito.any(GenericRequest.class), Mockito.eq(tokenMock));
     }
 
 }

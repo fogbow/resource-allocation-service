@@ -11,6 +11,8 @@ import org.fogbowcloud.ras.core.models.instances.*;
 import org.fogbowcloud.ras.core.models.orders.*;
 import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequest;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,6 +23,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 @RunWith(PowerMockRunner.class)
@@ -34,6 +37,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
     private static final String FAKE_FEDERATION_TOKEN_VALUE = "federation-token-value";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USER_NAME = "fake-user-name";
+    private static final String FAKE_CLOUD_NAME = "fake-cloud-name";
     private static final String FAKE_MEMBER_ID = "fake-member-id";
     private static final String FAKE_NAME = "fake-name";
     private static final String FAKE_GATEWAY = "fake-gateway";
@@ -1951,9 +1955,10 @@ public class ApplicationFacadeTest extends BaseUnitTests {
             application.deleteSecurityRule(FAKE_INSTANCE_ID, FAKE_RULE_ID, FAKE_FEDERATION_TOKEN_VALUE,
                     ResourceType.PUBLIC_IP);
         } catch (InstanceNotFoundException e) {
-            // verify
             Assert.fail();
         }
+
+        // verify
     }
 
     // test case: Delete a security rule for a network via its endpoint, it should return the rule id.
@@ -1972,9 +1977,34 @@ public class ApplicationFacadeTest extends BaseUnitTests {
             application.deleteSecurityRule(FAKE_INSTANCE_ID, FAKE_RULE_ID, FAKE_FEDERATION_TOKEN_VALUE,
                     ResourceType.NETWORK);
         } catch (InstanceNotFoundException e) {
-            // verify
             Assert.fail();
         }
+
+        // verify
+    }
+
+    @Test
+    public void testGenericRequest() throws Exception {
+        // set up
+        String method = "GET";
+        String url = "https://www.foo.bar";
+        Map<String, String> headers = new HashMap<>();
+        Map<String, String> body = new HashMap<>();
+        GenericRequest genericRequest = new GenericRequest(method, url, headers, body);
+
+        String fakeResponseContent = "fooBar";
+        GenericRequestResponse expectedResponse = new GenericRequestResponse(fakeResponseContent);
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString())).thenReturn(localCloudConnector);
+        Mockito.when(localCloudConnector.genericRequest(Mockito.eq(genericRequest), Mockito.any(FederationUserToken.class))).thenReturn(expectedResponse);
+
+        // exercise
+        GenericRequestResponse genericRequestResponse = application.genericRequest(
+                FAKE_CLOUD_NAME, FAKE_MEMBER_ID, genericRequest, FAKE_FEDERATION_TOKEN_VALUE);
+
+        // verify
+        Assert.assertEquals(expectedResponse, genericRequestResponse);
     }
 
     private NetworkOrder createNetworkOrder() throws Exception {

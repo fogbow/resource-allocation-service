@@ -60,6 +60,7 @@ public class Messages {
         public static final String MULTIPLE_SECURITY_GROUPS_EQUALLY_NAMED = "There should be exactly one security group with name <%s>";
         public static final String INVALID_CLOUDSTACK_PROTOCOL = "Protocol <%s> couldn't be mapped to a valid protocol";
         public static final String MALFORMED_GENERIC_REQUEST_URL = "Malformed generic request URL <%s>";
+        public static final String TOKEN_ALREADY_SPECIFIED = "There should be no OpenStack token specified on the request";
     }
 
     public static class Fatal {
