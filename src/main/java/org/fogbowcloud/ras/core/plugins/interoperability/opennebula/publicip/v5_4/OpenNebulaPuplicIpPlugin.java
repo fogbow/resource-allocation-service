@@ -1,8 +1,17 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5_4;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.exceptions.*;
+import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
+import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.exceptions.QuotaExceededException;
+import org.fogbowcloud.ras.core.exceptions.UnauthorizedRequestException;
+import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.instances.PublicIpInstance;
 import org.fogbowcloud.ras.core.models.orders.PublicIpOrder;
@@ -20,17 +29,13 @@ import org.opennebula.client.OneResponse;
 import org.opennebula.client.secgroup.SecurityGroup;
 import org.opennebula.client.vm.VirtualMachine;
 import org.opennebula.client.vnet.VirtualNetwork;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import org.opennebula.client.vnet.VirtualNetworkPool;
 
 public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken> {
 
 	private static final Logger LOGGER = Logger.getLogger(OpenNebulaPuplicIpPlugin.class);
 
-	private static final String DEFAULT_PUBLIC_IP_ADDRESS_KEY = "default_public_ip_address";
-
+	private static final String FIXED_PUBLIC_IP_ADDRESSES_KEY = "fixed_public_ip_addresses";
 	private static final String ID_SEPARATOR = " ";
 	private static final String IP_SEPARATOR = ",";
 	private static final String INSTANCE_ID = "%s %s %s %s";
@@ -38,14 +43,20 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 	private static final String OUTPUT_RULE_TYPE = "outbound";
 	private static final String NIC_IP_PATH = "VM/NIC/IP";
 	private static final String ALL_PROTOCOLS = "ALL";
+	private static final String NETWORK_TYPE_FIXED = "FIXED";
+	private static final String PUBLIC_NETWORK_BRIDGE_KEY = "public_network_bridge";
+	private static final String DEFAULT_VIRTUAL_NETWORK_BRIDGED_DRIVE = "fw";
+	private static final String XPATH_EXPRESSION_FORMAT = "//VNET_POOL/VNET/TEMPLATE/LEASES[descendant::IP[text()='%s']]";
 
 	private OpenNebulaClientFactory factory;
-	private String publicIpAddress;
+	private String publicIpAddresses;
+	private String bridge;
 
 	public OpenNebulaPuplicIpPlugin(String confFilePath) {
 		Properties properties = PropertiesUtil.readProperties(confFilePath);
 
-		this.publicIpAddress = properties.getProperty(DEFAULT_PUBLIC_IP_ADDRESS_KEY);
+		this.publicIpAddresses = properties.getProperty(FIXED_PUBLIC_IP_ADDRESSES_KEY);
+		this.bridge = properties.getProperty(PUBLIC_NETWORK_BRIDGE_KEY);
 		this.factory = new OpenNebulaClientFactory(confFilePath);
 	}
 
@@ -57,8 +68,15 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());
 
+		// check if fixed ip is in use...
+		String fixedIp = getAvailableFixedIp(client);
+		if (fixedIp == null) {
+			LOGGER.error(Messages.Error.FIXED_IP_EXCEEDED);
+			throw new QuotaExceededException();
+		}
+		
 		String template;
-		template = createPublicNetworkTemplate();
+		template = createPublicNetworkTemplate(publicIpOrder, fixedIp);
 		String virtualNetworkId = this.factory.allocateVirtualNetwork(client, template);
 		
 		template = createSecurityGroupsTemplate(publicIpOrder, virtualNetworkId);
@@ -75,6 +93,26 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 				nicId);
 		
 		return instanceId;
+	}
+
+	private String getAvailableFixedIp(Client client) {
+		String[] sliceFixedIp = this.publicIpAddresses.split(IP_SEPARATOR);
+		
+		OneResponse response = VirtualNetworkPool.infoAll(client);
+		if (response.isError()) {
+			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, response.getErrorMessage()));
+		}
+		OpenNebulaUnmarshallerContents unmarshallerContents = new OpenNebulaUnmarshallerContents(response.getMessage());
+		String content = null;
+		String expression = null;
+		for (int i = 0; i < sliceFixedIp.length; i++) {
+			content = sliceFixedIp[i];
+			expression = String.format(XPATH_EXPRESSION_FORMAT, content);
+			if (!unmarshallerContents.containsExpressionContext(expression, content)) {
+				return content;
+			}
+		}
+		return null;
 	}
 
 	@Override
@@ -156,7 +194,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		OneResponse response = virtualMachine.info();
 		String xml = response.getMessage();
 		OpenNebulaUnmarshallerContents unmarshallerContents = new OpenNebulaUnmarshallerContents(xml);
-		String content = unmarshallerContents.unmarshalLastItemOf(OpenNebulaTagNameConstants.NIC_ID);
+		String content = unmarshallerContents.getContentOfLastElement(OpenNebulaTagNameConstants.NIC_ID);
 		return content;
 	}
 
@@ -185,18 +223,14 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		return template;
 	}
 
-	private String createPublicNetworkTemplate() {
-		String name = "public-network";
-		String type = "FIXED";
-		String bridge = "vbr1";
-		String bridgedDrive = "fw";
-		String ipAddress = this.publicIpAddress;
+	private String createPublicNetworkTemplate(PublicIpOrder publicIpOrder, String fixedIp) {
+		String name = publicIpOrder.getCloudName();
+		String type = NETWORK_TYPE_FIXED;
+		String bridge = this.bridge;
+		String bridgedDrive = DEFAULT_VIRTUAL_NETWORK_BRIDGED_DRIVE;
 		
 		List<LeaseIp> leases = new ArrayList<>();
-		String[] address = ipAddress.split(IP_SEPARATOR);
-		for (int i = 0; i < address.length; i++) {
-			leases.add(PublicNetworkTemplate.allocateIpAddress(address[i].trim()));
-		}
+		leases.add(PublicNetworkTemplate.allocateIpAddress(fixedIp));
 		
 		CreatePublicNetworkRequest request = new CreatePublicNetworkRequest.Builder()
 				.name(name)
