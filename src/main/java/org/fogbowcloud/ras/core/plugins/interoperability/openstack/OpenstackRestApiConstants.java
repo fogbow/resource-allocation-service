@@ -35,6 +35,7 @@ public class OpenstackRestApiConstants {
         public static final String ADDRESS_KEY_JSON = "addr";
         public static final String IMAGE_REFERENCE_KEY_JSON = "imageRef";
         public static final String FLAVOR_REFERENCE_KEY_JSON = "flavorRef";
+        public static final String FLAVOR_EXTRA_SPECS_KEY_JSON = "extra_specs";
         public static final String USER_DATA_KEY_JSON = "user_data";
         public static final String KEY_NAME_KEY_JSON = "key_name";
         public static final String NETWORKS_KEY_JSON = "networks";
