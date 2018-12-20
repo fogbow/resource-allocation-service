@@ -199,7 +199,7 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3Token> {
         }
 
         String message = Messages.Exception.UNABLE_TO_MATCH_REQUIREMENTS;
-        throw new FogbowRasException(message);
+        throw new NoAvailableResourcesException(message);
     }
 
     private void initClient() {
