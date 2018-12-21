@@ -61,8 +61,12 @@ public class RemoteFacadeTest extends BaseUnitTests {
         this.remoteFacade.setOrderController(this.orderController);
         this.remoteFacade.setAaaController(this.aaaController);
 
-        AaaPluginInstantiator instantiationInitService = AaaPluginInstantiator.getInstance();
-        AaaPluginsHolder aaaPluginsHolder = new AaaPluginsHolder(instantiationInitService);
+        AaaPluginInstantiator aaaPluginInstantiator = AaaPluginInstantiator.getInstance();
+        AaaPluginsHolder aaaPluginsHolder = new AaaPluginsHolder();
+        aaaPluginsHolder.setTokenGeneratorPlugin(aaaPluginInstantiator.getTokenGeneratorPlugin());
+        aaaPluginsHolder.setFederationIdentityPlugin(aaaPluginInstantiator.getFederationIdentityPlugin());
+        aaaPluginsHolder.setAuthenticationPlugin(aaaPluginInstantiator.getAuthenticationPlugin());
+        aaaPluginsHolder.setAuthorizationPlugin(aaaPluginInstantiator.getAuthorizationPlugin());
 
         this.cloudConnector = Mockito.spy(new RemoteCloudConnector(REMOTE_MEMBER_ID, CLOUD_NAME));
     }

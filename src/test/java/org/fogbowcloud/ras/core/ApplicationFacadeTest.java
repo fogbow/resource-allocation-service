@@ -74,8 +74,12 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         this.application.setOrderController(this.orderController);
         this.application.setSecurityRuleController(this.securityRuleController);
 
-        AaaPluginInstantiator instantiationInitService = AaaPluginInstantiator.getInstance();
-        AaaPluginsHolder aaaPluginsHolder = new AaaPluginsHolder(instantiationInitService);
+        AaaPluginInstantiator aaaPluginInstantiator = AaaPluginInstantiator.getInstance();
+        AaaPluginsHolder aaaPluginsHolder = new AaaPluginsHolder();
+        aaaPluginsHolder.setTokenGeneratorPlugin(aaaPluginInstantiator.getTokenGeneratorPlugin());
+        aaaPluginsHolder.setFederationIdentityPlugin(aaaPluginInstantiator.getFederationIdentityPlugin());
+        aaaPluginsHolder.setAuthenticationPlugin(aaaPluginInstantiator.getAuthenticationPlugin());
+        aaaPluginsHolder.setAuthorizationPlugin(aaaPluginInstantiator.getAuthorizationPlugin());
 
         this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
 

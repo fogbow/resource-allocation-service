@@ -65,8 +65,12 @@ public class OrderControllerTest extends BaseUnitTests {
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 
-        AaaPluginInstantiator instantiationInitService = AaaPluginInstantiator.getInstance();
-        AaaPluginsHolder aaaPluginsHolder = new AaaPluginsHolder(instantiationInitService);
+        AaaPluginInstantiator aaaPluginInstantiator = AaaPluginInstantiator.getInstance();
+        AaaPluginsHolder aaaPluginsHolder = new AaaPluginsHolder();
+        aaaPluginsHolder.setTokenGeneratorPlugin(aaaPluginInstantiator.getTokenGeneratorPlugin());
+        aaaPluginsHolder.setFederationIdentityPlugin(aaaPluginInstantiator.getFederationIdentityPlugin());
+        aaaPluginsHolder.setAuthenticationPlugin(aaaPluginInstantiator.getAuthenticationPlugin());
+        aaaPluginsHolder.setAuthorizationPlugin(aaaPluginInstantiator.getAuthorizationPlugin());
 
         this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
 

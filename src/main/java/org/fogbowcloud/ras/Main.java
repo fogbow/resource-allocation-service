@@ -32,8 +32,12 @@ public class Main implements ApplicationRunner {
             DatabaseManager.getInstance().setRecoveryService(recoveryService);
 
             // Setting up plugins
-            AaaPluginInstantiator instantiationInitService = AaaPluginInstantiator.getInstance();
-            AaaPluginsHolder aaaPluginsHolder = new AaaPluginsHolder(instantiationInitService);
+            AaaPluginInstantiator aaaPluginInstantiator = AaaPluginInstantiator.getInstance();
+            AaaPluginsHolder aaaPluginsHolder = new AaaPluginsHolder();
+            aaaPluginsHolder.setTokenGeneratorPlugin(aaaPluginInstantiator.getTokenGeneratorPlugin());
+            aaaPluginsHolder.setFederationIdentityPlugin(aaaPluginInstantiator.getFederationIdentityPlugin());
+            aaaPluginsHolder.setAuthenticationPlugin(aaaPluginInstantiator.getAuthenticationPlugin());
+            aaaPluginsHolder.setAuthorizationPlugin(aaaPluginInstantiator.getAuthorizationPlugin());
 
             // Setting up controllers, application and remote facades
             String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);

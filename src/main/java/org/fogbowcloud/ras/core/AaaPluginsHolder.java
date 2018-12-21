@@ -11,11 +11,23 @@ public class AaaPluginsHolder {
     private AuthenticationPlugin authenticationPlugin;
     private AuthorizationPlugin authorizationPlugin;
 
-    public AaaPluginsHolder(AaaPluginInstantiator instantiationInitService) {
-        this.tokenGeneratorPlugin = instantiationInitService.getTokenGeneratorPlugin();
-        this.federationIdentityPlugin = instantiationInitService.getFederationIdentityPlugin();
-        this.authenticationPlugin = instantiationInitService.getAuthenticationPlugin();
-        this.authorizationPlugin = instantiationInitService.getAuthorizationPlugin();
+    public AaaPluginsHolder() {
+    }
+
+    public void setTokenGeneratorPlugin(TokenGeneratorPlugin tokenGeneratorPlugin) {
+        this.tokenGeneratorPlugin = tokenGeneratorPlugin;
+    }
+
+    public void setFederationIdentityPlugin(FederationIdentityPlugin federationIdentityPlugin) {
+        this.federationIdentityPlugin = federationIdentityPlugin;
+    }
+
+    public void setAuthenticationPlugin(AuthenticationPlugin authenticationPlugin) {
+        this.authenticationPlugin = authenticationPlugin;
+    }
+
+    public void setAuthorizationPlugin(AuthorizationPlugin authorizationPlugin) {
+        this.authorizationPlugin = authorizationPlugin;
     }
 
     public TokenGeneratorPlugin getTokenGeneratorPlugin() {
