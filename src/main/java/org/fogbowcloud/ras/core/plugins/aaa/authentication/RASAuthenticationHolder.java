@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.core.plugins.aaa.authentication;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPrivateKey;
@@ -8,6 +9,9 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.PropertiesHolder;
+import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
@@ -24,6 +28,9 @@ public class RASAuthenticationHolder {
 	private RSAPrivateKey rasPrivateKey;
 	private static RASAuthenticationHolder instance;
 
+	// TODO:
+	// This should not be public. It is used in LdapTokenGeneratorPluginTest only. That test should be fixed
+    // not to need to call this constructor, which should then be made private.
 	public RASAuthenticationHolder() {
         try {
             this.rasPublicKey = getPublicKey();
@@ -81,11 +88,15 @@ public class RASAuthenticationHolder {
 	}    
 
     protected RSAPublicKey getPublicKey() throws IOException, GeneralSecurityException {
-        return RSAUtil.getPublicKey();
+        String filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PUBLIC_KEY_FILE_PATH);
+        LOGGER.info("PublicKey file: " + filename);
+        return RSAUtil.getPublicKey(filename);
     }
     
     protected RSAPrivateKey getPrivateKey() throws IOException, GeneralSecurityException {
-        return RSAUtil.getPrivateKey();
+        String filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PRIVATE_KEY_FILE_PATH);
+        LOGGER.info("PrivateKey file: " + filename);
+        return RSAUtil.getPrivateKey(filename);
     }    
 
     protected long getNow() {

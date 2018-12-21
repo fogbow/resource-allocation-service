@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-public class RASAuthenticationHolderHolderTest {
+public class RASAuthenticationHolderTest {
 
 	private static final long GRACE_TIME = 100;
 	
@@ -16,7 +16,7 @@ public class RASAuthenticationHolderHolderTest {
 
 	@Before
 	public void setUp() throws IOException, GeneralSecurityException {
-		this.genericSignatureAuthenticationPlugin = Mockito.spy(new RASAuthenticationHolder());
+		this.genericSignatureAuthenticationPlugin = Mockito.spy(RASAuthenticationHolder.getInstance());
 	}
 	
 	// test case: Generate expirationTime

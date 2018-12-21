@@ -1,5 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.aaa.identity;
 
+import org.fogbowcloud.ras.core.PropertiesHolder;
+import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -22,7 +24,8 @@ public class FederationIdentityPluginProtectionWrapperTest {
 
     @Before
     public void setUp() throws IOException, GeneralSecurityException {
-        this.privateKey = RSAUtil.getPrivateKey();
+        String filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PRIVATE_KEY_FILE_PATH);
+        this.privateKey = RSAUtil.getPrivateKey(filename);
         FederationIdentityPlugin embeddedPlugin = new DefaultFederationIdentityPlugin();
         this.federationIdentityPluginProtectionWrapper =
                 new FederationIdentityPluginProtectionWrapper(embeddedPlugin);

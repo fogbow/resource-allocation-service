@@ -33,7 +33,8 @@ public class OpenStackAuthenticationPluginTest {
         this.providerId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
         try {
-            this.privateKey = RSAUtil.getPrivateKey();
+            String filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PRIVATE_KEY_FILE_PATH);
+            this.privateKey = RSAUtil.getPrivateKey(filename);
         } catch (IOException | GeneralSecurityException e) {
             throw new FatalErrorException(String.format(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE, e.getMessage()));
         }  

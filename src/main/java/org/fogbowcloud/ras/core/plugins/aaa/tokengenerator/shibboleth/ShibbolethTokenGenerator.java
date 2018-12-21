@@ -58,7 +58,8 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
         this.rasAuthenticationHolder = RASAuthenticationHolder.getInstance();
         
         try {
-            this.rasPrivateKey = RSAUtil.getPrivateKey();
+			String filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PRIVATE_KEY_FILE_PATH);
+			this.rasPrivateKey = RSAUtil.getPrivateKey(filename);
         } catch (IOException | GeneralSecurityException e) {
             throw new FatalErrorException(
             		String.format(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE, e.getMessage()));
