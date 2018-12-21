@@ -41,6 +41,12 @@ public class AaaPluginInstantiator {
         return (AuthenticationPlugin) AaaPluginInstantiator.pluginFactory.createPluginInstance(className);
     }
 
+    public static AuthenticationPlugin getAuthenticationPlugin(String aaaConfFilePath, String localProviderId) {
+        Properties properties = PropertiesUtil.readProperties(aaaConfFilePath);
+        String className = properties.getProperty(ConfigurationConstants.AUTHENTICATION_PLUGIN_CLASS_KEY);
+        return (AuthenticationPlugin) AaaPluginInstantiator.pluginFactory.createPluginInstance(className, localProviderId);
+    }
+
     public static AuthorizationPlugin getAuthorizationPlugin(String aaaConfFilePath) {
         Properties properties = PropertiesUtil.readProperties(aaaConfFilePath);
         String className = properties.getProperty(ConfigurationConstants.AUTHORIZATION_PLUGIN_CLASS_KEY);

@@ -77,8 +77,8 @@ public class CloudStackTokenGeneratorPluginTest {
         this.cloudStackTokenGenerator = Mockito.spy(new CloudStackTokenGeneratorPlugin(cloudStackConfFilePath));
         this.cloudStackTokenGenerator.setClient(this.httpRequestClientUtil);
         this.cloudStackIdentityPlugin = new CloudStackIdentityPlugin();
-        this.cloudStackAuthenticationPlugin = new CloudStackAuthenticationPlugin();
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        this.cloudStackAuthenticationPlugin = new CloudStackAuthenticationPlugin(this.memberId);
     }
 
     // Test case: when creating allocationAllowableValues token, two requests should be made: one post request to login the user using their

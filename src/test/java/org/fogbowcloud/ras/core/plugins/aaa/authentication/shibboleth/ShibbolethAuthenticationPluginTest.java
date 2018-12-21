@@ -35,7 +35,7 @@ public class ShibbolethAuthenticationPluginTest {
 	@Before
 	public void setUp() {
 		this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
-		this.shibbolethAuthenticationPlugin = Mockito.spy(new ShibbolethAuthenticationPlugin());
+		this.shibbolethAuthenticationPlugin = Mockito.spy(new ShibbolethAuthenticationPlugin(this.tokenProviderId));
 	}
 	
 	// case: Is authenticated when token provider is the same than local provider id

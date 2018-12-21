@@ -8,20 +8,24 @@ import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStack
 
 public class CloudStackAuthenticationPlugin extends RASAuthenticationPlugin {
 
-        @Override
-        protected String getTokenMessage(FederationUserToken federationUserToken) {
-            CloudStackToken cloudStackToken = (CloudStackToken) federationUserToken;
-            String[] parameters = new String[] {
-                    cloudStackToken.getTokenProvider(),
-                    cloudStackToken.getTokenValue(),
-                    cloudStackToken.getUserId(),
-                    cloudStackToken.getUserName()};
-            return StringUtils.join(parameters, CloudStackTokenGeneratorPlugin.CLOUDSTACK_TOKEN_STRING_SEPARATOR);
-        }
+    public CloudStackAuthenticationPlugin(String localProviderId) {
+        super(localProviderId);
+    }
 
-        @Override
-        protected String getSignature(FederationUserToken federationUserToken) {
-            CloudStackToken cloudStackToken = (CloudStackToken) federationUserToken;
-            return cloudStackToken.getSignature();
-        }
+    @Override
+    protected String getTokenMessage(FederationUserToken federationUserToken) {
+        CloudStackToken cloudStackToken = (CloudStackToken) federationUserToken;
+        String[] parameters = new String[] {
+                cloudStackToken.getTokenProvider(),
+                cloudStackToken.getTokenValue(),
+                cloudStackToken.getUserId(),
+                cloudStackToken.getUserName()};
+        return StringUtils.join(parameters, CloudStackTokenGeneratorPlugin.CLOUDSTACK_TOKEN_STRING_SEPARATOR);
+    }
+
+    @Override
+    protected String getSignature(FederationUserToken federationUserToken) {
+        CloudStackToken cloudStackToken = (CloudStackToken) federationUserToken;
+        return cloudStackToken.getSignature();
+    }
 }

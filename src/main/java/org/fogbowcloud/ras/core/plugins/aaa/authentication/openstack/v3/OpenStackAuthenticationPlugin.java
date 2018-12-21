@@ -4,9 +4,13 @@ import org.apache.commons.lang.StringUtils;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationPlugin;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.opennebula.OpenNebulaAuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.OpenStackTokenGeneratorPlugin;
 
 public class OpenStackAuthenticationPlugin extends RASAuthenticationPlugin {
+    public OpenStackAuthenticationPlugin(String localProviderId) {
+        super(localProviderId);
+    }
 
     @Override
     protected String getTokenMessage(FederationUserToken federationUserToken) {

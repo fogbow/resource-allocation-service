@@ -7,6 +7,10 @@ import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASTimestampedAuthent
 
 public class ShibbolethAuthenticationPlugin extends RASTimestampedAuthenticationPlugin {
 
+	public ShibbolethAuthenticationPlugin(String localProviderId) {
+		super(localProviderId);
+	}
+
 	@Override
 	protected String getTokenMessage(FederationUserToken federationUserToken) {
 		ShibbolethToken shibbolethToken = (ShibbolethToken) federationUserToken;

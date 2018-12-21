@@ -39,7 +39,7 @@ public class CloudStackAuthenticationPluginTest {
             throw new FatalErrorException(String.format(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE, e.getMessage()));
         }
 
-        this.authenticationPlugin = Mockito.spy(new CloudStackAuthenticationPlugin());
+        this.authenticationPlugin = Mockito.spy(new CloudStackAuthenticationPlugin(this.providerId));
     }
 
     //test case: check if isAuthentic returns true when the tokenValue is valid.

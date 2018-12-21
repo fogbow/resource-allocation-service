@@ -7,6 +7,9 @@ import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationPlug
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.opennebula.OpenNebulaTokenGeneratorPlugin;
 
 public class OpenNebulaAuthenticationPlugin extends RASAuthenticationPlugin {
+    public OpenNebulaAuthenticationPlugin(String localProviderId) {
+        super(localProviderId);
+    }
 
     @Override
     protected String getTokenMessage(FederationUserToken federationUserToken) {

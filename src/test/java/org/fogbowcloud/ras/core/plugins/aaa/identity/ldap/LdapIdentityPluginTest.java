@@ -49,10 +49,10 @@ public class LdapIdentityPluginTest {
         this.userCredentials.put(LdapTokenGeneratorPlugin.CRED_LDAP_ENCRYPT, "");
         this.userCredentials.put(LdapTokenGeneratorPlugin.CRED_PRIVATE_KEY, "private_key_path");
         this.userCredentials.put(LdapTokenGeneratorPlugin.CRED_PUBLIC_KEY, "public_key_path");
-        this.ldapIdentityPlugin = Mockito.spy(new LdapIdentityPlugin());
-        this.ldapAuthenticationPlugin = new LdapAuthenticationPlugin();
         this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
-                
+        this.ldapIdentityPlugin = Mockito.spy(new LdapIdentityPlugin());
+        this.ldapAuthenticationPlugin = new LdapAuthenticationPlugin(this.localMemberId);
+
 		PowerMockito.mockStatic(RASAuthenticationHolder.class);
 		this.genericSignatureAuthenticationHolder = Mockito.mock(RASAuthenticationHolder.class);
 		BDDMockito.given(RASAuthenticationHolder.getInstance()).willReturn(this.genericSignatureAuthenticationHolder);

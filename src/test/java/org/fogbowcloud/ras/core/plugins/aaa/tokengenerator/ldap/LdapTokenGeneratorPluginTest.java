@@ -46,10 +46,10 @@ public class LdapTokenGeneratorPluginTest {
     	this.genericSignatureAuthenticationHolder = Mockito.spy(new RASAuthenticationHolder());
     	BDDMockito.given(RASAuthenticationHolder.getInstance()).willReturn(this.genericSignatureAuthenticationHolder);
     	String path = HomeDir.getPath();
+        this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         this.ldapTokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin(path + "ldap-token-generator-plugin.conf"));
-        this.ldapAuthenticationPlugin = new LdapAuthenticationPlugin();
+        this.ldapAuthenticationPlugin = new LdapAuthenticationPlugin(this.localMemberId);
         this.ldapIdentityPlugin = new LdapIdentityPlugin();
-        this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);        
     }
 
     //test case: createTokenValue with valid credentials should generate allocationAllowableValues string with the appropriate values

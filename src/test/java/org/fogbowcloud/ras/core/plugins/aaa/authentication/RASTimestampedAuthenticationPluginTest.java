@@ -1,5 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.aaa.authentication;
 
+import org.fogbowcloud.ras.core.PropertiesHolder;
+import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 import org.junit.Assert;
@@ -26,8 +28,8 @@ public class RASTimestampedAuthenticationPluginTest {
 		this.rasAuthenticationHolder = Mockito.mock(RASAuthenticationHolder.class);
 		PowerMockito.mockStatic(RASAuthenticationHolder.class);
 		BDDMockito.given(RASAuthenticationHolder.getInstance()).willReturn(this.rasAuthenticationHolder);
-		
-		this.rasTimestamped = new RASTimestampedAuthenticationPluginWraper();
+		String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+		this.rasTimestamped = new RASTimestampedAuthenticationPluginWraper(localMemberId);
 	}
 
 	// test case: Success case
@@ -42,6 +44,9 @@ public class RASTimestampedAuthenticationPluginTest {
 	}
 	
 	private class RASTimestampedAuthenticationPluginWraper extends RASTimestampedAuthenticationPlugin {
+		protected RASTimestampedAuthenticationPluginWraper(String providerId) {
+			super(providerId);
+		}
 
 		@Override
 		protected String getTokenMessage(FederationUserToken federationUserToken) {return null;}

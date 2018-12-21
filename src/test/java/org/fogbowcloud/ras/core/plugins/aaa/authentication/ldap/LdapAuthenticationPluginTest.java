@@ -23,7 +23,7 @@ public class LdapAuthenticationPluginTest {
 
     @Before
     public void setUp() {
-        this.authenticationPlugin = Mockito.spy(new LdapAuthenticationPlugin());
+        this.authenticationPlugin = Mockito.spy(new LdapAuthenticationPlugin(FAKE_MEMBER_ID));
 
         this.name = "ldapUser";
         this.password = "ldapUserPass";
