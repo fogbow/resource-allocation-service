@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.core;
 
+import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Operation;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.ResourceType;
@@ -34,7 +35,8 @@ public class AaaControllerTest {
         Mockito.when(this.aaaPluginsHolderMock.getAuthorizationPlugin()).thenReturn(this.authorizationPluginMock);
         Mockito.when(this.aaaPluginsHolderMock.getAuthenticationPlugin()).thenReturn(this.authenticationPluginMock);
         Mockito.when(this.aaaPluginsHolderMock.getFederationIdentityPlugin()).thenReturn(this.federationIdentityPluginMock);
-        this.aaaController = new AaaController(this.aaaPluginsHolderMock);
+        this.aaaController = new AaaController(this.aaaPluginsHolderMock,
+                PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID));
     }
 
     @Test(expected = UnauthorizedRequestException.class)

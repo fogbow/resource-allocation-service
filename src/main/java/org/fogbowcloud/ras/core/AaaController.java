@@ -1,6 +1,5 @@
 package org.fogbowcloud.ras.core;
 
-import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.constants.Operation;
 import org.fogbowcloud.ras.core.exceptions.*;
@@ -21,12 +20,12 @@ public class AaaController {
     private TokenGeneratorPlugin tokenGeneratorPlugin;
     private String localMemberIdentity;
 
-    public AaaController(AaaPluginsHolder aaaPluginsHolder) {
+    public AaaController(AaaPluginsHolder aaaPluginsHolder, String localMemberIdentity) {
         this.tokenGeneratorPlugin = aaaPluginsHolder.getTokenGeneratorPlugin();
         this.authenticationPlugin = aaaPluginsHolder.getAuthenticationPlugin();
         this.authorizationPlugin = aaaPluginsHolder.getAuthorizationPlugin();
         this.federationIdentityPlugin = aaaPluginsHolder.getFederationIdentityPlugin();
-        this.localMemberIdentity = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        this.localMemberIdentity = localMemberIdentity;
     }
 
     public String createTokenValue(Map<String, String> userCredentials) throws UnexpectedException,

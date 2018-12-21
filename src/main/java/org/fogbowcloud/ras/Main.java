@@ -41,7 +41,7 @@ public class Main implements ApplicationRunner {
 
             // Setting up controllers, application and remote facades
             String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
-            AaaController aaaController = new AaaController(aaaPluginsHolder);
+            AaaController aaaController = new AaaController(aaaPluginsHolder, localMemberId);
             OrderController orderController = new OrderController();
             SecurityRuleController securityRuleController = new SecurityRuleController();
             CloudListController cloudListController = new CloudListController();
