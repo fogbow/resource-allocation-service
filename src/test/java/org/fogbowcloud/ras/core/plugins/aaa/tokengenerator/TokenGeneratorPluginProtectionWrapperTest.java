@@ -5,6 +5,7 @@ import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 import org.fogbowcloud.ras.util.RSAUtil;
 import org.junit.Assert;
 import org.junit.Before;
@@ -23,8 +24,7 @@ public class TokenGeneratorPluginProtectionWrapperTest {
 
     @Before
     public void setUp() throws UnexpectedException, FogbowRasException, IOException, GeneralSecurityException {
-        String filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PRIVATE_KEY_FILE_PATH);
-        this.privateKey = RSAUtil.getPrivateKey(filename);
+        this.privateKey = RASAuthenticationHolder.getInstance().getPrivateKey();
         TokenGeneratorPlugin embeddedPlugin = Mockito.spy(new DefaultTokenGeneratorPlugin());
         Mockito.when(embeddedPlugin.createTokenValue(Mockito.anyMap())).thenReturn(UNPROTECTED_STRING);
         this.tokenGeneratorPluginProtectionWrapper = new TokenGeneratorPluginProtectionWrapper(embeddedPlugin);

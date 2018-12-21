@@ -1,6 +1,5 @@
-package org.fogbowcloud.ras.core.plugins.aaa.authentication;
+package org.fogbowcloud.ras.core.plugins.aaa;
 
-import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.interfaces.RSAPrivateKey;
@@ -9,13 +8,11 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
-import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.util.RSAUtil;
 
 public class RASAuthenticationHolder {
@@ -71,7 +68,7 @@ public class RASAuthenticationHolder {
 		return expirationTime;
 	}
     
-    protected boolean verifySignature(String tokenMessage, String signature) throws FogbowRasException {
+    public boolean verifySignature(String tokenMessage, String signature) throws FogbowRasException {
         try {
             return RSAUtil.verify(this.getPublicKey(), tokenMessage, signature);
         } catch (Exception e) {
@@ -81,7 +78,7 @@ public class RASAuthenticationHolder {
         }
     }
     
-    protected boolean checkValidity(long timestamp) {
+    public boolean checkValidity(long timestamp) {
     	Date currentDate = new Date(getNow());
     	Date expirationDate = new Date(timestamp);
         if (expirationDate.before(currentDate)) {
@@ -90,7 +87,7 @@ public class RASAuthenticationHolder {
         return false;
 	}
 
-    protected RSAPublicKey getPublicKey() throws IOException, GeneralSecurityException {
+    public RSAPublicKey getPublicKey() throws IOException, GeneralSecurityException {
 	    if (this.rasPublicKey == null) {
             String filename = null;
             if (this.publicKeyFilePath == null) {
@@ -104,7 +101,7 @@ public class RASAuthenticationHolder {
 	    return this.rasPublicKey;
     }
     
-    protected RSAPrivateKey getPrivateKey() throws IOException, GeneralSecurityException {
+    public RSAPrivateKey getPrivateKey() throws IOException, GeneralSecurityException {
         if (this.rasPrivateKey == null) {
             String filename = null;
             if (this.privateKeyFilePath == null) {
@@ -118,7 +115,7 @@ public class RASAuthenticationHolder {
         return this.rasPrivateKey;
     }
 
-    protected long getNow() {
+    public long getNow() {
     	return System.currentTimeMillis();
     }
 

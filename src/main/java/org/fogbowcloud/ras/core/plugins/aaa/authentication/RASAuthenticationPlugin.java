@@ -5,6 +5,7 @@ import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 
 public abstract class RASAuthenticationPlugin implements AuthenticationPlugin<FederationUserToken> {
 

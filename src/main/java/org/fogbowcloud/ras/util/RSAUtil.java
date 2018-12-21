@@ -58,9 +58,7 @@ public class RSAUtil {
     }
 
     public static RSAPublicKey getPublicKey(String filename) throws IOException, GeneralSecurityException {
-        LOGGER.debug("public key path: " + filename);
         String publicKeyPEM = getKey(filename);
-        LOGGER.debug("public key: " + publicKeyPEM);
         return getPublicKeyFromString(publicKeyPEM);
     }
 

@@ -5,6 +5,7 @@ import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPluginProtectionWrapper;
 import org.fogbowcloud.ras.util.RSAUtil;
 
@@ -19,8 +20,7 @@ public class FederationIdentityPluginProtectionWrapper implements FederationIden
     public FederationIdentityPluginProtectionWrapper(FederationIdentityPlugin embeddedPlugin) {
         this.embeddedPlugin = embeddedPlugin;
         try {
-            String filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PRIVATE_KEY_FILE_PATH);
-            this.privateKey = RSAUtil.getPrivateKey(filename);
+            this.privateKey = RASAuthenticationHolder.getInstance().getPrivateKey();
         } catch (IOException | GeneralSecurityException e) {
             throw new FatalErrorException();
         }

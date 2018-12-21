@@ -3,6 +3,7 @@ package org.fogbowcloud.ras.core.plugins.aaa.authentication;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
+import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

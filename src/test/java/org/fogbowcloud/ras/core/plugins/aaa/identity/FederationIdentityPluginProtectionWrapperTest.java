@@ -6,6 +6,7 @@ import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.DefaultTokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPluginProtectionWrapper;
 import org.fogbowcloud.ras.util.RSAUtil;
@@ -24,8 +25,7 @@ public class FederationIdentityPluginProtectionWrapperTest {
 
     @Before
     public void setUp() throws IOException, GeneralSecurityException {
-        String filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PRIVATE_KEY_FILE_PATH);
-        this.privateKey = RSAUtil.getPrivateKey(filename);
+        this.privateKey = RASAuthenticationHolder.getInstance().getPrivateKey();
         FederationIdentityPlugin embeddedPlugin = new DefaultFederationIdentityPlugin();
         this.federationIdentityPluginProtectionWrapper =
                 new FederationIdentityPluginProtectionWrapper(embeddedPlugin);

@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.aaa.authentication;
 
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
