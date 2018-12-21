@@ -4,6 +4,7 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenN
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.IP;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.LEASES;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.NAME;
+import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.SECURITY_GROUPS;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TEMPLATE;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.TYPE;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.VIRTUAL_NETWORK_BRIDGED_DRIVE;
@@ -23,6 +24,7 @@ public class PublicNetworkTemplate extends OpenNebulaMarshallerTemplate{
 	private String bridge;
 	private String bridgedDrive;
 	private List<LeaseIp> leases;
+	private String securityGroups;
 	
 	@XmlElement(name = NAME)
 	public String getName() {
@@ -67,6 +69,15 @@ public class PublicNetworkTemplate extends OpenNebulaMarshallerTemplate{
 
 	public void setLeases(List<LeaseIp> leases) {
 		this.leases = leases;
+	}
+	
+	@XmlElement(name = SECURITY_GROUPS)
+	public String getSecurityGroups() {
+		return securityGroups;
+	}
+
+	public void setSecurityGroups(String securityGroups) {
+		this.securityGroups = securityGroups;
 	}
 	
 	public static LeaseIp allocateIpAddress(String ip) {

@@ -37,7 +37,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 
 	private static final String FIXED_PUBLIC_IP_ADDRESSES_KEY = "fixed_public_ip_addresses";
 	private static final String ID_SEPARATOR = " ";
-	private static final String IP_SEPARATOR = ",";
+	private static final String CARACTER_SEPARATOR = ",";
 	private static final String INSTANCE_ID = "%s %s %s %s";
 	private static final String INPUT_RULE_TYPE = "inbound";
 	private static final String OUTPUT_RULE_TYPE = "outbound";
@@ -47,6 +47,7 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 	private static final String PUBLIC_NETWORK_BRIDGE_KEY = "public_network_bridge";
 	private static final String DEFAULT_VIRTUAL_NETWORK_BRIDGED_DRIVE = "fw";
 	private static final String XPATH_EXPRESSION_FORMAT = "//VNET_POOL/VNET/TEMPLATE/LEASES[descendant::IP[text()='%s']]";
+	private static final String SECURITY_GROUP_DEFAULT = "0";
 
 	private OpenNebulaClientFactory factory;
 	private String publicIpAddresses;
@@ -75,14 +76,13 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 			throw new QuotaExceededException();
 		}
 		
-		String template;
-		template = createPublicNetworkTemplate(publicIpOrder, fixedIp);
-		String virtualNetworkId = this.factory.allocateVirtualNetwork(client, template);
-		
-		template = createSecurityGroupsTemplate(publicIpOrder, virtualNetworkId);
+		String template = createSecurityGroupsTemplate(publicIpOrder);
 		String securityGroupsId = this.factory.allocateSecurityGroup(client, template);
+		
+		template = createPublicNetworkTemplate(publicIpOrder, securityGroupsId, fixedIp);
+		String virtualNetworkId = this.factory.allocateVirtualNetwork(client, template);
 
-		template = createNicTemplate(virtualNetworkId, securityGroupsId);
+		template = createNicTemplate(virtualNetworkId);
 		VirtualMachine virtualMachine = attachNetworkInterfaceConnected(client, computeInstanceId, template);
 		String nicId = getNicIdFromContenOf(virtualMachine);
 
@@ -95,20 +95,21 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		return instanceId;
 	}
 
-	private String getAvailableFixedIp(Client client) {
-		String[] sliceFixedIp = this.publicIpAddresses.split(IP_SEPARATOR);
+	protected String getAvailableFixedIp(Client client) {
+		String[] sliceFixedIp = this.publicIpAddresses.split(CARACTER_SEPARATOR);
 		
 		OneResponse response = VirtualNetworkPool.infoAll(client);
 		if (response.isError()) {
 			LOGGER.error(String.format(Messages.Error.ERROR_MESSAGE, response.getErrorMessage()));
 		}
-		OpenNebulaUnmarshallerContents unmarshallerContents = new OpenNebulaUnmarshallerContents(response.getMessage());
+		String xml = response.getMessage();
+		OpenNebulaUnmarshallerContents unmarshallerContents = new OpenNebulaUnmarshallerContents(xml);
 		String content = null;
 		String expression = null;
 		for (int i = 0; i < sliceFixedIp.length; i++) {
 			content = sliceFixedIp[i];
 			expression = String.format(XPATH_EXPRESSION_FORMAT, content);
-			if (!unmarshallerContents.containsExpressionContext(expression, content)) {
+			if (!unmarshallerContents.containsExpressionContext(expression)) {
 				return content;
 			}
 		}
@@ -212,22 +213,22 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		return virtualMachine;
 	}
 	
-	private String createNicTemplate(String virtualNetworkId, String securityGroupsId) {
+	private String createNicTemplate(String virtualNetworkId) {
 		String template;
 		CreateNicRequest request = new CreateNicRequest.Builder()
 				.networkId(virtualNetworkId)
-				.securityGroups(securityGroupsId)
 				.build();
 
 		template = request.getNic().marshalTemplate();
 		return template;
 	}
 
-	private String createPublicNetworkTemplate(PublicIpOrder publicIpOrder, String fixedIp) {
+	private String createPublicNetworkTemplate(PublicIpOrder publicIpOrder, String securityGroupId, String fixedIp) {
 		String name = publicIpOrder.getCloudName();
 		String type = NETWORK_TYPE_FIXED;
 		String bridge = this.bridge;
 		String bridgedDrive = DEFAULT_VIRTUAL_NETWORK_BRIDGED_DRIVE;
+		String securityGroups = SECURITY_GROUP_DEFAULT + CARACTER_SEPARATOR  + securityGroupId;
 		
 		List<LeaseIp> leases = new ArrayList<>();
 		leases.add(PublicNetworkTemplate.allocateIpAddress(fixedIp));
@@ -238,13 +239,14 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 				.bridge(bridge)
 				.bridgedDrive(bridgedDrive)
 				.leases(leases)
+				.securityGroups(securityGroups)
 				.build();
 				
 		String template = request.getPublicNetwork().marshalTemplate();
 		return template;
 	}
 	
-	private String createSecurityGroupsTemplate(PublicIpOrder publicIpOrder, String virtualNetworkId)
+	private String createSecurityGroupsTemplate(PublicIpOrder publicIpOrder)
 			throws InvalidParameterException {
 		
 		String name = SECURITY_GROUP_PREFIX + publicIpOrder.getId();
@@ -259,7 +261,8 @@ public class OpenNebulaPuplicIpPlugin implements PublicIpPlugin<OpenNebulaToken>
 		String ipAny = null;
 		String sizeAny = null;
 
-		// The securityGroupId parameters are not used in this context.
+		// The virtualNetworkId and securityGroupId parameters are not used in this context.
+		String virtualNetworkId = null;
 		String securityGroupId = null;
 
 		Rule inputRule = new Rule(protocol, ipAny, sizeAny, rangeAll, INPUT_RULE_TYPE, virtualNetworkId,

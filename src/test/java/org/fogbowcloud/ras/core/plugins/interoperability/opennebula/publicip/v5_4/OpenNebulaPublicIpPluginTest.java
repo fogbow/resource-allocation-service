@@ -79,16 +79,8 @@ public class OpenNebulaPublicIpPluginTest {
 
 		String computeInstanceId = "1";
 		PublicIpOrder publicIpOrder = createPublicIpOrder();
-
-		String virtualNetworkId = "1";
-		String vnTemplate = generatePublicNetworkTemplate();
 		
-		OneResponse vnResponse = Mockito.mock(OneResponse.class);
-		PowerMockito.mockStatic(VirtualNetwork.class);
-		BDDMockito.given(VirtualNetwork.allocate(Mockito.any(Client.class), Mockito.contains(vnTemplate)))
-				.willReturn(vnResponse);
-		Mockito.when(vnResponse.isError()).thenReturn(false);
-		Mockito.when(vnResponse.getMessage()).thenReturn(virtualNetworkId);
+		Mockito.doReturn("0.0.0.0").when(this.plugin).getAvailableFixedIp(client);
 
 		String securityGroupsId = "1";
 		String sgTemplate = generateSecurityGroupsTemplate(publicIpOrder.getId());
@@ -100,6 +92,16 @@ public class OpenNebulaPublicIpPluginTest {
 		Mockito.when(sgResponse.isError()).thenReturn(false);
 		Mockito.when(sgResponse.getMessage()).thenReturn(securityGroupsId);
 		
+		String virtualNetworkId = "1";
+		String vnTemplate = generatePublicNetworkTemplate();
+		
+		OneResponse vnResponse = Mockito.mock(OneResponse.class);
+		PowerMockito.mockStatic(VirtualNetwork.class);
+		BDDMockito.given(VirtualNetwork.allocate(Mockito.any(Client.class), Mockito.contains(vnTemplate)))
+				.willReturn(vnResponse);
+		Mockito.when(vnResponse.isError()).thenReturn(false);
+		Mockito.when(vnResponse.getMessage()).thenReturn(virtualNetworkId);
+
 		String nicTemplate = generateNicTemplate();
 		
 		VirtualMachine virtualMachine = Mockito.mock(VirtualMachine.class);
@@ -240,7 +242,7 @@ public class OpenNebulaPublicIpPluginTest {
 		String requestingMember = null;
 		String providingMember = null;
 		String computeOrderId = "fake-order-id";
-		String cloudName = null;
+		String cloudName = "fake-public-network";
 
 		PublicIpOrder publicIpOrder = new PublicIpOrder(
 				federationUserToken, 
@@ -274,7 +276,7 @@ public class OpenNebulaPublicIpPluginTest {
 				"<TEMPLATE>\n" + 
 				"    <NIC>\n" + 
 				"        <NETWORK_ID>1</NETWORK_ID>\n" + 
-				"        <SECURITY_GROUPS>1</SECURITY_GROUPS>\n" + 
+//				"        <SECURITY_GROUPS>1</SECURITY_GROUPS>\n" + 
 				"    </NIC>\n" + 
 				"</TEMPLATE>\n";
 		
@@ -289,16 +291,17 @@ public class OpenNebulaPublicIpPluginTest {
 				"    <LEASES>\n" + 
 				"        <IP>0.0.0.0</IP>\n" + 
 				"    </LEASES>\n" + 
-				"    <LEASES>\n" + 
-				"        <IP>1.1.1.1</IP>\n" + 
-				"    </LEASES>\n" + 
-				"    <LEASES>\n" + 
-				"        <IP>2.2.2.2</IP>\n" + 
-				"    </LEASES>\n" + 
-				"    <LEASES>\n" + 
-				"        <IP>3.3.3.3</IP>\n" + 
-				"    </LEASES>\n" + 
-				"    <NAME>public-network</NAME>\n" + 
+//				"    <LEASES>\n" + 
+//				"        <IP>1.1.1.1</IP>\n" + 
+//				"    </LEASES>\n" + 
+//				"    <LEASES>\n" + 
+//				"        <IP>2.2.2.2</IP>\n" + 
+//				"    </LEASES>\n" + 
+//				"    <LEASES>\n" + 
+//				"        <IP>3.3.3.3</IP>\n" + 
+//				"    </LEASES>\n" + 
+				"    <NAME>fake-public-network</NAME>\n" + 
+				"    <SECURITY_GROUPS>0,1</SECURITY_GROUPS>\n" +
 				"    <TYPE>FIXED</TYPE>\n" + 
 				"</TEMPLATE>\n";
 		
@@ -310,12 +313,12 @@ public class OpenNebulaPublicIpPluginTest {
 				"<TEMPLATE>\n" + 
 				"    <NAME>ras-sg-pip-%s</NAME>\n" + 
 				"    <RULE>\n" + 
-				"        <NETWORK_ID>1</NETWORK_ID>\n" + 
+//				"        <NETWORK_ID>1</NETWORK_ID>\n" + 
 				"        <PROTOCOL>ALL</PROTOCOL>\n" + 
 				"        <RULE_TYPE>inbound</RULE_TYPE>\n" + 
 				"    </RULE>\n" + 
 				"    <RULE>\n" + 
-				"        <NETWORK_ID>1</NETWORK_ID>\n" + 
+//				"        <NETWORK_ID>1</NETWORK_ID>\n" + 
 				"        <PROTOCOL>ALL</PROTOCOL>\n" + 
 				"        <RULE_TYPE>outbound</RULE_TYPE>\n" + 
 				"    </RULE>\n" + 

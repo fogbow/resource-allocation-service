@@ -13,6 +13,7 @@ import javax.xml.xpath.XPathFactory;
 
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -41,13 +42,13 @@ public class OpenNebulaUnmarshallerContents {
 		return lastElement;
 	}
 
-	public boolean containsExpressionContext(String expression, String content) {
+	public boolean containsExpressionContext(String expression) {
 		NodeList nodes;
 		try {
 			XPath xPath = XPathFactory.newInstance().newXPath();
-			nodes = (NodeList) xPath.compile(expression).evaluate(document, XPathConstants.NODESET);
-			String itemContent = nodes.item(0).getFirstChild().getNextSibling().getTextContent();
-			if (content.equals(itemContent)) {
+			nodes = (NodeList) xPath.compile(expression).evaluate(this.document, XPathConstants.NODESET);
+			Node item = nodes.item(0);
+			if (item != null) {
 				return true;
 			}
 		} catch (XPathExpressionException e) {
