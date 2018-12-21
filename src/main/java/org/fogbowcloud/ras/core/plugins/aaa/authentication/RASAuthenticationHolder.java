@@ -34,17 +34,10 @@ public class RASAuthenticationHolder {
 	// This should not be public. It is used in LdapTokenGeneratorPluginTest only. That test should be fixed
     // not to need to call this constructor, which should then be made private.
 	public RASAuthenticationHolder() {
-        try {
-            this.rasPublicKey = getPublicKey();
-        } catch (IOException | GeneralSecurityException e) {
-            throw new FatalErrorException(Messages.Fatal.ERROR_READING_PUBLIC_KEY_FILE);
-        }
-        
-        try {
-            this.rasPrivateKey = getPrivateKey();
-        } catch (IOException | GeneralSecurityException e) {
-            throw new FatalErrorException(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE);
-        }        
+        this.rasPublicKey = null;
+        this.rasPrivateKey = null;
+        this.publicKeyFilePath = null;
+        this.privateKeyFilePath = null;
 	}
 	
     public static synchronized RASAuthenticationHolder getInstance() throws FatalErrorException {
@@ -64,7 +57,7 @@ public class RASAuthenticationHolder {
 
     public String createSignature(String message) throws FogbowRasException {
     	try {
-    		return RSAUtil.sign(this.rasPrivateKey, message);
+    		return RSAUtil.sign(this.getPrivateKey(), message);
 		} catch (Exception e) {
 	    	String errorMsg = String.format(Messages.Exception.AUTHENTICATION_ERROR);
 	    	LOGGER.error(errorMsg, e);
@@ -80,7 +73,7 @@ public class RASAuthenticationHolder {
     
     protected boolean verifySignature(String tokenMessage, String signature) throws FogbowRasException {
         try {
-            return RSAUtil.verify(this.rasPublicKey, tokenMessage, signature);
+            return RSAUtil.verify(this.getPublicKey(), tokenMessage, signature);
         } catch (Exception e) {
         	String errorMsg = Messages.Exception.AUTHENTICATION_ERROR;
 			LOGGER.error(errorMsg, e);
@@ -95,32 +88,38 @@ public class RASAuthenticationHolder {
         	return true;
         }
         return false;
-	}    
+	}
 
     protected RSAPublicKey getPublicKey() throws IOException, GeneralSecurityException {
-	    String filename = null;
-	    if (this.publicKeyFilePath == null) {
-            filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PUBLIC_KEY_FILE_PATH);
-        } else {
-	        filename = this.publicKeyFilePath;
+	    if (this.rasPublicKey == null) {
+            String filename = null;
+            if (this.publicKeyFilePath == null) {
+                filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PUBLIC_KEY_FILE_PATH);
+            } else {
+                filename = this.publicKeyFilePath;
+            }
+            LOGGER.info("PublicKey file: " + filename);
+            this.rasPublicKey = RSAUtil.getPublicKey(filename);
         }
-        LOGGER.info("PublicKey file: " + filename);
-        return RSAUtil.getPublicKey(filename);
+	    return this.rasPublicKey;
     }
     
     protected RSAPrivateKey getPrivateKey() throws IOException, GeneralSecurityException {
-        String filename = null;
-        if (this.privateKeyFilePath == null) {
-            filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PRIVATE_KEY_FILE_PATH);
-        } else {
-            filename = this.privateKeyFilePath;
+        if (this.rasPrivateKey == null) {
+            String filename = null;
+            if (this.privateKeyFilePath == null) {
+                filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PRIVATE_KEY_FILE_PATH);
+            } else {
+                filename = this.privateKeyFilePath;
+            }
+            LOGGER.info("PrivateKey file: " + filename);
+            this.rasPrivateKey = RSAUtil.getPrivateKey(filename);
         }
-        LOGGER.info("PrivateKey file: " + filename);
-        return RSAUtil.getPrivateKey(filename);
-    }    
+        return this.rasPrivateKey;
+    }
 
     protected long getNow() {
     	return System.currentTimeMillis();
     }
-    
+
 }
