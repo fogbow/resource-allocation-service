@@ -4,38 +4,25 @@ import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
-import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
+import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.opennebula.OpenNebulaTokenGeneratorPlugin;
 
 public class OpenNebulaIdentityPlugin implements FederationIdentityPlugin<OpenNebulaToken> {
-    
-    private static final String OPENNEBULA_FIELD_SEPARATOR = "#&#";
-    private static final String EMPTY_SPACE = "";
-
-    public OpenNebulaIdentityPlugin() {
-    }
 
     @Override
     public OpenNebulaToken createToken(String tokenValue) throws InvalidParameterException {
-        if(tokenValue == null || tokenValue.trim().equals(EMPTY_SPACE)){
+        if(tokenValue == null || tokenValue.isEmpty()){
             throw new InvalidParameterException(String.format(Messages.Error.INVALID_TOKEN_VALUE, Messages.Error.EMPTY_OR_NULL_TOKEN));
         }
 
-        String split[] = tokenValue.split(OPENNEBULA_FIELD_SEPARATOR);
-
-        String provider = split[0];
-        String oneTokenValue = split[1];
-        String userId = split[2];
-        String userName = split[3];
-        String signature = split[4];
-
-        try {
-            OpenNebulaClientFactory factory = new OpenNebulaClientFactory();
-
-            // Test if oneTokenValue is valid for any authentication.
-            factory.createClient(oneTokenValue);
-        } catch (Exception e){
-            throw new InvalidParameterException(e.getMessage());
+        String split[] = tokenValue.split(OpenNebulaTokenGeneratorPlugin.OPENNEBULA_FIELD_SEPARATOR);
+        if (split.length != OpenNebulaTokenGeneratorPlugin.FEDERATION_TOKEN_PARAMETER_SIZE) {
+            throw new InvalidParameterException(String.format(Messages.Error.INVALID_TOKEN_VALUE, Messages.Error.INVALID_FORMAT_TOKEN));
         }
+        String provider = split[OpenNebulaTokenGeneratorPlugin.PROVIDER_ID_TOKEN_VALUE_PARAMETER];
+        String oneTokenValue = split[OpenNebulaTokenGeneratorPlugin.ONE_TOKEN_VALUE_PARAMETER];
+        String userId = split[OpenNebulaTokenGeneratorPlugin.USER_ID_TOKEN_VALUE_PARAMETER];
+        String userName = split[OpenNebulaTokenGeneratorPlugin.USERNAME_TOKEN_VALUE_PARAMETER];
+        String signature = split[OpenNebulaTokenGeneratorPlugin.SIGNATURE_TOKEN_VALUE_PARAMETER];
 
         return new OpenNebulaToken(provider, oneTokenValue, userId, userName, signature);
     }

@@ -1,16 +1,6 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.TreeSet;
-
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
@@ -33,6 +23,8 @@ import org.opennebula.client.image.ImagePool;
 import org.opennebula.client.template.Template;
 import org.opennebula.client.template.TemplatePool;
 import org.opennebula.client.vm.VirtualMachine;
+
+import java.util.*;
 
 public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 
@@ -61,10 +53,9 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 	private TreeSet<HardwareRequirements> flavors;
 	private Properties properties;
 	
-	public OpenNebulaComputePlugin() {
-		this.properties = PropertiesUtil
-				.readProperties(HomeDir.getPath() + DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME);
-		this.factory = new OpenNebulaClientFactory();
+	public OpenNebulaComputePlugin(String confFilePath) {
+		this.properties = PropertiesUtil.readProperties(confFilePath);
+		this.factory = new OpenNebulaClientFactory(confFilePath);
 		this.flavors = new TreeSet<HardwareRequirements>();
 	}
 

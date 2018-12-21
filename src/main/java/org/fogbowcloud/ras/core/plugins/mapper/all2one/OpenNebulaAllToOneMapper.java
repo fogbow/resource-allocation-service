@@ -11,14 +11,14 @@ import org.fogbowcloud.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 public class OpenNebulaAllToOneMapper implements FederationToLocalMapperPlugin {
     private GenericAllToOneFederationToLocalMapper genericMapper;
 
-
-    public OpenNebulaAllToOneMapper() {
-        this.genericMapper = new GenericAllToOneFederationToLocalMapper(new OpenNebulaTokenGeneratorPlugin(),
-                new OpenNebulaIdentityPlugin(), "opennebula-mapper.conf");
+    public OpenNebulaAllToOneMapper(String interoperabilityConfFilePath, String mapperConfFilePath) {
+        this.genericMapper = new GenericAllToOneFederationToLocalMapper(
+                new OpenNebulaTokenGeneratorPlugin(interoperabilityConfFilePath),
+                new OpenNebulaIdentityPlugin(), mapperConfFilePath);
     }
 
     @Override
     public Token map(FederationUserToken token) throws UnexpectedException, FogbowRasException {
-        return genericMapper.map(token);
+        return this.genericMapper.map(token);
     }
 }

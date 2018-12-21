@@ -1,7 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.quota.v5_4;
 
-import java.util.Iterator;
-
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.quotas.ComputeQuota;
@@ -18,6 +18,9 @@ import org.opennebula.client.group.Group;
 import org.opennebula.client.user.User;
 import org.opennebula.client.user.UserPool;
 
+import java.io.File;
+import java.util.Iterator;
+
 public class OpenNebulaComputeQuotaPluginTest {
 
 	private static final String LOCAL_TOKEN_VALUE = "user:password";
@@ -32,14 +35,17 @@ public class OpenNebulaComputeQuotaPluginTest {
 	private static final String UNCHECKED_VALUE = "unchecked";
 	private static final String VALUE_DEFAULT_QUOTA = "-1";
 	private static final String VALUE_UNLIMITED_QUOTA = "-2";
-	
+	private static final String CLOUD_NAME = "opennebula";
+
 	private OpenNebulaClientFactory factory;
 	private OpenNebulaComputeQuotaPlugin plugin;
 
 	@Before
 	public void setUp() {
-		this.factory = Mockito.spy(new OpenNebulaClientFactory());
-		this.plugin = Mockito.spy(new OpenNebulaComputeQuotaPlugin());
+		String openenbulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+				File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+		this.factory = Mockito.spy(new OpenNebulaClientFactory(openenbulaConfFilePath));
+		this.plugin = Mockito.spy(new OpenNebulaComputeQuotaPlugin(openenbulaConfFilePath));
 	}
 	
 	// test case: When calling the getUserQuota method, if the createClient method
