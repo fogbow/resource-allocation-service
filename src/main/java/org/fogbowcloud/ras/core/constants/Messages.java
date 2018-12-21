@@ -183,5 +183,6 @@ public class Messages {
 		public static final String CONTENT_SECURITY_GROUP_NOT_DEFINED = "The content of SecuriryGroups in the VirtualNetwork template is not defined.";
 		public static final String CONTENT_SECURITY_GROUP_WRONG_FORMAT = "The contents of the security groups in the Virtual Network template may be in the wrong format.";
         public static final String ERROR_WHILE_GETTING_GROUP = "Error while getting info about group %s: %s.";
+		public static final String FIXED_IP_EXCEEDED = "All fixed ip's are in use.";
     }
 }

@@ -108,7 +108,7 @@ public class OpenNebulaAttachmentPlugin implements AttachmentPlugin<OpenNebulaTo
 		OneResponse response = virtualMachine.info();
 		String xml = response.getMessage();
 		OpenNebulaUnmarshallerContents unmarshallerContents = new OpenNebulaUnmarshallerContents(xml);
-		String content = unmarshallerContents.unmarshalLastItemOf(OpenNebulaTagNameConstants.DISK_ID);
+		String content = unmarshallerContents.getContentOfLastElement(OpenNebulaTagNameConstants.DISK_ID);
 		return content;
 	}
 
