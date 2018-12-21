@@ -18,80 +18,40 @@ import org.fogbowcloud.ras.util.PropertiesUtil;
 import java.util.Properties;
 
 public class AaaPluginInstantiator {
-    private PluginFactory pluginFactory;
-    private Properties properties;
-    private static AaaPluginInstantiator instance;
+    private static PluginFactory pluginFactory = new PluginFactory();
 
-    /**
-     * THERE ARE ONLY TWO CALLEES ALLOWED TO CALL THIS METHOD:
-     * i) test code; and
-     * ii) this.getInstance method.
-     */
-    protected AaaPluginInstantiator() {
-        String aaaConfFilePath = HomeDir.getPath() + SystemConstants.AAA_CONF_FILE_NAME;
-        this.properties = PropertiesUtil.readProperties(aaaConfFilePath);
-        this.pluginFactory = new PluginFactory();
-    }
-
-    public static synchronized AaaPluginInstantiator getInstance() throws FatalErrorException {
-        if (instance == null) {
-            instance = new AaaPluginInstantiator();
-        }
-        return instance;
-    }
-
-    public TokenGeneratorPlugin getTokenGeneratorPlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.TOKEN_GENERATOR_PLUGIN_CLASS);
-        String pluginConfFile = this.properties.getProperty(ConfigurationConstants.TOKEN_GENERATOR_CONF_FILE);
+    public static TokenGeneratorPlugin getTokenGeneratorPlugin(String aaaConfFilePath) {
+        Properties properties = PropertiesUtil.readProperties(aaaConfFilePath);
+        String className = properties.getProperty(ConfigurationConstants.TOKEN_GENERATOR_PLUGIN_CLASS);
+        String pluginConfFile = properties.getProperty(ConfigurationConstants.TOKEN_GENERATOR_CONF_FILE);
         return new TokenGeneratorPluginProtectionWrapper((TokenGeneratorPlugin)
-                this.pluginFactory.createPluginInstance(className, (HomeDir.getPath() + pluginConfFile)));
+                AaaPluginInstantiator.pluginFactory.createPluginInstance(className, (HomeDir.getPath() + pluginConfFile)));
     }
 
-    public FederationIdentityPlugin getFederationIdentityPlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.FEDERATION_IDENTITY_PLUGIN_CLASS_KEY);
+    public static FederationIdentityPlugin getFederationIdentityPlugin(String aaaConfFilePath) {
+        Properties properties = PropertiesUtil.readProperties(aaaConfFilePath);
+        String className = properties.getProperty(ConfigurationConstants.FEDERATION_IDENTITY_PLUGIN_CLASS_KEY);
         return new FederationIdentityPluginProtectionWrapper((FederationIdentityPlugin)
-                this.pluginFactory.createPluginInstance(className));
+                AaaPluginInstantiator.pluginFactory.createPluginInstance(className));
     }
 
-    public AuthenticationPlugin getAuthenticationPlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.AUTHENTICATION_PLUGIN_CLASS_KEY);
-        return (AuthenticationPlugin) this.pluginFactory.createPluginInstance(className);
+    public static AuthenticationPlugin getAuthenticationPlugin(String aaaConfFilePath) {
+        Properties properties = PropertiesUtil.readProperties(aaaConfFilePath);
+        String className = properties.getProperty(ConfigurationConstants.AUTHENTICATION_PLUGIN_CLASS_KEY);
+        return (AuthenticationPlugin) AaaPluginInstantiator.pluginFactory.createPluginInstance(className);
     }
 
-    public AuthorizationPlugin getAuthorizationPlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.AUTHORIZATION_PLUGIN_CLASS_KEY);
+    public static AuthorizationPlugin getAuthorizationPlugin(String aaaConfFilePath) {
+        Properties properties = PropertiesUtil.readProperties(aaaConfFilePath);
+        String className = properties.getProperty(ConfigurationConstants.AUTHORIZATION_PLUGIN_CLASS_KEY);
         if (className.equals(org.fogbowcloud.ras.core.plugins.aaa.authorization.
                 ComposedAuthorizationPlugin.class.getName())) {
-            String filename = this.properties.
-                    getProperty(ConfigurationConstants.COMPOSED_AUTHORIZATION_PLUGIN_CONF_FILE);
+            String filename = properties.getProperty(ConfigurationConstants.COMPOSED_AUTHORIZATION_PLUGIN_CONF_FILE);
             ComposedAuthorizationPlugin composedAuthorizationPlugin =
                     new ComposedAuthorizationPlugin(HomeDir.getPath() + filename);
             return composedAuthorizationPlugin;
         } else {
-            return (AuthorizationPlugin) this.pluginFactory.createPluginInstance(className);
+            return (AuthorizationPlugin) AaaPluginInstantiator.pluginFactory.createPluginInstance(className);
         }
-    }
-
-    public GenericRequestPlugin getGenericPlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.GENERIC_PLUGIN_CLASS_KEY);
-        return (GenericRequestPlugin) this.pluginFactory.createPluginInstance(className);
-    }
-
-    public FederationToLocalMapperPlugin getLocalUserCredentialsMapperPlugin() {
-        String className = this.properties.
-                getProperty(ConfigurationConstants.LOCAL_USER_CREDENTIALS_MAPPER_PLUGIN_CLASS_KEY);
-        return (FederationToLocalMapperPlugin) this.pluginFactory.createPluginInstance(className);
-    }
-
-    public SecurityRulePlugin getSecurityRulePlugin() {
-        String className = this.properties.getProperty(ConfigurationConstants.SECURITY_RULE_PLUGIN_CLASS_KEY);
-        return (SecurityRulePlugin) this.pluginFactory.createPluginInstance(className);
-    }
-
-    /**
-     * Used only for tests
-     */
-    protected Properties getProperties() {
-        return this.properties;
     }
 }

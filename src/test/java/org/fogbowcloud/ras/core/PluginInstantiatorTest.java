@@ -2,6 +2,7 @@ package org.fogbowcloud.ras.core;
 
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.authorization.AuthorizationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPluginProtectionWrapper;
@@ -23,8 +24,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @PrepareForTest({HomeDir.class, HttpRequestUtil.class})
 public class PluginInstantiatorTest {
 
-    private AaaPluginInstantiator AAAPluginInstantiator;
     private InteroperabilityPluginInstantiator interoperabilityPluginInstantiator;
+    private AaaPluginsHolder aaaPluginsHolder;
 
     private static final String TEST_CONF_PATH = "src/test/resources/private/";
 
@@ -36,7 +37,13 @@ public class PluginInstantiatorTest {
         PowerMockito.when(HttpRequestUtil.createHttpClient()).thenReturn(client);
         BDDMockito.given(HomeDir.getPath()).willReturn(TEST_CONF_PATH);
 
-        this.AAAPluginInstantiator = new AaaPluginInstantiator();
+        String aaaConfFilePath = HomeDir.getPath() + SystemConstants.AAA_CONF_FILE_NAME;
+        this.aaaPluginsHolder = new AaaPluginsHolder();
+        this.aaaPluginsHolder.setTokenGeneratorPlugin(AaaPluginInstantiator.getTokenGeneratorPlugin(aaaConfFilePath));
+        this.aaaPluginsHolder.setFederationIdentityPlugin(AaaPluginInstantiator.getFederationIdentityPlugin(aaaConfFilePath));
+        this.aaaPluginsHolder.setAuthenticationPlugin(AaaPluginInstantiator.getAuthenticationPlugin(aaaConfFilePath));
+        this.aaaPluginsHolder.setAuthorizationPlugin(AaaPluginInstantiator.getAuthorizationPlugin(aaaConfFilePath));
+
         this.interoperabilityPluginInstantiator = new InteroperabilityPluginInstantiator("default");
     }
 
@@ -63,7 +70,7 @@ public class PluginInstantiatorTest {
 
         // exercise
         TokenGeneratorPluginProtectionWrapper plugin = (TokenGeneratorPluginProtectionWrapper)
-                this.AAAPluginInstantiator.getTokenGeneratorPlugin();
+                this.aaaPluginsHolder.getTokenGeneratorPlugin();
 
         // verify
         Assert.assertEquals(expected_tokengenerator_wrapper_class_value, plugin.getClass().getName());
@@ -83,7 +90,7 @@ public class PluginInstantiatorTest {
 
         // exercise
         FederationIdentityPluginProtectionWrapper plugin = (FederationIdentityPluginProtectionWrapper)
-                this.AAAPluginInstantiator.getFederationIdentityPlugin();
+                this.aaaPluginsHolder.getFederationIdentityPlugin();
 
         // verify
         Assert.assertEquals(expected_federation_identity_wrapper_class_value, plugin.getClass().getName());
@@ -99,7 +106,7 @@ public class PluginInstantiatorTest {
                 "org.fogbowcloud.ras.core.stubs.StubAuthenticationPlugin";
 
         // exercise
-        AuthenticationPlugin plugin = this.AAAPluginInstantiator.getAuthenticationPlugin();
+        AuthenticationPlugin plugin = this.aaaPluginsHolder.getAuthenticationPlugin();
 
         // verify
         Assert.assertEquals(expected_authentication_class_value, plugin.getClass().getName());
@@ -113,7 +120,7 @@ public class PluginInstantiatorTest {
                 "org.fogbowcloud.ras.core.stubs.StubAuthorizationPlugin";
 
         // exercise
-        AuthorizationPlugin plugin = this.AAAPluginInstantiator.getAuthorizationPlugin();
+        AuthorizationPlugin plugin = this.aaaPluginsHolder.getAuthorizationPlugin();
 
         // verify
         Assert.assertEquals(expected_authorization_class_value, plugin.getClass().getName());
