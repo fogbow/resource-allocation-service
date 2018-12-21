@@ -1,80 +1,110 @@
 package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.opennebula;
 
-import org.fogbowcloud.ras.core.HomeDir;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
-import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
-import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.exceptions.*;
+import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.fogbowcloud.ras.util.PropertiesUtil;
+import org.opennebula.client.Client;
+import org.opennebula.client.OneResponse;
+import org.opennebula.client.user.UserPool;
 
-import java.io.File;
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.interfaces.RSAPrivateKey;
 import java.util.Map;
 import java.util.Properties;
 
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.ras.util.RSAUtil;
-import org.opennebula.client.Client;
-import sun.security.provider.PolicySpiFile;
-
 public class OpenNebulaTokenGeneratorPlugin implements TokenGeneratorPlugin {
 
-    private RSAPrivateKey privateKey;
-    private Properties properties;
+    private static final Logger LOGGER = Logger.getLogger(OpenNebulaTokenGeneratorPlugin.class);
+
+    public static final int FEDERATION_TOKEN_PARAMETER_SIZE = 5;
+    public static final int RAW_TOKEN_TOKEN_PARAMETER_SIZE = FEDERATION_TOKEN_PARAMETER_SIZE - 1;
+    public static final int PROVIDER_ID_TOKEN_VALUE_PARAMETER = 0;
+    public static final int ONE_TOKEN_VALUE_PARAMETER = 1;
+    public static final int USERNAME_TOKEN_VALUE_PARAMETER = 2;
+    public static final int USER_ID_TOKEN_VALUE_PARAMETER = 3;
+    public static final int SIGNATURE_TOKEN_VALUE_PARAMETER = 4;
+
     public static final String USERNAME = "username";
     public static final String PASSWORD = "password";
-    public static final String OPENNEBULA_TOKEN_VALUE_SEPARTOR = ":";
+    public static final String OPENNEBULA_TOKEN_VALUE_SEPARATOR = ":";
     public static final String OPENNEBULA_FIELD_SEPARATOR = "#&#";
 
+    private RASAuthenticationHolder rasAuthenticationHolder;
+    private OpenNebulaClientFactory factory;
+    private Properties properties;
     private String provider;
 
-    public OpenNebulaTokenGeneratorPlugin() throws FatalErrorException {
-        String openNebulaConfFilePath = HomeDir.getPath() + File.separator
-                + DefaultConfigurationConstants.OPENNEBULA_CONF_FILE_NAME;
-        this.properties = PropertiesUtil.readProperties(openNebulaConfFilePath );
+    public OpenNebulaTokenGeneratorPlugin(String confFilePath) throws FatalErrorException {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
         this.provider = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
-
-        try {
-
-            this.privateKey = RSAUtil.getPrivateKey();
-        } catch (IOException | GeneralSecurityException e) {
-            throw new FatalErrorException(String.format(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE, e.getMessage()));
-        }
+        this.rasAuthenticationHolder = RASAuthenticationHolder.getInstance();
+        this.factory = new OpenNebulaClientFactory(confFilePath);
     }
 
+    /*
+     * The userId is the equals userName, because the userName is unique in the Opennebula
+     */
     @Override
-    public String createTokenValue(Map<String, String> userCredentials) throws UnexpectedException, FogbowRasException {
-        if ((userCredentials == null) || (userCredentials.get(USERNAME) == null) || (userCredentials.get(PASSWORD) == null)) {
+    public String createTokenValue(Map<String, String> userCredentials) throws FogbowRasException {
+        String username = userCredentials.get(USERNAME);
+        String password = userCredentials.get(PASSWORD);
+
+        if (userCredentials == null || username == null || password == null) {
             throw new InvalidParameterException(Messages.Exception.NO_USER_CREDENTIALS);
         }
 
-        OpenNebulaClientFactory factory = new OpenNebulaClientFactory();
-
-        String userName = properties.getProperty(USERNAME);
-        String password = properties.getProperty(PASSWORD);
-
-        String openNebulaTokenValue = userName + OPENNEBULA_TOKEN_VALUE_SEPARTOR + password;
-
-        // Trying to create a new client fo checking if login data from conf file is correct
-        Client oneClient = factory.createClient(openNebulaTokenValue);
-
-        String rawTokenValue = this.provider + OPENNEBULA_FIELD_SEPARATOR + openNebulaTokenValue + OPENNEBULA_FIELD_SEPARATOR
-                + userName;
-
-        try {
-            String signature = RSAUtil.sign(this.privateKey, rawTokenValue);
-            String federationTokenValue = rawTokenValue + OPENNEBULA_FIELD_SEPARATOR + signature;
-            return federationTokenValue;
-
-        } catch (IOException | GeneralSecurityException e) {
-            throw new FatalErrorException(String.format(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE, e.getMessage()));
+        String openNebulaTokenValue = username + OPENNEBULA_TOKEN_VALUE_SEPARATOR + password;
+        if (!isAuthenticated(openNebulaTokenValue)) {
+            LOGGER.error(Messages.Exception.AUTHENTICATION_ERROR);
+            throw new UnauthenticatedUserException();
         }
+
+        String userId = username;
+        String[] federationTokenParameters = new String[RAW_TOKEN_TOKEN_PARAMETER_SIZE];
+        federationTokenParameters[PROVIDER_ID_TOKEN_VALUE_PARAMETER] = this.provider;
+        federationTokenParameters[ONE_TOKEN_VALUE_PARAMETER] = openNebulaTokenValue;
+        federationTokenParameters[USERNAME_TOKEN_VALUE_PARAMETER] = username;
+        federationTokenParameters[USER_ID_TOKEN_VALUE_PARAMETER] = userId;
+        String rawTokenValue = StringUtils.join(federationTokenParameters, OPENNEBULA_FIELD_SEPARATOR);
+
+        final String signature = this.rasAuthenticationHolder.createSignature(rawTokenValue);
+        return rawTokenValue + OPENNEBULA_FIELD_SEPARATOR + signature;
+    }
+
+    /*
+     * Using the Opennebula Java Library is necessary to do the operation na cloud to check if is authenticated.
+     * In this case, we opted to use UserPool
+     * TODO check to request directly in the XML-RPC API
+     */
+    protected boolean isAuthenticated(String openNebulaTokenValue) {
+        final Client client;
+        final UserPool userPool;
+        try {
+            client = this.factory.createClient(openNebulaTokenValue);
+            userPool = this.factory.createUserPool(client);
+        } catch (UnexpectedException e) {
+            LOGGER.error(Messages.Exception.UNEXPECTED_ERROR, e);
+            return false;
+        }
+
+        OneResponse info = userPool.info();
+        if (info.isError()) {
+            LOGGER.error(String.format(Messages.Exception.GENERIC_EXCEPTION, info.getMessage()));
+            return false;
+        }
+        return true;
+    }
+
+    protected void setFactory(OpenNebulaClientFactory factory) {
+        this.factory = factory;
+    }
+
+    protected OpenNebulaClientFactory getFactory() {
+        return factory;
     }
 }

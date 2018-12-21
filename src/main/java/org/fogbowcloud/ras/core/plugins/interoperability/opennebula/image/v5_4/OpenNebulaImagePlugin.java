@@ -24,6 +24,10 @@ public class OpenNebulaImagePlugin implements ImagePlugin<Token> {
 
 	private OpenNebulaClientFactory factory;
 
+	public OpenNebulaImagePlugin(String confFilePath) {
+		this.factory = new OpenNebulaClientFactory(confFilePath);
+	}
+
 	@Override
 	public Map<String, String> getAllImages(Token localUserAttributes) throws FogbowRasException, UnexpectedException {
 		Client client = this.factory.createClient(localUserAttributes.getTokenValue());

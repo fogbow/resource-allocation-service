@@ -28,8 +28,8 @@ public class OpenNebulaComputeQuotaPlugin implements ComputeQuotaPlugin<OpenNebu
 	
 	private OpenNebulaClientFactory factory;
 	
-	public OpenNebulaComputeQuotaPlugin() {
-		this.factory = new OpenNebulaClientFactory();
+	public OpenNebulaComputeQuotaPlugin(String confFilePath) {
+		this.factory = new OpenNebulaClientFactory(confFilePath);
 	}
 
 	@Override

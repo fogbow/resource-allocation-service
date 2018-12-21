@@ -1,7 +1,10 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.image.v5_4;
 
+import java.io.File;
 import java.util.Iterator;
 
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
@@ -23,16 +26,19 @@ public class OpenNebulaImagePluginTest {
 	private static final String FAKE_NAME = "fake-name";
 	private static final String STRING_VALUE_ONE = "1";
 	private static final String STRING_VALUE_TWO = "2";
-	
+
 	private static final int VALUE_ONE = 1;
-	
+	private static final String CLOUD_NAME = "opennebula";
+
 	private OpenNebulaClientFactory factory;
 	private OpenNebulaImagePlugin plugin;
 
 	@Before
 	public void setUp() {
-		this.factory = Mockito.spy(new OpenNebulaClientFactory());
-		this.plugin = Mockito.spy(new OpenNebulaImagePlugin());
+		String openenbulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+				File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+		this.factory = Mockito.spy(new OpenNebulaClientFactory(openenbulaConfFilePath));
+		this.plugin = Mockito.spy(new OpenNebulaImagePlugin(openenbulaConfFilePath));
 	}
 	
 	// test case: When calling the getAllImages method, if the createClient method

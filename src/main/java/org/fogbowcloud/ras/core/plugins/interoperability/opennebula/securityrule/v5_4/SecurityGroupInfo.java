@@ -8,10 +8,12 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenN
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -62,9 +64,25 @@ public class SecurityGroupInfo {
 	    	Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 	    	securityGroupInfo = (SecurityGroupInfo) unmarshaller.unmarshal(inputStream);
 	    } catch (JAXBException e) {
-	    	LOGGER.error("", e);
+	    	LOGGER.warn("Is not possible unmarshal", e);
+			LOGGER.debug(String.format("Is not possible unmarshal %s", xml));
 	    }
 	    return securityGroupInfo;
+	}
+
+	public String marshalTemplate() {
+		StringWriter writer = new StringWriter();
+		String xml = null;
+		try {
+			JAXBContext context = JAXBContext.newInstance(this.getClass());
+			Marshaller marshaller = context.createMarshaller();
+			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+			marshaller.marshal(this, writer);
+			xml = writer.toString();
+		} catch (JAXBException e) {
+			LOGGER.error("Is not possible marshal the template", e);
+		}
+		return xml;
 	}
 
 	@XmlRootElement(name = TEMPLATE)

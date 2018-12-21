@@ -90,6 +90,7 @@ public class Messages {
         public static final String UNABLE_TO_GENERATE_SIGNATURE = "Unable to generate signature.";
         public static final String UNABLE_TO_NOTIFY_REQUESTING_MEMBER = "Unable to notify requesting member %s for request %s.";
         public static final String UNABLE_TO_RETRIEVE_ROOT_VOLUME = "Unable to retrieve root volume for virtual machine %s; assigning -1 to disk size.";
+        public static final String INCONSISTENT_DIRECTION = "The direction(%s) is inconsistent";
     }
 
     public static class Info {
@@ -137,8 +138,10 @@ public class Messages {
         public static final String ERROR_WHILE_GETTING_TEMPLATES = "Error while getting info about templates: %s.";
         public static final String ERROR_WHILE_GETTING_NEW_CONNECTION = "Error while getting a new connection from the connection pool.";
         public static final String ERROR_WHILE_GETTING_VOLUME_INSTANCE = "Error while getting volume instance.";
+        public static final String ERROR_WHILE_GETTING_SECURITY_RULES_INSTANCE = "Error while getting security rules instance.";
         public static final String ERROR_WHILE_REMOVING_VM = "Error while removing virtual machine: %s, with response: %s.";
         public static final String ERROR_WHILE_REMOVING_VN = "Error while removing virtual network: %s, with response: %s.";
+        public static final String ERROR_WHILE_REMOVING_SECURITY_RULE = "Error while removing security group: %s, with response: %s.";
         public static final String ERROR_WHILE_REMOVING_VR = "Error while removing virtual router: %s, with response: %s.";
         public static final String INSTANCE_TYPE_NOT_DEFINED = "Instance type not defined.";
         public static final String INVALID_DATASTORE_DRIVER = "Invalid datastore driver.";
@@ -167,6 +170,7 @@ public class Messages {
         public static final String UNEXPECTED_JOB_STATUS = "Job status must be one of {0, 1, 2}.";
         public static final String UNSPECIFIED_PROJECT_ID = "Unspecified projectId.";
         public static final String EMPTY_OR_NULL_TOKEN = "A null or empty token was received";
+        public static final String INVALID_FORMAT_TOKEN = "Invalid format token was received";
 		public static final String ERROR_WHILE_CREATING_SECURITY_GROUPS = "Error while creating a security groups from template: %s.";
 		public static final String ERROR_WHILE_CREATING_NIC = "Error while creating a network interface connected from template: %s.";
 		public static final String ERROR_WHILE_CREATING_AR = "Error while creating a address range from template: %s.";
@@ -176,5 +180,11 @@ public class Messages {
 		public static final String ERROR_WHILE_GETTING_USERS = "Error while getting info about users: %s.";
 		public static final String ERROR_WHILE_GETTING_USER = "Error while getting info about user %s: %s.";
         public static final String ERROR_WHILE_PROCESSING_VOLUME_REQUIREMENTS = "Error while processing volume requirements";
+		public static final String ERROR_WHILE_UPDATING_SECURITY_GROUPS = "Error while updating a security groups from template: %s.";
+		public static final String ERROR_WHILE_REMOVING_RESOURCE = "An error occurred while removing %s: %s.";
+		public static final String CONTENT_SECURITY_GROUP_NOT_DEFINED = "The content of SecuriryGroups in the VirtualNetwork template is not defined.";
+		public static final String CONTENT_SECURITY_GROUP_WRONG_FORMAT = "The contents of the security groups in the Virtual Network template may be in the wrong format.";
+        public static final String ERROR_WHILE_GETTING_GROUP = "Error while getting info about group %s: %s.";
+		public static final String FIXED_IP_EXCEEDED = "All fixed ip's are in use.";
     }
 }

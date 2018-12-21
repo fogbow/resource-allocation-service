@@ -1,7 +1,10 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
+import java.io.File;
 import java.util.*;
 
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.NoAvailableResourcesException;
@@ -36,6 +39,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @PrepareForTest({VirtualMachine.class})
 public class OpenNebulaComputePluginTest {
 
+	private static final String CLOUD_NAME = "opennebula";
 	private static final String DEFAULT_VIRTUAL_MACHINE_STATE = "Running";
 	private static final String FAKE_HOST_NAME = "fake-host-name";
 	private static final String FAKE_ID = "fake-id";
@@ -73,15 +77,18 @@ public class OpenNebulaComputePluginTest {
 	private static final int CPU_VALUE = 4;
 	private static final int MEMORY_VALUE = 2048;
 	private static final int DISK_VALUE = 8;
-	
+
 	private OpenNebulaClientFactory factory;
 	private OpenNebulaComputePlugin plugin;
 	private TreeSet<HardwareRequirements> flavors;
-	
-	@Before
+    private String openenbulaConfFilePath;
+
+    @Before
 	public void setUp() {
 		this.factory = Mockito.mock(OpenNebulaClientFactory.class);
-		this.plugin = Mockito.spy(new OpenNebulaComputePlugin());
+		this.openenbulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+				File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+		this.plugin = Mockito.spy(new OpenNebulaComputePlugin(openenbulaConfFilePath));
 		this.flavors = Mockito.spy(new TreeSet<>());
 	}
 	
@@ -220,7 +227,7 @@ public class OpenNebulaComputePluginTest {
 	public void testRequestInstanceThrowInvalidParameterException() throws UnexpectedException, FogbowRasException {
 		// set up
 		OpenNebulaToken token = createOpenNebulaToken();
-		this.factory = Mockito.spy(new OpenNebulaClientFactory());
+		this.factory = Mockito.spy(new OpenNebulaClientFactory(this.openenbulaConfFilePath));
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -265,7 +272,7 @@ public class OpenNebulaComputePluginTest {
 	public void testRequestInstanceThrowNoAvailableResourcesException() throws UnexpectedException, FogbowRasException {
 		// set up
 		OpenNebulaToken token = createOpenNebulaToken();
-		this.factory = Mockito.spy(new OpenNebulaClientFactory());
+		this.factory = Mockito.spy(new OpenNebulaClientFactory(this.openenbulaConfFilePath));
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
@@ -310,7 +317,7 @@ public class OpenNebulaComputePluginTest {
 	public void testRequestInstanceThrowQuotaExceededException() throws UnexpectedException, FogbowRasException {
 		// set up
 		OpenNebulaToken token = createOpenNebulaToken();
-		this.factory = Mockito.spy(new OpenNebulaClientFactory());
+		this.factory = Mockito.spy(new OpenNebulaClientFactory(this.openenbulaConfFilePath));
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);

@@ -2,13 +2,13 @@ package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5
 
 import java.util.List;
 
-import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5_4.PublicNetwork.LeaseIp;
+import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.publicip.v5_4.PublicNetworkTemplate.LeaseIp;
 
 public class CreatePublicNetworkRequest {
 
-	private PublicNetwork publicNetwork;
+	private PublicNetworkTemplate publicNetwork;
 
-	public PublicNetwork getPublicNetwork() {
+	public PublicNetworkTemplate getPublicNetwork() {
 		return publicNetwork;
 	}
 
@@ -18,13 +18,15 @@ public class CreatePublicNetworkRequest {
 		String bridge = builder.bridge;
 		String bridgedDrive = builder.bridgedDrive;
 		List<LeaseIp> leases = builder.leases;
+		String securityGroups = builder.securityGroups;
 		
-		this.publicNetwork = new PublicNetwork();
+		this.publicNetwork = new PublicNetworkTemplate();
 		this.publicNetwork.setName(name);
 		this.publicNetwork.setType(type);
 		this.publicNetwork.setBridge(bridge);
 		this.publicNetwork.setBridgedDrive(bridgedDrive);
 		this.publicNetwork.setLeases(leases);
+		this.publicNetwork.setSecurityGroups(securityGroups);
 	}
 	
 	public static class Builder {
@@ -34,6 +36,7 @@ public class CreatePublicNetworkRequest {
 		private String bridge;
 		private String bridgedDrive;
 		private List<LeaseIp> leases;
+		private String securityGroups;
 		
 		public Builder name(String name) {
 			this.name = name;
@@ -57,6 +60,11 @@ public class CreatePublicNetworkRequest {
 		
 		public Builder leases(List<LeaseIp> leases) {
 			this.leases = leases;
+			return this;
+		}
+		
+		public Builder securityGroups(String securityGroups) {
+			this.securityGroups = securityGroups;
 			return this;
 		}
 		
