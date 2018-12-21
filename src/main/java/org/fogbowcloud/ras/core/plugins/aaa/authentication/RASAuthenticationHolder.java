@@ -26,6 +26,8 @@ public class RASAuthenticationHolder {
 	
 	private RSAPublicKey rasPublicKey;
 	private RSAPrivateKey rasPrivateKey;
+	private String publicKeyFilePath;
+	private String privateKeyFilePath;
 	private static RASAuthenticationHolder instance;
 
 	// TODO:
@@ -51,7 +53,15 @@ public class RASAuthenticationHolder {
         }
         return instance;
     }
-	
+
+    public void setPublicKeyFilePath(String publicKeyFilePath) {
+        this.publicKeyFilePath = publicKeyFilePath;
+    }
+
+    public void setPrivateKeyFilePath(String privateKeyFilePath) {
+        this.privateKeyFilePath = privateKeyFilePath;
+    }
+
     public String createSignature(String message) throws FogbowRasException {
     	try {
     		return RSAUtil.sign(this.rasPrivateKey, message);
@@ -88,13 +98,23 @@ public class RASAuthenticationHolder {
 	}    
 
     protected RSAPublicKey getPublicKey() throws IOException, GeneralSecurityException {
-        String filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PUBLIC_KEY_FILE_PATH);
+	    String filename = null;
+	    if (this.publicKeyFilePath == null) {
+            filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PUBLIC_KEY_FILE_PATH);
+        } else {
+	        filename = this.publicKeyFilePath;
+        }
         LOGGER.info("PublicKey file: " + filename);
         return RSAUtil.getPublicKey(filename);
     }
     
     protected RSAPrivateKey getPrivateKey() throws IOException, GeneralSecurityException {
-        String filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PRIVATE_KEY_FILE_PATH);
+        String filename = null;
+        if (this.privateKeyFilePath == null) {
+            filename = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.RAS_PRIVATE_KEY_FILE_PATH);
+        } else {
+            filename = this.privateKeyFilePath;
+        }
         LOGGER.info("PrivateKey file: " + filename);
         return RSAUtil.getPrivateKey(filename);
     }    

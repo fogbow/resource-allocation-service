@@ -15,7 +15,6 @@ public abstract class RASAuthenticationPlugin implements AuthenticationPlugin<Fe
 
     public RASAuthenticationPlugin() {
         this.localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
-
         this.rasAuthenticationHolder = RASAuthenticationHolder.getInstance();
     }
 
