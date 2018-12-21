@@ -41,7 +41,7 @@ public class RemoteDeleteOrderRequestTest {
 
         this.remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(this.order);
         this.packetSender = Mockito.mock(PacketSender.class);
-        PacketSenderHolder.init(packetSender);
+        PacketSenderHolder.setPacketSender(this.packetSender);
         this.response = new IQ();
     }
 

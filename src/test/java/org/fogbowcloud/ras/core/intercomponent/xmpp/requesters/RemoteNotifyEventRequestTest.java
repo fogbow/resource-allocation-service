@@ -37,7 +37,7 @@ public class RemoteNotifyEventRequestTest {
                 "publicKey", null);
         this.remoteNotifyEventRequest = new RemoteNotifyEventRequest(this.order, this.event);
         this.packetSender = Mockito.mock(PacketSender.class);
-        PacketSenderHolder.init(packetSender);
+        PacketSenderHolder.setPacketSender(this.packetSender);
         this.iqResponse = new IQ();
     }
 

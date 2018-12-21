@@ -35,7 +35,7 @@ public class RemoteGetImageRequestTest {
 
         this.remoteGetImageRequest = new RemoteGetImageRequest(provider, "default", imageId, federationUserToken);
         this.packetSender = Mockito.mock(PacketSender.class);
-        PacketSenderHolder.init(packetSender);
+        PacketSenderHolder.setPacketSender(this.packetSender);
     }
 
     // test case: checks if IQ attributes is according to both RemoteGetImageRequest constructor parameters

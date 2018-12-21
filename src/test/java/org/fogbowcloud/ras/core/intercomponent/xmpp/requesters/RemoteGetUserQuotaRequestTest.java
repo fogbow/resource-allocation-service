@@ -41,7 +41,7 @@ public class RemoteGetUserQuotaRequestTest {
         this.resourceType = ResourceType.COMPUTE;
         this.remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.provider, "default", this.federationUserToken, this.resourceType);
         this.packetSender = Mockito.mock(PacketSender.class);
-        PacketSenderHolder.init(packetSender);
+        PacketSenderHolder.setPacketSender(this.packetSender);
         ComputeAllocation computeAllocation = new ComputeAllocation(10, 20, 30);
         ComputeAllocation usedQuota = new ComputeAllocation(40, 50, 60);
         this.quota = new ComputeQuota(computeAllocation, usedQuota);

@@ -42,7 +42,7 @@ public class RemoteGetAllImagesRequestTest {
 
         this.remoteGetAllImagesRequest = new RemoteGetAllImagesRequest(PROVIDER, "default", federationUserToken);
         this.packetSender = Mockito.mock(PacketSender.class);
-        PacketSenderHolder.init(packetSender);
+        PacketSenderHolder.setPacketSender(this.packetSender);
 
         this.imagesMap = new HashMap<String, String>();
         this.imagesMap.put("key-1", "value-1");

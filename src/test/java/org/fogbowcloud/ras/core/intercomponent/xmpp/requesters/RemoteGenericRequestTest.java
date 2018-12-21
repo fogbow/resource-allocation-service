@@ -30,7 +30,7 @@ public class RemoteGenericRequestTest {
         this.genericRequest = new GenericRequest("GET", "https://www.foo.bar", null, null);
         this.remoteGenericRequest = new RemoteGenericRequest(provider, cloudName, genericRequest, federationUserToken);
         this.packetSender = Mockito.mock(PacketSender.class);
-        PacketSenderHolder.init(this.packetSender);
+        PacketSenderHolder.setPacketSender(this.packetSender);
     }
 
     // test case: send a generic request and assure that the marshalling occurs properly

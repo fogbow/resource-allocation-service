@@ -28,6 +28,9 @@ public class Main implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
         try {
+            // Getting the name of the local member
+            String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+
             // Setting up stable storage
             DatabaseManager.getInstance().setRecoveryService(recoveryService);
 
@@ -35,12 +38,13 @@ public class Main implements ApplicationRunner {
             String aaaConfFilePath = HomeDir.getPath() + SystemConstants.AAA_CONF_FILE_NAME;
             AaaPluginsHolder aaaPluginsHolder = new AaaPluginsHolder();
             aaaPluginsHolder.setTokenGeneratorPlugin(AaaPluginInstantiator.getTokenGeneratorPlugin(aaaConfFilePath));
-            aaaPluginsHolder.setFederationIdentityPlugin(AaaPluginInstantiator.getFederationIdentityPlugin(aaaConfFilePath));
-            aaaPluginsHolder.setAuthenticationPlugin(AaaPluginInstantiator.getAuthenticationPlugin(aaaConfFilePath));
+            aaaPluginsHolder.setFederationIdentityPlugin(AaaPluginInstantiator.
+                    getFederationIdentityPlugin(aaaConfFilePath));
+            aaaPluginsHolder.setAuthenticationPlugin(AaaPluginInstantiator.
+                    getAuthenticationPlugin(aaaConfFilePath, localMemberId));
             aaaPluginsHolder.setAuthorizationPlugin(AaaPluginInstantiator.getAuthorizationPlugin(aaaConfFilePath));
 
             // Setting up controllers, application and remote facades
-            String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
             AaaController aaaController = new AaaController(aaaPluginsHolder, localMemberId);
             OrderController orderController = new OrderController();
             SecurityRuleController securityRuleController = new SecurityRuleController();
@@ -56,20 +60,6 @@ public class Main implements ApplicationRunner {
             remoteFacade.setOrderController(orderController);
             remoteFacade.setCloudListController(cloudListController);
 
-            // Setting up xmpp packet sender
-            String xmppJid = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_JID_KEY);
-            String xmppPassword = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_PASSWORD_KEY);
-            String xmppServerIp = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_SERVER_IP_KEY);
-            int xmppServerPort = Integer.parseInt(PropertiesHolder.getInstance().
-                    getProperty(ConfigurationConstants.XMPP_C2C_PORT_KEY, DefaultConfigurationConstants.XMPP_CSC_PORT));
-            long xmppTimeout =
-                    Long.parseLong(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_TIMEOUT_KEY,
-                            DefaultConfigurationConstants.XMPP_TIMEOUT));
-            XmppComponentManager xmppComponentManager = new XmppComponentManager(xmppJid, xmppPassword, xmppServerIp,
-                    xmppServerPort, xmppTimeout);
-            xmppComponentManager.connect();
-            PacketSenderHolder.init(xmppComponentManager);
-
             // Setting up order processors
             ProcessorsThreadController processorsThreadController = new ProcessorsThreadController(localMemberId);
 
@@ -77,9 +67,6 @@ public class Main implements ApplicationRunner {
             processorsThreadController.startRasThreads();
         } catch (FatalErrorException errorException) {
             LOGGER.fatal(errorException.getMessage(), errorException);
-            tryExit();
-        } catch (ComponentException componentException) {
-            LOGGER.fatal(Messages.Fatal.UNABLE_TO_CONNECT_TO_XMPP_SERVER, componentException);
             tryExit();
         }
     }

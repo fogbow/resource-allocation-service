@@ -30,7 +30,7 @@ public class RemoteCreateOrderRequestTest {
                 "publicKey", null);
         this.remoteCreateOrderRequest = new RemoteCreateOrderRequest(this.order);
         this.packetSender = Mockito.mock(PacketSender.class);
-        PacketSenderHolder.init(packetSender);
+        PacketSenderHolder.setPacketSender(this.packetSender);
         this.iqResponse = new IQ();
     }
 
