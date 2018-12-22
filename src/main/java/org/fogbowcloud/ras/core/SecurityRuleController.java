@@ -13,18 +13,18 @@ public class SecurityRuleController {
     public SecurityRuleController() {
     }
 
-    public String createSecurityRule(Order majorOrder, SecurityRule securityRule,
+    public String createSecurityRule(Order order, SecurityRule securityRule,
                                      FederationUserToken federationUserToken) throws Exception {
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(majorOrder.getProvider(),
-                majorOrder.getCloudName());
-        return cloudConnector.requestSecurityRule(majorOrder, securityRule, federationUserToken);
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(),
+                order.getCloudName());
+        return cloudConnector.requestSecurityRule(order, securityRule, federationUserToken);
     }
 
-    public List<SecurityRule> getAllSecurityRules(Order majorOrder, FederationUserToken federationUserToken)
+    public List<SecurityRule> getAllSecurityRules(Order order, FederationUserToken federationUserToken)
             throws Exception {
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(majorOrder.getProvider(),
-                majorOrder.getCloudName());
-        return cloudConnector.getAllSecurityRules(majorOrder, federationUserToken);
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(),
+                order.getCloudName());
+        return cloudConnector.getAllSecurityRules(order, federationUserToken);
     }
 
     public void deleteSecurityRule(String securityRuleId, String providerId,

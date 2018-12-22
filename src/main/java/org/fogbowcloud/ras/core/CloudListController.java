@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.core;
 
+import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CloudListController {
+    private static final Logger LOGGER = Logger.getLogger(CloudListController.class);
 
     private List<String> cloudNames;
 

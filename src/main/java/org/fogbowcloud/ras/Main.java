@@ -3,20 +3,16 @@ package org.fogbowcloud.ras;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.*;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
-import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.datastore.DatabaseManager;
 import org.fogbowcloud.ras.core.datastore.orderstorage.RecoveryService;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.PacketSenderHolder;
-import org.fogbowcloud.ras.core.intercomponent.xmpp.XmppComponentManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
-import org.xmpp.component.ComponentException;
 
 @Component
 public class Main implements ApplicationRunner {
@@ -59,6 +55,9 @@ public class Main implements ApplicationRunner {
             remoteFacade.setAaaController(aaaController);
             remoteFacade.setOrderController(orderController);
             remoteFacade.setCloudListController(cloudListController);
+
+            // Starting PacketSender
+            PacketSenderHolder.init();
 
             // Setting up order processors
             ProcessorsThreadController processorsThreadController = new ProcessorsThreadController(localMemberId);

@@ -91,18 +91,18 @@ public class RemoteCloudConnector implements CloudConnector {
     }
 
     @Override
-    public List<SecurityRule> getAllSecurityRules(Order majorOrder, FederationUserToken federationUserToken)
+    public List<SecurityRule> getAllSecurityRules(Order order, FederationUserToken federationUserToken)
             throws Exception {
         RemoteGetAllSecurityRuleRequest remoteGetAllSecurityRuleRequest =
-                new RemoteGetAllSecurityRuleRequest(this.destinationMember, majorOrder.getId(), federationUserToken);
+                new RemoteGetAllSecurityRuleRequest(this.destinationMember, order.getId(), federationUserToken);
         return remoteGetAllSecurityRuleRequest.send();
     }
 
     @Override
-    public String requestSecurityRule(Order majorOrder, SecurityRule securityRule,
+    public String requestSecurityRule(Order order, SecurityRule securityRule,
                                       FederationUserToken federationUserToken) throws Exception {
         RemoteCreateSecurityRuleRequest remoteCreateSecurityRuleRequest =
-                new RemoteCreateSecurityRuleRequest(securityRule, federationUserToken, this.destinationMember, majorOrder);
+                new RemoteCreateSecurityRuleRequest(securityRule, federationUserToken, this.destinationMember, order);
         remoteCreateSecurityRuleRequest.send();
         return null;
     }
@@ -112,11 +112,5 @@ public class RemoteCloudConnector implements CloudConnector {
         RemoteDeleteSecurityRuleRequest remoteDeleteSecurityRuleRequest =
                 new RemoteDeleteSecurityRuleRequest(securityRuleId, this.destinationMember, federationUserToken);
         remoteDeleteSecurityRuleRequest.send();
-    }
-
-    public List<String> getCloudNames(FederationUserToken federationUserToken) throws Exception {
-        RemoteGetCloudNamesRequest remoteGetCloudNames = new RemoteGetCloudNamesRequest(this.destinationMember, federationUserToken);
-        List<String> cloudNames = remoteGetCloudNames.send();
-        return cloudNames;
     }
 }

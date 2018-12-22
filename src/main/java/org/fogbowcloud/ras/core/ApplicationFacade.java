@@ -6,6 +6,7 @@ import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.ras.core.cloudconnector.RemoteCloudConnector;
 import org.fogbowcloud.ras.core.constants.*;
 import org.fogbowcloud.ras.core.exceptions.*;
+import org.fogbowcloud.ras.core.intercomponent.xmpp.requesters.RemoteGetCloudNamesRequest;
 import org.fogbowcloud.ras.core.models.InstanceStatus;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.images.Image;
@@ -68,13 +69,6 @@ public class ApplicationFacade {
         this.cloudListController = cloudListController;
     }
 
-    // Used for testing
-    protected void setBuildNumber(String fileName) {
-        Properties properties = PropertiesUtil.readProperties(fileName);
-        this.buildNumber = properties.getProperty(ConfigurationConstants.BUILD_NUMBER,
-                DefaultConfigurationConstants.BUILD_NUMBER);
-    }
-
     public String getVersionNumber() {
         return SystemConstants.API_VERSION_NUMBER + "-" + this.buildNumber;
     }
@@ -86,8 +80,9 @@ public class ApplicationFacade {
         if (memberId.equals(this.memberId)) {
             return this.cloudListController.getCloudNames();
         } else {
-            RemoteCloudConnector cloudConnector = new RemoteCloudConnector(memberId);
-            return cloudConnector.getCloudNames(requester);
+            RemoteGetCloudNamesRequest remoteGetCloudNames = new RemoteGetCloudNamesRequest(memberId, requester);
+            List<String> cloudNames = remoteGetCloudNames.send();
+            return cloudNames;
         }
     }
 
@@ -222,38 +217,45 @@ public class ApplicationFacade {
     public String createSecurityRule(String orderId, SecurityRule securityRule,
                                      String federationTokenValue, ResourceType resourceTypeFromEndpoint)
             throws Exception {
-        Order majorOrder = orderController.getOrder(orderId);
-        if (majorOrder.getType() != resourceTypeFromEndpoint) {
+        Order order = orderController.getOrder(orderId);
+        if (order.getType() != resourceTypeFromEndpoint) {
             throw new InstanceNotFoundException();
         }
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
-        this.aaaController.authenticateAndAuthorize(this.memberId, requester, majorOrder.getCloudName(), Operation.CREATE,
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, order.getCloudName(), Operation.CREATE,
                 ResourceType.SECURITY_RULE);
-        return securityRuleController.createSecurityRule(majorOrder, securityRule, requester);
+        return securityRuleController.createSecurityRule(order, securityRule, requester);
     }
 
     public List<SecurityRule> getAllSecurityRules(String orderId, String federationTokenValue,
                                                   ResourceType resourceTypeFromEndpoint) throws Exception {
-        Order majorOrder = orderController.getOrder(orderId);
-        if (majorOrder.getType() != resourceTypeFromEndpoint) {
+        Order order = orderController.getOrder(orderId);
+        if (order.getType() != resourceTypeFromEndpoint) {
             throw new InstanceNotFoundException();
         }
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
-        this.aaaController.authenticateAndAuthorize(this.memberId, requester, majorOrder.getCloudName(), Operation.GET_ALL,
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, order.getCloudName(), Operation.GET_ALL,
                 ResourceType.SECURITY_RULE);
-        return securityRuleController.getAllSecurityRules(majorOrder, requester);
+        return securityRuleController.getAllSecurityRules(order, requester);
     }
 
     public void deleteSecurityRule(String orderId, String securityRuleId, String federationTokenValue,
                                    ResourceType resourceTypeFromEndpoint) throws Exception {
-        Order majorOrder = orderController.getOrder(orderId);
-        if (majorOrder.getType() != resourceTypeFromEndpoint) {
+        Order order = orderController.getOrder(orderId);
+        if (order.getType() != resourceTypeFromEndpoint) {
             throw new InstanceNotFoundException();
         }
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
-        this.aaaController.authenticateAndAuthorize(this.memberId, requester, majorOrder.getCloudName(), Operation.DELETE,
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, order.getCloudName(), Operation.DELETE,
                 ResourceType.SECURITY_RULE);
-        securityRuleController.deleteSecurityRule(securityRuleId, majorOrder.getProvider(), requester);
+        securityRuleController.deleteSecurityRule(securityRuleId, order.getProvider(), requester);
+    }
+
+    public GenericRequestResponse genericRequest(String cloudName, String memberId, GenericRequest genericRequest,
+                                                 String federationTokenValue) throws Exception {
+        FederationUserToken federationUserToken = this.aaaController.getFederationUser(federationTokenValue);
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
+        return cloudConnector.genericRequest(genericRequest, federationUserToken);
     }
 
     private String activateOrder(Order order, String federationTokenValue) throws FogbowRasException,
@@ -313,11 +315,10 @@ public class ApplicationFacade {
         return cloudConnector.getUserQuota(requester, resourceType);
     }
 
-    public GenericRequestResponse genericRequest(String cloudName, String memberId, GenericRequest genericRequest,
-                                                 String federationTokenValue) throws Exception {
-        FederationUserToken federationUserToken = this.aaaController.getFederationUser(federationTokenValue);
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
-        return cloudConnector.genericRequest(genericRequest, federationUserToken);
+    // Used for testing
+    protected void setBuildNumber(String fileName) {
+        Properties properties = PropertiesUtil.readProperties(fileName);
+        this.buildNumber = properties.getProperty(ConfigurationConstants.BUILD_NUMBER,
+                DefaultConfigurationConstants.BUILD_NUMBER);
     }
-
 }

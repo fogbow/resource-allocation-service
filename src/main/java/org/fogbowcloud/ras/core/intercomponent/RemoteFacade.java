@@ -4,8 +4,6 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.*;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
-import org.fogbowcloud.ras.core.cloudconnector.RemoteCloudConnector;
-import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.constants.Operation;
 import org.fogbowcloud.ras.core.exceptions.*;
@@ -72,11 +70,9 @@ public class RemoteFacade {
 
     public Quota getUserQuota(String requestingMember, String memberId, String cloudName, FederationUserToken federationUserToken,
                               ResourceType resourceType) throws Exception {
-        LOGGER.debug("AA: for user: " + federationUserToken.toString());
         this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, cloudName,
                 Operation.GET_USER_QUOTA, resourceType, memberId);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
-        LOGGER.debug("Calling quota plugin at site: " + memberId);
         return cloudConnector.getUserQuota(federationUserToken, resourceType);
     }
 
@@ -104,11 +100,10 @@ public class RemoteFacade {
         return cloudConnector.genericRequest(genericRequest, federationTokenValue);
     }
 
-    public List<String> getCloudNames(FederationUserToken requester) throws InvalidParameterException,
+    public List<String> getCloudNames(String requestingMember, FederationUserToken requester) throws
             UnavailableProviderException, UnauthorizedRequestException, UnauthenticatedUserException {
-        String memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
-        this.aaaController.authenticateAndAuthorize(memberId, requester, "all",
-                Operation.GET_CLOUD_NAMES, ResourceType.CLOUD_NAMES);
+        this.aaaController.authenticateAndAuthorize(requestingMember, requester, Operation.GET_CLOUD_NAMES,
+                ResourceType.CLOUD_NAMES);
         return this.cloudListController.getCloudNames();
     }
 
@@ -168,18 +163,18 @@ public class RemoteFacade {
 
     public String createSecurityRule(String requestingMember, String orderId, SecurityRule securityRule,
             FederationUserToken federationUserToken) throws Exception {
-        Order majorOrder = orderController.getOrder(orderId);
+        Order order = orderController.getOrder(orderId);
         this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken,
-                majorOrder.getCloudName(), Operation.CREATE, ResourceType.SECURITY_RULE, majorOrder.getProvider());
-        return securityRuleController.createSecurityRule(majorOrder, securityRule, federationUserToken);
+                order.getCloudName(), Operation.CREATE, ResourceType.SECURITY_RULE, order.getProvider());
+        return securityRuleController.createSecurityRule(order, securityRule, federationUserToken);
     }
 
     public List<SecurityRule> getAllSecurityRules(String requestingMember, String orderId,
                                                   FederationUserToken federationUserToken) throws Exception {
-        Order majorOrder = orderController.getOrder(orderId);
+        Order order = orderController.getOrder(orderId);
         this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken,
-                majorOrder.getCloudName(), Operation.CREATE, ResourceType.SECURITY_RULE, majorOrder.getProvider());
-        return securityRuleController.getAllSecurityRules(majorOrder, federationUserToken);
+                order.getCloudName(), Operation.CREATE, ResourceType.SECURITY_RULE, order.getProvider());
+        return securityRuleController.getAllSecurityRules(order, federationUserToken);
     }
 
     public void deleteSecurityRule(String requestingMember, String providerId, String ruleId,

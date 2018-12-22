@@ -1,7 +1,5 @@
 package org.fogbowcloud.ras.core.cloudconnector;
 
-import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
-import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.instances.Instance;
@@ -34,7 +32,7 @@ public interface CloudConnector {
     void deleteInstance(Order order) throws Exception;
 
     /**
-     * Gets from the cloud the instance currently associated to order.
+     * Gets from the cloud the instance currently associated to the order.
      *
      * @param order the order whose associated instance is requested
      * @return the Instance whose instance Id is stored in the order
@@ -78,35 +76,36 @@ public interface CloudConnector {
      * @param federationUserToken
      * @return
      */
-    GenericRequestResponse genericRequest(GenericRequest genericRequest, FederationUserToken federationUserToken) throws Exception;
+    GenericRequestResponse genericRequest(GenericRequest genericRequest, FederationUserToken federationUserToken)
+            throws Exception;
 
     /**
-     * Gets all security group rules from a specific orderId (must be a publicIp or a network)
+     * Gets all security rules associated to an Order (must be either a publicIp or a network order)
      *
-     * @param majorOrder          the order that this security group is attached to
-     * @param federationUserToken the attributes of the federation user
-     * @return a list containing all security group rules
+     * @param order                 the order to which the security rules have been associated
+     * @param federationUserToken   the attributes of the federation user
+     * @return a list containing all security rules
      */
-    List<SecurityRule> getAllSecurityRules(Order majorOrder, FederationUserToken federationUserToken) throws Exception;
+    List<SecurityRule> getAllSecurityRules(Order order, FederationUserToken federationUserToken) throws Exception;
 
     /**
      * Requests a new security group rule in the cloud (either locally or remotely) using the requirements contained
      * security group rule.
      *
-     * @param majorOrder          the order that this security group is attached to
-     * @param securityRule   the rule to be added
-     * @param federationUserToken the attributes of the federation user
-     * @return the string that represents the security group rule Id
+     * @param order                 the order to which the security rule will be associated
+     * @param securityRule          the rule to be added
+     * @param federationUserToken   the attributes of the federation user
+     * @return the string that represents the security rule Id
      */
-    String requestSecurityRule(Order majorOrder, SecurityRule securityRule,
+    String requestSecurityRule(Order order, SecurityRule securityRule,
                                FederationUserToken federationUserToken) throws Exception;
 
     /**
-     * Deletes in the cloud the security group rule associated to a security group.
+     * Deletes in the cloud the indicated security rule that had been associated to either a publicIp or
+     * a network.
      *
-     * @param securityRuleId the Id of the security group rule to be retrieved
-     * @param federationUserToken the attributes of the federation user
+     * @param securityRuleId        the Id of the security rule to be deleted
+     * @param federationUserToken   the attributes of the federation user
      */
-    void deleteSecurityRule(String securityRuleId, FederationUserToken federationUserToken)
-            throws Exception;
+    void deleteSecurityRule(String securityRuleId, FederationUserToken federationUserToken) throws Exception;
 }

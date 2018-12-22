@@ -246,9 +246,7 @@ public class LocalCloudConnector implements CloudConnector {
     @Override
     public Quota getUserQuota(FederationUserToken federationUserToken, ResourceType resourceType) throws
             FogbowRasException, UnexpectedException {
-        LOGGER.debug("Mapping user: " + federationUserToken.getUserName());
         Token token = this.mapperPlugin.map(federationUserToken);
-        LOGGER.debug("Token mapped: " + (token == null ? "null" : token.getTokenValue()));
         switch (resourceType) {
             case COMPUTE:
                 return this.computeQuotaPlugin.getUserQuota(token);
@@ -278,50 +276,24 @@ public class LocalCloudConnector implements CloudConnector {
         return this.genericRequestPlugin.redirectGenericRequest(genericRequest, token);
     }
 
-    public List<SecurityRule> getAllSecurityRules(Order majorOrder, FederationUserToken federationUserToken)
+    @Override
+    public List<SecurityRule> getAllSecurityRules(Order order, FederationUserToken federationUserToken)
             throws UnexpectedException, FogbowRasException {
         Token token = this.mapperPlugin.map(federationUserToken);
-        return this.securityRulePlugin.getSecurityRules(majorOrder, token);
+        return this.securityRulePlugin.getSecurityRules(order, token);
     }
 
     @Override
-    public String requestSecurityRule(Order majorOrder, SecurityRule securityRule,
+    public String requestSecurityRule(Order order, SecurityRule securityRule,
                                       FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException {
         Token token = this.mapperPlugin.map(federationUserToken);
-        return this.securityRulePlugin.requestSecurityRule(securityRule, majorOrder, token);
+        return this.securityRulePlugin.requestSecurityRule(securityRule, order, token);
     }
 
     @Override
     public void deleteSecurityRule(String securityRuleId, FederationUserToken federationUserToken) throws Exception {
         Token token = this.mapperPlugin.map(federationUserToken);
         this.securityRulePlugin.deleteSecurityRule(securityRuleId, token);
-    }
-
-    /**
-     * protected visibility for tests
-     */
-    protected List<String> getNetworkInstanceIdsFromNetworkOrderIds(ComputeOrder order) throws InvalidParameterException {
-        List<String> networkOrdersId = order.getNetworkIds();
-        List<String> networkInstanceIDs = new LinkedList<String>();
-
-        String computeOrderUserId = order.getFederationUserToken().getUserId();
-
-        for (String orderId : networkOrdersId) {
-            Order networkOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
-
-            if (networkOrder == null) {
-                throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
-            } else {
-                String networkOrderUserId = networkOrder.getFederationUserToken().getUserId();
-                if (!networkOrderUserId.equals(computeOrderUserId)) {
-                    throw new InvalidParameterException(Messages.Exception.TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER);
-                }
-            }
-
-            String instanceId = networkOrder.getInstanceId();
-            networkInstanceIDs.add(instanceId);
-        }
-        return networkInstanceIDs;
     }
 
     private Instance getResourceInstance(Order order, ResourceType resourceType, Token token)
@@ -353,6 +325,46 @@ public class LocalCloudConnector implements CloudConnector {
         order.setCachedInstanceState(instance.getState());
         instance.setProvider(order.getProvider());
         return instance;
+    }
+
+    private InstanceState getInstanceStateBasedOnOrderState(Order order) {
+        InstanceState instanceState = null;
+        // If order state is DEACTIVATED or CLOSED, an exception is throw before method call.
+        // If order state is FULFILLED or SPAWNING, the order has an instance id, so this method is never called.
+        if (order.getOrderState().equals(OrderState.OPEN) || order.getOrderState().equals(OrderState.PENDING)) {
+            instanceState = InstanceState.DISPATCHED;
+        } else if (order.getOrderState().equals(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST) ||
+                order.getOrderState().equals(OrderState.FAILED_ON_REQUEST)) {
+            instanceState = InstanceState.FAILED;
+        }
+        return instanceState;
+    }
+
+    /**
+     * protected visibility for tests
+     */
+    protected List<String> getNetworkInstanceIdsFromNetworkOrderIds(ComputeOrder order) throws InvalidParameterException {
+        List<String> networkOrdersId = order.getNetworkIds();
+        List<String> networkInstanceIDs = new LinkedList<String>();
+
+        String computeOrderUserId = order.getFederationUserToken().getUserId();
+
+        for (String orderId : networkOrdersId) {
+            Order networkOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
+
+            if (networkOrder == null) {
+                throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
+            } else {
+                String networkOrderUserId = networkOrder.getFederationUserToken().getUserId();
+                if (!networkOrderUserId.equals(computeOrderUserId)) {
+                    throw new InvalidParameterException(Messages.Exception.TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER);
+                }
+            }
+
+            String instanceId = networkOrder.getInstanceId();
+            networkInstanceIDs.add(instanceId);
+        }
+        return networkInstanceIDs;
     }
 
     protected ComputeInstance getFullComputeInstance(ComputeOrder order, ComputeInstance instance)
@@ -423,19 +435,6 @@ public class LocalCloudConnector implements CloudConnector {
         }
 
         return computeNetworks;
-    }
-
-    private InstanceState getInstanceStateBasedOnOrderState(Order order) {
-        InstanceState instanceState = null;
-        // If order state is DEACTIVATED or CLOSED, an exception is throw before method call.
-        // If order state is FULFILLED or SPAWNING, the order has an instance id, so this method is never called.
-        if (order.getOrderState().equals(OrderState.OPEN) || order.getOrderState().equals(OrderState.PENDING)) {
-            instanceState = InstanceState.DISPATCHED;
-        } else if (order.getOrderState().equals(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST) ||
-                    order.getOrderState().equals(OrderState.FAILED_ON_REQUEST)) {
-            instanceState = InstanceState.FAILED;
-        }
-        return instanceState;
     }
 
     // Used only in tests
