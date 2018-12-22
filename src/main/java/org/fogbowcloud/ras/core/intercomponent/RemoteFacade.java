@@ -177,21 +177,10 @@ public class RemoteFacade {
         return securityRuleController.getAllSecurityRules(order, federationUserToken);
     }
 
-    public void deleteSecurityRule(String requestingMember, String providerId, String ruleId,
-        FederationUserToken federationUserToken) throws Exception {
-        // FIXMECloudname
-        this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, "", Operation.CREATE,
-                ResourceType.SECURITY_RULE, providerId);
-        securityRuleController.deleteSecurityRule(ruleId, providerId, federationUserToken);
-    }
-
-    private String getOrderIdFromSecurityRuleName(String securityRuleName) throws InvalidParameterException {
-        String splitRegex = NetworkPlugin.SECURITY_GROUP_PREFIX + "|" + PublicIpPlugin.SECURITY_GROUP_PREFIX;
-        String[] securityRuleParts = securityRuleName.split(splitRegex);
-        if (securityRuleParts.length > 2) {
-            String orderId = securityRuleParts[1];
-            return orderId;
-        }
-        throw new InvalidParameterException();
+    public void deleteSecurityRule(String requestingMember, String cloudName, String ruleId,
+                                   FederationUserToken federationUserToken) throws Exception {
+        this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, cloudName,
+                Operation.CREATE, ResourceType.SECURITY_RULE, requestingMember);
+        securityRuleController.deleteSecurityRule(requestingMember, cloudName, ruleId, federationUserToken);
     }
 }

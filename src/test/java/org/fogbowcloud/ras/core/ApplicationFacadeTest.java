@@ -1952,7 +1952,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doNothing().when(aaaController).authenticateAndAuthorize(Mockito.anyString(),
                 Mockito.any(FederationUserToken.class), Mockito.anyString(), Mockito.any(Operation.class), Mockito.any(ResourceType.class));
         Mockito.doNothing().when(securityRuleController).deleteSecurityRule(
-                Mockito.anyString(), Mockito.anyString(), Mockito.any(FederationUserToken.class));
+                Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(FederationUserToken.class));
 
         // exercise
         try {
@@ -1974,7 +1974,7 @@ public class ApplicationFacadeTest extends BaseUnitTests {
         Mockito.doNothing().when(aaaController).authenticateAndAuthorize(Mockito.anyString(),
                 Mockito.any(FederationUserToken.class), Mockito.anyString(), Mockito.any(Operation.class), Mockito.any(ResourceType.class));
         Mockito.doNothing().when(securityRuleController).deleteSecurityRule(
-                Mockito.anyString(), Mockito.anyString(), Mockito.any(FederationUserToken.class));
+                Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(FederationUserToken.class));
 
         // exercise
         try {

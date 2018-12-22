@@ -18,18 +18,25 @@ public class RemoteDeleteSecurityRuleRequestHandler extends AbstractQueryHandler
 
     @Override
     public IQ handle(IQ iq) {
-        String providerId = iq.getTo().toBareJID();
+        String cloudName = unmarshalCloudName(iq);
         String ruleId = unmarshalRuleId(iq);
         FederationUserToken federationUserToken = unmarshalFederationUserToken(iq);
 
         IQ response = IQ.createResultIQ(iq);
         try {
-            RemoteFacade.getInstance().deleteSecurityRule(iq.getFrom().toBareJID(), providerId, ruleId, federationUserToken);
+            RemoteFacade.getInstance().deleteSecurityRule(iq.getFrom().toBareJID(), cloudName, ruleId, federationUserToken);
         } catch (Throwable e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
 
         return response;
+    }
+
+    private String unmarshalCloudName(IQ iq) {
+        Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
+        Element cloudNameElement = queryElement.element(IqElement.CLOUD_NAME.toString());
+        String cloudName = new Gson().fromJson(cloudNameElement.getText(), String.class);
+        return cloudName;
     }
 
     private String unmarshalRuleId(IQ iq) {

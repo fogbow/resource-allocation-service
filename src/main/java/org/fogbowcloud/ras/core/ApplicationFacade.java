@@ -3,7 +3,6 @@ package org.fogbowcloud.ras.core;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
-import org.fogbowcloud.ras.core.cloudconnector.RemoteCloudConnector;
 import org.fogbowcloud.ras.core.constants.*;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.requesters.RemoteGetCloudNamesRequest;
@@ -248,7 +247,7 @@ public class ApplicationFacade {
         FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
         this.aaaController.authenticateAndAuthorize(this.memberId, requester, order.getCloudName(), Operation.DELETE,
                 ResourceType.SECURITY_RULE);
-        securityRuleController.deleteSecurityRule(securityRuleId, order.getProvider(), requester);
+        securityRuleController.deleteSecurityRule(order.getProvider(), order.getCloudName(), securityRuleId, requester);
     }
 
     public GenericRequestResponse genericRequest(String cloudName, String memberId, GenericRequest genericRequest,

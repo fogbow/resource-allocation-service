@@ -27,10 +27,9 @@ public class SecurityRuleController {
         return cloudConnector.getAllSecurityRules(order, federationUserToken);
     }
 
-    public void deleteSecurityRule(String securityRuleId, String providerId,
+    public void deleteSecurityRule(String providerId, String cloudName, String securityRuleId,
                                    FederationUserToken federationUserToken) throws Exception {
-        // FIXMECloudname
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId, "");
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId, cloudName);
         cloudConnector.deleteSecurityRule(securityRuleId, federationUserToken);
     }
 }

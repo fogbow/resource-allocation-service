@@ -42,9 +42,7 @@ public class RemoteCloudConnector implements CloudConnector {
     @Override
     public void deleteInstance(Order order) throws Exception {
         try {
-            LOGGER.debug("Going to delete order <" + order.getId() + ">");
             RemoteDeleteOrderRequest remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(order);
-            LOGGER.debug("Sending request");
             remoteDeleteOrderRequest.send();
         } catch (Exception e) {
             LOGGER.error(e.toString());
@@ -110,7 +108,7 @@ public class RemoteCloudConnector implements CloudConnector {
     @Override
     public void deleteSecurityRule(String securityRuleId, FederationUserToken federationUserToken) throws Exception {
         RemoteDeleteSecurityRuleRequest remoteDeleteSecurityRuleRequest =
-                new RemoteDeleteSecurityRuleRequest(securityRuleId, this.destinationMember, federationUserToken);
+                new RemoteDeleteSecurityRuleRequest(this.destinationMember, this.cloudName, securityRuleId, federationUserToken);
         remoteDeleteSecurityRuleRequest.send();
     }
 }
