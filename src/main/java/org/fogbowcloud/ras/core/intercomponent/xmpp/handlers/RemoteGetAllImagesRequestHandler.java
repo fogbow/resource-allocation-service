@@ -24,27 +24,19 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
-        String memberId = unmarshalMemberId(iq);
         String cloudName = unmarshalCloudName(iq);
         FederationUserToken federationUserToken = unmarshalFederationUser(iq);
 
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            Map<String, String> imagesMap = RemoteFacade.getInstance().getAllImages(iq.getFrom().toBareJID(), memberId,
+            Map<String, String> imagesMap = RemoteFacade.getInstance().getAllImages(iq.getFrom().toBareJID(),
                     cloudName, federationUserToken);
             updateResponse(response, imagesMap);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
         }
         return response;
-    }
-
-    private String unmarshalMemberId(IQ iq) {
-        Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
-        Element memberIdElement = queryElement.element(IqElement.MEMBER_ID.toString());
-        String memberId = memberIdElement.getText();
-        return memberId;
     }
 
     private String unmarshalCloudName(IQ iq) {

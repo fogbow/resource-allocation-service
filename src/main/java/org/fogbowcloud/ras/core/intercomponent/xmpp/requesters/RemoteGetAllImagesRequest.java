@@ -43,9 +43,6 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_ALL_IMAGES.toString());
 
-        Element memberIdElement = queryElement.addElement(IqElement.MEMBER_ID.toString());
-        memberIdElement.setText(provider);
-
         Element cloudNameElement = queryElement.addElement(IqElement.CLOUD_NAME.toString());
         cloudNameElement.setText(cloudName);
 

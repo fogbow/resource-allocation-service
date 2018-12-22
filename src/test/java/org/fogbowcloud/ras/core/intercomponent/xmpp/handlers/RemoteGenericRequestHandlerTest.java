@@ -66,10 +66,10 @@ public class RemoteGenericRequestHandlerTest {
         String fakeContent = "fake-content";
         GenericRequestResponse genericRequestResponse = new GenericRequestResponse(fakeContent);
         Mockito.doReturn(genericRequestResponse).when(this.remoteFacade).genericRequest(
-                REQUESTING_MEMBER, this.cloudName, this.provider, this.genericRequest, this.federationUserToken);
+                REQUESTING_MEMBER, this.cloudName, this.genericRequest, this.federationUserToken);
 
         Mockito.when(this.remoteFacade
-                .genericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any()))
+                .genericRequest(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any()))
                 .thenReturn(genericRequestResponse);
 
         IQ iq = RemoteGenericRequest.marshal(this.provider, this.cloudName, genericRequest, this.federationUserToken);

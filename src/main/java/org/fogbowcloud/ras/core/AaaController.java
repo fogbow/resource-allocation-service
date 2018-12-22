@@ -67,12 +67,9 @@ public class AaaController {
     }
 
     public void remoteAuthenticateAndAuthorize(String requestingMember, FederationUserToken federationUserToken,
-               String cloudName, Operation operation, ResourceType type, String memberId) throws FogbowRasException {
-        if (!memberId.equals(this.localMemberIdentity)) {
-            throw new InstanceNotFoundException(Messages.Exception.INCORRECT_PROVIDING_MEMBER);
-        } else {
-            authenticateAndAuthorize(requestingMember, federationUserToken, cloudName, operation, type);
-        }
+                                               String cloudName, Operation operation, ResourceType type) throws FogbowRasException {
+
+        authenticateAndAuthorize(requestingMember, federationUserToken, cloudName, operation, type);
     }
 
     public void remoteAuthenticateAndAuthorize(String requestingMember, FederationUserToken federationUserToken,

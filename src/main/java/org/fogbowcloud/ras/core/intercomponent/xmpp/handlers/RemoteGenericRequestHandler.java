@@ -22,7 +22,6 @@ public class RemoteGenericRequestHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
-        String memberId = iq.getTo().toBareJID();
         String cloudName = unmarshalCloudName(iq);
         GenericRequest genericRequest = unmarshalGenericRequest(iq);
         FederationUserToken federationUserToken = unmarshalFederationUser(iq);
@@ -30,8 +29,8 @@ public class RemoteGenericRequestHandler extends AbstractQueryHandler {
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            GenericRequestResponse genericRequestResponse = RemoteFacade.getInstance().genericRequest(iq.getFrom().toBareJID(),
-                    cloudName, memberId, genericRequest, federationUserToken);
+            GenericRequestResponse genericRequestResponse = RemoteFacade.getInstance().
+                    genericRequest(iq.getFrom().toBareJID(), cloudName, genericRequest, federationUserToken);
             updateResponse(response, genericRequestResponse);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);

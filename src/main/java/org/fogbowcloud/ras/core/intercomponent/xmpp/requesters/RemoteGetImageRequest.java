@@ -42,9 +42,6 @@ public class RemoteGetImageRequest implements RemoteRequest<Image> {
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_IMAGE.toString());
 
-        Element memberIdElement = queryElement.addElement(IqElement.MEMBER_ID.toString());
-        memberIdElement.setText(provider);
-
         Element cloudNameElement = queryElement.addElement(IqElement.CLOUD_NAME.toString());
         cloudNameElement.setText(cloudName);
 

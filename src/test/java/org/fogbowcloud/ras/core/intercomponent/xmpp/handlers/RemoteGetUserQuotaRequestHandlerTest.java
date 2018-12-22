@@ -68,7 +68,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 
         Mockito.doReturn(expectedQuota)
                 .when(this.remoteFacade)
-                .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any());
+                .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any());
 
         IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, "default", this.createFederationUserToken(), ResourceType.COMPUTE);
         iq.setFrom(REQUESTING_MEMBER);
@@ -80,7 +80,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
         String expected = String.format(EXPECTED_QUOTA, iq.getID(), PROVIDING_MEMBER, REQUESTING_MEMBER);
 
         Mockito.verify(this.remoteFacade, Mockito.times(1))
-                .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any(ResourceType.class));
+                .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any(ResourceType.class));
 
         Assert.assertEquals(expected, result.toString());
     }
@@ -89,7 +89,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
     @Test
     public void testUpdateResponseWhenExceptionIsThrown() throws Exception {
         Mockito.when(this.remoteFacade
-                .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any()))
+                .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any()))
                 .thenThrow(new Exception());
 
         IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, "default", this.createFederationUserToken(), ResourceType.COMPUTE);
@@ -100,7 +100,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
 
         // verify
         Mockito.verify(this.remoteFacade, Mockito.times(1))
-                .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any(ResourceType.class));
+                .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any(ResourceType.class));
 
         String expected = String.format(IQ_ERROR_RESPONSE, iq.getID(), PROVIDING_MEMBER, REQUESTING_MEMBER);
         Assert.assertEquals(expected, result.toString());

@@ -24,14 +24,13 @@ public class RemoteGetImageRequestHandler extends AbstractQueryHandler {
     @Override
     public IQ handle(IQ iq) {
         String imageId = unmarshalImageId(iq);
-        String memberId = unmarshalMemberId(iq);
         String cloudName = unmarshalCloudName(iq);
         FederationUserToken federationUserToken = unmarshalFederationUser(iq);
 
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            Image image = RemoteFacade.getInstance().getImage(iq.getFrom().toBareJID(), memberId, cloudName, imageId,
+            Image image = RemoteFacade.getInstance().getImage(iq.getFrom().toBareJID(), cloudName, imageId,
                     federationUserToken);
             updateResponse(response, image);
         } catch (Exception e) {
@@ -58,13 +57,6 @@ public class RemoteGetImageRequestHandler extends AbstractQueryHandler {
 
         Element imageIdElementRequest = queryElement.element(IqElement.IMAGE_ID.toString());
         return imageIdElementRequest.getText();
-    }
-
-    private String unmarshalMemberId(IQ iq) {
-        Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
-
-        Element memberIdElement = queryElement.element(IqElement.MEMBER_ID.toString());
-        return memberIdElement.getText();
     }
 
     private String unmarshalCloudName(IQ iq) {

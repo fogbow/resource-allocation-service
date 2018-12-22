@@ -46,9 +46,6 @@ public class RemoteGetUserQuotaRequest implements RemoteRequest<Quota> {
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_USER_QUOTA.toString());
 
-        Element memberIdElement = queryElement.addElement(IqElement.MEMBER_ID.toString());
-        memberIdElement.setText(new Gson().toJson(provider));
-
         Element cloudNameElement = queryElement.addElement(IqElement.CLOUD_NAME.toString());
         cloudNameElement.setText(cloudName);
 
