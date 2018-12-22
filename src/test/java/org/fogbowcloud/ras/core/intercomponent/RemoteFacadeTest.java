@@ -4,6 +4,7 @@ import org.fogbowcloud.ras.core.*;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.ras.core.cloudconnector.RemoteCloudConnector;
+import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Operation;
 import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.datastore.DatabaseManager;
@@ -195,6 +196,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
     @Test
     public void testGenericRequest() throws Exception {
         // set up
+        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         FederationUserToken federationUser = createFederationUser();
         Mockito.doNothing().when(this.aaaController).remoteAuthenticateAndAuthorize(Mockito.anyString(),
                 Mockito.eq(federationUser), Mockito.anyString(), Mockito.eq(Operation.GENERIC_REQUEST),
@@ -221,7 +223,7 @@ public class RemoteFacadeTest extends BaseUnitTests {
                 Mockito.eq(ResourceType.GENERIC_REQUEST));
 
         Mockito.verify(cloudConnectorFactory, Mockito.times(1)).
-                getCloudConnector(Mockito.eq(REQUESTING_MEMBER_ID), Mockito.eq(CLOUD_NAME));
+                getCloudConnector(Mockito.eq(localMemberId), Mockito.eq(CLOUD_NAME));
 
         Mockito.verify(cloudConnector, Mockito.times(1)).
                 genericRequest(Mockito.any(GenericRequest.class), Mockito.eq(federationUser));

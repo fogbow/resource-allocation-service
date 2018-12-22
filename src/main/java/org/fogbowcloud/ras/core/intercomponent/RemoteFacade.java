@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.*;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
+import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.constants.Operation;
 import org.fogbowcloud.ras.core.exceptions.*;
@@ -31,8 +32,10 @@ public class RemoteFacade {
     private OrderController orderController;
     private SecurityRuleController securityRuleController;
     private CloudListController cloudListController;
+    private String localMemberId;
 
     private RemoteFacade() {
+        this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
     }
 
     public static RemoteFacade getInstance() {
@@ -70,7 +73,7 @@ public class RemoteFacade {
                               ResourceType resourceType) throws Exception {
         this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, cloudName,
                 Operation.GET_USER_QUOTA, resourceType);
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(requestingMember, cloudName);
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);
         return cloudConnector.getUserQuota(federationUserToken, resourceType);
     }
 
@@ -78,7 +81,7 @@ public class RemoteFacade {
                           FederationUserToken federationUserToken) throws Exception {
         this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, cloudName, Operation.GET_IMAGE,
                 ResourceType.IMAGE);
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(requestingMember, cloudName);
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);
         return cloudConnector.getImage(imageId, federationUserToken);
     }
 
@@ -86,7 +89,7 @@ public class RemoteFacade {
                                             FederationUserToken federationUserToken) throws Exception {
         this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, cloudName,
                 Operation.GET_ALL_IMAGES, ResourceType.IMAGE);
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(requestingMember, cloudName);
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);
         return cloudConnector.getAllImages(federationUserToken);
     }
 
@@ -94,7 +97,7 @@ public class RemoteFacade {
                                                  FederationUserToken federationTokenValue) throws Exception {
         this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationTokenValue, cloudName,
                 Operation.GENERIC_REQUEST, ResourceType.GENERIC_REQUEST);
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(requestingMember, cloudName);
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);
         return cloudConnector.genericRequest(genericRequest, federationTokenValue);
     }
 
@@ -103,6 +106,29 @@ public class RemoteFacade {
         this.aaaController.authenticateAndAuthorize(requestingMember, requester, Operation.GET_CLOUD_NAMES,
                 ResourceType.CLOUD_NAMES);
         return this.cloudListController.getCloudNames();
+    }
+
+    public String createSecurityRule(String requestingMember, String orderId, SecurityRule securityRule,
+                                     FederationUserToken federationUserToken) throws Exception {
+        Order order = orderController.getOrder(orderId);
+        this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken,
+                order.getCloudName(), Operation.CREATE, ResourceType.SECURITY_RULE);
+        return securityRuleController.createSecurityRule(order, securityRule, federationUserToken);
+    }
+
+    public List<SecurityRule> getAllSecurityRules(String requestingMember, String orderId,
+                                                  FederationUserToken federationUserToken) throws Exception {
+        Order order = orderController.getOrder(orderId);
+        this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken,
+                order.getCloudName(), Operation.CREATE, ResourceType.SECURITY_RULE);
+        return securityRuleController.getAllSecurityRules(order, federationUserToken);
+    }
+
+    public void deleteSecurityRule(String requestingMember, String cloudName, String ruleId,
+                                   FederationUserToken federationUserToken) throws Exception {
+        this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, cloudName,
+                Operation.CREATE, ResourceType.SECURITY_RULE);
+        securityRuleController.deleteSecurityRule(this.localMemberId, cloudName, ruleId, federationUserToken);
     }
 
     public void handleRemoteEvent(String signallingMember, Event event, Order remoteOrder) throws FogbowRasException,
@@ -157,28 +183,5 @@ public class RemoteFacade {
 
     public synchronized void setSecurityRuleController(SecurityRuleController securityRuleController) {
         this.securityRuleController = securityRuleController;
-    }
-
-    public String createSecurityRule(String requestingMember, String orderId, SecurityRule securityRule,
-            FederationUserToken federationUserToken) throws Exception {
-        Order order = orderController.getOrder(orderId);
-        this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken,
-                order.getCloudName(), Operation.CREATE, ResourceType.SECURITY_RULE);
-        return securityRuleController.createSecurityRule(order, securityRule, federationUserToken);
-    }
-
-    public List<SecurityRule> getAllSecurityRules(String requestingMember, String orderId,
-                                                  FederationUserToken federationUserToken) throws Exception {
-        Order order = orderController.getOrder(orderId);
-        this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken,
-                order.getCloudName(), Operation.CREATE, ResourceType.SECURITY_RULE);
-        return securityRuleController.getAllSecurityRules(order, federationUserToken);
-    }
-
-    public void deleteSecurityRule(String requestingMember, String cloudName, String ruleId,
-                                   FederationUserToken federationUserToken) throws Exception {
-        this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, cloudName,
-                Operation.CREATE, ResourceType.SECURITY_RULE);
-        securityRuleController.deleteSecurityRule(requestingMember, cloudName, ruleId, federationUserToken);
     }
 }
