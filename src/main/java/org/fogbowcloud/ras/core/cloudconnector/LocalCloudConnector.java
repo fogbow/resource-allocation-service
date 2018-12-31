@@ -9,6 +9,7 @@ import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
+import org.fogbowcloud.ras.core.models.UserData;
 import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.instances.*;
 import org.fogbowcloud.ras.core.models.orders.*;

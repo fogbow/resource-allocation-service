@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.models.orders;
+package org.fogbowcloud.ras.core.models;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 

@@ -14,7 +14,7 @@ import org.fogbowcloud.ras.core.models.HardwareRequirements;
 import org.fogbowcloud.ras.core.models.instances.ComputeInstance;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
-import org.fogbowcloud.ras.core.models.orders.UserData;
+import org.fogbowcloud.ras.core.models.UserData;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;

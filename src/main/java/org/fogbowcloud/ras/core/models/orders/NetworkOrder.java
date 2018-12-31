@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.core.models.orders;
 
+import org.fogbowcloud.ras.core.models.NetworkAllocationMode;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 

@@ -3,17 +3,14 @@ package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.network;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
-import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
+import org.fogbowcloud.ras.core.models.NetworkAllocationMode;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.NetworkPlugin;
@@ -23,7 +20,6 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUr
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
-import java.io.File;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;

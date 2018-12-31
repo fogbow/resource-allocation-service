@@ -1,4 +1,4 @@
-package org.fogbowcloud.ras.core.models.orders;
+package org.fogbowcloud.ras.core.models;
 
 import org.fogbowcloud.ras.core.plugins.interoperability.util.CloudInitUserDataBuilder;
 

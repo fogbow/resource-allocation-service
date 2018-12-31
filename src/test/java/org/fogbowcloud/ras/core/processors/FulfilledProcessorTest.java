@@ -16,7 +16,7 @@ import org.fogbowcloud.ras.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.orders.OrderState;
-import org.fogbowcloud.ras.core.models.orders.UserData;
+import org.fogbowcloud.ras.core.models.UserData;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.junit.After;
 import org.junit.Assert;

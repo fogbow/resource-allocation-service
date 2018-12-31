@@ -199,7 +199,7 @@ public class Rule {
 		case ICMPV6_XML_TEMPLATE_VALUE:
 			return Protocol.ICMP;
 		case ALL_XML_TEMPLATE_VALUE:
-		case IPSEC_XML_TEMPLATE_VALUE: // TODO thing more about this ipsec value.
+		case IPSEC_XML_TEMPLATE_VALUE: // TODO think more about this ipsec value.
 			return Protocol.ANY;
 		default:
 			LOGGER.warn(String.format("The protocol(%s) is inconsistent", this.protocol));

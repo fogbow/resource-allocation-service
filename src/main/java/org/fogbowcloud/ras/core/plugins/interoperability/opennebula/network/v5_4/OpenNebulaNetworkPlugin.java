@@ -11,7 +11,7 @@ import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
-import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
+import org.fogbowcloud.ras.core.models.NetworkAllocationMode;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.NetworkPlugin;

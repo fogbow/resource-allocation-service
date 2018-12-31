@@ -77,8 +77,8 @@ public class OpenNebulaTokenGeneratorPlugin implements TokenGeneratorPlugin {
     }
 
     /*
-     * Using the Opennebula Java Library is necessary to do the operation na cloud to check if is authenticated.
-     * In this case, we opted to use UserPool
+     * Using the Opennebula Java Library it is necessary to do some operation in the cloud to check if the
+     * user is authenticated. We opted to use UserPool.
      * TODO check to request directly in the XML-RPC API
      */
     protected boolean isAuthenticated(String openNebulaTokenValue) {

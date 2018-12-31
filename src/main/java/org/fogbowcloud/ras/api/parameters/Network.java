@@ -1,8 +1,7 @@
 package org.fogbowcloud.ras.api.parameters;
 
-import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
+import org.fogbowcloud.ras.core.models.NetworkAllocationMode;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
-import org.fogbowcloud.ras.core.models.orders.Order;
 
 public class Network implements OrderApiParameter {
     private String provider;

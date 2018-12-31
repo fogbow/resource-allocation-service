@@ -43,7 +43,7 @@ public class GenericRequest {
                                                  @RequestBody org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequest genericRequest)
             throws Exception {
 
-//        TODO decide which API were gonna use
+//        TODO decide which API we're gonna use
 //        FIXME these can be used if we want to get these from the request itself
 //        Map<String, String> headers = HttpRequestClientUtil.getHeaders(request);
 //        String url = request.getRequestURL().toString();

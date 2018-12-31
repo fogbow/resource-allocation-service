@@ -5,8 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
-import org.fogbowcloud.ras.core.models.orders.Order;
-import org.fogbowcloud.ras.core.models.orders.UserData;
+import org.fogbowcloud.ras.core.models.UserData;
 
 public class Compute implements OrderApiParameter {
     private String provider;
@@ -63,6 +62,10 @@ public class Compute implements OrderApiParameter {
 
     public Map<String, String> getRequirements() {
         return requirements;
+    }
+
+    public void setUserData(ArrayList<UserData> userData) {
+        this.userData = userData;
     }
 
     @Override

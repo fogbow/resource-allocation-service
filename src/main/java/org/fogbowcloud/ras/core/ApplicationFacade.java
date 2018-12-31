@@ -8,6 +8,7 @@ import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.requesters.RemoteGetCloudNamesRequest;
 import org.fogbowcloud.ras.core.models.InstanceStatus;
 import org.fogbowcloud.ras.core.models.ResourceType;
+import org.fogbowcloud.ras.core.models.UserData;
 import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.instances.*;
 import org.fogbowcloud.ras.core.models.orders.*;

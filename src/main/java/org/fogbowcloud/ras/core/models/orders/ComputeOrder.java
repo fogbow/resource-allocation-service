@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core.models.orders;
 
 import org.fogbowcloud.ras.core.models.ResourceType;
+import org.fogbowcloud.ras.core.models.UserData;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 

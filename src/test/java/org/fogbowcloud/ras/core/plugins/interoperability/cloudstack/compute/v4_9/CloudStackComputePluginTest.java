@@ -7,7 +7,7 @@ import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.instances.ComputeInstance;
 import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
-import org.fogbowcloud.ras.core.models.orders.UserData;
+import org.fogbowcloud.ras.core.models.UserData;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
