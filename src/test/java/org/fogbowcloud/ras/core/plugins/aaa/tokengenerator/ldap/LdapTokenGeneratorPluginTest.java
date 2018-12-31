@@ -52,7 +52,7 @@ public class LdapTokenGeneratorPluginTest {
         this.ldapIdentityPlugin = new LdapIdentityPlugin();
     }
 
-    //test case: createTokenValue with valid credentials should generate allocationAllowableValues string with the appropriate values
+    //test case: createTokenValue with valid credentials should generate a string with the appropriate values
     @Test
     public void testCreateTokenValueValidCredentials() throws InvalidParameterException, UnexpectedException,
             InvalidUserCredentialsException, UnauthenticatedUserException {

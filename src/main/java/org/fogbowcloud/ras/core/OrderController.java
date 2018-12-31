@@ -141,8 +141,8 @@ public class OrderController {
 //        if (!order.getProvider().equals(order.getRequester()) &&
 //                (order.getOrderState().equals(OrderState.OPEN) ||
 //                        order.getOrderState().equals(OrderState.FAILED_ON_REQUEST))) {
-//            // This is an order for allocationAllowableValues remote provider that has never been received by that provider.
-//            // Thus, there is no need to send allocationAllowableValues delete message via allocationAllowableValues RemoteCloudConnector, and it is only
+//            // This is an order for a remote provider that has never been received by that provider.
+//            // Thus, there is no need to send a delete message via a RemoteCloudConnector, and it is only
 //            // necessary to call deleteInstance in the local member.
 //            provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getRequester());
 //        } else {

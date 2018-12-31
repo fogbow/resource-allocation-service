@@ -30,7 +30,7 @@ public class TokenGeneratorPluginProtectionWrapperTest {
         this.tokenGeneratorPluginProtectionWrapper = new TokenGeneratorPluginProtectionWrapper(embeddedPlugin);
     }
 
-    //test case: createTokenValue with valid credentials should generate allocationAllowableValues protected string with the appropriate values
+    //test case: createTokenValue with valid credentials should generate a protected string with the appropriate values
     @Test
     public void testCreateTokenValueValidCredentials() throws UnexpectedException, FogbowRasException {
         //set up

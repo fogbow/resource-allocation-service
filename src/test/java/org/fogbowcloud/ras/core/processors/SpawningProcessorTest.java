@@ -100,7 +100,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
-    // test case: When running thread in the SpawningProcessor and the OrderType is not allocationAllowableValues
+    // test case: When running thread in the SpawningProcessor and the OrderType is not a
     // Compute, the processSpawningOrder() method must immediately change the OrderState to
     // Fulfilled by adding in that list, and removed from the Spawning list.
     @SuppressWarnings("static-access")
@@ -134,7 +134,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.spawningOrderList.getNext());
     }
 
-    // test case: When running thread in the SpawningProcessor and the OrderType is not allocationAllowableValues
+    // test case: When running thread in the SpawningProcessor and the OrderType is not a
     // Compute, the processSpawningOrder() method must immediately change the OrderState to
     // Fulfilled by adding in that list, and removed from the Spawning list.
     @SuppressWarnings("static-access")
@@ -168,7 +168,7 @@ public class SpawningProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.spawningOrderList.getNext());
     }
 
-    // test case: When running thread in the SpawningProcessor and the OrderType is not allocationAllowableValues
+    // test case: When running thread in the SpawningProcessor and the OrderType is not a
     // Compute, the processSpawningOrder() method must immediately change the OrderState to
     // Fulfilled by adding in that list, and removed from the Spawning list.
     @SuppressWarnings("static-access")

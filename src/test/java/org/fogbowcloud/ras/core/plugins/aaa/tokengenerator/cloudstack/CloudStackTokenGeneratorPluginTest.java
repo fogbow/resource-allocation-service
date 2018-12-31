@@ -81,8 +81,8 @@ public class CloudStackTokenGeneratorPluginTest {
         this.cloudStackAuthenticationPlugin = new CloudStackAuthenticationPlugin(this.memberId);
     }
 
-    // Test case: when creating allocationAllowableValues token, two requests should be made: one post request to login the user using their
-    // credentials and get allocationAllowableValues session key to perform the other get request to retrieve the user "token", i.e., info
+    // Test case: when creating a token, two requests should be made: one post request to login the user using their
+    // credentials and get a session key to perform the other get request to retrieve the user "token", i.e., info
     // needed to perform requests in cloudstack (namely api key and secret key)
     @Test
     public void testCreateToken() throws FogbowRasException, UnexpectedException, IOException {

@@ -6,8 +6,8 @@ import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.NetworkPlugin;
 
 /**
- * This class is allocationAllowableValues stub for the NetworkPlugin interface used for tests only.
- * Should not have allocationAllowableValues proper implementation.
+ * This class is a stub for the NetworkPlugin interface used for tests only.
+ * Should not have a proper implementation.
  */
 public class StubNetworkPlugin implements NetworkPlugin<Token> {
 

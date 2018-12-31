@@ -274,7 +274,7 @@ public class PublicIpTest {
     }
 
 
-    // test case: Delete allocationAllowableValues not found attachment by his id and test fail return.
+    // test case: Delete a not found attachment by his id and test fail return.
     // Check the response of request and the call of facade for delete the attachment.
     @Test
     public void testDeleteNotFoundAttachment() throws Exception {

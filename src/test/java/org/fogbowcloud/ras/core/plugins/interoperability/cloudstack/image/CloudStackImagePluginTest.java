@@ -109,7 +109,7 @@ public class CloudStackImagePluginTest {
     }
 
     @Test
-    // test case: when getting allocationAllowableValues valid template, besides token being signed and an HTTP GET request being made
+    // test case: when getting a valid template, besides token being signed and an HTTP GET request being made
     // the returned image attributes should match with the ones provided by the cloud
     public void testGettingExistingTemplate() throws FogbowRasException, UnexpectedException, HttpResponseException {
         // set up
@@ -143,7 +143,7 @@ public class CloudStackImagePluginTest {
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(expectedRequestUrl, FAKE_TOKEN);
     }
 
-    // test case: getting allocationAllowableValues non-existing image should throw an InstanceNotFoundException
+    // test case: getting a non-existing image should throw an InstanceNotFoundException
     @Test(expected = InstanceNotFoundException.class)
     public void testGetNonExistingTemplate() throws FogbowRasException, HttpResponseException, UnexpectedException {
         // set up

@@ -95,7 +95,7 @@ public class OpenProcessorTest extends BaseUnitTests {
     }
 
     //test case: test if the open processor is setting to failed an open order when the request instance
-    //method of instance provider returns allocationAllowableValues null instance.
+    //method of instance provider returns a null instance.
     @Test
     public void testProcessOpenLocalOrderWithNullInstance() throws Exception {
         //set up
@@ -240,7 +240,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         assertFalse(this.listIsEmpty(openOrdersList));
     }
 
-    //test case: test if the open processor still running if it try to process allocationAllowableValues null order.
+    //test case: test if the open processor still running if it try to process a null order.
     @Test
     public void testRunProcessWithNullOpenOrder() throws InterruptedException {
         //verify
@@ -277,7 +277,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         assertFalse(this.listIsEmpty(openOrdersList));
     }
 
-    //test case: this method tests allocationAllowableValues race condition when this class thread has the order operation priority.
+    //test case: this method tests a race condition when this class thread has the order operation priority.
     @Test
     public void testRaceConditionWithThisThreadPriority() throws Exception {
         //set up
@@ -306,8 +306,8 @@ public class OpenProcessorTest extends BaseUnitTests {
         assertEquals(OrderState.SPAWNING, localOrder.getOrderState());
     }
 
-    //test case: this method tests allocationAllowableValues race condition when this class thread has the order operation priority
-    //and changes the open order to allocationAllowableValues different state.
+    //test case: this method tests a race condition when this class thread has the order operation priority
+    //and changes the open order to a different state.
     @Test
     public void testRaceConditionWithThisThreadPriorityAndNotOpenOrder()
             throws Exception {
@@ -332,7 +332,7 @@ public class OpenProcessorTest extends BaseUnitTests {
         assertEquals(OrderState.CLOSED, localOrder.getOrderState());
     }
 
-    //test case: this method tests allocationAllowableValues race condition when the attend open order thread has the order operation priority.
+    //test case: this method tests a race condition when the attend open order thread has the order operation priority.
     @Test
     public void testRaceConditionWithOpenProcessorThreadPriority() throws Exception {
         //set up

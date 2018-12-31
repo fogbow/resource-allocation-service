@@ -118,7 +118,7 @@ public class OpenStackComputePluginTest {
         Mockito.when(propertiesHolderMock.getProperties()).thenReturn(propertiesMock);
     }
 
-    // test case: If allocationAllowableValues RequestInstance method works as expected
+    // test case: If a RequestInstance method works as expected
     @Test
     public void testRequestInstance() throws IOException, FogbowRasException, UnexpectedException {
 
@@ -207,7 +207,7 @@ public class OpenStackComputePluginTest {
         String instanceId = this.computePlugin.requestInstance(computeOrder, this.openStackV3Token);
     }
 
-    // test case: Check if allocationAllowableValues getInstance builds allocationAllowableValues compute instance from http response properly
+    // test case: Check if a getInstance builds a compute instance from http response properly
     @Test
     public void testGetInstance() throws FogbowRasException, UnexpectedException, HttpResponseException {
         // set up
@@ -235,7 +235,7 @@ public class OpenStackComputePluginTest {
         Assert.assertEquals(expectedComputeInstance.getvCPU(), pluginComputeInstance.getvCPU());
     }
 
-    // test case: If allocationAllowableValues DeleteInstance method works as expected
+    // test case: If a DeleteInstance method works as expected
     @Test
     public void testDeleteInstance() throws HttpResponseException, FogbowRasException, UnexpectedException {
         // set up
@@ -251,7 +251,7 @@ public class OpenStackComputePluginTest {
         Assert.assertEquals(this.argToken.getValue(), this.openStackV3Token);
     }
 
-    // test case: GetInstance should throw Unauthorized if allocationAllowableValues http request is Forbidden
+    // test case: GetInstance should throw Unauthorized if a http request is Forbidden
     @Test(expected = UnauthorizedRequestException.class)
     public void testGetInstanceOnForbidden() throws FogbowRasException, UnexpectedException, HttpResponseException {
         // set up
@@ -263,7 +263,7 @@ public class OpenStackComputePluginTest {
         this.computePlugin.getInstance(instanceId, this.openStackV3Token);
     }
 
-    // test case: DeleteInstance should return Unauthorized is allocationAllowableValues http request is Forbidden
+    // test case: DeleteInstance should return Unauthorized is a http request is Forbidden
     @Test(expected = UnauthorizedRequestException.class)
     public void testDeleteInstanceTestOnForbidden() throws HttpResponseException, FogbowRasException, UnexpectedException {
         // set up
@@ -275,7 +275,7 @@ public class OpenStackComputePluginTest {
         this.computePlugin.deleteInstance(instanceId, this.openStackV3Token);
     }
 
-    // test case: Request Instance should throw Unauthenticated if allocationAllowableValues http request is Anauthorized
+    // test case: Request Instance should throw Unauthenticated if a http request is Anauthorized
     @Test(expected = UnauthenticatedUserException.class)
     public void testRequestInstanceOnAnauthorizedComputePost() throws IOException, FogbowRasException, UnexpectedException {
         // set up
@@ -561,7 +561,7 @@ public class OpenStackComputePluginTest {
         Assert.assertEquals(expectedInstanceId, instanceId);
     }
 
-    // test case: Compute networksId should always contain allocationAllowableValues default network id even if there is no network id in allocationAllowableValues compute order
+    // test case: Compute networksId should always contain a default network id even if there is no network id in a compute order
     @Test
     public void testRequestInstanceWhenThereIsNoNetworkId() throws IOException, FogbowRasException, UnexpectedException {
         // set up
@@ -640,8 +640,8 @@ public class OpenStackComputePluginTest {
     }
 
     /*
-     * This method mocks the behavior of allocationAllowableValues http flavor request by mocking GET"/flavors" and GET"/flavors/id" and adds
-     * bestFlavorId as allocationAllowableValues flavor from this response in addition to other flavors. Besides that, bestFlavorId will be
+     * This method mocks the behavior of a http flavor request by mocking GET"/flavors" and GET"/flavors/id" and adds
+     * bestFlavorId as a flavor from this response in addition to other flavors. Besides that, bestFlavorId will be
      * the flavor with best Vcpu, memory and disk from this response. 
      */
     private void mockGetFlavorsRequest(String bestFlavorId, int bestVcpu, int bestMemory, int bestDisk) throws HttpResponseException, UnavailableProviderException {

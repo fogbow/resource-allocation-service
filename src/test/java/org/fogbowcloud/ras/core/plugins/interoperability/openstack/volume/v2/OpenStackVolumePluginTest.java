@@ -139,7 +139,7 @@ public class OpenStackVolumePluginTest {
                 .getString(OpenstackRestApiConstants.Volume.SIZE_KEY_JSON));
     }
 
-    // test case: Tests if given allocationAllowableValues volume Json, the getInstanceFromJson() returns the right VolumeInstance.
+    // test case: Tests if given a volume Json, the getInstanceFromJson() returns the right VolumeInstance.
     @Test
     public void testGetInstanceFromJson() throws FogbowRasException, JSONException, UnexpectedException {
         // exercise
@@ -180,7 +180,7 @@ public class OpenStackVolumePluginTest {
         Mockito.verify(this.httpRequestClientUtil).doDeleteRequest(Mockito.anyString(), Mockito.any(Token.class));
     }
 
-    // test case: Deleting an instance without allocationAllowableValues project ID must raise FogbowRasException.
+    // test case: Deleting an instance without a project ID must raise FogbowRasException.
     @Test(expected = FogbowRasException.class)
     public void testRemoveInstanceWithoutProjectId() throws Exception {
         // set up

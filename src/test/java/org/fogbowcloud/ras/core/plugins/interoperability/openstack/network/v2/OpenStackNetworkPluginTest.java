@@ -157,7 +157,7 @@ public class OpenStackNetworkPluginTest {
         Mockito.verify(this.client, Mockito.times(1)).execute(Mockito.any(HttpUriRequest.class));
     }
 
-    //test case: Tests if an exception will be thrown in case that openstack raise an error when requesting for allocationAllowableValues new subnet.
+    //test case: Tests if an exception will be thrown in case that openstack raise an error when requesting for a new subnet.
     @Test
     public void testRequestInstancePostSubnetError() throws IOException, FogbowRasException, UnexpectedException {
         //set up
@@ -392,7 +392,7 @@ public class OpenStackNetworkPluginTest {
                 subnetJsonObject.optJSONArray(OpenStackNetworkPlugin.KEY_DNS_NAMESERVERS).get(1));
     }
 
-    //test case: Tests if the json to request subnet was generated as expected, when allocationAllowableValues static allocation is required.
+    //test case: Tests if the json to request subnet was generated as expected, when a static allocation is required.
     @Test
     public void testGenerateJsonEntityToCreateSubnetStaticAllocation() throws JSONException {
         //set up
@@ -488,7 +488,7 @@ public class OpenStackNetworkPluginTest {
 
     //deleteInstance tests
 
-    //test case: Tests remove instance, it must execute allocationAllowableValues http client exactly 3 times: 1 GetRequest, 2 DeleteRequests
+    //test case: Tests remove instance, it must execute a http client exactly 3 times: 1 GetRequest, 2 DeleteRequests
     @Test
     public void testRemoveInstance() throws IOException, JSONException, FogbowRasException, UnexpectedException {
         //set up
@@ -517,7 +517,7 @@ public class OpenStackNetworkPluginTest {
                 Mockito.endsWith(suffixEndpointDeleteSG), Mockito.eq(this.defaultLocalUserAttributes));
     }
 
-    //test: Tests allocationAllowableValues delete in allocationAllowableValues network which has compute attached to it
+    //test: Tests a delete in a network which has compute attached to it
     @Test
     public void testRemoveNetworkWithInstanceAssociated() throws JSONException, IOException, FogbowRasException, UnexpectedException {
         //set up
@@ -570,7 +570,7 @@ public class OpenStackNetworkPluginTest {
                 Mockito.endsWith(SUFFIX_ENDPOINT_DELETE_SECURITY_GROUP), Mockito.eq(this.defaultLocalUserAttributes));
     }
 
-    // test case: throws allocationAllowableValues "notFoundInstance" exception and continue try to delete the security group
+    // test case: throws a "notFoundInstance" exception and continue try to delete the security group
     @Test
     public void testDeleteInstanceNotFoundNetworkException() throws FogbowRasException, UnexpectedException, IOException {
         // set up
@@ -597,7 +597,7 @@ public class OpenStackNetworkPluginTest {
     }
 
 
-    //test case: Tests if getSecurityGroupIdFromGetResponse can retrieve the respective id from allocationAllowableValues valid json
+    //test case: Tests if getSecurityGroupIdFromGetResponse can retrieve the respective id from a valid json
     @Test
     public void testRetrieveSecurityGroupIdFromGetResponse() throws UnexpectedException {
         //set up

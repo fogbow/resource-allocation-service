@@ -176,7 +176,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
     }
 
 
-    // test case: Request allocationAllowableValues compute instance when the plugin returns allocationAllowableValues correct id
+    // test case: Request a compute instance when the plugin returns a correct id
     @Test
     public void testRequestComputeInstance() throws FogbowRasException, UnexpectedException {
         // set up
@@ -196,7 +196,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(networkPlugin, times(0)).requestInstance(Mockito.any(NetworkOrder.class), Mockito.any(Token.class));
     }
 
-    // test case: Request an attachment instance Mockito.when the plugin returns allocationAllowableValues correct id
+    // test case: Request an attachment instance Mockito.when the plugin returns a correct id
     @Test
     public void testRequestAttachmentInstance() throws FogbowRasException, UnexpectedException {
 
@@ -234,7 +234,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         SharedOrderHolders.getInstance().getActiveOrdersMap().clear();
     }
 
-    // test case: Request allocationAllowableValues volume instance Mockito.when the plugin returns allocationAllowableValues correct id
+    // test case: Request a volume instance Mockito.when the plugin returns a correct id
     @Test
     public void testRequestVolumeInstance() throws FogbowRasException, UnexpectedException {
 
@@ -255,7 +255,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(networkPlugin, times(0)).requestInstance(Mockito.any(NetworkOrder.class), Mockito.any(Token.class));
     }
 
-    // test case: Request allocationAllowableValues network instance Mockito.when the plugin returns allocationAllowableValues correct id
+    // test case: Request a network instance Mockito.when the plugin returns a correct id
     @Test
     public void testRequestNetworkInstance() throws FogbowRasException, UnexpectedException {
 
@@ -275,7 +275,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(networkPlugin, times(1)).requestInstance(Mockito.any(NetworkOrder.class), Mockito.any(Token.class));
     }
 
-    // test case: If plugin returns allocationAllowableValues null instance id, the method requestInstance() must throw an exception
+    // test case: If plugin returns a null instance id, the method requestInstance() must throw an exception
     @Test(expected = UnexpectedException.class)
     public void testExceptionNullComputeInstanceId() throws FogbowRasException, UnexpectedException {
 
@@ -289,7 +289,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         this.localCloudConnector.requestInstance(order);
     }
 
-    // test case: If plugin returns allocationAllowableValues null instance id, the method requestInstance() must throw an exception
+    // test case: If plugin returns a null instance id, the method requestInstance() must throw an exception
     @Test(expected = UnexpectedException.class)
     public void testExceptionNullNetworkInstanceId() throws FogbowRasException, UnexpectedException {
 
@@ -302,7 +302,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         this.localCloudConnector.requestInstance(order);
     }
 
-    // test case: If plugin returns allocationAllowableValues null instance id, the method requestInstance() must throw an exception
+    // test case: If plugin returns a null instance id, the method requestInstance() must throw an exception
     @Test(expected = UnexpectedException.class)
     public void testExceptionNullAttachmentInstanceId() throws FogbowRasException, UnexpectedException {
         // set up
@@ -329,7 +329,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         SharedOrderHolders.getInstance().getActiveOrdersMap().clear();
     }
 
-    // test case: If plugin returns allocationAllowableValues null instance id, the method requestInstance() must throw an exception
+    // test case: If plugin returns a null instance id, the method requestInstance() must throw an exception
     @Test(expected = UnexpectedException.class)
     public void testExceptionNullVolumeInstanceId() throws FogbowRasException, UnexpectedException {
 
@@ -774,7 +774,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(networkPlugin, times(0)).deleteInstance(Mockito.any(String.class), Mockito.any(Token.class));
     }
 
-    // test case: Deleting allocationAllowableValues compute instance with ID. Compute plugin must be called.
+    // test case: Deleting a compute instance with ID. Compute plugin must be called.
     @Test
     public void testDeleteComputeInstance() throws FogbowRasException, UnexpectedException {
 
@@ -793,7 +793,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(networkPlugin, times(0)).deleteInstance(Mockito.any(String.class), Mockito.any(Token.class));
     }
 
-    // test case: Deleting allocationAllowableValues volume instance with ID. Volume plugin must be called.
+    // test case: Deleting a volume instance with ID. Volume plugin must be called.
     @Test
     public void testDeleteVolumeInstance() throws FogbowRasException, UnexpectedException {
 
@@ -812,7 +812,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(networkPlugin, times(0)).deleteInstance(Mockito.any(String.class), Mockito.any(Token.class));
     }
 
-    // test case: Deleting allocationAllowableValues network instance with ID. Network plugin must be called.
+    // test case: Deleting a network instance with ID. Network plugin must be called.
     @Test
     public void testDeleteNetworkInstance() throws FogbowRasException, UnexpectedException {
 
@@ -831,7 +831,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(networkPlugin, times(1)).deleteInstance(Mockito.any(String.class), Mockito.any(Token.class));
     }
 
-    // test case: Deleting allocationAllowableValues attachment instance with ID. Attachment plugin must be called.
+    // test case: Deleting a attachment instance with ID. Attachment plugin must be called.
     @Test
     public void testDeleteAttachmentInstance() throws FogbowRasException, UnexpectedException {
 
@@ -865,7 +865,7 @@ public class LocalCloudConnectorTest extends BaseUnitTests {
         Mockito.verify(imagePlugin, times(1)).getImage(Mockito.any(String.class), Mockito.any(Token.class));
     }
 
-    // test case: Getting allocationAllowableValues null image. Image plugin must be called
+    // test case: Getting a null image. Image plugin must be called
     @Test
     public void testGetNullImage() throws FogbowRasException, UnexpectedException {
 

@@ -10,12 +10,12 @@ import org.fogbowcloud.ras.core.models.tokens.Token;
 public interface ComputePlugin<T extends Token> {
 
     /**
-     * This method requests the virtual machine creation on allocationAllowableValues provider.
+     * This method requests the virtual machine creation on a provider.
      * If an instance is successfully allocated, then, the implementation
      * MUST set the order's actual resource allocation, since this can
      * be different from what was originally requested in the order.
      *
-     * @param computeOrder        {@link Order} for creating allocationAllowableValues virtual machine.
+     * @param computeOrder        {@link Order} for creating a virtual machine.
      * @param localUserAttributes
      * @return Instance ID.
      * @throws FogbowRasException {@link FogbowRasException} When request fails.

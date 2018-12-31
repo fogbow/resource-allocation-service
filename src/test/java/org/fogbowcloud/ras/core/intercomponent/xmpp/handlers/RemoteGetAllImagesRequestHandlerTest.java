@@ -70,7 +70,7 @@ public class RemoteGetAllImagesRequestHandlerTest {
         this.federationUserToken = federationUserToken;
     }
 
-    // test case: when the handle method is called passing allocationAllowableValues valid IQ object,
+    // test case: when the handle method is called passing a valid IQ object,
     // it must create an OK result IQ and return it.
     @Test
     public void testHandleWithValidIQ() throws Exception {
@@ -96,7 +96,7 @@ public class RemoteGetAllImagesRequestHandlerTest {
     }
 
     // test case: When an exception occurs while getting the images, the method handle should
-    // return allocationAllowableValues response error.
+    // return a response error.
     @Test
     public void testHandleWhenThrowsException() throws Exception {
         // set up

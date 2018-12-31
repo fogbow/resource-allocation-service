@@ -172,7 +172,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(computeOrder, this.openOrdersList.getNext());
     }
 
-    // test case: Get allocationAllowableValues not active Order, must throw InstanceNotFoundException.
+    // test case: Get a not active Order, must throw InstanceNotFoundException.
     @Test(expected = InstanceNotFoundException.class) // verify
     public void testGetInactiveOrder() throws InstanceNotFoundException {
         // set up
@@ -281,7 +281,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.getUserAllocation(this.localMember, federationUserToken, ResourceType.NETWORK);
     }
 
-    // test case: Checks if deleting allocationAllowableValues failed order, this one will be moved to the closed orders
+    // test case: Checks if deleting a failed order, this one will be moved to the closed orders
     // list.
     @Test
     public void testDeleteOrderStateFailed()
@@ -311,7 +311,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
-    // test case: Checks if deleting allocationAllowableValues fulfilled order, this one will be moved to the closed orders
+    // test case: Checks if deleting a fulfilled order, this one will be moved to the closed orders
     // list.
     @Test
     public void testDeleteOrderStateFulfilled()
@@ -340,7 +340,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
-    // test case: Checks if deleting allocationAllowableValues spawning order, this one will be moved to the closed orders
+    // test case: Checks if deleting a spawning order, this one will be moved to the closed orders
     // list.
     @Test
     public void testDeleteOrderStateSpawning()
@@ -369,7 +369,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
-    // test case: Checks if deleting allocationAllowableValues pending order, this one will be moved to the closed orders
+    // test case: Checks if deleting a pending order, this one will be moved to the closed orders
     // list.
     @Test
     public void testDeleteOrderStatePending()
@@ -398,7 +398,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
-    // test case: Checks if deleting allocationAllowableValues open order, this one will be moved to the closed orders list.
+    // test case: Checks if deleting a open order, this one will be moved to the closed orders list.
     @Test
     public void testDeleteOrderStateOpen()
             throws Exception {
@@ -426,7 +426,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
-    // test case: Deleting allocationAllowableValues null order must return allocationAllowableValues FogbowRasException.
+    // test case: Deleting a null order must return a FogbowRasException.
     @Test(expected = FogbowRasException.class) // verify
     public void testDeleteNullOrder()
             throws Exception {
@@ -440,7 +440,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.getOrder("invalid-order-id");
     }
 
-    // test case: Getting an order passing allocationAllowableValues different ResourceType must raise InstanceNotFoundException.
+    // test case: Getting an order passing a different ResourceType must raise InstanceNotFoundException.
     // ToDO: The refactor in ApplicationFacade moved the this logic out from OrderController; this test should be moved elsewhere.
     @Ignore
     @Test(expected = InstanceNotFoundException.class)

@@ -38,7 +38,7 @@ public class SynchronizedDoublyLinkedList implements ChainedList {
             this.tail = newItem;
             /**
              * The check below is useful when current pointer just passed by all the list and was
-             * pointing to null, and allocationAllowableValues new order was inserted at the end of this list. So, current
+             * pointing to null, and a new order was inserted at the end of this list. So, current
              * should point to the new inserted order (new tail), instead of null.
              */
             if (this.current == null) {
@@ -63,7 +63,7 @@ public class SynchronizedDoublyLinkedList implements ChainedList {
     }
 
     /**
-     * This method removes allocationAllowableValues given order. Note that this remove method should not modify the current
+     * This method removes a given order. Note that this remove method should not modify the current
      * pointer (i.e., after removing, the current pointer, must point to the same element before
      * this operation), unless the order to be removed, is the one in current pointer. In this case,
      * we must remove this order, and point current to the next one.

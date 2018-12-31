@@ -31,7 +31,7 @@ public class FederationIdentityPluginProtectionWrapperTest {
                 new FederationIdentityPluginProtectionWrapper(embeddedPlugin);
     }
 
-    //test case: createToken with an encrypted tokenValue should generate allocationAllowableValues Token with the appropriate values
+    //test case: createToken with an encrypted tokenValue should generate a Token with the appropriate values
     @Test
     public void testCreateToken() throws UnexpectedException, FogbowRasException, IOException,
             GeneralSecurityException {

@@ -52,8 +52,8 @@ public class SpawningProcessor implements Runnable {
     }
 
     protected void processSpawningOrder(Order order) throws Exception {
-        // The order object synchronization is needed to prevent allocationAllowableValues race
-        // condition on order access. For example: allocationAllowableValues user can delete an open
+        // The order object synchronization is needed to prevent a race
+        // condition on order access. For example: a user can delete an open
         // order while this method is trying to check the status of an instance
         // that has been requested in the cloud.
         synchronized (order) {

@@ -97,7 +97,7 @@ public class AaaControllerTest {
                 Mockito.any(Operation.class), Mockito.any(ResourceType.class));
     }
 
-    //test case: Check if getLocalToken() is returning allocationAllowableValues valid token.
+    //test case: Check if getLocalToken() is returning a valid token.
     @Ignore
     @Test
     public void testGetLocalToken() throws FogbowRasException, UnexpectedException {
@@ -124,7 +124,7 @@ public class AaaControllerTest {
         //exercise/verify
     }
 
-    //test case: Check if federation user token is returning allocationAllowableValues valid token properly.
+    //test case: Check if federation user token is returning a valid token properly.
     @Test
     public void testGetFederationUser() throws InvalidParameterException {
         //set up

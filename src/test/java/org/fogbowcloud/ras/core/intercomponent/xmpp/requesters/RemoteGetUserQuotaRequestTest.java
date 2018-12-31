@@ -48,7 +48,7 @@ public class RemoteGetUserQuotaRequestTest {
     }
 
     //test case: checks if IQ attributes is according to both RemoteGetUserQuotaRequest constructor parameters
-    //and remote get user quota request rules. In addition, it checks if the instance from allocationAllowableValues possible response is
+    //and remote get user quota request rules. In addition, it checks if the instance from a possible response is
     //properly created and returned by the "send" method
     @Test
     public void testSend() throws Exception {

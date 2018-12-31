@@ -82,7 +82,7 @@ public class CloudStackAttachmentPluginTest {
         this.token = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_USERNAME, FAKE_SIGNATURE);
     }
 
-    // test case: When calling the requestInstance method allocationAllowableValues HTTP GET request must be made with allocationAllowableValues
+    // test case: When calling the requestInstance method a HTTP GET request must be made with a
     // signed token, returning the id of the Attachment.
     @Test
     public void testAttachRequestInstanceSuccessful()
@@ -126,7 +126,7 @@ public class CloudStackAttachmentPluginTest {
         Assert.assertEquals(expectedId, volumeId);
     }
 
-    // test case: When calling the requestInstance method with allocationAllowableValues user without permission, an
+    // test case: When calling the requestInstance method with a user without permission, an
     // UnauthorizedRequestException must be thrown.
     @Test(expected = UnauthorizedRequestException.class)
     public void testAttachRequestInstanceThrowUnauthorizedRequestException()
@@ -188,7 +188,7 @@ public class CloudStackAttachmentPluginTest {
         }
     }
     
-    // test case: When calling the requestInstance method with allocationAllowableValues unauthenticated user, an
+    // test case: When calling the requestInstance method with a unauthenticated user, an
     // UnauthenticatedUserException must be thrown.
     @Test(expected = UnauthenticatedUserException.class)
     public void testAttachRequestInstanceThrowUnauthenticatedUserException()
@@ -250,7 +250,7 @@ public class CloudStackAttachmentPluginTest {
         }
     }
     
-    // test case: When calling the requestInstance method and an HTTP GET request returns allocationAllowableValues failure
+    // test case: When calling the requestInstance method and an HTTP GET request returns a failure
     // response in JSON format, an UnexpectedException must be thrown.
     @Test(expected = UnexpectedException.class)
     public void testAttachRequestInstanceThrowUnexpectedException()
@@ -293,8 +293,8 @@ public class CloudStackAttachmentPluginTest {
         PowerMockito.verifyStatic(AttachVolumeResponse.class, VerificationModeFactory.times(1));
     }
     
- // test case: When calling the getInstance method for allocationAllowableValues resource created, an HTTP GET request
-    // must be made with allocationAllowableValues signed token, which returns allocationAllowableValues response in the JSON format for the
+ // test case: When calling the getInstance method for a resource created, an HTTP GET request
+    // must be made with a signed token, which returns a response in the JSON format for the
     // retrieval of the complete AttachmentInstance object.
     @Test
     public void testGetInstanceRequestSuccessful()
@@ -343,8 +343,8 @@ public class CloudStackAttachmentPluginTest {
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(request, this.token);
     }
 
-    // test case: When calling the getInstance method to allocationAllowableValues resource in creating, allocationAllowableValues HTTP GET request
-    // must be done with allocationAllowableValues signed token, which returns allocationAllowableValues response in the JSON format for the
+    // test case: When calling the getInstance method to a resource in creating, a HTTP GET request
+    // must be done with a signed token, which returns a response in the JSON format for the
     // retrieval of the complete AttachmentInstance object with status 'attaching'.
     @Test
     public void testGetInstanceRequestWithJobStatusPending()
@@ -389,8 +389,8 @@ public class CloudStackAttachmentPluginTest {
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(request, this.token);
     }
 
-    // test case: When calling the getInstance method for allocationAllowableValues resource that is not working, an HTTP
-    // GET request must be made with allocationAllowableValues signed token, which returns allocationAllowableValues response in the JSON format for
+    // test case: When calling the getInstance method for a resource that is not working, an HTTP
+    // GET request must be made with a signed token, which returns a response in the JSON format for
     // retrieving the complete AttachmentInstance object with status 'failed'.
     @Test
     public void testGetInstanceRequestWithJobStatusFailure()
@@ -435,7 +435,7 @@ public class CloudStackAttachmentPluginTest {
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(request, this.token);
     }
     
-    // test case: When calling the getInstance method with allocationAllowableValues user without permission, an
+    // test case: When calling the getInstance method with a user without permission, an
     // UnauthorizedRequestException must be thrown.
     @Test(expected = UnauthorizedRequestException.class)
     public void testGetInstanceThrowUnauthorizedRequestException()
@@ -498,7 +498,7 @@ public class CloudStackAttachmentPluginTest {
         }
     }
     
-    // test case: When calling the getInstance method with allocationAllowableValues unauthenticated user, an
+    // test case: When calling the getInstance method with a unauthenticated user, an
     // UnauthenticatedUserException must be thrown.
     @Test(expected = UnauthenticatedUserException.class)
     public void testGetInstanceThrowUnauthenticatedUserException()
@@ -560,8 +560,8 @@ public class CloudStackAttachmentPluginTest {
         }
     }
     
- // test case: When calling the getInstance method and an HTTP GET request returns allocationAllowableValues response in
-    // JSON format with allocationAllowableValues job status not consistent, an UnexpectedException must be thrown.
+ // test case: When calling the getInstance method and an HTTP GET request returns a response in
+    // JSON format with a job status not consistent, an UnexpectedException must be thrown.
     @Test(expected = UnexpectedException.class)
     public void testGetInstanceThrowUnexpectedException()
             throws HttpResponseException, FogbowRasException, UnexpectedException {
@@ -600,8 +600,8 @@ public class CloudStackAttachmentPluginTest {
         PowerMockito.verifyStatic(DetachVolumeResponse.class, VerificationModeFactory.times(1));
     }
     
-    // test case: When calling the deleteInstance method, an HTTP GET request must be made with allocationAllowableValues
-    // signed token, which returns allocationAllowableValues response in the JSON format.
+    // test case: When calling the deleteInstance method, an HTTP GET request must be made with a
+    // signed token, which returns a response in the JSON format.
     @Test
     public void testDeleteInstanceRequestSuccessful()
             throws HttpResponseException, FogbowRasException, UnexpectedException {
@@ -641,7 +641,7 @@ public class CloudStackAttachmentPluginTest {
         DetachVolumeResponse.fromJson(Mockito.eq(response));
     }
     
-    // test case: When calling the deleteInstance method with allocationAllowableValues user without permission, an
+    // test case: When calling the deleteInstance method with a user without permission, an
     // UnauthorizedRequestException must be thrown.
     @Test(expected = UnauthorizedRequestException.class)
     public void testDeleteInstanceThrowUnauthorizedRequestException()
@@ -699,7 +699,7 @@ public class CloudStackAttachmentPluginTest {
         }
     }
     
-    // test case: When calling the deleteInstance method with allocationAllowableValues unauthenticated user, an
+    // test case: When calling the deleteInstance method with a unauthenticated user, an
     // UnauthenticatedUserException must be thrown.
     @Test(expected = UnauthenticatedUserException.class)
     public void testDeleteInstanceThrowUnauthenticatedUserException()
@@ -757,7 +757,7 @@ public class CloudStackAttachmentPluginTest {
         }
     }
     
-    // test case: When calling the deleteInstance method and an HTTP GET request returns allocationAllowableValues failure
+    // test case: When calling the deleteInstance method and an HTTP GET request returns a failure
     // response in JSON format, an UnexpectedException must be thrown.
     @Test(expected = UnexpectedException.class)
     public void testDeleteInstanceThrowUnexpectedException()
