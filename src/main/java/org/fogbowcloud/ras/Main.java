@@ -3,6 +3,7 @@ package org.fogbowcloud.ras;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.*;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
+import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.datastore.DatabaseManager;
 import org.fogbowcloud.ras.core.datastore.orderstorage.RecoveryService;
@@ -13,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class Main implements ApplicationRunner {
@@ -57,7 +60,19 @@ public class Main implements ApplicationRunner {
             remoteFacade.setCloudListController(cloudListController);
 
             // Starting PacketSender
-            PacketSenderHolder.init();
+            while (true) {
+                try {
+                    PacketSenderHolder.init();
+                    break;
+                } catch (IllegalStateException e1) {
+                    LOGGER.error(Messages.Error.NO_PACKET_SENDER);
+                    try {
+                        TimeUnit.SECONDS.sleep(10);
+                    } catch (InterruptedException e2) {
+                        e2.printStackTrace();
+                    }
+                }
+            }
 
             // Setting up order processors
             ProcessorsThreadController processorsThreadController = new ProcessorsThreadController(localMemberId);

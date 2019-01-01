@@ -27,7 +27,6 @@ public class Messages {
         public static final String MISMATCHING_RESOURCE_TYPE = "Mismatching resource type.";
         public static final String NO_AVAILABLE_RESOURCES = "No available resources.";
         public static final String NO_MATCHING_FLAVOR = "No matching flavor.";
-        public static final String NO_PACKET_SENDER = "PacketSender was not initialized";
         public static final String NO_PROJECT_ID = "No projectId in local token.";
         public static final String NO_USER_CREDENTIALS = "No user credentials given.";
         public static final String NULL_VALUE_RETURNED = "Plugin returned a null value for the instanceId.";
@@ -77,7 +76,6 @@ public class Messages {
         public static final String NEUTRON_ENDPOINT_NOT_FOUND = "Neutron endpoint not found.";
         public static final String NO_CLOUD_SPECIFIED = "No cloud names specified in clouds.conf file";
         public static final String PROPERTY_FILE_NOT_FOUND = "Property file %s not found.";
-        public static final String UNABLE_TO_CONNECT_TO_XMPP_SERVER = "Unable to connect to XMPP server.";
         public static final String UNABLE_TO_FIND_CLASS = "Unable to find class %s.";
         public static final String UNABLE_TO_INITIALIZE_HTTP_REQUEST_UTIL = "Unable to initialize HttpRequestUtil.";
         public static final String UNABLE_TO_READ_COMPOSED_AUTHORIZATION_PLUGIN_CONF_FILE = "Unable to read ComposedAuthorizationPlugin configuration file %s.";
@@ -103,6 +101,7 @@ public class Messages {
         public static final String GETTING_INSTANCE = "Getting instance %s with token %s.";
         public static final String INSTANCE_HAS_FAILED = "Instance associated to request %s has failed.";
         public static final String MOUNTING_INSTANCE = "Mounting instance structure of id: %s.";
+        public static final String NO_REMOTE_COMMUNICATION_CONFIGURED = "No remote communication configured.";
         public static final String RECEIVING_COMPUTE_QUOTA_REQUEST = "Get compute %s request for member %s received.";
         public static final String RECEIVING_CREATE_REQUEST = "Create request for %s received.";
         public static final String RECEIVING_CREATE_TOKEN_REQUEST = "Create token request received with a credentials map of size %s.";
@@ -110,14 +109,12 @@ public class Messages {
         public static final String RECEIVING_GET_ALL_IMAGES_REQUEST = "Get all images request received.";
         public static final String RECEIVING_GET_ALL_REQUEST = "Get status request for all %s received.";
         public static final String RECEIVING_GET_CLOUDS_REQUEST = "Get request for cloud names received.";
-        public static final String RECEIVING_GET_DEFAULT_CLOUD_REQUEST = "Get request for default cloud name received.";
         public static final String RECEIVING_GET_IMAGE_REQUEST = "Get request for image %s received.";
         public static final String RECEIVING_GET_REQUEST = "Get request for %s %s received.";
         public static final String RECEIVING_GET_VERSION_REQUEST = "Get request for version received.";
         public static final String RECEIVING_REMOTE_REQUEST = "Received remote request for request %s.";
         public static final String RECOVERING_LIST_OF_ORDERS = "Recovering requests in %s state: %d requests recovered so far.";
         public static final String REQUESTING_INSTANCE = "Requesting instance with token %s.";
-        public static final String SKIPPING_BECAUSE_PROVIDER_IS_REMOTE = "Member %s skipping monitoring of request %s provided by %s.";
         public static final String STARTING_THREADS = "Starting processor threads.";
         public static final String TEMPLATE_POOL_LENGTH = "Template pool length: %s.";
         public static final String INSTANCE_WAS_NOT_FOUND = "Instance associated with request %s was not found.";
@@ -130,7 +127,6 @@ public class Messages {
         public static final String ERROR_WHILE_CREATING_CLIENT = "Error while creating client.";
         public static final String ERROR_WHILE_CREATING_NETWORK = "Error while creating a network from template: %s.";
         public static final String ERROR_WHILE_CREATING_IMAGE = "Error while creating a image from template: %s.";
-        public static final String ERROR_WHILE_CREATING_ROUTER = "Error while creating a router from template: %s.";
         public static final String INVALID_LIST_SECURITY_RULE_TYPE = "Invalid list security rule type. Order irregular: %s.";
         public static final String ERROR_WHILE_CONSUMING_RESPONSE = "Error while consuming response %s.";
         public static final String ERROR_WHILE_CONVERTING_INSTANCE_ID = "Error while converting instanceid %s to integer.";
@@ -142,12 +138,11 @@ public class Messages {
         public static final String ERROR_WHILE_GETTING_VOLUME_INSTANCE = "Error while getting volume instance.";
         public static final String ERROR_WHILE_GETTING_SECURITY_RULES_INSTANCE = "Error while getting security rules instance.";
         public static final String ERROR_WHILE_REMOVING_VM = "Error while removing virtual machine: %s, with response: %s.";
-        public static final String ERROR_WHILE_REMOVING_VN = "Error while removing virtual network: %s, with response: %s.";
         public static final String ERROR_WHILE_REMOVING_SECURITY_RULE = "Error while removing security group: %s, with response: %s.";
-        public static final String ERROR_WHILE_REMOVING_VR = "Error while removing virtual router: %s, with response: %s.";
         public static final String INSTANCE_TYPE_NOT_DEFINED = "Instance type not defined.";
         public static final String INVALID_DATASTORE_DRIVER = "Invalid datastore driver.";
         public static final String INVALID_TOKEN_VALUE = "Invalid token value: %s.";
+        public static final String NO_PACKET_SENDER = "PacketSender was not initialized. Trying again.";
         public static final String REQUEST_ALREADY_CLOSED = "Request %s is already in the closed state.";
         public static final String THREAD_HAS_BEEN_INTERRUPTED = "Thread has been interrupted.";
         public static final String UNABLE_TO_ADD_TIMESTAMP = "Unable to add timestamp.";
@@ -175,7 +170,6 @@ public class Messages {
         public static final String INVALID_FORMAT_TOKEN = "Invalid format token was received";
 		public static final String ERROR_WHILE_CREATING_SECURITY_GROUPS = "Error while creating a security groups from template: %s.";
 		public static final String ERROR_WHILE_CREATING_NIC = "Error while creating a network interface connected from template: %s.";
-		public static final String ERROR_WHILE_CREATING_AR = "Error while creating a address range from template: %s.";
 		public static final String ERROR_WHILE_REMOVING_VI = "Error while removing volume image: %s, with response: %s.";
 		public static final String ERROR_WHILE_DETACH_VOLUME = "Error while detaching volume image disk: %s, with response: %s.";
 		public static final String ERROR_WHILE_ATTACH_VOLUME = "Error while attaching volume image disk: %s, with response: %s.";

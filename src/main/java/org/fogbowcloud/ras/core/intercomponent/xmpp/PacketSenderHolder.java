@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.core.intercomponent.xmpp;
 
+import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
@@ -8,6 +9,7 @@ import org.jamppa.component.PacketSender;
 import org.xmpp.component.ComponentException;
 
 public class PacketSenderHolder {
+    private final static Logger LOGGER = Logger.getLogger(PacketSenderHolder.class);
 
     private static PacketSender packetSender = null;
 
@@ -21,14 +23,18 @@ public class PacketSenderHolder {
             long xmppTimeout =
                     Long.parseLong(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.XMPP_TIMEOUT_KEY,
                             DefaultConfigurationConstants.XMPP_TIMEOUT));
-            XmppComponentManager xmppComponentManager = new XmppComponentManager(xmppJid, xmppPassword, xmppServerIp,
-                    xmppServerPort, xmppTimeout);
-            try {
-                xmppComponentManager.connect();
-            } catch (ComponentException e) {
-                throw new IllegalStateException(Messages.Exception.NO_PACKET_SENDER);
+            XmppComponentManager xmppComponentManager = new XmppComponentManager(xmppJid, xmppPassword,
+                    xmppServerIp, xmppServerPort, xmppTimeout);
+            if (xmppServerIp != null && !xmppServerIp.isEmpty()) {
+                try {
+                    xmppComponentManager.connect();
+                } catch (ComponentException e) {
+                    throw new IllegalStateException();
+                }
+                PacketSenderHolder.packetSender = xmppComponentManager;
+            } else {
+                LOGGER.info(Messages.Info.NO_REMOTE_COMMUNICATION_CONFIGURED);
             }
-            PacketSenderHolder.packetSender = xmppComponentManager;
         }
     }
 
