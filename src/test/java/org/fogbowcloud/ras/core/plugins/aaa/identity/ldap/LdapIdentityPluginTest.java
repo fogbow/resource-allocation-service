@@ -3,7 +3,7 @@ package org.fogbowcloud.ras.core.plugins.aaa.identity.ldap;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
-import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.exceptions.InvalidTokenException;
 import org.fogbowcloud.ras.core.models.tokens.LdapToken;
 import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.ldap.LdapAuthenticationPlugin;
@@ -89,7 +89,7 @@ public class LdapIdentityPluginTest {
     }
 
     //test case: check if the token information is correct when creating a token with the correct token value.
-    @Test(expected = InvalidParameterException.class)
+    @Test(expected = InvalidTokenException.class)
     public void testCreateTokenIncorrectTokenValue() throws Exception {
         //exercise
         this.ldapIdentityPlugin.createToken("anything");

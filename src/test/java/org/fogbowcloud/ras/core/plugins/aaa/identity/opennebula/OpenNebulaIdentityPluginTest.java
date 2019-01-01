@@ -1,7 +1,7 @@
 package org.fogbowcloud.ras.core.plugins.aaa.identity.opennebula;
 
 import org.apache.commons.lang.StringUtils;
-import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.exceptions.InvalidTokenException;
 import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.opennebula.OpenNebulaTokenGeneratorPlugin;
 import org.junit.Assert;
@@ -11,7 +11,7 @@ public class OpenNebulaIdentityPluginTest {
 
     // test case: success case
     @Test
-    public void testCreateToken() throws InvalidParameterException {
+    public void testCreateToken() throws InvalidTokenException {
         // set up
         OpenNebulaIdentityPlugin openNebulaIdentityPlugin = new OpenNebulaIdentityPlugin();
 
@@ -40,8 +40,8 @@ public class OpenNebulaIdentityPluginTest {
     }
 
     // test case: token value is null
-    @Test(expected = InvalidParameterException.class)
-    public void testCreateTokenNullTokenValue() throws InvalidParameterException {
+    @Test(expected = InvalidTokenException.class)
+    public void testCreateTokenNullTokenValue() throws InvalidTokenException {
         // set up
         OpenNebulaIdentityPlugin openNebulaIdentityPlugin = new OpenNebulaIdentityPlugin();
         // exercise
@@ -49,8 +49,8 @@ public class OpenNebulaIdentityPluginTest {
     }
 
     // test case: token value is null
-    @Test(expected = InvalidParameterException.class)
-    public void testCreateTokenInvalidFormatTokenValue() throws InvalidParameterException {
+    @Test(expected = InvalidTokenException.class)
+    public void testCreateTokenInvalidFormatTokenValue() throws InvalidTokenException {
         // set up
         OpenNebulaIdentityPlugin openNebulaIdentityPlugin = new OpenNebulaIdentityPlugin();
         String tokenValue = "anything";

@@ -71,7 +71,7 @@ public class Compute {
     public ResponseEntity<List<InstanceStatus>> getAllComputesStatus(
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
+            throws FogbowRasException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
@@ -91,7 +91,7 @@ public class Compute {
             @PathVariable String computeId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
+            throws FogbowRasException, UnexpectedException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_REQUEST, ORDER_CONTROLLER_TYPE, computeId));
@@ -110,7 +110,7 @@ public class Compute {
             @PathVariable String computeId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
+            throws FogbowRasException, UnexpectedException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, ORDER_CONTROLLER_TYPE, computeId));
@@ -131,7 +131,7 @@ public class Compute {
             @PathVariable String cloudName,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
+            throws FogbowRasException, UnexpectedException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_COMPUTE_QUOTA_REQUEST, QUOTA_ENDPOINT, memberId));

@@ -58,7 +58,7 @@ public class Network {
     public ResponseEntity<List<InstanceStatus>> getAllNetworksStatus(
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
+            throws FogbowRasException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
@@ -78,7 +78,7 @@ public class Network {
             @PathVariable String networkId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
+            throws FogbowRasException, UnexpectedException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_REQUEST, ORDER_CONTROLLER_TYPE, networkId));
@@ -97,7 +97,7 @@ public class Network {
             @PathVariable String networkId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
+            throws FogbowRasException, UnexpectedException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, ORDER_CONTROLLER_TYPE, networkId));
@@ -118,7 +118,7 @@ public class Network {
             @RequestBody SecurityRule securityRule,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
+            throws FogbowRasException, UnexpectedException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_CREATE_REQUEST, SECURITY_RULE_NAME));
@@ -137,7 +137,7 @@ public class Network {
             @PathVariable String networkId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
+            throws FogbowRasException, UnexpectedException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, SECURITY_RULE_NAME));
@@ -158,7 +158,7 @@ public class Network {
             @PathVariable String ruleId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
+            throws FogbowRasException, UnexpectedException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, SECURITY_RULE_NAME, ruleId));

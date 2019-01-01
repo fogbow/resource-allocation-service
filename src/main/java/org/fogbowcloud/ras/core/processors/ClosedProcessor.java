@@ -43,7 +43,7 @@ public class ClosedProcessor implements Runnable {
         }
     }
 
-    protected void processClosedOrder(Order order) throws Exception {
+    protected void processClosedOrder(Order order) throws UnexpectedException {
         synchronized (order) {
            OrderStateTransitioner.deactivateOrder(order);
         }

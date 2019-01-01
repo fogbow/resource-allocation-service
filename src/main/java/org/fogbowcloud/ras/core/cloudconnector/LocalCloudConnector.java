@@ -292,7 +292,7 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public void deleteSecurityRule(String securityRuleId, FederationUserToken federationUserToken) throws Exception {
+    public void deleteSecurityRule(String securityRuleId, FederationUserToken federationUserToken) throws FogbowRasException, UnexpectedException {
         Token token = this.mapperPlugin.map(federationUserToken);
         this.securityRulePlugin.deleteSecurityRule(securityRuleId, token);
     }

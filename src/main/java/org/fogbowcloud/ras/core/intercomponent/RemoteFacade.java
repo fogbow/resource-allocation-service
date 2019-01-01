@@ -54,7 +54,8 @@ public class RemoteFacade {
     }
 
     public Instance getResourceInstance(String requestingMember, String orderId,
-                            FederationUserToken federationUserToken, ResourceType resourceType) throws Exception {
+                            FederationUserToken federationUserToken, ResourceType resourceType)
+                            throws FogbowRasException, UnexpectedException {
         Order order = this.orderController.getOrder(orderId);
         this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, order.getCloudName(), Operation.GET,
                 resourceType, order);
@@ -62,7 +63,7 @@ public class RemoteFacade {
     }
 
     public void deleteOrder(String requestingMember, String orderId, FederationUserToken federationUserToken,
-                            ResourceType resourceType) throws Exception {
+                            ResourceType resourceType) throws FogbowRasException, UnexpectedException {
         Order order = this.orderController.getOrder(orderId);
         this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, order.getCloudName(), Operation.DELETE,
                 resourceType, order);
@@ -70,7 +71,7 @@ public class RemoteFacade {
     }
 
     public Quota getUserQuota(String requestingMember, String cloudName, FederationUserToken federationUserToken,
-                              ResourceType resourceType) throws Exception {
+                              ResourceType resourceType) throws FogbowRasException, UnexpectedException {
         this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, cloudName,
                 Operation.GET_USER_QUOTA, resourceType);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);
@@ -78,7 +79,7 @@ public class RemoteFacade {
     }
 
     public Image getImage(String requestingMember, String cloudName, String imageId,
-                          FederationUserToken federationUserToken) throws Exception {
+                          FederationUserToken federationUserToken) throws FogbowRasException, UnexpectedException {
         this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, cloudName, Operation.GET_IMAGE,
                 ResourceType.IMAGE);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);
@@ -86,7 +87,8 @@ public class RemoteFacade {
     }
 
     public Map<String, String> getAllImages(String requestingMember, String cloudName,
-                                            FederationUserToken federationUserToken) throws Exception {
+                                            FederationUserToken federationUserToken) throws FogbowRasException,
+                                            UnexpectedException {
         this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, cloudName,
                 Operation.GET_ALL_IMAGES, ResourceType.IMAGE);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);
@@ -94,7 +96,8 @@ public class RemoteFacade {
     }
 
     public GenericRequestResponse genericRequest(String requestingMember, String cloudName, GenericRequest genericRequest,
-                                                 FederationUserToken federationTokenValue) throws Exception {
+                                                 FederationUserToken federationTokenValue) throws FogbowRasException,
+                                                 UnexpectedException {
         this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationTokenValue, cloudName,
                 Operation.GENERIC_REQUEST, ResourceType.GENERIC_REQUEST);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(this.localMemberId, cloudName);
@@ -102,14 +105,15 @@ public class RemoteFacade {
     }
 
     public List<String> getCloudNames(String requestingMember, FederationUserToken requester) throws
-            UnavailableProviderException, UnauthorizedRequestException, UnauthenticatedUserException {
+            UnauthorizedRequestException, UnauthenticatedUserException {
         this.aaaController.authenticateAndAuthorize(requestingMember, requester, Operation.GET_CLOUD_NAMES,
                 ResourceType.CLOUD_NAMES);
         return this.cloudListController.getCloudNames();
     }
 
     public String createSecurityRule(String requestingMember, String orderId, SecurityRule securityRule,
-                                     FederationUserToken federationUserToken) throws Exception {
+                                     FederationUserToken federationUserToken) throws FogbowRasException,
+                                     UnexpectedException {
         Order order = orderController.getOrder(orderId);
         this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken,
                 order.getCloudName(), Operation.CREATE, ResourceType.SECURITY_RULE);
@@ -117,7 +121,8 @@ public class RemoteFacade {
     }
 
     public List<SecurityRule> getAllSecurityRules(String requestingMember, String orderId,
-                                                  FederationUserToken federationUserToken) throws Exception {
+                                                  FederationUserToken federationUserToken) throws FogbowRasException,
+                                                  UnexpectedException {
         Order order = orderController.getOrder(orderId);
         this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken,
                 order.getCloudName(), Operation.CREATE, ResourceType.SECURITY_RULE);
@@ -125,7 +130,8 @@ public class RemoteFacade {
     }
 
     public void deleteSecurityRule(String requestingMember, String cloudName, String ruleId,
-                                   FederationUserToken federationUserToken) throws Exception {
+                                   FederationUserToken federationUserToken) throws FogbowRasException,
+                                   UnexpectedException {
         this.aaaController.remoteAuthenticateAndAuthorize(requestingMember, federationUserToken, cloudName,
                 Operation.CREATE, ResourceType.SECURITY_RULE);
         securityRuleController.deleteSecurityRule(this.localMemberId, cloudName, ruleId, federationUserToken);

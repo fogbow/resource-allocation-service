@@ -4,6 +4,7 @@ import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.exceptions.InvalidTokenException;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPluginProtectionWrapper;
@@ -27,7 +28,7 @@ public class FederationIdentityPluginProtectionWrapper implements FederationIden
     }
 
     @Override
-    public FederationUserToken createToken(String protectedTokenValue) throws InvalidParameterException {
+    public FederationUserToken createToken(String protectedTokenValue) throws InvalidTokenException {
         String unprotectedToken = null;
         unprotectedToken = decrypt(protectedTokenValue);
         return this.embeddedPlugin.createToken(unprotectedToken);
@@ -37,7 +38,7 @@ public class FederationIdentityPluginProtectionWrapper implements FederationIden
         return this.embeddedPlugin;
     }
 
-    private String decrypt(String protectedTokenValue) throws InvalidParameterException {
+    private String decrypt(String protectedTokenValue) throws InvalidTokenException {
         String unprotectedTokenValue;
         try {
             String split[] = protectedTokenValue.split(TokenGeneratorPluginProtectionWrapper.SEPARATOR);
@@ -47,7 +48,7 @@ public class FederationIdentityPluginProtectionWrapper implements FederationIden
             String randomKey = RSAUtil.decrypt(split[0], this.privateKey);
             unprotectedTokenValue = RSAUtil.decryptAES(randomKey.getBytes("UTF-8"), split[1]);
         } catch (Exception e) {
-            throw new InvalidParameterException();
+            throw new InvalidTokenException();
         }
         return unprotectedTokenValue;
     }

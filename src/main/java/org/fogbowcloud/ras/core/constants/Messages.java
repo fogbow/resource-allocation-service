@@ -31,6 +31,7 @@ public class Messages {
         public static final String NO_PROJECT_ID = "No projectId in local token.";
         public static final String NO_USER_CREDENTIALS = "No user credentials given.";
         public static final String NULL_VALUE_RETURNED = "Plugin returned a null value for the instanceId.";
+        public static final String REMOTE_COMMUNICATION = "Error while sending message to remote RAS.";
         public static final String REQUEST_ALREADY_EXIST = "Request already exists.";
         public static final String REQUEST_ID_ALREADY_ACTIVATED = "Request %s has already been activated.";
         public static final String REQUEST_INSTANCE_NULL = "Request instance id for request %s is null.";
@@ -56,7 +57,8 @@ public class Messages {
         public static final String UNEXPECTED_ERROR = "Unexpected error.";
         public static final String UNSUPPORTED_REQUEST_TYPE = "Request type %s not supported.";
         public static final String WRONG_URI_SYNTAX = "Wrong syntax for endpoint %s.";
-        public static final String INVALID_SHIBBOLETH_TOKEN = "Is not possible create the Shibboleth token: %s";
+        public static final String INVALID_SHIBBOLETH_TOKEN = "Unable to create Shibboleth token: %s.";
+        public static final String INVALID_TOKEN = "Invalid token value.";
         public static final String MULTIPLE_SECURITY_GROUPS_EQUALLY_NAMED = "There should be exactly one security group with name <%s>";
         public static final String INVALID_CLOUDSTACK_PROTOCOL = "Protocol <%s> couldn't be mapped to a valid protocol";
         public static final String MALFORMED_GENERIC_REQUEST_URL = "Malformed generic request URL <%s>";

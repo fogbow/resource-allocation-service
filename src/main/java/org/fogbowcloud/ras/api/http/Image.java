@@ -7,6 +7,8 @@ import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.ApplicationFacade;
 import org.fogbowcloud.ras.core.constants.ApiDocumentation;
 import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +37,7 @@ public class Image {
             @PathVariable String cloudName,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
+            throws FogbowRasException, UnexpectedException {
 
         try {
             LOGGER.info(Messages.Info.RECEIVING_GET_ALL_IMAGES_REQUEST);
@@ -58,7 +60,7 @@ public class Image {
             @PathVariable String imageId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
+            throws FogbowRasException, UnexpectedException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_IMAGE_REQUEST, imageId));
@@ -79,7 +81,7 @@ public class Image {
             @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId,
             @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
             @RequestHeader(required = false, value = CLOUD_NAME_HEADER_KEY) String cloudName)
-            throws Exception {
+            throws FogbowRasException, UnexpectedException {
 
         try {
             LOGGER.info(Messages.Info.RECEIVING_GET_ALL_IMAGES_REQUEST);
@@ -102,7 +104,7 @@ public class Image {
             @RequestHeader(required = false, value = MEMBER_ID_HEADER_KEY) String memberId,
             @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
             @RequestHeader(required = false, value = CLOUD_NAME_HEADER_KEY) String cloudName)
-            throws Exception {
+            throws FogbowRasException, UnexpectedException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_IMAGE_REQUEST, imageId));

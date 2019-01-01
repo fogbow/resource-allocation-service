@@ -7,13 +7,9 @@ import org.fogbowcloud.ras.core.constants.ApiDocumentation;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
-import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletRequest;
-import java.util.Map;
 
 import static org.fogbowcloud.ras.api.http.GenericRequest.GENERIC_REQUEST_ENDPOINT;
 
@@ -28,20 +24,15 @@ public class GenericRequest {
     private final Logger LOGGER = Logger.getLogger(GenericRequest.class);
 
     @RequestMapping(method = RequestMethod.POST, value = "/{memberId}" + "/{cloudName}")
-    public ResponseEntity<GenericRequestResponse> genericRequest(@ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
-                                                 @PathVariable
-                                                         String cloudName,
-
-                                                 @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
-                                                 @PathVariable
-                                                         String memberId,
-
-                                                 @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-                                                 @RequestHeader(required = true, value = FEDERATION_TOKEN_VALUE_HEADER_KEY)
-                                                         String federationTokenValue,
-
-                                                 @RequestBody org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequest genericRequest)
-            throws Exception {
+    public ResponseEntity<GenericRequestResponse> genericRequest(
+            @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
+            @PathVariable String cloudName,
+            @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
+            @PathVariable String memberId,
+            @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
+            @RequestHeader(required = true, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue,
+            @RequestBody org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequest genericRequest)
+            throws FogbowRasException, UnexpectedException {
 
 //        TODO decide which API we're gonna use
 //        FIXME these can be used if we want to get these from the request itself

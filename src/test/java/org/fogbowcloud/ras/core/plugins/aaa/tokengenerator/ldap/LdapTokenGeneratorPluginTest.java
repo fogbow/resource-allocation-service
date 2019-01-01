@@ -6,10 +6,7 @@ import java.util.Map;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
-import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.ras.core.exceptions.InvalidUserCredentialsException;
-import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
-import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.tokens.LdapToken;
 import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.ldap.LdapAuthenticationPlugin;
@@ -55,7 +52,7 @@ public class LdapTokenGeneratorPluginTest {
     //test case: createTokenValue with valid credentials should generate a string with the appropriate values
     @Test
     public void testCreateTokenValueValidCredentials() throws InvalidParameterException, UnexpectedException,
-            InvalidUserCredentialsException, UnauthenticatedUserException {
+            InvalidUserCredentialsException, UnauthenticatedUserException, InvalidTokenException {
         //set up
         Map<String, String> userCredentials = new HashMap<String, String>();
         userCredentials.put(LdapTokenGeneratorPlugin.CRED_USERNAME, FAKE_LOGIN);

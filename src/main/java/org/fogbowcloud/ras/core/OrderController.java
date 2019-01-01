@@ -5,6 +5,7 @@ import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -39,7 +40,7 @@ public class OrderController {
         return requestedOrder;
     }
 
-    public void deleteOrder(String orderId) throws Exception {
+    public void deleteOrder(String orderId) throws FogbowRasException, UnexpectedException {
         if (orderId == null) throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
         Order order = getOrder(orderId);
         synchronized (order) {
@@ -60,7 +61,7 @@ public class OrderController {
         }
     }
 
-    public Instance getResourceInstance(String orderId) throws Exception {
+    public Instance getResourceInstance(String orderId) throws FogbowRasException, UnexpectedException {
         if (orderId == null) throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
         Order order = getOrder(orderId);
         synchronized (order) {

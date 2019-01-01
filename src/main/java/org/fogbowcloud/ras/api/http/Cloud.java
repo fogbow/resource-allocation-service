@@ -10,6 +10,8 @@ import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ApiDocumentation;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +33,8 @@ public class Cloud {
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<String>> getCloudNamesNoMemberId(
         @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-        @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue) throws Exception {
+        @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+        throws FogbowRasException {
         try {
             LOGGER.info(Messages.Info.RECEIVING_GET_CLOUDS_REQUEST);
             String memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
@@ -49,7 +52,8 @@ public class Cloud {
             @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
             @PathVariable String memberId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
-            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue) throws Exception {
+            @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
+            throws FogbowRasException, UnexpectedException {
         try {
             LOGGER.info(Messages.Info.RECEIVING_GET_CLOUDS_REQUEST);
             List<String> cloudNames = ApplicationFacade.getInstance().getCloudNames(memberId, federationTokenValue);

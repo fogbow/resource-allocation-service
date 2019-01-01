@@ -34,8 +34,8 @@ public class AaaController {
     }
 
     public void authenticateAndAuthorize(String requestingMember, FederationUserToken requester, String cloudName,
-                                         Operation operation, ResourceType type)
-            throws UnauthenticatedUserException, UnauthorizedRequestException, UnavailableProviderException {
+                                         Operation operation, ResourceType type) throws UnauthenticatedUserException,
+                                         UnauthorizedRequestException {
         // Authenticate user based on the token received
         authenticate(requestingMember, requester);
         // Authorize the user based on user's attributes, requested operation and resource type
@@ -43,8 +43,8 @@ public class AaaController {
     }
 
     public void authenticateAndAuthorize(String requestingMember, FederationUserToken requester,
-                                         Operation operation, ResourceType type)
-            throws UnauthenticatedUserException, UnauthorizedRequestException, UnavailableProviderException {
+                                         Operation operation, ResourceType type) throws UnauthenticatedUserException,
+                                         UnauthorizedRequestException {
         // Authenticate user based on the token received
         authenticate(requestingMember, requester);
         // Authorize the user based on user's attributes, requested operation and resource type
@@ -67,7 +67,8 @@ public class AaaController {
     }
 
     public void remoteAuthenticateAndAuthorize(String requestingMember, FederationUserToken federationUserToken,
-                                               String cloudName, Operation operation, ResourceType type) throws FogbowRasException {
+                                               String cloudName, Operation operation, ResourceType type)
+                                               throws FogbowRasException {
 
         authenticateAndAuthorize(requestingMember, federationUserToken, cloudName, operation, type);
     }
@@ -81,12 +82,12 @@ public class AaaController {
         }
     }
 
-    public FederationUserToken getFederationUser(String federationTokenValue) throws InvalidParameterException {
+    public FederationUserToken getFederationUser(String federationTokenValue) throws InvalidTokenException {
         return this.federationIdentityPlugin.createToken(federationTokenValue);
     }
 
     public void authenticate(String requestingMember, FederationUserToken federationToken)
-            throws UnauthenticatedUserException, UnavailableProviderException {
+            throws UnauthenticatedUserException {
         if (!this.authenticationPlugin.isAuthentic(requestingMember, federationToken)) {
             throw new UnauthenticatedUserException();
         }

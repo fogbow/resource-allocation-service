@@ -2,7 +2,7 @@ package org.fogbowcloud.ras.core.plugins.aaa.identity.cloudstack;
 
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.SystemConstants;
-import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.exceptions.InvalidTokenException;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGeneratorPlugin;
 import org.junit.Assert;
@@ -64,7 +64,7 @@ public class CloudStackIdentityPluginTest {
 
     //test case: check if createFederationTokenValue throws UnauthenticatedUserException when the user credentials
     // are invalid.
-    @Test(expected = InvalidParameterException.class)
+    @Test(expected = InvalidTokenException.class)
     public void testCreateTokenFail() throws Exception {
         //exercise/verify
         this.identityPlugin.createToken("anything");

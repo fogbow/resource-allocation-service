@@ -5,7 +5,10 @@ import org.bouncycastle.util.encoders.Base64;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.BufferedReader;
@@ -102,7 +105,9 @@ public class RSAUtil {
                         cipher.doFinal(rawText.getBytes("UTF-8"))));
     }
 
-    public static String encryptAES(byte[] keyData, String data) throws Exception {
+    public static String encryptAES(byte[] keyData, String data) throws NoSuchAlgorithmException,
+            NoSuchPaddingException, InvalidKeyException, UnsupportedEncodingException, IllegalBlockSizeException,
+            InvalidAlgorithmParameterException, BadPaddingException {
         byte[] ivData = new byte[16];
         IvParameterSpec iv = new IvParameterSpec(ivData);
         SecretKeySpec keySpec = new SecretKeySpec(keyData, "AES");
@@ -112,7 +117,9 @@ public class RSAUtil {
         return new String(org.bouncycastle.util.encoders.Base64.encode(encryptBytes));
     }
 
-    public static String decryptAES(byte[] keyData, String data) throws Exception {
+    public static String decryptAES(byte[] keyData, String data) throws NoSuchAlgorithmException,
+            NoSuchPaddingException, InvalidKeyException, UnsupportedEncodingException, IllegalBlockSizeException,
+            InvalidAlgorithmParameterException, BadPaddingException {
         byte[] ivData = new byte[16];
         IvParameterSpec iv = new IvParameterSpec(ivData);
         SecretKeySpec keySpec = new SecretKeySpec(keyData, "AES");

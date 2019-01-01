@@ -3,6 +3,7 @@ package org.fogbowcloud.ras.core;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.exceptions.RemoteCommunicationException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.Event;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
@@ -115,8 +116,13 @@ public class OrderStateTransitioner {
         }
     }
 
-    private static void notifyRequester(Order order, Event instanceFailed) throws Exception {
-        RemoteNotifyEventRequest remoteNotifyEventRequest = new RemoteNotifyEventRequest(order, instanceFailed);
-        remoteNotifyEventRequest.send();
+    private static void notifyRequester(Order order, Event instanceFailed) throws RemoteCommunicationException {
+        try {
+            RemoteNotifyEventRequest remoteNotifyEventRequest = new RemoteNotifyEventRequest(order, instanceFailed);
+            remoteNotifyEventRequest.send();
+        } catch (Exception e) {
+            LOGGER.error(e.toString());
+            throw new RemoteCommunicationException(e.getMessage(), e);
+        }
     }
 }

@@ -3,7 +3,7 @@ package org.fogbowcloud.ras.core.plugins.aaa.identity.shibboleth;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.exceptions.InvalidTokenException;
 import org.fogbowcloud.ras.core.models.tokens.ShibbolethToken;
 import org.fogbowcloud.ras.core.models.tokens.ShibbolethTokenHolder;
 import org.fogbowcloud.ras.core.models.tokens.ShibbolethTokenHolder.CreateTokenException;
@@ -30,7 +30,7 @@ public class ShibbolethIdentityPluginTest {
 	
 	// test case: Success case
 	@Test
-	public void testCreateToken() throws InvalidParameterException {
+	public void testCreateToken() throws InvalidTokenException {
 		// set up
 		String shibTokenValue = "shibTokenValue";
 		String tokenProvider = "tokenProvider";
@@ -59,8 +59,8 @@ public class ShibbolethIdentityPluginTest {
 	}
 	
 	// test case: Invalid parameters
-	@Test(expected=InvalidParameterException.class)
-	public void testCreateTokenException() throws InvalidParameterException, CreateTokenException {
+	@Test(expected=InvalidTokenException.class)
+	public void testCreateTokenException() throws InvalidTokenException, CreateTokenException {
 		String tokenValue = "anytring";
 		// set up
         PowerMockito.mockStatic(ShibbolethTokenHolder.class);
