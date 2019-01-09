@@ -8,6 +8,7 @@ import org.fogbowcloud.ras.core.models.orders.OrderState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.util.List;
 
 @Service
@@ -16,6 +17,9 @@ public class RecoveryService {
 
     @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private OrderStateChangeRepository orderTimestampRepository;
 
     public RecoveryService() {
     }
@@ -28,7 +32,6 @@ public class RecoveryService {
         if (orderRepository.exists(order.getId())) {
             throw new UnexpectedException(Messages.Exception.REQUEST_ALREADY_EXIST);
         }
-
         this.orderRepository.save(order);
     }
 
@@ -36,7 +39,12 @@ public class RecoveryService {
         if (!orderRepository.exists(order.getId())) {
             throw new UnexpectedException(Messages.Exception.INEXISTENT_REQUEST);
         }
-
         this.orderRepository.save(order);
+    }
+
+    public void updateStateTimestamp(Order order) {
+        Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
+        OrderStateChange orderStateChange = new OrderStateChange(currentTimestamp, order, order.getOrderState());
+        this.orderTimestampRepository.save(orderStateChange);
     }
 }

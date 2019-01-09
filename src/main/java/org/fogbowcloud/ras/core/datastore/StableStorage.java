@@ -11,14 +11,15 @@ public interface StableStorage {
      *
      * @param order {@link Order}
      */
-    public void add(Order order) throws UnexpectedException;
+    void add(Order order) throws UnexpectedException;
 
     /**
-     * Update the order when trasitions occur.
+     * Update the order in the stable storage
      *
      * @param order {@link Order}
+     * @param stateChange this should be true if the order state was changed.
      */
-    public void update(Order order) throws UnexpectedException;
+    void update(Order order, boolean stateChange) throws UnexpectedException;
 
     /**
      * Retrive orders from the database based on its state.
@@ -26,5 +27,5 @@ public interface StableStorage {
      * @param orderState {@link OrderState}
      * @return {@link SynchronizedDoublyLinkedList}
      */
-    public SynchronizedDoublyLinkedList readActiveOrders(OrderState orderState) throws UnexpectedException;
+    SynchronizedDoublyLinkedList readActiveOrders(OrderState orderState) throws UnexpectedException;
 }
