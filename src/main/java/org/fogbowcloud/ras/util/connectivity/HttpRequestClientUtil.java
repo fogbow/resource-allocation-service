@@ -1,5 +1,20 @@
 package org.fogbowcloud.ras.util.connectivity;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -21,20 +36,6 @@ import org.fogbowcloud.ras.util.GsonHolder;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-
 public class HttpRequestClientUtil {
     private static final Logger LOGGER = Logger.getLogger(HttpRequestClientUtil.class);
 
@@ -55,17 +56,23 @@ public class HttpRequestClientUtil {
         request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
         request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, token.getTokenValue());
 
-        String response = null;
         HttpResponse httpResponse = null;
+        String response = null;
+        String status = null;
 
         try {
             LOGGER.debug(String.format("making GET request on <%s> with token <%s>", endpoint, token));
+            
             httpResponse = this.client.execute(request);
+            if (httpResponse.getEntity() != null) {
+            	response = EntityUtils.toString(httpResponse.getEntity(), StandardCharsets.UTF_8);
+            }
+            
             if (httpResponse.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
-                String message = httpResponse.getStatusLine().getReasonPhrase();
+            	status = httpResponse.getStatusLine().getReasonPhrase();
+            	String message = response == null ? status : response;
                 throw new HttpResponseException(httpResponse.getStatusLine().getStatusCode(), message);
             }
-            response = EntityUtils.toString(httpResponse.getEntity(), StandardCharsets.UTF_8);
         } catch (HttpResponseException e) {
             LOGGER.debug(String.format("error was <%s>", e.toString()));
             throw e;
@@ -74,7 +81,7 @@ public class HttpRequestClientUtil {
         } finally {
             try {
                 EntityUtils.consume(httpResponse.getEntity());
-                LOGGER.debug(String.format("response was: <%s>", response));
+                LOGGER.debug(String.format("response was: <%s>", httpResponse));
             } catch (Throwable t) {
                 LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONSUMING_RESPONSE, t));
             }
@@ -90,18 +97,24 @@ public class HttpRequestClientUtil {
         request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, token.getTokenValue());
         request.setEntity(new StringEntity(body, StandardCharsets.UTF_8));
 
-        String responseStr;
-        HttpResponse response = null;
+        HttpResponse httpResponse = null;
+        String response = null;
+        String status = null;
 
         try {
             LOGGER.debug(String.format("making GET request on <%s> with token <%s>", endpoint, token));
             LOGGER.debug(String.format("the body of the request is <%s>", body));
-            response = this.client.execute(request);
-            if (response.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
-                String message = response.getStatusLine().getReasonPhrase();
-                throw new HttpResponseException(response.getStatusLine().getStatusCode(), message);
+            
+            httpResponse = this.client.execute(request);
+            if (httpResponse.getEntity() != null) {
+            	response = EntityUtils.toString(httpResponse.getEntity(), StandardCharsets.UTF_8);
             }
-            responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+            
+            if (httpResponse.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
+            	status = httpResponse.getStatusLine().getReasonPhrase();
+            	String message = response == null ? status : response;
+                throw new HttpResponseException(httpResponse.getStatusLine().getStatusCode(), message);
+            }
         } catch (HttpResponseException e) {
             LOGGER.debug(String.format("error was: <%s>", e.toString()));
             throw e;
@@ -109,13 +122,13 @@ public class HttpRequestClientUtil {
             throw new UnavailableProviderException(e.getMessage(), e);
         } finally {
             try {
-                EntityUtils.consume(response.getEntity());
-                LOGGER.debug(String.format("response was: <%s>", response));
+                EntityUtils.consume(httpResponse.getEntity());
+                LOGGER.debug(String.format("response was: <%s>", httpResponse));
             } catch (Throwable t) {
                 LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONSUMING_RESPONSE, t));
             }
         }
-        return responseStr;
+        return response;
     }
 
     public void doDeleteRequest(String endpoint, Token token)
@@ -123,14 +136,22 @@ public class HttpRequestClientUtil {
         HttpDelete request = new HttpDelete(endpoint);
         request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, token.getTokenValue());
 
-        HttpResponse response = null;
+        HttpResponse httpResponse = null;
+        String response = null;
+        String status = null;
 
         try {
             LOGGER.debug(String.format("making DELETE request on <%s> with token <%s>", endpoint, token));
-            response = this.client.execute(request);
-            if (response.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
-                String message = response.getStatusLine().getReasonPhrase();
-                throw new HttpResponseException(response.getStatusLine().getStatusCode(), message);
+            
+            httpResponse = this.client.execute(request);
+            if (httpResponse.getEntity() != null) {
+            	response = EntityUtils.toString(httpResponse.getEntity(), StandardCharsets.UTF_8);
+            }
+            
+            if (httpResponse.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
+            	status = httpResponse.getStatusLine().getReasonPhrase();
+            	String message = response == null ? status : response;
+                throw new HttpResponseException(httpResponse.getStatusLine().getStatusCode(), message);
             }
         } catch (HttpResponseException e) {
             LOGGER.debug(String.format("error was: <%s>", e.toString()));
@@ -139,8 +160,8 @@ public class HttpRequestClientUtil {
             throw new UnavailableProviderException(e.getMessage(), e);
         } finally {
             try {
-                EntityUtils.consume(response.getEntity());
-                LOGGER.debug(String.format("response was: <%s>", response));
+                EntityUtils.consume(httpResponse.getEntity());
+                LOGGER.debug(String.format("response was: <%s>", httpResponse));
             } catch (Throwable t) {
                 LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONSUMING_RESPONSE, t));
             }
@@ -154,28 +175,33 @@ public class HttpRequestClientUtil {
         request.addHeader(HttpRequestUtil.ACCEPT_KEY, HttpRequestUtil.JSON_CONTENT_TYPE_KEY);
         request.setEntity(new StringEntity(body.toString(), StandardCharsets.UTF_8));
 
-        HttpResponse response = null;
-        String responseStr = null;
+        HttpResponse httpResponse = null;
+        String response = null;
+        String status = null;
 
         try {
-            response = this.client.execute(request);
-            if (response.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
-                String message = response.getStatusLine().getReasonPhrase();
-                throw new HttpResponseException(response.getStatusLine().getStatusCode(), message);
+            httpResponse = this.client.execute(request);
+            if (httpResponse.getEntity() != null) {
+            	response = EntityUtils.toString(httpResponse.getEntity(), StandardCharsets.UTF_8);
             }
-            responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+            
+            if (httpResponse.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
+            	status = httpResponse.getStatusLine().getReasonPhrase();
+            	String message = response == null ? status : response;
+                throw new HttpResponseException(httpResponse.getStatusLine().getStatusCode(), message);
+            }
         } catch (HttpResponseException e) {
             throw e;
         } catch (IOException e) {
             throw new UnavailableProviderException(e.getMessage(), e);
         } finally {
             try {
-                EntityUtils.consume(response.getEntity());
+                EntityUtils.consume(httpResponse.getEntity());
             } catch (Throwable t) {
                 LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONSUMING_RESPONSE, t));
             }
         }
-        return new Response(responseStr, response.getAllHeaders());
+        return new Response(response, httpResponse.getAllHeaders());
     }
 
     public String doPutRequest(String endpoint, Token token, JSONObject json)
@@ -186,28 +212,33 @@ public class HttpRequestClientUtil {
         request.addHeader(HttpRequestUtil.X_AUTH_TOKEN_KEY, token.getTokenValue());
         request.setEntity(new StringEntity(json.toString(), StandardCharsets.UTF_8));
 
-        String responseStr;
-        HttpResponse response = null;
+        HttpResponse httpResponse = null;
+        String response = null;
+        String status = null;
 
         try {
-            response = this.client.execute(request);
-            if (response.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
-                String message = response.getStatusLine().getReasonPhrase();
-                throw new HttpResponseException(response.getStatusLine().getStatusCode(), message);
+            httpResponse = this.client.execute(request);
+            if (httpResponse.getEntity() != null) {
+            	response = EntityUtils.toString(httpResponse.getEntity(), StandardCharsets.UTF_8);
             }
-            responseStr = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+            
+            if (httpResponse.getStatusLine().getStatusCode() > HttpStatus.NO_CONTENT.value()) {
+            	status = httpResponse.getStatusLine().getReasonPhrase();
+            	String message = response == null ? status : response;
+                throw new HttpResponseException(httpResponse.getStatusLine().getStatusCode(), message);
+            }
         } catch (HttpResponseException e) {
             throw e;
         } catch (IOException e) {
             throw new UnavailableProviderException(e.getMessage(), e);
         } finally {
             try {
-                EntityUtils.consume(response.getEntity());
+                EntityUtils.consume(httpResponse.getEntity());
             } catch (Throwable t) {
                 LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONSUMING_RESPONSE, t));
             }
         }
-        return responseStr;
+        return response;
     }
 
     public GenericRequestHttpResponse doGenericRequest(String method, String urlString, Map<String, String> headers, Map<String, String> body) throws FogbowRasException {
