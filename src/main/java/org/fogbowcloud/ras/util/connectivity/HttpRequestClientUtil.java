@@ -74,7 +74,7 @@ public class HttpRequestClientUtil {
                 throw new HttpResponseException(httpResponse.getStatusLine().getStatusCode(), message);
             }
         } catch (HttpResponseException e) {
-            LOGGER.debug(String.format("error was <%s>", e.toString()));
+            LOGGER.debug(String.format("error was <%s>", e.toString()), e);
             throw e;
         } catch (IOException e) {
             throw new UnavailableProviderException(e.getMessage(), e);
@@ -116,7 +116,7 @@ public class HttpRequestClientUtil {
                 throw new HttpResponseException(httpResponse.getStatusLine().getStatusCode(), message);
             }
         } catch (HttpResponseException e) {
-            LOGGER.debug(String.format("error was: <%s>", e.toString()));
+            LOGGER.debug(String.format("error was: <%s>", e.toString()), e);
             throw e;
         } catch (IOException e) {
             throw new UnavailableProviderException(e.getMessage(), e);
@@ -154,7 +154,7 @@ public class HttpRequestClientUtil {
                 throw new HttpResponseException(httpResponse.getStatusLine().getStatusCode(), message);
             }
         } catch (HttpResponseException e) {
-            LOGGER.debug(String.format("error was: <%s>", e.toString()));
+            LOGGER.debug(String.format("error was: <%s>", e.toString()), e);
             throw e;
         } catch (IOException e) {
             throw new UnavailableProviderException(e.getMessage(), e);
@@ -191,12 +191,14 @@ public class HttpRequestClientUtil {
                 throw new HttpResponseException(httpResponse.getStatusLine().getStatusCode(), message);
             }
         } catch (HttpResponseException e) {
-            throw e;
+        	LOGGER.debug(String.format("error was: <%s>", e.toString()), e);
+        	throw e;
         } catch (IOException e) {
             throw new UnavailableProviderException(e.getMessage(), e);
         } finally {
             try {
                 EntityUtils.consume(httpResponse.getEntity());
+                LOGGER.debug(String.format("response was: <%s>", httpResponse));
             } catch (Throwable t) {
                 LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONSUMING_RESPONSE, t));
             }
@@ -228,7 +230,8 @@ public class HttpRequestClientUtil {
                 throw new HttpResponseException(httpResponse.getStatusLine().getStatusCode(), message);
             }
         } catch (HttpResponseException e) {
-            throw e;
+        	LOGGER.debug(String.format("error was: <%s>", e.toString()), e);
+        	throw e;
         } catch (IOException e) {
             throw new UnavailableProviderException(e.getMessage(), e);
         } finally {
