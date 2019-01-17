@@ -41,7 +41,7 @@ public class Cloud {
             List<String> cloudNames = ApplicationFacade.getInstance().getCloudNames(memberId, federationTokenValue);
             return new ResponseEntity<>(cloudNames, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -59,7 +59,7 @@ public class Cloud {
             List<String> cloudNames = ApplicationFacade.getInstance().getCloudNames(memberId, federationTokenValue);
             return new ResponseEntity<>(cloudNames, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }

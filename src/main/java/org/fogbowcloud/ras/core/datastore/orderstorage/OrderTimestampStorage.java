@@ -107,8 +107,7 @@ public class OrderTimestampStorage extends OrderStorage {
                     connection.rollback();
                 }
             } catch (SQLException e1) {
-                e1.printStackTrace();
-                LOGGER.error(Messages.Error.UNABLE_TO_ROLLBACK_TRANSACTION);
+                LOGGER.error(Messages.Error.UNABLE_TO_ROLLBACK_TRANSACTION, e1);
             }
 
         } finally {

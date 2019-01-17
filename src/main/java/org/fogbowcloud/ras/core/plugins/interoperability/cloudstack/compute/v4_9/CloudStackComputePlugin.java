@@ -156,7 +156,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         try {
             this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
         } catch (HttpResponseException e) {
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, computeInstanceId));
+            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, computeInstanceId), e);
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
 
@@ -271,7 +271,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         try {
             disk = getVirtualMachineDiskSize(instanceId, cloudStackToken);
         } catch (FogbowRasException e) {
-            LOGGER.warn(String.format(Messages.Warn.UNABLE_TO_RETRIEVE_ROOT_VOLUME, vm.getId()));
+            LOGGER.warn(String.format(Messages.Warn.UNABLE_TO_RETRIEVE_ROOT_VOLUME, vm.getId()), e);
         }
 
         String cloudStackState = vm.getState();

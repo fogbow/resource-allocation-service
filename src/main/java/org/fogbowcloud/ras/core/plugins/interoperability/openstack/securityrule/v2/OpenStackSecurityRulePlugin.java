@@ -117,7 +117,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
         try {
             this.client.doDeleteRequest(endpoint, openStackV3Token);
         } catch (HttpResponseException e) {
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, securityRuleId));
+            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, securityRuleId), e);
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }
 

@@ -50,7 +50,7 @@ public class OrderController {
                 try {
                     cloudConnector.deleteInstance(order);
                 } catch (InstanceNotFoundException e) {
-                    LOGGER.info(String.format(Messages.Info.DELETING_ORDER_INSTANCE_NOT_FOUND, orderId));
+                    LOGGER.info(String.format(Messages.Info.DELETING_ORDER_INSTANCE_NOT_FOUND, orderId), e);
                 }
                 OrderStateTransitioner.transition(order, OrderState.CLOSED);
             } else {

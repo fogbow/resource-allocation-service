@@ -251,7 +251,7 @@ public class Rule {
 			int size = Integer.parseInt(arg);
 			return String.valueOf(IPV4_AMOUNT_BITS - (int) (Math.log(size) / Math.log(LOG_BASE_2)));
 		} catch (Exception e) {
-			LOGGER.warn(String.format("The parameter is inconsistent"));
+			LOGGER.warn(String.format("The parameter is inconsistent"), e);
 			return null;
 		}		
 	}
@@ -261,7 +261,7 @@ public class Rule {
 			int size = Integer.parseInt(arg);
 			return String.valueOf(IPV6_AMOUNT_BITS - (int) (Math.log(size) / Math.log(LOG_BASE_2)));
 		} catch (Exception e) {
-			LOGGER.warn(String.format("The parameter is inconsistent"));
+			LOGGER.warn(String.format("The parameter is inconsistent"), e);
 			return null;
 		}
 	}

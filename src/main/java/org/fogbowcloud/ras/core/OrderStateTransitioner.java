@@ -57,7 +57,7 @@ public class OrderStateTransitioner {
                     }
                 } catch (Exception e) {
                     String message = String.format(Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_MEMBER, order.getRequester(), order.getId());
-                    LOGGER.warn(message);
+                    LOGGER.warn(message, e);
                     // Keep trying to notify until the site is up again
                     // The site admin might want to monitor the warn log in case a site never
                     // recovers. In this case the site admin may delete the order using an
@@ -121,7 +121,7 @@ public class OrderStateTransitioner {
             RemoteNotifyEventRequest remoteNotifyEventRequest = new RemoteNotifyEventRequest(order, instanceFailed);
             remoteNotifyEventRequest.send();
         } catch (Exception e) {
-            LOGGER.error(e.toString());
+            LOGGER.error(e.toString(), e);
             throw new RemoteCommunicationException(e.getMessage(), e);
         }
     }

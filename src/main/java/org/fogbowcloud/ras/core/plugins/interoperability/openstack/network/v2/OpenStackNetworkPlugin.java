@@ -108,9 +108,9 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
             removeNetwork(openStackV3Token, networkId);
         } catch (InstanceNotFoundException e) {
             // continue and try to delete the security group
-            LOGGER.warn(String.format(Messages.Warn.NETWORK_NOT_FOUND, networkId));
+            LOGGER.warn(String.format(Messages.Warn.NETWORK_NOT_FOUND, networkId), e);
         } catch (UnexpectedException | FogbowRasException e) {
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_NETWORK, networkId));
+            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_NETWORK, networkId), e);
             throw e;
         }
 
@@ -119,7 +119,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
         try {
             removeSecurityGroup(openStackV3Token, securityGroupId);
         } catch (UnexpectedException | FogbowRasException e) {
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_SECURITY_GROUP, securityGroupId));
+            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_SECURITY_GROUP, securityGroupId), e);
             throw e;
         }
     }
@@ -240,7 +240,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
             securityGroupId = securityGroup.getString(KEY_ID);
         } catch (JSONException e) {
             String message = String.format(Messages.Error.UNABLE_TO_RETRIEVE_NETWORK_ID, json);
-            LOGGER.error(message);
+            LOGGER.error(message, e);
             throw new UnexpectedException(message, e);
         }
         return securityGroupId;
@@ -327,7 +327,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
             networkId = networkJSONObject.optString(KEY_ID);
         } catch (JSONException e) {
             String message = String.format(Messages.Error.UNABLE_TO_RETRIEVE_NETWORK_ID, json);
-            LOGGER.error(message);
+            LOGGER.error(message, e);
             throw new UnexpectedException(message, e);
         }
         return networkId;

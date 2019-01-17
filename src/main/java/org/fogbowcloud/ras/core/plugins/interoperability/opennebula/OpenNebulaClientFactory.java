@@ -237,7 +237,7 @@ public class OpenNebulaClientFactory {
 		try {
 			id = Integer.parseInt(poolElementId);
 		} catch (Exception e) {
-			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_INSTANCE_ID, poolElementId));
+			LOGGER.error(String.format(Messages.Error.ERROR_WHILE_CONVERTING_INSTANCE_ID, poolElementId), e);
 			throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
 		}
 
