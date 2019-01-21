@@ -13,6 +13,10 @@ import org.fogbowcloud.ras.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.orders.OrderState;
 
+/**
+ * Process orders in the state failed. It monitors resources that failed after
+ * successful requests, to check that they can return to the fulfilled state.
+ */
 public class FailedProcessor implements Runnable {
 
 	private static final Logger LOGGER = Logger.getLogger(FailedProcessor.class);
@@ -28,6 +32,11 @@ public class FailedProcessor implements Runnable {
         this.localMemberId = localMemberId;
     }
 	
+	/**
+	 * Iterates over the failed orders list and try to process one failed order per
+	 * time. If the order is null it indicates the iteration is in the end of the
+	 * list or the list is empty.
+	 */
 	@Override
 	public void run() {
 		boolean isActive = true;
@@ -54,7 +63,13 @@ public class FailedProcessor implements Runnable {
 
 	}
 
-	private void processFailedOrder(Order order) throws UnexpectedException {
+	/**
+	 * Gets an instance for a failed order. If that instance is to be reachable
+	 * again the order state is set to fulfilled.
+	 *
+	 * @param order {@link Order}
+	 */
+	protected void processFailedOrder(Order order) throws UnexpectedException {
 		Instance instance = null;
         InstanceState instanceState = null;
         
