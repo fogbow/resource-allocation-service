@@ -4,6 +4,7 @@ public class Instance {
     private String id;
     private InstanceState state;
     private String provider;
+    private String cloudName;
 
     public Instance(String id) {
         this.id = id;
@@ -30,8 +31,20 @@ public class Instance {
         this.state = state;
     }
 
+    public String getProvider() {
+        return provider;
+    }
+
     public void setProvider(String provider) {
         this.provider = provider;
+    }
+
+    public void setCloudName(String cloudName) {
+        this.cloudName = cloudName;
+    }
+
+    public String getCloudName() {
+        return cloudName;
     }
 
     @Override

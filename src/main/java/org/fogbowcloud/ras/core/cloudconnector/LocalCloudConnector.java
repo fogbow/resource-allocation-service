@@ -213,6 +213,7 @@ public class LocalCloudConnector implements CloudConnector {
                 instance = getResourceInstance(order, order.getType(), token);
                 // Setting instance common fields that do not need to be set by the plugin
                 instance.setProvider(order.getProvider());
+                instance.setCloudName(order.getCloudName());
                 // The user believes that the order id is actually the instance id.
                 // So we need to set the instance id accordingly before returning the instance.
                 instance.setId(order.getId());
