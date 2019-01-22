@@ -86,7 +86,7 @@ public class ApplicationFacade {
                 List<String> cloudNames = remoteGetCloudNames.send();
                 return cloudNames;
             } catch (Exception e) {
-                LOGGER.error(e.toString());
+                LOGGER.error(e.toString(), e);
                 throw new RemoteCommunicationException(e.getMessage(), e);
             }
         }

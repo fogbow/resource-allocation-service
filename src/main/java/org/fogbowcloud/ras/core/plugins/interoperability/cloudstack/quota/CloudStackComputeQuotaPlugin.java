@@ -95,7 +95,7 @@ public class CloudStackComputeQuotaPlugin implements ComputeQuotaPlugin {
                 try {
                     limit = getDomainResourceLimit(limit.getResourceType(), limit.getDomainId(), token);
                 } catch (Exception ex) {
-                    LOGGER.error(ex.getMessage());
+                    LOGGER.error(ex.getMessage(), ex);
                     continue;
                 }
             }

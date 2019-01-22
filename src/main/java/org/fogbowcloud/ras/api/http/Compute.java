@@ -61,7 +61,7 @@ public class Compute {
             String computeId = ApplicationFacade.getInstance().createCompute(computeOrder, federationTokenValue);
             return new ResponseEntity<String>(computeId, HttpStatus.CREATED);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -79,7 +79,7 @@ public class Compute {
                 ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.COMPUTE);
             return new ResponseEntity<>(computeInstanceStatus, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -98,7 +98,7 @@ public class Compute {
             ComputeInstance compute = ApplicationFacade.getInstance().getCompute(computeId, federationTokenValue);
             return new ResponseEntity<ComputeInstance>(compute, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -117,7 +117,7 @@ public class Compute {
             ApplicationFacade.getInstance().deleteCompute(computeId, federationTokenValue);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -138,7 +138,7 @@ public class Compute {
             ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(memberId, cloudName, federationTokenValue);
             return new ResponseEntity<>(quotaInstance, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -160,7 +160,7 @@ public class Compute {
                 ApplicationFacade.getInstance().getComputeAllocation(memberId, cloudName, federationTokenValue);
             return new ResponseEntity<>(computeAllocation, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }

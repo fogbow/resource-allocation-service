@@ -65,7 +65,7 @@ public class SecurityGroupInfo {
 	    	securityGroupInfo = (SecurityGroupInfo) unmarshaller.unmarshal(inputStream);
 	    } catch (JAXBException e) {
 	    	LOGGER.warn("Is not possible unmarshal", e);
-			LOGGER.debug(String.format("Is not possible unmarshal %s", xml));
+			LOGGER.debug(String.format("Is not possible unmarshal %s", xml), e);
 	    }
 	    return securityGroupInfo;
 	}

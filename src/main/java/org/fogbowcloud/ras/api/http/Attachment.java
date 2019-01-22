@@ -42,7 +42,7 @@ public class Attachment {
             String attachmentId = ApplicationFacade.getInstance().createAttachment(attachment.getOrder(), federationTokenValue);
             return new ResponseEntity<String>(attachmentId, HttpStatus.CREATED);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -60,7 +60,7 @@ public class Attachment {
                 ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.ATTACHMENT);
             return new ResponseEntity<>(attachmentInstanceStatus, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -80,7 +80,7 @@ public class Attachment {
                 ApplicationFacade.getInstance().getAttachment(attachmentId, federationTokenValue);
             return new ResponseEntity<>(attachmentInstance, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -99,7 +99,7 @@ public class Attachment {
             ApplicationFacade.getInstance().deleteAttachment(attachmentId, federationTokenValue);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }

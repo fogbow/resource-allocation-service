@@ -48,7 +48,7 @@ public class PublicIp {
             String publicIpId = ApplicationFacade.getInstance().createPublicIp(publicIp.getOrder(), federationTokenValue);
             return new ResponseEntity<String>(publicIpId, HttpStatus.CREATED);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -68,7 +68,7 @@ public class PublicIp {
                 ApplicationFacade.getInstance().getPublicIp(publicIpId, federationTokenValue);
             return new ResponseEntity<>(publicIpInstance, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -87,7 +87,7 @@ public class PublicIp {
             ApplicationFacade.getInstance().deletePublicIp(publicIpId, federationTokenValue);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -105,7 +105,7 @@ public class PublicIp {
                 ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.PUBLIC_IP);
             return new ResponseEntity<>(publicIpStatus, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -127,7 +127,7 @@ public class PublicIp {
                     federationTokenValue, ResourceType.PUBLIC_IP);
             return new ResponseEntity<String>(ruleId, HttpStatus.CREATED);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -147,7 +147,7 @@ public class PublicIp {
                     getAllSecurityRules(publicIpId, federationTokenValue, ResourceType.PUBLIC_IP);
             return new ResponseEntity<>(securityRules, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -169,7 +169,7 @@ public class PublicIp {
                     ResourceType.PUBLIC_IP);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }

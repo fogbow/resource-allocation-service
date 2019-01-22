@@ -42,7 +42,7 @@ public class RemoteCloudConnector implements CloudConnector {
             // was not created at the requesting member's cloud.
         return null;
         } catch (Exception e) {
-            LOGGER.error(e.toString());
+            LOGGER.error(e.toString(), e);
             throw new RemoteCommunicationException(e.getMessage(), e);
         }
     }
@@ -53,7 +53,7 @@ public class RemoteCloudConnector implements CloudConnector {
             RemoteDeleteOrderRequest remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(order);
             remoteDeleteOrderRequest.send();
         } catch (Exception e) {
-            LOGGER.error(e.toString());
+            LOGGER.error(e.toString(), e);
             throw new RemoteCommunicationException(e.getMessage(), e);
         }
     }
@@ -65,7 +65,7 @@ public class RemoteCloudConnector implements CloudConnector {
             Instance instance = remoteGetOrderRequest.send();
             return instance;
         } catch (Exception e) {
-            LOGGER.error(e.toString());
+            LOGGER.error(e.toString(), e);
             throw new RemoteCommunicationException(e.getMessage(), e);
         }
     }
@@ -79,7 +79,7 @@ public class RemoteCloudConnector implements CloudConnector {
             Quota quota = remoteGetUserQuotaRequest.send();
             return quota;
         } catch (Exception e) {
-            LOGGER.error(e.toString());
+            LOGGER.error(e.toString(), e);
             throw new RemoteCommunicationException(e.getMessage(), e);
         }
     }
@@ -92,7 +92,7 @@ public class RemoteCloudConnector implements CloudConnector {
             HashMap<String, String> imagesMap = remoteGetAllImagesRequest.send();
             return imagesMap;
         } catch (Exception e) {
-            LOGGER.error(e.toString());
+            LOGGER.error(e.toString(), e);
             throw new RemoteCommunicationException(e.getMessage(), e);
         }
     }
@@ -105,7 +105,7 @@ public class RemoteCloudConnector implements CloudConnector {
             Image image = remoteGetImageRequest.send();
             return image;
         } catch (Exception e) {
-            LOGGER.error(e.toString());
+            LOGGER.error(e.toString(), e);
             throw new RemoteCommunicationException(e.getMessage(), e);
         }
     }
@@ -119,7 +119,7 @@ public class RemoteCloudConnector implements CloudConnector {
             GenericRequestResponse genericRequestResponse = remoteGenericRequest.send();
             return genericRequestResponse;
         } catch (Exception e) {
-            LOGGER.error(e.toString());
+            LOGGER.error(e.toString(), e);
             throw new RemoteCommunicationException(e.getMessage(), e);
         }
     }
@@ -132,7 +132,7 @@ public class RemoteCloudConnector implements CloudConnector {
                     new RemoteGetAllSecurityRuleRequest(this.destinationMember, order.getId(), federationUserToken);
             return remoteGetAllSecurityRuleRequest.send();
         } catch (Exception e) {
-            LOGGER.error(e.toString());
+            LOGGER.error(e.toString(), e);
             throw new RemoteCommunicationException(e.getMessage(), e);
         }
     }
@@ -146,7 +146,7 @@ public class RemoteCloudConnector implements CloudConnector {
             remoteCreateSecurityRuleRequest.send();
             return null;
         } catch (Exception e) {
-            LOGGER.error(e.toString());
+            LOGGER.error(e.toString(), e);
             throw new RemoteCommunicationException(e.getMessage(), e);
         }
     }
@@ -159,7 +159,7 @@ public class RemoteCloudConnector implements CloudConnector {
                     this.destinationMember, this.cloudName, securityRuleId, federationUserToken);
             remoteDeleteSecurityRuleRequest.send();
         } catch (Exception e) {
-            LOGGER.error(e.toString());
+            LOGGER.error(e.toString(), e);
             throw new RemoteCommunicationException(e.getMessage(), e);
         }
     }

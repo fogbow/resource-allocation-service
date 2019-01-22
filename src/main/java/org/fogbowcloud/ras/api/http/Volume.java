@@ -44,7 +44,7 @@ public class Volume {
             String volumeId = ApplicationFacade.getInstance().createVolume(volume.getOrder(), federationTokenValue);
             return new ResponseEntity<String>(volumeId, HttpStatus.CREATED);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -62,7 +62,7 @@ public class Volume {
                 ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.VOLUME);
             return new ResponseEntity<>(volumeInstanceStatus, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -81,7 +81,7 @@ public class Volume {
             VolumeInstance volume = ApplicationFacade.getInstance().getVolume(volumeId, federationTokenValue);
             return new ResponseEntity<>(volume, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -100,7 +100,7 @@ public class Volume {
             ApplicationFacade.getInstance().deleteVolume(volumeId, federationTokenValue);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }

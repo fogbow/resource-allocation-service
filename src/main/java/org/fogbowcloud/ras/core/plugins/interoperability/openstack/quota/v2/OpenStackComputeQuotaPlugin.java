@@ -42,7 +42,7 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
             LOGGER.debug("Calling quota plugin");
             jsonResponse = this.client.doGetRequest(endpoint, token);
         } catch (HttpResponseException e) {
-            LOGGER.debug("Exception raised: " + e.getMessage());
+            LOGGER.debug("Exception raised: " + e.getMessage(), e);
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }
 

@@ -48,7 +48,7 @@ public class Network {
             String networkId = ApplicationFacade.getInstance().createNetwork(network.getOrder(), federationTokenValue);
             return new ResponseEntity<String>(networkId, HttpStatus.CREATED);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -66,7 +66,7 @@ public class Network {
                 ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.NETWORK);
             return new ResponseEntity<>(networkInstanceStatus, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -85,7 +85,7 @@ public class Network {
             NetworkInstance networkInstance = ApplicationFacade.getInstance().getNetwork(networkId, federationTokenValue);
             return new ResponseEntity<>(networkInstance, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -104,7 +104,7 @@ public class Network {
             ApplicationFacade.getInstance().deleteNetwork(networkId, federationTokenValue);
             return new ResponseEntity<Boolean>(HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -126,7 +126,7 @@ public class Network {
                     federationTokenValue, ResourceType.NETWORK);
             return new ResponseEntity<String>(ruleId, HttpStatus.CREATED);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -145,7 +145,7 @@ public class Network {
                     getAllSecurityRules(networkId, federationTokenValue, ResourceType.NETWORK);
             return new ResponseEntity<>(securityRules, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -166,7 +166,7 @@ public class Network {
                     ResourceType.NETWORK);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }

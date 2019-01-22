@@ -44,7 +44,7 @@ public class Image {
             Map<String, String> imagesMap = ApplicationFacade.getInstance().getAllImages(memberId, cloudName, federationTokenValue);
             return new ResponseEntity<>(imagesMap, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -67,7 +67,7 @@ public class Image {
             org.fogbowcloud.ras.core.models.images.Image image = ApplicationFacade.getInstance().getImage(memberId, cloudName, imageId, federationTokenValue);
             return new ResponseEntity<>(image, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -88,7 +88,7 @@ public class Image {
             Map<String, String> imagesMap = ApplicationFacade.getInstance().getAllImages(memberId, cloudName, federationTokenValue);
             return new ResponseEntity<>(imagesMap, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -111,7 +111,7 @@ public class Image {
             org.fogbowcloud.ras.core.models.images.Image image = ApplicationFacade.getInstance().getImage(memberId, cloudName, imageId, federationTokenValue);
             return new ResponseEntity<>(image, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }

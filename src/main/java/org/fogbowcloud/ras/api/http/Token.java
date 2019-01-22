@@ -37,7 +37,7 @@ public class Token {
             String tokenValue = ApplicationFacade.getInstance().createTokenValue(userCredentials);
             return new ResponseEntity<String>(tokenValue, HttpStatus.CREATED);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
