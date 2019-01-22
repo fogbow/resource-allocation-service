@@ -16,7 +16,6 @@ import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
-import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
@@ -25,14 +24,13 @@ import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.InvalidUserCredentialsException;
 import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
-import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationHolder;
+import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.RSAUtil;
 
 public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
 	
-    private static final String LDAP_PLUGIN_CONF_FILE = "ldap-token-generator-plugin.conf";
     private static final String PROP_LDAP_BASE = "ldap_base";
     private static final String PROP_LDAP_URL = "ldap_identity_url";
     private static final String PROP_LDAP_ENCRYPT_TYPE = "ldap_encrypt_type";
@@ -54,13 +52,12 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
     private String encryptType;
 	private RASAuthenticationHolder rasAuthenticationHolder;
 
-    public LdapTokenGeneratorPlugin() throws FatalErrorException {
+    public LdapTokenGeneratorPlugin(String confFilePath) throws FatalErrorException {
         this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
         this.rasAuthenticationHolder = RASAuthenticationHolder.getInstance();
         
-        Properties properties = PropertiesUtil.readProperties(
-                HomeDir.getPath() + LDAP_PLUGIN_CONF_FILE);
+        Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.ldapBase = properties.getProperty(PROP_LDAP_BASE);
         this.ldapUrl = properties.getProperty(PROP_LDAP_URL);
         this.encryptType = properties.getProperty(PROP_LDAP_ENCRYPT_TYPE);
@@ -131,7 +128,7 @@ public class LdapTokenGeneratorPlugin implements TokenGeneratorPlugin {
             // Bind with found DN and given password
             ctx.addToEnvironment(Context.SECURITY_PRINCIPAL, dn);
             ctx.addToEnvironment(Context.SECURITY_CREDENTIALS, password);
-            // Perform allocationAllowableValues lookup in order to force allocationAllowableValues bind operation with JNDI
+            // Perform a lookup in order to force a bind operation with JNDI
             ctx.lookup(dn);
 
             enm.close();

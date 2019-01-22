@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core.models.orders;
 
 import org.fogbowcloud.ras.core.models.ResourceType;
+import org.fogbowcloud.ras.core.models.UserData;
 import org.fogbowcloud.ras.core.models.quotas.allocation.ComputeAllocation;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 
@@ -50,9 +51,9 @@ public class ComputeOrder extends Order {
     }
 
     public ComputeOrder(String id, FederationUserToken federationUserToken, String requestingMember, String providingMember,
-                        String name, int vCPU, int memory, int disk, String imageId, ArrayList<UserData> userData, String publicKey,
+                        String cloudName, String name, int vCPU, int memory, int disk, String imageId, ArrayList<UserData> userData, String publicKey,
                         List<String> networkIds) {
-        super(id, providingMember, federationUserToken, requestingMember);
+        super(id, providingMember, cloudName, federationUserToken, requestingMember);
         this.name = name;
         this.vCPU = vCPU;
         this.memory = memory;
@@ -64,16 +65,16 @@ public class ComputeOrder extends Order {
         this.actualAllocation = new ComputeAllocation();
     }
 
-    public ComputeOrder(String providingMember, String name, int vCPU, int memory, int disk, String imageId,
+    public ComputeOrder(String providingMember, String cloudName, String name, int vCPU, int memory, int disk, String imageId,
                         ArrayList<UserData> userData, String publicKey, List<String> networkIds) {
-        this(null, null, providingMember, name, vCPU, memory, disk, imageId,
+        this(null, null, providingMember, cloudName, name, vCPU, memory, disk, imageId,
                 userData, publicKey, networkIds);
     }
 
     public ComputeOrder(FederationUserToken federationUserToken, String requestingMember, String providingMember,
-                        String name, int vCPU, int memory, int disk, String imageId, ArrayList<UserData> userData, String publicKey,
+                        String cloudName, String name, int vCPU, int memory, int disk, String imageId, ArrayList<UserData> userData, String publicKey,
                         List<String> networkIds) {
-        this(UUID.randomUUID().toString(), federationUserToken, requestingMember, providingMember, name, vCPU, memory,
+        this(UUID.randomUUID().toString(), federationUserToken, requestingMember, providingMember, cloudName, name, vCPU, memory,
                 disk, imageId, userData, publicKey, networkIds);
     }
 

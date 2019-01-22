@@ -5,6 +5,7 @@ import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -31,21 +32,6 @@ public class OrderController {
         this.orderHolders = SharedOrderHolders.getInstance();
     }
 
-    public void setEmptyFieldsAndActivateOrder(Order order, FederationUserToken federationUserToken)
-            throws UnexpectedException {
-        // Set order fields that have not been provided by the requester
-        order.setFederationUserToken(federationUserToken);
-        String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
-        order.setRequester(localMemberId);
-        if (order.getProvider() == null) {
-            order.setProvider(localMemberId);
-        }
-        // Set an initial state for the instance that is yet to be created in the cloud
-        order.setCachedInstanceState(InstanceState.DISPATCHED);
-        // Add order to the poll of active orders and to the OPEN linked list
-        OrderStateTransitioner.activateOrder(order);
-    }
-
     public Order getOrder(String orderId) throws InstanceNotFoundException {
         Order requestedOrder = this.orderHolders.getActiveOrdersMap().get(orderId);
         if (requestedOrder == null) {
@@ -54,7 +40,7 @@ public class OrderController {
         return requestedOrder;
     }
 
-    public void deleteOrder(String orderId) throws Exception {
+    public void deleteOrder(String orderId) throws FogbowRasException, UnexpectedException {
         if (orderId == null) throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
         Order order = getOrder(orderId);
         synchronized (order) {
@@ -64,7 +50,7 @@ public class OrderController {
                 try {
                     cloudConnector.deleteInstance(order);
                 } catch (InstanceNotFoundException e) {
-                    LOGGER.info(String.format(Messages.Info.DELETING_ORDER_INSTANCE_NOT_FOUND, orderId));
+                    LOGGER.info(String.format(Messages.Info.DELETING_ORDER_INSTANCE_NOT_FOUND, orderId), e);
                 }
                 OrderStateTransitioner.transition(order, OrderState.CLOSED);
             } else {
@@ -75,7 +61,7 @@ public class OrderController {
         }
     }
 
-    public Instance getResourceInstance(String orderId) throws Exception {
+    public Instance getResourceInstance(String orderId) throws FogbowRasException, UnexpectedException {
         if (orderId == null) throw new InvalidParameterException(Messages.Exception.INSTANCE_ID_NOT_INFORMED);
         Order order = getOrder(orderId);
         synchronized (order) {
@@ -130,7 +116,7 @@ public class OrderController {
 
             // The state of the instance can be inferred from the state of the order
             InstanceStatus instanceStatus = new InstanceStatus(order.getId(), name, order.getProvider(),
-                    order.getCachedInstanceState());
+                    order.getCloudName(), order.getCachedInstanceState());
             instanceStatusList.add(instanceStatus);
         }
 
@@ -141,23 +127,23 @@ public class OrderController {
         CloudConnector provider = null;
         String localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         if (order.isProviderLocal(localMemberId)) {
-            provider = CloudConnectorFactory.getInstance().getCloudConnector(localMemberId);
+            provider = CloudConnectorFactory.getInstance().getCloudConnector(localMemberId, order.getCloudName());
         } else {
             if (order.getOrderState().equals(OrderState.OPEN) ||
                     order.getOrderState().equals(OrderState.FAILED_ON_REQUEST)) {
             // This is an order for a remote provider that has never been received by that provider.
             // Thus, there is no need to send a delete message via a RemoteCloudConnector, and it is only
             // necessary to call deleteInstance in the local member.
-                provider = CloudConnectorFactory.getInstance().getCloudConnector(localMemberId);
+                provider = CloudConnectorFactory.getInstance().getCloudConnector(localMemberId, order.getCloudName());
             } else {
-                provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider());
+                provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(), order.getCloudName());
             }
         }
 //        if (!order.getProvider().equals(order.getRequester()) &&
 //                (order.getOrderState().equals(OrderState.OPEN) ||
 //                        order.getOrderState().equals(OrderState.FAILED_ON_REQUEST))) {
-//            // This is an order for allocationAllowableValues remote provider that has never been received by that provider.
-//            // Thus, there is no need to send allocationAllowableValues delete message via allocationAllowableValues RemoteCloudConnector, and it is only
+//            // This is an order for a remote provider that has never been received by that provider.
+//            // Thus, there is no need to send a delete message via a RemoteCloudConnector, and it is only
 //            // necessary to call deleteInstance in the local member.
 //            provider = CloudConnectorFactory.getInstance().getCloudConnector(order.getRequester());
 //        } else {

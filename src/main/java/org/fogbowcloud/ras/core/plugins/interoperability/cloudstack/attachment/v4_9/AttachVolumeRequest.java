@@ -10,7 +10,7 @@ public class AttachVolumeRequest extends CloudStackRequest {
     protected static final String VIRTUAL_MACHINE_ID = "virtualmachineid";
     
     protected AttachVolumeRequest(Builder builder) throws InvalidParameterException {
-        super();
+        super(builder.cloudStackUrl);
         addParameter(ATTACH_VOLUME_ID, builder.id);
         addParameter(VIRTUAL_MACHINE_ID, builder.virtualMachineId);
     }
@@ -26,6 +26,7 @@ public class AttachVolumeRequest extends CloudStackRequest {
     }
     
     public static class Builder {
+        private String cloudStackUrl;
         private String id;
         private String virtualMachineId;
 
@@ -39,7 +40,8 @@ public class AttachVolumeRequest extends CloudStackRequest {
             return this;
         }
 
-        public AttachVolumeRequest build() throws InvalidParameterException {
+        public AttachVolumeRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new AttachVolumeRequest(this);
         }
         

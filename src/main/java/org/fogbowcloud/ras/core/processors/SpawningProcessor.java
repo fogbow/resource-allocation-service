@@ -3,9 +3,10 @@ package org.fogbowcloud.ras.core.processors;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.OrderStateTransitioner;
 import org.fogbowcloud.ras.core.SharedOrderHolders;
-import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
+import org.fogbowcloud.ras.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.Instance;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
@@ -18,13 +19,13 @@ public class SpawningProcessor implements Runnable {
 
     private ChainedList spawningOrderList;
     private Long sleepTime;
-    private CloudConnector localCloudConnector;
+    private String localMemberId;
 
     public SpawningProcessor(String memberId, String sleepTimeStr) {
-        this.localCloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId);
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.spawningOrderList = sharedOrderHolders.getSpawningOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
+        this.localMemberId = memberId;
     }
 
     @Override
@@ -51,9 +52,9 @@ public class SpawningProcessor implements Runnable {
         }
     }
 
-    protected void processSpawningOrder(Order order) throws Exception {
-        // The order object synchronization is needed to prevent allocationAllowableValues race
-        // condition on order access. For example: allocationAllowableValues user can delete an open
+    protected void processSpawningOrder(Order order) throws FogbowRasException, UnexpectedException {
+        // The order object synchronization is needed to prevent a race
+        // condition on order access. For example: a user can delete an open
         // order while this method is trying to check the status of an instance
         // that has been requested in the cloud.
         synchronized (order) {
@@ -65,8 +66,11 @@ public class SpawningProcessor implements Runnable {
         }
     }
 
-    private void processInstance(Order order) throws Exception {
-        Instance instance = this.localCloudConnector.getInstance(order);
+    private void processInstance(Order order) throws FogbowRasException, UnexpectedException {
+        LocalCloudConnector localCloudConnector = (LocalCloudConnector) CloudConnectorFactory.getInstance().
+                getCloudConnector(this.localMemberId, order.getCloudName());
+
+        Instance instance = localCloudConnector.getInstance(order);
 
         InstanceState instanceState = instance.getState();
 

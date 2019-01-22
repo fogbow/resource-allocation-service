@@ -7,7 +7,7 @@ public class GetAllDiskOfferingsRequest extends CloudStackRequest {
     public static final String LIST_DISK_OFFERINGS_COMMAND = "listDiskOfferings";
 
     protected GetAllDiskOfferingsRequest(Builder builder) throws InvalidParameterException {
-        super();
+        super(builder.cloudStackUrl);
     }
 
     @Override
@@ -21,8 +21,10 @@ public class GetAllDiskOfferingsRequest extends CloudStackRequest {
     }
 
     public static class Builder {
+        private String cloudStackUrl;
 
-        public GetAllDiskOfferingsRequest build() throws InvalidParameterException {
+        public GetAllDiskOfferingsRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new GetAllDiskOfferingsRequest(this);
         }
     }

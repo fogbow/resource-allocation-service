@@ -36,12 +36,12 @@ public class RemoteDeleteOrderRequestTest {
                 "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
         this.order = new ComputeOrder(federationUserToken, "requesting-member",
-                "providing-member", "hostName", 10, 20, 30, "imageid",
+                "providing-member", "default", "hostName", 10, 20, 30, "imageid",
                 null, "publicKey", null);
 
         this.remoteDeleteOrderRequest = new RemoteDeleteOrderRequest(this.order);
         this.packetSender = Mockito.mock(PacketSender.class);
-        PacketSenderHolder.init(packetSender);
+        PacketSenderHolder.setPacketSender(this.packetSender);
         this.response = new IQ();
     }
 

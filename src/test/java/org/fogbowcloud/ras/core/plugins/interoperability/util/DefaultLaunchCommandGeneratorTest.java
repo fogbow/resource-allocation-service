@@ -4,7 +4,7 @@ import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
-import org.fogbowcloud.ras.core.models.orders.UserData;
+import org.fogbowcloud.ras.core.models.UserData;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.junit.Assert;
 import org.junit.Before;
@@ -176,7 +176,7 @@ public class DefaultLaunchCommandGeneratorTest {
                         federationUserToken,
                         requestingMember,
                         providingMember,
-                        instanceName,
+                        "default", instanceName,
                         8,
                         1024,
                         30,
@@ -202,7 +202,7 @@ public class DefaultLaunchCommandGeneratorTest {
                         federationUserToken,
                         requestingMember,
                         providingMember,
-                        instanceName,
+                        "default", instanceName,
                         8,
                         1024,
                         30,
@@ -227,7 +227,7 @@ public class DefaultLaunchCommandGeneratorTest {
                         federationUserToken,
                         requestingMember,
                         providingMember,
-                        instanceName,
+                        "default", instanceName,
                         8,
                         1024,
                         30,

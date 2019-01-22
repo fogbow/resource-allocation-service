@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core.intercomponent.xmpp.handlers;
 
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.exceptions.RemoteCommunicationException;
 import org.fogbowcloud.ras.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.requesters.RemoteGetOrderRequest;
@@ -38,7 +39,7 @@ public class RemoteGetOrderRequestHandlerTest {
     private static final String IQ_ERROR_RESULT = "\n<iq type=\"error\" id=\"%s\" from=\"%s\" to=\"%s\">\n"
             + "  <error code=\"500\" type=\"wait\">\n"
             + "    <undefined-condition xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n"
-            + "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">Unexpected exception error: java.lang.Exception.</text>\n"
+            + "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">Error while sending message to remote RAS.</text>\n"
             + "  </error>\n" + "</iq>";
 
     private static final String FAKE_INSTANCE_ID = "fake-instance-id";
@@ -94,7 +95,7 @@ public class RemoteGetOrderRequestHandlerTest {
 
     }
 
-    // test case: When an Exception occurs, the handle method must return allocationAllowableValues response
+    // test case: When an Exception occurs, the handle method must return a response
     // error.
     @Test
     public void testHandleWhenThrowsException() throws Exception {
@@ -104,7 +105,7 @@ public class RemoteGetOrderRequestHandlerTest {
         String orderId = order.getId();
 
         Mockito.when(this.remoteFacade.getResourceInstance(Mockito.eq(REQUESTING_MEMBER), Mockito.eq(orderId),
-                Mockito.eq(federationUserToken), Mockito.eq(ResourceType.COMPUTE))).thenThrow(new Exception());
+                Mockito.eq(federationUserToken), Mockito.eq(ResourceType.COMPUTE))).thenThrow(new RemoteCommunicationException());
 
         IQ iq = RemoteGetOrderRequest.marshal(order);
         iq.setFrom(REQUESTING_MEMBER);
@@ -126,7 +127,7 @@ public class RemoteGetOrderRequestHandlerTest {
 
     private Order createOrder(FederationUserToken federationUserToken) {
         return new ComputeOrder(federationUserToken, REQUESTING_MEMBER,
-                "providingmember", "hostName", 1, 2, 3,
+                "providingmember", "default", "hostName", 1, 2, 3,
                 "imageId", null,
                 "publicKey", new ArrayList<>());
     }

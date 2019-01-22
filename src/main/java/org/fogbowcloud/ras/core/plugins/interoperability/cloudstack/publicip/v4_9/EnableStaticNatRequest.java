@@ -13,6 +13,8 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.Cloud
 public class EnableStaticNatRequest extends CloudStackRequest {
 
     protected EnableStaticNatRequest(Builder builder) throws InvalidParameterException {
+        super(builder.cloudStackUrl);
+
         addParameter(VM_ID_KEY_JSON, builder.virtualMachineId);
         addParameter(IP_ADDRESS_ID_KEY_JSON, builder.ipAddressId);
     }
@@ -28,6 +30,7 @@ public class EnableStaticNatRequest extends CloudStackRequest {
     }
 
     public static class Builder {
+        private String cloudStackUrl;
         private String virtualMachineId;
         private String ipAddressId;
 
@@ -41,7 +44,8 @@ public class EnableStaticNatRequest extends CloudStackRequest {
             return this;
         }
 
-        public EnableStaticNatRequest build() throws InvalidParameterException {
+        public EnableStaticNatRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new EnableStaticNatRequest(this);
         }
     }

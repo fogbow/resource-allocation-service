@@ -16,32 +16,34 @@ public class RemoteGetImageRequest implements RemoteRequest<Image> {
     private static final Logger LOGGER = Logger.getLogger(RemoteGetImageRequest.class);
 
     private String provider;
+    private String cloudName;
     private String imageId;
     private FederationUserToken federationUserToken;
 
-    public RemoteGetImageRequest(String provider, String imageId, FederationUserToken federationUserToken) {
+    public RemoteGetImageRequest(String provider, String cloudName, String imageId, FederationUserToken federationUserToken) {
         this.provider = provider;
+        this.cloudName = cloudName;
         this.imageId = imageId;
         this.federationUserToken = federationUserToken;
     }
 
     @Override
     public Image send() throws Exception {
-        IQ request = marshal(this.provider, this.imageId, this.federationUserToken);
+        IQ request = marshal(this.provider, this.cloudName, this.imageId, this.federationUserToken);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(request);
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
         return unmarshalImage(response);
     }
 
-    public static IQ marshal(String provider, String imageId, FederationUserToken federationUserToken) {
+    public static IQ marshal(String provider, String cloudName, String imageId, FederationUserToken federationUserToken) {
         IQ iq = new IQ(IQ.Type.get);
         iq.setTo(provider);
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_IMAGE.toString());
 
-        Element memberIdElement = queryElement.addElement(IqElement.MEMBER_ID.toString());
-        memberIdElement.setText(provider);
+        Element cloudNameElement = queryElement.addElement(IqElement.CLOUD_NAME.toString());
+        cloudNameElement.setText(cloudName);
 
         Element imageIdElement = queryElement.addElement(IqElement.IMAGE_ID.toString());
         imageIdElement.setText(imageId);

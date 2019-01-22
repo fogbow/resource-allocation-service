@@ -26,15 +26,15 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
     @Override
     public IQ handle(IQ iq) {
         LOGGER.info(String.format(Messages.Info.RECEIVING_REMOTE_REQUEST, iq.getID()));
-        String memberId = unmarshalMemberId(iq);
+        String cloudName = unmarshalCloudName(iq);
         FederationUserToken federationUserToken = unmarshalFederatedUser(iq);
         ResourceType resourceType = unmarshalInstanceType(iq);
 
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            Quota userQuota = RemoteFacade.getInstance().getUserQuota(iq.getFrom().toBareJID(), memberId,
-                    federationUserToken, resourceType);
+            Quota userQuota = RemoteFacade.getInstance().getUserQuota(iq.getFrom().toBareJID(),
+                    cloudName, federationUserToken, resourceType);
             updateResponse(response, userQuota);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
@@ -42,12 +42,12 @@ public class RemoteGetUserQuotaRequestHandler extends AbstractQueryHandler {
         return response;
     }
 
-    private String unmarshalMemberId(IQ iq) {
+    private String unmarshalCloudName(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
 
-        Element memberIdElement = queryElement.element(IqElement.MEMBER_ID.toString());
-        String memberId = new Gson().fromJson(memberIdElement.getText(), String.class);
-        return memberId;
+        Element cloudNameElement = queryElement.element(IqElement.CLOUD_NAME.toString());
+        String cloudName = new Gson().fromJson(cloudNameElement.getText(), String.class);
+        return cloudName;
     }
 
     private FederationUserToken unmarshalFederatedUser(IQ iq) {

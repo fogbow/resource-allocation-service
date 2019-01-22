@@ -5,11 +5,11 @@ import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import java.util.Map;
 
 /**
- * This class is allocationAllowableValues stub for the AuthenticationPlugin interface used for tests only.
- * Should not have allocationAllowableValues proper implementation.
+ * This class is a stub for the AuthenticationPlugin interface used for tests only.
+ * Should not have a proper implementation.
  */
 public class StubTokenGeneratorPlugin implements TokenGeneratorPlugin {
-    public StubTokenGeneratorPlugin() {
+    public StubTokenGeneratorPlugin(String confFilePath) {
     }
 
     @Override

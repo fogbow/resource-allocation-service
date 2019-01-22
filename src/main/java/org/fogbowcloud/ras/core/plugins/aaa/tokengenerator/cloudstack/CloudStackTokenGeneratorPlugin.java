@@ -3,6 +3,7 @@ package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
@@ -11,12 +12,12 @@ import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.Token;
-import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationHolder;
+import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackHttpToFogbowRasExceptionMapper;
+import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
 public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
@@ -32,10 +33,14 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     public static final int CLOUDSTACK_TOKEN_NUMBER_OF_FIELDS = 5;
 
     private String tokenProviderId;
+    private String cloudStackUrl;
     private HttpRequestClientUtil client;
 	private RASAuthenticationHolder rasAuthenticationHolder;
+    private Properties properties;
 
-    public CloudStackTokenGeneratorPlugin() {
+    public CloudStackTokenGeneratorPlugin(String confFilePath) {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
+        this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
         this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
         this.client = new HttpRequestClientUtil();
         
@@ -53,7 +58,7 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
         HttpRequestClientUtil.Response jsonResponse = null;
         try {
             // NOTE(pauloewerton): since all cloudstack requests params are passed via url args, we do not need to
-            // send allocationAllowableValues valid json body in the post request
+            // send a valid json body in the post request
             jsonResponse = this.client.doPostRequest(request.getUriBuilder().toString(), "data");
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
@@ -74,7 +79,7 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
                 .username(userId)
                 .password(password)
                 .domain(domain)
-                .build();
+                .build(this.cloudStackUrl);
 
         return loginRequest;
     }
@@ -82,11 +87,11 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
     private String getTokenValue(String sessionKey) throws FogbowRasException, UnexpectedException {
         ListAccountsRequest request = new ListAccountsRequest.Builder()
                 .sessionKey(sessionKey)
-                .build();
+                .build(this.cloudStackUrl);
 
         String jsonResponse = null;
         try {
-            // NOTE(pauloewerton): passing allocationAllowableValues placeholder as there is no need to pass allocationAllowableValues valid token in this request
+            // NOTE(pauloewerton): passing a placeholder as there is no need to pass a valid token in this request
             jsonResponse = this.client.doGetRequest(request.getUriBuilder().toString(), new Token("CloudStackTokenValue"));
         } catch (HttpResponseException e) {
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
@@ -98,7 +103,7 @@ public class CloudStackTokenGeneratorPlugin implements TokenGeneratorPlugin {
             // NOTE(pauloewerton): considering only one account/user per request
             ListAccountsResponse.User user = response.getAccounts().get(0).getUsers().get(0);
 
-            // NOTE(pauloewerton): keeping allocationAllowableValues colon as separator as expected by the other cloudstack plugins
+            // NOTE(pauloewerton): keeping a colon as separator as expected by the other cloudstack plugins
             String tokenValue = user.getApiKey() + CLOUDSTACK_TOKEN_VALUE_SEPARATOR + user.getSecretKey();
             String userId = user.getId();
             String firstName = user.getFirstName();

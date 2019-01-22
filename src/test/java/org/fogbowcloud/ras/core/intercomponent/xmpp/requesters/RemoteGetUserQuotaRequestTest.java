@@ -39,23 +39,23 @@ public class RemoteGetUserQuotaRequestTest {
                 "fake-federation-token-value", "fake-user-id", "fake-user-name");
         this.provider = "provider";
         this.resourceType = ResourceType.COMPUTE;
-        this.remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.provider, this.federationUserToken, this.resourceType);
+        this.remoteGetUserQuotaRequest = new RemoteGetUserQuotaRequest(this.provider, "default", this.federationUserToken, this.resourceType);
         this.packetSender = Mockito.mock(PacketSender.class);
-        PacketSenderHolder.init(packetSender);
+        PacketSenderHolder.setPacketSender(this.packetSender);
         ComputeAllocation computeAllocation = new ComputeAllocation(10, 20, 30);
         ComputeAllocation usedQuota = new ComputeAllocation(40, 50, 60);
         this.quota = new ComputeQuota(computeAllocation, usedQuota);
     }
 
     //test case: checks if IQ attributes is according to both RemoteGetUserQuotaRequest constructor parameters
-    //and remote get user quota request rules. In addition, it checks if the instance from allocationAllowableValues possible response is
+    //and remote get user quota request rules. In addition, it checks if the instance from a possible response is
     //properly created and returned by the "send" method
     @Test
     public void testSend() throws Exception {
         //set up
         IQ iqResponse = getQuotaIQResponse(this.quota);
         Mockito.doReturn(iqResponse).when(this.packetSender).syncSendPacket(Mockito.any(IQ.class));
-        IQ expectedIQ = RemoteGetUserQuotaRequest.marshal(this.provider, this.federationUserToken, this.resourceType);
+        IQ expectedIQ = RemoteGetUserQuotaRequest.marshal(this.provider, "default", this.federationUserToken, this.resourceType);
 
         //exercise
         Quota responseQuota = this.remoteGetUserQuotaRequest.send();

@@ -1,6 +1,7 @@
 package org.fogbowcloud.ras.core.intercomponent.xmpp.handlers;
 
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.exceptions.RemoteCommunicationException;
 import org.fogbowcloud.ras.core.intercomponent.RemoteFacade;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.requesters.RemoteGetUserQuotaRequest;
@@ -44,7 +45,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
     private static final String IQ_ERROR_RESPONSE = "\n<iq type=\"error\" id=\"%s\" from=\"%s\" to=\"%s\">\n"
             + "  <error code=\"500\" type=\"wait\">\n"
             + "    <undefined-condition xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\"/>\n"
-            + "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">Unexpected exception error: java.lang.Exception.</text>\n"
+            + "    <text xmlns=\"urn:ietf:params:xml:ns:xmpp-stanzas\">Error while sending message to remote RAS.</text>\n"
             + "  </error>\n</iq>";
 
     @Before
@@ -70,7 +71,7 @@ public class RemoteGetUserQuotaRequestHandlerTest {
                 .when(this.remoteFacade)
                 .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any());
 
-        IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, this.createFederationUserToken(), ResourceType.COMPUTE);
+        IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, "default", this.createFederationUserToken(), ResourceType.COMPUTE);
         iq.setFrom(REQUESTING_MEMBER);
 
         // exercise
@@ -85,14 +86,14 @@ public class RemoteGetUserQuotaRequestHandlerTest {
         Assert.assertEquals(expected, result.toString());
     }
 
-    // test case: When an Exception occurs, the handle method must return allocationAllowableValues response error.
+    // test case: When an Exception occurs, the handle method must return a response error.
     @Test
     public void testUpdateResponseWhenExceptionIsThrown() throws Exception {
         Mockito.when(this.remoteFacade
                 .getUserQuota(Mockito.anyString(), Mockito.anyString(), Mockito.any(), Mockito.any()))
-                .thenThrow(new Exception());
+                .thenThrow(new RemoteCommunicationException());
 
-        IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, this.createFederationUserToken(), ResourceType.COMPUTE);
+        IQ iq = RemoteGetUserQuotaRequest.marshal(PROVIDING_MEMBER, "default", this.createFederationUserToken(), ResourceType.COMPUTE);
         iq.setFrom(REQUESTING_MEMBER);
 
         // exercise

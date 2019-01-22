@@ -16,7 +16,7 @@ import org.fogbowcloud.ras.core.models.linkedlists.ChainedList;
 import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.orders.OrderState;
-import org.fogbowcloud.ras.core.models.orders.UserData;
+import org.fogbowcloud.ras.core.models.UserData;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.junit.After;
 import org.junit.Assert;
@@ -123,11 +123,17 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         // set up
         Order order = this.createOrder();
         order.setOrderStateInTestMode(OrderState.FULFILLED);
+
+        Instance orderInstance = new ComputeInstance(FAKE_INSTANCE_ID);
+        orderInstance.setState(InstanceState.FAILED);
+        order.setInstanceId(FAKE_INSTANCE_ID);
+
+        mockCloudConnectorFactory(orderInstance);
+
         this.fulfilledOrderList.addItem(order);
         Assert.assertNull(this.failedOrderList.getNext());
 
         // exercise
-        Mockito.doReturn(null).when(this.localCloudConnector).getInstance(Mockito.any(Order.class));
         spyFulfiledProcessor();
 
         this.thread = new Thread(this.fulfilledProcessor);
@@ -163,7 +169,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
-    // test case: When running thread in the FulfilledProcessor without allocationAllowableValues LocalMember, the method
+    // test case: When running thread in the FulfilledProcessor without a LocalMember, the method
     // processFulfilledOrder() must not change OrderState to Failed and must remain in Fulfilled
     // list.
     @Test
@@ -239,7 +245,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         this.thread.start();
 
         /**
-         * here may be allocationAllowableValues false positive depending on how long the machine will take to run the test
+         * here may be a false positive depending on how long the machine will take to run the test
          */
         Thread.sleep(MAX_SLEEP_TIME);
 
@@ -282,7 +288,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Assert.assertNull(this.fulfilledOrderList.getNext());
     }
 
-    // test case: When running thread in the FulfilledProcessor with OrderState Null must throw allocationAllowableValues
+    // test case: When running thread in the FulfilledProcessor with OrderState Null must throw a
     // ThrowableException.
     @Test
     public void testRunThrowableExceptionWhileTryingToProcessOrderStateNull()
@@ -308,7 +314,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         Mockito.verify(this.fulfilledProcessor, Mockito.times(1)).processFulfilledOrder(order);
     }
 
-    // test case: When running thread in the FulfilledProcessor with OrderState Null must throw allocationAllowableValues
+    // test case: When running thread in the FulfilledProcessor with OrderState Null must throw a
     // UnexpectedException.
     @Test
     public void testThrowUnexpectedExceptionWhileTryingToProcessOrder()
@@ -345,7 +351,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
         String providingMember =
                 String.valueOf(this.properties.get(ConfigurationConstants.XMPP_JID_KEY));
 
-        Order order = new ComputeOrder(federationUserToken, requestingMember, providingMember, FAKE_INSTANCE_NAME, 8, 1024,
+        Order order = new ComputeOrder(federationUserToken, requestingMember, providingMember, "default", FAKE_INSTANCE_NAME, 8, 1024,
                 30, FAKE_IMAGE_NAME, mockUserData(), FAKE_PUBLIC_KEY, null);
 
         return order;
@@ -355,7 +361,7 @@ public class FulfilledProcessorTest extends BaseUnitTests {
             throws FogbowRasException, UnexpectedException {
 
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString()))
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(localCloudConnector);
 
         Mockito.doReturn(orderInstance).when(this.localCloudConnector)

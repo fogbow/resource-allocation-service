@@ -1,9 +1,12 @@
 package org.fogbowcloud.ras.core.plugins.aaa.identity;
 
+import org.fogbowcloud.ras.core.PropertiesHolder;
+import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.DefaultTokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPluginProtectionWrapper;
 import org.fogbowcloud.ras.util.RSAUtil;
@@ -22,13 +25,13 @@ public class FederationIdentityPluginProtectionWrapperTest {
 
     @Before
     public void setUp() throws IOException, GeneralSecurityException {
-        this.privateKey = RSAUtil.getPrivateKey();
+        this.privateKey = RASAuthenticationHolder.getInstance().getPrivateKey();
         FederationIdentityPlugin embeddedPlugin = new DefaultFederationIdentityPlugin();
         this.federationIdentityPluginProtectionWrapper =
                 new FederationIdentityPluginProtectionWrapper(embeddedPlugin);
     }
 
-    //test case: createToken with an encrypted tokenValue should generate allocationAllowableValues Token with the appropriate values
+    //test case: createToken with an encrypted tokenValue should generate a Token with the appropriate values
     @Test
     public void testCreateToken() throws UnexpectedException, FogbowRasException, IOException,
             GeneralSecurityException {

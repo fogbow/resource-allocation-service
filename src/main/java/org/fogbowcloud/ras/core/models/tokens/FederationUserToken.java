@@ -12,10 +12,10 @@ public class FederationUserToken extends Token {
     // An identification of the token provider
     @Column
     private String tokenProvider;
-    // The userId must uniquely identify allocationAllowableValues user in the federation; two tokens issued to the same user must have the same userId.
+    // The userId must uniquely identify a user in the federation; two tokens issued to the same user must have the same userId.
     @Column
     private String userId;
-    // This field is allocationAllowableValues human-friendly identification of the user, typically used by the CLI/GUI, but need not be unique.
+    // This field is a human-friendly identification of the user, typically used by the CLI/GUI, but need not be unique.
     @Column
     private String userName;
 

@@ -1,6 +1,6 @@
 package org.fogbowcloud.ras.core.models.instances;
 
-import org.fogbowcloud.ras.core.models.orders.UserData;
+import org.fogbowcloud.ras.core.models.UserData;
 
 import java.util.List;
 import java.util.Map;

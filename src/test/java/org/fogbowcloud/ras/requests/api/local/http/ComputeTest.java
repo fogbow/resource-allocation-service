@@ -46,7 +46,9 @@ import java.util.List;
 @PrepareForTest(ApplicationFacade.class)
 public class ComputeTest {
 
-    private static final String CORRECT_BODY =
+    private static final String ENDPOINT_SUFFIX = "/cloudName";
+
+	private static final String CORRECT_BODY =
             "{\"requestingMember\":\"req-member\", \"providingMember\":\"prov-member\", "
                     + "\"publicKey\":\"pub-key\", \"vCPU\":\"2\", \"memory\":\"1024\", \"disk\":\"20\", "
                     + "\"imageName\":\"ubuntu\"}";
@@ -180,10 +182,11 @@ public class ComputeTest {
         final String FAKE_ID_2 = "fake-Id-2";
         final String FAKE_ID_3 = "fake-Id-3";
         final String FAKE_PROVIDER = "fake-provider";
+        final String FAKE_CLOUD_NAME = "fake-cloud-name";
 
-        InstanceStatus instanceStatus1 = new InstanceStatus(FAKE_ID_1, FAKE_PROVIDER, InstanceState.READY);
-        InstanceStatus instanceStatus2 = new InstanceStatus(FAKE_ID_2, FAKE_PROVIDER, InstanceState.READY);
-        InstanceStatus instanceStatus3 = new InstanceStatus(FAKE_ID_3, FAKE_PROVIDER, InstanceState.READY);
+        InstanceStatus instanceStatus1 = new InstanceStatus(FAKE_ID_1, FAKE_PROVIDER, FAKE_CLOUD_NAME, InstanceState.READY);
+        InstanceStatus instanceStatus2 = new InstanceStatus(FAKE_ID_2, FAKE_PROVIDER, FAKE_CLOUD_NAME, InstanceState.READY);
+        InstanceStatus instanceStatus3 = new InstanceStatus(FAKE_ID_3, FAKE_PROVIDER, FAKE_CLOUD_NAME, InstanceState.READY);
 
         List<InstanceStatus> computeStatusList = Arrays.asList(new InstanceStatus[]{instanceStatus1, instanceStatus2, instanceStatus3});
         Mockito.doReturn(computeStatusList).when(this.facade).getAllInstancesStatus(Mockito.anyString(), Mockito.any(ResourceType.class));
@@ -391,9 +394,9 @@ public class ComputeTest {
 
         // set up
         final String FAKE_MEMBER_ID = "fake-member-id";
-        Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).getComputeAllocation(Mockito.anyString(), Mockito.anyString());
+        Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).getComputeAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
         final String ALLOCATION_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.ALLOCATION_ENDPOINT;
-        final String memberIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_MEMBER_ID;
+        final String memberIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_MEMBER_ID + ENDPOINT_SUFFIX;
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
 
         // exercise
@@ -403,7 +406,7 @@ public class ComputeTest {
         int expectedStatus = HttpStatus.UNAUTHORIZED.value();
 
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, Mockito.times(1)).getComputeAllocation(Mockito.anyString(), Mockito.anyString());
+        Mockito.verify(this.facade, Mockito.times(1)).getComputeAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
     }
 
     // test case: Request the user allocation with unauthorized user. Check the response of request
@@ -414,9 +417,9 @@ public class ComputeTest {
 
         // set up
         final String FAKE_MEMBER_ID = "fake-member-id";
-        Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).getComputeAllocation(Mockito.anyString(), Mockito.anyString());
+        Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).getComputeAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
         final String ALLOCATION_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.ALLOCATION_ENDPOINT;
-        final String memberIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_MEMBER_ID;
+        final String memberIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_MEMBER_ID + ENDPOINT_SUFFIX;
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
 
         // exercise
@@ -426,7 +429,7 @@ public class ComputeTest {
         int expectedStatus = HttpStatus.FORBIDDEN.value();
 
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, Mockito.times(1)).getComputeAllocation(Mockito.anyString(), Mockito.anyString());
+        Mockito.verify(this.facade, Mockito.times(1)).getComputeAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
     }
 
     // test case: Request the user allocation and test successfully return. Check the response of request
@@ -442,10 +445,10 @@ public class ComputeTest {
 
         ComputeAllocation fakeComputeAllocation = new ComputeAllocation(VCPU_TOTAL, RAM_TOTAL, INSTANCES_TOTAL);
 
-        Mockito.doReturn(fakeComputeAllocation).when(this.facade).getComputeAllocation(Mockito.anyString(), Mockito.anyString());
+        Mockito.doReturn(fakeComputeAllocation).when(this.facade).getComputeAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         final String ALLOCATION_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.ALLOCATION_ENDPOINT;
-        final String memberIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_MEMBER_ID;
+        final String memberIdEndpoint = ALLOCATION_ENDPOINT + "/" + FAKE_MEMBER_ID + ENDPOINT_SUFFIX;
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
 
         // set up
@@ -460,7 +463,7 @@ public class ComputeTest {
         Assert.assertEquals(fakeComputeAllocation.getRam(), resultComputeAllocation.getRam());
         Assert.assertEquals(fakeComputeAllocation.getvCPU(), resultComputeAllocation.getvCPU());
 
-        Mockito.verify(this.facade, Mockito.times(1)).getComputeAllocation(Mockito.anyString(), Mockito.anyString());
+        Mockito.verify(this.facade, Mockito.times(1)).getComputeAllocation(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
     }
 
     // test case: Request the user quota and test successfully return. Check the response of request
@@ -478,10 +481,10 @@ public class ComputeTest {
         ComputeAllocation fakeUsedComputeAllocation = new ComputeAllocation(VCPU_TOTAL, RAM_TOTAL, INSTANCES_TOTAL);
         ComputeQuota fakeUserQuota = new ComputeQuota(fakeTotalComputeAllocation, fakeUsedComputeAllocation);
 
-        Mockito.doReturn(fakeUserQuota).when(this.facade).getComputeQuota(Mockito.anyString(), Mockito.anyString());
+        Mockito.doReturn(fakeUserQuota).when(this.facade).getComputeQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
 
         final String QUOTA_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.QUOTA_ENDPOINT;
-        final String memberIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_MEMBER_ID;
+        final String memberIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_MEMBER_ID + ENDPOINT_SUFFIX;
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
 
         // exercise
@@ -501,7 +504,7 @@ public class ComputeTest {
         Assert.assertEquals(fakeTotalComputeAllocation.getvCPU(), resultComputeQuota.getTotalQuota().getvCPU());
         Assert.assertEquals(fakeTotalComputeAllocation.getRam(), resultComputeQuota.getTotalQuota().getRam());
 
-        Mockito.verify(this.facade, Mockito.times(1)).getComputeQuota(Mockito.anyString(), Mockito.anyString());
+        Mockito.verify(this.facade, Mockito.times(1)).getComputeQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
     }
 
     // test case: Request the user quota with unauthenticated user. Check the response of request
@@ -511,9 +514,9 @@ public class ComputeTest {
 
         // set up
         final String FAKE_MEMBER_ID = "fake-member-id";
-        Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).getComputeQuota(Mockito.anyString(), Mockito.anyString());
+        Mockito.doThrow(new UnauthenticatedUserException()).when(this.facade).getComputeQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
         final String QUOTA_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.QUOTA_ENDPOINT;
-        final String memberIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_MEMBER_ID;
+        final String memberIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_MEMBER_ID + ENDPOINT_SUFFIX;
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
 
         // exercise
@@ -523,7 +526,7 @@ public class ComputeTest {
         int expectedStatus = HttpStatus.UNAUTHORIZED.value();
 
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, Mockito.times(1)).getComputeQuota(Mockito.anyString(), Mockito.anyString());
+        Mockito.verify(this.facade, Mockito.times(1)).getComputeQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
     }
 
     // test case: Request the user quota with unauthorized user. Check the response of request
@@ -533,9 +536,9 @@ public class ComputeTest {
 
         // set up
         final String FAKE_MEMBER_ID = "fake-member-id";
-        Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).getComputeQuota(Mockito.anyString(), Mockito.anyString());
+        Mockito.doThrow(new UnauthorizedRequestException()).when(this.facade).getComputeQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
         final String QUOTA_ENDPOINT = COMPUTE_ENDPOINT + "/" + Compute.QUOTA_ENDPOINT;
-        final String memberIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_MEMBER_ID;
+        final String memberIdEndpoint = QUOTA_ENDPOINT + "/" + FAKE_MEMBER_ID + ENDPOINT_SUFFIX;
         RequestBuilder requestBuilder = createRequestBuilder(HttpMethod.GET, memberIdEndpoint, getHttpHeaders(), "");
 
         // exercise
@@ -545,7 +548,7 @@ public class ComputeTest {
         int expectedStatus = HttpStatus.FORBIDDEN.value();
 
         Assert.assertEquals(expectedStatus, result.getResponse().getStatus());
-        Mockito.verify(this.facade, Mockito.times(1)).getComputeQuota(Mockito.anyString(), Mockito.anyString());
+        Mockito.verify(this.facade, Mockito.times(1)).getComputeQuota(Mockito.anyString(), Mockito.anyString(), Mockito.anyString());
     }
 
     private RequestBuilder createRequestBuilder(HttpMethod method, String urlTemplate, HttpHeaders headers, String body) {
@@ -581,3 +584,4 @@ public class ComputeTest {
         return headers;
     }
 }
+

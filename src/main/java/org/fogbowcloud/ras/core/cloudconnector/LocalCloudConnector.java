@@ -1,7 +1,7 @@
 package org.fogbowcloud.ras.core.cloudconnector;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.InteroperabilityPluginsHolder;
+import org.fogbowcloud.ras.core.InteroperabilityPluginInstantiator;
 import org.fogbowcloud.ras.core.SharedOrderHolders;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
@@ -9,6 +9,7 @@ import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
+import org.fogbowcloud.ras.core.models.UserData;
 import org.fogbowcloud.ras.core.models.images.Image;
 import org.fogbowcloud.ras.core.models.instances.*;
 import org.fogbowcloud.ras.core.models.orders.*;
@@ -16,8 +17,11 @@ import org.fogbowcloud.ras.core.models.quotas.Quota;
 import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
-import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequest;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestResponse;
+import org.fogbowcloud.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.*;
+import org.fogbowcloud.ras.core.plugins.interoperability.genericrequest.GenericRequestPlugin;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -27,26 +31,29 @@ import java.util.Map;
 public class LocalCloudConnector implements CloudConnector {
     private static final Logger LOGGER = Logger.getLogger(LocalCloudConnector.class);
 
-    private final FederationToLocalMapperPlugin mapperPlugin;
-    private final PublicIpPlugin<Token> publicIpPlugin;
-    private final AttachmentPlugin<Token> attachmentPlugin;
-    private final ComputePlugin<Token> computePlugin;
-    private final ComputeQuotaPlugin computeQuotaPlugin;
-    private final NetworkPlugin<Token> networkPlugin;
-    private final VolumePlugin<Token> volumePlugin;
-    private final ImagePlugin<Token> imagePlugin;
-    private final SecurityRulePlugin<Token> securityRulePlugin;
+    private FederationToLocalMapperPlugin mapperPlugin;
+    private PublicIpPlugin publicIpPlugin;
+    private AttachmentPlugin attachmentPlugin;
+    private ComputePlugin computePlugin;
+    private ComputeQuotaPlugin computeQuotaPlugin;
+    private NetworkPlugin networkPlugin;
+    private VolumePlugin volumePlugin;
+    private ImagePlugin imagePlugin;
+    private SecurityRulePlugin securityRulePlugin;
+    private GenericRequestPlugin genericRequestPlugin;
 
-    public LocalCloudConnector(FederationToLocalMapperPlugin mapperPlugin, InteroperabilityPluginsHolder interoperabilityPluginsHolder) {
-        this.mapperPlugin = mapperPlugin;
-        this.attachmentPlugin = interoperabilityPluginsHolder.getAttachmentPlugin();
-        this.computePlugin = interoperabilityPluginsHolder.getComputePlugin();
-        this.computeQuotaPlugin = interoperabilityPluginsHolder.getComputeQuotaPlugin();
-        this.networkPlugin = interoperabilityPluginsHolder.getNetworkPlugin();
-        this.volumePlugin = interoperabilityPluginsHolder.getVolumePlugin();
-        this.imagePlugin = interoperabilityPluginsHolder.getImagePlugin();
-        this.publicIpPlugin = interoperabilityPluginsHolder.getPublicIpPlugin();
-        this.securityRulePlugin = interoperabilityPluginsHolder.getSecurityRulePlugin();
+    public LocalCloudConnector(String cloudName) {
+        InteroperabilityPluginInstantiator instantiator = new InteroperabilityPluginInstantiator(cloudName);
+        this.mapperPlugin = instantiator.getLocalUserCredentialsMapperPlugin();
+        this.attachmentPlugin = instantiator.getAttachmentPlugin();
+        this.computePlugin = instantiator.getComputePlugin();
+        this.computeQuotaPlugin = instantiator.getComputeQuotaPlugin();
+        this.networkPlugin = instantiator.getNetworkPlugin();
+        this.volumePlugin = instantiator.getVolumePlugin();
+        this.imagePlugin = instantiator.getImagePlugin();
+        this.publicIpPlugin = instantiator.getPublicIpPlugin();
+        this.securityRulePlugin = instantiator.getSecurityRulePlugin();
+        this.genericRequestPlugin = instantiator.getGenericRequestPlugin();
     }
 
     @Override
@@ -206,6 +213,7 @@ public class LocalCloudConnector implements CloudConnector {
                 instance = getResourceInstance(order, order.getType(), token);
                 // Setting instance common fields that do not need to be set by the plugin
                 instance.setProvider(order.getProvider());
+                instance.setCloudName(order.getCloudName());
                 // The user believes that the order id is actually the instance id.
                 // So we need to set the instance id accordingly before returning the instance.
                 instance.setId(order.getId());
@@ -240,9 +248,7 @@ public class LocalCloudConnector implements CloudConnector {
     @Override
     public Quota getUserQuota(FederationUserToken federationUserToken, ResourceType resourceType) throws
             FogbowRasException, UnexpectedException {
-        LOGGER.debug("Mapping user: " + federationUserToken.getUserName());
         Token token = this.mapperPlugin.map(federationUserToken);
-        LOGGER.debug("Token mapped: " + (token == null ? "null" : token.getTokenValue()));
         switch (resourceType) {
             case COMPUTE:
                 return this.computeQuotaPlugin.getUserQuota(token);
@@ -266,50 +272,30 @@ public class LocalCloudConnector implements CloudConnector {
     }
 
     @Override
-    public List<SecurityRule> getAllSecurityRules(Order majorOrder, FederationUserToken federationUserToken)
+    public GenericRequestResponse genericRequest(GenericRequest genericRequest, FederationUserToken federationTokenUser)
+            throws UnexpectedException, FogbowRasException {
+        Token token = this.mapperPlugin.map(federationTokenUser);
+        return this.genericRequestPlugin.redirectGenericRequest(genericRequest, token);
+    }
+
+    @Override
+    public List<SecurityRule> getAllSecurityRules(Order order, FederationUserToken federationUserToken)
             throws UnexpectedException, FogbowRasException {
         Token token = this.mapperPlugin.map(federationUserToken);
-        return this.securityRulePlugin.getSecurityRules(majorOrder, token);
+        return this.securityRulePlugin.getSecurityRules(order, token);
     }
 
     @Override
-    public String requestSecurityRule(Order majorOrder, SecurityRule securityRule,
+    public String requestSecurityRule(Order order, SecurityRule securityRule,
                                       FederationUserToken federationUserToken) throws UnexpectedException, FogbowRasException {
         Token token = this.mapperPlugin.map(federationUserToken);
-        return this.securityRulePlugin.requestSecurityRule(securityRule, majorOrder, token);
+        return this.securityRulePlugin.requestSecurityRule(securityRule, order, token);
     }
 
     @Override
-    public void deleteSecurityRule(String securityRuleId, FederationUserToken federationUserToken) throws Exception {
+    public void deleteSecurityRule(String securityRuleId, FederationUserToken federationUserToken) throws FogbowRasException, UnexpectedException {
         Token token = this.mapperPlugin.map(federationUserToken);
         this.securityRulePlugin.deleteSecurityRule(securityRuleId, token);
-    }
-
-    /**
-     * protected visibility for tests
-     */
-    protected List<String> getNetworkInstanceIdsFromNetworkOrderIds(ComputeOrder order) throws InvalidParameterException {
-        List<String> networkOrdersId = order.getNetworkIds();
-        List<String> networkInstanceIDs = new LinkedList<String>();
-
-        String computeOrderUserId = order.getFederationUserToken().getUserId();
-
-        for (String orderId : networkOrdersId) {
-            Order networkOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
-
-            if (networkOrder == null) {
-                throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
-            } else {
-                String networkOrderUserId = networkOrder.getFederationUserToken().getUserId();
-                if (!networkOrderUserId.equals(computeOrderUserId)) {
-                    throw new InvalidParameterException(Messages.Exception.TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER);
-                }
-            }
-
-            String instanceId = networkOrder.getInstanceId();
-            networkInstanceIDs.add(instanceId);
-        }
-        return networkInstanceIDs;
     }
 
     private Instance getResourceInstance(Order order, ResourceType resourceType, Token token)
@@ -341,6 +327,46 @@ public class LocalCloudConnector implements CloudConnector {
         order.setCachedInstanceState(instance.getState());
         instance.setProvider(order.getProvider());
         return instance;
+    }
+
+    private InstanceState getInstanceStateBasedOnOrderState(Order order) {
+        InstanceState instanceState = null;
+        // If order state is DEACTIVATED or CLOSED, an exception is throw before method call.
+        // If order state is FULFILLED or SPAWNING, the order has an instance id, so this method is never called.
+        if (order.getOrderState().equals(OrderState.OPEN) || order.getOrderState().equals(OrderState.PENDING)) {
+            instanceState = InstanceState.DISPATCHED;
+        } else if (order.getOrderState().equals(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST) ||
+                order.getOrderState().equals(OrderState.FAILED_ON_REQUEST)) {
+            instanceState = InstanceState.FAILED;
+        }
+        return instanceState;
+    }
+
+    /**
+     * protected visibility for tests
+     */
+    protected List<String> getNetworkInstanceIdsFromNetworkOrderIds(ComputeOrder order) throws InvalidParameterException {
+        List<String> networkOrdersId = order.getNetworkIds();
+        List<String> networkInstanceIDs = new LinkedList<String>();
+
+        String computeOrderUserId = order.getFederationUserToken().getUserId();
+
+        for (String orderId : networkOrdersId) {
+            Order networkOrder = SharedOrderHolders.getInstance().getActiveOrdersMap().get(orderId);
+
+            if (networkOrder == null) {
+                throw new InvalidParameterException(Messages.Exception.INVALID_PARAMETER);
+            } else {
+                String networkOrderUserId = networkOrder.getFederationUserToken().getUserId();
+                if (!networkOrderUserId.equals(computeOrderUserId)) {
+                    throw new InvalidParameterException(Messages.Exception.TRYING_TO_USE_RESOURCES_FROM_ANOTHER_USER);
+                }
+            }
+
+            String instanceId = networkOrder.getInstanceId();
+            networkInstanceIDs.add(instanceId);
+        }
+        return networkInstanceIDs;
     }
 
     protected ComputeInstance getFullComputeInstance(ComputeOrder order, ComputeInstance instance)
@@ -413,16 +439,40 @@ public class LocalCloudConnector implements CloudConnector {
         return computeNetworks;
     }
 
-    private InstanceState getInstanceStateBasedOnOrderState(Order order) {
-        InstanceState instanceState = null;
-        // If order state is DEACTIVATED or CLOSED, an exception is throw before method call.
-        // If order state is FULFILLED or SPAWNING, the order has an instance id, so this method is never called.
-        if (order.getOrderState().equals(OrderState.OPEN) || order.getOrderState().equals(OrderState.PENDING)) {
-            instanceState = InstanceState.DISPATCHED;
-        } else if (order.getOrderState().equals(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST) ||
-                    order.getOrderState().equals(OrderState.FAILED_ON_REQUEST)) {
-            instanceState = InstanceState.FAILED;
-        }
-        return instanceState;
+    // Used only in tests
+    protected void setMapperPlugin(FederationToLocalMapperPlugin mapperPlugin) {
+        this.mapperPlugin = mapperPlugin;
+    }
+
+    protected void setPublicIpPlugin(PublicIpPlugin publicIpPlugin) {
+        this.publicIpPlugin = publicIpPlugin;
+    }
+
+    protected void setAttachmentPlugin(AttachmentPlugin attachmentPlugin) {
+        this.attachmentPlugin = attachmentPlugin;
+    }
+
+    protected void setComputePlugin(ComputePlugin computePlugin) {
+        this.computePlugin = computePlugin;
+    }
+
+    protected void setComputeQuotaPlugin(ComputeQuotaPlugin computeQuotaPlugin) {
+        this.computeQuotaPlugin = computeQuotaPlugin;
+    }
+
+    protected void setNetworkPlugin(NetworkPlugin networkPlugin) {
+        this.networkPlugin = networkPlugin;
+    }
+
+    protected void setVolumePlugin(VolumePlugin volumePlugin) {
+        this.volumePlugin = volumePlugin;
+    }
+
+    protected void setImagePlugin(ImagePlugin imagePlugin) {
+        this.imagePlugin = imagePlugin;
+    }
+
+    protected void setGenericRequestPlugin(GenericRequestPlugin genericRequestPlugin) {
+        this.genericRequestPlugin = genericRequestPlugin;
     }
 }

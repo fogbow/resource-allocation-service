@@ -26,9 +26,8 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
     private Properties properties;
     private HttpRequestClientUtil client;
 
-    public OpenStackComputeQuotaPlugin() throws FatalErrorException {
-        this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                SystemConstants.OPENSTACK_CONF_FILE_NAME);
+    public OpenStackComputeQuotaPlugin(String confFilePath) throws FatalErrorException {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
 
         this.client = new HttpRequestClientUtil();
     }
@@ -43,7 +42,7 @@ public class OpenStackComputeQuotaPlugin implements ComputeQuotaPlugin {
             LOGGER.debug("Calling quota plugin");
             jsonResponse = this.client.doGetRequest(endpoint, token);
         } catch (HttpResponseException e) {
-            LOGGER.debug("Exception raised: " + e.getMessage());
+            LOGGER.debug("Exception raised: " + e.getMessage(), e);
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }
 

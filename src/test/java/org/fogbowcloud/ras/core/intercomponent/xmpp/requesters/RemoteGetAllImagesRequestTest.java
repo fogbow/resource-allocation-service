@@ -40,9 +40,9 @@ public class RemoteGetAllImagesRequestTest {
                 "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
 
-        this.remoteGetAllImagesRequest = new RemoteGetAllImagesRequest(PROVIDER, federationUserToken);
+        this.remoteGetAllImagesRequest = new RemoteGetAllImagesRequest(PROVIDER, "default", federationUserToken);
         this.packetSender = Mockito.mock(PacketSender.class);
-        PacketSenderHolder.init(packetSender);
+        PacketSenderHolder.setPacketSender(this.packetSender);
 
         this.imagesMap = new HashMap<String, String>();
         this.imagesMap.put("key-1", "value-1");
@@ -51,7 +51,7 @@ public class RemoteGetAllImagesRequestTest {
     }
 
     // test case: checks if IQ attributes is according to both RemoteGetAllImagesRequestTest constructor parameters
-    // and remote get all images request rules. In addition, it checks if the image map from allocationAllowableValues possible response is
+    // and remote get all images request rules. In addition, it checks if the image map from a possible response is
     // properly created and returned by the "send" method
     @Test
     public void testSend() throws Exception {
@@ -63,8 +63,8 @@ public class RemoteGetAllImagesRequestTest {
         this.remoteGetAllImagesRequest.send();
 
         // verify
-        // as IQ does not implement equals we need allocationAllowableValues matcher
-        IQ expectedIQ = RemoteGetAllImagesRequest.marshal(PROVIDER, federationUserToken);
+        // as IQ does not implement equals we need a matcher
+        IQ expectedIQ = RemoteGetAllImagesRequest.marshal(PROVIDER, "default", federationUserToken);
         IQMatcher matcher = new IQMatcher(expectedIQ);
         Mockito.verify(this.packetSender).syncSendPacket(Mockito.argThat(matcher));
     }

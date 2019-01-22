@@ -8,7 +8,7 @@ public class GetVirtualMachineRequest extends CloudStackRequest {
     public static final String VIRTUAL_MACHINE_ID_KEY = "id";
 
     private GetVirtualMachineRequest(Builder builder) throws InvalidParameterException {
-        super();
+        super(builder.cloudStackUrl);
         addParameter(VIRTUAL_MACHINE_ID_KEY, builder.id);
     }
 
@@ -24,6 +24,7 @@ public class GetVirtualMachineRequest extends CloudStackRequest {
 
     public static class Builder {
 
+        private String cloudStackUrl;
         private String id;
 
         public Builder id(String id) {
@@ -31,7 +32,8 @@ public class GetVirtualMachineRequest extends CloudStackRequest {
             return this;
         }
 
-        public GetVirtualMachineRequest build() throws InvalidParameterException {
+        public GetVirtualMachineRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new GetVirtualMachineRequest(this);
         }
 

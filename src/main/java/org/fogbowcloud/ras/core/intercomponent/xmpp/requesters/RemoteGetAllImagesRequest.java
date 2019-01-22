@@ -17,16 +17,18 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
     private static final Logger LOGGER = Logger.getLogger(RemoteGetAllImagesRequest.class);
 
     private String provider;
+    private String cloudName;
     private FederationUserToken federationUserToken;
 
-    public RemoteGetAllImagesRequest(String provider, FederationUserToken federationUserToken) {
+    public RemoteGetAllImagesRequest(String provider, String cloudName, FederationUserToken federationUserToken) {
         this.provider = provider;
+        this.cloudName = cloudName;
         this.federationUserToken = federationUserToken;
     }
 
     @Override
     public HashMap<String, String> send() throws Exception {
-        IQ iq = RemoteGetAllImagesRequest.marshal(this.provider, this.federationUserToken);
+        IQ iq = RemoteGetAllImagesRequest.marshal(this.provider, this.cloudName, this.federationUserToken);
         IQ response = (IQ) PacketSenderHolder.getPacketSender().syncSendPacket(iq);
 
         XmppErrorConditionToExceptionTranslator.handleError(response, this.provider);
@@ -34,15 +36,15 @@ public class RemoteGetAllImagesRequest implements RemoteRequest<HashMap<String, 
         return unmarshalImages(response);
     }
 
-    public static IQ marshal(String provider, FederationUserToken federationUserToken) {
+    public static IQ marshal(String provider, String cloudName, FederationUserToken federationUserToken) {
         IQ iq = new IQ(IQ.Type.get);
         iq.setTo(provider);
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_GET_ALL_IMAGES.toString());
 
-        Element memberIdElement = queryElement.addElement(IqElement.MEMBER_ID.toString());
-        memberIdElement.setText(provider);
+        Element cloudNameElement = queryElement.addElement(IqElement.CLOUD_NAME.toString());
+        cloudNameElement.setText(cloudName);
 
         Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
         userElement.setText(new Gson().toJson(federationUserToken));

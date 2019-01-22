@@ -2,18 +2,28 @@ package org.fogbowcloud.ras.api.parameters;
 
 import org.fogbowcloud.ras.core.models.orders.VolumeOrder;
 
-public class Volume {
+import java.util.Map;
+
+public class Volume implements OrderApiParameter {
     private String provider;
+    private String cloudName;
     private String name;
     private int volumeSize;
+    private Map<String, String> requirements;
 
+    @Override
     public VolumeOrder getOrder() {
-        VolumeOrder order = new VolumeOrder(provider, name, volumeSize);
+        VolumeOrder order = new VolumeOrder(provider, cloudName, name, volumeSize);
+        order.setRequirements(requirements);
         return order;
     }
 
     public String getProvider() {
         return provider;
+    }
+
+    public String getCloudName() {
+        return cloudName;
     }
 
     public String getName() {
@@ -22,5 +32,9 @@ public class Volume {
 
     public int getVolumeSize() {
         return volumeSize;
+    }
+
+    public Map<String, String> getRequirements() {
+        return requirements;
     }
 }

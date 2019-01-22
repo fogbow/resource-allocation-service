@@ -161,9 +161,9 @@ public class PublicIpTest {
     // Check if the request response is compatible with the value produced by facade.
     @Test
     public void testGetAllAttachmentsStatus() throws Exception {
-        InstanceStatus AttachmentStatus1 = new InstanceStatus("fake-Id-1", "fake-provider", InstanceState.UNAVAILABLE);
-        InstanceStatus AttachmentStatus2 = new InstanceStatus("fake-Id-2", "fake-provider", InstanceState.UNAVAILABLE);
-        InstanceStatus AttachmentStatus3 = new InstanceStatus("fake-Id-3", "fake-provider", InstanceState.UNAVAILABLE);
+        InstanceStatus AttachmentStatus1 = new InstanceStatus("fake-Id-1", "fake-provider", "fake-cloud-name", InstanceState.UNAVAILABLE);
+        InstanceStatus AttachmentStatus2 = new InstanceStatus("fake-Id-2", "fake-provider", "fake-cloud-name", InstanceState.UNAVAILABLE);
+        InstanceStatus AttachmentStatus3 = new InstanceStatus("fake-Id-3", "fake-provider", "fake-cloud-name", InstanceState.UNAVAILABLE);
 
         List<InstanceStatus> AttachmentStatusList =
                 Arrays.asList(AttachmentStatus1, AttachmentStatus2, AttachmentStatus3);
@@ -274,7 +274,7 @@ public class PublicIpTest {
     }
 
 
-    // test case: Delete allocationAllowableValues not found attachment by his id and test fail return.
+    // test case: Delete a not found attachment by his id and test fail return.
     // Check the response of request and the call of facade for delete the attachment.
     @Test
     public void testDeleteNotFoundAttachment() throws Exception {

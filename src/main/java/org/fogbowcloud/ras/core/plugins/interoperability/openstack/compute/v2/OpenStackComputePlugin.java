@@ -2,6 +2,7 @@ package org.fogbowcloud.ras.core.plugins.interoperability.openstack.compute.v2;
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.api.http.Compute;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.constants.SystemConstants;
@@ -22,6 +23,7 @@ import org.fogbowcloud.ras.core.plugins.interoperability.util.LaunchCommandGener
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestUtil;
+import sun.reflect.generics.tree.Tree;
 
 import java.util.*;
 
@@ -39,6 +41,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     protected static final String SERVER_JSON_FIELD = "server";
     protected static final String FLAVOR_REF_JSON_FIELD = "flavorRef";
     protected static final String FLAVOR_JSON_FIELD = "flavor";
+    protected static final String FLAVOR_EXTRA_SPECS_JSON_FIELD = "extra_specs";
     protected static final String FLAVOR_ID_JSON_FIELD = "id";
     protected static final String IMAGE_JSON_FIELD = "imageRef";
     protected static final String USER_DATA_JSON_FIELD = "user_data";
@@ -58,6 +61,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     protected static final String PROJECT_ID = "projectId";
     protected static final String SUFFIX_ENDPOINT_KEYPAIRS = "/os-keypairs";
     protected static final String SUFFIX_ENDPOINT_FLAVORS = "/flavors";
+    protected static final String SUFFIX_FLAVOR_EXTRA_SPECS = "/os-extra_specs";
     protected static final String ADDRESS_FIELD = "addresses";
     protected static final String PROVIDER_NETWORK_FIELD = "default";
     protected static final String ADDR_FIELD = "addr";
@@ -66,9 +70,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     private HttpRequestClientUtil client;
     private LaunchCommandGenerator launchCommandGenerator;
 
-    public OpenStackComputePlugin() throws FatalErrorException {
-        this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                SystemConstants.OPENSTACK_CONF_FILE_NAME);
+    public OpenStackComputePlugin(String confFilePath) throws FatalErrorException {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
         instantiateOtherAttributes();
     }
@@ -180,7 +183,6 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     }
 
     private void initClient() {
-        HttpRequestUtil.init();
         this.client = new HttpRequestClientUtil();
     }
 
@@ -291,7 +293,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
 
     private HardwareRequirements getBestFlavor(ComputeOrder computeOrder, OpenStackV3Token openStackV3Token)
             throws FogbowRasException, UnexpectedException {
-        updateFlavors(openStackV3Token);
+        updateFlavors(openStackV3Token, computeOrder);
         TreeSet<HardwareRequirements> hardwareRequirementsList = getHardwareRequirementsList();
         for (HardwareRequirements hardwareRequirements : hardwareRequirementsList) {
             if (hardwareRequirements.getCpu() >= computeOrder.getvCPU()
@@ -303,7 +305,8 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
         return null;
     }
 
-    private void updateFlavors(OpenStackV3Token openStackV3Token) throws FogbowRasException, UnexpectedException {
+    private void updateFlavors(OpenStackV3Token openStackV3Token, ComputeOrder computeOrder) throws FogbowRasException,
+            UnexpectedException {
         String projectId = getProjectId(openStackV3Token);
         String flavorsEndpoint = getComputeEndpoint(projectId, SUFFIX_ENDPOINT_FLAVORS);
 
@@ -313,6 +316,11 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
 
             List<String> flavorsIds = new ArrayList<>();
             for (GetAllFlavorsResponse.Flavor flavor : getAllFlavorsResponse.getFlavors()) {
+                if (computeOrder != null && computeOrder.getRequirements() != null && computeOrder.getRequirements().size() > 0) {
+                    if (!flavorHasRequirements(openStackV3Token, computeOrder.getRequirements(), flavor.getId())) {
+                        continue;
+                    }
+                }
                 flavorsIds.add(flavor.getId());
             }
 
@@ -322,6 +330,28 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
         } catch (HttpResponseException e) {
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }
+    }
+
+    private boolean flavorHasRequirements(OpenStackV3Token openStackV3Token, Map<String, String> requirements,
+                                          String flavorId) throws FogbowRasException, UnexpectedException {
+        String projectId = getProjectId(openStackV3Token);
+        String specsEndpoint = getComputeEndpoint(projectId, SUFFIX_ENDPOINT_FLAVORS)  + "/" + flavorId + SUFFIX_FLAVOR_EXTRA_SPECS;
+
+        try {
+            String jsonResponse = this.client.doGetRequest(specsEndpoint, openStackV3Token);
+            GetFlavorExtraSpecsResponse getFlavorExtraSpecsResponse = GetFlavorExtraSpecsResponse.fromJson(jsonResponse);
+            Map<String, String> flavorExtraSpecs = getFlavorExtraSpecsResponse.getFlavorExtraSpecs();
+
+            for(String tag : requirements.keySet()) {
+                if (!flavorExtraSpecs.containsKey(tag) || !flavorExtraSpecs.get(tag).equals(requirements.get(tag))) {
+                    return false;
+                }
+            }
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowRasExceptionMapper.map(e);
+        }
+
+        return true;
     }
 
     private TreeSet<HardwareRequirements> detailFlavors(String endpoint, OpenStackV3Token openStackV3Token,
@@ -405,7 +435,7 @@ public class OpenStackComputePlugin implements ComputePlugin<OpenStackV3Token> {
     }
 
     private HardwareRequirements getFlavorById(String id, OpenStackV3Token openStackV3Token) throws FogbowRasException, UnexpectedException {
-        updateFlavors(openStackV3Token);
+        updateFlavors(openStackV3Token, null);
         TreeSet<HardwareRequirements> flavorsCopy = new TreeSet<>(getHardwareRequirementsList());
         for (HardwareRequirements hardwareRequirements : flavorsCopy) {
             if (hardwareRequirements.getFlavorId().equals(id)) {

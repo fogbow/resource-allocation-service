@@ -2,6 +2,7 @@ package org.fogbowcloud.ras.core;
 
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
 import org.fogbowcloud.ras.core.cloudconnector.LocalCloudConnector;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.datastore.DatabaseManager;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.InstanceStatus;
@@ -57,6 +58,7 @@ public class OrderControllerTest extends BaseUnitTests {
 
     @Before
     public void setUp() throws UnexpectedException {
+        PowerMockito.mockStatic(CloudConnectorFactory.class);
         // mocking database to return empty instances of SynchronizedDoublyLinkedList.
         super.mockReadOrdersFromDataBase();
 
@@ -64,13 +66,12 @@ public class OrderControllerTest extends BaseUnitTests {
 
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
 
-        PluginInstantiator instantiationInitService = PluginInstantiator.getInstance();
-        InteroperabilityPluginsHolder interoperabilityPluginsHolder = new InteroperabilityPluginsHolder(instantiationInitService);
-        AaaPluginsHolder aaaPluginsHolder = new AaaPluginsHolder(instantiationInitService);
-        CloudConnectorFactory cloudConnectorFactory = CloudConnectorFactory.getInstance();
-        cloudConnectorFactory.setLocalMemberId(getLocalMemberId());
-        cloudConnectorFactory.setMapperPlugin(aaaPluginsHolder.getFederationToLocalMapperPlugin());
-        cloudConnectorFactory.setInteroperabilityPluginsHolder(interoperabilityPluginsHolder);
+        String aaaConfFilePath = HomeDir.getPath() + SystemConstants.AAA_CONF_FILE_NAME;
+        AaaPluginsHolder aaaPluginsHolder = new AaaPluginsHolder();
+        aaaPluginsHolder.setTokenGeneratorPlugin(AaaPluginInstantiator.getTokenGeneratorPlugin(aaaConfFilePath));
+        aaaPluginsHolder.setFederationIdentityPlugin(AaaPluginInstantiator.getFederationIdentityPlugin(aaaConfFilePath));
+        aaaPluginsHolder.setAuthenticationPlugin(AaaPluginInstantiator.getAuthenticationPlugin(aaaConfFilePath));
+        aaaPluginsHolder.setAuthorizationPlugin(AaaPluginInstantiator.getAuthorizationPlugin(aaaConfFilePath));
 
         this.localCloudConnector = Mockito.mock(LocalCloudConnector.class);
 
@@ -140,9 +141,9 @@ public class OrderControllerTest extends BaseUnitTests {
         this.failedAfterSuccessfulRequestOrdersList.addItem(computeOrder2);
 
         InstanceStatus statusOrder = new InstanceStatus(computeOrder.getId(),
-                computeOrder.getProvider(), computeOrder.getCachedInstanceState());
+                computeOrder.getProvider(), computeOrder.getCloudName(), computeOrder.getCachedInstanceState());
         InstanceStatus statusOrder2 = new InstanceStatus(computeOrder2.getId(),
-                computeOrder2.getProvider(), computeOrder2.getCachedInstanceState());
+                computeOrder2.getProvider(), computeOrder.getCloudName(), computeOrder2.getCachedInstanceState());
 
         // exercise
         List<InstanceStatus> instances = this.ordersController.getInstancesStatus(federationUserToken,
@@ -171,7 +172,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(computeOrder, this.openOrdersList.getNext());
     }
 
-    // test case: Get allocationAllowableValues not active Order, must throw InstanceNotFoundException.
+    // test case: Get a not active Order, must throw InstanceNotFoundException.
     @Test(expected = InstanceNotFoundException.class) // verify
     public void testGetInactiveOrder() throws InstanceNotFoundException {
         // set up
@@ -203,7 +204,7 @@ public class OrderControllerTest extends BaseUnitTests {
         LocalCloudConnector localCloudConnector = Mockito.mock(LocalCloudConnector.class);
 
         CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
-        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString()))
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString()))
                 .thenReturn(localCloudConnector);
 
         Order order = createOrder(LOCAL_MEMBER_ID, LOCAL_MEMBER_ID);
@@ -280,7 +281,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.getUserAllocation(this.localMember, federationUserToken, ResourceType.NETWORK);
     }
 
-    // test case: Checks if deleting allocationAllowableValues failed order, this one will be moved to the closed orders
+    // test case: Checks if deleting a failed order, this one will be moved to the closed orders
     // list.
     @Test
     public void testDeleteOrderStateFailed()
@@ -288,6 +289,10 @@ public class OrderControllerTest extends BaseUnitTests {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
+
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString())).thenReturn(localCloudConnector);
 
         // verify
         Assert.assertNotNull(this.failedAfterSuccessfulRequestOrdersList.getNext());
@@ -306,7 +311,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
-    // test case: Checks if deleting allocationAllowableValues fulfilled order, this one will be moved to the closed orders
+    // test case: Checks if deleting a fulfilled order, this one will be moved to the closed orders
     // list.
     @Test
     public void testDeleteOrderStateFulfilled()
@@ -314,6 +319,10 @@ public class OrderControllerTest extends BaseUnitTests {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.FULFILLED);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
+
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString())).thenReturn(localCloudConnector);
 
         // verify
         Assert.assertNotNull(this.fulfilledOrdersList.getNext());
@@ -331,7 +340,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
-    // test case: Checks if deleting allocationAllowableValues spawning order, this one will be moved to the closed orders
+    // test case: Checks if deleting a spawning order, this one will be moved to the closed orders
     // list.
     @Test
     public void testDeleteOrderStateSpawning()
@@ -339,6 +348,10 @@ public class OrderControllerTest extends BaseUnitTests {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.SPAWNING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
+
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString())).thenReturn(localCloudConnector);
 
         // verify
         Assert.assertNotNull(this.spawningOrdersList.getNext());
@@ -356,7 +369,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
-    // test case: Checks if deleting allocationAllowableValues pending order, this one will be moved to the closed orders
+    // test case: Checks if deleting a pending order, this one will be moved to the closed orders
     // list.
     @Test
     public void testDeleteOrderStatePending()
@@ -364,6 +377,10 @@ public class OrderControllerTest extends BaseUnitTests {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.PENDING);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
+
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString())).thenReturn(localCloudConnector);
 
         // verify
         Assert.assertNotNull(this.pendingOrdersList.getNext());
@@ -381,13 +398,17 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
-    // test case: Checks if deleting allocationAllowableValues open order, this one will be moved to the closed orders list.
+    // test case: Checks if deleting a open order, this one will be moved to the closed orders list.
     @Test
     public void testDeleteOrderStateOpen()
             throws Exception {
         // set up
         String orderId = getComputeOrderCreationId(OrderState.OPEN);
         ComputeOrder computeOrder = (ComputeOrder) this.activeOrdersMap.get(orderId);
+
+        CloudConnectorFactory cloudConnectorFactory = Mockito.mock(CloudConnectorFactory.class);
+        PowerMockito.when(CloudConnectorFactory.getInstance()).thenReturn(cloudConnectorFactory);
+        Mockito.when(cloudConnectorFactory.getCloudConnector(Mockito.anyString(), Mockito.anyString())).thenReturn(localCloudConnector);
 
         // verify
         Assert.assertNotNull(this.openOrdersList.getNext());
@@ -405,7 +426,7 @@ public class OrderControllerTest extends BaseUnitTests {
         Assert.assertEquals(OrderState.CLOSED, order.getOrderState());
     }
 
-    // test case: Deleting allocationAllowableValues null order must return allocationAllowableValues FogbowRasException.
+    // test case: Deleting a null order must return a FogbowRasException.
     @Test(expected = FogbowRasException.class) // verify
     public void testDeleteNullOrder()
             throws Exception {
@@ -419,7 +440,7 @@ public class OrderControllerTest extends BaseUnitTests {
         this.ordersController.getOrder("invalid-order-id");
     }
 
-    // test case: Getting an order passing allocationAllowableValues different ResourceType must raise InstanceNotFoundException.
+    // test case: Getting an order passing a different ResourceType must raise InstanceNotFoundException.
     // ToDO: The refactor in ApplicationFacade moved the this logic out from OrderController; this test should be moved elsewhere.
     @Ignore
     @Test(expected = InstanceNotFoundException.class)
@@ -500,7 +521,7 @@ public class OrderControllerTest extends BaseUnitTests {
                         federationUserToken,
                         requestingMember,
                         providingMember,
-                        instanceName,
+                        "default", instanceName,
                         8,
                         1024,
                         30,

@@ -8,7 +8,6 @@ import org.fogbowcloud.ras.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.XmppExceptionToErrorConditionTranslator;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
-import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.jamppa.component.handler.AbstractQueryHandler;
 import org.xmpp.packet.IQ;
 
@@ -25,14 +24,14 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
 
     @Override
     public IQ handle(IQ iq) {
-        String memberId = unmarshalMemberId(iq);
+        String cloudName = unmarshalCloudName(iq);
         FederationUserToken federationUserToken = unmarshalFederationUser(iq);
 
         IQ response = IQ.createResultIQ(iq);
 
         try {
-            Map<String, String> imagesMap = RemoteFacade.getInstance().getAllImages(iq.getFrom().toBareJID(), memberId,
-                    federationUserToken);
+            Map<String, String> imagesMap = RemoteFacade.getInstance().getAllImages(iq.getFrom().toBareJID(),
+                    cloudName, federationUserToken);
             updateResponse(response, imagesMap);
         } catch (Exception e) {
             XmppExceptionToErrorConditionTranslator.updateErrorCondition(response, e);
@@ -40,11 +39,12 @@ public class RemoteGetAllImagesRequestHandler extends AbstractQueryHandler {
         return response;
     }
 
-    private String unmarshalMemberId(IQ iq) {
+    private String unmarshalCloudName(IQ iq) {
         Element queryElement = iq.getElement().element(IqElement.QUERY.toString());
-        Element memberIdElement = queryElement.element(IqElement.MEMBER_ID.toString());
-        String memberId = memberIdElement.getText();
-        return memberId;
+
+        Element cloudNameElement = queryElement.element(IqElement.CLOUD_NAME.toString());
+        String cloudName = new Gson().fromJson(cloudNameElement.getText(), String.class);
+        return cloudName;
     }
 
     private FederationUserToken unmarshalFederationUser(IQ iq) {

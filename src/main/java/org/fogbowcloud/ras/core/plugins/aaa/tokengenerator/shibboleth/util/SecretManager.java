@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationHolder;
+import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 
 public class SecretManager {
 	

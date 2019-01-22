@@ -11,6 +11,7 @@ import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
+import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGeneratorPlugin;
 import org.fogbowcloud.ras.util.RSAUtil;
 import org.junit.Assert;
@@ -33,12 +34,12 @@ public class CloudStackAuthenticationPluginTest {
         this.providerId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
         try {
-            this.privateKey = RSAUtil.getPrivateKey();
+            this.privateKey = RASAuthenticationHolder.getInstance().getPrivateKey();
         } catch (IOException | GeneralSecurityException e) {
             throw new FatalErrorException(String.format(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE, e.getMessage()));
         }
 
-        this.authenticationPlugin = Mockito.spy(new CloudStackAuthenticationPlugin());
+        this.authenticationPlugin = Mockito.spy(new CloudStackAuthenticationPlugin(this.providerId));
     }
 
     //test case: check if isAuthentic returns true when the tokenValue is valid.

@@ -47,6 +47,8 @@ public class CloudStackImagePluginTest {
     private static final String FAKE_SIGNATURE = "fake-signature";
     private static final String JSON = "json";
     private static final String RESPONSE_KEY = "response";
+    public static final String CLOUDSTACK_URL = "cloudstack_api_url";
+    public static final String CLOUD_NAME = "cloudstack";
 
     public static final CloudStackToken FAKE_TOKEN = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE,
             FAKE_USER_ID, FAKE_USERNAME, FAKE_SIGNATURE);
@@ -57,13 +59,18 @@ public class CloudStackImagePluginTest {
 
     private CloudStackImagePlugin plugin;
     private HttpRequestClientUtil client;
+    private Properties properties;
 
     @Before
     public void setUp() {
         // we dont want HttpRequestUtil code to be executed in this test
         PowerMockito.mockStatic(HttpRequestUtil.class);
 
-        this.plugin = new CloudStackImagePlugin();
+        String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+                File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
+
+        this.plugin = new CloudStackImagePlugin(cloudStackConfFilePath);
 
         this.client = Mockito.mock(HttpRequestClientUtil.class);
         this.plugin.setClient(this.client);
@@ -102,7 +109,7 @@ public class CloudStackImagePluginTest {
     }
 
     @Test
-    // test case: when getting allocationAllowableValues valid template, besides token being signed and an HTTP GET request being made
+    // test case: when getting a valid template, besides token being signed and an HTTP GET request being made
     // the returned image attributes should match with the ones provided by the cloud
     public void testGettingExistingTemplate() throws FogbowRasException, UnexpectedException, HttpResponseException {
         // set up
@@ -136,7 +143,7 @@ public class CloudStackImagePluginTest {
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(expectedRequestUrl, FAKE_TOKEN);
     }
 
-    // test case: getting allocationAllowableValues non-existing image should throw an InstanceNotFoundException
+    // test case: getting a non-existing image should throw an InstanceNotFoundException
     @Test(expected = InstanceNotFoundException.class)
     public void testGetNonExistingTemplate() throws FogbowRasException, HttpResponseException, UnexpectedException {
         // set up
@@ -194,11 +201,7 @@ public class CloudStackImagePluginTest {
     }
 
     private String getBaseEndpointFromCloudStackConf() {
-        String filePath = HomeDir.getPath() + File.separator
-                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
-
-        Properties properties = PropertiesUtil.readProperties(filePath);
-        return properties.getProperty(CloudStackTokenGeneratorPlugin.CLOUDSTACK_URL);
+        return this.properties.getProperty(CLOUDSTACK_URL);
     }
 
     private static class TemplateResponse {

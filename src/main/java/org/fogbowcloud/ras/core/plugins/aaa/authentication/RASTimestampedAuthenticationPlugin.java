@@ -4,6 +4,10 @@ import org.fogbowcloud.ras.core.models.tokens.TimestampedSignedFederationUserTok
 
 public abstract class RASTimestampedAuthenticationPlugin extends RASAuthenticationPlugin {
 
+	public RASTimestampedAuthenticationPlugin(String localProviderId) {
+		super(localProviderId);
+	}
+
     public boolean isAuthentic(String requestingMember, TimestampedSignedFederationUserToken timestampedSignedFederationUserToken)  {
     	boolean isAuthenticated = super.isAuthentic(requestingMember, timestampedSignedFederationUserToken);
     	boolean isValid = checkValidity(timestampedSignedFederationUserToken.getTimestamp()); 

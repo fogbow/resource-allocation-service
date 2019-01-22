@@ -7,8 +7,6 @@ import org.fogbowcloud.ras.core.intercomponent.xmpp.IqElement;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.PacketSenderHolder;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.RemoteMethod;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.XmppErrorConditionToExceptionTranslator;
-import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
-import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.xmpp.packet.IQ;
 
@@ -16,13 +14,15 @@ public class RemoteDeleteSecurityRuleRequest implements RemoteRequest<Void> {
 
     private static final Logger LOGGER = Logger.getLogger(RemoteDeleteSecurityRuleRequest.class);
 
-    private String ruleId;
     private String provider;
+    private String cloudName;
+    private String ruleId;
     private FederationUserToken federationUserToken;
 
-    public RemoteDeleteSecurityRuleRequest(String ruleId, String provider, FederationUserToken federationUserToken) {
-        this.ruleId = ruleId;
+    public RemoteDeleteSecurityRuleRequest(String provider, String cloudName, String ruleId, FederationUserToken federationUserToken) {
         this.provider = provider;
+        this.cloudName = cloudName;
+        this.ruleId = ruleId;
         this.federationUserToken = federationUserToken;
     }
 
@@ -41,6 +41,9 @@ public class RemoteDeleteSecurityRuleRequest implements RemoteRequest<Void> {
 
         Element queryElement = iq.getElement().addElement(IqElement.QUERY.toString(),
                 RemoteMethod.REMOTE_DELETE_SECURITY_RULE.toString());
+
+        Element cloudNameElement = queryElement.addElement(IqElement.CLOUD_NAME.toString());
+        cloudNameElement.setText(cloudName);
 
         Element userElement = queryElement.addElement(IqElement.FEDERATION_USER.toString());
         userElement.setText(new Gson().toJson(federationUserToken));

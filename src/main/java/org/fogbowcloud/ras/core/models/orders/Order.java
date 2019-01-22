@@ -5,9 +5,12 @@ import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+//import org.hibernate.annotations.CollectionOfElements;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -28,9 +31,15 @@ public abstract class Order implements Serializable {
     @Column
     private String provider;
     @Column
+    private String cloudName;
+    @Column
     private String instanceId;
     @Column
     private InstanceState cachedInstanceState;
+    @ElementCollection
+    @MapKeyColumn
+    @Column
+    private Map<String, String> requirements = new HashMap<>();
 
     public Order() {
     }
@@ -39,13 +48,14 @@ public abstract class Order implements Serializable {
         this.id = id;
     }
 
-    public Order(String id, String provider) {
+    public Order(String id, String provider, String cloudName) {
         this(id);
         this.provider = provider;
+        this.cloudName = cloudName;
     }
 
-    public Order(String id, String provider, FederationUserToken federationUserToken, String requester) {
-        this(id, provider);
+    public Order(String id, String provider, String cloudName, FederationUserToken federationUserToken, String requester) {
+        this(id, provider, cloudName);
         this.federationUserToken = federationUserToken;
         this.requester = requester;
     }
@@ -94,12 +104,21 @@ public abstract class Order implements Serializable {
         this.requester = requester;
     }
 
+    // When the provider is not set, then the request is assumed to be local, i.e. provider and request are the same.
     public String getProvider() {
         return this.provider;
     }
 
     public void setProvider(String provider) {
         this.provider = provider;
+    }
+
+    public String getCloudName() {
+        return this.cloudName;
+    }
+
+    public void setCloudName(String cloudName) {
+        this.cloudName = cloudName;
     }
 
     public String getInstanceId() {
@@ -116,6 +135,14 @@ public abstract class Order implements Serializable {
 
     public void setCachedInstanceState(InstanceState cachedInstanceState) {
         this.cachedInstanceState = cachedInstanceState;
+    }
+
+    public Map<String, String> getRequirements() {
+        return requirements;
+    }
+
+    public void setRequirements(Map<String, String> requirements) {
+        this.requirements = requirements;
     }
 
     public boolean isProviderLocal(String localMemberId) {

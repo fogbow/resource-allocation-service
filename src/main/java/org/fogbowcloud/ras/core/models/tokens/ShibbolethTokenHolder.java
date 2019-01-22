@@ -12,7 +12,7 @@ import org.json.JSONObject;
 
 public class ShibbolethTokenHolder {
 
-	protected static final String SHIBBOLETH_SEPARETOR = ShibbolethTokenGenerator.SHIBBOLETH_SEPARETOR;
+	protected static final String SHIBBOLETH_SEPARETOR = ShibbolethTokenGenerator.SHIBBOLETH_SEPARATOR;
 
 	public static final int PARAMETERS_SIZE_TOKEN_VALUE = 7;
 

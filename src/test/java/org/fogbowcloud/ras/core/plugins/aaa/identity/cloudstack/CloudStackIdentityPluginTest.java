@@ -1,6 +1,8 @@
 package org.fogbowcloud.ras.core.plugins.aaa.identity.cloudstack;
 
-import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
+import org.fogbowcloud.ras.core.exceptions.InvalidTokenException;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGeneratorPlugin;
 import org.junit.Assert;
@@ -8,10 +10,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
 public class CloudStackIdentityPluginTest {
+    private static final String CLOUD_NAME = "cloudstack";
     private static final String FAKE_PROVIDER = "fake-provider";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
     private static final String FAKE_USER_ID = "fake-user-id";
@@ -23,11 +27,14 @@ public class CloudStackIdentityPluginTest {
 
     @Before
     public void setUp() {
+        String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+                File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+
         this.identityPlugin = new CloudStackIdentityPlugin();
-        this.tokenGenerator = Mockito.spy(new CloudStackTokenGeneratorPlugin());
+        this.tokenGenerator = Mockito.spy(new CloudStackTokenGeneratorPlugin(cloudStackConfFilePath));
     }
 
-    //test case: check if the token value information is correct when creating allocationAllowableValues token with the correct user credentials.
+    //test case: check if the token value information is correct when creating a token with the correct user credentials.
     @Test
     public void testCreateToken() throws Exception {
         //set up
@@ -57,7 +64,7 @@ public class CloudStackIdentityPluginTest {
 
     //test case: check if createFederationTokenValue throws UnauthenticatedUserException when the user credentials
     // are invalid.
-    @Test(expected = InvalidParameterException.class)
+    @Test(expected = InvalidTokenException.class)
     public void testCreateTokenFail() throws Exception {
         //exercise/verify
         this.identityPlugin.createToken("anything");

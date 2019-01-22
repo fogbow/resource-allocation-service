@@ -4,8 +4,8 @@ import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
 
 /**
- * This class is allocationAllowableValues stub for the FederationIdentityPlugin interface used for tests only.
- * Should not have allocationAllowableValues proper implementation.
+ * This class is a stub for the FederationIdentityPlugin interface used for tests only.
+ * Should not have a proper implementation.
  */
 public class StubFederationIdentityPlugin implements FederationIdentityPlugin<FederationUserToken> {
 

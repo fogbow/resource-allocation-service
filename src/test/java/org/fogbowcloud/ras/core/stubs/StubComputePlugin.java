@@ -6,12 +6,12 @@ import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.ComputePlugin;
 
 /**
- * This class is allocationAllowableValues stub for the ComputePlugin interface used for tests only.
- * Should not have allocationAllowableValues proper implementation.
+ * This class is a stub for the ComputePlugin interface used for tests only.
+ * Should not have a proper implementation.
  */
 public class StubComputePlugin implements ComputePlugin<Token> {
 
-    public StubComputePlugin() {
+    public StubComputePlugin(String confFilePath) {
     }
 
     @Override

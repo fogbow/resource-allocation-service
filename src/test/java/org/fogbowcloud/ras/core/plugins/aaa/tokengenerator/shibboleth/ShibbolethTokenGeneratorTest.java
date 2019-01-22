@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
+import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
@@ -38,8 +39,9 @@ public class ShibbolethTokenGeneratorTest {
 		
 		this.privateKey = RSAUtil.getPrivateKey(privateKeyPath);
 		this.publicKey = RSAUtil.getPublicKey(publicKeyPath);
-		
-		this.shibbolethTokenGenerator = Mockito.spy(new ShibbolethTokenGenerator());		
+
+		String path = HomeDir.getPath();
+		this.shibbolethTokenGenerator = Mockito.spy(new ShibbolethTokenGenerator(path + "shibboleth.conf"));
 	}
 
 	// test case: success case
@@ -70,7 +72,7 @@ public class ShibbolethTokenGeneratorTest {
 		String tokenValue = this.shibbolethTokenGenerator.createTokenValue(userCredentials);
 		
 		//verify
-		String[] tokenValueSlices = tokenValue.split(ShibbolethTokenGenerator.SHIBBOLETH_SEPARETOR);
+		String[] tokenValueSlices = tokenValue.split(ShibbolethTokenGenerator.SHIBBOLETH_SEPARATOR);
 		String assertionUrl = tokenValueSlices[0];
 		String identityProvider = tokenValueSlices[1];
 		String eduPrincipalName = tokenValueSlices[2];
@@ -187,7 +189,7 @@ public class ShibbolethTokenGeneratorTest {
 				samlAttributesStr,
 				expirationTime
 			};
-		String rawRasToken = StringUtils.join(parameters, ShibbolethTokenGenerator.SHIBBOLETH_SEPARETOR);
+		String rawRasToken = StringUtils.join(parameters, ShibbolethTokenGenerator.SHIBBOLETH_SEPARATOR);
 		return rawRasToken;
 	}
 	
@@ -202,7 +204,7 @@ public class ShibbolethTokenGeneratorTest {
 				samlAttributesStr
 			};
 		
-		return StringUtils.join(parameters, ShibbolethTokenGenerator.SHIBBOLETH_SEPARETOR);
+		return StringUtils.join(parameters, ShibbolethTokenGenerator.SHIBBOLETH_SEPARATOR);
 	}
 	
 	private String sign(String message) throws IOException, GeneralSecurityException {

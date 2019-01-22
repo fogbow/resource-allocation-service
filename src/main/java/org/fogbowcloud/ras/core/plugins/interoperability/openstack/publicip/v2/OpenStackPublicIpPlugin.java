@@ -2,9 +2,7 @@ package org.fogbowcloud.ras.core.plugins.interoperability.openstack.publicip.v2;
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
@@ -23,9 +21,6 @@ import org.fogbowcloud.ras.core.plugins.interoperability.openstack.publicip.v2.G
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestUtil;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.net.URISyntaxException;
 import java.util.List;
@@ -60,13 +55,12 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
     private Properties properties;
     private HttpRequestClientUtil client;
 
-    public OpenStackPublicIpPlugin() {
-        this(true);
+    public OpenStackPublicIpPlugin(String confFilePath) {
+        this(confFilePath, true);
     }
 
-    public OpenStackPublicIpPlugin(boolean checkProperties) {
-        this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                SystemConstants.OPENSTACK_CONF_FILE_NAME);
+    public OpenStackPublicIpPlugin(String confFilePath, boolean checkProperties) {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
         initClient();
         checkProperties(checkProperties);
     }
@@ -379,7 +373,6 @@ public class OpenStackPublicIpPlugin implements PublicIpPlugin<OpenStackV3Token>
     }
 
     private void initClient() {
-        HttpRequestUtil.init();
         this.client = new HttpRequestClientUtil();
     }
 

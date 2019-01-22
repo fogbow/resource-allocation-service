@@ -52,6 +52,7 @@ public class CloudStackTokenGeneratorPluginTest {
     private static final String DOMAIN_KEY = "domain";
     private static final String SESSION_KEY_KEY = "sessionkey";
     private static final String CLOUDSTACK_URL = "cloudstack_api_url";
+    private static final String CLOUD_NAME = "cloudstack";
 
     private static final String FAKE_API_KEY = "fake-api-key";
     private static final String FAKE_SECRET_KEY = "fake-secret-key";
@@ -61,22 +62,27 @@ public class CloudStackTokenGeneratorPluginTest {
     private CloudStackTokenGeneratorPlugin cloudStackTokenGenerator;
     private CloudStackIdentityPlugin cloudStackIdentityPlugin;
     private CloudStackAuthenticationPlugin cloudStackAuthenticationPlugin;
+    private Properties properties;
     private String memberId;
 
     @Before
     public void setUp() throws Exception {
         PowerMockito.mockStatic(HttpRequestUtil.class);
 
+        String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+                File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+
+        this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
         this.httpRequestClientUtil = Mockito.mock(HttpRequestClientUtil.class);
-        this.cloudStackTokenGenerator = Mockito.spy(new CloudStackTokenGeneratorPlugin());
+        this.cloudStackTokenGenerator = Mockito.spy(new CloudStackTokenGeneratorPlugin(cloudStackConfFilePath));
         this.cloudStackTokenGenerator.setClient(this.httpRequestClientUtil);
         this.cloudStackIdentityPlugin = new CloudStackIdentityPlugin();
-        this.cloudStackAuthenticationPlugin = new CloudStackAuthenticationPlugin();
         this.memberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        this.cloudStackAuthenticationPlugin = new CloudStackAuthenticationPlugin(this.memberId);
     }
 
-    // Test case: when creating allocationAllowableValues token, two requests should be made: one post request to login the user using their
-    // credentials and get allocationAllowableValues session key to perform the other get request to retrieve the user "token", i.e., info
+    // Test case: when creating a token, two requests should be made: one post request to login the user using their
+    // credentials and get a session key to perform the other get request to retrieve the user "token", i.e., info
     // needed to perform requests in cloudstack (namely api key and secret key)
     @Test
     public void testCreateToken() throws FogbowRasException, UnexpectedException, IOException {
@@ -224,9 +230,6 @@ public class CloudStackTokenGeneratorPluginTest {
     }
 
     private String getBaseEndpointFromCloudStackConf() {
-        String filePath = HomeDir.getPath() + File.separator
-                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
-        Properties properties = PropertiesUtil.readProperties(filePath);
-        return properties.getProperty(CLOUDSTACK_URL);
+        return this.properties.getProperty(CLOUDSTACK_URL);
     }
 }

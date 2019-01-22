@@ -2,7 +2,7 @@ package org.fogbowcloud.ras.core.plugins.aaa.identity.openstack.v3;
 
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.exceptions.InvalidTokenException;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.OpenStackTokenGeneratorPlugin;
@@ -14,12 +14,12 @@ public class OpenStackIdentityPlugin implements FederationIdentityPlugin<OpenSta
     }
 
     @Override
-    public OpenStackV3Token createToken(String tokenValue) throws InvalidParameterException {
+    public OpenStackV3Token createToken(String tokenValue) throws InvalidTokenException {
 
         String split[] = tokenValue.split(OpenStackTokenGeneratorPlugin.OPENSTACK_TOKEN_STRING_SEPARATOR);
         if (split == null || split.length != OpenStackTokenGeneratorPlugin.OPENSTACK_TOKEN_NUMBER_OF_FIELDS) {
             LOGGER.error(String.format(Messages.Error.INVALID_TOKEN_VALUE, tokenValue));
-            throw new InvalidParameterException();
+            throw new InvalidTokenException();
         }
 
         String tokenProvider = split[0];

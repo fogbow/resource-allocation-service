@@ -3,7 +3,6 @@ package org.fogbowcloud.ras.core;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.authorization.AuthorizationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
-import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 
 public class AaaPluginsHolder {
@@ -11,14 +10,24 @@ public class AaaPluginsHolder {
     private FederationIdentityPlugin federationIdentityPlugin;
     private AuthenticationPlugin authenticationPlugin;
     private AuthorizationPlugin authorizationPlugin;
-    private FederationToLocalMapperPlugin federationToLocalMapperPlugin;
 
-    public AaaPluginsHolder(PluginInstantiator instantiationInitService) {
-        this.tokenGeneratorPlugin = instantiationInitService.getTokenGeneratorPlugin();
-        this.federationIdentityPlugin = instantiationInitService.getFederationIdentityPlugin();
-        this.authenticationPlugin = instantiationInitService.getAuthenticationPlugin();
-        this.authorizationPlugin = instantiationInitService.getAuthorizationPlugin();
-        this.federationToLocalMapperPlugin = instantiationInitService.getLocalUserCredentialsMapperPlugin();
+    public AaaPluginsHolder() {
+    }
+
+    public void setTokenGeneratorPlugin(TokenGeneratorPlugin tokenGeneratorPlugin) {
+        this.tokenGeneratorPlugin = tokenGeneratorPlugin;
+    }
+
+    public void setFederationIdentityPlugin(FederationIdentityPlugin federationIdentityPlugin) {
+        this.federationIdentityPlugin = federationIdentityPlugin;
+    }
+
+    public void setAuthenticationPlugin(AuthenticationPlugin authenticationPlugin) {
+        this.authenticationPlugin = authenticationPlugin;
+    }
+
+    public void setAuthorizationPlugin(AuthorizationPlugin authorizationPlugin) {
+        this.authorizationPlugin = authorizationPlugin;
     }
 
     public TokenGeneratorPlugin getTokenGeneratorPlugin() {
@@ -35,9 +44,5 @@ public class AaaPluginsHolder {
 
     public AuthorizationPlugin getAuthorizationPlugin() {
         return this.authorizationPlugin;
-    }
-
-    public FederationToLocalMapperPlugin getFederationToLocalMapperPlugin() {
-        return this.federationToLocalMapperPlugin;
     }
 }

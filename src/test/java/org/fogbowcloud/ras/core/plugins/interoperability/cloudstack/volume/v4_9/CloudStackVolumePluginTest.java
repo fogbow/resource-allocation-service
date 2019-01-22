@@ -34,6 +34,7 @@ import java.util.Properties;
         GetVolumeResponse.class})
 public class CloudStackVolumePluginTest {
 
+    private static final String CLOUD_NAME = "cloudstack";
     private static final String BASE_ENDPOINT_KEY = "cloudstack_api_url";
     private static final String REQUEST_FORMAT = "%s?command=%s";
     private static final String RESPONSE_FORMAT = "&response=%s";
@@ -45,7 +46,6 @@ public class CloudStackVolumePluginTest {
     private static final int MEGABYTE = 1024 * KILOBYTE;
     private static final int GIGABYTE = 1024 * MEGABYTE;
 
-//    private static final String ONE_GIGABYTE = "1";
     private static final String DEFAULT_STATE = "Ready";
     private static final String DEFAULT_DISPLAY_TEXT =
             "A description of the error will be shown if the success field is equal to false.";
@@ -54,12 +54,14 @@ public class CloudStackVolumePluginTest {
     private static final String FAKE_ID = "fake-id";
     private static final String FAKE_JOB_ID = "fake-job-id";
     private static final String FAKE_NAME = "fake-name";
+    private static final String FAKE_TAGS = "tag1:value1,tag2:value2";
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
     private static final String FAKE_USER_ID = "fake-user-id";
     private static final String FAKE_USERNAME = "fake-username";
     private static final String FAKE_TOKEN_VALUE = "fake-api-key:fake-secret-key";
     private static final String FAKE_SIGNATURE = "fake-signature";
     private static final String FAKE_MEMBER = "fake-member";
+    private static final String FAKE_CLOUD_NAME = "cloud-name";
 
     private static final String JSON_FORMAT = "json";
     private static final String RESPONSE_KEY = "response";
@@ -76,20 +78,26 @@ public class CloudStackVolumePluginTest {
     private CloudStackVolumePlugin plugin;
     private HttpRequestClientUtil client;
     private CloudStackToken token;
+    private Properties properties;
 
     @Before
     public void setUp() {
         PowerMockito.mockStatic(HttpRequestUtil.class);
+        String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+                File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
+
+        PowerMockito.mockStatic(HttpRequestUtil.class);
 
         this.client = Mockito.mock(HttpRequestClientUtil.class);
-        this.plugin = new CloudStackVolumePlugin();
+        this.plugin = new CloudStackVolumePlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
         this.token = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE, FAKE_USER_ID, FAKE_USERNAME, FAKE_SIGNATURE);
     }
 
-    // test case: When calling the requestInstance method with allocationAllowableValues size compatible with the
-    // orchestrator's disk offering, HTTP GET requests must be made with allocationAllowableValues signed token, one to get
-    // the compatible disk offering Id attached to the requisition, and another to create allocationAllowableValues volume
+    // test case: When calling the requestInstance method with a size compatible with the
+    // orchestrator's disk offering, HTTP GET requests must be made with a signed token, one to get
+    // the compatible disk offering Id attached to the requisition, and another to create a volume
     // of compatible size, returning the id of the VolumeInstance object.
     @Test
     public void testCreateRequestInstanceSuccessfulWithDiskSizeCompatible()
@@ -109,7 +117,7 @@ public class CloudStackVolumePluginTest {
         String id = FAKE_DISK_OFFERING_ID;
         int diskSize = COMPATIBLE_SIZE;
         boolean customized = false;
-        String diskOfferings = getListDiskOfferrings(id, diskSize, customized);
+        String diskOfferings = getListDiskOfferrings(id, diskSize, customized, FAKE_TAGS);
 
         Mockito.when(this.client.doGetRequest(request, this.token)).thenReturn(diskOfferings);
 
@@ -130,7 +138,7 @@ public class CloudStackVolumePluginTest {
 
         // exercise
         VolumeOrder order =
-                new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, COMPATIBLE_SIZE);
+                new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, COMPATIBLE_SIZE);
         String volumeId = this.plugin.requestInstance(order, this.token);
 
         // verify
@@ -147,9 +155,9 @@ public class CloudStackVolumePluginTest {
         Assert.assertEquals(expectedId, volumeId);
     }
 
-    // test case: When calling the requestInstance method to get allocationAllowableValues size customized by the
-    // orchestrator's disk offering, HTTP GET requests must be made with allocationAllowableValues signed token, one to get
-    // the standard disk offering Id attached to the requisition, and another to create allocationAllowableValues volume of
+    // test case: When calling the requestInstance method to get a size customized by the
+    // orchestrator's disk offering, HTTP GET requests must be made with a signed token, one to get
+    // the standard disk offering Id attached to the requisition, and another to create a volume of
     // customized size, returning the id of the VolumeInstance object.
     @Test
     public void testCreateRequestInstanceSuccessfulWithDiskSizeCustomized()
@@ -169,7 +177,7 @@ public class CloudStackVolumePluginTest {
         String id = FAKE_DISK_OFFERING_ID;
         int diskSize = STANDARD_SIZE;
         boolean customized = true;
-        String diskOfferings = getListDiskOfferrings(id, diskSize, customized);
+        String diskOfferings = getListDiskOfferrings(id, diskSize, customized, FAKE_TAGS);
 
         Mockito.when(this.client.doGetRequest(request, this.token)).thenReturn(diskOfferings);
 
@@ -190,7 +198,7 @@ public class CloudStackVolumePluginTest {
 
         // exercise
         VolumeOrder order =
-                new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, CUSTOMIZED_SIZE);
+                new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, CUSTOMIZED_SIZE);
         String volumeId = this.plugin.requestInstance(order, this.token);
 
         // verify
@@ -207,7 +215,117 @@ public class CloudStackVolumePluginTest {
         Assert.assertEquals(expectedId, volumeId);
     }
 
-    // test case: When calling the requestInstance method with allocationAllowableValues user without permission, an
+    @Test
+    public void testCreateRequestInstanceSuccessfulWithRequirements() throws HttpResponseException, FogbowRasException {
+        // set up
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito
+                .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
+                .thenCallRealMethod();
+
+        String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
+        String baseEndpoint = getBaseEndpointFromCloudStackConf();
+        String command = GetAllDiskOfferingsRequest.LIST_DISK_OFFERINGS_COMMAND;
+        String jsonFormat = JSON_FORMAT;
+        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat);
+
+        String id = FAKE_DISK_OFFERING_ID;
+        int diskSize = COMPATIBLE_SIZE;
+        boolean customized = false;
+        String diskOfferings = getListDiskOfferrings(id, diskSize, customized, FAKE_TAGS);
+        Map<String, String> fakeRequirements = new HashMap<>();
+        fakeRequirements.put("tag1", "value1");
+
+        Mockito.when(this.client.doGetRequest(request, this.token)).thenReturn(diskOfferings);
+
+        Map<String, String> expectedParams = new HashMap<>();
+        expectedParams.put(COMMAND_KEY, CreateVolumeRequest.CREATE_VOLUME_COMMAND);
+        expectedParams.put(RESPONSE_KEY, JSON_FORMAT);
+        expectedParams.put(ZONE_ID_KEY, this.plugin.getZoneId());
+        expectedParams.put(NAME_KEY, FAKE_NAME);
+        expectedParams.put(DISK_OFFERING_ID_KEY, FAKE_DISK_OFFERING_ID);
+        expectedParams.put(SIZE_KEY, new Long(diskSize * GIGABYTE).toString());
+
+        CloudStackUrlMatcher urlMatcher = new CloudStackUrlMatcher(expectedParams, SIZE_KEY);
+
+        String response = getCreateVolumeResponse(FAKE_ID, FAKE_JOB_ID);
+        Mockito.when(
+                this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(this.token)))
+                .thenReturn(response);
+
+        // exercise
+        VolumeOrder order =
+                new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_CLOUD_NAME, FAKE_NAME, COMPATIBLE_SIZE);
+        order.setRequirements(fakeRequirements);
+        String volumeId = this.plugin.requestInstance(order, this.token);
+
+        // verify
+        PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(2));
+        CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
+
+        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(request),
+                Mockito.eq(this.token));
+
+        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.argThat(urlMatcher),
+                Mockito.eq(this.token));
+
+        String expectedId = FAKE_ID;
+        Assert.assertEquals(expectedId, volumeId);
+    }
+
+    @Test(expected = FogbowRasException.class)
+    public void testCreateRequestInstanceFailNoRequirements() throws HttpResponseException, FogbowRasException {
+        // set up
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito
+                .when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString()))
+                .thenCallRealMethod();
+
+        String urlFormat = REQUEST_FORMAT + RESPONSE_FORMAT;
+        String baseEndpoint = getBaseEndpointFromCloudStackConf();
+        String command = GetAllDiskOfferingsRequest.LIST_DISK_OFFERINGS_COMMAND;
+        String jsonFormat = JSON_FORMAT;
+        String request = String.format(urlFormat, baseEndpoint, command, jsonFormat);
+
+        String id = FAKE_DISK_OFFERING_ID;
+        int diskSize = COMPATIBLE_SIZE;
+        boolean customized = false;
+        String diskOfferings = getListDiskOfferrings(id, diskSize, customized, FAKE_TAGS);
+        Map<String, String> fakeRequirements = new HashMap<>();
+        fakeRequirements.put("tag3", "value3");
+
+        Mockito.when(this.client.doGetRequest(request, this.token)).thenReturn(diskOfferings);
+
+        Map<String, String> expectedParams = new HashMap<>();
+        expectedParams.put(COMMAND_KEY, CreateVolumeRequest.CREATE_VOLUME_COMMAND);
+        expectedParams.put(RESPONSE_KEY, JSON_FORMAT);
+        expectedParams.put(ZONE_ID_KEY, this.plugin.getZoneId());
+        expectedParams.put(NAME_KEY, FAKE_NAME);
+        expectedParams.put(DISK_OFFERING_ID_KEY, FAKE_DISK_OFFERING_ID);
+        expectedParams.put(SIZE_KEY, new Long(diskSize * GIGABYTE).toString());
+
+        CloudStackUrlMatcher urlMatcher = new CloudStackUrlMatcher(expectedParams, SIZE_KEY);
+
+        String response = getCreateVolumeResponse(FAKE_ID, FAKE_JOB_ID);
+        Mockito.when(
+                this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(this.token)))
+                .thenReturn(response);
+
+        // exercise
+        VolumeOrder order =
+                new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_CLOUD_NAME, FAKE_NAME, COMPATIBLE_SIZE);
+        order.setRequirements(fakeRequirements);
+        String volumeId = this.plugin.requestInstance(order, this.token);
+
+        // verify
+        PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(2));
+        CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
+
+        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.eq(request),
+                Mockito.eq(this.token));
+    }
+
+    // test case: When calling the requestInstance method with a user without permission, an
     // UnauthorizedRequestException must be thrown.
     @Test(expected = UnauthorizedRequestException.class)
     public void testCreateRequestInstanceThrowUnauthorizedRequestException()
@@ -226,7 +344,7 @@ public class CloudStackVolumePluginTest {
         try {
             // exercise
             VolumeOrder order =
-                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, CUSTOMIZED_SIZE);
+                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, CUSTOMIZED_SIZE);
             this.plugin.requestInstance(order, this.token);
         } finally {
             // verify
@@ -256,7 +374,7 @@ public class CloudStackVolumePluginTest {
         try {
             // exercise
             VolumeOrder order =
-                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, CUSTOMIZED_SIZE);
+                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, CUSTOMIZED_SIZE);
             this.plugin.requestInstance(order, this.token);
         } finally {
             // verify
@@ -269,9 +387,9 @@ public class CloudStackVolumePluginTest {
     }
     
     // test case: When calling the requestInstance method passing some invalid argument, an
-    // InvalidParameterException must be thrown.
-    @Test(expected = InvalidParameterException.class)
-    public void testCreateRequestInstanceThrowInvalidParameterException()
+    // FogbowRasException must be thrown.
+    @Test(expected = FogbowRasException.class)
+    public void testCreateRequestInstanceThrowFogbowRasException()
             throws HttpResponseException, FogbowRasException, UnexpectedException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
@@ -286,7 +404,7 @@ public class CloudStackVolumePluginTest {
         try {
             // exercise
             VolumeOrder order =
-                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, CUSTOMIZED_SIZE);
+                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, CUSTOMIZED_SIZE);
             this.plugin.requestInstance(order, this.token);
         } finally {
             // verify
@@ -298,7 +416,7 @@ public class CloudStackVolumePluginTest {
         }
     }
     
-    // test case: When calling the requestInstance method with allocationAllowableValues unauthenticated user, an
+    // test case: When calling the requestInstance method with a unauthenticated user, an
     // UnauthenticatedUserException must be thrown.
     @Test(expected = UnauthenticatedUserException.class)
     public void testCreateRequestInstanceThrowUnauthenticatedUserException()
@@ -317,7 +435,7 @@ public class CloudStackVolumePluginTest {
         try {
             // exercise
             VolumeOrder order =
-                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_NAME, CUSTOMIZED_SIZE);
+                    new VolumeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_NAME, CUSTOMIZED_SIZE);
             this.plugin.requestInstance(order, this.token);
         } finally {
             // verify
@@ -329,8 +447,8 @@ public class CloudStackVolumePluginTest {
         }
     }
     
-    // test case: When calling the getInstance method, an HTTP GET request must be made with allocationAllowableValues
-    // signed token, which returns allocationAllowableValues response in the JSON format for the retrieval of the
+    // test case: When calling the getInstance method, an HTTP GET request must be made with a
+    // signed token, which returns a response in the JSON format for the retrieval of the
     // VolumeInstance object.
     @Test
     public void testGetInstanceRequestSuccessful()
@@ -371,7 +489,7 @@ public class CloudStackVolumePluginTest {
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(request, this.token);
     }
 
-    // test case: When calling the getInstance method with allocationAllowableValues user without permission, an
+    // test case: When calling the getInstance method with a user without permission, an
     // UnauthorizedRequestException must be thrown.
     @Test(expected = UnauthorizedRequestException.class)
     public void testGetInstanceThrowUnauthorizedRequestException()
@@ -428,7 +546,7 @@ public class CloudStackVolumePluginTest {
         }
     }
     
-    // test case: When calling the getInstance method with allocationAllowableValues unauthenticated user, an
+    // test case: When calling the getInstance method with a unauthenticated user, an
     // UnauthenticatedUserException must be thrown.
     @Test(expected = UnauthenticatedUserException.class)
     public void testGetInstanceThrowUnauthenticatedUserException()
@@ -458,9 +576,9 @@ public class CloudStackVolumePluginTest {
     }
     
     // test case: When calling the getInstance method passing some invalid argument, an
-    // InvalidParameterException must be thrown.
-    @Test(expected = InvalidParameterException.class)
-    public void testGetInstanceThrowInvalidParameterException()
+    // FogbowRasException must be thrown.
+    @Test(expected = FogbowRasException.class)
+    public void testGetInstanceThrowFogbowRasException()
             throws UnexpectedException, FogbowRasException, HttpResponseException {
 
         // set up
@@ -486,7 +604,7 @@ public class CloudStackVolumePluginTest {
         }
     }
     
-    // test case: When calling the getInstance method and an HTTP GET request returns allocationAllowableValues failure
+    // test case: When calling the getInstance method and an HTTP GET request returns a failure
     // response in JSON format, an UnexpectedException must be thrown.
     @Test(expected = UnexpectedException.class)
     public void testGetInstanceThrowUnexpectedException()
@@ -528,8 +646,8 @@ public class CloudStackVolumePluginTest {
         }
     }
 
-    // test case: When calling the deleteInstance method, an HTTP GET request must be made with allocationAllowableValues
-    // signed token, which returns allocationAllowableValues response in the JSON format.
+    // test case: When calling the deleteInstance method, an HTTP GET request must be made with a
+    // signed token, which returns a response in the JSON format.
     @Test
     public void testDeleteInstanceRequestSuccessful()
             throws HttpResponseException, FogbowRasException, UnexpectedException {
@@ -568,7 +686,7 @@ public class CloudStackVolumePluginTest {
         DeleteVolumeResponse.fromJson(Mockito.eq(response));
     }
 
-    // test case: When calling the deleteInstance method with allocationAllowableValues user without permission, an
+    // test case: When calling the deleteInstance method with a user without permission, an
     // UnauthorizedRequestException must be thrown.
     @Test(expected = UnauthorizedRequestException.class)
     public void testDeleteInstanceThrowUnauthorizedRequestException()
@@ -625,7 +743,7 @@ public class CloudStackVolumePluginTest {
         }
     }
 
-    // test case: When calling the deleteInstance method with allocationAllowableValues unauthenticated user, an
+    // test case: When calling the deleteInstance method with a unauthenticated user, an
     // UnauthenticatedUserException must be thrown.
     @Test(expected = UnauthenticatedUserException.class)
     public void testDeleteInstanceThrowUnauthenticatedUserException()
@@ -655,9 +773,9 @@ public class CloudStackVolumePluginTest {
     }
     
     // test case: When calling the deleteInstance method passing some invalid argument, an
-    // InvalidParameterException must be thrown.
-    @Test(expected = InvalidParameterException.class)
-    public void testDeleteInstanceThrowInvalidParameterException()
+    // FogbowRasException must be thrown.
+    @Test(expected = FogbowRasException.class)
+    public void testDeleteInstanceThrowFogbowRasException()
             throws UnexpectedException, FogbowRasException, HttpResponseException {
 
         // set up
@@ -683,7 +801,7 @@ public class CloudStackVolumePluginTest {
         }
     }
     
-    // test case: When calling the deleteInstance method and an HTTP GET request returns allocationAllowableValues failure
+    // test case: When calling the deleteInstance method and an HTTP GET request returns a failure
     // response in JSON format, an UnexpectedException must be thrown.
     @Test(expected = UnexpectedException.class)
     public void testDeleteInstanceThrowUnexpectedException()
@@ -726,21 +844,18 @@ public class CloudStackVolumePluginTest {
     }
     
     private String getBaseEndpointFromCloudStackConf() {
-        String filePath = HomeDir.getPath() + File.separator
-                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
-
-        Properties properties = PropertiesUtil.readProperties(filePath);
-        return properties.getProperty(BASE_ENDPOINT_KEY);
+        return this.properties.getProperty(BASE_ENDPOINT_KEY);
     }
 
-    private String getListDiskOfferrings(String id, int diskSize, boolean customized) {
+    private String getListDiskOfferrings(String id, int diskSize, boolean customized, String tags) {
         String response = "{\"listdiskofferingsresponse\":{" + "\"diskoffering\":[{"
                 + "\"id\": \"%s\","
                 + "\"disksize\": %s,"
-                + "\"iscustomized\": %s"
+                + "\"iscustomized\": %s,"
+                + "\"tags\": \"%s\""
                 + "}]}}";
 
-        return String.format(response, id, diskSize, customized);
+        return String.format(response, id, diskSize, customized, tags);
     }
 
     private String getCreateVolumeResponse(String id, String jobId) {

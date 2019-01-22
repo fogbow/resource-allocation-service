@@ -1,10 +1,13 @@
 package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator;
 
 import org.apache.log4j.Logger;
+import org.fogbowcloud.ras.core.PropertiesHolder;
+import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 import org.fogbowcloud.ras.util.RSAUtil;
 
 import java.io.IOException;
@@ -23,7 +26,7 @@ public class TokenGeneratorPluginProtectionWrapper implements TokenGeneratorPlug
     public TokenGeneratorPluginProtectionWrapper(TokenGeneratorPlugin embeddedPlugin) {
         this.embeddedPlugin = embeddedPlugin;
         try {
-            this.publicKey = RSAUtil.getPublicKey();
+            this.publicKey = RASAuthenticationHolder.getInstance().getPublicKey();
         } catch (IOException | GeneralSecurityException e) {
             throw new FatalErrorException(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE, e);
         }

@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.instances.PublicIpInstance;
@@ -19,6 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.io.File;
 import java.net.URISyntaxException;
 import java.util.*;
 
@@ -40,7 +43,9 @@ public class OpenStackPublicIpPluginTest {
         this.httpClient = Mockito.mock(HttpRequestClientUtil.class);
         
         boolean notCheckProperties = false;
-		this.openStackPublicIpPlugin = Mockito.spy(new OpenStackPublicIpPlugin(notCheckProperties));
+		String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
+				+ "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+		this.openStackPublicIpPlugin = Mockito.spy(new OpenStackPublicIpPlugin(cloudConfPath, notCheckProperties));
         
         this.openStackPublicIpPlugin.setClient(this.httpClient);
 	}
@@ -339,9 +344,10 @@ public class OpenStackPublicIpPluginTest {
 	// test case: without default network in properties
 
 	@Test
-	public void testCheckPropertiesWithoutDefaultNetworkPropertie() {
+	public void testCheckPropertiesWithoutDefaultNetworkProperties() {
 		try {
 			// exercise
+			this.openStackPublicIpPlugin.setProperties(new Properties());
 			this.openStackPublicIpPlugin.checkProperties(true);
 			Assert.fail();
 		} catch (FatalErrorException e) {

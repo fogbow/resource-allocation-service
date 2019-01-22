@@ -3,17 +3,14 @@ package org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.network;
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
-import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
-import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
+import org.fogbowcloud.ras.core.models.NetworkAllocationMode;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.ras.core.plugins.interoperability.NetworkPlugin;
@@ -23,7 +20,6 @@ import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUr
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
-import java.io.File;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
@@ -33,17 +29,18 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
 
     public static final String NETWORK_OFFERING_ID = "network_offering_id";
     public static final String ZONE_ID = "zone_id";
+    public static final String CLOUDSTACK_URL = "cloudstack_api_url";
 
     protected String networkOfferingId = null;
     protected String zoneId = null;
+    protected String cloudStackUrl;
 
     private HttpRequestClientUtil client;
+    private Properties properties;
 
-    public CloudStackNetworkPlugin() {
-        String cloudStackConfFilePath = HomeDir.getPath() + File.separator
-                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
-
-        Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
+    public CloudStackNetworkPlugin(String confFilePath) {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
+        this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
 
         this.networkOfferingId = properties.getProperty(NETWORK_OFFERING_ID);
         this.zoneId = properties.getProperty(ZONE_ID);
@@ -73,7 +70,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
                 .endingIp(endingIp)
                 .gateway(gateway)
                 .netmask(subnetInfo.getNetmask())
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
 
@@ -93,7 +90,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
             throws FogbowRasException {
         GetNetworkRequest request = new GetNetworkRequest.Builder()
                 .id(networkInstanceId)
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
 
@@ -120,7 +117,7 @@ public class CloudStackNetworkPlugin implements NetworkPlugin<CloudStackToken> {
             throws FogbowRasException {
         DeleteNetworkRequest request = new DeleteNetworkRequest.Builder()
                 .id(networkInstanceId)
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
 

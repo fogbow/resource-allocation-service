@@ -5,6 +5,7 @@ import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
+import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 
 public abstract class RASAuthenticationPlugin implements AuthenticationPlugin<FederationUserToken> {
 
@@ -13,10 +14,13 @@ public abstract class RASAuthenticationPlugin implements AuthenticationPlugin<Fe
     private String localProviderId;
 	protected RASAuthenticationHolder rasAuthenticationHolder;
 
-    public RASAuthenticationPlugin() {
-        this.localProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
-
+	public RASAuthenticationPlugin(String localProviderId) {
+        this.localProviderId = localProviderId;
         this.rasAuthenticationHolder = RASAuthenticationHolder.getInstance();
+    }
+
+    public RASAuthenticationPlugin() {
+        this(PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID));
     }
 
     @Override

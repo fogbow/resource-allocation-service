@@ -2,11 +2,14 @@ package org.fogbowcloud.ras.api.parameters;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
-import org.fogbowcloud.ras.core.models.orders.UserData;
+import java.util.Map;
 
-public class Compute {
+import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
+import org.fogbowcloud.ras.core.models.UserData;
+
+public class Compute implements OrderApiParameter {
     private String provider;
+    private String cloudName;
     private String name;
     private int vCPU;
     private int memory;
@@ -15,9 +18,14 @@ public class Compute {
     private String publicKey;
     private ArrayList<UserData> userData;
     private List<String> networkIds;
+    private Map<String, String> requirements;
 
     public String getProvider() {
         return provider;
+    }
+
+    public String getCloudName() {
+        return cloudName;
     }
 
     public String getName() {
@@ -52,10 +60,20 @@ public class Compute {
         return userData;
     }
 
+    public Map<String, String> getRequirements() {
+        return requirements;
+    }
+
+    public void setUserData(ArrayList<UserData> userData) {
+        this.userData = userData;
+    }
+
+    @Override
     public ComputeOrder getOrder() {
-        ComputeOrder order = new ComputeOrder(provider, name, vCPU, memory, disk, imageId, userData,
+        ComputeOrder order = new ComputeOrder(provider, cloudName, name, vCPU, memory, disk, imageId, userData,
                 publicKey, networkIds
         );
+        order.setRequirements(requirements);
         return order;
     }
 }

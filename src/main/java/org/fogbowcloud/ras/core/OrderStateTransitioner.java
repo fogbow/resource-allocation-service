@@ -3,6 +3,7 @@ package org.fogbowcloud.ras.core;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
+import org.fogbowcloud.ras.core.exceptions.RemoteCommunicationException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.Event;
 import org.fogbowcloud.ras.core.intercomponent.xmpp.requesters.RemoteNotifyEventRequest;
@@ -56,9 +57,9 @@ public class OrderStateTransitioner {
                     }
                 } catch (Exception e) {
                     String message = String.format(Messages.Warn.UNABLE_TO_NOTIFY_REQUESTING_MEMBER, order.getRequester(), order.getId());
-                    LOGGER.warn(message);
+                    LOGGER.warn(message, e);
                     // Keep trying to notify until the site is up again
-                    // The site admin might want to monitor the warn log in case allocationAllowableValues site never
+                    // The site admin might want to monitor the warn log in case a site never
                     // recovers. In this case the site admin may delete the order using an
                     // appropriate tool.
                     return;
@@ -115,8 +116,13 @@ public class OrderStateTransitioner {
         }
     }
 
-    private static void notifyRequester(Order order, Event instanceFailed) throws Exception {
-        RemoteNotifyEventRequest remoteNotifyEventRequest = new RemoteNotifyEventRequest(order, instanceFailed);
-        remoteNotifyEventRequest.send();
+    private static void notifyRequester(Order order, Event instanceFailed) throws RemoteCommunicationException {
+        try {
+            RemoteNotifyEventRequest remoteNotifyEventRequest = new RemoteNotifyEventRequest(order, instanceFailed);
+            remoteNotifyEventRequest.send();
+        } catch (Exception e) {
+            LOGGER.error(e.toString(), e);
+            throw new RemoteCommunicationException(e.getMessage(), e);
+        }
     }
 }

@@ -25,12 +25,12 @@ public class RemoteCreateOrderRequestTest {
 
     @Before
     public void setUp() throws InvalidParameterException {
-        this.order = new ComputeOrder(null, "requesting-member", this.providingMember, "hostName", 10, 20, 30,
+        this.order = new ComputeOrder(null, "requesting-member", this.providingMember, "default", "hostName", 10, 20, 30,
                 "imageid", null,
                 "publicKey", null);
         this.remoteCreateOrderRequest = new RemoteCreateOrderRequest(this.order);
         this.packetSender = Mockito.mock(PacketSender.class);
-        PacketSenderHolder.init(packetSender);
+        PacketSenderHolder.setPacketSender(this.packetSender);
         this.iqResponse = new IQ();
     }
 
@@ -47,7 +47,7 @@ public class RemoteCreateOrderRequestTest {
         this.remoteCreateOrderRequest.send();
 
         // verify
-        // as IQ does not implement equals we need allocationAllowableValues matcher
+        // as IQ does not implement equals we need a matcher
         IQMatcher matcher = new IQMatcher(expectedIQ);
         Mockito.verify(this.packetSender).syncSendPacket(Mockito.argThat(matcher));
     }

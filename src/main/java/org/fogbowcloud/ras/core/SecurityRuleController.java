@@ -2,6 +2,8 @@ package org.fogbowcloud.ras.core;
 
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
+import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
+import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.securityrules.SecurityRule;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
@@ -13,21 +15,23 @@ public class SecurityRuleController {
     public SecurityRuleController() {
     }
 
-    public String createSecurityRule(Order majorOrder, SecurityRule securityRule,
-                                     FederationUserToken federationUserToken) throws Exception {
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(majorOrder.getProvider());
-        return cloudConnector.requestSecurityRule(majorOrder, securityRule, federationUserToken);
+    public String createSecurityRule(Order order, SecurityRule securityRule,
+                         FederationUserToken federationUserToken) throws FogbowRasException, UnexpectedException {
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(),
+                order.getCloudName());
+        return cloudConnector.requestSecurityRule(order, securityRule, federationUserToken);
     }
 
-    public List<SecurityRule> getAllSecurityRules(Order majorOrder, FederationUserToken federationUserToken)
-            throws Exception {
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(majorOrder.getProvider());
-        return cloudConnector.getAllSecurityRules(majorOrder, federationUserToken);
+    public List<SecurityRule> getAllSecurityRules(Order order, FederationUserToken federationUserToken)
+                throws FogbowRasException, UnexpectedException {
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(order.getProvider(),
+                order.getCloudName());
+        return cloudConnector.getAllSecurityRules(order, federationUserToken);
     }
 
-    public void deleteSecurityRule(String securityRuleId, String providerId,
-                                   FederationUserToken federationUserToken) throws Exception {
-        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId);
+    public void deleteSecurityRule(String providerId, String cloudName, String securityRuleId,
+                           FederationUserToken federationUserToken) throws FogbowRasException, UnexpectedException {
+        CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(providerId, cloudName);
         cloudConnector.deleteSecurityRule(securityRuleId, federationUserToken);
     }
 }

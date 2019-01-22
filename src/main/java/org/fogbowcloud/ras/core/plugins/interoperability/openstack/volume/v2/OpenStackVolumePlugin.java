@@ -18,6 +18,8 @@ import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 import org.json.JSONException;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -26,14 +28,14 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3Token> {
 
     private final String V2_API_ENDPOINT = "/v2/";
     protected static final String SUFIX_ENDPOINT_VOLUMES = "/volumes";
+    protected static final String SUFIX_ENDPOINT_VOLUME_TYPES = "/types";
     protected static final String FOGBOW_INSTANCE_NAME = "ras-volume-";
     public static final String VOLUME_NOVAV2_URL_KEY = "openstack_cinder_url";
     private HttpRequestClientUtil client;
     private String volumeV2APIEndpoint;
 
-    public OpenStackVolumePlugin() throws FatalErrorException {
-        Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                SystemConstants.OPENSTACK_CONF_FILE_NAME);
+    public OpenStackVolumePlugin(String confFilePath) throws FatalErrorException {
+        Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.volumeV2APIEndpoint = properties.getProperty(VOLUME_NOVAV2_URL_KEY) + V2_API_ENDPOINT;
         initClient();
     }
@@ -48,12 +50,21 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3Token> {
             throw new UnauthenticatedUserException(message);
         }
 
+        Map<String, String> requirements = order.getRequirements();
+
+
         String jsonRequest = null;
         try {
             String size = String.valueOf(order.getVolumeSize());
             String instanceName = order.getName();
             String name = instanceName == null ? FOGBOW_INSTANCE_NAME + getRandomUUID() : instanceName;
-            jsonRequest = generateJsonEntityToCreateInstance(size, name);
+            String volumeTypeId = null;
+            if(requirements != null && requirements.size() > 0) {
+                volumeTypeId = getValidVolumeTypeId(requirements, tenantId, openStackV3Token);
+            }
+            jsonRequest = generateJsonEntityToCreateInstance(size, name, volumeTypeId);
+
+
         } catch (JSONException e) {
             String message = Messages.Error.UNABLE_TO_GENERATE_JSON;
             LOGGER.error(message, e);
@@ -132,20 +143,69 @@ public class OpenStackVolumePlugin implements VolumePlugin<OpenStackV3Token> {
         }
     }
 
-    protected String generateJsonEntityToCreateInstance(String size, String name) throws JSONException {
+    protected List<GetAllTypesResponse.Type> getRequirementsFromJson(String json) throws UnexpectedException {
+        try {
+            GetAllTypesResponse getAllTypesResponse = GetAllTypesResponse.fromJson(json);
+            return getAllTypesResponse.getTypes();
+        } catch (Exception e) {
+            String message = Messages.Error.ERROR_WHILE_PROCESSING_VOLUME_REQUIREMENTS;
+            LOGGER.error(message, e);
+            throw new UnexpectedException(message, e);
+        }
+    }
+
+    protected String generateJsonEntityToCreateInstance(String size, String name, String volmeTypeId) throws JSONException {
         CreateVolumeRequest createVolumeRequest =
                 new CreateVolumeRequest.Builder()
                         .name(name)
                         .size(size)
+                        .volume_type(volmeTypeId)
                         .build();
 
         return createVolumeRequest.toJson();
     }
 
-    private void initClient() {
-        this.client = new HttpRequestClientUtil();
+    private String getValidVolumeTypeId(Map<String, String> requirements, String tenantId, OpenStackV3Token openStackV3Token)
+            throws FogbowRasException, UnexpectedException {
+
+        String endpoint = this.volumeV2APIEndpoint + tenantId + SUFIX_ENDPOINT_VOLUME_TYPES;
+        String responseStr = null;
+        try {
+            responseStr = this.client.doGetRequest(endpoint, openStackV3Token);
+        } catch (HttpResponseException e) {
+            OpenStackHttpToFogbowRasExceptionMapper.map(e);
+        }
+
+        List<GetAllTypesResponse.Type> instanceFromJson = getRequirementsFromJson(responseStr);
+
+        for(GetAllTypesResponse.Type type : instanceFromJson){
+
+            boolean match = true;
+
+            Map<String, String> specs = type.getExtraSpecs();
+
+            for(Map.Entry<String, String> pair : requirements.entrySet()){
+                String key = pair.getKey();
+                String value = pair.getValue();
+                if(!specs.containsKey(key) || !value.equals(specs.get(key))){
+                    match = false;
+                    break;
+                }
+            }
+
+            if(!match) continue;
+
+            return type.getId();
+        }
+
+        String message = Messages.Exception.UNABLE_TO_MATCH_REQUIREMENTS;
+        throw new NoAvailableResourcesException(message);
     }
 
+    private void initClient() {
+        this.client = new HttpRequestClientUtil();
+
+    }
     public void setClient(HttpRequestClientUtil client) {
         this.client = client;
     }

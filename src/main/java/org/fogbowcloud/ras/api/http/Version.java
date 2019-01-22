@@ -27,13 +27,8 @@ public class Version {
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<String> getVersion() {
 
-        try {
-            LOGGER.info(Messages.Info.RECEIVING_GET_VERSION_REQUEST);
-            String versionNumber = ApplicationFacade.getInstance().getVersionNumber();
-            return new ResponseEntity<>(versionNumber, HttpStatus.OK);
-        } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
-            throw e;
-        }
+        LOGGER.info(Messages.Info.RECEIVING_GET_VERSION_REQUEST);
+        String versionNumber = ApplicationFacade.getInstance().getVersionNumber();
+        return new ResponseEntity<>(versionNumber, HttpStatus.OK);
     }
 }

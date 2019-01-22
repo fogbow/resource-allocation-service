@@ -5,7 +5,7 @@ import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.quotas.ComputeQuota;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 
-public interface ComputeQuotaPlugin {
+public interface ComputeQuotaPlugin<T extends Token> {
 
-    public ComputeQuota getUserQuota(Token token) throws FogbowRasException, UnexpectedException;
+    public ComputeQuota getUserQuota(T localUserAttributes) throws FogbowRasException, UnexpectedException;
 }

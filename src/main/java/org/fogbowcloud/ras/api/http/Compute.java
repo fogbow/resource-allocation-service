@@ -32,6 +32,7 @@ public class Compute {
     public static final String STATUS_ENDPOINT = "status";
     public static final String QUOTA_ENDPOINT = "quota";
     public static final String ALLOCATION_ENDPOINT = "allocation";
+    public static final String CLOUD_NAME_HEADER_KEY = "cloudName";
     public static final String FEDERATION_TOKEN_VALUE_HEADER_KEY = "federationTokenValue";
     public static final String ORDER_CONTROLLER_TYPE = "compute";
 
@@ -60,7 +61,7 @@ public class Compute {
             String computeId = ApplicationFacade.getInstance().createCompute(computeOrder, federationTokenValue);
             return new ResponseEntity<String>(computeId, HttpStatus.CREATED);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -70,7 +71,7 @@ public class Compute {
     public ResponseEntity<List<InstanceStatus>> getAllComputesStatus(
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
+            throws FogbowRasException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_ALL_REQUEST, ORDER_CONTROLLER_TYPE));
@@ -78,7 +79,7 @@ public class Compute {
                 ApplicationFacade.getInstance().getAllInstancesStatus(federationTokenValue, ResourceType.COMPUTE);
             return new ResponseEntity<>(computeInstanceStatus, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -90,14 +91,14 @@ public class Compute {
             @PathVariable String computeId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
+            throws FogbowRasException, UnexpectedException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_GET_REQUEST, ORDER_CONTROLLER_TYPE, computeId));
             ComputeInstance compute = ApplicationFacade.getInstance().getCompute(computeId, federationTokenValue);
             return new ResponseEntity<ComputeInstance>(compute, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
@@ -109,42 +110,46 @@ public class Compute {
             @PathVariable String computeId,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
+            throws FogbowRasException, UnexpectedException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_DELETE_REQUEST, ORDER_CONTROLLER_TYPE, computeId));
             ApplicationFacade.getInstance().deleteCompute(computeId, federationTokenValue);
             return new ResponseEntity<>(HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.GET_QUOTA)
-    @RequestMapping(value = "/" + QUOTA_ENDPOINT + "/{memberId:.+}", method = RequestMethod.GET)
+    @RequestMapping(value = "/" + QUOTA_ENDPOINT + "/{memberId:.+}" + "/{cloudName}", method = RequestMethod.GET)
     public ResponseEntity<ComputeQuota> getUserQuota(
             @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
             @PathVariable String memberId,
+            @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
+            @PathVariable String cloudName,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
-            throws Exception {
+            throws FogbowRasException, UnexpectedException {
 
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_COMPUTE_QUOTA_REQUEST, QUOTA_ENDPOINT, memberId));
-            ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(memberId, federationTokenValue);
+            ComputeQuota quotaInstance = ApplicationFacade.getInstance().getComputeQuota(memberId, cloudName, federationTokenValue);
             return new ResponseEntity<>(quotaInstance, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }
 
     @ApiOperation(value = ApiDocumentation.Compute.GET_ALLOCATION)
-    @RequestMapping(value = "/" + ALLOCATION_ENDPOINT + "/{memberId:.+}", method = RequestMethod.GET)
+    @RequestMapping(value = "/" + ALLOCATION_ENDPOINT + "/{memberId:.+}" + "/{cloudName}", method = RequestMethod.GET)
     public ResponseEntity<ComputeAllocation> getUserAllocation(
             @ApiParam(value = ApiDocumentation.CommonParameters.MEMBER_ID)
             @PathVariable String memberId,
+            @ApiParam(value = ApiDocumentation.CommonParameters.CLOUD_NAME)
+            @PathVariable String cloudName,
             @ApiParam(value = ApiDocumentation.CommonParameters.FEDERATION_TOKEN)
             @RequestHeader(required = false, value = FEDERATION_TOKEN_VALUE_HEADER_KEY) String federationTokenValue)
             throws FogbowRasException, UnexpectedException {
@@ -152,10 +157,10 @@ public class Compute {
         try {
             LOGGER.info(String.format(Messages.Info.RECEIVING_COMPUTE_QUOTA_REQUEST, ALLOCATION_ENDPOINT, memberId));
             ComputeAllocation computeAllocation =
-                ApplicationFacade.getInstance().getComputeAllocation(memberId, federationTokenValue);
+                ApplicationFacade.getInstance().getComputeAllocation(memberId, cloudName, federationTokenValue);
             return new ResponseEntity<>(computeAllocation, HttpStatus.OK);
         } catch (Exception e) {
-            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()));
+            LOGGER.info(String.format(Messages.Exception.GENERIC_EXCEPTION, e.getMessage()), e);
             throw e;
         }
     }

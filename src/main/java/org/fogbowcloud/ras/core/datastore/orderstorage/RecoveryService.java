@@ -28,7 +28,6 @@ public class RecoveryService {
         if (orderRepository.exists(order.getId())) {
             throw new UnexpectedException(Messages.Exception.REQUEST_ALREADY_EXIST);
         }
-
         this.orderRepository.save(order);
     }
 
@@ -36,7 +35,7 @@ public class RecoveryService {
         if (!orderRepository.exists(order.getId())) {
             throw new UnexpectedException(Messages.Exception.INEXISTENT_REQUEST);
         }
-
         this.orderRepository.save(order);
     }
+
 }

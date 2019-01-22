@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.core;
 
+import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Operation;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.ResourceType;
@@ -7,7 +8,7 @@ import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.AuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.authorization.AuthorizationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.FederationIdentityPlugin;
-import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -33,9 +34,9 @@ public class AaaControllerTest {
 
         Mockito.when(this.aaaPluginsHolderMock.getAuthorizationPlugin()).thenReturn(this.authorizationPluginMock);
         Mockito.when(this.aaaPluginsHolderMock.getAuthenticationPlugin()).thenReturn(this.authenticationPluginMock);
-        Mockito.when(this.aaaPluginsHolderMock.getFederationToLocalMapperPlugin()).thenReturn(this.federationToLocalMapperPluginMock);
         Mockito.when(this.aaaPluginsHolderMock.getFederationIdentityPlugin()).thenReturn(this.federationIdentityPluginMock);
-        this.aaaController = new AaaController(this.aaaPluginsHolderMock);
+        this.aaaController = new AaaController(this.aaaPluginsHolderMock,
+                PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID));
     }
 
     @Test(expected = UnauthorizedRequestException.class)
@@ -73,12 +74,12 @@ public class AaaControllerTest {
     public void testAuthorizeOnInstanceType() throws UnauthorizedRequestException {
         //set up
         Mockito.when(this.authorizationPluginMock.isAuthorized(
-                Mockito.any(FederationUserToken.class),
+                Mockito.any(FederationUserToken.class), Mockito.anyString(),
                 Mockito.any(Operation.class),
                 Mockito.any(ResourceType.class))).thenReturn(true);
 
         //exercise/verify
-        this.aaaController.authorize(Mockito.any(FederationUserToken.class),
+        this.aaaController.authorize(Mockito.anyString(), Mockito.any(FederationUserToken.class),
                 Mockito.any(Operation.class), Mockito.any(ResourceType.class));
     }
 
@@ -87,16 +88,16 @@ public class AaaControllerTest {
     public void testAuthorize() throws FogbowRasException {
         //set up
         Mockito.when(this.authorizationPluginMock.isAuthorized(
-                Mockito.any(FederationUserToken.class),
+                Mockito.any(FederationUserToken.class), Mockito.anyString(),
                 Mockito.any(Operation.class),
                 Mockito.any(ResourceType.class))).thenReturn(true);
 
         //exercise/verify
-        this.aaaController.authorize(Mockito.any(FederationUserToken.class),
+        this.aaaController.authorize(Mockito.anyString(), Mockito.any(FederationUserToken.class),
                 Mockito.any(Operation.class), Mockito.any(ResourceType.class));
     }
 
-    //test case: Check if getLocalToken() is returning allocationAllowableValues valid token.
+    //test case: Check if getLocalToken() is returning a valid token.
     @Ignore
     @Test
     public void testGetLocalToken() throws FogbowRasException, UnexpectedException {
@@ -123,9 +124,9 @@ public class AaaControllerTest {
         //exercise/verify
     }
 
-    //test case: Check if federation user token is returning allocationAllowableValues valid token properly.
+    //test case: Check if federation user token is returning a valid token properly.
     @Test
-    public void testGetFederationUser() throws InvalidParameterException {
+    public void testGetFederationUser() throws InvalidTokenException {
         //set up
         FederationUserToken expectedFederationUserToken = new FederationUserToken("fake-token-provider", "token-value", "id", "fake-name");
         Mockito.when(this.federationIdentityPluginMock.createToken(Mockito.anyString())).thenReturn(expectedFederationUserToken);
@@ -138,10 +139,10 @@ public class AaaControllerTest {
     }
 
     //test case: Check if AaaController is properly forwarding InvalidParameterException thrown by FederationIdentityPlugin.
-    @Test(expected = InvalidParameterException.class)
-    public void testGetFederationUserInvalidParameterException() throws InvalidParameterException {
+    @Test(expected = InvalidTokenException.class)
+    public void testGetFederationUserInvalidTokenException() throws InvalidTokenException {
         //set up
-        Mockito.when(this.federationIdentityPluginMock.createToken(Mockito.anyString())).thenThrow(new InvalidParameterException());
+        Mockito.when(this.federationIdentityPluginMock.createToken(Mockito.anyString())).thenThrow(new InvalidTokenException());
 
         //exercise/verify
         this.aaaController.getFederationUser(Mockito.anyString());

@@ -13,10 +13,9 @@ import org.fogbowcloud.ras.core.exceptions.UnauthorizedRequestException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
-import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
+import org.fogbowcloud.ras.core.models.NetworkAllocationMode;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
-import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.cloudstack.CloudStackTokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlUtil;
 import org.fogbowcloud.ras.util.PropertiesUtil;
@@ -57,6 +56,8 @@ public class CloudStackNetworkPluginTest {
 
     public static final CloudStackToken FAKE_TOKEN = new CloudStackToken(FAKE_TOKEN_PROVIDER, FAKE_TOKEN_VALUE,
             FAKE_USER_ID, FAKE_USERNAME, FAKE_SIGNATURE);
+    public static final String CLOUDSTACK_URL = "cloudstack_api_url";
+    public static final String CLOUD_NAME = "cloudstack";
 
     public static final String JSON = "json";
     public static final String RESPONSE_KEY = "response";
@@ -76,29 +77,27 @@ public class CloudStackNetworkPluginTest {
 
     private CloudStackNetworkPlugin plugin;
     private HttpRequestClientUtil client;
-
-    private void initializeProperties() {
-        String cloudStackConfFilePath = HomeDir.getPath() + File.separator
-                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
-
-        Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
-        this.fakeOfferingId = properties.getProperty(CloudStackNetworkPlugin.NETWORK_OFFERING_ID);
-        this.fakeZoneId = properties.getProperty(CloudStackNetworkPlugin.ZONE_ID);
-    }
+    private Properties properties;
 
     @Before
     public void setUp() {
-        initializeProperties();
+        String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+                File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
+
+        this.fakeOfferingId = this.properties.getProperty(CloudStackNetworkPlugin.NETWORK_OFFERING_ID);
+        this.fakeZoneId = this.properties.getProperty(CloudStackNetworkPlugin.ZONE_ID);
+
         // we dont want HttpRequestUtil code to be executed in this test
         PowerMockito.mockStatic(HttpRequestUtil.class);
 
-        this.plugin = new CloudStackNetworkPlugin();
+        this.plugin = new CloudStackNetworkPlugin(cloudStackConfFilePath);
 
         this.client = Mockito.mock(HttpRequestClientUtil.class);
         this.plugin.setClient(this.client);
     }
 
-    // test case: when creating allocationAllowableValues network with the required fields must return the network resource id
+    // test case: when creating a network with the required fields must return the network resource id
     // that was created by the cloudstack cloud orchestrator
     @Test
     public void testSuccessfulNetworkCreation() throws UnexpectedException, FogbowRasException, HttpResponseException {
@@ -125,7 +124,7 @@ public class CloudStackNetworkPluginTest {
 
         // exercise
         NetworkOrder order = new NetworkOrder(null, FAKE_MEMBER, FAKE_MEMBER,
-                FAKE_NAME, FAKE_GATEWAY, FAKE_ADDRESS, NetworkAllocationMode.DYNAMIC);
+                "default", FAKE_NAME, FAKE_GATEWAY, FAKE_ADDRESS, NetworkAllocationMode.DYNAMIC);
         String createdNetworkId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
         // verify
@@ -138,7 +137,7 @@ public class CloudStackNetworkPluginTest {
     }
 
     @Test
-    // test case: when getting allocationAllowableValues network, the token should be signed and an HTTP GET request should be made
+    // test case: when getting a network, the token should be signed and an HTTP GET request should be made
     public void testGettingAValidNetwork() throws FogbowRasException, UnexpectedException, HttpResponseException {
         // set up
         String endpoint = getBaseEndpointFromCloudStackConf();
@@ -168,7 +167,7 @@ public class CloudStackNetworkPluginTest {
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(expectedRequestUrl, FAKE_TOKEN);
     }
 
-    // test case: getting allocationAllowableValues non-existing network should throw an InstanceNotFoundException
+    // test case: getting a non-existing network should throw an InstanceNotFoundException
     @Test(expected = InstanceNotFoundException.class)
     public void testGetNonExistingNetwork() throws FogbowRasException, HttpResponseException, UnexpectedException {
         // set up
@@ -188,7 +187,7 @@ public class CloudStackNetworkPluginTest {
         }
     }
 
-    // test case: when deleting allocationAllowableValues network, the token should be signed and an HTTP GET request should be made
+    // test case: when deleting a network, the token should be signed and an HTTP GET request should be made
     @Test
     public void testDeleteNetworkSignsTokenBeforeMakingRequest() throws FogbowRasException, UnexpectedException, HttpResponseException {
         // set up
@@ -210,7 +209,7 @@ public class CloudStackNetworkPluginTest {
     }
 
     // test case: an UnauthorizedRequestException should be thrown when the user tries to delete
-    // allocationAllowableValues network and was not allowed to do that
+    // a network and was not allowed to do that
     @Test(expected = UnauthorizedRequestException.class)
     public void testUnauthorizedExceptionIsThrownWhenOrchestratorForbids() throws UnexpectedException, FogbowRasException, HttpResponseException {
         // set up
@@ -230,7 +229,7 @@ public class CloudStackNetworkPluginTest {
         }
     }
 
-    // test case: deleting allocationAllowableValues non-existing network should throw an InstanceNotFoundException
+    // test case: deleting a non-existing network should throw an InstanceNotFoundException
     @Test(expected = InstanceNotFoundException.class)
     public void testDeleteNonExistingNetwork() throws UnexpectedException, FogbowRasException, HttpResponseException {
         // set up
@@ -285,11 +284,7 @@ public class CloudStackNetworkPluginTest {
     }
 
     private String getBaseEndpointFromCloudStackConf() {
-        String filePath = HomeDir.getPath() + File.separator
-                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
-
-        Properties properties = PropertiesUtil.readProperties(filePath);
-        return properties.getProperty(CloudStackTokenGeneratorPlugin.CLOUDSTACK_URL);
+        return this.properties.getProperty(CLOUDSTACK_URL);
     }
 
 }

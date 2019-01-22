@@ -33,13 +33,13 @@ public class RemoteGetImageRequestTest {
         this.federationUserToken = new FederationUserToken("fake-token-provider",
                 "fake-federation-token-value", "fake-user-id", "fake-user-name");
 
-        this.remoteGetImageRequest = new RemoteGetImageRequest(provider, imageId, federationUserToken);
+        this.remoteGetImageRequest = new RemoteGetImageRequest(provider, "default", imageId, federationUserToken);
         this.packetSender = Mockito.mock(PacketSender.class);
-        PacketSenderHolder.init(packetSender);
+        PacketSenderHolder.setPacketSender(this.packetSender);
     }
 
     // test case: checks if IQ attributes is according to both RemoteGetImageRequest constructor parameters
-    // and remote get image request rules. In addition, it checks if the image from allocationAllowableValues possible response is
+    // and remote get image request rules. In addition, it checks if the image from a possible response is
     // properly created and returned by the "send" method
     @Test
     public void testSend() throws Exception {
@@ -52,7 +52,7 @@ public class RemoteGetImageRequestTest {
         this.remoteGetImageRequest.send();
 
         // verify
-        IQ expectedIq = RemoteGetImageRequest.marshal(provider, imageId, federationUserToken);
+        IQ expectedIq = RemoteGetImageRequest.marshal(provider, "default", imageId, federationUserToken);
         IQMatcher matcher = new IQMatcher(expectedIq);
         Mockito.verify(this.packetSender).syncSendPacket(Mockito.argThat(matcher));
     }

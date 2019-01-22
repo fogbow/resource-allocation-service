@@ -44,9 +44,8 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
     private String networkV2APIEndpoint;
     private HttpRequestClientUtil client;
 
-    public OpenStackSecurityRulePlugin() throws FatalErrorException {
-        Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                SystemConstants.OPENSTACK_CONF_FILE_NAME);
+    public OpenStackSecurityRulePlugin(String confFilePath) throws FatalErrorException {
+        Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.networkV2APIEndpoint = properties.getProperty(NETWORK_NEUTRON_V2_URL_KEY) + V2_API_ENDPOINT;
         initClient();
     }
@@ -118,7 +117,7 @@ public class OpenStackSecurityRulePlugin implements SecurityRulePlugin<OpenStack
         try {
             this.client.doDeleteRequest(endpoint, openStackV3Token);
         } catch (HttpResponseException e) {
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, securityRuleId));
+            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, securityRuleId), e);
             OpenStackHttpToFogbowRasExceptionMapper.map(e);
         }
 

@@ -82,7 +82,7 @@ public class RemoteCreateOrderRequestHandlerTest {
         Assert.assertEquals(expected, result.toString());
     }
 
-    // test case: When an Exception occurs, the handle method must return allocationAllowableValues response error.
+    // test case: When an Exception occurs, the handle method must return a response error.
     @Test
     public void testHandleWhenThrowsException() throws FogbowRasException, UnexpectedException {
         // set up
@@ -110,7 +110,7 @@ public class RemoteCreateOrderRequestHandlerTest {
     }
 
     private Order createOrder(FederationUserToken federationUserToken) {
-        return new ComputeOrder(federationUserToken, REQUESTING_MEMBER, "providingmember", "hostName", 1, 2,
+        return new ComputeOrder(federationUserToken, REQUESTING_MEMBER, "providingmember", "default", "hostName", 1, 2,
                 3, "imageId", null, "publicKey", new ArrayList<>());
     }
 

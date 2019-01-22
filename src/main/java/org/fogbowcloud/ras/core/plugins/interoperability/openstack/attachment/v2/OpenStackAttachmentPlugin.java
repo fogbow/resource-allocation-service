@@ -32,9 +32,8 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3To
     private Properties properties;
     private HttpRequestClientUtil client;
 
-    public OpenStackAttachmentPlugin() throws FatalErrorException {
-        this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                SystemConstants.OPENSTACK_CONF_FILE_NAME);
+    public OpenStackAttachmentPlugin(String confFilePath) throws FatalErrorException {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
         initClient();
     }
 
@@ -149,7 +148,6 @@ public class OpenStackAttachmentPlugin implements AttachmentPlugin<OpenStackV3To
     }
 
     private void initClient() {
-        HttpRequestUtil.init();
         this.client = new HttpRequestClientUtil();
     }
 

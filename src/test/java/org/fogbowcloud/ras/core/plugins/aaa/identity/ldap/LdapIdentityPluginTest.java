@@ -1,10 +1,11 @@
 package org.fogbowcloud.ras.core.plugins.aaa.identity.ldap;
 
+import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
-import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.exceptions.InvalidTokenException;
 import org.fogbowcloud.ras.core.models.tokens.LdapToken;
-import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationHolder;
+import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.ldap.LdapAuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap.LdapTokenGeneratorPlugin;
 import org.fogbowcloud.ras.util.RSAUtil;
@@ -48,20 +49,21 @@ public class LdapIdentityPluginTest {
         this.userCredentials.put(LdapTokenGeneratorPlugin.CRED_LDAP_ENCRYPT, "");
         this.userCredentials.put(LdapTokenGeneratorPlugin.CRED_PRIVATE_KEY, "private_key_path");
         this.userCredentials.put(LdapTokenGeneratorPlugin.CRED_PUBLIC_KEY, "public_key_path");
-        this.ldapIdentityPlugin = Mockito.spy(new LdapIdentityPlugin());
-        this.ldapAuthenticationPlugin = new LdapAuthenticationPlugin();
         this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
-                
+        this.ldapIdentityPlugin = Mockito.spy(new LdapIdentityPlugin());
+        this.ldapAuthenticationPlugin = new LdapAuthenticationPlugin(this.localMemberId);
+
 		PowerMockito.mockStatic(RASAuthenticationHolder.class);
 		this.genericSignatureAuthenticationHolder = Mockito.mock(RASAuthenticationHolder.class);
 		BDDMockito.given(RASAuthenticationHolder.getInstance()).willReturn(this.genericSignatureAuthenticationHolder);
     }
 
-    //test case: check if the token information is correct when creating allocationAllowableValues token with the correct token value.
+    //test case: check if the token information is correct when creating a token with the correct token value.
     @Test
     public void testCreateToken() throws Exception {
         //set up
-        LdapTokenGeneratorPlugin tokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
+        String path = HomeDir.getPath();
+        LdapTokenGeneratorPlugin tokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin(path + "ldap-token-generator-plugin.conf"));
         Mockito.doReturn(FAKE_NAME).when(tokenGenerator).ldapAuthenticate(Mockito.anyString(), Mockito.anyString());       
 
 		PowerMockito.mockStatic(RSAUtil.class);
@@ -86,8 +88,8 @@ public class LdapIdentityPluginTest {
         Assert.assertTrue(this.ldapAuthenticationPlugin.isAuthentic(this.localMemberId, ldapToken));
     }
 
-    //test case: check if the token information is correct when creating allocationAllowableValues token with the correct token value.
-    @Test(expected = InvalidParameterException.class)
+    //test case: check if the token information is correct when creating a token with the correct token value.
+    @Test(expected = InvalidTokenException.class)
     public void testCreateTokenIncorrectTokenValue() throws Exception {
         //exercise
         this.ldapIdentityPlugin.createToken("anything");

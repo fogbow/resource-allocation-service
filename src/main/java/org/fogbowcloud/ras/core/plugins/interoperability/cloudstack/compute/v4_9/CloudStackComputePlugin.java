@@ -38,27 +38,32 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
     public static final String DEFAULT_VOLUME_TYPE = "ROOT";
     public static final String FOGBOW_INSTANCE_NAME = "fogbow-compute-instance-";
     public static final String DEFAULT_NETWORK_NAME = "default";
+    public static final String FOGBOW_TAG_SEPARATOR = ":";
+    public static final String CLOUDSTACK_URL = "cloudstack_api_url";
 
+    private String cloudStackUrl;
     private String zoneId;
     private String expungeOnDestroy;
     private String defaultNetworkId;
 
     private HttpRequestClientUtil client;
     private LaunchCommandGenerator launchCommandGenerator;
+    private Properties properties;
 
-    public CloudStackComputePlugin() throws FatalErrorException {
-        String cloudStackConfFilePath = HomeDir.getPath() + File.separator
-                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
+    public CloudStackComputePlugin(String confFilePath) throws FatalErrorException {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
 
-        Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
-
-        this.zoneId = properties.getProperty(ZONE_ID_KEY);
-        this.expungeOnDestroy = properties.getProperty(EXPUNGE_ON_DESTROY_KEY, "true");
-        this.defaultNetworkId = properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+        this.cloudStackUrl = this.properties.getProperty(CLOUDSTACK_URL);
+        this.zoneId = this.properties.getProperty(ZONE_ID_KEY);
+        this.expungeOnDestroy = this.properties.getProperty(EXPUNGE_ON_DESTROY_KEY, "true");
+        this.defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
 
         this.client = new HttpRequestClientUtil();
         this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
     }
+
+    // NOTE(pauloewerton): used for testing only.
+    public CloudStackComputePlugin() {}
 
     @Override
     public String requestInstance(ComputeOrder computeOrder, CloudStackToken cloudStackToken) throws FogbowRasException {
@@ -72,14 +77,15 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
 
         String networksId = resolveNetworksId(computeOrder);
 
-        String serviceOfferingId = getServiceOfferingId(computeOrder.getvCPU(), computeOrder.getMemory(), cloudStackToken);
+        String serviceOfferingId = getServiceOfferingId(computeOrder, cloudStackToken);
         if (serviceOfferingId == null) {
+            LOGGER.error(Messages.Error.UNABLE_TO_COMPLETE_REQUEST);
             throw new NoAvailableResourcesException();
         }
 
         int disk = computeOrder.getDisk();
-        // NOTE(pauloewerton): cloudstack allows creating allocationAllowableValues vm without explicitly choosing allocationAllowableValues disk size. in that case,
-        // allocationAllowableValues minimum root disk for the selected template is created. also zeroing disk param in case no minimum disk
+        // NOTE(pauloewerton): cloudstack allows creating a vm without explicitly choosing a disk size. in that case,
+        // a minimum root disk for the selected template is created. also zeroing disk param in case no minimum disk
         // offering is found.
         String diskOfferingId = disk > 0 ? getDiskOfferingId(disk, cloudStackToken) : null;
 
@@ -96,7 +102,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
                 .diskOfferingId(diskOfferingId)
                 .userData(userData)
                 .networksId(networksId)
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
 
@@ -117,7 +123,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
             throws FogbowRasException {
         GetVirtualMachineRequest request = new GetVirtualMachineRequest.Builder()
                 .id(computeInstanceId)
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
 
@@ -143,14 +149,14 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         DestroyVirtualMachineRequest request = new DestroyVirtualMachineRequest.Builder()
                 .id(computeInstanceId)
                 .expunge(this.expungeOnDestroy)
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
 
         try {
             this.client.doGetRequest(request.getUriBuilder().toString(), cloudStackToken);
         } catch (HttpResponseException e) {
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, computeInstanceId));
+            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_INSTANCE, computeInstanceId), e);
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
 
@@ -167,21 +173,40 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         return StringUtils.join(requestedNetworksId, ",");
     }
 
-    private String getServiceOfferingId(int vcpusRequirement, int memoryRequirement, CloudStackToken cloudStackToken)
+    private String getServiceOfferingId(ComputeOrder computeOrder, CloudStackToken cloudStackToken)
             throws FogbowRasException {
         GetAllServiceOfferingsResponse serviceOfferingsResponse = getServiceOfferings(cloudStackToken);
         List<GetAllServiceOfferingsResponse.ServiceOffering> serviceOfferings = serviceOfferingsResponse.
                 getServiceOfferings();
 
-        if (serviceOfferings != null) {
-            for (GetAllServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferings) {
-                if (serviceOffering.getCpuNumber() >= vcpusRequirement &&
-                        serviceOffering.getMemory() >= memoryRequirement) {
-                    return serviceOffering.getId();
+        if (serviceOfferings == null) throw new NoAvailableResourcesException();
+
+        List<GetAllServiceOfferingsResponse.ServiceOffering> toRemove = new ArrayList<>();
+        if (computeOrder.getRequirements() != null && computeOrder.getRequirements().size() > 0) {
+            for (Map.Entry<String, String> tag : computeOrder.getRequirements().entrySet()) {
+                String concatenatedTag = tag.getKey() + FOGBOW_TAG_SEPARATOR + tag.getValue();
+
+                for (GetAllServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferings) {
+                    if (serviceOffering.getTags() == null) {
+                        toRemove.add(serviceOffering);
+                        continue;
+                    }
+
+                    List<String> tags = new ArrayList<>(Arrays.asList(serviceOffering.getTags().split(",")));
+                    if (!tags.contains(concatenatedTag)) {
+                        toRemove.add(serviceOffering);
+                    }
                 }
             }
-        } else {
-            throw new NoAvailableResourcesException();
+        }
+
+        serviceOfferings.removeAll(toRemove);
+
+        for (GetAllServiceOfferingsResponse.ServiceOffering serviceOffering : serviceOfferings) {
+            if (serviceOffering.getCpuNumber() >= computeOrder.getvCPU() &&
+                    serviceOffering.getMemory() >= computeOrder.getMemory()) {
+                return serviceOffering.getId();
+            }
         }
 
         return null;
@@ -189,7 +214,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
 
     private GetAllServiceOfferingsResponse getServiceOfferings(CloudStackToken cloudStackToken)
             throws FogbowRasException {
-        GetAllServiceOfferingsRequest request = new GetAllServiceOfferingsRequest.Builder().build();
+        GetAllServiceOfferingsRequest request = new GetAllServiceOfferingsRequest.Builder().build(this.cloudStackUrl);
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
 
         String jsonResponse = null;
@@ -221,7 +246,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
 
     private GetAllDiskOfferingsResponse getDiskOfferings(CloudStackToken cloudStackToken)
             throws FogbowRasException {
-        GetAllDiskOfferingsRequest request = new GetAllDiskOfferingsRequest.Builder().build();
+        GetAllDiskOfferingsRequest request = new GetAllDiskOfferingsRequest.Builder().build(this.cloudStackUrl);
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
 
         String jsonResponse = null;
@@ -246,7 +271,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         try {
             disk = getVirtualMachineDiskSize(instanceId, cloudStackToken);
         } catch (FogbowRasException e) {
-            LOGGER.warn(String.format(Messages.Warn.UNABLE_TO_RETRIEVE_ROOT_VOLUME, vm.getId()));
+            LOGGER.warn(String.format(Messages.Warn.UNABLE_TO_RETRIEVE_ROOT_VOLUME, vm.getId()), e);
         }
 
         String cloudStackState = vm.getState();
@@ -274,7 +299,7 @@ public class CloudStackComputePlugin implements ComputePlugin<CloudStackToken> {
         GetVolumeRequest request = new GetVolumeRequest.Builder()
                 .virtualMachineId(virtualMachineId)
                 .type(DEFAULT_VOLUME_TYPE)
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), cloudStackToken.getTokenValue());
 

@@ -7,6 +7,7 @@ import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.exceptions.NoAvailableResourcesException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
@@ -23,19 +24,28 @@ import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.fogbowcloud.ras.util.connectivity.HttpRequestClientUtil;
 
 import java.io.File;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
     private static final Logger LOGGER = Logger.getLogger(CloudStackVolumePlugin.class);
 
+    private static final String CLOUDSTACK_URL = "cloudstack_api_url";
     private static final String CLOUDSTACK_ZONE_ID_KEY = "zone_id";
     private static final int FIRST_ELEMENT_POSITION = 0;
     private static final String FOGBOW_INSTANCE_NAME = "ras-volume-";
+    private static final String FOGBOW_TAG_SEPARATOR = ":";
     private HttpRequestClientUtil client;
     private boolean diskOfferingCompatible;
     private String zoneId;
+    private Properties properties;
+    private String cloudStackUrl;
+
+    public CloudStackVolumePlugin(String confFilePath) {
+        this.properties = PropertiesUtil.readProperties(confFilePath);
+        this.cloudStackUrl = properties.getProperty(CLOUDSTACK_URL);
+        this.zoneId = properties.getProperty(CLOUDSTACK_ZONE_ID_KEY);
+        this.client = new HttpRequestClientUtil();
+    }
 
     public CloudStackVolumePlugin() {
         String filePath = HomeDir.getPath() + File.separator + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
@@ -49,6 +59,8 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
     public String requestInstance(VolumeOrder volumeOrder, CloudStackToken localUserAttributes)
             throws FogbowRasException {
         String diskOfferingId = getDiskOfferingId(volumeOrder, localUserAttributes);
+
+        if (diskOfferingId == null) throw new NoAvailableResourcesException();
 
         CreateVolumeRequest request;
         if (isDiskOfferingCompatible()) {
@@ -75,7 +87,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
             throws FogbowRasException, UnexpectedException {
         GetVolumeRequest request = new GetVolumeRequest.Builder()
                 .id(volumeInstanceId)
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
 
@@ -103,7 +115,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
 
         DeleteVolumeRequest request = new DeleteVolumeRequest.Builder()
                 .id(volumeInstanceId)
-                .build();
+                .build(this.cloudStackUrl);
 
         CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
 
@@ -127,7 +139,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
             throws FogbowRasException {
 
         int volumeSize = volumeOrder.getVolumeSize();
-        GetAllDiskOfferingsRequest request = new GetAllDiskOfferingsRequest.Builder().build();
+        GetAllDiskOfferingsRequest request = new GetAllDiskOfferingsRequest.Builder().build(this.cloudStackUrl);
         CloudStackUrlUtil.sign(request.getUriBuilder(), localUserAttributes.getTokenValue());
 
         String jsonResponse = null;
@@ -137,40 +149,69 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
             CloudStackHttpToFogbowRasExceptionMapper.map(e);
         }
 
-        String diskOfferingId = getDiskOfferingIdCompatible(volumeSize, jsonResponse);
+        GetAllDiskOfferingsResponse response = GetAllDiskOfferingsResponse.fromJson(jsonResponse);
+        List<DiskOffering> diskOfferings = response.getDiskOfferings();
+        List<DiskOffering> toRemove = new ArrayList<>();
+
+        if (volumeOrder.getRequirements() != null && volumeOrder.getRequirements().size() > 0) {
+            for (Map.Entry<String, String> tag : volumeOrder.getRequirements().entrySet()) {
+                String concatenatedTag = tag.getKey() + FOGBOW_TAG_SEPARATOR + tag.getValue();
+
+                for (DiskOffering diskOffering : diskOfferings) {
+                    if (diskOffering.getTags() == null) {
+                        toRemove.add(diskOffering);
+                        continue;
+                    }
+
+                    List<String> tags = new ArrayList<>(Arrays.asList(diskOffering.getTags().split(",")));
+                    if (!tags.contains(concatenatedTag)) {
+                        toRemove.add(diskOffering);
+                    }
+                }
+            }
+        }
+
+        diskOfferings.removeAll(toRemove);
+
+        String diskOfferingId = getDiskOfferingIdCompatible(volumeOrder.getVolumeSize(), diskOfferings);
 
         if (!isDiskOfferingCompatible()) {
-            diskOfferingId = getDiskOfferingIdCustomized(volumeSize, jsonResponse);
+            diskOfferingId = getDiskOfferingIdCustomized(diskOfferings);
         }
 
         return diskOfferingId;
     }
 
-    private String getDiskOfferingIdCustomized(int volumeSize, String jsonResponse) {
-        GetAllDiskOfferingsResponse response = GetAllDiskOfferingsResponse.fromJson(jsonResponse);
+    private String getDiskOfferingIdCustomized(List<DiskOffering> diskOfferings) {
         boolean customized;
         int size;
-        for (DiskOffering diskOffering : response.getDiskOfferings()) {
+
+        for (DiskOffering diskOffering : diskOfferings) {
             customized = diskOffering.isCustomized();
             size = diskOffering.getDiskSize();
+
             if (customized && size == 0) {
                 return diskOffering.getId();
             }
         }
+
         return null;
     }
 
-    private String getDiskOfferingIdCompatible(int volumeSize, String jsonResponse) {
-        GetAllDiskOfferingsResponse response = GetAllDiskOfferingsResponse.fromJson(jsonResponse);
+    private String getDiskOfferingIdCompatible(int volumeSize, List<DiskOffering> diskOfferings) {
         int size;
-        for (DiskOffering diskOffering : response.getDiskOfferings()) {
+
+        for (DiskOffering diskOffering : diskOfferings) {
             size = diskOffering.getDiskSize();
+
             if (size == volumeSize) {
                 this.diskOfferingCompatible = true;
                 return diskOffering.getId();
             }
         }
+
         this.diskOfferingCompatible = false;
+
         return null;
     }
 
@@ -185,7 +226,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
                 .name(name)
                 .diskOfferingId(diskOfferingId)
                 .size(size)
-                .build();
+                .build(this.cloudStackUrl);
     }
 
     private CreateVolumeRequest createVolumeCompatible(VolumeOrder volumeOrder, String diskOfferingId)
@@ -197,7 +238,7 @@ public class CloudStackVolumePlugin implements VolumePlugin<CloudStackToken> {
                 .zoneId(this.zoneId)
                 .name(name)
                 .diskOfferingId(diskOfferingId)
-                .build();
+                .build(this.cloudStackUrl);
     }
 
     private VolumeInstance loadInstance(GetVolumeResponse.Volume volume) {

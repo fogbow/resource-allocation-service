@@ -2,14 +2,12 @@ package org.fogbowcloud.ras.core.plugins.interoperability.openstack.network.v2;
 
 import org.apache.http.client.HttpResponseException;
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.instances.NetworkInstance;
-import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
+import org.fogbowcloud.ras.core.models.NetworkAllocationMode;
 import org.fogbowcloud.ras.core.models.orders.NetworkOrder;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.NetworkPlugin;
@@ -69,9 +67,8 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
     private String networkV2APIEndpoint;
     private String[] dnsList;
 
-    public OpenStackNetworkPlugin() throws FatalErrorException {
-        Properties properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                SystemConstants.OPENSTACK_CONF_FILE_NAME);
+    public OpenStackNetworkPlugin(String confFilePath) throws FatalErrorException {
+        Properties properties = PropertiesUtil.readProperties(confFilePath);
         this.networkV2APIEndpoint = properties.getProperty(NETWORK_NEUTRONV2_URL_KEY) + V2_API_ENDPOINT;
         setDNSList(properties);
         initClient();
@@ -111,9 +108,9 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
             removeNetwork(openStackV3Token, networkId);
         } catch (InstanceNotFoundException e) {
             // continue and try to delete the security group
-            LOGGER.warn(String.format(Messages.Warn.NETWORK_NOT_FOUND, networkId));
+            LOGGER.warn(String.format(Messages.Warn.NETWORK_NOT_FOUND, networkId), e);
         } catch (UnexpectedException | FogbowRasException e) {
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_NETWORK, networkId));
+            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_NETWORK, networkId), e);
             throw e;
         }
 
@@ -122,7 +119,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
         try {
             removeSecurityGroup(openStackV3Token, securityGroupId);
         } catch (UnexpectedException | FogbowRasException e) {
-            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_SECURITY_GROUP, securityGroupId));
+            LOGGER.error(String.format(Messages.Error.UNABLE_TO_DELETE_SECURITY_GROUP, securityGroupId), e);
             throw e;
         }
     }
@@ -243,7 +240,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
             securityGroupId = securityGroup.getString(KEY_ID);
         } catch (JSONException e) {
             String message = String.format(Messages.Error.UNABLE_TO_RETRIEVE_NETWORK_ID, json);
-            LOGGER.error(message);
+            LOGGER.error(message, e);
             throw new UnexpectedException(message, e);
         }
         return securityGroupId;
@@ -330,7 +327,7 @@ public class OpenStackNetworkPlugin implements NetworkPlugin<OpenStackV3Token> {
             networkId = networkJSONObject.optString(KEY_ID);
         } catch (JSONException e) {
             String message = String.format(Messages.Error.UNABLE_TO_RETRIEVE_NETWORK_ID, json);
-            LOGGER.error(message);
+            LOGGER.error(message, e);
             throw new UnexpectedException(message, e);
         }
         return networkId;

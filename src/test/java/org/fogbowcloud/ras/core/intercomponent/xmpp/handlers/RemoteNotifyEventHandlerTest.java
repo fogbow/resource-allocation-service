@@ -83,7 +83,7 @@ public class RemoteNotifyEventHandlerTest {
         Assert.assertEquals(expected, result.toString());
     }
 
-    // test case: When an Exception occurs, the handle method must return allocationAllowableValues response
+    // test case: When an Exception occurs, the handle method must return a response
     // error.
     @Test
     public void testWhenThrowsException() throws FogbowRasException, UnexpectedException {
@@ -110,7 +110,7 @@ public class RemoteNotifyEventHandlerTest {
 
     private String createOrder() throws InvalidParameterException {
         this.order = new ComputeOrder(null, REQUESTING_MEMBER, "providingmember",
-                "hostName", 1, 2, 3, "imageId", null,
+                "default", "hostName", 1, 2, 3, "imageId", null,
                 "publicKey", new ArrayList<>());
         return this.order.getId();
     }

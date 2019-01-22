@@ -16,6 +16,7 @@ public class PropertiesHolder {
         String path = HomeDir.getPath();
         List<String> configFilesNames = new ArrayList<>();
         configFilesNames.add(path + SystemConstants.RAS_CONF_FILE_NAME);
+        configFilesNames.add(path + SystemConstants.CLOUDS_CONF_FILE_NAME);
         configFilesNames.add(path + SystemConstants.INTERCOMPONENT_CONF_FILE_NAME);
         this.properties = PropertiesUtil.readProperties(configFilesNames);
     }

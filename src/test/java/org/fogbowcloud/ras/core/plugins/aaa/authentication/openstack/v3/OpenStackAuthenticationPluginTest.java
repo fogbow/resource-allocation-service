@@ -1,9 +1,5 @@
 package org.fogbowcloud.ras.core.plugins.aaa.authentication.openstack.v3;
 
-import java.io.IOException;
-import java.security.GeneralSecurityException;
-import java.security.interfaces.RSAPrivateKey;
-
 import org.apache.commons.lang.StringUtils;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
@@ -11,12 +7,17 @@ import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.UnavailableProviderException;
 import org.fogbowcloud.ras.core.models.tokens.OpenStackV3Token;
+import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.OpenStackTokenGeneratorPlugin;
 import org.fogbowcloud.ras.util.RSAUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.interfaces.RSAPrivateKey;
 
 public class OpenStackAuthenticationPluginTest {
 	
@@ -33,12 +34,12 @@ public class OpenStackAuthenticationPluginTest {
         this.providerId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 
         try {
-            this.privateKey = RSAUtil.getPrivateKey();
+            this.privateKey = RASAuthenticationHolder.getInstance().getPrivateKey();
         } catch (IOException | GeneralSecurityException e) {
             throw new FatalErrorException(String.format(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE, e.getMessage()));
         }  
         
-        this.authenticationPlugin = Mockito.spy(new OpenStackAuthenticationPlugin());
+        this.authenticationPlugin = Mockito.spy(new OpenStackAuthenticationPlugin(this.providerId));
     }
 
     //test case: check if isAuthentic returns true when the tokenValue is valid.

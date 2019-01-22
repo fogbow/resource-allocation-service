@@ -1,9 +1,12 @@
 package org.fogbowcloud.ras.core.plugins.aaa.identity.openstack.v3;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
+import org.fogbowcloud.ras.core.HomeDir;
+import org.fogbowcloud.ras.core.constants.SystemConstants;
+import org.fogbowcloud.ras.core.exceptions.InvalidTokenException;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.openstack.v3.OpenStackTokenGeneratorPlugin;
 import org.junit.Assert;
 import org.junit.Before;
@@ -24,11 +27,13 @@ public class OpenStackIdentityPluginTest {
     @Before
     public void setUp() {
         this.identityPlugin = new OpenStackIdentityPlugin();
-        this.tokenGenerator = Mockito.spy(new OpenStackTokenGeneratorPlugin());
+        String cloudConfPath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME + File.separator
+                + "default" + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.tokenGenerator = Mockito.spy(new OpenStackTokenGeneratorPlugin(cloudConfPath));
     }
 
     // TODO check this test !!!
-    //test case: check if the token value information is correct when creating allocationAllowableValues token with the correct user credentials.
+    //test case: check if the token value information is correct when creating a token with the correct user credentials.
     @Test
     public void testCreateToken() throws Exception {
         //set up
@@ -58,7 +63,7 @@ public class OpenStackIdentityPluginTest {
 
     //test case: check if createFederationTokenValue throws UnauthenticatedUserException when the user credentials
     // are invalid.
-    @Test(expected = InvalidParameterException.class)
+    @Test(expected = InvalidTokenException.class)
     public void testCreateTokenFail() throws Exception {
         //exercise/verify
         this.identityPlugin.createToken("anything");

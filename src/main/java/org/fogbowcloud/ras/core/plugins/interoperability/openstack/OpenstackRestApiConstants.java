@@ -8,6 +8,9 @@ public class OpenstackRestApiConstants {
         public static final String SIZE_KEY_JSON = "size";
         public static final String NAME_KEY_JSON = "name";
         public static final String ID_KEY_JSON = "id";
+        public static final String PROJECT_ID_KEY_JSON = "project_id";
+        public static final String VOLUME_TYPES_KEY_JSON = "volume_types";
+        public static final String EXTRA_SPECS_KEY_JSON = "extra_specs";
     }
 
     public static class Attachment {
@@ -32,6 +35,7 @@ public class OpenstackRestApiConstants {
         public static final String ADDRESS_KEY_JSON = "addr";
         public static final String IMAGE_REFERENCE_KEY_JSON = "imageRef";
         public static final String FLAVOR_REFERENCE_KEY_JSON = "flavorRef";
+        public static final String FLAVOR_EXTRA_SPECS_KEY_JSON = "extra_specs";
         public static final String USER_DATA_KEY_JSON = "user_data";
         public static final String KEY_NAME_KEY_JSON = "key_name";
         public static final String NETWORKS_KEY_JSON = "networks";
@@ -93,7 +97,6 @@ public class OpenstackRestApiConstants {
         public static final String DOMAIN_KEY_JSON = "domain";
         public static final String TOKEN_KEY_JSON = "token";
         public static final String METHODS_KEY_JSON = "methods";
-        public static final String METHODS_PASSWORD_VALUE_JSON = "password";
         public static final String PROJECT_KEY_JSON = "project";
         public static final String PASSWORD_KEY_JSON = "password";
         public static final String IDENTITY_KEY_JSON = "identity";

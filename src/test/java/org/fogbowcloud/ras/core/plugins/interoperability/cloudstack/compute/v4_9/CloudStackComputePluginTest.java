@@ -4,13 +4,10 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.utils.URIBuilder;
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.SystemConstants;
-import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
-import org.fogbowcloud.ras.core.exceptions.InstanceNotFoundException;
-import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.instances.ComputeInstance;
 import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
-import org.fogbowcloud.ras.core.models.orders.UserData;
+import org.fogbowcloud.ras.core.models.UserData;
 import org.fogbowcloud.ras.core.models.tokens.CloudStackToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.cloudstack.CloudStackUrlMatcher;
@@ -50,11 +47,13 @@ public class CloudStackComputePluginTest {
     public static final String FAKE_CPU_NUMBER = "4";
     public static final String FAKE_MEMORY = "2024";
     public static final String FAKE_DISK = "25";
+    public static final String FAKE_TAGS = "tag1:value1,tag2:value2";
     public static final String FAKE_ADDRESS = "10.0.0.0/24";
     public static final String FAKE_NETWORK_ID = "fake-network-id";
     public static final String FAKE_TYPE = "ROOT";
     public static final String FAKE_EXPUNGE = "true";
     public static final String FAKE_MEMBER = "fake-member";
+    public static final String FAKE_CLOUD_NAME = "fake-cloud-name";
     public static final String FAKE_PUBLIC_KEY = "fake-public-key";
 
     private static final String FAKE_TOKEN_PROVIDER = "fake-token-provider";
@@ -80,41 +79,38 @@ public class CloudStackComputePluginTest {
     public static final String NETWORK_IDS_KEY = "networkids";
     public static final String USER_DATA_KEY = "userdata";
     public static final String CLOUDSTACK_URL = "cloudstack_api_url";
+    public static final String CLOUD_NAME = "cloudstack";
 
     private String fakeZoneId;
 
     private CloudStackComputePlugin plugin;
     private HttpRequestClientUtil client;
     private LaunchCommandGenerator launchCommandGeneratorMock;
-
-    private void initializeProperties() {
-        String cloudStackConfFilePath = HomeDir.getPath() + File.separator
-               + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
-        Properties properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
-
-        this.fakeZoneId = properties.getProperty(CloudStackComputePlugin.ZONE_ID_KEY);
-    }
+    private Properties properties;
 
     @Before
     public void setUp() {
-        initializeProperties();
+        String cloudStackConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
+                File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+        this.properties = PropertiesUtil.readProperties(cloudStackConfFilePath);
+
         // we dont want HttpRequestUtil code to be executed in this test
         PowerMockito.mockStatic(HttpRequestUtil.class);
 
         this.launchCommandGeneratorMock = Mockito.mock(LaunchCommandGenerator.class);
-        this.plugin = new CloudStackComputePlugin();
-
         this.client = Mockito.mock(HttpRequestClientUtil.class);
+        this.plugin = new CloudStackComputePlugin(cloudStackConfFilePath);
         this.plugin.setClient(this.client);
         this.plugin.setLaunchCommandGenerator(this.launchCommandGeneratorMock);
+        this.fakeZoneId = this.properties.getProperty(CloudStackComputePlugin.ZONE_ID_KEY);
     }
 
-    // Test case: when deploying allocationAllowableValues virtual machine, the token should be signed and five HTTP GET requests should be made:
+    // Test case: when deploying virtual machine, the token should be signed and five HTTP GET requests should be made:
     // 1) retrieve the service offerings from the cloudstack compute service; 2) retrieve disk offerings
     // from the cloudstack volume service; 3) register ssh keypair using public key passed in the order; // 4) request
     // to the compute service to actually create the vm; 5) delete keypair used to created the vm.
     @Test
-    public void testRequestInstance() throws FogbowRasException, HttpResponseException, UnexpectedException, UnsupportedEncodingException {
+    public void testRequestInstance() throws FogbowRasException, HttpResponseException, UnsupportedEncodingException {
         // set up
         String endpoint = getBaseEndpointFromCloudStackConf();
         String computeCommand = DeployVirtualMachineRequest.DEPLOY_VM_COMMAND;
@@ -156,7 +152,7 @@ public class CloudStackComputePluginTest {
         CloudStackUrlMatcher urlMatcher = new CloudStackUrlMatcher(expectedParams);
 
         String serviceOfferingResponse = getListServiceOfferrings(fakeServiceOfferingId, "fake-service-offering",
-                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY));
+                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY), FAKE_TAGS);
         String diskOfferingResponse = getListDiskOfferrings(fakeDiskOfferingId, Integer.parseInt(FAKE_DISK),true);
         String computeResponse = getDeployVirtualMachineResponse(FAKE_ID);
 
@@ -168,9 +164,84 @@ public class CloudStackComputePluginTest {
         Mockito.when(this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN))).thenReturn(computeResponse);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, CLOUD_NAME, FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+        String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
+
+        // verify
+        Assert.assertEquals(FAKE_ID, createdVirtualMachineId);
+
+        PowerMockito.verifyStatic(CloudStackUrlUtil.class, VerificationModeFactory.times(3));
+        CloudStackUrlUtil.sign(Mockito.any(URIBuilder.class), Mockito.anyString());
+
+        Mockito.verify(this.client, Mockito.times(1)).doGetRequest(Mockito.argThat(urlMatcher),
+                Mockito.eq(FAKE_TOKEN));
+    }
+
+    // test case: when order has requirements, filter out non-matching service offerings
+    @Test
+    public void testRequestInstanceWithRequirements() throws FogbowRasException, HttpResponseException, UnsupportedEncodingException {
+        // set up
+        String endpoint = getBaseEndpointFromCloudStackConf();
+        String computeCommand = DeployVirtualMachineRequest.DEPLOY_VM_COMMAND;
+        String serviceOfferingsCommand = GetAllServiceOfferingsRequest.LIST_SERVICE_OFFERINGS_COMMAND;
+        String diskOfferingsCommand = GetAllDiskOfferingsRequest.LIST_DISK_OFFERINGS_COMMAND;
+
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+
+        String fakeImageId = "fake-image-id";
+
+        UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag");
+        String fakeUserDataString = Base64.getEncoder().encodeToString(
+                fakeUserData.getExtraUserDataFileContent().getBytes("UTF-8"));
+        ArrayList<UserData> userData = new ArrayList<>();
+        userData.add(fakeUserData);
+
+        List<String> fakeNetworkdIds = new ArrayList<>();
+        fakeNetworkdIds.add(FAKE_NETWORK_ID);
+        String fakeNetworkIdsString = "fake-default-network-id," + FAKE_NETWORK_ID;
+
+        Map<String, String> fakeRequirements = new HashMap<>();
+        fakeRequirements.put("tag1", "value1");
+
+        String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand,
+                RESPONSE_KEY, JSON);
+        String expectedDiskOfferingsRequestUrl = generateExpectedUrl(endpoint, diskOfferingsCommand,
+                RESPONSE_KEY, JSON);
+
+        String fakeServiceOfferingId = "fake-service-offering-id";
+        String fakeDiskOfferingId = "fake-disk-offering-id";
+
+        Map<String, String> expectedParams = new HashMap<>();
+        expectedParams.put(COMMAND_KEY, computeCommand);
+        expectedParams.put(RESPONSE_KEY, JSON);
+        expectedParams.put(ZONE_ID_KEY, fakeZoneId);
+        expectedParams.put(TEMPLATE_ID_KEY, fakeImageId);
+        expectedParams.put(SERVICE_OFFERING_ID_KEY, fakeServiceOfferingId);
+        expectedParams.put(DISK_OFFERING_ID_KEY, fakeDiskOfferingId);
+        expectedParams.put(USER_DATA_KEY, fakeUserDataString);
+        expectedParams.put(NETWORK_IDS_KEY, fakeNetworkIdsString);
+        CloudStackUrlMatcher urlMatcher = new CloudStackUrlMatcher(expectedParams);
+
+        String serviceOfferingResponse = getListServiceOfferrings(fakeServiceOfferingId, "fake-service-offering",
+                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY), FAKE_TAGS);
+        String diskOfferingResponse = getListDiskOfferrings(fakeDiskOfferingId, Integer.parseInt(FAKE_DISK),true);
+        String computeResponse = getDeployVirtualMachineResponse(FAKE_ID);
+
+        Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(Mockito.any(ComputeOrder.class))).thenReturn(fakeUserDataString);
+        Mockito.when(this.client.doGetRequest(Mockito.eq(expectedServiceOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
+                .thenReturn(serviceOfferingResponse);
+        Mockito.when(this.client.doGetRequest(Mockito.eq(expectedDiskOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
+                .thenReturn(diskOfferingResponse);
+        Mockito.when(this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN))).thenReturn(computeResponse);
+
+        // exercise
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_CLOUD_NAME, FAKE_INSTANCE_NAME,
+                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
+                Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+        order.setRequirements(fakeRequirements);
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
 
         // verify
@@ -186,7 +257,7 @@ public class CloudStackComputePluginTest {
     // Test case: template, zone and default network ids are required paramaters for requesting an instance, so they
     // should be appropriately defined in the config file or in the order. raise exception otherwise.
     @Test(expected = InvalidParameterException.class)
-    public void testRequestInstanceNullRequiredParamater() throws FogbowRasException, HttpResponseException, UnexpectedException {
+    public void testRequestInstanceNullRequiredParamater() throws FogbowRasException, HttpResponseException {
         // set up
         String fakeImageId = null;
 
@@ -197,7 +268,7 @@ public class CloudStackComputePluginTest {
         fakeNetworkdIds.add(FAKE_NETWORK_ID);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
@@ -208,7 +279,7 @@ public class CloudStackComputePluginTest {
 
     // Test case: fail to retrieve service offerings from cloudstack compute service on request instance
     @Test(expected = FogbowRasException.class)
-    public void testRequestInstanceServiceOfferingRequestException() throws FogbowRasException, HttpResponseException, UnexpectedException {
+    public void testRequestInstanceServiceOfferingRequestException() throws FogbowRasException, HttpResponseException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
@@ -230,7 +301,7 @@ public class CloudStackComputePluginTest {
                 .thenThrow(FogbowRasException.class);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
@@ -240,9 +311,51 @@ public class CloudStackComputePluginTest {
                 .doGetRequest(expectedServiceOfferingsRequestUrl, FAKE_TOKEN);
     }
 
+    // test case: if no service offering is found for order with requirements, raise exception
+    @Test(expected = FogbowRasException.class)
+    public void testRequestInstanceNoMatchingRequirements() throws FogbowRasException, HttpResponseException {
+        // set up
+        PowerMockito.mockStatic(CloudStackUrlUtil.class);
+        PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
+
+        String endpoint = getBaseEndpointFromCloudStackConf();
+        String serviceOfferingsCommand = GetAllServiceOfferingsRequest.LIST_SERVICE_OFFERINGS_COMMAND;
+
+        String fakeImageId = "fake-image-id";
+        UserData fakeUserData = new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag");
+        ArrayList<UserData> userData = new ArrayList<UserData>(Arrays.asList(new UserData[] { fakeUserData }));
+
+        List<String> fakeNetworkdIds = new ArrayList<>();
+        fakeNetworkdIds.add(FAKE_NETWORK_ID);
+
+        Map<String, String> fakeRequirements = new HashMap<>();
+        fakeRequirements.put("tag3", "value3");
+
+        String fakeServiceOfferingId = "fake-service-offering-id";
+
+        String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand,
+                RESPONSE_KEY, JSON);
+        String serviceOfferingResponse = getListServiceOfferrings(fakeServiceOfferingId, "fake-service-offering",
+                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY), FAKE_TAGS);
+
+        Mockito.when(this.client.doGetRequest(Mockito.eq(expectedServiceOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
+                .thenReturn(serviceOfferingResponse);
+
+        // exercise
+        ComputeOrder order = new ComputeOrder(null, FAKE_CLOUD_NAME, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
+                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
+                Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
+        order.setRequirements(fakeRequirements);
+
+        String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
+
+        Mockito.verify(this.client, Mockito.times(1))
+                .doGetRequest(expectedServiceOfferingsRequestUrl, FAKE_TOKEN);
+    }
+
     // Test case: when no mininum service offering is found to fulfill the order, raise exception
     @Test(expected = FogbowRasException.class)
-    public void testRequestInstanceServiceOfferingNotFound() throws FogbowRasException, HttpResponseException, UnexpectedException {
+    public void testRequestInstanceServiceOfferingNotFound() throws FogbowRasException, HttpResponseException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
@@ -261,7 +374,7 @@ public class CloudStackComputePluginTest {
         String fakeServiceOfferingId = "fake-service-offering-id";
 
         String serviceOfferingResponse = getListServiceOfferrings(fakeServiceOfferingId, "fake-service-offering",
-                lowerCpuNumber, Integer.parseInt(FAKE_MEMORY));
+                lowerCpuNumber, Integer.parseInt(FAKE_MEMORY), FAKE_TAGS);
 
         String expectedServiceOfferingsRequestUrl = generateExpectedUrl(endpoint, serviceOfferingsCommand,
                 RESPONSE_KEY, JSON);
@@ -270,7 +383,7 @@ public class CloudStackComputePluginTest {
                 .thenReturn(serviceOfferingResponse);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
@@ -282,7 +395,7 @@ public class CloudStackComputePluginTest {
 
     // Test case: raise exception on fail to retrieve disk offerings from cloudstack compute service on request instance
     @Test(expected = FogbowRasException.class)
-    public void testRequestInstanceDiskOfferingRequestException() throws FogbowRasException, HttpResponseException, UnexpectedException {
+    public void testRequestInstanceDiskOfferingRequestException() throws FogbowRasException, HttpResponseException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
@@ -306,7 +419,7 @@ public class CloudStackComputePluginTest {
 
         String fakeServiceOfferingId = "fake-service-offering-id";
         String serviceOfferingResponse = getListServiceOfferrings(fakeServiceOfferingId, "fake-service-offering",
-                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY));
+                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY), FAKE_TAGS);
 
         Mockito.when(this.client.doGetRequest(Mockito.eq(expectedServiceOfferingsRequestUrl), Mockito.eq(FAKE_TOKEN)))
                 .thenReturn(serviceOfferingResponse);
@@ -314,7 +427,7 @@ public class CloudStackComputePluginTest {
                 .thenThrow(FogbowRasException.class);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
@@ -327,7 +440,7 @@ public class CloudStackComputePluginTest {
     // Test case: send deploy virtual machine request with no disk parameter in case no minimum disk offering is found
     // for the order
     @Test
-    public void testRequestInstanceDiskOfferingNotFound() throws FogbowRasException, HttpResponseException, UnexpectedException, UnsupportedEncodingException {
+    public void testRequestInstanceDiskOfferingNotFound() throws FogbowRasException, HttpResponseException, UnsupportedEncodingException {
         // set up
         PowerMockito.mockStatic(CloudStackUrlUtil.class);
         PowerMockito.when(CloudStackUrlUtil.createURIBuilder(Mockito.anyString(), Mockito.anyString())).thenCallRealMethod();
@@ -370,7 +483,7 @@ public class CloudStackComputePluginTest {
         int lowerDiskSize = 20;
         String diskOfferingResponse = getListDiskOfferrings(fakeDiskOfferingId, lowerDiskSize,true);
         String serviceOfferingResponse = getListServiceOfferrings(fakeServiceOfferingId, "fake-service-offering",
-                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY));
+                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY), FAKE_TAGS);
         String computeResponse = getDeployVirtualMachineResponse(FAKE_ID);
 
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(Mockito.any(ComputeOrder.class))).thenReturn(fakeUserDataString);
@@ -381,7 +494,7 @@ public class CloudStackComputePluginTest {
         Mockito.when(this.client.doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN))).thenReturn(computeResponse);
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
 
@@ -395,9 +508,9 @@ public class CloudStackComputePluginTest {
                 .doGetRequest(Mockito.argThat(urlMatcher), Mockito.eq(FAKE_TOKEN));
     }
 
-    // Test case: http request fails on attempting to deploy allocationAllowableValues new virtual machine
+    // Test case: http request fails on attempting to deploy a new virtual machine
     @Test(expected = FogbowRasException.class)
-    public void testRequestInstanceFail() throws FogbowRasException, HttpResponseException, UnexpectedException, UnsupportedEncodingException {
+    public void testRequestInstanceFail() throws FogbowRasException, HttpResponseException, UnsupportedEncodingException {
         // set up
         String endpoint = getBaseEndpointFromCloudStackConf();
         String computeCommand = DeployVirtualMachineRequest.DEPLOY_VM_COMMAND;
@@ -439,7 +552,7 @@ public class CloudStackComputePluginTest {
         CloudStackUrlMatcher urlMatcher = new CloudStackUrlMatcher(expectedParams);
 
         String serviceOfferingResponse = getListServiceOfferrings(fakeServiceOfferingId, "fake-service-offering",
-                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY));
+                Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY), FAKE_TAGS);
         String diskOfferingResponse = getListDiskOfferrings(fakeDiskOfferingId, Integer.parseInt(FAKE_DISK),true);
 
         Mockito.when(this.launchCommandGeneratorMock.createLaunchCommand(Mockito.any(ComputeOrder.class))).thenReturn(fakeUserDataString);
@@ -451,7 +564,7 @@ public class CloudStackComputePluginTest {
                 .thenThrow(new HttpResponseException(503, "service unavailable"));
 
         // exercise
-        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, FAKE_INSTANCE_NAME,
+        ComputeOrder order = new ComputeOrder(null, FAKE_MEMBER, FAKE_MEMBER, "default", FAKE_INSTANCE_NAME,
                 Integer.parseInt(FAKE_CPU_NUMBER), Integer.parseInt(FAKE_MEMORY),
                 Integer.parseInt(FAKE_DISK), fakeImageId, userData, FAKE_PUBLIC_KEY, fakeNetworkdIds);
         String createdVirtualMachineId = this.plugin.requestInstance(order, FAKE_TOKEN);
@@ -464,9 +577,9 @@ public class CloudStackComputePluginTest {
                 Mockito.eq(FAKE_TOKEN));
     }
 
-    // Test case: when getting allocationAllowableValues virtual machine, the token should be signed and two HTTP GET requests should be made:
+    // Test case: when getting virtual machine, the token should be signed and two HTTP GET requests should be made:
     // one to retrieve the virtual machine from the cloudstack compute service and another to retrieve that vm disk
-    // size from the cloudstack volume service. Finally, allocationAllowableValues valid compute instance should be returned from those
+    // size from the cloudstack volume service. Finally, valid compute instance should be returned from those
     // requests results.
     @Test
     public void testGetInstance() throws UnexpectedException, FogbowRasException, HttpResponseException {
@@ -519,7 +632,7 @@ public class CloudStackComputePluginTest {
         Mockito.verify(this.client, Mockito.times(1)).doGetRequest(expectedVolumeRequestUrl, FAKE_TOKEN);
     }
 
-    // Test case: when getting allocationAllowableValues virtual machine which root disk size could not be retrieved, default volume size to -1
+    // Test case: when getting virtual machine which root disk size could not be retrieved, default volume size to -1
     @Test
     public void testGetInstanceNoVolume() throws FogbowRasException, HttpResponseException {
         // set up
@@ -652,11 +765,7 @@ public class CloudStackComputePluginTest {
     }
 
     private String getBaseEndpointFromCloudStackConf() {
-        String filePath = HomeDir.getPath() + File.separator
-                + SystemConstants.CLOUDSTACK_CONF_FILE_NAME;
-
-        Properties properties = PropertiesUtil.readProperties(filePath);
-        return properties.getProperty(CLOUDSTACK_URL);
+        return this.properties.getProperty(CLOUDSTACK_URL);
     }
 
     private String generateExpectedUrl(String endpoint, String command, String... keysAndValues) {
@@ -729,15 +838,16 @@ public class CloudStackComputePluginTest {
         return String.format(response, id, diskSize, customized);
     }
 
-    private String getListServiceOfferrings(String id, String name, int cpuNumber, int memory) {
+    private String getListServiceOfferrings(String id, String name, int cpuNumber, int memory, String tags) {
         String response = "{\"listserviceofferingsresponse\":{" + "\"serviceoffering\":[{"
                 + "\"id\": \"%s\","
                 + "\"name\": \"%s\","
                 + "\"cpunumber\": \"%s\","
-                + "\"memory\": \"%s\""
+                + "\"memory\": \"%s\","
+                + "\"tags\": \"%s\""
                 + "}]}}";
 
-        return String.format(response, id, name, cpuNumber, memory);
+        return String.format(response, id, name, cpuNumber, memory, tags);
     }
 
     private String getDeployVirtualMachineResponse(String id) {

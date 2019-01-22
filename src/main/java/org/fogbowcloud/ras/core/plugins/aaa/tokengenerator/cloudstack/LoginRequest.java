@@ -11,7 +11,7 @@ public class LoginRequest extends CloudStackRequest {
     public static final String DOMAIN_KEY = "domain";
 
     private LoginRequest(Builder builder) throws InvalidParameterException {
-        super();
+        super(builder.cloudStackUrl);
         addParameter(USERNAME_KEY, builder.username);
         addParameter(PASSWORD_KEY, builder.password);
         addParameter(DOMAIN_KEY, builder.domain);
@@ -28,7 +28,7 @@ public class LoginRequest extends CloudStackRequest {
     }
 
     public static class Builder {
-
+        private String cloudStackUrl;
         private String username;
         private String password;
         private String domain;
@@ -48,7 +48,8 @@ public class LoginRequest extends CloudStackRequest {
             return this;
         }
 
-        public LoginRequest build() throws InvalidParameterException {
+        public LoginRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new LoginRequest(this);
         }
 

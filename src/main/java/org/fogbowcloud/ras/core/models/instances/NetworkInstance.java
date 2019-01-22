@@ -1,6 +1,6 @@
 package org.fogbowcloud.ras.core.models.instances;
 
-import org.fogbowcloud.ras.core.models.orders.NetworkAllocationMode;
+import org.fogbowcloud.ras.core.models.NetworkAllocationMode;
 
 public class NetworkInstance extends Instance {
     private String name;

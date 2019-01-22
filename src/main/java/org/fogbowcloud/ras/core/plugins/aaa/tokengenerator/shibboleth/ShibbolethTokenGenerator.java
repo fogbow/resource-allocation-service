@@ -8,17 +8,15 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
 import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.tokens.ShibbolethTokenHolder;
-import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationHolder;
+import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.TokenGeneratorPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.shibboleth.util.SecretManager;
 import org.fogbowcloud.ras.util.PropertiesUtil;
@@ -36,13 +34,13 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 	private static final int ASSERTION_URL_ATTR_SHIB_INDEX = 1;
 	protected static final int SECREC_ATTR_SHIB_INDEX = 0;
 	// properties
-	private static final String SHIB_PUBLIC_FILE_PATH_PROPERTIE = "shib_public_key_file_path";
+	private static final String SHIB_PUBLIC_FILE_PATH_KEY = "shib_public_key_file_path";
 	// credentails
 	protected static final String TOKEN_CREDENTIAL = "token";
 	protected static final String KEY_SIGNATURE_CREDENTIAL = "keySignature";
 	protected static final String KEY_CREDENTIAL = "key";
 	
-	public static final String SHIBBOLETH_SEPARETOR = "!#!";
+	public static final String SHIBBOLETH_SEPARATOR = "!#!";
 	
 	private RASAuthenticationHolder rasAuthenticationHolder;
 	private SecretManager secretManager;
@@ -52,16 +50,15 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 	private RSAPrivateKey rasPrivateKey;
 	private RSAPublicKey shibAppPublicKey;
 	
-	public ShibbolethTokenGenerator() {
+	public ShibbolethTokenGenerator(String confFilePath) {
 		this.tokenProviderId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
 		
-        this.properties = PropertiesUtil.readProperties(HomeDir.getPath() +
-                SystemConstants.SHIBBOLETH_CONF_FILE_NAME);
+        this.properties = PropertiesUtil.readProperties(confFilePath);
         
         this.rasAuthenticationHolder = RASAuthenticationHolder.getInstance();
         
         try {
-            this.rasPrivateKey = RSAUtil.getPrivateKey();
+			this.rasPrivateKey = RASAuthenticationHolder.getInstance().getPrivateKey();
         } catch (IOException | GeneralSecurityException e) {
             throw new FatalErrorException(
             		String.format(Messages.Fatal.ERROR_READING_PRIVATE_KEY_FILE, e.getMessage()));
@@ -92,7 +89,7 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 		String tokenShib = decryptTokenShib(keyShibApp, tokenShibAppEncrypted);
 		verifyShibAppKeyAuthenticity(keySignatureShibApp, keyShibApp);
 		
-		String[] tokenShibAppParameters = tokenShib.split(SHIBBOLETH_SEPARETOR);		
+		String[] tokenShibAppParameters = tokenShib.split(SHIBBOLETH_SEPARATOR);
 		checkTokenFormat(tokenShibAppParameters);
 		
 		verifySecretShibAppToken(tokenShibAppParameters);
@@ -176,7 +173,7 @@ public class ShibbolethTokenGenerator implements TokenGeneratorPlugin {
 	}
 	
     protected RSAPublicKey getShibbolethApplicationPublicKey() throws IOException, GeneralSecurityException {
-        String filename = this.properties.getProperty(SHIB_PUBLIC_FILE_PATH_PROPERTIE);
+        String filename = this.properties.getProperty(SHIB_PUBLIC_FILE_PATH_KEY);
         LOGGER.debug("Shibboleth application public key path: " + filename);
         String publicKeyPEM = RSAUtil.getKey(filename);
         LOGGER.debug("Shibboleth application Public key: " + publicKeyPEM);

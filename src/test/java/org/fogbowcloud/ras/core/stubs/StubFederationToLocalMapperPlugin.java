@@ -2,15 +2,15 @@ package org.fogbowcloud.ras.core.stubs;
 
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
-import org.fogbowcloud.ras.core.plugins.aaa.mapper.FederationToLocalMapperPlugin;
+import org.fogbowcloud.ras.core.plugins.mapper.FederationToLocalMapperPlugin;
 
 /**
- * This class is allocationAllowableValues stub for the FederationToLocalMapperPlugin interface used for tests only.
- * Should not have allocationAllowableValues proper implementation.
+ * This class is a stub for the FederationToLocalMapperPlugin interface used for tests only.
+ * Should not have a proper implementation.
  */
 public class StubFederationToLocalMapperPlugin implements FederationToLocalMapperPlugin {
 
-    public StubFederationToLocalMapperPlugin() {
+    public StubFederationToLocalMapperPlugin(String conf1, String conf2) {
     }
 
     @Override

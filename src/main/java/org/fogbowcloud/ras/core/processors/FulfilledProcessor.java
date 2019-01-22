@@ -3,8 +3,8 @@ package org.fogbowcloud.ras.core.processors;
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.OrderStateTransitioner;
 import org.fogbowcloud.ras.core.SharedOrderHolders;
-import org.fogbowcloud.ras.core.cloudconnector.CloudConnector;
 import org.fogbowcloud.ras.core.cloudconnector.CloudConnectorFactory;
+import org.fogbowcloud.ras.core.cloudconnector.LocalCloudConnector;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.instances.Instance;
@@ -21,7 +21,6 @@ public class FulfilledProcessor implements Runnable {
     private static final Logger LOGGER = Logger.getLogger(FulfilledProcessor.class);
 
     private String localMemberId;
-    private CloudConnector localCloudConnector;
     private ChainedList fulfilledOrdersList;
 
     /**
@@ -32,7 +31,6 @@ public class FulfilledProcessor implements Runnable {
     public FulfilledProcessor(String localMemberId, String sleepTimeStr) {
         CloudConnectorFactory cloudConnectorFactory = CloudConnectorFactory.getInstance();
         this.localMemberId = localMemberId;
-        this.localCloudConnector = cloudConnectorFactory.getCloudConnector(localMemberId);
         SharedOrderHolders sharedOrderHolders = SharedOrderHolders.getInstance();
         this.fulfilledOrdersList = sharedOrderHolders.getFulfilledOrdersList();
         this.sleepTime = Long.valueOf(sleepTimeStr);
@@ -68,7 +66,7 @@ public class FulfilledProcessor implements Runnable {
     }
 
     /**
-     * Gets an instance for allocationAllowableValues fulfilled order. If that instance is not reachable the order state is
+     * Gets an instance for a fulfilled order. If that instance is not reachable the order state is
      * set to failed.
      *
      * @param order {@link Order}
@@ -78,8 +76,8 @@ public class FulfilledProcessor implements Runnable {
         Instance instance = null;
         InstanceState instanceState = null;
 
-        // The order object synchronization is needed to prevent allocationAllowableValues race
-        // condition on order access. For example: allocationAllowableValues user can delete allocationAllowableValues fulfilled
+        // The order object synchronization is needed to prevent a race
+        // condition on order access. For example: a user can delete a fulfilled
         // order while this method is trying to check the status of an instance
         // that was allocated to an order.
 
@@ -95,7 +93,9 @@ public class FulfilledProcessor implements Runnable {
                 return;
             }
             try {
-                instance = this.localCloudConnector.getInstance(order);
+                LocalCloudConnector localCloudConnector = (LocalCloudConnector) CloudConnectorFactory.getInstance().
+                        getCloudConnector(this.localMemberId, order.getCloudName());
+                instance = localCloudConnector.getInstance(order);
             } catch (Exception e) {
                 LOGGER.error(Messages.Error.ERROR_WHILE_GETTING_INSTANCE_FROM_CLOUD, e);
                 OrderStateTransitioner.transition(order, OrderState.FAILED_AFTER_SUCCESSUL_REQUEST);

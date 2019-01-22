@@ -16,6 +16,7 @@ public class DisassociateIpAddressRequest extends CloudStackRequest {
 	public static final String DISASSOCIATE_IP_ADDRESS_COMMAND = "disassociateIpAddress";
 
 	protected DisassociateIpAddressRequest(Builder builder) throws InvalidParameterException {
+		super(builder.cloudStackUrl);
 		addParameter(ID_KEY_JSON, builder.id);
 	}
 
@@ -25,7 +26,7 @@ public class DisassociateIpAddressRequest extends CloudStackRequest {
 	}
 	
     public static class Builder {
-    	
+		private String cloudStackUrl;
 	    private String id;
 	
 	    public Builder id(String id) {
@@ -33,7 +34,8 @@ public class DisassociateIpAddressRequest extends CloudStackRequest {
 	        return this;
 	    }
     	
-        public DisassociateIpAddressRequest build() throws InvalidParameterException {
+        public DisassociateIpAddressRequest build(String cloudStackUrl) throws InvalidParameterException {
+			this.cloudStackUrl = cloudStackUrl;
             return new DisassociateIpAddressRequest(this);
         }
     }

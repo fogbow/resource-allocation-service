@@ -15,6 +15,8 @@ public class DeployVirtualMachineRequest extends CloudStackRequest {
     public static final String KEYPAIR = "keypair";
 
     private DeployVirtualMachineRequest(Builder builder) throws InvalidParameterException {
+        super(builder.cloudStackUrl);
+
         addParameter(SERVICE_OFFERING_ID_KEY, builder.serviceOfferingId);
         addParameter(TEMPLATE_ID_KEY, builder.templateId);
         addParameter(ZONE_ID_KEY, builder.zoneId);
@@ -36,6 +38,7 @@ public class DeployVirtualMachineRequest extends CloudStackRequest {
     }
 
     public static class Builder {
+        private String cloudStackUrl;
         private String serviceOfferingId;
         private String templateId;
         private String zoneId;
@@ -85,7 +88,8 @@ public class DeployVirtualMachineRequest extends CloudStackRequest {
             return this;
         }
 
-        public DeployVirtualMachineRequest build() throws InvalidParameterException {
+        public DeployVirtualMachineRequest build(String cloudStackUrl) throws InvalidParameterException {
+            this.cloudStackUrl = cloudStackUrl;
             return new DeployVirtualMachineRequest(this);
         }
     }

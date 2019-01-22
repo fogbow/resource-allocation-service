@@ -3,14 +3,12 @@ package org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.PropertiesHolder;
 import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
-import org.fogbowcloud.ras.core.exceptions.InvalidParameterException;
-import org.fogbowcloud.ras.core.exceptions.InvalidUserCredentialsException;
-import org.fogbowcloud.ras.core.exceptions.UnauthenticatedUserException;
-import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
+import org.fogbowcloud.ras.core.exceptions.*;
 import org.fogbowcloud.ras.core.models.tokens.LdapToken;
-import org.fogbowcloud.ras.core.plugins.aaa.authentication.RASAuthenticationHolder;
+import org.fogbowcloud.ras.core.plugins.aaa.RASAuthenticationHolder;
 import org.fogbowcloud.ras.core.plugins.aaa.authentication.ldap.LdapAuthenticationPlugin;
 import org.fogbowcloud.ras.core.plugins.aaa.identity.ldap.LdapIdentityPlugin;
 import org.junit.Assert;
@@ -44,17 +42,17 @@ public class LdapTokenGeneratorPluginTest {
     	PowerMockito.mockStatic(RASAuthenticationHolder.class);
     	this.genericSignatureAuthenticationHolder = Mockito.spy(new RASAuthenticationHolder());
     	BDDMockito.given(RASAuthenticationHolder.getInstance()).willReturn(this.genericSignatureAuthenticationHolder);
-    	
-        this.ldapTokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin());
-        this.ldapAuthenticationPlugin = new LdapAuthenticationPlugin();
+    	String path = HomeDir.getPath();
+        this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);
+        this.ldapTokenGenerator = Mockito.spy(new LdapTokenGeneratorPlugin(path + "ldap-token-generator-plugin.conf"));
+        this.ldapAuthenticationPlugin = new LdapAuthenticationPlugin(this.localMemberId);
         this.ldapIdentityPlugin = new LdapIdentityPlugin();
-        this.localMemberId = PropertiesHolder.getInstance().getProperty(ConfigurationConstants.LOCAL_MEMBER_ID);        
     }
 
-    //test case: createTokenValue with valid credentials should generate allocationAllowableValues string with the appropriate values
+    //test case: createTokenValue with valid credentials should generate a string with the appropriate values
     @Test
     public void testCreateTokenValueValidCredentials() throws InvalidParameterException, UnexpectedException,
-            InvalidUserCredentialsException, UnauthenticatedUserException {
+            InvalidUserCredentialsException, UnauthenticatedUserException, InvalidTokenException {
         //set up
         Map<String, String> userCredentials = new HashMap<String, String>();
         userCredentials.put(LdapTokenGeneratorPlugin.CRED_USERNAME, FAKE_LOGIN);

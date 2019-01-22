@@ -21,7 +21,7 @@ public class HttpRequestUtil {
     public static final String X_AUTH_TOKEN_KEY = "X-Auth-Token";
     private static Integer timeoutHttpRequest;
 
-    public static void init() throws FatalErrorException {
+    private static void init() throws FatalErrorException {
         try {
             String timeoutRequestStr =
                     PropertiesHolder.getInstance().getProperty(ConfigurationConstants.HTTP_REQUEST_TIMEOUT);

@@ -36,16 +36,16 @@ public class RemoteGetOrderRequestTest {
         this.federationUserToken = new FederationUserToken("fake-token-provider",
                 "fake-federation-token-value", "fake-user-id", "fake-user-name");
         this.order = new ComputeOrder(this.federationUserToken, "requesting-member",
-                "providing-member", "hostName", 10, 20, 30, "imageid", null,
+                "providing-member", "default", "hostName", 10, 20, 30, "imageid", null,
                 "publicKey", null);
         this.remoteGetOrderRequest = new RemoteGetOrderRequest(this.order);
         this.packetSender = Mockito.mock(PacketSender.class);
-        PacketSenderHolder.init(packetSender);
+        PacketSenderHolder.setPacketSender(this.packetSender);
         this.instance = new ComputeInstance("compute-instance");
     }
 
     //test case: checks if IQ attributes is according to both RemoteGetOrderRequest constructor parameters
-    //and remote get order request rules. In addition, it checks if the instance from allocationAllowableValues possible response is
+    //and remote get order request rules. In addition, it checks if the instance from a possible response is
     //properly created and returned by the "send" method
     @Test
     public void testSend() throws Exception {

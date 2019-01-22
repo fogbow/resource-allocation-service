@@ -1,5 +1,6 @@
 package org.fogbowcloud.ras.core.models.orders;
 
+import org.fogbowcloud.ras.core.models.NetworkAllocationMode;
 import org.fogbowcloud.ras.core.models.ResourceType;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 
@@ -28,14 +29,14 @@ public class NetworkOrder extends Order {
         super(id);
     }
 
-    public NetworkOrder(String providingMember, String name, String gateway, String cidr,
+    public NetworkOrder(String providingMember, String cloudName, String name, String gateway, String cidr,
                         NetworkAllocationMode allocationMode) {
-        this(null, null, providingMember, name, gateway, cidr, allocationMode);
+        this(null, null, providingMember, cloudName, name, gateway, cidr, allocationMode);
     }
 
     public NetworkOrder(FederationUserToken federationUserToken, String requestingMember, String providingMember,
-                        String name, String gateway, String cidr, NetworkAllocationMode allocationMode) {
-        super(UUID.randomUUID().toString(), providingMember, federationUserToken, requestingMember);
+                        String cloudName, String name, String gateway, String cidr, NetworkAllocationMode allocationMode) {
+        super(UUID.randomUUID().toString(), providingMember, cloudName, federationUserToken, requestingMember);
         this.name = name;
         this.gateway = gateway;
         this.cidr = cidr;

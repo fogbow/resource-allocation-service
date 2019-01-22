@@ -8,6 +8,10 @@ import org.fogbowcloud.ras.core.plugins.aaa.tokengenerator.ldap.LdapTokenGenerat
 
 public class LdapAuthenticationPlugin extends RASTimestampedAuthenticationPlugin {
 
+	public LdapAuthenticationPlugin(String localProviderId) {
+		super(localProviderId);
+	}
+
 	@Override
 	protected String getTokenMessage(FederationUserToken federationUserToken) {
 		String rawTokenValue = federationUserToken.getTokenValue();
