@@ -1,58 +1,41 @@
 package org.fogbowcloud.ras.core.datastore;
 
 import org.apache.log4j.Logger;
-import org.fogbowcloud.ras.core.constants.Messages;
-import org.fogbowcloud.ras.core.datastore.orderstorage.OrderTimestampStorage;
+import org.fogbowcloud.ras.core.datastore.orderstorage.AuditService;
 import org.fogbowcloud.ras.core.datastore.orderstorage.RecoveryService;
-import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.linkedlists.SynchronizedDoublyLinkedList;
 import org.fogbowcloud.ras.core.models.orders.Order;
 import org.fogbowcloud.ras.core.models.orders.OrderState;
-
-import java.sql.SQLException;
 
 public class DatabaseManager implements StableStorage {
     private static final Logger LOGGER = Logger.getLogger(DatabaseManager.class);
 
     private static DatabaseManager instance;
     private RecoveryService recoveryService;
-    private OrderTimestampStorage orderTimestampStorage;
+    private AuditService auditService;
 
-    private DatabaseManager() throws SQLException {
-        this.orderTimestampStorage = new OrderTimestampStorage();
+    private DatabaseManager() {
     }
 
-    public static DatabaseManager getInstance() {
+    public synchronized static DatabaseManager getInstance() {
         if (instance == null) {
-            try {
-                instance = new DatabaseManager();
-            } catch (SQLException e) {
-                String message = Messages.Fatal.ERROR_INSTANTIATING_DATABASE_MANAGER;
-                LOGGER.error(message, e);
-                throw new FatalErrorException(message, e);
-            }
+            instance = new DatabaseManager();
         }
         return instance;
     }
 
     @Override
     public void add(Order order) throws UnexpectedException {
-        try {
-            this.recoveryService.save(order);
-            this.orderTimestampStorage.addOrder(order);
-        } catch (SQLException e) {
-            throw new UnexpectedException(e.getMessage());
-        }
+        this.recoveryService.save(order);
+        this.auditService.updateStateTimestamp(order);
     }
 
     @Override
-    public void update(Order order) throws UnexpectedException {
-        try {
-            this.recoveryService.update(order);
-            this.orderTimestampStorage.addOrder(order);
-        } catch (SQLException e) {
-            throw new UnexpectedException(e.getMessage());
+    public void update(Order order, boolean orderStateChanged) throws UnexpectedException {
+        this.recoveryService.update(order);
+        if (orderStateChanged) {
+            this.auditService.updateStateTimestamp(order);
         }
     }
 
@@ -67,7 +50,15 @@ public class DatabaseManager implements StableStorage {
         return synchronizedDoublyLinkedList;
     }
 
+    public void update(Order order) throws UnexpectedException {
+        update(order, true);
+    }
+
     public void setRecoveryService(RecoveryService recoveryService) {
         this.recoveryService = recoveryService;
+    }
+
+    public void setAuditService(AuditService auditService) {
+        this.auditService = auditService;
     }
 }

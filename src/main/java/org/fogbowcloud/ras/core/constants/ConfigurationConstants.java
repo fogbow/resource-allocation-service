@@ -34,11 +34,6 @@ public class ConfigurationConstants {
     public static final String CLOUD_NAMES_KEY = "cloud_names";
     public static final String BUILD_NUMBER = "build_number";
 
-    // HISTORY & RECOVERY DATABASE CONF
-    public static final String DATABASE_URL = "jdbc_database_url";
-    public static final String DATABASE_USERNAME = "jdbc_database_username";
-    public static final String DATABASE_PASSWORD = "jdbc_database_password";
-
     // SSH CONF
     public static final String SSH_COMMON_USER_KEY = "ssh_common_user";
 

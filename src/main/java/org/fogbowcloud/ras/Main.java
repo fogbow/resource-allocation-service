@@ -6,6 +6,7 @@ import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.constants.SystemConstants;
 import org.fogbowcloud.ras.core.datastore.DatabaseManager;
+import org.fogbowcloud.ras.core.datastore.orderstorage.AuditService;
 import org.fogbowcloud.ras.core.datastore.orderstorage.RecoveryService;
 import org.fogbowcloud.ras.core.exceptions.FatalErrorException;
 import org.fogbowcloud.ras.core.intercomponent.RemoteFacade;
@@ -24,6 +25,9 @@ public class Main implements ApplicationRunner {
     @Autowired
     private RecoveryService recoveryService;
 
+    @Autowired
+    private AuditService auditService;
+
     @Override
     public void run(ApplicationArguments args) {
         try {
@@ -32,6 +36,7 @@ public class Main implements ApplicationRunner {
 
             // Setting up stable storage
             DatabaseManager.getInstance().setRecoveryService(recoveryService);
+            DatabaseManager.getInstance().setAuditService(auditService);
 
             // Setting up AAA plugins
             String aaaConfFilePath = HomeDir.getPath() + SystemConstants.AAA_CONF_FILE_NAME;
