@@ -5,6 +5,7 @@ import org.fogbowcloud.ras.core.constants.ConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.DefaultConfigurationConstants;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.processors.ClosedProcessor;
+import org.fogbowcloud.ras.core.processors.FailedProcessor;
 import org.fogbowcloud.ras.core.processors.FulfilledProcessor;
 import org.fogbowcloud.ras.core.processors.OpenProcessor;
 import org.fogbowcloud.ras.core.processors.SpawningProcessor;
@@ -16,6 +17,7 @@ public class ProcessorsThreadController {
     private final Thread spawningProcessorThread;
     private final Thread fulfilledProcessorThread;
     private final Thread closedProcessorThread;
+    private final Thread failedProcessorThread;
 
     public ProcessorsThreadController(String localMemberId) {
         String openOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
@@ -41,11 +43,18 @@ public class ProcessorsThreadController {
                         DefaultConfigurationConstants.CLOSED_ORDERS_SLEEP_TIME);
 
         ClosedProcessor closedProcessor = new ClosedProcessor(closedOrdersProcSleepTimeStr);
+        
+        String failedOrdersProcSleepTimeStr = PropertiesHolder.getInstance().
+                getProperty(ConfigurationConstants.FAILED_ORDERS_SLEEP_TIME_KEY,
+                        DefaultConfigurationConstants.FAILED_ORDERS_SLEEP_TIME);
+        
+        FailedProcessor failedProcessor = new FailedProcessor(localMemberId, failedOrdersProcSleepTimeStr);
 
         this.openProcessorThread = new Thread(openProcessor, "open-proc");
         this.spawningProcessorThread = new Thread(spawningProcessor, "spawning-proc");
         this.fulfilledProcessorThread = new Thread(fulfilledProcessor, "fulfilled-proc");
         this.closedProcessorThread = new Thread(closedProcessor, "closed-proc");
+        this.failedProcessorThread = new Thread(failedProcessor, "failed-proc");
     }
 
     /**
@@ -58,5 +67,6 @@ public class ProcessorsThreadController {
         this.spawningProcessorThread.start();
         this.fulfilledProcessorThread.start();
         this.closedProcessorThread.start();
+        this.failedProcessorThread.start();
     }
 }

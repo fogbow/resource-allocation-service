@@ -29,6 +29,7 @@ public class ConfigurationConstants {
     public static final String OPEN_ORDERS_SLEEP_TIME_KEY = "open_orders_sleep_time";
     public static final String SPAWNING_ORDERS_SLEEP_TIME_KEY = "spawning_orders_sleep_time";
     public static final String FULFILLED_ORDERS_SLEEP_TIME_KEY = "fulfilled_orders_sleep_time";
+    public static final String FAILED_ORDERS_SLEEP_TIME_KEY = "failed_orders_sleep_time";
     public static final String CLOSED_ORDERS_SLEEP_TIME_KEY = "closed_orders_sleep_period";
     public static final String HTTP_REQUEST_TIMEOUT = "http_request_timeout";
     public static final String CLOUD_NAMES_KEY = "cloud_names";
