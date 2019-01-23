@@ -267,9 +267,11 @@ public class ApplicationFacade {
 
     public GenericRequestResponse genericRequest(String cloudName, String memberId, GenericRequest genericRequest,
                                      String federationTokenValue) throws FogbowRasException, UnexpectedException {
-        FederationUserToken federationUserToken = this.aaaController.getFederationUser(federationTokenValue);
+        FederationUserToken requester = this.aaaController.getFederationUser(federationTokenValue);
+        this.aaaController.authenticateAndAuthorize(this.memberId, requester, cloudName, Operation.DELETE,
+                ResourceType.SECURITY_RULE);
         CloudConnector cloudConnector = CloudConnectorFactory.getInstance().getCloudConnector(memberId, cloudName);
-        return cloudConnector.genericRequest(genericRequest, federationUserToken);
+        return cloudConnector.genericRequest(genericRequest, requester);
     }
 
     private String activateOrder(Order order, String federationTokenValue) throws FogbowRasException,
