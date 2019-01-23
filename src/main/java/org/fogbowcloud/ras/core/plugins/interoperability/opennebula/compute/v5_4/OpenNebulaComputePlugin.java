@@ -1,5 +1,13 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.TreeSet;
+
 import org.apache.log4j.Logger;
 import org.fogbowcloud.ras.core.constants.Messages;
 import org.fogbowcloud.ras.core.exceptions.FogbowRasException;
@@ -15,6 +23,9 @@ import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.ComputePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
+import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.compute.v5_4.VirtualMachineTemplate.Nic;
+import org.fogbowcloud.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
+import org.fogbowcloud.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.fogbowcloud.ras.util.PropertiesUtil;
 import org.opennebula.client.Client;
 import org.opennebula.client.OneResponse;
@@ -23,8 +34,6 @@ import org.opennebula.client.image.ImagePool;
 import org.opennebula.client.template.Template;
 import org.opennebula.client.template.TemplatePool;
 import org.opennebula.client.vm.VirtualMachine;
-
-import java.util.*;
 
 public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 
@@ -46,17 +55,16 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 	private static final String TEMPLATE_NIC_IP_PATH = "TEMPLATE/NIC/IP";
 	private static final String USERDATA_ENCODING_CONTEXT = "base64";
 
-	private static final int FIRST_AVAILABLE_ID = 0;
-
-	private OpenNebulaClientFactory factory;
-
 	private TreeSet<HardwareRequirements> flavors;
+	private OpenNebulaClientFactory factory;
 	private Properties properties;
+	private LaunchCommandGenerator launchCommandGenerator;
 	
 	public OpenNebulaComputePlugin(String confFilePath) {
 		this.properties = PropertiesUtil.readProperties(confFilePath);
 		this.factory = new OpenNebulaClientFactory(confFilePath);
 		this.flavors = new TreeSet<HardwareRequirements>();
+		this.launchCommandGenerator = new DefaultLaunchCommandGenerator();
 	}
 
 	@Override
@@ -72,13 +80,13 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 			throw new InvalidParameterException();
 		}
 
-		String userData = computeOrder.getUserData().get(0).getExtraUserDataFileContent();
+		String userData = this.launchCommandGenerator.createLaunchCommand(computeOrder);
 		String hasNetwork = NETWORK_CONFIRMATION_CONTEXT;
 		String address = DEFAULT_GRAPHIC_ADDRESS;
 		String graphicsType = DEFAULT_GRAPHIC_TYPE;
 		String imageId = computeOrder.getImageId();
 		String volumeType = DEFAULT_VOLUME_TYPE;
-		String networkId = resolveNetworksId(computeOrder);
+		List<String> networks = resolveNetworkIds(computeOrder);
 
 		HardwareRequirements foundFlavor = findSmallestFlavor(computeOrder, localUserAttributes);
 		String cpu = String.valueOf(foundFlavor.getCpu());
@@ -95,7 +103,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 				.volumeSize(disk)
 				.volumeType(volumeType)
 				.memory(ram)
-				.networkId(networkId)
+				.networks(networks)
 				.build();
 
 		String template = request.getVirtualMachine().marshalTemplate();
@@ -131,15 +139,15 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		}
 	}
 
-	private String resolveNetworksId(ComputeOrder computeOrder) {
-		List<String> requestedNetworksId = new ArrayList<>();
+	private List<String> resolveNetworkIds(ComputeOrder computeOrder) {
+		List<String> requestedNetworkIds = new ArrayList<>();
         String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
+        requestedNetworkIds.add(defaultNetworkId);
         if (!computeOrder.getNetworkIds().isEmpty()) {
-        	requestedNetworksId.addAll(computeOrder.getNetworkIds());
+        	requestedNetworkIds.addAll(computeOrder.getNetworkIds());
         }
-        requestedNetworksId.add(defaultNetworkId);        
-        computeOrder.setNetworkIds(requestedNetworksId);
-		return requestedNetworksId.get(FIRST_AVAILABLE_ID);
+        computeOrder.setNetworkIds(requestedNetworkIds);
+		return requestedNetworkIds;
 	}
 	
 	protected HardwareRequirements findSmallestFlavor(ComputeOrder computeOrder, Token token)

@@ -1,5 +1,8 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CreateComputeRequest {
 
 	private VirtualMachineTemplate virtualMachine;
@@ -15,7 +18,7 @@ public class CreateComputeRequest {
 		VirtualMachineTemplate.Graphics graphics = buildGraphics(builder);
 		VirtualMachineTemplate.ImageDisk imageDisk = buildImage(builder);
 		VirtualMachineTemplate.VolumeDisk volumeDisk = buildVolume(builder);
-		VirtualMachineTemplate.NetworkInterfaceConnected nic = buildNetworkInterfaceConnected(builder);
+		List<VirtualMachineTemplate.Nic> nics = buildNics(builder);
 		
 		this.virtualMachine = new VirtualMachineTemplate();
 		this.virtualMachine.setContext(context);
@@ -24,13 +27,17 @@ public class CreateComputeRequest {
 		this.virtualMachine.setImageDisk(imageDisk);
 		this.virtualMachine.setVolumeDisk(volumeDisk);
 		this.virtualMachine.setMemory(memory);
-		this.virtualMachine.setNic(nic);
+		this.virtualMachine.setNics(nics);
 	}
 
-	private VirtualMachineTemplate.NetworkInterfaceConnected buildNetworkInterfaceConnected(Builder builder) {
-		VirtualMachineTemplate.NetworkInterfaceConnected nic = new VirtualMachineTemplate.NetworkInterfaceConnected();
-		nic.setNetworkId(builder.networkId);
-		return nic;
+	private List<VirtualMachineTemplate.Nic> buildNics(Builder builder) {
+		List<VirtualMachineTemplate.Nic> networks = new ArrayList<>();
+		for (int i = 0; i < networks.size(); i++) {
+			VirtualMachineTemplate.Nic nic = new VirtualMachineTemplate.Nic();
+			nic.setNetworkId(builder.networks.get(i));
+			networks.add(nic);
+		}
+		return networks;
 	}
 
 	private VirtualMachineTemplate.VolumeDisk buildVolume(Builder builder) {
@@ -72,7 +79,7 @@ public class CreateComputeRequest {
 		private String volumeSize;
 		private String volumeType;
 		private String memory;
-		private String networkId;
+		private List<String> networks;
 
 		public Builder contextEncoding(String contextEncoding) {
 			this.contextEncoding = contextEncoding;
@@ -124,8 +131,8 @@ public class CreateComputeRequest {
 			return this;
 		}
 
-		public Builder networkId(String networkId) {
-			this.networkId = networkId;
+		public Builder networks(List<String> networks) {
+			this.networks = networks;
 			return this;
 		}
 
