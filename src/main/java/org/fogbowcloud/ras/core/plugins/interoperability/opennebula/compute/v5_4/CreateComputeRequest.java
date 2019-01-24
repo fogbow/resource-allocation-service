@@ -32,7 +32,7 @@ public class CreateComputeRequest {
 
 	private List<VirtualMachineTemplate.Nic> buildNics(Builder builder) {
 		List<VirtualMachineTemplate.Nic> networks = new ArrayList<>();
-		for (int i = 0; i < networks.size(); i++) {
+		for (int i = 0; i < builder.networks.size(); i++) {
 			VirtualMachineTemplate.Nic nic = new VirtualMachineTemplate.Nic();
 			nic.setNetworkId(builder.networks.get(i));
 			networks.add(nic);

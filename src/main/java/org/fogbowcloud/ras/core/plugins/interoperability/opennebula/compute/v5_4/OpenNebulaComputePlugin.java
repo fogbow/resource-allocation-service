@@ -139,7 +139,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		}
 	}
 
-	private List<String> resolveNetworkIds(ComputeOrder computeOrder) {
+	protected List<String> resolveNetworkIds(ComputeOrder computeOrder) {
 		List<String> requestedNetworkIds = new ArrayList<>();
         String defaultNetworkId = this.properties.getProperty(DEFAULT_NETWORK_ID_KEY);
         requestedNetworkIds.add(defaultNetworkId);
@@ -289,4 +289,7 @@ public class OpenNebulaComputePlugin implements ComputePlugin<Token>{
 		this.flavors = flavors;
 	}
 	
+	public void setLaunchCommandGenerator(LaunchCommandGenerator launchCommandGenerator) {
+		this.launchCommandGenerator = launchCommandGenerator;
+	}
 }
