@@ -16,6 +16,8 @@ import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenN
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.USERDATA;
 import static org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaTagNameConstants.USERDATA_ENCODING;
 
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -30,7 +32,7 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 	private VirtualMachineTemplate.ImageDisk imageDisk;
 	private VirtualMachineTemplate.VolumeDisk volumeDisk;
 	private String memory;
-	private VirtualMachineTemplate.NetworkInterfaceConnected nic;
+	private List<VirtualMachineTemplate.Nic> nics;
 
 	@XmlElement(name = CONTEXT)
 	public VirtualMachineTemplate.Context getContext() {
@@ -87,12 +89,12 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 	}
 
 	@XmlElement(name = NETWORK_INTERFACE_CONNECTED)
-	public VirtualMachineTemplate.NetworkInterfaceConnected getNic() {
-		return nic;
+	public List<VirtualMachineTemplate.Nic> getNics() {
+		return nics;
 	}
 
-	public void setNic(VirtualMachineTemplate.NetworkInterfaceConnected nic) {
-		this.nic = nic;
+	public void setNics(List<VirtualMachineTemplate.Nic> nics) {
+		this.nics = nics;
 	}
 
 	@XmlRootElement(name = CONTEXT)
@@ -196,7 +198,7 @@ public class VirtualMachineTemplate extends OpenNebulaMarshallerTemplate {
 	}
 	
 	@XmlRootElement(name = NETWORK_INTERFACE_CONNECTED)
-	public static class NetworkInterfaceConnected {
+	public static class Nic {
 
 		private String networkId;
 
