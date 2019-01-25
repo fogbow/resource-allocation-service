@@ -1,7 +1,13 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
 
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.SystemConstants;
@@ -11,10 +17,10 @@ import org.fogbowcloud.ras.core.exceptions.NoAvailableResourcesException;
 import org.fogbowcloud.ras.core.exceptions.QuotaExceededException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.HardwareRequirements;
+import org.fogbowcloud.ras.core.models.UserData;
 import org.fogbowcloud.ras.core.models.instances.ComputeInstance;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
-import org.fogbowcloud.ras.core.models.UserData;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
@@ -23,7 +29,6 @@ import org.fogbowcloud.ras.core.plugins.interoperability.util.CloudInitUserDataB
 import org.fogbowcloud.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import org.fogbowcloud.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -75,7 +80,9 @@ public class OpenNebulaComputePluginTest {
 	private static final String UNCHECKED_VALUE = "unchecked";
 
 	private static final String FAKE_USER_DATA = "fake-user-data";
-	private static final UserData[] FAKE_USER_DATA_ARRAY = new UserData[]{new UserData(FAKE_USER_DATA, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag")};
+	private static final UserData[] FAKE_USER_DATA_ARRAY = new UserData[] {
+			new UserData(FAKE_USER_DATA, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag") };
+	
 	private static final ArrayList<UserData> FAKE_LIST_USER_DATA = new ArrayList<>(Arrays.asList(FAKE_USER_DATA_ARRAY));
 
 	private static final int CPU_VALUE = 4;
@@ -91,8 +98,13 @@ public class OpenNebulaComputePluginTest {
     @Before
 	public void setUp() {
 		this.factory = Mockito.mock(OpenNebulaClientFactory.class);
-		this.openenbulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
-				File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+		this.openenbulaConfFilePath = HomeDir.getPath() 
+				+ SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME 
+				+ File.separator 
+				+ CLOUD_NAME 
+				+ File.separator 
+				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+		
 		this.plugin = Mockito.spy(new OpenNebulaComputePlugin(openenbulaConfFilePath));
 		this.flavors = Mockito.spy(new TreeSet<>());
 	}
@@ -117,18 +129,18 @@ public class OpenNebulaComputePluginTest {
 	// template with a list of networks ID, a virtual network will be allocated,
 	// returned a instance ID.
 	@Test
-	public void testRequestInstanceSuccessfulWithNetworksId() throws UnexpectedException, FogbowRasException {
+	public void testRequestInstanceSuccessfulWithNetworkIds() throws UnexpectedException, FogbowRasException {
 		// set up
 		OpenNebulaToken token = createOpenNebulaToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
-		List<String> networksId = listNetworksId();
+		List<String> networkIds = listNetworkIds();
 		int cpu = 2;
 		int memory = 1024;
 		int disk = 8;
-		ComputeOrder computeOrder = createComputeOrder(networksId, cpu, memory, disk);
+		ComputeOrder computeOrder = createComputeOrder(networkIds, cpu, memory, disk);
 
 		Map<String, String> imageSizeMap = createImageSizeMap();
 		Mockito.doReturn(imageSizeMap).when(this.plugin).getImageSizes(client);
@@ -151,9 +163,15 @@ public class OpenNebulaComputePluginTest {
 		String valueOfCpu = String.valueOf(2);
 		String valueOfRam = String.valueOf(1024);
 		String valueOfDisk = String.valueOf(8);
-		String defaultNetworkId = String.valueOf(DEFAULT_NETWORK_ID); 
+		String defaultNetworkId = String.valueOf(DEFAULT_NETWORK_ID);
 		String privateNetworkId = FAKE_PRIVATE_NETWORK_ID;
-		String vmTemplate = generateTemplate(choice, valueOfCpu, valueOfRam, defaultNetworkId, privateNetworkId, valueOfDisk);
+		String vmTemplate = generateTemplate(
+				choice, 
+				valueOfCpu, 
+				valueOfRam, 
+				defaultNetworkId, 
+				privateNetworkId,
+				valueOfDisk);
 
 		// exercise
 		this.plugin.requestInstance(computeOrder, token);
@@ -177,12 +195,12 @@ public class OpenNebulaComputePluginTest {
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
-		List<String> networksId = null;
+		List<String> networkIds = null;
 		int cpu = 1;
 		int memory = 2048;
 		int disk = 8;
 
-		ComputeOrder computeOrder = createComputeOrder(networksId, cpu, memory, disk);
+		ComputeOrder computeOrder = createComputeOrder(networkIds, cpu, memory, disk);
 
 		HardwareRequirements flavor = createHardwareRequirements();
 		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, token);
@@ -220,12 +238,12 @@ public class OpenNebulaComputePluginTest {
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
-		List<String> networksId = null;
+		List<String> networkIds = null;
 		int cpu = 1;
 		int memory = 2048;
 		int disk = 8;
 
-		ComputeOrder computeOrder = createComputeOrder(networksId, cpu, memory, disk);
+		ComputeOrder computeOrder = createComputeOrder(networkIds, cpu, memory, disk);
 
 		Map<String, String> imageSizeMap = createImageSizeMap();
 		Mockito.doReturn(imageSizeMap).when(this.plugin).getImageSizes(client);
@@ -236,7 +254,6 @@ public class OpenNebulaComputePluginTest {
 		this.plugin.requestInstance(computeOrder, token);
 	}
 	
-	@Ignore
 	// test case: When calling the requestInstance method, and an error not
 	// specified occurs while attempting to allocate a virtual machine, an
 	// InvalidParameterException will be thrown.
@@ -249,12 +266,12 @@ public class OpenNebulaComputePluginTest {
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
-		List<String> networksId = null;
-		int cpu = 1;
+		List<String> networkIds = null;
+		int cpu = 4;
 		int memory = 2048;
 		int disk = 8;
 
-		ComputeOrder computeOrder = createComputeOrder(networksId, cpu, memory, disk);
+		ComputeOrder computeOrder = createComputeOrder(networkIds, cpu, memory, disk);
 
 		Map<String, String> imageSizeMap = createImageSizeMap();
 		Mockito.doReturn(imageSizeMap).when(this.plugin).getImageSizes(client);
@@ -262,16 +279,20 @@ public class OpenNebulaComputePluginTest {
 		HardwareRequirements flavor = createHardwareRequirements();
 		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, token);
 
+		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
+		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
+		this.plugin.setLaunchCommandGenerator(mockLaunchCommandGenerator);
+		
 		int choice = 1;
 		String networkId = null;
-		String valueOfCpu = String.valueOf(4);
-		String valueOfRam = String.valueOf(2048);
-		String valueOfDisk = String.valueOf(8);
+		String valueOfCpu = String.valueOf(cpu);
+		String valueOfRam = String.valueOf(memory);
+		String valueOfDisk = String.valueOf(disk);
 		String template = generateTemplate(choice, valueOfCpu, valueOfRam, networkId, valueOfDisk);
 
 		OneResponse response = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(VirtualMachine.class);
-		PowerMockito.when(VirtualMachine.allocate(client, template)).thenReturn(response);
+		PowerMockito.when(VirtualMachine.allocate(Mockito.any(Client.class), Mockito.anyString())).thenReturn(response);
 		Mockito.doReturn(true).when(response).isError();
 		Mockito.when(response.getErrorMessage()).thenReturn(MESSAGE_RESPONSE_ANYTHING);
 
@@ -283,7 +304,6 @@ public class OpenNebulaComputePluginTest {
 		Mockito.verify(this.factory, Mockito.times(1)).allocateVirtualMachine(Mockito.eq(client), Mockito.eq(template));
 	}
 	
-	@Ignore
 	// test case: When you attempt to allocate a virtual machine with the
 	// requestInstance method call, and an insufficient free memory error message
 	// occurs, a NoAvailableResourcesException will be thrown.
@@ -296,12 +316,12 @@ public class OpenNebulaComputePluginTest {
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
-		List<String> networksId = null;
-		int cpu = 1;
+		List<String> networkIds = null;
+		int cpu = 4;
 		int memory = 2048;
 		int disk = 8;
 
-		ComputeOrder computeOrder = createComputeOrder(networksId, cpu, memory, disk);
+		ComputeOrder computeOrder = createComputeOrder(networkIds, cpu, memory, disk);
 
 		Map<String, String> imageSizeMap = createImageSizeMap();
 		Mockito.doReturn(imageSizeMap).when(this.plugin).getImageSizes(client);
@@ -309,16 +329,20 @@ public class OpenNebulaComputePluginTest {
 		HardwareRequirements flavor = createHardwareRequirements();
 		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, token);
 
+		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
+		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
+		this.plugin.setLaunchCommandGenerator(mockLaunchCommandGenerator);
+		
 		int choice = 1;
 		String networkId = null;
-		String valueOfCpu = String.valueOf(4);
-		String valueOfRam = String.valueOf(2048);
-		String valueOfDisk = String.valueOf(8);
+		String valueOfCpu = String.valueOf(cpu);
+		String valueOfRam = String.valueOf(memory);
+		String valueOfDisk = String.valueOf(disk);
 		String template = generateTemplate(choice, valueOfCpu, valueOfRam, valueOfDisk, networkId);
 		
 		OneResponse response = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(VirtualMachine.class);
-		PowerMockito.when(VirtualMachine.allocate(client, template)).thenReturn(response);
+		PowerMockito.when(VirtualMachine.allocate(Mockito.any(Client.class), Mockito.anyString())).thenReturn(response);
 		Mockito.doReturn(true).when(response).isError();
 		Mockito.when(response.getErrorMessage()).thenReturn(MESSAGE_RESPONSE_WITHOUT_MEMORY);
 
@@ -330,7 +354,6 @@ public class OpenNebulaComputePluginTest {
 		Mockito.verify(this.factory, Mockito.times(1)).allocateVirtualMachine(Mockito.eq(client), Mockito.eq(template));
 	}
 	
-	@Ignore
 	// test case: When attempting to allocate a virtual machine with the
 	// requestInstance method call, and an error message occurs with the words limit
 	// and quota, a QuotaExceededException will be thrown.
@@ -343,12 +366,12 @@ public class OpenNebulaComputePluginTest {
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
-		List<String> networksId = null;
-		int cpu = 1;
+		List<String> networkIds = null;
+		int cpu = 4;
 		int memory = 2048;
 		int disk = 8;
 
-		ComputeOrder computeOrder = createComputeOrder(networksId, cpu, memory, disk);
+		ComputeOrder computeOrder = createComputeOrder(networkIds, cpu, memory, disk);
 
 		Map<String, String> imageSizeMap = createImageSizeMap();
 		Mockito.doReturn(imageSizeMap).when(this.plugin).getImageSizes(client);
@@ -356,16 +379,20 @@ public class OpenNebulaComputePluginTest {
 		HardwareRequirements flavor = createHardwareRequirements();
 		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, token);
 
+		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
+		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
+		this.plugin.setLaunchCommandGenerator(mockLaunchCommandGenerator);
+		
 		int choice = 1;
 		String networkId = null;
-		String valueOfCpu = String.valueOf(4);
-		String valueOfRam = String.valueOf(2048);
-		String valueOfDisk = String.valueOf(8);
+		String valueOfCpu = String.valueOf(cpu);
+		String valueOfRam = String.valueOf(memory);
+		String valueOfDisk = String.valueOf(disk);
 		String template = generateTemplate(choice, valueOfCpu, valueOfRam, networkId, valueOfDisk);
 		
 		OneResponse response = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(VirtualMachine.class);
-		PowerMockito.when(VirtualMachine.allocate(client, template)).thenReturn(response);
+		PowerMockito.when(VirtualMachine.allocate(Mockito.any(Client.class), Mockito.anyString())).thenReturn(response);
 		Mockito.doReturn(true).when(response).isError();
 		Mockito.when(response.getErrorMessage()).thenReturn(MESSAGE_RESPONSE_LIMIT_QUOTA);
 
@@ -471,14 +498,12 @@ public class OpenNebulaComputePluginTest {
 		Map<String, String> imageSizeMap = createImageSizeMap();
 		Mockito.doReturn(imageSizeMap).when(this.plugin).getImageSizes(client);
 
-		Template template = mockTemplatePoolIterator(client);
-
 		Mockito.doReturn(true).when(this.plugin).containsFlavor(Mockito.any(HardwareRequirements.class),
 				Mockito.anyCollection());
 
+		Template template = mockTemplatePoolIterator(client);
 		int index = 1;
 		Mockito.when(template.xpath(String.format(TEMPLATE_DISK_INDEX_IMAGE_PATH, index))).thenReturn(FAKE_IMAGE_KEY);
-
 		index++;
 		Mockito.when(template.xpath(String.format(TEMPLATE_DISK_INDEX_PATH, index))).thenReturn(FAKE_NAME);
 
@@ -645,7 +670,7 @@ public class OpenNebulaComputePluginTest {
 		return new HardwareRequirements(name, id, cpu, ram, disk);
 	}
 
-	private List<String> listNetworksId() {
+	private List<String> listNetworkIds() {
 		String privateNetworkId = FAKE_PRIVATE_NETWORK_ID;
 		List<String> networksId = new ArrayList<>();
 		networksId.add(privateNetworkId);

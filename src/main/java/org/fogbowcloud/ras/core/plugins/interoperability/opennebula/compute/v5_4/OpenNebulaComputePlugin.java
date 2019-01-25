@@ -23,7 +23,6 @@ import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.ComputePlugin;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaStateMapper;
-import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.compute.v5_4.VirtualMachineTemplate.Nic;
 import org.fogbowcloud.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
 import org.fogbowcloud.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.fogbowcloud.ras.util.PropertiesUtil;
