@@ -1,7 +1,13 @@
 package org.fogbowcloud.ras.core.plugins.interoperability.opennebula.compute.v5_4;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
 
 import org.fogbowcloud.ras.core.HomeDir;
 import org.fogbowcloud.ras.core.constants.SystemConstants;
@@ -11,15 +17,17 @@ import org.fogbowcloud.ras.core.exceptions.NoAvailableResourcesException;
 import org.fogbowcloud.ras.core.exceptions.QuotaExceededException;
 import org.fogbowcloud.ras.core.exceptions.UnexpectedException;
 import org.fogbowcloud.ras.core.models.HardwareRequirements;
+import org.fogbowcloud.ras.core.models.UserData;
 import org.fogbowcloud.ras.core.models.instances.ComputeInstance;
 import org.fogbowcloud.ras.core.models.instances.InstanceState;
 import org.fogbowcloud.ras.core.models.orders.ComputeOrder;
-import org.fogbowcloud.ras.core.models.UserData;
 import org.fogbowcloud.ras.core.models.tokens.FederationUserToken;
 import org.fogbowcloud.ras.core.models.tokens.OpenNebulaToken;
 import org.fogbowcloud.ras.core.models.tokens.Token;
 import org.fogbowcloud.ras.core.plugins.interoperability.opennebula.OpenNebulaClientFactory;
 import org.fogbowcloud.ras.core.plugins.interoperability.util.CloudInitUserDataBuilder;
+import org.fogbowcloud.ras.core.plugins.interoperability.util.DefaultLaunchCommandGenerator;
+import org.fogbowcloud.ras.core.plugins.interoperability.util.LaunchCommandGenerator;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -71,12 +79,16 @@ public class OpenNebulaComputePluginTest {
 	private static final String TEMPLATE_NIC_IP_PATH = "TEMPLATE/NIC/IP";
 	private static final String UNCHECKED_VALUE = "unchecked";
 
-	private static final UserData[] fakeUserDataArray= new UserData[]{new UserData("fakeuserdata", CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag")};
-	private static final ArrayList<UserData> FAKE_USER_DATA = new ArrayList<>(Arrays.asList(fakeUserDataArray));
+	private static final String FAKE_USER_DATA = "fake-user-data";
+	private static final UserData[] FAKE_USER_DATA_ARRAY = new UserData[] {
+			new UserData(FAKE_USER_DATA, CloudInitUserDataBuilder.FileType.CLOUD_CONFIG, "fake-tag") };
+	
+	private static final ArrayList<UserData> FAKE_LIST_USER_DATA = new ArrayList<>(Arrays.asList(FAKE_USER_DATA_ARRAY));
 
 	private static final int CPU_VALUE = 4;
 	private static final int MEMORY_VALUE = 2048;
 	private static final int DISK_VALUE = 8;
+	private static final int DEFAULT_NETWORK_ID = 0;
 
 	private OpenNebulaClientFactory factory;
 	private OpenNebulaComputePlugin plugin;
@@ -86,8 +98,13 @@ public class OpenNebulaComputePluginTest {
     @Before
 	public void setUp() {
 		this.factory = Mockito.mock(OpenNebulaClientFactory.class);
-		this.openenbulaConfFilePath = HomeDir.getPath() + SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME +
-				File.separator + CLOUD_NAME + File.separator + SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+		this.openenbulaConfFilePath = HomeDir.getPath() 
+				+ SystemConstants.CLOUDS_CONFIGURATION_DIRECTORY_NAME 
+				+ File.separator 
+				+ CLOUD_NAME 
+				+ File.separator 
+				+ SystemConstants.CLOUD_SPECIFICITY_CONF_FILE_NAME;
+		
 		this.plugin = Mockito.spy(new OpenNebulaComputePlugin(openenbulaConfFilePath));
 		this.flavors = Mockito.spy(new TreeSet<>());
 	}
@@ -112,18 +129,18 @@ public class OpenNebulaComputePluginTest {
 	// template with a list of networks ID, a virtual network will be allocated,
 	// returned a instance ID.
 	@Test
-	public void testRequestInstanceSuccessfulWithNetworksId() throws UnexpectedException, FogbowRasException {
+	public void testRequestInstanceSuccessfulWithNetworkIds() throws UnexpectedException, FogbowRasException {
 		// set up
 		OpenNebulaToken token = createOpenNebulaToken();
 		Client client = this.factory.createClient(token.getTokenValue());
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
-		List<String> networksId = listNetworksId();
+		List<String> networkIds = listNetworkIds();
 		int cpu = 2;
 		int memory = 1024;
 		int disk = 8;
-		ComputeOrder computeOrder = createComputeOrder(networksId, cpu, memory, disk);
+		ComputeOrder computeOrder = createComputeOrder(networkIds, cpu, memory, disk);
 
 		Map<String, String> imageSizeMap = createImageSizeMap();
 		Mockito.doReturn(imageSizeMap).when(this.plugin).getImageSizes(client);
@@ -138,11 +155,23 @@ public class OpenNebulaComputePluginTest {
 
 		Mockito.doReturn(disk).when(this.plugin).loadImageSizeDisk(imageSizeMap, template);
 
-		String networkId = FAKE_PRIVATE_NETWORK_ID;
+		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
+		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
+		this.plugin.setLaunchCommandGenerator(mockLaunchCommandGenerator);
+		
+		int choice = 0;
 		String valueOfCpu = String.valueOf(2);
 		String valueOfRam = String.valueOf(1024);
 		String valueOfDisk = String.valueOf(8);
-		String vmTemplate = generateTemplate(valueOfCpu, valueOfRam, networkId, valueOfDisk);
+		String defaultNetworkId = String.valueOf(DEFAULT_NETWORK_ID);
+		String privateNetworkId = FAKE_PRIVATE_NETWORK_ID;
+		String vmTemplate = generateTemplate(
+				choice, 
+				valueOfCpu, 
+				valueOfRam, 
+				defaultNetworkId, 
+				privateNetworkId,
+				valueOfDisk);
 
 		// exercise
 		this.plugin.requestInstance(computeOrder, token);
@@ -166,21 +195,26 @@ public class OpenNebulaComputePluginTest {
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
-		List<String> networksId = null;
+		List<String> networkIds = null;
 		int cpu = 1;
 		int memory = 2048;
 		int disk = 8;
 
-		ComputeOrder computeOrder = createComputeOrder(networksId, cpu, memory, disk);
+		ComputeOrder computeOrder = createComputeOrder(networkIds, cpu, memory, disk);
 
 		HardwareRequirements flavor = createHardwareRequirements();
 		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, token);
 
+		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
+		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
+		this.plugin.setLaunchCommandGenerator(mockLaunchCommandGenerator);
+		
+		int choice = 1;
 		String networkId = null;
 		String valueOfCpu = String.valueOf(4);
 		String valueOfRam = String.valueOf(2048);
 		String valueOfDisk = String.valueOf(8);
-		String template = generateTemplate(valueOfCpu, valueOfRam, networkId, valueOfDisk);
+		String template = generateTemplate(choice, valueOfCpu, valueOfRam, networkId, valueOfDisk);
 
 		// exercise
 		this.plugin.requestInstance(computeOrder, token);
@@ -204,12 +238,12 @@ public class OpenNebulaComputePluginTest {
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
-		List<String> networksId = null;
+		List<String> networkIds = null;
 		int cpu = 1;
 		int memory = 2048;
 		int disk = 8;
 
-		ComputeOrder computeOrder = createComputeOrder(networksId, cpu, memory, disk);
+		ComputeOrder computeOrder = createComputeOrder(networkIds, cpu, memory, disk);
 
 		Map<String, String> imageSizeMap = createImageSizeMap();
 		Mockito.doReturn(imageSizeMap).when(this.plugin).getImageSizes(client);
@@ -232,12 +266,12 @@ public class OpenNebulaComputePluginTest {
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
-		List<String> networksId = null;
-		int cpu = 1;
+		List<String> networkIds = null;
+		int cpu = 4;
 		int memory = 2048;
 		int disk = 8;
 
-		ComputeOrder computeOrder = createComputeOrder(networksId, cpu, memory, disk);
+		ComputeOrder computeOrder = createComputeOrder(networkIds, cpu, memory, disk);
 
 		Map<String, String> imageSizeMap = createImageSizeMap();
 		Mockito.doReturn(imageSizeMap).when(this.plugin).getImageSizes(client);
@@ -245,15 +279,20 @@ public class OpenNebulaComputePluginTest {
 		HardwareRequirements flavor = createHardwareRequirements();
 		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, token);
 
+		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
+		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
+		this.plugin.setLaunchCommandGenerator(mockLaunchCommandGenerator);
+		
+		int choice = 1;
 		String networkId = null;
-		String valueOfCpu = String.valueOf(4);
-		String valueOfRam = String.valueOf(2048);
-		String valueOfDisk = String.valueOf(8);
-		String template = generateTemplate(valueOfCpu, valueOfRam, networkId, valueOfDisk);
+		String valueOfCpu = String.valueOf(cpu);
+		String valueOfRam = String.valueOf(memory);
+		String valueOfDisk = String.valueOf(disk);
+		String template = generateTemplate(choice, valueOfCpu, valueOfRam, networkId, valueOfDisk);
 
 		OneResponse response = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(VirtualMachine.class);
-		PowerMockito.when(VirtualMachine.allocate(client, template)).thenReturn(response);
+		PowerMockito.when(VirtualMachine.allocate(Mockito.any(Client.class), Mockito.anyString())).thenReturn(response);
 		Mockito.doReturn(true).when(response).isError();
 		Mockito.when(response.getErrorMessage()).thenReturn(MESSAGE_RESPONSE_ANYTHING);
 
@@ -277,12 +316,12 @@ public class OpenNebulaComputePluginTest {
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
-		List<String> networksId = null;
-		int cpu = 1;
+		List<String> networkIds = null;
+		int cpu = 4;
 		int memory = 2048;
 		int disk = 8;
 
-		ComputeOrder computeOrder = createComputeOrder(networksId, cpu, memory, disk);
+		ComputeOrder computeOrder = createComputeOrder(networkIds, cpu, memory, disk);
 
 		Map<String, String> imageSizeMap = createImageSizeMap();
 		Mockito.doReturn(imageSizeMap).when(this.plugin).getImageSizes(client);
@@ -290,15 +329,20 @@ public class OpenNebulaComputePluginTest {
 		HardwareRequirements flavor = createHardwareRequirements();
 		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, token);
 
+		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
+		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
+		this.plugin.setLaunchCommandGenerator(mockLaunchCommandGenerator);
+		
+		int choice = 1;
 		String networkId = null;
-		String valueOfCpu = String.valueOf(4);
-		String valueOfRam = String.valueOf(2048);
-		String valueOfDisk = String.valueOf(8);
-		String template = generateTemplate(valueOfCpu, valueOfRam, networkId, valueOfDisk);
-
+		String valueOfCpu = String.valueOf(cpu);
+		String valueOfRam = String.valueOf(memory);
+		String valueOfDisk = String.valueOf(disk);
+		String template = generateTemplate(choice, valueOfCpu, valueOfRam, valueOfDisk, networkId);
+		
 		OneResponse response = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(VirtualMachine.class);
-		PowerMockito.when(VirtualMachine.allocate(client, template)).thenReturn(response);
+		PowerMockito.when(VirtualMachine.allocate(Mockito.any(Client.class), Mockito.anyString())).thenReturn(response);
 		Mockito.doReturn(true).when(response).isError();
 		Mockito.when(response.getErrorMessage()).thenReturn(MESSAGE_RESPONSE_WITHOUT_MEMORY);
 
@@ -322,12 +366,12 @@ public class OpenNebulaComputePluginTest {
 		Mockito.doReturn(client).when(this.factory).createClient(token.getTokenValue());
 		this.plugin.setFactory(this.factory);
 
-		List<String> networksId = null;
-		int cpu = 1;
+		List<String> networkIds = null;
+		int cpu = 4;
 		int memory = 2048;
 		int disk = 8;
 
-		ComputeOrder computeOrder = createComputeOrder(networksId, cpu, memory, disk);
+		ComputeOrder computeOrder = createComputeOrder(networkIds, cpu, memory, disk);
 
 		Map<String, String> imageSizeMap = createImageSizeMap();
 		Mockito.doReturn(imageSizeMap).when(this.plugin).getImageSizes(client);
@@ -335,15 +379,20 @@ public class OpenNebulaComputePluginTest {
 		HardwareRequirements flavor = createHardwareRequirements();
 		Mockito.doReturn(flavor).when(this.plugin).findSmallestFlavor(computeOrder, token);
 
+		LaunchCommandGenerator mockLaunchCommandGenerator = Mockito.spy(new DefaultLaunchCommandGenerator());
+		Mockito.doReturn(FAKE_USER_DATA).when(mockLaunchCommandGenerator).createLaunchCommand(Mockito.any());
+		this.plugin.setLaunchCommandGenerator(mockLaunchCommandGenerator);
+		
+		int choice = 1;
 		String networkId = null;
-		String valueOfCpu = String.valueOf(4);
-		String valueOfRam = String.valueOf(2048);
-		String valueOfDisk = String.valueOf(8);
-		String template = generateTemplate(valueOfCpu, valueOfRam, networkId, valueOfDisk);
-
+		String valueOfCpu = String.valueOf(cpu);
+		String valueOfRam = String.valueOf(memory);
+		String valueOfDisk = String.valueOf(disk);
+		String template = generateTemplate(choice, valueOfCpu, valueOfRam, networkId, valueOfDisk);
+		
 		OneResponse response = Mockito.mock(OneResponse.class);
 		PowerMockito.mockStatic(VirtualMachine.class);
-		PowerMockito.when(VirtualMachine.allocate(client, template)).thenReturn(response);
+		PowerMockito.when(VirtualMachine.allocate(Mockito.any(Client.class), Mockito.anyString())).thenReturn(response);
 		Mockito.doReturn(true).when(response).isError();
 		Mockito.when(response.getErrorMessage()).thenReturn(MESSAGE_RESPONSE_LIMIT_QUOTA);
 
@@ -449,14 +498,12 @@ public class OpenNebulaComputePluginTest {
 		Map<String, String> imageSizeMap = createImageSizeMap();
 		Mockito.doReturn(imageSizeMap).when(this.plugin).getImageSizes(client);
 
-		Template template = mockTemplatePoolIterator(client);
-
 		Mockito.doReturn(true).when(this.plugin).containsFlavor(Mockito.any(HardwareRequirements.class),
 				Mockito.anyCollection());
 
+		Template template = mockTemplatePoolIterator(client);
 		int index = 1;
 		Mockito.when(template.xpath(String.format(TEMPLATE_DISK_INDEX_IMAGE_PATH, index))).thenReturn(FAKE_IMAGE_KEY);
-
 		index++;
 		Mockito.when(template.xpath(String.format(TEMPLATE_DISK_INDEX_PATH, index))).thenReturn(FAKE_NAME);
 
@@ -591,7 +638,7 @@ public class OpenNebulaComputePluginTest {
 		String hostName = FAKE_HOST_NAME;
 		String image = FAKE_IMAGE;
 		String publicKey = FAKE_PUBLIC_KEY;
-		List<UserData> userData = FAKE_USER_DATA;
+		List<UserData> userData = FAKE_LIST_USER_DATA;
 		
 		InstanceState state = InstanceState.READY;
 		List<String> ipAddresses = null;
@@ -623,7 +670,7 @@ public class OpenNebulaComputePluginTest {
 		return new HardwareRequirements(name, id, cpu, ram, disk);
 	}
 
-	private List<String> listNetworksId() {
+	private List<String> listNetworkIds() {
 		String privateNetworkId = FAKE_PRIVATE_NETWORK_ID;
 		List<String> networksId = new ArrayList<>();
 		networksId.add(privateNetworkId);
@@ -640,7 +687,7 @@ public class OpenNebulaComputePluginTest {
 		String publicKey = FAKE_PUBLIC_KEY;
 		
 		FederationUserToken federationUserToken = null;
-		ArrayList<UserData> userData = FAKE_USER_DATA;
+		ArrayList<UserData> userData = FAKE_LIST_USER_DATA;
 		
 		ComputeOrder computeOrder = new ComputeOrder(
 				federationUserToken, 
@@ -676,36 +723,78 @@ public class OpenNebulaComputePluginTest {
 		return token;
 	}
 	
-	private String generateTemplate(String ...args) {
-		String cpu = args[0];
-		String memory = args[1];
-		String networkId = args[2] != null ? args[2] : String.valueOf(0);
-		String size = args[3]; 
-		String template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
-				"<TEMPLATE>\n" + 
-				"    <CONTEXT>\n" + 
-				"        <USERDATA_ENCODING>base64</USERDATA_ENCODING>\n" + 
-				"        <NETWORK>YES</NETWORK>\n" +
-				"        <USERDATA>fakeuserdata</USERDATA>\n" +
-				"    </CONTEXT>\n" + 
-				"    <CPU>%s</CPU>\n" + 
-				"    <GRAPHICS>\n" + 
-				"        <LISTEN>0.0.0.0</LISTEN>\n" + 
-				"        <TYPE>vnc</TYPE>\n" + 
-				"    </GRAPHICS>\n" + 
-				"    <DISK>\n" + 
-				"        <IMAGE_ID>fake-image-id</IMAGE_ID>\n" + 
-				"    </DISK>\n" + 
-				"    <MEMORY>%s</MEMORY>\n" + 
-				"    <NIC>\n" + 
-				"        <NETWORK_ID>%s</NETWORK_ID>\n" + 
-				"    </NIC>\n" + 
-				"    <DISK>\n" + 
-				"        <SIZE>%s</SIZE>\n" + 
-				"        <TYPE>fs</TYPE>\n" + 
-				"    </DISK>\n" + 
-				"</TEMPLATE>\n";
-		return String.format(template, cpu, memory, networkId, size);
+	private String generateTemplate(int choice, String ...args) {
+		String cpu;
+		String memory;
+		String defaultNetworkId;
+		String privateNetworkId;
+		String size;
+		String template;
+		if (choice == 0) {
+			cpu = args[0];
+			memory = args[1];
+			defaultNetworkId = args[2] != null ? args[2] : String.valueOf(DEFAULT_NETWORK_ID);
+			privateNetworkId = args[3];
+			size = args[4];
+			template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
+					"<TEMPLATE>\n" + 
+					"    <CONTEXT>\n" + 
+					"        <USERDATA_ENCODING>base64</USERDATA_ENCODING>\n" + 
+					"        <NETWORK>YES</NETWORK>\n" +
+					"        <USERDATA>fake-user-data</USERDATA>\n" +
+					"    </CONTEXT>\n" + 
+					"    <CPU>%s</CPU>\n" + 
+					"    <GRAPHICS>\n" + 
+					"        <LISTEN>0.0.0.0</LISTEN>\n" + 
+					"        <TYPE>vnc</TYPE>\n" + 
+					"    </GRAPHICS>\n" + 
+					"    <DISK>\n" + 
+					"        <IMAGE_ID>fake-image-id</IMAGE_ID>\n" + 
+					"    </DISK>\n" + 
+					"    <MEMORY>%s</MEMORY>\n" + 
+					"    <NIC>\n" + 
+					"        <NETWORK_ID>%s</NETWORK_ID>\n" + 
+					"    </NIC>\n" + 
+					"    <NIC>\n" + 
+					"        <NETWORK_ID>%s</NETWORK_ID>\n" + 
+					"    </NIC>\n" + 
+					"    <DISK>\n" + 
+					"        <SIZE>%s</SIZE>\n" + 
+					"        <TYPE>fs</TYPE>\n" + 
+					"    </DISK>\n" + 
+					"</TEMPLATE>\n";
+			return String.format(template, cpu, memory, defaultNetworkId, privateNetworkId, size);
+		} else {
+			cpu = args[0];
+			memory = args[1];
+			defaultNetworkId = args[2] != null ? args[2] : String.valueOf(DEFAULT_NETWORK_ID);
+			size = args[3];
+			template = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" + 
+					"<TEMPLATE>\n" + 
+					"    <CONTEXT>\n" + 
+					"        <USERDATA_ENCODING>base64</USERDATA_ENCODING>\n" + 
+					"        <NETWORK>YES</NETWORK>\n" +
+					"        <USERDATA>fake-user-data</USERDATA>\n" +
+					"    </CONTEXT>\n" + 
+					"    <CPU>%s</CPU>\n" + 
+					"    <GRAPHICS>\n" + 
+					"        <LISTEN>0.0.0.0</LISTEN>\n" + 
+					"        <TYPE>vnc</TYPE>\n" + 
+					"    </GRAPHICS>\n" + 
+					"    <DISK>\n" + 
+					"        <IMAGE_ID>fake-image-id</IMAGE_ID>\n" + 
+					"    </DISK>\n" + 
+					"    <MEMORY>%s</MEMORY>\n" + 
+					"    <NIC>\n" + 
+					"        <NETWORK_ID>%s</NETWORK_ID>\n" + 
+					"    </NIC>\n" + 
+					"    <DISK>\n" + 
+					"        <SIZE>%s</SIZE>\n" + 
+					"        <TYPE>fs</TYPE>\n" + 
+					"    </DISK>\n" + 
+					"</TEMPLATE>\n";
+			return String.format(template, cpu, memory, defaultNetworkId, size);
+		}
 	}
 	
 }
